@@ -1490,9 +1490,11 @@ void TheorySetsRels::applyInstCycleRule(Node relTuple, Node exp)
                                           nm->mkConstInt(Rational(1)),
                                           SkolemCache::SK_CYCLE_ELEM,
                                           "cyc");
-  // l is the symbolic eventual length of the cycle.
+  // l is the symbolic eventual length of the cycle. Register l as a
+  // shared term so that checkAcyclicityLastCall can query its model value.
   Node l = d_skCache.mkTypedSkolemCached(
       nm->integerType(), relUnion, SkolemCache::SK_CYCLE_LEN, "cyclen");
+  makeSharedTerm(l);
 
   d_cycle_sequences.insert(rels, std::make_pair(std::vector<Node>{s1}, l));
 
