@@ -16,11 +16,6 @@ on:
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
-    inputs:
-      strict:
-        description: 'Fail if the pinned Logos is out of date'
-        type: boolean
-        default: true
 
 name: cpc-logos
 
@@ -73,28 +68,9 @@ jobs:
           path: deps/cpc-compiler
           key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/check-logos-compilation') }}
 
-      # Two outcomes, reported differently. A signature that does not compile
-      # is a change to proofs/eo that the pull request can fix, so it fails the
-      # job. A signature that compiles but is ahead of the pinned Logos cannot
-      # be fixed in the pull request -- Logos has to be regenerated and the pin
-      # moved afterwards -- so on a pull request and on main it is a warning,
-      # and the nightly run is the one that fails, holding the drift visible
-      # until the pin moves.
+      # Run in strict mode so both a compilation failure and a signature that is
+      # ahead of the pinned Logos fail the job. In particular, do not mask the
+      # script's nonzero exit status: a passing check must mean that CPC is in
+      # sync with the pinned Logos.
       - name: Check that CPC is in sync with the pinned Logos
-        env:
-          STRICT: ${{ (github.event_name == 'schedule' || inputs.strict) && '--strict' || '' }}
-        run: |
-          status=0
-          ./contrib/check-logos-compilation ${STRICT} || status=$?
-          if [ "${status}" -eq 2 ]; then
-            echo "::warning title=CPC is ahead of the pinned Logos::proofs/eo/cpc no longer matches the Cpc package of the Logos commit pinned in contrib/check-logos-compilation. Regenerate Logos, then move LOGOS_VERSION."
-            {
-              echo "### CPC is ahead of the pinned Logos"
-              echo
-              echo "The signature compiles, but \`Cpc\` at the pinned Logos commit was"
-              echo "generated from an older version of it. Regenerate Logos against this"
-              echo "signature and move \`LOGOS_VERSION\` in \`contrib/check-logos-compilation\`."
-            } >> "${GITHUB_STEP_SUMMARY}"
-            exit 0
-          fi
-          exit "${status}"
+        run: ./contrib/check-logos-compilation --strict
