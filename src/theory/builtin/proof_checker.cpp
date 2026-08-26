@@ -490,7 +490,6 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     // Note that we fold applications of indexed operators whose indices are
     // given as explicit arguments, which is a no-op for the (common) case of
     // rules that do not mention indexed operators.
-    NodeManager* nm = nodeManager();
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
       Node scond = expr::narySubstitute(conds[i], varList, subs);
