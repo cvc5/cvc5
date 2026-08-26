@@ -60,6 +60,7 @@ class ContextManager;
 class SolverEngineState;
 class ResourceOutListener;
 class CheckModels;
+class ExpandDefs;
 /** Subsolvers */
 class SmtSolver;
 class SmtDriver;
@@ -1092,6 +1093,14 @@ class CVC5_EXPORT SolverEngine
    * The utility used for checking models
    */
   std::unique_ptr<smt::CheckModels> d_checkModels;
+
+  /**
+   * The utility used for expanding definitions, which is used when getting
+   * model values. Note this object maintains a cache of expanded forms that
+   * is valid for the lifetime of this solver engine, see
+   * ExpandDefs::expandDefinitions.
+   */
+  std::unique_ptr<smt::ExpandDefs> d_expDef;
 
   /**
    * The proof manager, which manages all things related to checking,

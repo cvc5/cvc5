@@ -107,6 +107,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_smtSolver(nullptr),
       d_smtDriver(nullptr),
       d_checkModels(nullptr),
+      d_expDef(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
       d_sygusSolver(nullptr),
@@ -125,6 +126,8 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_stats));
+  // make the expand definitions utility, used for getting model values
+  d_expDef.reset(new ExpandDefs(*d_env.get()));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state));
   // make the SyGuS solver
@@ -1239,12 +1242,19 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   // a division-by-zero term, we require getting the appropriate skolem
   // function corresponding to division-by-zero which may have been used during
   // the previous satisfiability check.
-  std::unordered_map<Node, Node> cache;
-  ExpandDefs expDef(*d_env.get());
+  //
+  // Note that each of the three steps below (substitution, expand definitions,
+  // rewriting) is cached by the utility that implements it, where each such
+  // cache is invalidated when the state it depends on changes. In particular,
+  // d_expDef maintains its cache for the lifetime of this solver engine, since
+  // expanded forms do not depend on the current assertions. This makes
+  // repeated calls to get-value on the same term (e.g. when enumerating
+  // models) constant time in the size of that term.
+  //
   // Must apply substitutions first to ensure we expand definitions in the
   // solved form of t as well.
   Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
-  n = expDef.expandDefinitions(n, cache);
+  n = d_expDef->expandDefinitions(n);
 
   Trace("smt") << "--- getting value of " << n << endl;
   // There are two ways model values for terms are computed (for historical
@@ -1262,7 +1272,36 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   Trace("smt") << "--- getting value of " << n << endl;
   TheoryModel* m = getAvailableModel("get-value");
   Assert(m != nullptr);
-  Node resultNode = m->getValue(n);
+  Node resultNode;
+  // Fast path: if n is a Boolean term that the prop engine already has a SAT
+  // literal for, and that literal has a value on the current SAT trail, then
+  // that value is its value in the model. This is since the model is
+  // constructed to satisfy the literals that were asserted to the theories,
+  // which are those of the trail, and since the values of Boolean variables in
+  // the model are read directly from the SAT solver, see
+  // ModelManager::collectModelBooleanVariables. Taking this path avoids
+  // evaluating n in the model, which is linear in the size of n and which must
+  // be redone after each satisfiability check.
+  //
+  // Note that we do not call PropEngine::ensureLiteral here: get-value must not
+  // add literals or clauses to the SAT solver. We also require that we are in
+  // SAT mode, since in SAT_UNKNOWN mode the available model may have been
+  // generated for a last call check, after which the SAT solver may have
+  // backtracked, in which case the trail does not correspond to the model.
+  bool bvalue;
+  prop::PropEngine* pe = d_smtSolver->getPropEngine();
+  if (expectedType.isBoolean() && d_state->getMode() == SmtMode::SAT
+      && pe->isSatLiteral(n) && pe->hasValue(n, bvalue))
+  {
+    resultNode = d_env->getNodeManager()->mkConst(bvalue);
+    Assert(resultNode == m->getValue(n))
+        << "Value of " << n << " on the SAT trail is " << resultNode
+        << ", but its value in the model is " << m->getValue(n);
+  }
+  else
+  {
+    resultNode = m->getValue(n);
+  }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
   Trace("smt") << "--- type " << resultNode.getType() << endl;
   Trace("smt") << "--- expected type " << expectedType << endl;
