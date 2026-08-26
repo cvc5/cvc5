@@ -58,10 +58,12 @@ class TermCanonize
 
   /** get term order
    *
-   * Returns true if a <= b in the term ordering used by this class. The
-   * term order is determined by the leftmost position in a and b whose
-   * operators o_a and o_b are distinct at that position. Then a <= b iff
-   * o_a <= o_b in the built-in node ordering.
+   * Returns true if a < b in the term ordering used by this class. Note this
+   * is a strict ordering, i.e. this method returns false if a and b are equal,
+   * and thus can be used as a comparator e.g. for std::sort. The term order is
+   * determined by the leftmost position in a and b whose operators o_a and o_b
+   * are distinct at that position. Then a < b iff o_a < o_b in the built-in
+   * node ordering.
    */
   bool getTermOrder(Node a, Node b);
   /** get canonical free variable #i of type tn */
