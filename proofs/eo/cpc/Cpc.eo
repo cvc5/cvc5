@@ -16,7 +16,7 @@
 ; well. This correspondence is enforced by the CI of cvc5, see
 ; ./contrib/check-logos-compilation. Note that Logos is also an executable proof
 ; checker, whose soundness follows from that verification. For details see
-./contrib/get-logos-checker.
+; ./contrib/get-logos-checker.
 ;
 ; NOTE: cvc5 does not strictly follow the SMT-LIB version 2.6 standard. In
 ; particular, it contains many extensions, including non-standard theories as
