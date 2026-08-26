@@ -54,3 +54,24 @@ Notice that the concrete syntax of CPC is very similar to the Alethe format.
 However, the proof rules used by these two formats are different.
 
 .. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=cpc --proof-granularity=dsl-rewrite ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2
+
+Verified checking with Logos
+----------------------------
+
+`Logos <https://github.com/ajreynol/logos>`_ is a proof checker for CPC written
+in Lean whose soundness is proven against a correctness specification.
+Its proof rules are not written by hand: they are compiled from the same
+Eunoia definition of CPC that is contained in this repository, so that the two
+definitions of the calculus are the same definition.
+
+Since that compilation consumes the signature in this repository, a change to
+:cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` can leave Logos behind.
+The :cvc5repo:`script <contrib/get-logos>` ``contrib/get-logos`` downloads a
+pinned commit of Logos together with the Eunoia compiler it uses, and
+:cvc5repo:`contrib/check-cpc-logos <contrib/check-cpc-logos>` reports whether
+the signature still compiles and whether that pinned Logos was generated from
+the current version of it.
+The ``cpc-logos`` CI workflow runs both.
+When the signature has moved ahead, Logos is regenerated and repaired against
+it in its own repository, and ``LOGOS_VERSION`` in ``contrib/get-logos`` is
+moved to the resulting commit afterwards.
