@@ -3,11 +3,11 @@
 # Check that the Eunoia definition of CPC in proofs/eo/cpc still compiles, and
 # that the Lean proof checker generated from it is up to date with it.
 #
-# That checker is Logos (https://github.com/ajreynol/logos), whose proof rules,
-# specification and model of SMT-LIB semantics are not written by hand but
-# compiled from proofs/eo/cpc. This script pins a commit of it below, sets up
-# the Eunoia compiler that performs that compilation, and asks whether
-# recompiling this signature would change what that commit has.
+# That checker is Logos (https://github.com/ajreynol/logos), whose proof rules
+# are not written by hand but compiled from proofs/eo/cpc; the semantics they
+# are verified against live in Logos itself. This script pins a commit of it
+# below, sets up the Eunoia compiler that performs that compilation, and asks
+# whether recompiling this signature would change what that commit has.
 #
 # This has nothing to do with running a checker on a proof, which is what
 # contrib/get-ethos-checker and contrib/get-logos-checker set up. Nothing here

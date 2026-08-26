@@ -42,7 +42,7 @@ LOGOS_DIR="$BASE_DIR/logos-checker"
 mkdir -p $LOGOS_DIR
 
 # download and unpack logos
-LOGOS_VERSION="c1edb877665ba38af36d7b0233ef5fdad62b6986"
+LOGOS_VERSION="c8b547b92ad0f0736da7b87fc778f98bba0e2a5f"
 # Note we delete a previously downloaded archive first, since the download
 # helper passes -c to wget, which appends to (instead of replacing) the file
 # left over from a previous version.

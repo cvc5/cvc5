@@ -65,7 +65,7 @@ It accepts the same proof syntax as Ethos, but does not read Eunoia
 signatures.
 Instead, its proof rules are not written by hand: they are compiled from the
 same Eunoia definition of CPC that is contained in this repository, so that the
-two checkers share a single definition of the calculus.
+proof rules of the two checkers come from a single definition.
 The cvc5 repository contains a
 :cvc5repo:`script <contrib/get-logos-checker>` to download and install the
 Logos checker, and create scripts for generating proofs with cvc5 and checking
