@@ -72,6 +72,12 @@ Logos checker, and create scripts for generating proofs with cvc5 and checking
 them with the Logos proof checker.
 Note that Logos currently covers the fragment of CPC that is used by safe
 builds of cvc5, that is, builds configured with ``./configure.sh safe-mode``.
+It does not cover the expert CPC rules that may be used by non-safe builds.
+Logos also does not currently support some SMT-LIB input features, including
+inputs that use ``define-fun``. For an input outside this scope, Logos reports
+``incomplete``. This means that the proof of correctness for Logos does not
+cover that input; it does not mean that Logos found the CPC proof to be
+incorrect.
 
 Since that compilation consumes the signature in this repository, a change to
 :cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` can leave Logos behind.
