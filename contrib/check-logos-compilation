@@ -27,8 +27,8 @@
 #     introduced it. Reported as an error (exit 1).
 #
 #   - the signature compiles, but the pinned checker was generated from an
-#     older version of it. This cannot be fixed in the cvc5 pull request: the
-#     checker has to be regenerated first and LOGOS_VERSION moved afterwards.
+#     older version of it. This cannot be fixed in the cvc5 pull request:
+#     updating CPC requires an updated version of Logos to check it against.
 #     Reported as out of date (exit 2), which the caller decides what to do
 #     with; pass --strict to make it an error too.
 #
@@ -174,13 +174,9 @@ fi
 
 echo ""
 echo "The CPC signature compiles, but the pinned checker was generated from an"
-echo "older version of it. To resolve:"
-echo ""
-echo "  1. regenerate and repair the checker against this signature:"
-echo "       <logos>/scripts/install-cpc.sh --signature $SIGNATURE"
-echo "       <logos>/scripts/build.sh Cpc"
-echo "  2. land that in ajreynol/logos"
-echo "  3. move LOGOS_VERSION in $(basename "$0") to the resulting commit"
+echo "older version of it: updating CPC requires an updated version of Logos to"
+echo "check it against, after which LOGOS_VERSION in $(basename "$0") is moved"
+echo "to it. See https://github.com/ajreynol/logos#regenerating-the-calculus"
 echo ""
 
 if [ "$STRICT" -eq 1 ]; then

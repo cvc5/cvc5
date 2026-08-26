@@ -58,11 +58,20 @@ However, the proof rules used by these two formats are different.
 Verified checking with Logos
 ----------------------------
 
-`Logos <https://github.com/ajreynol/logos>`_ is a proof checker for CPC written
-in Lean whose soundness is proven against a correctness specification.
-Its proof rules are not written by hand: they are compiled from the same
-Eunoia definition of CPC that is contained in this repository, so that the two
-definitions of the calculus are the same definition.
+`Logos <https://github.com/ajreynol/logos>`_ is an alternative checker for the
+CPC format, written in Lean, whose soundness is proven against a formalization
+of the semantics of SMT-LIB.
+It accepts the same proof syntax as Ethos, but does not read Eunoia
+signatures.
+Instead, its proof rules are not written by hand: they are compiled from the
+same Eunoia definition of CPC that is contained in this repository, so that the
+two checkers share a single definition of the calculus.
+The cvc5 repository contains a
+:cvc5repo:`script <contrib/get-logos-checker>` to download and install the
+Logos checker, and create scripts for generating proofs with cvc5 and checking
+them with the Logos proof checker.
+Note that Logos currently covers the fragment of CPC that is used by safe
+builds of cvc5, that is, builds configured with ``./configure.sh safe-mode``.
 
 Since that compilation consumes the signature in this repository, a change to
 :cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` can leave Logos behind.
@@ -73,5 +82,6 @@ still compiles and whether that pinned Logos was generated from the current
 version of it.
 It is run by the ``cpc-logos`` CI workflow.
 When the signature has moved ahead, Logos is regenerated and repaired against
-it in its own repository, and ``LOGOS_VERSION`` in that script is moved to the
-resulting commit afterwards.
+it by the `procedure documented there
+<https://github.com/ajreynol/logos#regenerating-the-calculus>`_, and
+``LOGOS_VERSION`` in that script is moved to the resulting commit afterwards.

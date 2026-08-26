@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+set -e -o pipefail
+
+# utility function to download a file
+function download {
+  if [ -x "$(command -v wget)" ]; then
+    wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    curl -L "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+CVC_DIR=`realpath $SCRIPT_DIR/../`
+mkdir -p $CVC_DIR/deps
+pushd $CVC_DIR/deps
+
+BASE_DIR=`pwd`
+mkdir -p $BASE_DIR/tmp/
+
+##### Lean
+
+# Logos is written in Lean and is built with Lake, which is provided by the
+# Lean toolchain manager elan. If elan is not installed, we install it in the
+# deps directory. Note the Lean version used for the build is determined by the
+# lean-toolchain file of Logos.
+if ! [ -x "$(command -v lake)" ]; then
+  export ELAN_HOME="$BASE_DIR/elan"
+  if ! [ -x "$ELAN_HOME/bin/lake" ]; then
+    download "https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh" $BASE_DIR/tmp/elan-init.sh
+    bash $BASE_DIR/tmp/elan-init.sh -y --default-toolchain none --no-modify-path
+  fi
+  export PATH="$ELAN_HOME/bin:$PATH"
+fi
+
+##### Logos
+LOGOS_DIR="$BASE_DIR/logos-checker"
+mkdir -p $LOGOS_DIR
+
+# download and unpack logos
+LOGOS_VERSION="c1edb877665ba38af36d7b0233ef5fdad62b6986"
+# Note we delete a previously downloaded archive first, since the download
+# helper passes -c to wget, which appends to (instead of replacing) the file
+# left over from a previous version.
+rm -f $BASE_DIR/tmp/logos.tgz
+download "https://github.com/ajreynol/logos/archive/$LOGOS_VERSION.tar.gz" $BASE_DIR/tmp/logos.tgz
+tar --strip 1 -xzf $BASE_DIR/tmp/logos.tgz -C $LOGOS_DIR
+
+# Build and install Logos. Logos provides a build script that configures the
+# Lean toolchain for the host before invoking Lake. In particular, on older
+# Linux systems the Clang/LLVM binaries bundled with the Lean toolchain may
+# fail to run against the host's glibc; the script detects this and falls back
+# to the host C compiler and archiver, while keeping the link libraries of the
+# Lean toolchain. We fall back to a plain Lake build for older versions of
+# Logos that do not provide the script.
+pushd $LOGOS_DIR
+if [ -f scripts/build.sh ]; then
+  bash scripts/build.sh logos
+else
+  lake build logos
+fi
+mkdir -p $BASE_DIR/bin
+cp ./.lake/build/bin/logos $BASE_DIR/bin/logos
+popd
+
+##### signatures
+
+# Note that in contrast to Ethos, no Eunoia signature is required here, since
+# Logos has the definition of the Cooperating Proof Calculus built in.
+
+# install scripts
+cat << EOF > $BASE_DIR/bin/cpc_logos_gen_and_check.sh
+#!/usr/bin/env bash
+
+echo "=== Generate proof: \$@"
+$BASE_DIR/bin/cpc_logos_gen.sh \$@ > logos.proof.cpc
+
+echo "=== Check proof with logos"
+$BASE_DIR/bin/logos_check.sh logos.proof.cpc
+EOF
+chmod +x $BASE_DIR/bin/cpc_logos_gen_and_check.sh
+
+cat << EOF > $BASE_DIR/bin/cpc_logos_gen.sh
+#!/usr/bin/env bash
+
+# call cvc5 and remove the first line of the output (should be "unsat", "(", ")")
+\$@ --dump-proofs | tail -n +3 | head -n -1
+EOF
+chmod +x $BASE_DIR/bin/cpc_logos_gen.sh
+
+cat << EOF > $BASE_DIR/bin/logos_check.sh
+#!/usr/bin/env bash
+
+cat \$@ | grep WARNING
+CHECK=\$(cat \$@ | grep "step\|assume")
+[ -z "\$CHECK" ] && echo "; WARNING: Empty proof"
+
+$BASE_DIR/bin/logos \$@
+
+EOF
+chmod +x $BASE_DIR/bin/logos_check.sh
+
+popd
+
+echo ""
+echo "========== How to use Logos =========="
+echo "Generate a CPC proof with cvc5:"
+echo "  $CVC_DIR/deps/bin/cpc_logos_gen.sh cvc5 <options> <input file>"
+echo "Check a generated proof:"
+echo "  $CVC_DIR/deps/bin/logos_check.sh <proof file>"
+echo "Run cvc5 and check the generated proof:"
+echo "  $CVC_DIR/deps/bin/cpc_logos_gen_and_check.sh cvc5 <options> <input file>"

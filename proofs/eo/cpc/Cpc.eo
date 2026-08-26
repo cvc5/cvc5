@@ -4,6 +4,20 @@
 ; Cooperating Proof Calculus. It is a faithful formalization of cvc5's theory
 ; signatures and proof rules.
 ;
+; The Ethos checker (https://github.com/cvc5/ethos) checks CPC proofs against
+; this signature. For details see ./contrib/get-ethos-checker.
+;
+; Additionally, the proof rules in this signature are formally verified in Lean
+; against a deep embedding of the semantics of the operators it defines. That
+; verification is maintained as part of the Logos proof checker
+; (https://github.com/ajreynol/logos), which does not carry a second definition
+; of the calculus: its proof rules, its correctness specification and its model
+; of SMT-LIB semantics are all generated from this signature. Thus, any update
+; to this signature must be verified in Logos as well. This correspondence is
+; enforced by the CI of cvc5, see ./contrib/check-logos-compilation. Note that
+; Logos is also an executable proof checker, whose soundness follows from that
+; verification. For details see ./contrib/get-logos-checker.
+;
 ; NOTE: cvc5 does not strictly follow the SMT-LIB version 2.6 standard. In
 ; particular, it contains many extensions, including non-standard theories as
 ; well as non-standard extensions of existing theories. Moreover, some standard
@@ -59,14 +73,6 @@
 ; An additional set of theory definitions and rules can be found at
 ; ./expert/CpcExpert.eo. This contains all definitions of theories and rules
 ; that are not supported by cvc5 when safe mode is enabled.
-;
-; Beyond being the signature that the Ethos checker checks CPC proofs against,
-; this signature is the definition from which the proof rules of Logos
-; (https://github.com/ajreynol/logos) are compiled. Logos is a proof checker
-; for CPC written in Lean whose soundness is proven in Lean against a
-; correctness specification. It does not carry a second definition of the
-; calculus: its proof rules, its specification and its model of SMT-LIB
-; semantics are all generated from this signature.
 ;
 ; Typically, we use $ as the prefix of symbols introduced by define and
 ; program.  For clarity, we sometimes use @ as the prefix of symbols introduced
