@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   check-logos-compilation:
-    name: Check CPC with Logos
+    name: Check CPC-Logos synchronization
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
