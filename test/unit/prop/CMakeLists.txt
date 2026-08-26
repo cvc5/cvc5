@@ -12,3 +12,10 @@
 
 # Add unit tests.
 cvc5_add_unit_test_white(cnf_stream_white prop)
+cvc5_add_unit_test_white(cadical_propagator_white prop)
+# The propagator test includes CaDiCaL headers and constructs a CaDiCaL::Solver
+# directly. The cvc5 library only exposes CaDiCaL privately, so link the CaDiCaL
+# target explicitly to get its include directories and symbols.
+if(TARGET cadical_propagator_white)
+  target_link_libraries(cadical_propagator_white PUBLIC CaDiCaL)
+endif()

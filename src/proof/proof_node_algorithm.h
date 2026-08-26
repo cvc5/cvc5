@@ -173,6 +173,14 @@ Node proveCong(Env& env,
  * children (e.g. body and annotation list) and lifts those equalities via a
  * closure-aware congruence step.
  *
+ * For example, to construct proofs for alpha equivalence, we need a way to
+ * impose an arbitrary ordering so that ACI_NORM can lead us to the right
+ * recursive subgoals e.g. say alpha equivalence showed: (or d (and a b) c) =
+ * (or c d (and b a)) This method allows that module to provide the ordering it
+ * used such that we get e.g. (or d (and a b) c) = (or (and a b) c d), (or c d
+ * (and b a)) = (or (and b a) c d), which aligns the subgoals (and a b) = (and b
+ * a), c = c, d = d.
+ *
  * @param env The proof environment used for rewriting and congruence checks.
  * @param cdp The proof to extend with the derived steps.
  * @param a The left-hand side of the equality to prove.

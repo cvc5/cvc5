@@ -81,6 +81,7 @@ Kind kindForSign(MonomialSign sign)
 MonomialCheck::MonomialCheck(Env& env, ExtState* data)
     : EnvObj(env),
       d_data(data),
+      d_initRefine(userContext()),
       d_ancPfGen(env.isTheoryProofProducing()
                      ? new ArithNlCompareProofGenerator(env)
                      : nullptr)
@@ -117,6 +118,38 @@ void MonomialCheck::init(const std::vector<Node>& xts)
     Node c = d_order_points[j];
     d_data->d_model.computeConcreteModelValue(c);
     d_data->d_model.computeAbstractModelValue(c);
+  }
+}
+
+void MonomialCheck::checkInitialRefine(const std::vector<Node>& monomials)
+{
+  Trace("nl-ext") << "Get initial monomial zero-sign lemmas..." << std::endl;
+  NodeManager* nm = nodeManager();
+  for (const Node& a : monomials)
+  {
+    if (d_initRefine.find(a) != d_initRefine.end())
+    {
+      continue;
+    }
+    d_initRefine.insert(a);
+    Node zeroA = mkZero(a.getType());
+    const std::vector<Node>& vla = d_data->d_mdb.getVariableList(a);
+    for (const Node& v : vla)
+    {
+      Node prem = v.eqNode(mkZero(v.getType()));
+      Node conc = a.eqNode(zeroA);
+      Node lemma = nm->mkNode(Kind::IMPLIES, prem, conc);
+      Trace("nl-ext-lemma") << "MonomialCheck::Lemma: " << lemma
+                            << " ; SIGN_INITIAL" << std::endl;
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, ProofRule::SCOPE, {conc}, {prem});
+      }
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+; COMMAND-LINE: --sat-solver=minisat
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun a () Bool)

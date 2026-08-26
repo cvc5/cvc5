@@ -17,6 +17,7 @@ extern "C" {
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -126,17 +127,18 @@ class TestCApiBlackProof : public ::testing::Test
 
 TEST_F(TestCApiBlackProof, get_rule)
 {
-  ASSERT_DEATH(cvc5_proof_get_rule(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_rule(nullptr), "invalid proof");
   Cvc5Proof proof = create_proof();
   ASSERT_EQ(cvc5_proof_get_rule(proof), CVC5_PROOF_RULE_SCOPE);
 }
 
 TEST_F(TestCApiBlackProof, get_rewrite_rule)
 {
-  ASSERT_DEATH(cvc5_proof_get_rewrite_rule(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_rewrite_rule(nullptr), "invalid proof");
 
   Cvc5Proof proof = create_rewrite_proof();
-  ASSERT_DEATH(cvc5_proof_get_rewrite_rule(proof), "to return `DSL_REWRITE`");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_rewrite_rule(proof),
+                    "to return `DSL_REWRITE`");
   Cvc5ProofRule rule;
   std::vector<Cvc5Proof> stack = {proof};
   do
@@ -156,7 +158,7 @@ TEST_F(TestCApiBlackProof, get_rewrite_rule)
 
 TEST_F(TestCApiBlackProof, get_result)
 {
-  ASSERT_DEATH(cvc5_proof_get_result(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_result(nullptr), "invalid proof");
   Cvc5Proof proof = create_proof();
   (void)cvc5_proof_get_result(proof);
 }
@@ -167,9 +169,9 @@ TEST_F(TestCApiBlackProof, get_children)
   size_t size;
   (void)cvc5_proof_get_children(proof, &size);
   ASSERT_TRUE(size > 0);
-  ASSERT_DEATH(cvc5_proof_get_children(nullptr, &size), "invalid proof");
-  ASSERT_DEATH(cvc5_proof_get_children(proof, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_children(nullptr, &size), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_children(proof, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackProof, get_arguments)
@@ -177,9 +179,9 @@ TEST_F(TestCApiBlackProof, get_arguments)
   Cvc5Proof proof = create_proof();
   size_t size;
   (void)cvc5_proof_get_arguments(proof, &size);
-  ASSERT_DEATH(cvc5_proof_get_arguments(nullptr, &size), "invalid proof");
-  ASSERT_DEATH(cvc5_proof_get_arguments(proof, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(nullptr, &size), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(proof, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackProof, is_equal_disequal_hash)
@@ -201,13 +203,13 @@ TEST_F(TestCApiBlackProof, is_equal_disequal_hash)
 
   ASSERT_EQ(cvc5_proof_hash(x), cvc5_proof_hash(x));
   ASSERT_NE(cvc5_proof_hash(x), cvc5_proof_hash(y));
-  ASSERT_DEATH(cvc5_proof_hash(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_hash(nullptr), "invalid proof");
 }
 
 TEST_F(TestCApiBlackProof, copy_release)
 {
-  ASSERT_DEATH(cvc5_proof_copy(nullptr), "invalid proof");
-  ASSERT_DEATH(cvc5_proof_release(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_copy(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_release(nullptr), "invalid proof");
   Cvc5Proof proof = create_proof();
   ASSERT_EQ(cvc5_proof_get_rule(proof), CVC5_PROOF_RULE_SCOPE);
   Cvc5Proof proof2 = cvc5_proof_copy(proof);

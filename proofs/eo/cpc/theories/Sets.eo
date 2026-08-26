@@ -31,9 +31,9 @@
 (declare-parameterized-const set.is_singleton ((T Type :implicit))
   (-> (Set T) Bool))
 (declare-parameterized-const set.insert ((T Type :implicit))
-  (-> @List (Set T) (Set T)))
+  (-> (@TList T) (Set T) (Set T)))
 
 ; Skolems for the theory of sets.
 (declare-parameterized-const @sets_deq_diff
-  ((T Type :implicit) (s (Set T) :opaque) (t (Set T) :opaque))
+  ((T Type :implicit) (s (Set T)) (t (Set T)))
   T)

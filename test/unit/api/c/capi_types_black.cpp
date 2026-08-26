@@ -16,6 +16,7 @@
 
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal {
 
@@ -27,31 +28,31 @@ class TestCApiBlackTypes : public ::testing::Test
 
 TEST_F(TestCApiBlackTypes, printEnum)
 {
-  ASSERT_DEATH(cvc5_kind_to_string(static_cast<Cvc5Kind>(-5)),
-               "invalid term kind");
-  ASSERT_DEATH(cvc5_sort_kind_to_string(static_cast<Cvc5SortKind>(-5)),
-               "invalid sort kind");
-  ASSERT_DEATH(cvc5_rm_to_string(static_cast<Cvc5RoundingMode>(-5)),
-               "invalid rounding mode");
-  ASSERT_DEATH(cvc5_unknown_explanation_to_string(
-                   static_cast<Cvc5UnknownExplanation>(-5)),
-               "invalid unknown explanation kind");
-  ASSERT_DEATH(cvc5_modes_block_models_mode_to_string(
-                   static_cast<Cvc5BlockModelsMode>(-5)),
-               "invalid block models mode");
-  ASSERT_DEATH(cvc5_modes_find_synth_target_to_string(
-                   static_cast<Cvc5FindSynthTarget>(-5)),
-               "invalid find synthesis target");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(cvc5_kind_to_string(static_cast<Cvc5Kind>(-5)),
+                    "invalid term kind");
+  ASSERT_CVC5_ERROR(cvc5_sort_kind_to_string(static_cast<Cvc5SortKind>(-5)),
+                    "invalid sort kind");
+  ASSERT_CVC5_ERROR(cvc5_rm_to_string(static_cast<Cvc5RoundingMode>(-5)),
+                    "invalid rounding mode");
+  ASSERT_CVC5_ERROR(cvc5_unknown_explanation_to_string(
+                        static_cast<Cvc5UnknownExplanation>(-5)),
+                    "invalid unknown explanation kind");
+  ASSERT_CVC5_ERROR(cvc5_modes_block_models_mode_to_string(
+                        static_cast<Cvc5BlockModelsMode>(-5)),
+                    "invalid block models mode");
+  ASSERT_CVC5_ERROR(cvc5_modes_find_synth_target_to_string(
+                        static_cast<Cvc5FindSynthTarget>(-5)),
+                    "invalid find synthesis target");
+  ASSERT_CVC5_ERROR(
       cvc5_modes_input_language_to_string(static_cast<Cvc5InputLanguage>(-5)),
       "invalid input language");
-  ASSERT_DEATH(cvc5_modes_learned_lit_type_to_string(
-                   static_cast<Cvc5LearnedLitType>(-5)),
-               "invalid learned literal type");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(cvc5_modes_learned_lit_type_to_string(
+                        static_cast<Cvc5LearnedLitType>(-5)),
+                    "invalid learned literal type");
+  ASSERT_CVC5_ERROR(
       cvc5_modes_proof_component_to_string(static_cast<Cvc5ProofComponent>(-5)),
       "invalid proof component kind");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_modes_proof_format_to_string(static_cast<Cvc5ProofFormat>(-5)),
       "invalid proof format");
   std::string expected =
@@ -79,7 +80,7 @@ TEST_F(TestCApiBlackTypes, printEnum)
 
 TEST_F(TestCApiBlackTypes, option_category_to_string)
 {
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_modes_option_category_to_string(static_cast<Cvc5OptionCategory>(-5)),
       "invalid option category");
 

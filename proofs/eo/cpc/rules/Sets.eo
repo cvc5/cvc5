@@ -116,11 +116,11 @@
 ; - t (Set T): The set to insert into.
 ; return: >
 ;   The union of elements in es with t.
-(program $set_eval_insert ((T Type) (x T) (xs @List :list) (t (Set T)))
-  :signature (@List (Set T)) (Set T)
+(program $set_eval_insert ((T Type) (x T) (xs (@TList T) :list) (t (Set T)))
+  :signature ((@TList T) (Set T)) (Set T)
   (
-    (($set_eval_insert (@list x xs) t) (set.union (set.singleton x) ($set_eval_insert xs t)))
-    (($set_eval_insert @list.nil t)    t)
+    (($set_eval_insert (@tlist x xs) t) (set.union (set.singleton x) ($set_eval_insert xs t)))
+    (($set_eval_insert (@tlist.nil T) t)    t)
   )
 )
 
@@ -130,7 +130,7 @@
 ; - eq Bool: The equality to prove with this rule.
 ; requires: the union of the elements in the first argument with the last argument equal the right hand side.
 ; conclusion: the equality between a and b.
-(declare-rule sets-insert-elim ((T Type) (s (Set T)) (es @List) (t (Set T)))
+(declare-rule sets-insert-elim ((T Type) (s (Set T)) (es (@TList T)) (t (Set T)))
   :args ((= (set.insert es s) t))
   :requires ((($set_eval_insert es s) t))
   :conclusion (= (set.insert es s) t)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --check-proofs --proof-check=eager
+; COMMAND-LINE: --check-proofs --proof-check=eager --sat-solver=minisat
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun x () Int)
