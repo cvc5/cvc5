@@ -18,6 +18,7 @@
 #include "expr/nary_term_util.h"
 #include "expr/node_algorithm.h"
 #include "proof/proof_checker.h"
+#include "rewriter/rewrite_db_term_process.h"
 
 using namespace cvc5::internal::kind;
 
@@ -115,13 +116,13 @@ void RewriteProofRule::init(ProofRewriteRule id,
   // given as explicit arguments. If so, its instances must be folded when
   // constructing proofs, see RewriteDbProofCons::fold.
   d_hasIndexedOp =
-      expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, d_conc)
+      IndexedOpFoldNodeConverter::hasIndexedSymbolic(d_conc)
       || (!d_context.isNull()
-          && expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, d_context));
+          && IndexedOpFoldNodeConverter::hasIndexedSymbolic(d_context));
   for (const Node& c : d_cond)
   {
     d_hasIndexedOp =
-        d_hasIndexedOp || expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, c);
+        d_hasIndexedOp || IndexedOpFoldNodeConverter::hasIndexedSymbolic(c);
   }
 
   d_numFv = fvs.size();

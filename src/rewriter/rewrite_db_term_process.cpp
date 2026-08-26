@@ -16,7 +16,6 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/node_algorithm.h"
 #include "proof/conv_proof_generator.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -200,6 +199,17 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
   }
 }
 
+struct HasIndexedSymbolicTag
+{
+};
+struct HasIndexedSymbolicComputedTag
+{
+};
+/** Attribute true for terms containing APPLY_INDEXED_SYMBOLIC */
+using HasIndexedSymbolicAttr = expr::Attribute<HasIndexedSymbolicTag, bool>;
+using HasIndexedSymbolicComputedAttr =
+    expr::Attribute<HasIndexedSymbolicComputedTag, bool>;
+
 IndexedOpFoldNodeConverter::IndexedOpFoldNodeConverter(NodeManager* nm)
     : NodeConverter(nm)
 {
@@ -219,12 +229,72 @@ Node IndexedOpFoldNodeConverter::fold(NodeManager* nm, const Node& n)
 {
   // check first, to avoid allocating the caches of the converter in the
   // (common) case where there is nothing to fold
-  if (!expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, n))
+  if (!hasIndexedSymbolic(n))
   {
     return n;
   }
   IndexedOpFoldNodeConverter c(nm);
   return c.convert(n);
+}
+
+bool IndexedOpFoldNodeConverter::hasIndexedSymbolic(TNode n)
+{
+  HasIndexedSymbolicAttr hisa;
+  HasIndexedSymbolicComputedAttr hisca;
+  std::vector<TNode> visit;
+  visit.push_back(n);
+  do
+  {
+    TNode cur = visit.back();
+    if (cur.getAttribute(hisca))
+    {
+      visit.pop_back();
+      continue;
+    }
+    if (cur.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+    {
+      visit.pop_back();
+      cur.setAttribute(hisa, true);
+      cur.setAttribute(hisca, true);
+      continue;
+    }
+    // otherwise, compute based on the operator and children, which we visit
+    // if they have not been computed yet
+    bool computed = true;
+    bool hasIs = false;
+    if (cur.hasOperator())
+    {
+      TNode op = cur.getOperator();
+      if (op.getAttribute(hisca))
+      {
+        hasIs = op.getAttribute(hisa);
+      }
+      else
+      {
+        computed = false;
+        visit.push_back(op);
+      }
+    }
+    for (TNode cn : cur)
+    {
+      if (cn.getAttribute(hisca))
+      {
+        hasIs = hasIs || cn.getAttribute(hisa);
+      }
+      else
+      {
+        computed = false;
+        visit.push_back(cn);
+      }
+    }
+    if (computed)
+    {
+      visit.pop_back();
+      cur.setAttribute(hisa, hasIs);
+      cur.setAttribute(hisca, true);
+    }
+  } while (!visit.empty());
+  return n.getAttribute(hisa);
 }
 
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)

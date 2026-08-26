@@ -169,7 +169,7 @@ bool RewriteDbProofCons::proveEqStratified(CDProof* cdp,
   // this flag may additionally be set during the search below, if a RARE rule
   // that mentions an indexed operator is applied.
   d_currFold =
-      (eq != eqi) && expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, eqi);
+      (eq != eqi) && IndexedOpFoldNodeConverter::hasIndexedSymbolic(eqi);
   bool success = false;
   // first, try the basic utility, which is run on the folded form of eqi
   Node eqif = fold(eqi);
@@ -1468,7 +1468,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           // are always numeral constants in the terms we lift, and side
           // conditions of RARE rules compute indices that evaluate.
           if (d_currFold
-              && expr::hasSubtermKind(Kind::APPLY_INDEXED_SYMBOLIC, conc))
+              && IndexedOpFoldNodeConverter::hasIndexedSymbolic(conc))
           {
             Trace("rpc-debug")
                 << "Failed to fold conclusion " << conc << std::endl;

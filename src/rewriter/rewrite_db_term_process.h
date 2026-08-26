@@ -120,6 +120,13 @@ class IndexedOpFoldNodeConverter : public NodeConverter
    * not benefit from caching across calls.
    */
   static Node fold(NodeManager* nm, const Node& n);
+  /**
+   * Does n contain a subterm of kind APPLY_INDEXED_SYMBOLIC, i.e. is there
+   * anything to fold in n? The result of this method is cached as an attribute
+   * on n, since it is queried often on the same terms during DSL proof
+   * reconstruction.
+   */
+  static bool hasIndexedSymbolic(TNode n);
 };
 
 /** A proof producing version of the above class */
