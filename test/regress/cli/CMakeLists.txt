@@ -281,7 +281,6 @@ set(regress_0_tests
   regress0/bug480.smt2
   regress0/bug484.smt2
   regress0/bug486.cvc.smt2
-  regress0/bug486-sub-cbqi.cvc.smt2
   regress0/bug49.smtv1.smt2
   regress0/bug512.minimized.smt2
   regress0/bug521.minimized.smt2
@@ -319,7 +318,6 @@ set(regress_0_tests
   regress0/bv/abstract/sat-mul-refine.smt2
   regress0/bv/abstract/unsatcore1.smt2
   regress0/bv/ackermann1.smt2
-  regress0/bv/ackermann1-bitblast-internal.smt2
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
   regress0/bv/ackermann4.smt2
@@ -330,20 +328,17 @@ set(regress_0_tests
   regress0/bv/bitwise-and-simp.smt2
   regress0/bv/bitwise-or-simp.smt2
   regress0/bv/bool-model.smt2
-  regress0/bv/bool-model-bitblast-internal.smt2
   regress0/bv/bool-to-bv-all-array-bool.smt2
   regress0/bv/bool-to-bv-all-test.smt2
   regress0/bv/bool-to-bv-all.smt2
   regress0/bv/bool-to-bv-ite-array-bool.smt2
   regress0/bv/bool-to-bv-ite.smt2
-  regress0/bv/bool-to-bv-ite-bitblast-internal.smt2
   regress0/bv/bug260a.smtv1.smt2
   regress0/bv/bug260b.smtv1.smt2
   regress0/bv/bug345.smtv1.smt2
   regress0/bv/bug440.smtv1.smt2
   regress0/bv/bug733.smt2
   regress0/bv/bug734.smt2
-  regress0/bv/bug734-bitblast-internal.smt2
   regress0/bv/bv-abstr-bug2.smt2
   regress0/bv/bv-card-conflict.smt2
   regress0/bv/bv-gauss-elim-urem-neg-rhs.smt2
@@ -668,7 +663,6 @@ set(regress_0_tests
   regress0/bv/int_to_bv_model2.smt2
   regress0/bv/issue-4075.smt2
   regress0/bv/issue-4076.smt2
-  regress0/bv/issue-4076-bitblast-internal.smt2
   regress0/bv/issue-4130.smt2
   regress0/bv/issue3621.smt2
   regress0/bv/issue5396.smt2
@@ -2727,7 +2721,6 @@ set(regress_1_tests
   regress1/bug516.smt2
   regress1/bug519.smt2
   regress1/bug520.smt2
-  regress1/bug520-bitblast-internal.smt2
   regress1/bug521.smt2
   regress1/bug543.smt2
   regress1/bug567.smt2
@@ -2886,7 +2879,6 @@ set(regress_1_tests
   regress1/decision/issue5785.smt2
   regress1/decision/jh-test1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
-  regress1/decision/quant-Arrays_Q1-noinfer-sub-cbqi.smt2
   regress1/decision/wishue114.smt2
   regress1/decision/wishue115.smt2
   regress1/decision/wishue116.smt2
@@ -2904,7 +2896,6 @@ set(regress_1_tests
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2
-  regress1/fmf/ALG008-1-sort-inference.smt2
   regress1/fmf/Hoare-z3.931718.smtv1.smt2
   regress1/fmf/LeftistHeap.scala-8-ncm.smt2
   regress1/fmf/PUZ001+1.smt2
@@ -3909,7 +3900,6 @@ set(regress_1_tests
   regress1/strings/username_checker_min.smt2
   regress1/strings/witness-model.smt2
   regress1/sygus/VC22_a.sy
-  regress1/sygus/VC22_a-cegis-sample.sy
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
@@ -3946,7 +3936,6 @@ set(regress_1_tests
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_inv_eq_bvmul_4bit_withoutgrammar-v2.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
-  regress1/sygus/find_sc_bvult_bvnot-cegis-sample.sy
   regress1/sygus/finite-feasible-2.sy
   regress1/sygus/finite-infeasible.sy
   regress1/sygus/finite-infeasible-2.sy
@@ -4169,16 +4158,12 @@ set(regress_2_tests
   regress2/bv_to_int_5095_2.smt2
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_bitwise.smt2
-  regress2/bv_to_int_bitwise-bv.smt2
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_inc1.smt2
-  regress2/bv_to_int_inc1-sum-bv.smt2
   regress2/bv_to_int_issue_9053.smt2
   regress2/bv_to_int_mask_array_1.smt2
-  regress2/bv_to_int_mask_array_1-bv.smt2
   regress2/bv_to_int_mask_array_2.smt2
-  regress2/bv_to_int_mask_array_2-bv.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/bv_to_int_quantifiers_bvand.smt2
