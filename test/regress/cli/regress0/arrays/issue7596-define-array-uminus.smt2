@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp --print-arith-lit-token
 (set-logic ALL)
 (set-info :status sat)

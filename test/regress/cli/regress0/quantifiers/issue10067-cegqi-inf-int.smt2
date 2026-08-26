@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --cegqi-inf-int --sat-solver=minisat
 ; EXPECT: unsat

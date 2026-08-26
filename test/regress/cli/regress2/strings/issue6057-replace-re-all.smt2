@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-jh-rlv-order --sat-solver=minisat
 (set-logic QF_SLIA)
 (declare-fun literal_0 () String)

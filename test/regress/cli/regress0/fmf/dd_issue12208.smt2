@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --fmf-mbqi=none
 ; EXPECT: sat
 (set-logic UFCDT)

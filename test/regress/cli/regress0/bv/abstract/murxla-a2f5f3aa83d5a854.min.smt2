@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction
 ; EXPECT: sat
 ; Ported from Bitwuzla test/regress/solver/abstract/murxla-a2f5f3aa83d5a854.min.smt2

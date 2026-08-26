@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-inference=try --fmf-bound
 ; DISABLE-TESTER: unsat-core

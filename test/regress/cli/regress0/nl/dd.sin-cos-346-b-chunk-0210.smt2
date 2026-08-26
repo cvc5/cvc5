@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --no-nl-cov --sat-solver=minisat
 ; EXPECT: sat
 (set-logic ALL)
