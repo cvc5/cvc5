@@ -55,8 +55,8 @@ However, the proof rules used by these two formats are different.
 
 .. run-command:: bin/cvc5 --dump-proofs --proof-format-mode=cpc --proof-granularity=dsl-rewrite ../test/regress/cli/regress0/proofs/qgu-fuzz-1-bool-sat.smt2
 
-Verified checking with Logos
-----------------------------
+Checking with Logos
+-------------------
 
 `Logos <https://github.com/ajreynol/logos>`_ is an alternative checker for the
 CPC format, written in Lean, whose soundness is proven against a formalization
