@@ -40,7 +40,9 @@ cvc5 1.3.5 prerelease
   repository. Logos can be installed with `./contrib/get-logos-checker`. Its
   current scope is the CPC fragment used by safe builds of cvc5; expert CPC
   rules and some SMT-LIB input features, including parametric datatypes and
-  `define-fun`, are not yet supported.
+  `define-fun`, are not yet supported. The CPC definition is corroborated by
+  Logos only when Logos's own CI passes for the Logos commit pinned by
+  `contrib/check-logos-compilation`.
 
 cvc5 1.3.4
 ==========

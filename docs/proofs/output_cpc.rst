@@ -86,6 +86,11 @@ The :cvc5repo:`script <contrib/check-logos-compilation>`
 compiler that performs the compilation, and reports whether the signature
 still compiles and whether that pinned Logos was generated from the current
 version of it.
+This check does not build Logos or check its Lean proofs. Thus, cvc5's CPC
+definition is corroborated by Logos only when Logos's own CI passes at the
+commit specified by ``LOGOS_VERSION`` in that script.
+The ``cpc-logos`` workflow enforces this condition by querying the CI result
+already recorded by GitHub for that commit; it does not rerun Logos CI.
 When the signature has moved ahead, Logos is regenerated and repaired against
 it by the `procedure documented there
 <https://github.com/ajreynol/logos#regenerating-the-calculus>`_, and

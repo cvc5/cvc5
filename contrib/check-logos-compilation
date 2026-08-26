@@ -43,6 +43,7 @@
 #   --strict       treat an out-of-date checker as an error rather than exit 2
 #   --setup-only   set up the compiler and exit without checking
 #   --refresh      set up the compiler again even if it is already there
+#   --version      print the pinned Logos commit and exit
 #   -h, --help     show this message
 #
 # Anything else is passed on to install-cpc.sh, so --mini checks the reduced
@@ -65,6 +66,7 @@ while [ $# -gt 0 ]; do
     --strict) STRICT=1; shift ;;
     --setup-only) SETUP_ONLY=1; shift ;;
     --refresh) REFRESH=1; shift ;;
+    --version) echo "$LOGOS_VERSION"; exit 0 ;;
     -h|--help) sed -n '2,50p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     --) shift; EXTRA_ARGS+=("$@"); break ;;
     *) EXTRA_ARGS+=("$1"); shift ;;

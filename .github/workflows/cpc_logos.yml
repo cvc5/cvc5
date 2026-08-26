@@ -33,6 +33,30 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Query the result already recorded by GitHub for Logos's own CI at the
+      # exact pinned commit. This does not dispatch or rerun Logos CI.
+      - name: Check Logos CI result
+        run: |
+          set -euo pipefail
+          logos_version="$(./contrib/check-logos-compilation --version)"
+          api_url="https://api.github.com/repos/ajreynol/logos/actions/runs"
+          api_url+="?head_sha=${logos_version}&status=success&per_page=100"
+          response="$(curl --fail-with-body --silent --show-error --retry 3 \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "${api_url}")"
+          if ! run_url="$(jq -er --arg sha "${logos_version}" \
+            'first(.workflow_runs[]
+                   | select(.name == "CI"
+                            and .head_sha == $sha
+                            and .status == "completed"
+                            and .conclusion == "success")
+                   | .html_url)' <<< "${response}")"; then
+            echo "::error title=Logos CI has not passed::No successful Logos CI run was found for ${logos_version}."
+            exit 1
+          fi
+          echo "Logos CI passed for ${logos_version}: ${run_url}"
+
       # ethos-eoc is a cmake/C++17 project and needs the GMP headers. Nothing
       # else here builds or runs cvc5: what is compiled is the Eunoia source
       # text of proofs/eo/cpc.
