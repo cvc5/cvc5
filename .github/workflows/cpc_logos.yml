@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   check-logos-compilation:
-    name: Check CPC against pinned Logos
+    name: Check CPC with Logos
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
