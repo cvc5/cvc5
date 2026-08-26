@@ -52,8 +52,7 @@ set -e -o pipefail
 
 # The pinned commit of ajreynol/logos that proofs/eo/cpc is checked against.
 # Moving this pin is what records that the checker has been regenerated against
-# a newer CPC. c8b547b9 is "Installation scripts (#437)", the commit that added
-# the install-cpc.sh --check this is built around.
+# a newer CPC.
 LOGOS_VERSION="c8b547b92ad0f0736da7b87fc778f98bba0e2a5f"
 
 STRICT=0
