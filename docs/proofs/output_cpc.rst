@@ -80,13 +80,12 @@ cover that input; it does not mean that Logos found the CPC proof to be
 incorrect.
 
 Since that compilation consumes the signature in this repository, a change to
-:cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` can leave Logos behind.
+:cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` must remain in sync with Logos.
 The :cvc5repo:`script <contrib/check-logos-compilation>`
 ``contrib/check-logos-compilation`` pins a commit of Logos, sets up the Eunoia
 compiler that performs the compilation, and reports whether the signature
 still compiles and whether that pinned Logos was generated from the current
 version of it.
-It is run by the ``cpc-logos`` CI workflow.
 When the signature has moved ahead, Logos is regenerated and repaired against
 it by the `procedure documented there
 <https://github.com/ajreynol/logos#regenerating-the-calculus>`_, and
