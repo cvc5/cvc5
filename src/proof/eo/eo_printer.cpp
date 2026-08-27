@@ -882,7 +882,7 @@ void EoPrinter::print(EoPrintChannelOut& aout,
   std::ostream& out = aout.getOStream();
   if (d_isCpcLogos)
   {
-    out << "import Cpc.Logos" << std::endl;
+    out << "import Cpc.Native" << std::endl;
     out << "open Eo" << std::endl;
   }
   Assert(d_pletMap.empty());

@@ -30,7 +30,7 @@ namespace proof {
  *
  * An example of such a proof is:
  *
- * import Cpc.Logos
+ * import Cpc.Native
  * open Eo
  * def t1 : Term := (Term.UConst 1 Term.Int)
  * def t2 : Term := (Term.UConst 2 Term.Int)
