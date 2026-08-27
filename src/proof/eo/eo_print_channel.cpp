@@ -251,7 +251,7 @@ CpcLogosChannelOut::CpcLogosChannelOut(std::ostream& out,
 {
   d_stackSize = 0;
   d_stateId = 0;
-  d_stateDef << "def s0 : CState := logos_init_state" << std::endl;
+  d_stateDef << "def s0 : LogosState := logos_init_state" << std::endl;
 }
 
 void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
@@ -261,14 +261,14 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
   if (isPush)
   {
     d_stackPush.push_back(d_stackSize);
-    d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_cmd s";
+    d_stateDef << "def s" << d_stateId << " : LogosState := (logos_invoke_cmd s";
     d_stateDef << (d_stateId - 1) << " (CCmd.assume_push ";
     printNodeInternal(d_stateDef, n);
     d_stateDef << "))" << std::endl;
   }
   else
   {
-    d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_assume s"
+    d_stateDef << "def s" << d_stateId << " : LogosState := (logos_invoke_assume s"
                << (d_stateId - 1) << " ";
     printNodeInternal(d_stateDef, n);
     d_stateDef << ")" << std::endl;
@@ -287,7 +287,7 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   // must convert - to _ from RARE rule names.
   std::string rnameUse = LogosNodeConverter::replace_all(rname, "-", "_");
   d_stateId++;
-  d_stateDef << "def s" << d_stateId << " : CState := (logos_invoke_cmd s"
+  d_stateDef << "def s" << d_stateId << " : LogosState := (logos_invoke_cmd s"
              << (d_stateId - 1);
   d_stateDef << " (CCmd.step" << (isPop ? "_pop" : "") << " CRule." << rnameUse;
   // get the premise indices in terms of depth on the stack
@@ -344,7 +344,7 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   if (!n.isNull())
   {
     d_stateId++;
-    d_stateDef << "def s" << d_stateId << ": CState := (logos_invoke_cmd s"
+    d_stateDef << "def s" << d_stateId << ": LogosState := (logos_invoke_cmd s"
                << (d_stateId - 1);
     d_stateDef << " (CCmd.check_proven ";
     printNodeInternal(d_stateDef, n);

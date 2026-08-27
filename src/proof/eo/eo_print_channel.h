@@ -164,12 +164,12 @@ class EoPrintChannelPre : public EoPrintChannel
  * output from this checker is the following:
  *
  * ...
- * def s0 : CState := logos_init_state
- * def s1 : CState := (logos_invoke_assume s0 t4)
- * def s2 : CState := (logos_invoke_assume s1 t7)
- * def s3 : CState := (logos_invoke_cmd s2 (CCmd.step CRule.symm CArgList.nil
+ * def s0 : LogosState := logos_init_state
+ * def s1 : LogosState := (logos_invoke_assume s0 t4)
+ * def s2 : LogosState := (logos_invoke_assume s1 t7)
+ * def s3 : LogosState := (logos_invoke_cmd s2 (CCmd.step CRule.symm CArgList.nil
  *                    (CIndexList.cons 0 CIndexList.nil)))
- * def s4 : CState := (logos_invoke_cmd s3 (CCmd.step CRule.contra CArgList.nil
+ * def s4 : LogosState := (logos_invoke_cmd s3 (CCmd.step CRule.contra CArgList.nil
  *                    (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
  * #eval! (logos_state_is_refutation s4)
  *
