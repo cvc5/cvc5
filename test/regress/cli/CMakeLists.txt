@@ -4395,9 +4395,6 @@ set(regression_disabled_tests
   regress0/strings/issue7974-incomplete-neg-member.smt2
   # unknown after change to datatypes split policy, requires forcing split
   regress1/fmf/issue3587.smt2
-  # too slow to run by default, the fix for this issue is covered by
-  # regress0/strings/issue12863-re-inc-neg.smt2
-  regress1/strings/issue12863.smt2
   # demonstrates instance where RE inference in necessary, times out
   regress1/strings/re-uf.smt2
   ###
