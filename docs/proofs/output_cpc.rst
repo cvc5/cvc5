@@ -81,17 +81,21 @@ incorrect.
 
 Since that compilation consumes the signature in this repository, a change to
 :cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` must remain in sync with Logos.
+The commit of Logos this repository is pinned to is ``LOGOS_VERSION`` in
+:cvc5repo:`contrib/get-logos-checker <contrib/get-logos-checker>`, which is the
+only place it appears.
 The :cvc5repo:`script <contrib/check-logos-compilation>`
-``contrib/check-logos-compilation`` pins a commit of Logos, sets up the Eunoia
+``contrib/check-logos-compilation`` reads that pin, sets up the Eunoia
 compiler that performs the compilation, and reports whether the signature
 still compiles and whether that pinned Logos was generated from the current
 version of it.
 This check does not build Logos or check its Lean proofs. Thus, cvc5's CPC
 definition is corroborated by Logos only when Logos's own CI passes at the
-commit specified by ``LOGOS_VERSION`` in that script.
+pinned commit.
 The ``cpc-logos`` workflow enforces this condition by querying the CI result
 already recorded by GitHub for that commit; it does not rerun Logos CI.
 When the signature has moved ahead, Logos is regenerated and repaired against
 it by the `procedure documented there
 <https://github.com/ajreynol/logos#regenerating-the-calculus>`_, and
-``LOGOS_VERSION`` in that script is moved to the resulting commit afterwards.
+``LOGOS_VERSION`` is moved to the resulting commit afterwards, which moves both
+the checker that is installed and the checker that CPC is checked against.

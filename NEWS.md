@@ -42,7 +42,7 @@ cvc5 1.3.5 prerelease
   rules and some SMT-LIB input features, including parametric datatypes and
   `define-fun`, are not yet supported. The CPC definition is corroborated by
   Logos only when Logos's own CI passes for the Logos commit pinned by
-  `contrib/check-logos-compilation`.
+  `contrib/get-logos-checker`.
 
 cvc5 1.3.4
 ==========

@@ -5,6 +5,7 @@ on:
     paths:
       - 'proofs/eo/**'
       - 'contrib/check-logos-compilation'
+      - 'contrib/get-logos-checker'
       - '.github/workflows/cpc_logos.yml'
   pull_request:
     # Keep in sync with the push filter above; GitHub Actions does not support
@@ -12,6 +13,7 @@ on:
     paths:
       - 'proofs/eo/**'
       - 'contrib/check-logos-compilation'
+      - 'contrib/get-logos-checker'
       - '.github/workflows/cpc_logos.yml'
   schedule:
     - cron: '0 6 * * *'
@@ -34,7 +36,9 @@ jobs:
       - uses: actions/checkout@v6
 
       # Query the result already recorded by GitHub for Logos's own CI at the
-      # exact pinned commit. This does not dispatch or rerun Logos CI.
+      # exact pinned commit. This does not dispatch or rerun Logos CI. Logos
+      # runs its groups as separate jobs of one workflow named CI, all of them
+      # required, so the conclusion of the run is the whole of its verdict.
       - name: Check Logos CI result
         run: |
           set -euo pipefail
@@ -66,8 +70,9 @@ jobs:
           sudo apt-get install -y libgmp-dev
 
       # The pinned Logos commit and, transitively, the ethos commit it pins are
-      # both fixed by contrib/check-logos-compilation, so its hash is the whole
-      # cache key.
+      # both fixed by the two scripts below -- the pin itself lives in
+      # get-logos-checker and check-logos-compilation reads it from there -- so
+      # their hashes are the whole cache key.
       # Restore and save are separate so that a failed install is not written
       # to the cache, where it would be restored by every later run under a key
       # that nothing invalidates.
@@ -76,7 +81,7 @@ jobs:
         uses: actions/cache/restore@v5
         with:
           path: deps/cpc-compiler
-          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/check-logos-compilation') }}
+          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-logos-checker', 'contrib/check-logos-compilation') }}
 
       # The check sets the compiler up itself when it is not there, but doing
       # it as its own step is what lets the cache be saved separately from the
@@ -90,7 +95,7 @@ jobs:
         uses: actions/cache/save@v5
         with:
           path: deps/cpc-compiler
-          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/check-logos-compilation') }}
+          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-logos-checker', 'contrib/check-logos-compilation') }}
 
       # Run in strict mode so both a compilation failure and a signature that is
       # ahead of the pinned Logos fail the job. In particular, do not mask the
