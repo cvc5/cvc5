@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: (error "Term of kind real.pi requires nl-ext mode to be set to value 'full'")
 ; EXIT: 1
 (set-logic ALL)

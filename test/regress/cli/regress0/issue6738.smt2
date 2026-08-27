@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i --bv-solver=bitblast --bv-assert-input
 (set-logic QF_BV)
 (declare-fun N () Bool)

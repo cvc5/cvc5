@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=5
 (set-logic QF_NIA)
 (declare-const x Int)
