@@ -10,7 +10,7 @@
 
 set -e -o pipefail
 
-# The commit of ajreynol/logos this repository is pinned to. This is the only
+# The commit of cvc5/logos this repository is pinned to. This is the only
 # place that pin lives: contrib/check-logos-compilation reads it from here, so
 # the checker that is installed and the checker that proofs/eo/cpc is checked
 # against are the same one by construction. Moving this line moves both.
@@ -68,7 +68,7 @@ mkdir -p $LOGOS_DIR
 # helper passes -c to wget, which appends to (instead of replacing) the file
 # left over from a previous version.
 rm -f $BASE_DIR/tmp/logos.tgz
-download "https://github.com/ajreynol/logos/archive/$LOGOS_VERSION.tar.gz" $BASE_DIR/tmp/logos.tgz
+download "https://github.com/cvc5/logos/archive/$LOGOS_VERSION.tar.gz" $BASE_DIR/tmp/logos.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/logos.tgz -C $LOGOS_DIR
 
 # Build and install Logos. Logos provides a build script that configures the

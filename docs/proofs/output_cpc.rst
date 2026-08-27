@@ -58,7 +58,7 @@ However, the proof rules used by these two formats are different.
 Checking with Logos
 -------------------
 
-`Logos <https://github.com/ajreynol/logos>`_ is an alternative checker for the
+`Logos <https://github.com/cvc5/logos>`_ is an alternative checker for the
 CPC format, written in Lean, whose soundness is proven against a formalization
 of the semantics of SMT-LIB.
 It accepts the same proof syntax as Ethos, but does not read Eunoia
@@ -96,6 +96,6 @@ The ``cpc-logos`` workflow enforces this condition by querying the CI result
 already recorded by GitHub for that commit; it does not rerun Logos CI.
 When the signature has moved ahead, Logos is regenerated and repaired against
 it by the `procedure documented there
-<https://github.com/ajreynol/logos#regenerating-the-calculus>`_, and
+<https://github.com/cvc5/logos#regenerating-the-calculus>`_, and
 ``LOGOS_VERSION`` is moved to the resulting commit afterwards, which moves both
 the checker that is installed and the checker that CPC is checked against.

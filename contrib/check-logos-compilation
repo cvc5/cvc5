@@ -3,7 +3,7 @@
 # Check that the Eunoia definition of CPC in proofs/eo/cpc still compiles, and
 # that the Lean proof checker generated from it is up to date with it.
 #
-# That checker is Logos (https://github.com/ajreynol/logos), whose proof rules
+# That checker is Logos (https://github.com/cvc5/logos), whose proof rules
 # are not written by hand but compiled from proofs/eo/cpc; the semantics they
 # are verified against live in Logos itself. This script sets up the Eunoia
 # compiler that performs that compilation and asks whether recompiling this
@@ -145,7 +145,7 @@ function setup_compiler {
   rm -rf "$COMPILER_DIR"
   mkdir -p "$COMPILER_DIR"
   rm -f "$BASE_DIR/tmp/logos.tgz"
-  download "https://github.com/ajreynol/logos/archive/$LOGOS_VERSION.tar.gz" \
+  download "https://github.com/cvc5/logos/archive/$LOGOS_VERSION.tar.gz" \
            "$BASE_DIR/tmp/logos.tgz"
   tar --strip 1 -xzf "$BASE_DIR/tmp/logos.tgz" -C "$COMPILER_DIR"
   rm "$BASE_DIR/tmp/logos.tgz"
@@ -201,7 +201,7 @@ echo ""
 echo "The CPC signature compiles, but the pinned checker was generated from an"
 echo "older version of it: updating CPC requires an updated version of Logos to"
 echo "check it against, after which LOGOS_VERSION in $(basename "$GET_LOGOS") is"
-echo "moved to it. See https://github.com/ajreynol/logos#regenerating-the-calculus"
+echo "moved to it. See https://github.com/cvc5/logos#regenerating-the-calculus"
 echo ""
 
 if [ "$STRICT" -eq 1 ]; then

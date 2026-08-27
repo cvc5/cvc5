@@ -10,7 +10,7 @@
 ; Additionally, the proof rules in this signature are formally verified in Lean
 ; against a deep embedding of the semantics of the operators it defines. That
 ; verification is maintained as part of the Logos proof checker
-; (https://github.com/ajreynol/logos): its proof rules are generated from this
+; (https://github.com/cvc5/logos): its proof rules are generated from this
 ; signature. Thus, any update to this signature must be verified in Logos as
 ; well. This correspondence is enforced by the CI of cvc5, see
 ; ./contrib/check-logos-compilation. Note that Logos is also an executable proof

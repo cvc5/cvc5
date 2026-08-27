@@ -43,7 +43,7 @@ jobs:
         run: |
           set -euo pipefail
           logos_version="$(./contrib/check-logos-compilation --version)"
-          api_url="https://api.github.com/repos/ajreynol/logos/actions/runs"
+          api_url="https://api.github.com/repos/cvc5/logos/actions/runs"
           api_url+="?head_sha=${logos_version}&status=success&per_page=100"
           response="$(curl --fail-with-body --silent --show-error --retry 3 \
             -H 'Accept: application/vnd.github+json' \
