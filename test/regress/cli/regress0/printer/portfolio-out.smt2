@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; REQUIRES: portfolio
 ; COMMAND-LINE: --use-portfolio -o portfolio
 ; SCRUBBER: grep -o "portfolio-success"

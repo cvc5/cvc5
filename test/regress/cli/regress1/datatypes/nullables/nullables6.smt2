@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :status sat)
 (set-option :produce-models true)

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction --incremental
 ; EXPECT: sat
 ; EXPECT: sat

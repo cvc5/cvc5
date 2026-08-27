@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --iand-mode=value
 ; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1 --finite-model-find
 ; COMMAND-LINE: --iand-mode=bitwise

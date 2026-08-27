@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-verify-timeout=100 --sygus-enum=smart -q
 ; EXPECT: fail
 (set-logic ALL)

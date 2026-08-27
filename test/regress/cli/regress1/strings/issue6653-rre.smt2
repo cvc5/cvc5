@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --re-elim=agg
 ; EXPECT: sat
 (set-logic ALL)
