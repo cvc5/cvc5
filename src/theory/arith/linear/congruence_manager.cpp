@@ -177,6 +177,12 @@ void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w)
   ++(d_statistics.d_propagations);
 }
 
+void ArithCongruenceManager::pushBackAlias(TNode n)
+{
+  Assert(d_propagatations.size() > 0);
+  d_explanationMap.insert(n, d_propagatations.size() - 1);
+}
+
 void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb,
                                                    ConstraintCP ub)
 {
@@ -268,7 +274,10 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c)
   {
     if (c->getType() == ConstraintType::Disequality)
     {
-      Assert(c->getLiteral() == d_watchedEqualities[s].negate());
+      // Note that the literal of c may differ from the negation of the watched
+      // equality, since multiple atoms may correspond to the same constraint,
+      // e.g. (= x 0) and (= (to_real x) 0.0). This is accounted for by the
+      // call below.
       // We have to prove equivalence to the watched disequality.
       pf = ensurePredTransform(d_pnm, pf, disEq);
     }
@@ -547,6 +556,11 @@ bool ArithCongruenceManager::propagate(TNode x)
           Node peqi = peq[0][0].eqNode(ic);
           Node equiv = peq.eqNode(peqi);
           Rational cx, cy;
+          // Compute the coefficients relating the two sides. Note that
+          // ARITH_POLY_NORM_REL requires these to be non-zero.
+          bool isPolyNorm = PolyNorm::isArithPolyNormRel(peq, peqi, cx, cy);
+          Assert(isPolyNorm) << peq << " and " << peqi << " not poly norm";
+          AlwaysAssert(isPolyNorm);
           Node premise =
               PolyNorm::getArithPolyNormRelPremise(peq, peqi, cx, cy);
           cdp.addStep(premise, ProofRule::ARITH_POLY_NORM, {}, {premise});
@@ -638,6 +652,14 @@ bool ArithCongruenceManager::propagate(TNode x)
     c->setEqualityEngineProof();
     if (c->canBePropagated() && !c->assertedToTheTheory())
     {
+      // Note that the propagation of c below is stated in terms of its
+      // literal, which may be distinct from rewritten. This is the case when
+      // several atoms correspond to c, in which case the first one that was
+      // set up is its literal, see Constraint::setLiteral. We thus ensure that
+      // the literal of c can be explained by this class as well, since
+      // otherwise we would explain it (trivially) by itself below, see
+      // Constraint::externalExplain.
+      pushBackAlias(c->getLiteral());
       ++(d_statistics.d_propagateConstraints);
       c->propagate();
     }
@@ -704,11 +726,17 @@ TrustNode ArithCongruenceManager::explain(TNode external)
       assumptionPfs.push_back(
           d_pnm->mkNode(ProofRule::TRUE_INTRO, {d_pnm->mkAssume(a)}, {}));
     }
-    // uses substitution to true
+    // uses substitution to true, which proves the internal form of the fact
+    Node internalp = trn.getProven()[1];
     auto litPf = d_pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
                                {assumptionPfs},
-                               {external},
-                               external);
+                               {internalp},
+                               internalp);
+    // The internal and external forms may differ by more than rewriting, e.g.
+    // when external is an equality that is not in normal form, since the
+    // rewriter does not normalize equalities, see rewriter::normalizeEquality.
+    // We thus relate the two by polynomial normalization if necessary.
+    litPf = ensurePredTransform(d_pnm, litPf, external);
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
   }

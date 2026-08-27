@@ -17,6 +17,7 @@ extern "C" {
 #include <sstream>
 
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -62,7 +63,7 @@ class TestCApiBlackSymbolManager : public ::testing::Test
 
 TEST_F(TestCApiBlackSymbolManager, is_logic_set)
 {
-  ASSERT_DEATH(cvc5_sm_is_logic_set(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sm_is_logic_set(nullptr), "unexpected NULL argument");
   ASSERT_EQ(cvc5_sm_is_logic_set(d_sm), false);
   parse_and_set_logic("QF_LIA");
   ASSERT_EQ(cvc5_sm_is_logic_set(d_sm), true);
@@ -70,10 +71,10 @@ TEST_F(TestCApiBlackSymbolManager, is_logic_set)
 
 TEST_F(TestCApiBlackSymbolManager, get_logic)
 {
-  ASSERT_DEATH(cvc5_sm_get_logic(d_sm), "logic has not yet been set");
+  ASSERT_CVC5_ERROR(cvc5_sm_get_logic(d_sm), "logic has not yet been set");
   parse_and_set_logic("QF_LIA");
   ASSERT_EQ(cvc5_sm_get_logic(d_sm), std::string("QF_LIA"));
-  ASSERT_DEATH(cvc5_sm_get_logic(nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sm_get_logic(nullptr), "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackSymbolManager, get_declared_sorts)
@@ -81,9 +82,9 @@ TEST_F(TestCApiBlackSymbolManager, get_declared_sorts)
   size_t size;
   (void)cvc5_sm_get_declared_sorts(d_sm, &size);
   ASSERT_EQ(size, 0);
-  ASSERT_DEATH(cvc5_sm_get_declared_sorts(nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_sm_get_declared_sorts(d_sm, nullptr), "NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sm_get_declared_sorts(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sm_get_declared_sorts(d_sm, nullptr), "NULL argument");
 }
 
 TEST_F(TestCApiBlackSymbolManager, get_declared_terms)
@@ -91,9 +92,9 @@ TEST_F(TestCApiBlackSymbolManager, get_declared_terms)
   size_t size;
   (void)cvc5_sm_get_declared_terms(d_sm, &size);
   ASSERT_EQ(size, 0);
-  ASSERT_DEATH(cvc5_sm_get_declared_terms(nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_sm_get_declared_terms(d_sm, nullptr), "NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sm_get_declared_terms(nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_sm_get_declared_terms(d_sm, nullptr), "NULL argument");
 }
 
 TEST_F(TestCApiBlackSymbolManager, getNamedTerms)

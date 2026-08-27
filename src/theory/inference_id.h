@@ -84,6 +84,9 @@ enum class InferenceId
   ARITH_CONF_UNATE_PROP,
   // introduces split on a disequality
   ARITH_SPLIT_DEQ,
+  // states the equivalence of two atoms that correspond to the same internal
+  // constraint, e.g. (= (= x 0) (= (to_real x) 0.0)) for integer x
+  ARITH_EQUIV_ATOM,
   // tighten integer inequalities to ceiling
   ARITH_TIGHTEN_CEIL,
   // tighten integer inequalities to floor
@@ -186,8 +189,6 @@ enum class InferenceId
   ARITH_NL_POW2_VALUE_REFINE,
   // monotonicity refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_MONOTONE_REFINE,
-  // neg refinements (Pow2Solver::checkFullRefine)
-  ARITH_NL_POW2_NEG_REFINE,
   // div0 refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_DIV0_CASE_REFINE,
   // lower bound refinements (Pow2Solver::checkFullRefine)

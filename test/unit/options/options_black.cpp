@@ -77,8 +77,14 @@ class TestBlackOptions : public TestApi
                       d_solver->setOption(name, std::to_string(*v.maximum)));
                   range.second = *v.maximum;
                 }
+                // Compute the midpoint without overflowing. Note that neither
+                // (first + second) nor the span (second - first) is
+                // representable in general, e.g., for [-1, INT64_MAX].
                 EXPECT_NO_THROW(d_solver->setOption(
-                    name, std::to_string((range.first + range.second) / 2)));
+                    name,
+                    std::to_string(range.first / 2 + range.second / 2
+                                   + (range.first % 2 + range.second % 2)
+                                         / 2)));
                 EXPECT_THROW(d_solver->setOption(name, "0123abc"),
                              CVC5ApiOptionException);
               },
@@ -106,8 +112,12 @@ class TestBlackOptions : public TestApi
                       d_solver->setOption(name, std::to_string(*v.maximum)));
                   range.second = *v.maximum;
                 }
+                // Compute the midpoint without overflowing: range.second is
+                // UINT64_MAX unless the option declares a maximum.
                 EXPECT_NO_THROW(d_solver->setOption(
-                    name, std::to_string((range.first + range.second) / 2)));
+                    name,
+                    std::to_string(range.first
+                                   + (range.second - range.first) / 2)));
                 EXPECT_THROW(d_solver->setOption(name, "0123abc"),
                              CVC5ApiOptionException);
               },

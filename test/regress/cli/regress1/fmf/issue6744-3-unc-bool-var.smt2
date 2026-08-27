@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic UFC)
 (set-info :status sat)
 (declare-fun v () Bool)

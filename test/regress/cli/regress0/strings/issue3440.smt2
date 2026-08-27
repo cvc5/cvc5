@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --no-strings-lazy-pp
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)

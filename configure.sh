@@ -53,6 +53,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
+  --slow-tests             enable slow (exhaustive) unit tests
   --python-bindings        build Python bindings based on new C++ API
   --python-only-src        create only Python bindings source files
   --java-bindings          build Java bindings based on new C++ API
@@ -73,6 +74,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --cocoa                  use the CoCoA library
   --editline               support the editline library
   --mpfr                   use MPFR for FP constant folding instead of SymFPU
+  --normaliz               use the Normaliz library
 
 Optional Path to Optional Packages:
   --glpk-dir=PATH          path to top level of GLPK installation
@@ -144,6 +146,7 @@ gpl=default
 kissat=default
 poly=ON
 cocoa=default
+normaliz=default
 muzzle=default
 ninja=default
 profiling=default
@@ -152,9 +155,10 @@ python_only_src=default
 pyvenv=default
 java_bindings=default
 editline=default
-mpfr=default
+mpfr=ON
 build_shared=ON
 safe_mode=default
+slow_tests=default
 stable_mode=default
 static_binary=default
 statistics=default
@@ -287,6 +291,9 @@ do
     --cocoa) cocoa=ON;;
     --no-cocoa) cocoa=OFF;;
 
+    --normaliz) normaliz=ON;;
+    --no-normaliz) normaliz=OFF;;
+
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
@@ -310,6 +317,9 @@ do
 
     --unit-testing) unit_testing=ON;;
     --no-unit-testing) unit_testing=OFF;;
+
+    --slow-tests) slow_tests=ON;;
+    --no-slow-tests) slow_tests=OFF;;
 
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
@@ -474,6 +484,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing"
 [ $unit_testing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
+[ $slow_tests != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_SLOW_TESTS=$slow_tests"
 [ $docs != default ] \
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
 [ $docs_ga != default ] \
@@ -504,6 +516,8 @@ fi
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
 [ $mpfr != default ] \
   && cmake_opts="$cmake_opts -DUSE_MPFR=$mpfr"
+[ $normaliz != default ] \
+  && cmake_opts="$cmake_opts -DUSE_NORMALIZ=$normaliz"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \

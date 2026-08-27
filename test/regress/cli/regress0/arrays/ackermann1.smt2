@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT:
 ; SCRUBBER: grep -v "Ackermannization is not supported for kind"
 ; EXIT: 1

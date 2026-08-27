@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-stream --sygus-query-gen=unsat --sygus-abort-size=2
 ; COMMAND-LINE: --sygus-stream --sygus-query-gen=sample-sat --sygus-abort-size=2
 ; COMMAND-LINE: --sygus-stream --sygus-query-gen=basic --sygus-abort-size=2

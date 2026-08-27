@@ -117,10 +117,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /**
    * Callback of the SAT solver to determine if we have a new clause to add.
-   * @param is_forgettable True if the clause is not irredundant.
+   * @param forgettable True if the clause is not irredundant.
    * @return True to indicate that we have clauses to add.
    */
-  bool cb_has_external_clause(bool& is_forgettable) override;
+  bool cb_has_external_clause(bool& forgettable) override;
 
   /**
    * Callback of the SAT solver to add a new clause.
@@ -155,9 +155,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    *
    * Note: Filters out clauses satisfied by fixed literals.
    *
-   * @param clause The clause to add.
+   * @param clause      The clause to add.
+   * @param forgettable True if the clause is not irredundant.
    */
-  void add_clause(const SatClause& clause);
+  void add_clause(const SatClause& clause, bool forgettable);
 
   /**
    * Add new CaDiCaL variable.
@@ -206,7 +207,22 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    *
    * Note: Returns undefSatLiteral at user level 0.
    */
-  const SatLiteral& current_activation_lit();
+  const SatLiteral& current_activation_lit() const;
+
+  /**
+   * Return the activation literal for the given user level.
+   */
+  const SatLiteral& activation_lit(size_t user_level) const;
+
+  /**
+   * Determine the user level a clause depends on, i.e., the maximum
+   * introduction level over all its literals.
+   *
+   * A learned clause is guarded by the activation literal of this level (see
+   * cb_add_reason_clause_lit()), so that it survives popping user levels above
+   * it and only gets disabled once the level it actually depends on is popped.
+   */
+  uint32_t clause_user_level(const SatClause& clause) const;
 
   /** Return the current user (assertion) level. */
   size_t current_user_level() const { return d_active_vars_control.size(); }
@@ -281,11 +297,14 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * Current activation literals.
    *
    * For each user level, we push a fresh activation literal to the vector (in
-   * user_pop()). Activation literals get removed and disabled in user_pop().
-   * The size of the vector corresponds to the current user level.
+   * set_activation_lit()). Activation literals get removed and disabled in
+   * user_pop(). The size of the vector corresponds to the current user level.
    *
-   * The activation literals corresponding to the current user level gets
-   * automatically added to each clause added in this user level. With
+   * A clause added to the SAT solver is automatically guarded with the
+   * activation literal of the highest user level among its literals (see
+   * add_clause() and cb_add_reason_clause_lit()), which is not necessarily the
+   * current user level. This keeps the clause alive until that level is popped,
+   * avoiding the need to relearn it when only higher levels are popped. With
    * activation literals we can simulate push/pop of clauses in the SAT solver.
    */
   std::vector<SatLiteral> d_activation_literals;
@@ -323,6 +342,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * cb_add_reason_clause_lit().
    */
   std::deque<CadicalLit> d_new_clauses;
+  /** Keep track of forgettable status of clauses buffered in d_new_clauses. */
+  std::deque<bool> d_new_clauses_forgettable;
 
   /**
    * Flag indicating whether cb_add_reason_clause_lit() is currently
