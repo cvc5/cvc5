@@ -9,11 +9,12 @@ Usage: $0 <build type> [<option> ...]
 
 Build types (exactly one must be specified):
   unrestricted
-    Optimized, assertions and tracing disabled (with --safe-mode=unrestricted)
+    Optimized, assertions and tracing disabled, all features enabled
   stable
-    Optimized, assertions and tracing disabled (with --safe-mode=stable)
+    Like unrestricted, but features that are not robust are disabled
   safe
-    Optimized, assertions and tracing disabled (with --safe-mode=safe)
+    Like unrestricted, but features that are not robust or that lack full
+    proof and model support are disabled
   debug
     Unrestricted, unoptimized, debug symbols, assertions, and tracing enabled
   testing
@@ -419,6 +420,12 @@ do
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
+         production)      die "build type 'production' is no longer available," \
+                              "use 'unrestricted' instead";;
+         safe-mode)       die "build type 'safe-mode' is no longer available," \
+                              "use 'safe' instead";;
+         stable-mode)     die "build type 'stable-mode' is no longer available," \
+                              "use 'stable' instead";;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
