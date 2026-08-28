@@ -70,14 +70,21 @@ The cvc5 repository contains a
 :cvc5repo:`script <contrib/get-logos-checker>` to download and install the
 Logos checker, and create scripts for generating proofs with cvc5 and checking
 them with the Logos proof checker.
-Note that Logos currently covers the fragment of CPC that is used by safe
-builds of cvc5, that is, builds configured with ``./configure.sh safe-mode``.
-It does not cover the expert CPC rules that may be used by non-safe builds.
-Logos also does not currently support some SMT-LIB input features, including
-inputs that use ``define-fun``. For an input outside this scope, Logos reports
-``incomplete``. This means that the proof of correctness for Logos does not
-cover that input; it does not mean that Logos found the CPC proof to be
-incorrect.
+
+Logos targets the fragment of CPC that is used by safe builds of cvc5, that is,
+builds configured with ``./configure.sh safe-mode``.
+The expert CPC rules that may be used by non-safe builds lie outside that
+fragment, as do the SMT-LIB input features that Logos does not model; which
+features those are is documented in Logos itself.
+For an input outside its scope, Logos reports ``incomplete``.
+This means that the proof of correctness for Logos does not cover that input;
+it does not mean that Logos found the CPC proof to be incorrect.
+Because the CI of cvc5 requires proofs in safe mode to be complete, that is,
+free of trust steps, every proof rule that a safe build can use is one that
+Logos verifies, apart from inputs of the kind just described.
+
+Keeping CPC and Logos in sync
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since that compilation consumes the signature in this repository, a change to
 :cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>` must remain in sync with Logos.
@@ -89,13 +96,42 @@ The :cvc5repo:`script <contrib/check-logos-compilation>`
 compiler that performs the compilation, and reports whether the signature
 still compiles and whether that pinned Logos was generated from the current
 version of it.
-This check does not build Logos or check its Lean proofs. Thus, cvc5's CPC
-definition is corroborated by Logos only when Logos's own CI passes at the
-pinned commit.
-The ``cpc-logos`` workflow enforces this condition by querying the CI result
-already recorded by GitHub for that commit; it does not rerun Logos CI.
-When the signature has moved ahead, Logos is regenerated and repaired against
-it by the `procedure documented there
-<https://github.com/cvc5/logos#regenerating-the-calculus>`_, and
-``LOGOS_VERSION`` is moved to the resulting commit afterwards, which moves both
-the checker that is installed and the checker that CPC is checked against.
+This check does not build Logos or check its Lean proofs.
+The ``cpc-logos`` workflow additionally requires that the CI of Logos has
+passed at the pinned commit, which it establishes by querying the result
+already recorded for that commit rather than by rerunning that CI.
+
+These two conditions together, that the pinned Logos was generated from the
+signature in this repository and that the CI of Logos passes at that commit,
+are what makes the Eunoia definition of CPC here correct with respect to the
+semantics of SMT-LIB formalized in Logos, up to what that CI tests.
+Neither condition suffices on its own: a Logos that passes its CI says nothing
+about a signature it was not generated from, and a Logos generated from the
+current signature says nothing until its Lean proofs have been checked.
+
+Changing the CPC signature
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Adding a proof rule to :cvc5repo:`proofs/eo/cpc <proofs/eo/cpc>`, or removing
+one, therefore requires a matching change to Logos: the Lean proof of that rule
+is written or removed there, and ``LOGOS_VERSION`` is then moved to the
+resulting commit, which moves both the checker that is installed and the
+checker that CPC is checked against.
+Logos is regenerated and repaired against a new version of the signature by the
+`procedure documented there
+<https://github.com/cvc5/logos#regenerating-the-calculus>`_.
+Until the pin is moved, the ``cpc-logos`` workflow fails on the cvc5 pull
+request that changes the signature.
+
+A rule that is needed in cvc5 but cannot readily be proven in Logos does not
+have to hold up that pull request.
+Two ways of proceeding keep the pin movable:
+
+- Demote the option that gives rise to the rule to unrestricted mode, so that
+  the rule falls outside the fragment of CPC that Logos covers.
+
+- Keep the option in safe mode and have Logos leave the rule out of the
+  compilation, which its configuration of CPC provides for.
+  This unblocks the pin without extending the guarantee above: a proof that
+  uses such a rule is reported ``incomplete``, as for any other input outside
+  the scope of Logos.

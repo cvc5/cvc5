@@ -42,6 +42,9 @@
 # install-cpc.sh preserves rule files; that failure is caught by building the
 # checker, which happens in its own repository.
 #
+# What this check establishes, and what to do when a rule cannot readily be
+# proven in Logos, is documented in docs/proofs/output_cpc.rst.
+#
 # Usage: contrib/check-logos-compilation [OPTION]...
 #
 #   --strict       treat an out-of-date checker as an error rather than exit 2
@@ -84,7 +87,7 @@ while [ $# -gt 0 ]; do
     --setup-only) SETUP_ONLY=1; shift ;;
     --refresh) REFRESH=1; shift ;;
     --version) echo "$LOGOS_VERSION"; exit 0 ;;
-    -h|--help) sed -n '2,54p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,57p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     --) shift; EXTRA_ARGS+=("$@"); break ;;
     *) EXTRA_ARGS+=("$1"); shift ;;
   esac
@@ -202,6 +205,9 @@ echo "The CPC signature compiles, but the pinned checker was generated from an"
 echo "older version of it: updating CPC requires an updated version of Logos to"
 echo "check it against, after which LOGOS_VERSION in $(basename "$GET_LOGOS") is"
 echo "moved to it. See https://github.com/cvc5/logos#regenerating-the-calculus"
+echo ""
+echo "docs/proofs/output_cpc.rst describes what this check establishes and how"
+echo "to proceed when a rule cannot readily be proven in Logos."
 echo ""
 
 if [ "$STRICT" -eq 1 ]; then
