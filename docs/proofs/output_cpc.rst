@@ -63,7 +63,7 @@ CPC format, written in Lean, whose soundness is proven against a formalization
 of the semantics of SMT-LIB.
 It accepts the same proof syntax as Ethos, but does not read Eunoia
 signatures.
-Instead, its proof rules are not written by hand: they are compiled from the
+Its proof rules are compiled from the
 same Eunoia definition of CPC that is contained in this repository, so that the
 proof rules of the two checkers come from a single definition.
 The cvc5 repository contains a
@@ -73,9 +73,10 @@ them with the Logos proof checker.
 
 Logos targets the fragment of CPC that is used by safe builds of cvc5, that is,
 builds configured with ``./configure.sh safe-mode``.
-The expert CPC rules that may be used by non-safe builds lie outside that
-fragment, as do the SMT-LIB input features that Logos does not model; which
-features those are is documented in Logos itself.
+The expert CPC rules used by non-safe builds (CpcExpert.eo) lie outside that
+fragment, and Logos will report a parse error on them.
+In some very rare cases, a proof in safe mode may lie outside of the fragment
+for which Logos is proven correct on.
 For an input outside its scope, Logos reports ``incomplete``.
 This means that the proof of correctness for Logos does not cover that input;
 it does not mean that Logos found the CPC proof to be incorrect.
@@ -104,10 +105,7 @@ already recorded for that commit rather than by rerunning that CI.
 These two conditions together, that the pinned Logos was generated from the
 signature in this repository and that the CI of Logos passes at that commit,
 are what makes the Eunoia definition of CPC here correct with respect to the
-semantics of SMT-LIB formalized in Logos, up to what that CI tests.
-Neither condition suffices on its own: a Logos that passes its CI says nothing
-about a signature it was not generated from, and a Logos generated from the
-current signature says nothing until its Lean proofs have been checked.
+semantics of SMT-LIB formalized in Logos, up to what the CI in Logos repository tests.
 
 Changing the CPC signature
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -123,15 +121,15 @@ Logos is regenerated and repaired against a new version of the signature by the
 Until the pin is moved, the ``cpc-logos`` workflow fails on the cvc5 pull
 request that changes the signature.
 
-A rule that is needed in cvc5 but cannot readily be proven in Logos does not
+A rule that is needed in cvc5's safe mode but cannot readily be proven in Logos does not
 have to hold up that pull request.
-Two ways of proceeding keep the pin movable:
+There are two ways of proceeding :
 
-- Demote the option that gives rise to the rule to unrestricted mode, so that
-  the rule falls outside the fragment of CPC that Logos covers.
+- Guard the new cvc5 reasoning that gives rise to the rule to unrestricted mode, so that
+  the rule falls outside the fragment of CPC that Logos covers. Optionally, proof rules
+  that are not yet ready to be proven in Logos can be added to CpcExpert.eo.
 
 - Keep the option in safe mode and have Logos leave the rule out of the
-  compilation, which its configuration of CPC provides for.
-  This unblocks the pin without extending the guarantee above: a proof that
-  uses such a rule is reported ``incomplete``, as for any other input outside
-  the scope of Logos.
+  compilation (see Cpc.eos in the Logos repository).
+  This unblocks the cvc5 pull request without extending the guarantee above: a proof that
+  uses such a rule will be reported ``incomplete`` by Logos.

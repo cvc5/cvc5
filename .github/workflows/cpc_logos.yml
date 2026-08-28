@@ -83,23 +83,18 @@ jobs:
           path: deps/cpc-compiler
           key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-logos-checker', 'contrib/check-logos-compilation') }}
 
-      # The check sets the compiler up itself when it is not there, but doing
-      # it as its own step is what lets the cache be saved separately from the
-      # check's own outcome.
-      - name: Install the Eunoia compiler and the pinned Logos
-        if: steps.cpc-compiler-cache.outputs.cache-hit != 'true'
-        run: ./contrib/check-logos-compilation --setup-only
+      # The check sets the compiler up itself when it is not there. Do not mask
+      # its nonzero exit status: a passing check must mean that CPC is in sync
+      # with the pinned Logos, so both a compilation failure (exit 1) and a
+      # signature ahead of the pinned Logos (exit 2) fail the job.
+      - name: Check that CPC is in sync with the pinned Logos
+        run: ./contrib/check-logos-compilation
 
+      # The setup writes .cvc5-pinned-version last, so its presence is what
+      # says the install completed; the check's own outcome is irrelevant here.
       - name: Save CPC compiler cache
-        if: success() && steps.cpc-compiler-cache.outputs.cache-hit != 'true'
+        if: always() && steps.cpc-compiler-cache.outputs.cache-hit != 'true' && hashFiles('deps/cpc-compiler/.cvc5-pinned-version') != ''
         uses: actions/cache/save@v5
         with:
           path: deps/cpc-compiler
           key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-logos-checker', 'contrib/check-logos-compilation') }}
-
-      # Run in strict mode so both a compilation failure and a signature that is
-      # ahead of the pinned Logos fail the job. In particular, do not mask the
-      # script's nonzero exit status: a passing check must mean that CPC is in
-      # sync with the pinned Logos.
-      - name: Check that CPC is in sync with the pinned Logos
-        run: ./contrib/check-logos-compilation --strict
