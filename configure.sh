@@ -420,12 +420,14 @@ do
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
-         production)      die "build type 'production' is no longer available," \
-                              "use 'unrestricted' instead";;
-         safe-mode)       die "build type 'safe-mode' is no longer available," \
-                              "use 'safe' instead";;
-         stable-mode)     die "build type 'stable-mode' is no longer available," \
-                              "use 'stable' instead";;
+         production)      die "build type 'production' is no longer available." \
+                              "Use 'unrestricted' to have the previous behavior." \
+                              "Alternatively, the build types 'safe' and 'stable'" \
+                              "are available (try -h)";;
+         safe-mode)       die "build type 'safe-mode' is no longer available." \
+                              "Use 'safe' instead";;
+         stable-mode)     die "build type 'stable-mode' is no longer available." \
+                              "Use 'stable' instead";;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
