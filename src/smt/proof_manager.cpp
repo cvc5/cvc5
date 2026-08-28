@@ -22,6 +22,7 @@
 #include "proof/dot/dot_printer.h"
 #include "proof/eo/eo_printer.h"
 #include "proof/eo/logos_node_converter.h"
+#include "proof/eo/logos_print_channel.h"
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
@@ -320,6 +321,7 @@ void PfManager::printProof(std::ostream& out,
   // clone if the printing below does not modify the proof, which is the case
   // for proof formats Eunoia and NONE.
   if (mode != options::ProofFormatMode::CPC
+      && mode != options::ProofFormatMode::CPC_LOGOS
       && mode != options::ProofFormatMode::NONE)
   {
     fp = fp->clone();
@@ -339,9 +341,15 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::CPC_LOGOS)
   {
+    // Lean identifiers cannot contain "@", so we use a different prefix for
+    // the term letification variables.
     proof::LogosNodeConverter atp(nodeManager());
-    proof::EoPrinter eop(d_env, atp, d_rewriteDb.get(), 1);
-    eop.print(out, fp, scopeMode);
+    proof::EoPrinter eop(d_env, atp, d_rewriteDb.get(), 1, "t");
+    proof::EoPrinter::applyPrintOptions(out);
+    proof::CpcLogosChannelOut cllout(out, eop.getLetBinding());
+    eop.print(cllout, fp, scopeMode);
+    // dump the accumulated proof state
+    cllout.finalize();
   }
   else if (mode == options::ProofFormatMode::ALETHE)
   {

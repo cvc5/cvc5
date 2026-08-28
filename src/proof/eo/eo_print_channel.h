@@ -88,6 +88,19 @@ class EoPrintChannelOut : public EoPrintChannel
                       TNode conc) override;
 
   /**
+   * Whether the declarations and definitions of the symbols occurring in the
+   * proof should be printed prior to the proof. This is false for channels
+   * whose output is not in the Eunoia language.
+   */
+  virtual bool printsDeclarations() const { return true; }
+  /**
+   * Print the definition of the term letification variable that lbind
+   * introduced for n. Note the variable itself is named by the prefix of
+   * lbind and the identifier lbind assigns to n.
+   */
+  virtual void printTermLet(const LetBinding& lbind, TNode n);
+
+  /**
    * Print node to stream in the expected Eunoia format.
    */
   void printNodeInternal(std::ostream& out, Node n);
@@ -97,7 +110,7 @@ class EoPrintChannelOut : public EoPrintChannel
   void printTypeNodeInternal(std::ostream& out, TypeNode tn);
   std::ostream& getOStream() { return d_out; }
 
- protected:
+ private:
   /**
    * Helper for print steps. We set reqPremises to true if we require printing
    * premises even if empty.
@@ -154,69 +167,6 @@ class EoPrintChannelPre : public EoPrintChannel
   std::unordered_set<Node> d_keep;
   /** Process that we will print node n in the final proof */
   void processInternal(const Node& n);
-};
-
-/**
- * Prints the proof to output stream d_out in the form expected by Logos.
- *
- * Eunoia proof commands step, step-pop, assume, assume-pop correspond
- * one-to-one with the output of this proof channel. An example of the proof
- * output from this checker is the following:
- *
- * ...
- * def s0 : LogosState := logos_init_state
- * def s1 : LogosState := (logos_invoke_assume s0 t4)
- * def s2 : LogosState := (logos_invoke_assume s1 t7)
- * def s3 : LogosState := (logos_invoke_cmd s2
- *     (CCmd.step CRule.symm CArgList.nil
- *       (CIndexList.cons 0 CIndexList.nil)))
- * def s4 : LogosState := (logos_invoke_cmd s3
- *     (CCmd.step CRule.contra CArgList.nil
- *       (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
- * #eval! (logos_state_is_refutation s4)
- *
- * Note that premise ids refer to the relative distance of the premise from the
- * top of the stack, where 0 refers to the last formula proven, and so on.
- */
-class CpcLogosChannelOut : public EoPrintChannelOut
-{
- public:
-  CpcLogosChannelOut(std::ostream& out, const LetBinding* lbind);
-  /** print assume */
-  void printAssume(TNode n, size_t i, bool isPush) override;
-  /** print step */
-  void printStep(const std::string& rname,
-                 TNode n,
-                 size_t i,
-                 const std::vector<size_t>& premises,
-                 const std::vector<Node>& args,
-                 bool isPop = false) override;
-  /** print trust step, gives an error */
-  void printTrustStep(ProofRule r,
-                      TNode n,
-                      size_t i,
-                      const std::vector<size_t>& premises,
-                      const std::vector<Node>& args,
-                      TNode conc) override;
-  /**
-   * Dump the accumulated output to d_out.
-   */
-  void finalize();
-
- private:
-  /** The output state definition */
-  std::stringstream d_stateDef;
-  /**
-   * mapping premise ids to their distance from the top of the stack of formulas
-   * we have proven, used to lookup premises in logos
-   */
-  std::map<size_t, size_t> d_stackId;
-  /** the size of the stack of formulas we have proven */
-  size_t d_stackSize;
-  /** the size of the stack at the time of assume-push commands */
-  std::vector<size_t> d_stackPush;
-  /** an identifier for naming states */
-  size_t d_stateId;
 };
 
 }  // namespace proof

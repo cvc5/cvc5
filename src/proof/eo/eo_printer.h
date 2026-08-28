@@ -41,8 +41,16 @@ class EoPrinter : protected EnvObj
   EoPrinter(Env& env,
             BaseEoNodeConverter& atp,
             rewriter::RewriteDb* rdb,
-            uint32_t letThresh = 2);
+            uint32_t letThresh = 2,
+            const std::string& termLetPrefix = "@t");
   ~EoPrinter() {}
+
+  /**
+   * Apply the output stream options that the Eunoia printers assume to out.
+   * This must be called on the output stream prior to printing a proof with
+   * the print channel variant of print below.
+   */
+  static void applyPrintOptions(std::ostream& out);
 
   /**
    * Print the full proof pfn.
@@ -62,8 +70,7 @@ class EoPrinter : protected EnvObj
    */
   void print(EoPrintChannelOut& out,
              std::shared_ptr<ProofNode> pfn,
-             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-             bool printDeclPreamble = true);
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
   /**
    * Print the proof, assuming that previous proofs have been printed on this
    * printer that have (partially) given the definition of subterms and
@@ -177,8 +184,8 @@ class EoPrinter : protected EnvObj
    * Allocate (if necessary) the identifier for step
    */
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
-  /** Print let list to output stream out */
-  void printLetList(std::ostream& out, LetBinding& lbind);
+  /** Print let list to print channel aout */
+  void printLetList(EoPrintChannelOut& aout, LetBinding& lbind);
   /** Reference to the term processor */
   BaseEoNodeConverter& d_tproc;
   /** Assume id counter */
@@ -197,12 +204,8 @@ class EoPrinter : protected EnvObj
   context::CDHashSet<const ProofNode*> d_alreadyPrinted;
   /** Mapping assumed formulas to identifiers */
   context::CDHashMap<Node, size_t> d_passumeMap;
-  /** */
-  bool d_isCpcLogos;
   /** The (dummy) type used for proof terms */
   TypeNode d_pfType;
-  /** term prefix */
-  std::string d_termLetPrefix;
   /** The false node */
   Node d_false;
   /** */

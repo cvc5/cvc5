@@ -43,22 +43,20 @@ namespace proof {
 EoPrinter::EoPrinter(Env& env,
                      BaseEoNodeConverter& atp,
                      rewriter::RewriteDb* rdb,
-                     uint32_t letThresh)
+                     uint32_t letThresh,
+                     const std::string& termLetPrefix)
     : EnvObj(env),
       d_tproc(atp),
       d_pfIdCounter(0),
       d_alreadyPrinted(&d_passumeCtx),
       d_passumeMap(&d_passumeCtx),
-      d_isCpcLogos(options().proof.proofFormatMode
-                   == options::ProofFormatMode::CPC_LOGOS),
-      d_termLetPrefix(d_isCpcLogos ? "t" : "@t"),
       d_rdb(rdb),
       // Use a let binding if proofDagGlobal is true. We can traverse binders
       // due to the way we print global declare-var, since terms beneath
       // binders will always have their variables in scope and hence can be
       // printed in define commands. We additionally traverse skolems with this
       // utility.
-      d_lbind(d_termLetPrefix, letThresh, true, true),
+      d_lbind(termLetPrefix, letThresh, true, true),
       d_lbindUse(options().proof.proofDagGlobal ? &d_lbind : nullptr),
       d_eletify(d_lbindUse)
 {
@@ -825,66 +823,40 @@ void EoPrinter::printDslRule(std::ostream& out, ProofRewriteRule r)
 
 LetBinding* EoPrinter::getLetBinding() { return d_lbindUse; }
 
-void EoPrinter::printLetList(std::ostream& out, LetBinding& lbind)
+void EoPrinter::printLetList(EoPrintChannelOut& aout, LetBinding& lbind)
 {
   std::vector<Node> letList;
   lbind.letify(letList);
-  std::map<Node, size_t>::const_iterator it;
-  for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+  for (const Node& n : letList)
   {
-    Node n = letList[i];
-    if (d_isCpcLogos)
-    {
-      out << "def " << d_termLetPrefix << lbind.getId(n);
-      out << " := ";
-      Printer::getPrinter(out)->toStream(out, n, &lbind, false);
-      out << std::endl;
-    }
-    else
-    {
-      // use define command which does not invoke type checking
-      out << "(define " << d_termLetPrefix << lbind.getId(n);
-      out << " () ";
-      Printer::getPrinter(out)->toStream(out, n, &lbind, false);
-      out << ")" << std::endl;
-    }
+    // the channel determines the syntax of the definition
+    aout.printTermLet(lbind, n);
   }
+}
+
+void EoPrinter::applyPrintOptions(std::ostream& out)
+{
+  // ensures options are set once and for all
+  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
+  options::ioutils::applyPrintArithLitToken(out, true);
+  options::ioutils::applyPrintSkolemDefinitions(out, true);
 }
 
 void EoPrinter::print(std::ostream& out,
                       std::shared_ptr<ProofNode> pfn,
                       ProofScopeMode psm)
 {
-  // ensures options are set once and for all
-  options::ioutils::applyOutputLanguage(out, Language::LANG_SMTLIB_V2_6);
-  options::ioutils::applyPrintArithLitToken(out, true);
-  options::ioutils::applyPrintSkolemDefinitions(out, true);
+  applyPrintOptions(out);
   // allocate a print channel
-  if (d_isCpcLogos)
-  {
-    CpcLogosChannelOut cllout(out, d_lbindUse);
-    print(cllout, pfn, psm, false);
-    // dump the output
-    cllout.finalize();
-  }
-  else
-  {
-    EoPrintChannelOut aprint(out, d_lbindUse, true);
-    print(aprint, pfn, psm, !options().proof.proofPrintReference);
-  }
+  EoPrintChannelOut aprint(out, d_lbindUse, true);
+  print(aprint, pfn, psm);
 }
 
 void EoPrinter::print(EoPrintChannelOut& aout,
                       std::shared_ptr<ProofNode> pfn,
-                      ProofScopeMode psm,
-                      bool printDeclPreamble)
+                      ProofScopeMode psm)
 {
   std::ostream& out = aout.getOStream();
-  if (d_isCpcLogos)
-  {
-    out << "import Cpc.Native" << std::endl;
-    out << "open Eo" << std::endl;
-  }
   Assert(d_pletMap.empty());
   d_pfIdCounter = 0;
 
@@ -931,7 +903,7 @@ void EoPrinter::print(EoPrintChannelOut& aout,
     if (i == 1)
     {
       // do not need to print DSL rules
-      if (printDeclPreamble)
+      if (!options().proof.proofPrintReference && aout.printsDeclarations())
       {
         // [1] print the declarations
         printer::smt2::Smt2Printer eprinter(printer::smt2::Variant::eo_variant);
@@ -946,7 +918,7 @@ void EoPrinter::print(EoPrintChannelOut& aout,
         out << outDef.str();
       }
       // [3] print proof-level term bindings
-      printLetList(out, d_lbind);
+      printLetList(aout, d_lbind);
     }
     // [4] print (unique) assumptions, including definitions
     std::unordered_set<Node> processed;
@@ -1031,11 +1003,9 @@ void EoPrinter::printNext(EoPrintChannelOut& aout,
   const ProofNode* pnBody = pfn.get();
   // print with letification
   printProofInternal(&d_eletify, pnBody, false);
-  // print the new let bindings
-  std::ostream& out = aout.getOStream();
   // Print new terms from the let binding. note that this should print only
   // the terms we have yet to see so far.
-  printLetList(out, d_lbind);
+  printLetList(aout, d_lbind);
   // print the proof
   printProofInternal(&aout, pnBody, true);
 }
