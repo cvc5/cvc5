@@ -17,6 +17,7 @@ extern "C" {
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_parser.h>
 
+#include <deque>
 #include <fstream>
 
 #include "api/c/cvc5_c_structs.h"
@@ -114,8 +115,12 @@ struct Cvc5InputParser
    * given via constructor but created by the parser.
    */
   std::unique_ptr<Cvc5SymbolManager> d_sm_wrapped;
-  /** The allocated command objects. */
-  std::vector<cvc5_cmd_t> d_alloc_cmds;
+  /**
+   * The allocated command objects.
+   * @note We use a deque here to ensure that pointers to its elements remain
+   *       valid on insertion.
+   */
+  std::deque<cvc5_cmd_t> d_alloc_cmds;
 };
 
 /* -------------------------------------------------------------------------- */

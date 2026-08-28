@@ -333,6 +333,7 @@ void Cvc5TermManager::release()
 {
   d_alloc_sorts.clear();
   d_alloc_terms.clear();
+  d_alloc_ops.clear();
   d_alloc_dts.clear();
   d_alloc_dt_conss.clear();
   d_alloc_dt_sels.clear();
@@ -441,12 +442,10 @@ cvc5_proof_t* Cvc5::copy(cvc5_proof_t* proof)
 
 Cvc5Grammar Cvc5::export_grammar(const cvc5::Grammar& grammar)
 {
-  auto [it, inserted] = d_alloc_grammars.try_emplace(grammar, this, grammar);
-  if (!inserted)
-  {
-    copy(&it->second);
-  }
-  return &it->second;
+  auto g = std::make_unique<cvc5_grammar_t>(this, grammar);
+  cvc5_grammar_t* res = g.get();
+  d_alloc_grammars.emplace(res, std::move(g));
+  return res;
 }
 
 void Cvc5::release(cvc5_grammar_t* grammar)
@@ -454,8 +453,8 @@ void Cvc5::release(cvc5_grammar_t* grammar)
   grammar->d_refs -= 1;
   if (grammar->d_refs == 0)
   {
-    Assert(d_alloc_grammars.find(grammar->d_grammar) != d_alloc_grammars.end());
-    d_alloc_grammars.erase(grammar->d_grammar);
+    Assert(d_alloc_grammars.find(grammar) != d_alloc_grammars.end());
+    d_alloc_grammars.erase(grammar);
   }
 }
 
