@@ -225,7 +225,7 @@ class TheorySetsRels : protected EnvObj
    * isTCReachable), this method does nothing. Otherwise it records the edge
    * (a, b) and its explanation in d_tcr_tcGraph / d_tcr_tcGraph_exps, and
    * sends the lemma that unfolds the closure one step
-   * (InferenceId::SETS_RELS_TCLOSURE_UP):
+   * (InferenceId::SETS_RELS_TCLOSURE_DOWN):
    *   (set.member (a, b) TC(r)) =>
    *     (set.member (a, b) r)
    *     or ((set.member (a, z1) r) and (set.member (z2, b) r)
@@ -248,7 +248,7 @@ class TheorySetsRels : protected EnvObj
    * Called at the end of a full-effort check. For each transitive closure
    * term TC(r) with a graph in d_tcr_tcGraph, computes the transitive
    * closure of that graph and infers all implied memberships
-   * (InferenceId::SETS_RELS_TCLOSURE_FWD) via the overload below.
+   * (InferenceId::SETS_RELS_TCLOSURE_UP) via the overload below.
    */
   void doTCInference();
   /**
