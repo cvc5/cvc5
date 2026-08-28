@@ -261,15 +261,17 @@ void CpcLogosChannelOut::printAssume(TNode n, size_t i, bool isPush)
   if (isPush)
   {
     d_stackPush.push_back(d_stackSize);
-    d_stateDef << "def s" << d_stateId << " : LogosState := (logos_invoke_cmd s";
+    d_stateDef << "def s" << d_stateId
+               << " : LogosState := (logos_invoke_cmd s";
     d_stateDef << (d_stateId - 1) << " (CCmd.assume_push ";
     printNodeInternal(d_stateDef, n);
     d_stateDef << "))" << std::endl;
   }
   else
   {
-    d_stateDef << "def s" << d_stateId << " : LogosState := (logos_invoke_assume s"
-               << (d_stateId - 1) << " ";
+    d_stateDef << "def s" << d_stateId
+               << " : LogosState := (logos_invoke_assume s" << (d_stateId - 1)
+               << " ";
     printNodeInternal(d_stateDef, n);
     d_stateDef << ")" << std::endl;
   }
@@ -352,12 +354,13 @@ void CpcLogosChannelOut::printStep(const std::string& rname,
   }
 }
 
-void CpcLogosChannelOut::printTrustStep(ProofRule r,
-                                        TNode n,
-                                        size_t i,
-                                        const std::vector<size_t>& premises,
-                                        const std::vector<Node>& args,
-                                        TNode nc)
+void CpcLogosChannelOut::printTrustStep(
+    ProofRule r,
+    CVC5_UNUSED TNode n,
+    CVC5_UNUSED size_t i,
+    CVC5_UNUSED const std::vector<size_t>& premises,
+    CVC5_UNUSED const std::vector<Node>& args,
+    CVC5_UNUSED TNode nc)
 {
   std::stringstream ss;
   ss << "The proof was incomplete, due to rule " << r;

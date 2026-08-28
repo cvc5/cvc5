@@ -38,7 +38,7 @@ LogosNodeConverter::LogosNodeConverter(NodeManager* nm) : EoNodeConverter(nm)
 }
 LogosNodeConverter::~LogosNodeConverter() {}
 
-bool LogosNodeConverter::shouldTraverse(Node n) { return true; }
+bool LogosNodeConverter::shouldTraverse(CVC5_UNUSED Node n) { return true; }
 
 Node LogosNodeConverter::postConvert(Node n)
 {

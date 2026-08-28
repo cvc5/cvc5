@@ -42,10 +42,12 @@ namespace proof {
  * def s0 : LogosState := logos_init_state
  * def s1 : LogosState := (logos_invoke_assume s0 t4)
  * def s2 : LogosState := (logos_invoke_assume s1 t7)
- * def s3 : LogosState := (logos_invoke_cmd s2 (CCmd.step CRule.symm CArgList.nil
- *                    (CIndexList.cons 0 CIndexList.nil)))
- * def s4 : LogosState := (logos_invoke_cmd s3 (CCmd.step CRule.contra CArgList.nil
- *                    (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
+ * def s3 : LogosState := (logos_invoke_cmd s2
+ *     (CCmd.step CRule.symm CArgList.nil
+ *       (CIndexList.cons 0 CIndexList.nil)))
+ * def s4 : LogosState := (logos_invoke_cmd s3
+ *     (CCmd.step CRule.contra CArgList.nil
+ *       (CIndexList.cons 2 (CIndexList.cons 0 CIndexList.nil))))
  * #eval! (logos_state_is_refutation s4)
  *
  * This node converter involves rewriting cvc5 terms to their corresponding
