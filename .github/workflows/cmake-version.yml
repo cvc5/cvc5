@@ -37,7 +37,7 @@ jobs:
   
     - name: Configure
       run: |
-        ./configure.sh production --auto-download --static --python-bindings --assertions --tracing --unit-testing --editline --docs \
+        ./configure.sh unrestricted --auto-download --static --python-bindings --assertions --tracing --unit-testing --editline --docs \
           --prefix=$(pwd)/build/install \
           --werror
 

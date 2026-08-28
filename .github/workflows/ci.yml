@@ -49,7 +49,7 @@ jobs:
         build:
           - name: ubuntu:production
             os: ubuntu-22.04
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
@@ -62,7 +62,7 @@ jobs:
 
           - name: ubuntu:safe-mode
             os: ubuntu-22.04
-            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: safe --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-safe
             strip-bin: strip
             python-bindings: true
@@ -73,7 +73,7 @@ jobs:
 
           - name: ubuntu:stable-mode
             os: ubuntu-22.04
-            config: stable-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: stable --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-stable
             strip-bin: strip
             python-bindings: true
@@ -86,7 +86,7 @@ jobs:
             os: ubuntu-24.04
             use-clang: true
             use-libcxx: true
-            config: production --auto-download -DBUILD_GMP=1
+            config: unrestricted --auto-download -DBUILD_GMP=1
             cache-key: production-libcxx
             strip-bin: strip
             check-examples: true
@@ -96,7 +96,7 @@ jobs:
 
           - name: ubuntu:production-arm64
             os: ubuntu-22.04-arm
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
@@ -110,7 +110,7 @@ jobs:
             os: ubuntu-24.04-arm
             use-clang: true
             use-libcxx: true
-            config: production --auto-download -DBUILD_GMP=1
+            config: unrestricted --auto-download -DBUILD_GMP=1
             cache-key: production-arm64-libcxx
             strip-bin: strip
             check-examples: true
@@ -120,7 +120,7 @@ jobs:
 
           - name: macos:production
             os: macos-15-intel
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production
             strip-bin: strip
             python-bindings: true
@@ -133,7 +133,7 @@ jobs:
 
           - name: macos:production-arm64
             os: macos-15
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
             cache-key: production-arm64
             strip-bin: strip
             python-bindings: true
@@ -147,7 +147,7 @@ jobs:
 
           - name: win64:production
             os: windows-latest
-            config: production --auto-download --all-bindings
+            config: unrestricted --auto-download --all-bindings
             cache-key: production-win64-native
             strip-bin: strip
             python-bindings: true
@@ -161,7 +161,7 @@ jobs:
 
           - name: win64:production-arm64
             os: windows-11-arm
-            config: production --auto-download --all-bindings
+            config: unrestricted --auto-download --all-bindings
             cache-key: production-win64-native-arm64
             strip-bin: strip
             python-bindings: true
@@ -176,7 +176,7 @@ jobs:
 
           - name: wasm:production
             os: ubuntu-22.04
-            config: production --static --static-binary --auto-download --wasm-web=no-modular-static-page
+            config: unrestricted --static --static-binary --auto-download --wasm-web=no-modular-static-page
             cache-key: productionwasm
             wasm-build: true
             wasm-pkg-name: cvc5-Wasm
@@ -187,7 +187,7 @@ jobs:
           - name: ubuntu:production-dbg
             os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
             config: >-
-              production --auto-download --assertions --tracing --unit-testing --editline
+              unrestricted --auto-download --assertions --tracing --unit-testing --editline
               --cocoa --normaliz --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
             cache-key: dbg
             python-bindings: true
@@ -201,7 +201,7 @@ jobs:
           - name: ubuntu:production-dbg-clang
             os: ubuntu-22.04
             use-clang: true
-            config: production --auto-download --assertions --tracing --cln --gpl --unit-testing -DNO_GLOBAL_POLY_CTX=1
+            config: unrestricted --auto-download --assertions --tracing --cln --gpl --unit-testing -DNO_GLOBAL_POLY_CTX=1
             cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --tester cpc --tester alethe --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
@@ -209,7 +209,7 @@ jobs:
           # GPL versions
           - name: ubuntu:production-gpl
             os: ubuntu-22.04
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
@@ -217,7 +217,7 @@ jobs:
 
           - name: ubuntu:production-arm64-gpl
             os: ubuntu-22.04-arm
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-Linux-arm64
@@ -225,7 +225,7 @@ jobs:
 
           - name: macos:production-gpl
             os: macos-15-intel
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64
@@ -234,7 +234,7 @@ jobs:
 
           - name: macos:production-arm64-gpl
             os: macos-15
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: production-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
@@ -246,7 +246,7 @@ jobs:
           # but are not currently uploaded.
           - name: win64:production-gpl
             os: windows-latest
-            config: production --auto-download --gpl --cocoa --normaliz
+            config: unrestricted --auto-download --gpl --cocoa --normaliz
             cache-key: production-win64-native-gpl
             strip-bin: strip
             windows-build: true
@@ -255,7 +255,7 @@ jobs:
 
           - name: win64:production-arm64-gpl
             os: windows-11-arm
-            config: production --auto-download --gpl --cocoa --normaliz
+            config: unrestricted --auto-download --gpl --cocoa --normaliz
             cache-key: production-win64-native-arm64-gpl
             strip-bin: strip
             java-version: 21
