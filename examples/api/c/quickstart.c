@@ -266,8 +266,9 @@ int main()
   cvc5_delete(slv);
   //! [docs-c-quickstart-19 end]
 
-  // Delete term manager instance.
+  // Release all managed objects and delete term manager instance.
   //! [docs-c-quickstart-20 start]
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   //! [docs-c-quickstart-20 end]
   return 0;

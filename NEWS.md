@@ -9,6 +9,15 @@ cvc5 1.3.5 prerelease
   first argument. The build types `production`, `safe-mode` and `stable-mode`
   are renamed to `unrestricted`, `safe` and `stable`, respectively.
 
+- Objects created via the C API (sorts, terms, results, proofs, ...) now keep
+  their term manager alive and remain valid after `cvc5_term_manager_delete()`
+  and `cvc5_delete()` have been called, until they are released via the
+  corresponding `cvc5_*_release()` function. This matches the lifetime
+  guarantees of the C++ API. As a consequence, deleting a term manager no
+  longer frees objects that have not been released. To free all managed
+  objects at once, call `cvc5_term_manager_release()` before
+  `cvc5_term_manager_delete()`.
+
 - The C API no longer terminates the process when an error occurs. Instead of
   printing to stderr and calling `exit()`, C API functions now record the error
   in thread-local state and return a default value (e.g., `NULL`, `false`, or

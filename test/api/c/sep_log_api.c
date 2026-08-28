@@ -211,6 +211,7 @@ int main(void)
 
   /* All tests pass! */
   cvc5_delete(solver);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return res;
 }

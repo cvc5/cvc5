@@ -35,6 +35,7 @@ class TestCApiBlackInputParser : public ::testing::Test
   {
     cvc5_symbol_manager_delete(d_sm);
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
 

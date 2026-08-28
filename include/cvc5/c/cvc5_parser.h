@@ -79,6 +79,11 @@ typedef struct Cvc5InputParser Cvc5InputParser;
 
 /**
  * Construct a new instance of a cvc5 symbol manager.
+ *
+ * @note A symbol manager keeps its associated term manager alive, i.e., it
+ *       remains usable after the term manager has been deleted via
+ *       `cvc5_term_manager_delete()`.
+ *
  * @param tm The associated term manager instance.
  * @return The cvc5 symbol manager instance.
  */
@@ -208,6 +213,13 @@ CVC5_EXPORT Cvc5InputParser* cvc5_parser_new(Cvc5* cvc5, Cvc5SymbolManager* sm);
 
 /**
  * Delete a cvc5 input parser instance.
+ *
+ * @note This invalidates all command objects created by the parser. Terms and
+ *       sorts obtained via the parser are managed by the term manager and
+ *       remain valid (see `cvc5_term_manager_delete()`).
+ * @note The solver and symbol manager instances associated with the parser
+ *       must not be deleted before the parser.
+ *
  * @param parser The input parser instance.
  */
 CVC5_EXPORT void cvc5_parser_delete(Cvc5InputParser* parser);

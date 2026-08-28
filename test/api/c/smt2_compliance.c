@@ -61,6 +61,7 @@ int main()
   test_get_info(solver, ":all-statistics");
 
   cvc5_delete(solver);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return 0;
 }

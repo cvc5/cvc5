@@ -13,13 +13,23 @@ the C++ API can rely on memory being efficiently managed automatically, on the
 C level, management to maintain a low overhead needs **more manual
 intervention**.
 
+All objects created via a term manager (:cpp:type:`Cvc5TermManager`) or a
+solver (:cpp:type:`Cvc5`) instance, e.g., sorts, terms, results and proofs,
+are **managed by the term manager**. As in the C++ API, these objects keep
+the term manager alive: they **remain valid** after the term manager and solver
+instances that created them have been deleted via
+:cpp:func:`cvc5_term_manager_delete()` and :cpp:func:`cvc5_delete()`, until
+they are released. Consequently, deleting a term manager does not free objects
+that are still referenced. The memory of a term manager is freed once it has
+been deleted and all of its managed objects have been released.
+
 The C API offers **two modes** of memory management:
 
 1. Let cvc5 handle memory management without manual intervention. All memory
    allocated by the C API via a term manager (:cpp:type:`Cvc5TermManager`) or
-   solver (:cpp:type:`Cvc5`) instance will only be released when these
-   instances are deleted via :cpp:func:`cvc5_delete()` and
-   :cpp:func:`cvc5_term_manager_delete()`. For example:
+   solver (:cpp:type:`Cvc5`) instance is released all at once via
+   :cpp:func:`cvc5_term_manager_release()` before the term manager is deleted
+   via :cpp:func:`cvc5_term_manager_delete()`. For example:
 
 .. code:: c
 
@@ -34,6 +44,8 @@ The C API offers **two modes** of memory management:
    cvc5_assert_formula(cvc5, cvc5_mk_term(tm, CVC5_KIND_DISTINCT, 2, args2));
    cvc5_check_sat(cvc5);
    cvc5_delete(cvc5);
+   // release all objects managed by the term manager
+   cvc5_term_manager_release(tm);
    cvc5_term_manager_delete(tm);
 
 
@@ -42,24 +54,38 @@ The C API offers **two modes** of memory management:
    and ``cvc5_*_release()`` functions. The copy functions increment the
    reference counter of an object, the release functions decrement the
    reference counter and free its allocated memory when the counter reaches 0.
+   Objects that have not been released when the term manager is deleted keep
+   the term manager alive and remain valid until they are released.
    For example:
 
 .. code:: c
 
    Cvc5TermManager* tm = cvc5_term_manager_new();
    Cvc5* cvc5 = cvc5_new(tm);
-   Cvc5Term a = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "a");
+   Cvc5Sort int_sort = cvc5_get_integer_sort(tm);
+   Cvc5Term a = cvc5_mk_const(tm, int_sort, "a");
    Cvc5Term two = cvc5_mk_integer_int64(tm, 2);
    Cvc5Term args1[2] = {a, two};
-   cvc5_assert_formula(cvc5, cvc5_mk_term(tm, CVC5_KIND_EQUAL, 2, args1));
-   // we can release 'a' here, not needed anymore
+   Cvc5Term eq = cvc5_mk_term(tm, CVC5_KIND_EQUAL, 2, args1);
+   cvc5_assert_formula(cvc5, eq);
+   // we can release 'a' and 'eq' here, not needed anymore
    cvc5_term_release(a);
-   Cvc5Term b = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), "b");
+   cvc5_term_release(eq);
+   Cvc5Term b = cvc5_mk_const(tm, int_sort, "b");
    Cvc5Term args2[2] = {b, two};
-   cvc5_assert_formula(cvc5, cvc5_mk_term(tm, CVC5_KIND_DISTINCT, 2, args2));
-   cvc5_check_sat(cvc5);
+   Cvc5Term distinct = cvc5_mk_term(tm, CVC5_KIND_DISTINCT, 2, args2);
+   cvc5_assert_formula(cvc5, distinct);
+   Cvc5Result res = cvc5_check_sat(cvc5);
    cvc5_delete(cvc5);
    cvc5_term_manager_delete(tm);
+   // the remaining objects are still valid here, they keep the term manager
+   // alive until the last one of them is released
+   printf("%s\n", cvc5_result_to_string(res));
+   cvc5_result_release(res);
+   cvc5_term_release(distinct);
+   cvc5_term_release(b);
+   cvc5_term_release(two);
+   cvc5_sort_release(int_sort);
 
 
 .. container:: hide-toctree

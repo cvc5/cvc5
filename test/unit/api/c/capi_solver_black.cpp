@@ -42,6 +42,7 @@ class TestCApiBlackSolver : public ::testing::Test
   void TearDown() override
   {
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
 
@@ -251,6 +252,7 @@ TEST_F(TestCApiBlackSolver, simplify)
       cvc5_simplify(slv, x, false),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -282,6 +284,7 @@ TEST_F(TestCApiBlackSolver, assert_formula)
       cvc5_assert_formula(slv, cvc5_mk_true(d_tm)),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -320,6 +323,7 @@ TEST_F(TestCApiBlackSolver, check_sat_assuming)
       "expected a term associated with the term manager of this solver");
   ;
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -453,6 +457,7 @@ TEST_F(TestCApiBlackSolver, declare_datatype)
       "expected a datatype constructor declaration associated with "
       "the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -498,6 +503,7 @@ TEST_F(TestCApiBlackSolver, declare_fun)
       cvc5_declare_fun(slv, "f1", 0, nullptr, bv_sort, true),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -522,6 +528,7 @@ TEST_F(TestCApiBlackSolver, declare_fun_fresh)
       "sort is not associated with the term manager of this solver");
   ;
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -632,6 +639,7 @@ TEST_F(TestCApiBlackSolver, define_fun)
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -794,6 +802,7 @@ TEST_F(TestCApiBlackSolver, define_fun_rec)
           slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -887,6 +896,7 @@ TEST_F(TestCApiBlackSolver, define_fun_rec_global)
           true),
       "invalid sort of parameter");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1069,6 +1079,7 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
                            false),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1930,6 +1941,7 @@ TEST_F(TestCApiBlackSolver, get_value3)
       cvc5_get_value(slv, x),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1965,6 +1977,7 @@ TEST_F(TestCApiBlackSolver, get_modelDomain_elements)
       cvc5_get_model_domain_elements(slv, d_uninterpreted, &size),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2019,6 +2032,7 @@ TEST_F(TestCApiBlackSolver, is_model_core_symbol)
       cvc5_is_model_core_symbol(slv, x),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2113,6 +2127,7 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination)
       cvc5_get_quantifier_elimination(slv, forall),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2144,6 +2159,7 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
       cvc5_get_quantifier_elimination(slv, forall),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2176,6 +2192,7 @@ TEST_F(TestCApiBlackSolver, declare_sep_heap)
       cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm)),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2471,6 +2488,7 @@ TEST_F(TestCApiBlackSolver, declare_sygus_var)
       cvc5_declare_sygus_var(slv, "", d_bool),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2536,6 +2554,7 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
           d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2590,6 +2609,7 @@ TEST_F(TestCApiBlackSolver, synth_fun)
           slv, "f8", bvars.size(), bvars.data(), d_bool, g1),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2652,6 +2672,7 @@ TEST_F(TestCApiBlackSolver, declare_pool)
           slv, "p", cvc5_get_integer_sort(tm), args2.size(), args2.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2758,6 +2779,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
       "Evaluated an oracle call that is not associated with the term "
       "manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3026,6 +3048,7 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
       cvc5_get_interpolant_with_grammar(slv, cconj2, g),
       "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3153,6 +3176,7 @@ TEST_F(TestCApiBlackSolver, get_abduct)
       cvc5_get_abduct_with_grammar(slv, cconj2, g),
       "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3269,6 +3293,7 @@ TEST_F(TestCApiBlackSolver, block_model_values1)
       cvc5_block_model_values(slv, args.size(), args.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3366,6 +3391,7 @@ TEST_F(TestCApiBlackSolver, add_sygus_constraint)
       cvc5_add_sygus_constraint(slv, tbool),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3405,6 +3431,7 @@ TEST_F(TestCApiBlackSolver, add_sygus_assume)
       cvc5_add_sygus_assume(slv, tbool),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3532,6 +3559,7 @@ TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
       cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3573,6 +3601,7 @@ TEST_F(TestCApiBlackSolver, get_synth_solution)
       cvc5_get_synth_solution(slv, f),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3614,6 +3643,7 @@ TEST_F(TestCApiBlackSolver, get_synth_solutions)
       cvc5_get_synth_solutions(slv, args.size(), args.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 

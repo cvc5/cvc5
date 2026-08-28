@@ -55,11 +55,22 @@ struct Cvc5SymbolManager
         d_sm(*d_sm_wrapped),
         d_tm(tm)
   {
+    // The symbol manager keeps the term manager alive (e.g., to export
+    // declared terms and sorts).
+    d_tm->inc_ref();
   }
+  /**
+   * Constructor.
+   * @param sm The wrapped symbol manager instance.
+   * @param tm The associated term manager.
+   */
   Cvc5SymbolManager(cvc5::parser::SymbolManager& sm, Cvc5TermManager* tm)
       : d_sm(sm), d_tm(tm)
   {
+    d_tm->inc_ref();
   }
+  /** Destructor. */
+  ~Cvc5SymbolManager() { d_tm->dec_ref(); }
   /**
    * The created symbol manager instance.
    *
@@ -117,8 +128,9 @@ struct Cvc5InputParser
   std::unique_ptr<Cvc5SymbolManager> d_sm_wrapped;
   /**
    * The allocated command objects.
-   * @note We use a deque here to ensure that pointers to its elements remain
-   *       valid on insertion.
+   * @note Command objects can not be released individually and are freed
+   *       together with the parser. We use a deque here to ensure that
+   *       pointers to its elements remain valid on insertion.
    */
   std::deque<cvc5_cmd_t> d_alloc_cmds;
 };

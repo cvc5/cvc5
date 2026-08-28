@@ -94,6 +94,7 @@ char* parse(const char* instr, const char* inlang, const char* outlang)
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(smgr);
   cvc5_delete(solver);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return s;
 }

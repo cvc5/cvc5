@@ -2581,6 +2581,20 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
 
 /**
  * Delete a cvc5 term manager instance.
+ *
+ * Objects created via the term manager (sorts, terms, operators, datatypes,
+ * ...), as well as objects created via solver instances associated with the
+ * term manager (results, proofs, grammars, ...), are managed by the term
+ * manager. They keep the term manager alive and thus remain valid after the
+ * term manager has been deleted, until they are released via the
+ * corresponding `cvc5_*_release()` function. The memory of the term manager
+ * (and of the objects it manages) is only freed once the term manager has been
+ * deleted and all of its managed objects have been released, either
+ * individually or all at once via `cvc5_term_manager_release()`.
+ *
+ * @note Statistics objects (`Cvc5Stat`, `Cvc5Statistics`) can not be released
+ *       individually and are freed together with the term manager.
+ *
  * @param tm The term manager instance.
  */
 CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
@@ -2588,10 +2602,11 @@ CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
 /**
  * Release all managed references.
  *
- * This will free all memory used by any managed objects allocated by the
- * term manager.
+ * This will free all memory used by any managed objects created via the term
+ * manager or via a solver instance associated with the term manager.
  *
- * @note This invalidates all managed objects created by the term manager.
+ * @note This invalidates all managed objects created via the term manager and
+ *       its associated solver instances.
  *
  * @param tm The term manager instance.
  */
@@ -4058,12 +4073,25 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
 
 /**
  * Delete a cvc5 solver instance.
+ *
+ * Objects created via the solver (results, synthesis results, proofs,
+ * grammars, ...) are managed by the associated term manager and remain valid
+ * after the solver instance has been deleted, until they are released (see
+ * `cvc5_term_manager_delete()`).
+ *
+ * @note A solver instance keeps its associated term manager alive. Solver and
+ *       term manager instances may thus be deleted in any order.
+ *
  * @param cvc5 The solver instance.
  */
 CVC5_EXPORT void cvc5_delete(Cvc5* cvc5);
 
 /**
  * Get the associated term manager of a cvc5 solver instance.
+ *
+ * @note The returned term manager is kept alive by the solver instance and can
+ *       be used as long as the solver instance has not been deleted.
+ *
  * @param cvc5 The solver instance.
  * @return The term manager.
  */

@@ -61,6 +61,7 @@ int main()
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(sm);
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 
   return 0;

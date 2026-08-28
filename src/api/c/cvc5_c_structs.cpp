@@ -161,6 +161,7 @@ void Cvc5TermManager::release(cvc5_term_t* term)
     {
       Assert(d_alloc_terms.find(term->d_term) != d_alloc_terms.end());
       d_alloc_terms.erase(term->d_term);
+      free_if_unused();
     }
   }
 }
@@ -183,6 +184,7 @@ void Cvc5TermManager::release(cvc5_op_t* op)
     {
       Assert(d_alloc_ops.find(op->d_op) != d_alloc_ops.end());
       d_alloc_ops.erase(op->d_op);
+      free_if_unused();
     }
   }
 }
@@ -205,6 +207,7 @@ void Cvc5TermManager::release(cvc5_sort_t* sort)
     {
       Assert(d_alloc_sorts.find(sort->d_sort) != d_alloc_sorts.end());
       d_alloc_sorts.erase(sort->d_sort);
+      free_if_unused();
     }
   }
 }
@@ -227,6 +230,7 @@ void Cvc5TermManager::release(cvc5_dt_t* dt)
     {
       Assert(d_alloc_dts.find(dt->d_dt) != d_alloc_dts.end());
       d_alloc_dts.erase(dt->d_dt);
+      free_if_unused();
     }
   }
 }
@@ -249,6 +253,7 @@ void Cvc5TermManager::release(cvc5_dt_cons_t* cons)
     {
       Assert(d_alloc_dt_conss.find(cons->d_dt_cons) != d_alloc_dt_conss.end());
       d_alloc_dt_conss.erase(cons->d_dt_cons);
+      free_if_unused();
     }
   }
 }
@@ -271,6 +276,7 @@ void Cvc5TermManager::release(cvc5_dt_sel_t* sel)
     {
       Assert(d_alloc_dt_sels.find(sel->d_dt_sel) != d_alloc_dt_sels.end());
       d_alloc_dt_sels.erase(sel->d_dt_sel);
+      free_if_unused();
     }
   }
 }
@@ -293,6 +299,7 @@ void Cvc5TermManager::release(cvc5_dt_decl_t* decl)
     {
       Assert(d_alloc_dt_decls.find(decl->d_decl) != d_alloc_dt_decls.end());
       d_alloc_dt_decls.erase(decl->d_decl);
+      free_if_unused();
     }
   }
 }
@@ -316,6 +323,7 @@ void Cvc5TermManager::release(cvc5_dt_cons_decl_t* decl)
       Assert(d_alloc_dt_cons_decls.find(decl->d_decl)
              != d_alloc_dt_cons_decls.end());
       d_alloc_dt_cons_decls.erase(decl->d_decl);
+      free_if_unused();
     }
   }
 }
@@ -329,6 +337,140 @@ cvc5_dt_cons_decl_t* Cvc5TermManager::copy(cvc5_dt_cons_decl_t* decl)
   return decl;
 }
 
+Cvc5Result Cvc5TermManager::export_result(const cvc5::Result& result)
+{
+  Assert(!result.isNull());
+  auto [it, inserted] = d_alloc_results.try_emplace(result, this, result);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5TermManager::release(cvc5_result_t* result)
+{
+  if (result)
+  {
+    result->d_refs -= 1;
+    if (result->d_refs == 0)
+    {
+      Assert(d_alloc_results.find(result->d_result) != d_alloc_results.end());
+      d_alloc_results.erase(result->d_result);
+      free_if_unused();
+    }
+  }
+}
+
+cvc5_result_t* Cvc5TermManager::copy(cvc5_result_t* result)
+{
+  if (result)
+  {
+    result->d_refs += 1;
+  }
+  return result;
+}
+
+Cvc5SynthResult Cvc5TermManager::export_synth_result(
+    const cvc5::SynthResult& result)
+{
+  Assert(!result.isNull());
+  auto [it, inserted] = d_alloc_synth_results.try_emplace(result, this, result);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5TermManager::release(cvc5_synth_result_t* result)
+{
+  if (result)
+  {
+    result->d_refs -= 1;
+    if (result->d_refs == 0)
+    {
+      Assert(d_alloc_synth_results.find(result->d_result)
+             != d_alloc_synth_results.end());
+      d_alloc_synth_results.erase(result->d_result);
+      free_if_unused();
+    }
+  }
+}
+
+cvc5_synth_result_t* Cvc5TermManager::copy(cvc5_synth_result_t* result)
+{
+  if (result)
+  {
+    result->d_refs += 1;
+  }
+  return result;
+}
+
+Cvc5Proof Cvc5TermManager::export_proof(const cvc5::Proof& proof)
+{
+  auto [it, inserted] = d_alloc_proofs.try_emplace(proof, this, proof);
+  if (!inserted)
+  {
+    copy(&it->second);
+  }
+  return &it->second;
+}
+
+void Cvc5TermManager::release(cvc5_proof_t* proof)
+{
+  if (proof)
+  {
+    proof->d_refs -= 1;
+    if (proof->d_refs == 0)
+    {
+      Assert(d_alloc_proofs.find(proof->d_proof) != d_alloc_proofs.end());
+      d_alloc_proofs.erase(proof->d_proof);
+      free_if_unused();
+    }
+  }
+}
+
+cvc5_proof_t* Cvc5TermManager::copy(cvc5_proof_t* proof)
+{
+  if (proof)
+  {
+    proof->d_refs += 1;
+  }
+  return proof;
+}
+
+Cvc5Grammar Cvc5TermManager::export_grammar(const cvc5::Grammar& grammar)
+{
+  auto g = std::make_unique<cvc5_grammar_t>(this, grammar);
+  cvc5_grammar_t* res = g.get();
+  d_alloc_grammars.emplace(res, std::move(g));
+  return res;
+}
+
+void Cvc5TermManager::release(cvc5_grammar_t* grammar)
+{
+  if (grammar)
+  {
+    grammar->d_refs -= 1;
+    if (grammar->d_refs == 0)
+    {
+      Assert(d_alloc_grammars.find(grammar) != d_alloc_grammars.end());
+      d_alloc_grammars.erase(grammar);
+      free_if_unused();
+    }
+  }
+}
+
+cvc5_grammar_t* Cvc5TermManager::copy(cvc5_grammar_t* grammar)
+{
+  if (grammar)
+  {
+    grammar->d_refs += 1;
+  }
+  return grammar;
+}
+
 void Cvc5TermManager::release()
 {
   d_alloc_sorts.clear();
@@ -339,11 +481,50 @@ void Cvc5TermManager::release()
   d_alloc_dt_sels.clear();
   d_alloc_dt_decls.clear();
   d_alloc_dt_cons_decls.clear();
+  d_alloc_results.clear();
+  d_alloc_synth_results.clear();
+  d_alloc_proofs.clear();
+  d_alloc_grammars.clear();
+  free_if_unused();
+}
+
+void Cvc5TermManager::inc_ref() { d_refs += 1; }
+
+void Cvc5TermManager::dec_ref()
+{
+  Assert(d_refs > 0);
+  d_refs -= 1;
+  free_if_unused();
+}
+
+bool Cvc5TermManager::has_objects() const
+{
+  return !d_alloc_sorts.empty() || !d_alloc_terms.empty()
+         || !d_alloc_ops.empty() || !d_alloc_dts.empty()
+         || !d_alloc_dt_conss.empty() || !d_alloc_dt_sels.empty()
+         || !d_alloc_dt_decls.empty() || !d_alloc_dt_cons_decls.empty()
+         || !d_alloc_results.empty() || !d_alloc_synth_results.empty()
+         || !d_alloc_proofs.empty() || !d_alloc_grammars.empty();
+}
+
+void Cvc5TermManager::free_if_unused()
+{
+  if (d_refs == 0 && !has_objects())
+  {
+    delete this;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5 struct                                                                */
 /* -------------------------------------------------------------------------- */
+
+Cvc5::Cvc5(Cvc5TermManager* tm) : d_solver(tm->d_tm), d_tm(tm)
+{
+  // The solver keeps the term manager alive (e.g., to export objects created
+  // via the solver).
+  d_tm->inc_ref();
+}
 
 Cvc5::~Cvc5()
 {
@@ -357,111 +538,11 @@ Cvc5::~Cvc5()
     Assert(d_output_tag_streambuf);
     d_output_tag_stream->rdbuf(d_output_tag_streambuf);
   }
-}
-
-Cvc5Result Cvc5::export_result(const cvc5::Result& result)
-{
-  Assert(!result.isNull());
-  auto [it, inserted] = d_alloc_results.try_emplace(result, this, result);
-  if (!inserted)
-  {
-    copy(&it->second);
-  }
-  return &it->second;
-}
-
-void Cvc5::release(cvc5_result_t* result)
-{
-  result->d_refs -= 1;
-  if (result->d_refs == 0)
-  {
-    Assert(d_alloc_results.find(result->d_result) != d_alloc_results.end());
-    d_alloc_results.erase(result->d_result);
-  }
-}
-
-cvc5_result_t* Cvc5::copy(cvc5_result_t* result)
-{
-  result->d_refs += 1;
-  return result;
-}
-
-Cvc5SynthResult Cvc5::export_synth_result(const cvc5::SynthResult& result)
-{
-  Assert(!result.isNull());
-  auto [it, inserted] = d_alloc_synth_results.try_emplace(result, this, result);
-  if (!inserted)
-  {
-    copy(&it->second);
-  }
-  return &it->second;
-}
-
-void Cvc5::release(cvc5_synth_result_t* result)
-{
-  result->d_refs -= 1;
-  if (result->d_refs == 0)
-  {
-    Assert(d_alloc_synth_results.find(result->d_result)
-           != d_alloc_synth_results.end());
-    d_alloc_synth_results.erase(result->d_result);
-  }
-}
-
-cvc5_synth_result_t* Cvc5::copy(cvc5_synth_result_t* result)
-{
-  result->d_refs += 1;
-  return result;
-}
-
-Cvc5Proof Cvc5::export_proof(const cvc5::Proof& proof)
-{
-  auto [it, inserted] = d_alloc_proofs.try_emplace(proof, this, proof);
-  if (!inserted)
-  {
-    copy(&it->second);
-  }
-  return &it->second;
-}
-
-void Cvc5::release(cvc5_proof_t* proof)
-{
-  proof->d_refs -= 1;
-  if (proof->d_refs == 0)
-  {
-    Assert(d_alloc_proofs.find(proof->d_proof) != d_alloc_proofs.end());
-    d_alloc_proofs.erase(proof->d_proof);
-  }
-}
-
-cvc5_proof_t* Cvc5::copy(cvc5_proof_t* proof)
-{
-  proof->d_refs += 1;
-  return proof;
-}
-
-Cvc5Grammar Cvc5::export_grammar(const cvc5::Grammar& grammar)
-{
-  auto g = std::make_unique<cvc5_grammar_t>(this, grammar);
-  cvc5_grammar_t* res = g.get();
-  d_alloc_grammars.emplace(res, std::move(g));
-  return res;
-}
-
-void Cvc5::release(cvc5_grammar_t* grammar)
-{
-  grammar->d_refs -= 1;
-  if (grammar->d_refs == 0)
-  {
-    Assert(d_alloc_grammars.find(grammar) != d_alloc_grammars.end());
-    d_alloc_grammars.erase(grammar);
-  }
-}
-
-cvc5_grammar_t* Cvc5::copy(cvc5_grammar_t* grammar)
-{
-  grammar->d_refs += 1;
-  return grammar;
+  // Drop our handle to the term manager. Note that this may free the term
+  // manager wrapper (if it was already deleted by the user and no managed
+  // objects are left). This is safe, the C++ solver instance holds its own
+  // copy of the C++ term manager.
+  d_tm->dec_ref();
 }
 
 std::vector<cvc5::Term> Cvc5::PluginCpp::check()

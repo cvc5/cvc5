@@ -2682,7 +2682,9 @@ void cvc5_term_manager_delete(Cvc5TermManager* tm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  delete tm;
+  // Managed objects (and solver instances) keep the term manager alive, it
+  // is only freed once all of them have been released.
+  tm->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -3743,7 +3745,7 @@ Cvc5Result cvc5_result_copy(Cvc5Result result)
   Cvc5Result res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_RESULT(result);
-  res = result->d_cvc5->copy(result);
+  res = result->d_tm->copy(result);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3752,7 +3754,7 @@ void cvc5_result_release(Cvc5Result result)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_RESULT(result);
-  result->d_cvc5->release(result);
+  result->d_tm->release(result);
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -3869,7 +3871,7 @@ Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result)
   Cvc5SynthResult res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_SYNTH_RESULT(result);
-  res = result->d_cvc5->copy(result);
+  res = result->d_tm->copy(result);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3878,7 +3880,7 @@ void cvc5_synth_result_release(Cvc5SynthResult result)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_SYNTH_RESULT(result);
-  result->d_cvc5->release(result);
+  result->d_tm->release(result);
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4005,7 +4007,7 @@ Cvc5Term cvc5_proof_get_result(Cvc5Proof proof)
   Cvc5Term res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  res = proof->d_cvc5->d_tm->export_term(proof->d_proof.getResult());
+  res = proof->d_tm->export_term(proof->d_proof.getResult());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4020,7 +4022,7 @@ const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size)
   auto children = proof->d_proof.getChildren();
   for (auto& p : children)
   {
-    res.push_back(proof->d_cvc5->export_proof(p));
+    res.push_back(proof->d_tm->export_proof(p));
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
@@ -4037,7 +4039,7 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
   auto args = proof->d_proof.getArguments();
   for (auto& t : args)
   {
-    res.push_back(proof->d_cvc5->d_tm->export_term(t));
+    res.push_back(proof->d_tm->export_term(t));
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
@@ -4091,7 +4093,7 @@ Cvc5Proof cvc5_proof_copy(Cvc5Proof proof)
   Cvc5Proof res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  res = proof->d_cvc5->copy(proof);
+  res = proof->d_tm->copy(proof);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4100,7 +4102,7 @@ void cvc5_proof_release(Cvc5Proof proof)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  proof->d_cvc5->release(proof);
+  proof->d_tm->release(proof);
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4212,7 +4214,7 @@ Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar)
   Cvc5Grammar res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  res = grammar->d_cvc5->copy(grammar);
+  res = grammar->d_tm->copy(grammar);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4221,7 +4223,7 @@ void cvc5_grammar_release(Cvc5Grammar grammar)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  grammar->d_cvc5->release(grammar);
+  grammar->d_tm->release(grammar);
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4808,7 +4810,7 @@ Cvc5Result cvc5_check_sat(Cvc5* cvc5)
   Cvc5Result res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
-  res = cvc5->export_result(cvc5->d_solver.checkSat());
+  res = cvc5->d_tm->export_result(cvc5->d_solver.checkSat());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4827,7 +4829,8 @@ Cvc5Result cvc5_check_sat_assuming(Cvc5* cvc5,
     CVC5_CAPI_CHECK_TERM_AT_IDX(assumptions, i);
     cassumptions.push_back(assumptions[i]->d_term);
   }
-  res = cvc5->export_result(cvc5->d_solver.checkSatAssuming(cassumptions));
+  res =
+      cvc5->d_tm->export_result(cvc5->d_solver.checkSatAssuming(cassumptions));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -5134,7 +5137,7 @@ const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
   CVC5_CAPI_CHECK_NOT_NULL(size);
   res.clear();
   auto ccore = cvc5->d_solver.getTimeoutCore();
-  *result = cvc5->export_result(ccore.first);
+  *result = cvc5->d_tm->export_result(ccore.first);
   for (const auto& t : ccore.second)
   {
     res.push_back(cvc5->d_tm->export_term(t));
@@ -5164,7 +5167,7 @@ const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
   CVC5_CAPI_CHECK_NOT_NULL(rsize);
   res.clear();
   auto ccore = cvc5->d_solver.getTimeoutCoreAssuming(cassumptions);
-  *result = cvc5->export_result(ccore.first);
+  *result = cvc5->d_tm->export_result(ccore.first);
   for (const auto& t : ccore.second)
   {
     res.push_back(cvc5->d_tm->export_term(t));
@@ -5185,7 +5188,7 @@ const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size)
       cvc5->d_solver.getProof(static_cast<cvc5::modes::ProofComponent>(c));
   for (const auto& p : proofs)
   {
-    res.push_back(cvc5->export_proof(p));
+    res.push_back(cvc5->d_tm->export_proof(p));
   }
   *size = proofs.size();
   CVC5_CAPI_TRY_CATCH_END;
@@ -5605,7 +5608,7 @@ const char* cvc5_proof_to_string(Cvc5* cvc5,
       cassertion_names.emplace(assertions[i]->d_term, names[i]);
     }
   }
-  str = proof->d_cvc5->d_solver.proofToString(
+  str = cvc5->d_solver.proofToString(
       proof->d_proof,
       static_cast<cvc5::modes::ProofFormat>(format),
       cassertion_names);
@@ -5649,7 +5652,8 @@ Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
   {
     csymbols.push_back(symbols[i]->d_term);
   }
-  res = cvc5->export_grammar(cvc5->d_solver.mkGrammar(cbound_vars, csymbols));
+  res = cvc5->d_tm->export_grammar(
+      cvc5->d_solver.mkGrammar(cbound_vars, csymbols));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -5781,7 +5785,7 @@ Cvc5SynthResult cvc5_check_synth(Cvc5* cvc5)
   Cvc5SynthResult res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
-  res = cvc5->export_synth_result(cvc5->d_solver.checkSynth());
+  res = cvc5->d_tm->export_synth_result(cvc5->d_solver.checkSynth());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -5791,7 +5795,7 @@ Cvc5SynthResult cvc5_check_synth_next(Cvc5* cvc5)
   Cvc5SynthResult res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
-  res = cvc5->export_synth_result(cvc5->d_solver.checkSynthNext());
+  res = cvc5->d_tm->export_synth_result(cvc5->d_solver.checkSynthNext());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }

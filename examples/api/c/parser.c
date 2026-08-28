@@ -59,5 +59,6 @@ int main()
   printf("result: %s\n", cvc5_result_to_string(r));
   cvc5_parser_delete(parser);
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
