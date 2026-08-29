@@ -75,6 +75,7 @@ TEST_F(TestCApiBlackParserLifetime, declaredSymbolsOutliveParserAndManagers)
   std::vector<Cvc5Sort> sorts(csorts, csorts + nsorts);
   ASSERT_EQ(terms.size(), 2);
   ASSERT_EQ(sorts.size(), 1);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(sm);
   cvc5_delete(slv);
@@ -114,6 +115,7 @@ TEST_F(TestCApiBlackParserLifetime, parsedTermOutlivesParserAndManagers)
   cvc5_parser_append_inc_str_input(parser, "(+ x 1)\n");
   Cvc5Term t = cvc5_parser_next_term(parser, &error_msg);
   ASSERT_NE(t, nullptr);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(sm);
   cvc5_delete(slv);
@@ -149,6 +151,7 @@ TEST_F(TestCApiBlackParserLifetime,
   cvc5_parser_append_inc_str_input(parser, "(* x 2)\n");
   Cvc5Term t = cvc5_parser_next_term(parser, &error_msg);
   ASSERT_NE(t, nullptr);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
@@ -161,6 +164,79 @@ TEST_F(TestCApiBlackParserLifetime,
   ASSERT_FALSE(cvc5_has_error());
   cvc5_sort_release(s);
   cvc5_term_release(t);
+}
+
+TEST_F(TestCApiBlackParserLifetime, commandOutlivesParser)
+{
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  Cvc5SymbolManager* sm = cvc5_symbol_manager_new(tm);
+  Cvc5InputParser* parser = cvc5_parser_new(slv, sm);
+  cvc5_parser_set_inc_str_input(
+      parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_lifetime");
+  cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)\n");
+  cvc5_parser_append_inc_str_input(parser, "(declare-fun x () Int)\n");
+  const char* error_msg;
+  Cvc5Command cmd1 = cvc5_parser_next_command(parser, &error_msg);
+  Cvc5Command cmd2 = cvc5_parser_next_command(parser, &error_msg);
+  ASSERT_NE(cmd1, nullptr);
+  ASSERT_NE(cmd2, nullptr);
+  cvc5_parser_delete(parser);
+  // The parser is deleted here; the commands it created must still be usable
+  // and must be invokable on the solver.
+  ASSERT_EQ(std::string(cvc5_cmd_get_name(cmd1)), "set-logic");
+  ASSERT_FALSE(std::string(cvc5_cmd_to_string(cmd2)).empty());
+  (void)cvc5_cmd_invoke(cmd1, slv, sm);
+  (void)cvc5_cmd_invoke(cmd2, slv, sm);
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_cmd_release(cmd1);
+  cvc5_cmd_release(cmd2);
+  cvc5_symbol_manager_delete(sm);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackParserLifetime, commandCopyOutlivesParser)
+{
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  Cvc5InputParser* parser = cvc5_parser_new(slv, nullptr);
+  cvc5_parser_set_inc_str_input(
+      parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_lifetime");
+  cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)\n");
+  const char* error_msg;
+  Cvc5Command cmd = cvc5_parser_next_command(parser, &error_msg);
+  Cvc5Command cmd2 = cvc5_cmd_copy(cmd);
+  ASSERT_EQ(cmd, cmd2);
+  cvc5_parser_delete(parser);
+  cvc5_cmd_release(cmd);
+  // the second reference must still keep the command (and parser) alive
+  ASSERT_EQ(std::string(cvc5_cmd_get_name(cmd2)), "set-logic");
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_cmd_release(cmd2);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackParserLifetime, parserReleaseFreesCommands)
+{
+  // Releasing all commands after the parser has been deleted must free the
+  // parser.
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  Cvc5InputParser* parser = cvc5_parser_new(slv, nullptr);
+  cvc5_parser_set_inc_str_input(
+      parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_lifetime");
+  cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)\n");
+  const char* error_msg;
+  Cvc5Command cmd = cvc5_parser_next_command(parser, &error_msg);
+  ASSERT_NE(cmd, nullptr);
+  cvc5_parser_delete(parser);
+  ASSERT_EQ(std::string(cvc5_cmd_get_name(cmd)), "set-logic");
+  cvc5_parser_release(parser);
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
 }
 
 }  // namespace cvc5::internal::test

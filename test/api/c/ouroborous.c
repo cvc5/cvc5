@@ -91,6 +91,7 @@ char* parse(const char* instr, const char* inlang, const char* outlang)
   char* s = copy_string(cvc5_term_to_string(e));
   assert(!cvc5_parser_next_term(parser, &error_msg));
   assert(!error_msg);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(smgr);
   cvc5_delete(solver);

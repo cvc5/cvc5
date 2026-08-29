@@ -2592,9 +2592,6 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
  * deleted and all of its managed objects have been released, either
  * individually or all at once via `cvc5_term_manager_release()`.
  *
- * @note Statistics objects (`Cvc5Stat`, `Cvc5Statistics`) can not be released
- *       individually and are freed together with the term manager.
- *
  * @param tm The term manager instance.
  */
 CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
@@ -3992,6 +3989,28 @@ CVC5_EXPORT void cvc5_stat_get_histogram(Cvc5Stat stat,
  */
 CVC5_EXPORT const char* cvc5_stat_to_string(Cvc5Stat stat);
 
+/**
+ * Make copy of statistic, increases reference counter of `stat`.
+ *
+ * @param stat The statistic to copy.
+ * @return The same statistic with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Stat cvc5_stat_copy(Cvc5Stat stat);
+
+/**
+ * Release copy of statistic, decrements reference counter of `stat`.
+ *
+ * @param stat The statistic to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_stat_release(Cvc5Stat stat);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -4053,6 +4072,29 @@ CVC5_EXPORT Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name);
  *       function.
  */
 CVC5_EXPORT const char* cvc5_stats_to_string(Cvc5Statistics stat);
+
+/**
+ * Make copy of statistics object, increases reference counter of `stat`.
+ *
+ * @param stat The statistics object to copy.
+ * @return The same statistics object with its reference count increased by
+ *         one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Statistics cvc5_stats_copy(Cvc5Statistics stat);
+
+/**
+ * Release copy of statistics object, decrements reference counter of `stat`.
+ *
+ * @param stat The statistics object to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_stats_release(Cvc5Statistics stat);
 
 /** @} */
 

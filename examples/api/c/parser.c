@@ -57,6 +57,7 @@ int main()
   Cvc5Result r = cvc5_check_sat(slv);
   printf("expected: unsat\n");
   printf("result: %s\n", cvc5_result_to_string(r));
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_delete(slv);
   cvc5_term_manager_release(tm);

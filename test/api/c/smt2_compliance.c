@@ -38,6 +38,7 @@ void test_get_info(Cvc5* solver, const char* s)
     }
   } while (cmd);
   assert(cvc5_parser_done(parser));  // parser should be done
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(sm);
   free(str);

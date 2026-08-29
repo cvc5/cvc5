@@ -142,14 +142,18 @@ Cvc5DatatypeConstructorDecl Cvc5TermManager::export_dt_cons_decl(
 
 Cvc5Stat Cvc5TermManager::export_stat(const cvc5::Stat& stat)
 {
-  d_alloc_stats.emplace_back(this, stat);
-  return &d_alloc_stats.back();
+  auto s = std::make_unique<cvc5_stat_t>(this, stat);
+  cvc5_stat_t* res = s.get();
+  d_alloc_stats.emplace(res, std::move(s));
+  return res;
 }
 
 Cvc5Statistics Cvc5TermManager::export_stats(const cvc5::Statistics& stat)
 {
-  d_alloc_statistics.emplace_back(this, stat);
-  return &d_alloc_statistics.back();
+  auto s = std::make_unique<cvc5_stats_t>(this, stat);
+  cvc5_stats_t* res = s.get();
+  d_alloc_statistics.emplace(res, std::move(s));
+  return res;
 }
 
 void Cvc5TermManager::release(cvc5_term_t* term)
@@ -471,6 +475,52 @@ cvc5_grammar_t* Cvc5TermManager::copy(cvc5_grammar_t* grammar)
   return grammar;
 }
 
+void Cvc5TermManager::release(cvc5_stat_t* stat)
+{
+  if (stat)
+  {
+    stat->d_refs -= 1;
+    if (stat->d_refs == 0)
+    {
+      Assert(d_alloc_stats.find(stat) != d_alloc_stats.end());
+      d_alloc_stats.erase(stat);
+      free_if_unused();
+    }
+  }
+}
+
+cvc5_stat_t* Cvc5TermManager::copy(cvc5_stat_t* stat)
+{
+  if (stat)
+  {
+    stat->d_refs += 1;
+  }
+  return stat;
+}
+
+void Cvc5TermManager::release(cvc5_stats_t* stat)
+{
+  if (stat)
+  {
+    stat->d_refs -= 1;
+    if (stat->d_refs == 0)
+    {
+      Assert(d_alloc_statistics.find(stat) != d_alloc_statistics.end());
+      d_alloc_statistics.erase(stat);
+      free_if_unused();
+    }
+  }
+}
+
+cvc5_stats_t* Cvc5TermManager::copy(cvc5_stats_t* stat)
+{
+  if (stat)
+  {
+    stat->d_refs += 1;
+  }
+  return stat;
+}
+
 void Cvc5TermManager::release()
 {
   d_alloc_sorts.clear();
@@ -485,6 +535,8 @@ void Cvc5TermManager::release()
   d_alloc_synth_results.clear();
   d_alloc_proofs.clear();
   d_alloc_grammars.clear();
+  d_alloc_stats.clear();
+  d_alloc_statistics.clear();
   free_if_unused();
 }
 
@@ -504,7 +556,8 @@ bool Cvc5TermManager::has_objects() const
          || !d_alloc_dt_conss.empty() || !d_alloc_dt_sels.empty()
          || !d_alloc_dt_decls.empty() || !d_alloc_dt_cons_decls.empty()
          || !d_alloc_results.empty() || !d_alloc_synth_results.empty()
-         || !d_alloc_proofs.empty() || !d_alloc_grammars.empty();
+         || !d_alloc_proofs.empty() || !d_alloc_grammars.empty()
+         || !d_alloc_stats.empty() || !d_alloc_statistics.empty();
 }
 
 void Cvc5TermManager::free_if_unused()

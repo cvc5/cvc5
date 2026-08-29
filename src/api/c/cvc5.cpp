@@ -4358,6 +4358,24 @@ const char* cvc5_stat_to_string(Cvc5Stat stat)
   return str.c_str();
 }
 
+Cvc5Stat cvc5_stat_copy(Cvc5Stat stat)
+{
+  Cvc5Stat res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_tm->copy(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_stat_release(Cvc5Stat stat)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  stat->d_tm->release(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Statistics                                                             */
 /* -------------------------------------------------------------------------- */
@@ -4420,6 +4438,24 @@ const char* cvc5_stats_to_string(Cvc5Statistics stat)
   str = stat->d_stat.toString();
   CVC5_CAPI_TRY_CATCH_END;
   return str.c_str();
+}
+
+Cvc5Statistics cvc5_stats_copy(Cvc5Statistics stat)
+{
+  Cvc5Statistics res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  res = stat->d_tm->copy(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_stats_release(Cvc5Statistics stat)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  stat->d_tm->release(stat);
+  CVC5_CAPI_TRY_CATCH_END;
 }
 
 /* -------------------------------------------------------------------------- */

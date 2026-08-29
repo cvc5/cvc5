@@ -35,6 +35,7 @@ class TestCApiBlackCommand : public ::testing::Test
   }
   void TearDown() override
   {
+    cvc5_parser_release(d_parser);
     cvc5_parser_delete(d_parser);
     cvc5_symbol_manager_delete(d_sm);
     cvc5_delete(d_solver);

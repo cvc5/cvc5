@@ -22,6 +22,7 @@ extern "C" {
 }
 
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "test_capi.h"
@@ -309,17 +310,49 @@ TEST_F(TestCApiBlackLifetime, proofOutlivesSolverAndTermManager)
   cvc5_proof_release(proof);
 }
 
-TEST_F(TestCApiBlackLifetime, statisticsTiedToTermManager)
+TEST_F(TestCApiBlackLifetime, statisticsOutliveSolverAndTermManager)
 {
-  // Statistics objects can not be released individually; they are valid as
-  // long as the term manager is alive, which is kept alive by the solver.
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
+  Cvc5Result res = cvc5_check_sat(slv);
+  cvc5_result_release(res);
   Cvc5Statistics stats = cvc5_get_statistics(slv);
-  cvc5_term_manager_delete(tm);
-  ASSERT_FALSE(std::string(cvc5_stats_to_string(stats)).empty());
-  ASSERT_FALSE(cvc5_has_error());
   cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+  // Both the solver and the term manager are deleted here; the statistics
+  // object must still be usable, including iterating over it (which creates
+  // new statistic objects).
+  ASSERT_FALSE(std::string(cvc5_stats_to_string(stats)).empty());
+  std::vector<Cvc5Stat> handles;
+  cvc5_stats_iter_init(stats, true, true);
+  while (cvc5_stats_iter_has_next(stats))
+  {
+    handles.push_back(cvc5_stats_iter_next(stats, nullptr));
+  }
+  ASSERT_FALSE(handles.empty());
+  cvc5_stats_release(stats);
+  // the statistic objects keep the term manager alive on their own
+  for (Cvc5Stat stat : handles)
+  {
+    (void)cvc5_stat_to_string(stat);
+    ASSERT_FALSE(cvc5_has_error());
+    cvc5_stat_release(stat);
+  }
+  ASSERT_FALSE(cvc5_has_error());
+}
+
+TEST_F(TestCApiBlackLifetime, statisticsCopyOutlivesTermManager)
+{
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5Statistics stats = cvc5_term_manager_get_statistics(tm);
+  Cvc5Statistics stats2 = cvc5_stats_copy(stats);
+  ASSERT_EQ(stats, stats2);
+  cvc5_term_manager_delete(tm);
+  cvc5_stats_release(stats);
+  // the second reference must still keep the term manager alive
+  ASSERT_FALSE(std::string(cvc5_stats_to_string(stats2)).empty());
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_stats_release(stats2);
 }
 
 }  // namespace cvc5::internal::test

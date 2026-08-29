@@ -18,7 +18,6 @@ extern "C" {
 }
 #include <cvc5/cvc5.h>
 
-#include <deque>
 #include <fstream>
 #include <memory>
 
@@ -265,9 +264,7 @@ struct cvc5_grammar_t
 
 /*
  * Note: the statistic(s) wrappers must be complete types before the
- * definition of Cvc5TermManager below, which stores them in a std::deque
- * (which, unlike std::vector, does not support incomplete element types
- * with all standard library implementations, e.g., libc++).
+ * definition of Cvc5TermManager below, which owns them via std::unique_ptr.
  */
 /** Wrapper for cvc5 C++ statistic. */
 struct cvc5_stat_t
@@ -539,6 +536,30 @@ struct CVC5_EXPORT Cvc5TermManager
    * @return The copied grammar.
    */
   cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
+  /**
+   * Decrement the external ref count of a statistic. If the ref count reaches
+   * zero, the statistic is released (freed).
+   * @param stat The statistic to release.
+   */
+  void release(cvc5_stat_t* stat);
+  /**
+   * Increment the external ref count of a statistic.
+   * @param stat The statistic to copy.
+   * @return The copied statistic.
+   */
+  cvc5_stat_t* copy(cvc5_stat_t* stat);
+  /**
+   * Decrement the external ref count of a statistics object. If the ref count
+   * reaches zero, the statistics object is released (freed).
+   * @param stat The statistics object to release.
+   */
+  void release(cvc5_stats_t* stat);
+  /**
+   * Increment the external ref count of a statistics object.
+   * @param stat The statistics object to copy.
+   * @return The copied statistics object.
+   */
+  cvc5_stats_t* copy(cvc5_stats_t* stat);
 
   /**
    * Release all managed objects.
@@ -616,16 +637,16 @@ struct CVC5_EXPORT Cvc5TermManager
       d_alloc_grammars;
   /**
    * Cache of allocated statistic objects.
-   * @note Statistic objects can not be released individually and are freed
-   *       together with the term manager. We use a deque here to ensure that
-   *       pointers to its elements remain valid on insertion.
+   * @note Statistic objects are never exported more than once, we thus key
+   *       this cache on the allocated wrapper object (as for grammars).
    */
-  std::deque<cvc5_stat_t> d_alloc_stats;
+  std::unordered_map<cvc5_stat_t*, std::unique_ptr<cvc5_stat_t>> d_alloc_stats;
   /**
    * Cache of allocated statistics objects.
    * @note See `d_alloc_stats`.
    */
-  std::deque<cvc5_stats_t> d_alloc_statistics;
+  std::unordered_map<cvc5_stats_t*, std::unique_ptr<cvc5_stats_t>>
+      d_alloc_statistics;
 };
 
 /* -------------------------------------------------------------------------- */

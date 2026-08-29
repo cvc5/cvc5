@@ -58,6 +58,7 @@ int main()
   printf("Result: %s\n", cvc5_result_to_string(result));
   assert(cvc5_result_is_unsat(result));
 
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(sm);
   cvc5_delete(slv);

@@ -14,14 +14,20 @@ C level, management to maintain a low overhead needs **more manual
 intervention**.
 
 All objects created via a term manager (:cpp:type:`Cvc5TermManager`) or a
-solver (:cpp:type:`Cvc5`) instance, e.g., sorts, terms, results and proofs,
-are **managed by the term manager**. As in the C++ API, these objects keep
+solver (:cpp:type:`Cvc5`) instance, e.g., sorts, terms, results, proofs and
+statistics, are **managed by the term manager**. As in the C++ API, these objects keep
 the term manager alive: they **remain valid** after the term manager and solver
 instances that created them have been deleted via
 :cpp:func:`cvc5_term_manager_delete()` and :cpp:func:`cvc5_delete()`, until
 they are released. Consequently, deleting a term manager does not free objects
 that are still referenced. The memory of a term manager is freed once it has
 been deleted and all of its managed objects have been released.
+
+Command objects (:cpp:type:`Cvc5Command`) are managed by the input parser
+(:cpp:type:`Cvc5InputParser`) that created them in the same way: they keep the
+parser alive and remain valid after :cpp:func:`cvc5_parser_delete()`, until
+they are released via :cpp:func:`cvc5_cmd_release()` or, all at once, via
+:cpp:func:`cvc5_parser_release()`.
 
 The C API offers **two modes** of memory management:
 
