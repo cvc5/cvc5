@@ -74,6 +74,11 @@ macro(cvc5_add_unit_test is_white name output_dir)
     target_link_libraries(${name} PUBLIC GTest::Main)
     target_link_libraries(${name} PUBLIC GTest::GTest)
 
+    if(USE_NORMALIZ)
+      # tests that include Normaliz headers need GMP's C++ bindings
+      target_link_libraries(${name} PUBLIC GMPXX)
+    endif()
+
     if(USE_POLY)
       # Make libpoly headers available for tests
       target_include_directories(${name} PRIVATE "${Poly_INCLUDE_DIR}")
