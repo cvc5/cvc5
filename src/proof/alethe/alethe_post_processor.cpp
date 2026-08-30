@@ -2536,15 +2536,13 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &= addAletheStep(
             AletheRule::COMP_SIMPLIFY, compSimpCl, compSimpCl, {}, {}, *cdp);
         Node equivPos1Cl = nm->mkNode(
-            Kind::SEXPR,
-            {d_cl, pa.notNode(), atom, lit.notNode().notNode()});
+            Kind::SEXPR, {d_cl, pa.notNode(), atom, lit.notNode().notNode()});
         success &= addAletheStep(
             AletheRule::EQUIV_POS1, equivPos1Cl, equivPos1Cl, {}, {}, *cdp);
         resPremises.insert(resPremises.end(),
                            {equivPos1Cl, premise, compSimpCl});
-        resPivots.insert(
-            resPivots.end(),
-            {lit.notNode(), d_true, atom, d_true, pa, d_false});
+        resPivots.insert(resPivots.end(),
+                         {lit.notNode(), d_true, atom, d_true, pa, d_false});
       }
       // For a strict conclusion, convert the remaining la_disequality
       // literal into the conclusion
@@ -2560,8 +2558,7 @@ bool AletheProofPostprocessCallback::update(Node res,
         success &= addAletheStep(
             AletheRule::EQUIV_POS1, equivPos1Cl, equivPos1Cl, {}, {}, *cdp);
         resPremises.insert(resPremises.end(), {equivPos1Cl, compSimpCl});
-        resPivots.insert(resPivots.end(),
-                         {lit.notNode(), d_true, pe, d_false});
+        resPivots.insert(resPivots.end(), {lit.notNode(), d_true, pe, d_false});
       }
       return success
              && addAletheStep(AletheRule::RESOLUTION,
