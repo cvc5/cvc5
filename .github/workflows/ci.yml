@@ -176,7 +176,7 @@ jobs:
 
           - name: wasm:production
             os: ubuntu-22.04
-            config: production --static --static-binary --auto-download --wasm-web=no-modular-static-page
+            config: production --static --static-binary --auto-download --wasm-web=no-modular-static-page --cocoa --gpl
             cache-key: productionwasm
             wasm-build: true
             wasm-pkg-name: cvc5-Wasm
