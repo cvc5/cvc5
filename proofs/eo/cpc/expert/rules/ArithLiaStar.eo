@@ -1,0 +1,41 @@
+; Eunoia signatures for trusted lia* extension steps.
+;
+; These rules are placeholders ("sorry" axioms) for the lia*-specific
+; lemmas emitted by `LiaStarProofGenerator`. They mirror the shape of
+; the catch-all `trust` rule defined in Cpc.eo: a (possibly empty)
+; premise list of Bool formulas plus a single Bool argument naming the
+; conclusion. They allow the external eo checker to validate proofs
+; that contain these specific TRUST steps under their TrustId-specific
+; rule names. As axioms, they keep the proof "incomplete" (just like
+; `trust`); they should be replaced by real, lia*-derived rules once
+; the corresponding lemmas can be discharged structurally (e.g. via a
+; subsolver call transcribed onto the parent proof manager).
+
+(include "../../theories/Builtin.eo")
+
+; rule: arith_lia_star_nonnegative
+; cvc5 source: `TrustId::ARITH_LIA_STAR_NONNEGATIVE`,
+;               `LiaStarProofGenerator::mkNonnegativeProof`.
+; conclusion shape: `(>= v_1 0) ∧ ... ∧ (>= v_n 0)` where the
+;   `v_i` are the argument vector of the originating positive-polarity
+;   STAR_CONTAINS literal. The originating STAR_CONTAINS atom is
+;   carried as a (single) premise.
+(declare-rule arith_lia_star_nonnegative ((P Bool) (F Bool))
+  :premise-list P and
+  :args (F)
+  :conclusion F
+  :sorry
+)
+
+; rule: arith_lia_star_contains_reduce
+; cvc5 source: `TrustId::ARITH_LIA_STAR_CONTAINS_REDUCE`,
+;               `LiaStarProofGenerator::mkContainsReduceProof`.
+; conclusion shape: `(= (int.star-contains lambda v_1 ... v_n) star)`,
+;   where `star` is the cone/Hilbert-basis encoding produced by the
+;   lia* extension (`LiaStarExtension::getCones`).
+(declare-rule arith_lia_star_contains_reduce ((P Bool) (F Bool))
+  :premise-list P and
+  :args (F)
+  :conclusion F
+  :sorry
+)
