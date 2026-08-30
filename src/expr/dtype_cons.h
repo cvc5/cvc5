@@ -47,7 +47,9 @@ class DTypeConstructor
    * for SyGuS. For example, if A, B, C have weights 0, 1, and 3 respectively,
    * then C( B( A() ), B( A() ) ) has size 5.
    */
-  DTypeConstructor(std::string name, unsigned weight = 1);
+  DTypeConstructor(std::string name,
+                   unsigned weight = 1,
+                   const std::map<Node, Node>& weights = {});
 
   ~DTypeConstructor() {}
   /**
@@ -126,6 +128,12 @@ class DTypeConstructor
    * size of datatype terms that involve this constructor.
    */
   unsigned getWeight() const;
+  /** get weights
+   *
+   * Get the weights of this constructor. This value is used when computing the
+   * size of datatype terms that involve this constructor.
+   */
+  const std::map<Node, Node>& getWeights() const;
   //-------------------------------------- end sygus
 
   /**
@@ -325,6 +333,8 @@ class DTypeConstructor
   Node d_sygusOp;
   /** weight */
   unsigned d_weight;
+  /** weight attributes of this constructor */
+  std::map<Node, Node> d_weights;
   /** shared selectors for each type
    *
    * This stores the shared (constructor-agnotic)
