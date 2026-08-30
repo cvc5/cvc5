@@ -138,11 +138,7 @@ PfManager::PfManager(Env& env)
     {
       d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
-    // The Alethe translation handles this macro directly via la_generic,
-    // which supports arbitrary rational coefficients, so we do not expand it
-    // (the expansion introduces multiplication steps, i.e. ARITH_MULT_POS and
-    // ARITH_MULT_NEG, which lead to Alethe rules for non-linear arithmetic
-    // being used for linear reasoning).
+    // The Alethe translation handles this macro directly via la_generic
     if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
     {
       d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);

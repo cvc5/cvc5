@@ -2353,22 +2353,19 @@ bool AletheProofPostprocessCallback::update(Node res,
     // -------------------------------------- LA_GENERIC
     // (cl (not P1) ... (not Pn) (>< t1 t2))              P1 ... Pn
     // ------------------------------------------------------------- RESOLUTION
-    //  (cl (>< t1 t2))*
+    //  (cl (>< t1 t2))
     //
     // The coefficients given to LA_GENERIC are derived from the scaling
     // factors k1 ... kn of this rule: inequality premises are given |ki|,
     // since la_generic accounts for the direction of the inequality itself,
     // while equality premises are given (- ki). The conclusion is given
     // coefficient 1.
-    //
-    // * the corresponding proof node is (>< t1 t2)
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
     {
       // the conclusion of this rule is always an inequality (the fusion of the
       // premise relations, which are over-approximated by inequalities)
       Assert(res.getKind() != Kind::EQUAL);
       std::vector<Node> resArgs;
-      std::vector<Node> resChildren;
       std::vector<Node> lits{d_cl};
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
@@ -2390,7 +2387,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       new_args.push_back(nm->mkConstReal(Rational(1)));
       Node laGen = nm->mkNode(Kind::SEXPR, lits);
       addAletheStep(AletheRule::LA_GENERIC, laGen, laGen, {}, new_args, *cdp);
-      resChildren.push_back(laGen);
+      std::vector<Node> resChildren{laGen};
       resChildren.insert(resChildren.end(), children.begin(), children.end());
       return addAletheStep(AletheRule::RESOLUTION,
                            res,
