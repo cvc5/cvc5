@@ -60,6 +60,11 @@ class Plugin
    */
   virtual std::string getName() = 0;
 
+  /**
+   * Notify that partition has been solved
+   */
+  virtual void handlePartitionSolved() = 0;
+
  protected:
   /** Pointer to node manager */
   NodeManager* d_nm;
