@@ -108,3 +108,6 @@ name   = "SAT Layer"
 [[option.mode.LAZY]]
   name = "lazy"
   help = "Preregister literals when they are asserted by the SAT solver."
+[[option.mode.RELEVANT]]
+  name = "rlv"
+  help = "Preregister literals when they become relevant."
