@@ -1374,10 +1374,6 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
     d_external.collectAssertedTerms(d_relevantTerms, true, irrKinds);
     d_external.computeRelevantTerms(d_relevantTerms);
   }
-  // Flush any facts that were buffered before this check so that the strategy
-  // runs on an up-to-date equality engine. Note this is currently a no-op:
-  // sets asserts its internal facts eagerly and never buffers pending facts.
-  d_im.doPendingFacts();
   // Run the strategy. This is the loop that used to be the body of
   // fullEffortCheck: it repeatedly runs the steps (checkBasic,
   // checkCardinality, checkRelations, ...) and flushes pending lemmas until a
