@@ -133,8 +133,6 @@ void StrategyBase::runStrategy(Theory::Effort e)
 
 void StrategyBase::postCheck(Theory::Effort e)
 {
-  d_im->doPendingFacts();
-
   Assert(isStrategyInit());
   if (!d_state->isInConflict() && !d_state->getValuation().needCheck()
       && hasStrategyEffort(e))

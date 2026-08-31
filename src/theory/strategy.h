@@ -107,7 +107,8 @@ class StrategyBase
    * the inference manager until a conflict or lemma is produced or nothing
    * is pending. It is a no-op if we are already in conflict, a new SAT
    * decision is pending, or the strategy has no steps registered for effort
-   * e.
+   * e. Facts that were buffered before this check (e.g. during notifyFact)
+   * are the theory's responsibility to flush before calling this method.
    */
   void postCheck(Theory::Effort e);
 
