@@ -47,6 +47,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::SETS_FMF_BOUND_CARD: return "SETS_FMF_BOUND_CARD";
     case IncompleteId::SETS_RELS_ACYCLIC_LEN_UNKNOWN:
       return "SETS_RELS_ACYCLIC_LEN_UNKNOWN";
+    case IncompleteId::SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN:
+      return "SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN";
     case IncompleteId::STRINGS_LOOP_SKIP: return "STRINGS_LOOP_SKIP";
     case IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY:
       return "STRINGS_REGEXP_NO_SIMPLIFY";

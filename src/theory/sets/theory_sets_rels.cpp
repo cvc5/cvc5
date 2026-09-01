@@ -348,6 +348,56 @@ void TheorySetsRels::checkTransitiveClosure()
                 << std::endl;
 }
 
+void TheorySetsRels::checkTransitiveClosureLastCall(bool cardinalityUsed)
+{
+  Trace("rels") << "\n[sets-rels] *********** Start transitive closure "
+                   "last call ***********\n"
+                << std::endl;
+  collectRelsInfo();
+  for (MEM_IT m_it = d_rReps_memberReps_cache.begin();
+       m_it != d_rReps_memberReps_cache.end();
+       ++m_it)
+  {
+    Node rel_rep = m_it->first;
+    std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
+    if (kind_terms.find(Kind::RELATION_TCLOSURE) == kind_terms.end())
+    {
+      continue;
+    }
+    std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
+    for (unsigned int i = 0; i < m_it->second.size(); i++)
+    {
+      Node mem = d_rReps_memberReps_cache[rel_rep][i];
+      Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
+      for (unsigned int j = 0; j < tc_terms.size(); j++)
+      {
+        Node tc_rel = tc_terms[j];
+        ensureTCGraphBuilt(tc_rel);
+        if (!isTCReachable(mem, tc_rel))
+        {
+          if (cardinalityUsed)
+          {
+            // Cardinality-driven model completion can later introduce a fresh
+            // member that would justify mem. We cannot confirm nor refute this
+            // TC membership in this case, so report incompleteness.
+            d_im.setModelUnsound(
+                IncompleteId::SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN);
+          }
+          else
+          {
+            applyTCGroundingConflict(mem, tc_rel, exp);
+          }
+        }
+      }
+    }
+  }
+  // don't flush pending lemmas
+  clearCaches();
+  Trace("rels") << "\n[sets-rels] *********** Done with transitive closure "
+                   "last call ***********\n"
+                << std::endl;
+}
+
 /*
  * Populate relational terms data structure
  */
@@ -785,16 +835,8 @@ void TheorySetsRels::computeMembersForIdenTerm(Node iden_term)
  *                            (a, c) IS_IN RELATION_TCLOSURE(x)
  *
  */
-void TheorySetsRels::applyTCRule(Node mem_rep,
-                                 Node tc_rel,
-                                 Node tc_rel_rep,
-                                 Node exp)
+void TheorySetsRels::ensureTCGraphBuilt(Node tc_rel)
 {
-  Trace("rels-debug") << "[Theory::Rels] *********** Applying "
-                         "RELATION_TCLOSURE rule on a tc term = "
-                      << tc_rel << ", its representative = " << tc_rel_rep
-                      << " with member rep = " << mem_rep
-                      << " and explanation = " << exp << std::endl;
   MEM_IT mem_it = d_rReps_memberReps_cache.find(tc_rel[0]);
 
   if (mem_it != d_rReps_memberReps_cache.end()
@@ -805,6 +847,19 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
     buildTCGraphForRel(tc_rel);
     d_rel_nodes.insert(tc_rel);
   }
+}
+
+void TheorySetsRels::applyTCRule(Node mem_rep,
+                                 Node tc_rel,
+                                 Node tc_rel_rep,
+                                 Node exp)
+{
+  Trace("rels-debug") << "[Theory::Rels] *********** Applying "
+                         "RELATION_TCLOSURE rule on a tc term = "
+                      << tc_rel << ", its representative = " << tc_rel_rep
+                      << " with member rep = " << mem_rep
+                      << " and explanation = " << exp << std::endl;
+  ensureTCGraphBuilt(tc_rel);
 
   // Unconditionally add TC edge to the graph. Only the later TClos-Down
   // split is guarded by `reachable`.
@@ -924,6 +979,49 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
                                  tc_rel))}));
 
   sendInfer(conc, InferenceId::SETS_RELS_TCLOSURE_UP, reason);
+}
+
+void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
+                                              Node tc_rel,
+                                              Node exp)
+{
+  Trace("rels-debug") << "[Theory::Rels] *********** Applying "
+                         "RELATION_TCLOSURE grounding conflict on a tc term "
+                         "= "
+                      << tc_rel << " with member rep = " << mem_rep
+                      << " and explanation = " << exp << std::endl;
+
+  NodeManager* nm = nodeManager();
+  Node rel = tc_rel[0];
+  Node rel_rep = getRepresentative(rel);
+
+  // Build the set containing exactly rel's currently-known positive
+  // members.
+  Node relValue;
+  MEM_IT mem_it = d_rReps_memberReps_cache.find(rel_rep);
+  if (mem_it != d_rReps_memberReps_cache.end())
+  {
+    for (const Node& m : mem_it->second)
+    {
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, m);
+      relValue = relValue.isNull()
+                     ? singleton
+                     : nm->mkNode(Kind::SET_UNION, relValue, singleton);
+    }
+  }
+  if (relValue.isNull())
+  {
+    relValue = d_treg.getEmptySet(rel.getType());
+  }
+
+  Node reason =
+      nm->mkNode(Kind::AND, exp, nm->mkNode(Kind::EQUAL, rel, relValue));
+
+  Trace("rels-cycles") << "TCGroundingConflict: " << reason << " => false"
+                       << std::endl;
+
+  sendInfer(
+      d_falseNode, InferenceId::SETS_RELS_TCLOSURE_GROUNDING_CONFLICT, reason);
 }
 
 bool TheorySetsRels::isTCReachable(Node mem_rep, Node tc_rel)

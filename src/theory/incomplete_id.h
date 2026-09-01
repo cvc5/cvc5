@@ -69,6 +69,12 @@ enum class IncompleteId
   // concrete, practically-sized value at last call, so we could not confirm
   // whether the cycle unrolling rules had been fully applied for it
   SETS_RELS_ACYCLIC_LEN_UNKNOWN,
+  // under --rels-acyclic-hammer, a transitive-closure membership was found
+  // ungrounded at last call while cardinality reasoning was in play; the
+  // grounded conflict is not sound in that case (cardinality-driven model
+  // completion can still introduce a fresh relation member), so we could not
+  // confirm whether the membership is actually justified
+  SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN,
   // we skipped processing a looping word equation
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership

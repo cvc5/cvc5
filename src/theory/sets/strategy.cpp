@@ -58,6 +58,7 @@ void Strategy::initializeStrategy()
   // before the engine accepts the current model.
   markStartEffort(Theory::EFFORT_LAST_CALL);
   addStrategyStep(SETS_CHECK_ACYCLICITY_LAST_CALL);
+  addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL);
   markEndEffort(Theory::EFFORT_LAST_CALL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
@@ -93,6 +94,9 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
       break;
     case Step::SETS_CHECK_ACYCLICITY_LAST_CALL:
       d_setsSolver->checkAcyclicityLastCall();
+      break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL:
+      d_setsSolver->checkTransitiveClosureLastCall();
       break;
 
     default: Unreachable(); break;

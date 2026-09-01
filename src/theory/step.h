@@ -59,6 +59,10 @@ enum Step : uint32_t
   // has been fixed have had all applicable SplitCycleLen/UnrollCycle/
   // ContrMinimal lemmas applied
   SETS_CHECK_ACYCLICITY_LAST_CALL,
+  // last-call check (only relevant under --rels-acyclic-hammer) that every
+  // transitive-closure membership is grounded by
+  // known base-relation members
+  SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL,
   // unknown inference step
   UNKNOWN
 };

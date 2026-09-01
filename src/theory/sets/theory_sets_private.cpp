@@ -55,6 +55,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_cardSolver(new CardinalityExtension(d_env, state, im, d_treg)),
       d_hasEnabledRels(false),
       d_rels_enabled(false),
+      d_tc_enabled(false),
       d_hasEnabledCard(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
@@ -259,6 +260,7 @@ void TheorySetsPrivate::fullEffortReset()
   d_higher_order_kinds_enabled = false;
   d_card_enabled = false;
   d_rels_enabled = false;
+  d_tc_enabled = false;
   // reset the state object
   d_state.reset();
   // reset the inference manager
@@ -336,6 +338,10 @@ void TheorySetsPrivate::checkBasic()
       else if (d_rels->isRelationKind(nk))
       {
         ensureRelationsEnabled();
+        if (nk == Kind::RELATION_TCLOSURE)
+        {
+          d_tc_enabled = true;
+        }
       }
       else if (isHigherOrderKind(nk))
       {
@@ -471,6 +477,19 @@ void TheorySetsPrivate::checkAcyclicityLastCall()
 bool TheorySetsPrivate::hasOpenCycleObligation() const
 {
   return d_rels_enabled && d_rels->hasOpenCycleObligation();
+}
+
+bool TheorySetsPrivate::needsTCGroundingLastCall() const
+{
+  return d_tc_enabled && options().sets.relsAcyclicHammer;
+}
+
+void TheorySetsPrivate::checkTransitiveClosureLastCall()
+{
+  if (needsTCGroundingLastCall())
+  {
+    d_rels->checkTransitiveClosureLastCall(d_hasEnabledCard);
+  }
 }
 
 void TheorySetsPrivate::checkFilters()

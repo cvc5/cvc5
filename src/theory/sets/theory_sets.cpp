@@ -101,7 +101,8 @@ void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
 
 bool TheorySets::needsCheckLastEffort()
 {
-  return d_internal->hasOpenCycleObligation();
+  return d_internal->hasOpenCycleObligation()
+         || d_internal->needsTCGroundingLastCall();
 }
 
 void TheorySets::notifyFact(TNode atom,

@@ -132,6 +132,15 @@ class TheorySetsRels : protected EnvObj
    * currently being tracked (used to drive needsCheckLastEffort()).
    */
   bool hasOpenCycleObligation() const;
+  /**
+   * Last-call check, only relevant under --rels-acyclic-hammer (which
+   * disables applyTCRule's eager case split). Checks that all TC memberships
+   * are justified by the base relation. If not, and cardinalityUsed is false,
+   * sends a grounded conflict (see applyTCGroundingConflict). If
+   * cardinalityUsed is true (i.e., set.card is used), reports incompleteness
+   * (SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN).
+   */
+  void checkTransitiveClosureLastCall(bool cardinalityUsed);
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 
@@ -268,7 +277,16 @@ class TheorySetsRels : protected EnvObj
   void applyJoinImageRule(Node mem_rep, Node rel_rep, Node exp);
   void applyIdenRule(Node mem_rep, Node rel_rep, Node exp);
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
+  /**
+   * Sends a conflict for a transitive-closure membership mem_rep in
+   * tc_rel that is not reachable via members of tc_rel[0].
+   * Introduces no fresh skolems.
+   */
+  void applyTCGroundingConflict(Node mem_rep, Node tc_rel, Node exp);
+  /** Build the TC graph for tc_rel's base relation, if not already built. */
   void buildTCGraphForRel(Node tc_rel);
+  /** Ensure buildTCGraphForRel has been called for tc_rel. */
+  void ensureTCGraphBuilt(Node tc_rel);
   void doCycleInference();
   void doTCInference();
   void doTCInference(std::map<Node, std::unordered_set<Node>> rel_tc_graph,

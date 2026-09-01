@@ -354,6 +354,18 @@ class TheorySetsPrivate : protected EnvObj
    * drive TheorySets::needsCheckLastEffort().
    */
   bool hasOpenCycleObligation() const;
+  /**
+   * Last-call check (only relevant under --rels-acyclic-hammer, which
+   * disables the case split lemma in TheorySetsRels::applyTCRule): confirm
+   * every currently-known transitive-closure membership is backed up by known
+   * base relation memberships.
+   */
+  void checkTransitiveClosureLastCall();
+  /**
+   * True under --rels-acyclic-hammer if rel.tclosure has been used, used to
+   * drive TheorySets::needsCheckLastEffort().
+   */
+  bool needsTCGroundingLastCall() const;
   /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
   void checkFilters();
   /** Run the set.map inference rules (checkMapUp / checkMapDown). */
@@ -440,6 +452,13 @@ class TheorySetsPrivate : protected EnvObj
    * involving relational constraints is asserted to this theory.
    */
   bool d_rels_enabled;
+  /** is transitive closure (rel.tclosure) specifically enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * rel.tclosure term is asserted to this theory. Used in
+   * needsTCGroundingLastCall.
+   */
+  bool d_tc_enabled;
   /** Have we ever seen cardinality? */
   bool d_hasEnabledCard;
   /** is cardinality enabled?
