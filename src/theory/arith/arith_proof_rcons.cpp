@@ -18,6 +18,7 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -56,6 +57,17 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
 {
   Assert(as.getKind() == Kind::EQUAL);
   Node asr = rewrite(as);
+  if (asr.getKind() == Kind::EQUAL)
+  {
+    // Equalities are not normalized by the rewriter, see
+    // rewriter::normalizeEquality. We normalize here, since otherwise the
+    // monomial we are solving for may have an explicit coefficient of one
+    // below, e.g. the monomial (str.len a) has coefficient one in the normal
+    // form (= (str.len a) (* 2 x)) but has an explicit coefficient in
+    // (= 0 (+ (* 2 x) (* (- 1) (str.len a)))), in which case we would fail to
+    // solve for it.
+    asr = rewriter::normalizeEquality(nodeManager(), asr);
+  }
   Trace("arith-proof-rcons") << "...under subs+rewrite: " << asr << std::endl;
   // see if there is a variable to solve for
   std::map<Node, Node> msum;
@@ -86,8 +98,10 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
     Node eq = m.first.eqNode(val);
     if (!CDProof::isSame(as, eq))
     {
-      // Note the solved equality may be equivalent to as up to polynomial
-      // normalization only, and not under rewriting alone.
+      // Note the solved equality is typically equivalent to as up to
+      // polynomial normalization only, and not under rewriting alone, since
+      // equalities are not normalized by the rewriter, see
+      // rewriter::normalizeEquality.
       if (addArithPolyNormRel(cdp, as, eq))
       {
         cdp.addStep(eq, ProofRule::EQ_RESOLVE, {as, as.eqNode(eq)}, {});

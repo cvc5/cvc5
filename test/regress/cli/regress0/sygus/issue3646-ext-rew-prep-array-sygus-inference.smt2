@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --ext-rew-prep=agg --sygus-inference=try -q
 ; EXPECT: sat
 (set-logic QF_ANIA)

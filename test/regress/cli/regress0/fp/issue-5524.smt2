@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --bv-solver=bitblast
 ; EXPECT: unsat

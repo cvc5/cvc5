@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --re-elim=agg
 ; EXPECT: unsat
 (set-logic QF_SLIA)

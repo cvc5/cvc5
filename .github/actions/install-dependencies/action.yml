@@ -15,6 +15,9 @@ inputs:
   wasm-build:
     default: false
     type: boolean
+  cross-compile:
+    default: false
+    type: boolean
   shell:
     default: bash
 
@@ -26,7 +29,8 @@ runs:
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install Linux software"
-        sudo apt-get update
+        # Temporarily disabled: apt-get update hangs in CI
+        # sudo apt-get update
         sudo apt-get install -y \
           build-essential \
           ccache \
@@ -56,7 +60,7 @@ runs:
         sudo cp clang++.cfg $CLANG_DIR/
 
     - name: Install software for cross-compiling for arm64 Linux
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && inputs.cross-compile == 'true' && inputs.windows-build != 'true'
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install software for cross-compiling for arm64 Linux"
@@ -68,11 +72,12 @@ runs:
     - name: Install software for cross-compiling for Windows x86_64
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
-      if: runner.os == 'Linux' && inputs.windows-build == 'true'
+      if: runner.os == 'Linux' && inputs.cross-compile == 'true' && inputs.windows-build == 'true'
       shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install software for cross-compiling for Windows"
-        sudo apt-get update
+        # Temporarily disabled: apt-get update hangs in CI
+        # sudo apt-get update
         sudo apt-get install -y \
           mingw-w64
 
@@ -89,7 +94,8 @@ runs:
       shell: bash
       run: |
         echo "::group::Install software for WebAssembly compilation"
-        sudo apt-get update
+        # Temporarily disabled: apt-get update hangs in CI
+        # sudo apt-get update
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk/
         ./emsdk install '3.1.70'

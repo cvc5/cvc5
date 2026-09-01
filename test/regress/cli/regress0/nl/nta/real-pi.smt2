@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-ext=full -q
 ; EXPECT: sat
 (set-logic QF_NRAT)

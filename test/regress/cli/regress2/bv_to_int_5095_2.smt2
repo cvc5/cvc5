@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: sat
 ; COMMAND-LINE: --solve-bv-as-int=sum -q
 (set-logic BV)

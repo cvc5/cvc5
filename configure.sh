@@ -33,6 +33,7 @@ General options;
   --win64                  cross-compile for Windows 64 bit
   --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
+  --ccache                 use ccache to speed up rebuilds
   --docs                   build Api documentation
   --docs-ga                build API documentation with Google Analytics
 
@@ -133,6 +134,7 @@ buildtype=default
 asan=default
 assertions=default
 auto_download=default
+ccache=default
 cln=default
 clang_tidy=default
 coverage=default
@@ -275,6 +277,8 @@ do
     --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
+
+    --ccache) ccache=ON;;
 
     --docs) docs=ON;;
     --no-docs) docs=OFF;;
@@ -472,6 +476,12 @@ fi
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-aarch64.cmake')"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
+if [ $ccache != default ]; then
+  command -v ccache &> /dev/null \
+    || die "ccache not found (required by --ccache)"
+  cmake_opts="$cmake_opts -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+  cmake_opts="$cmake_opts -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+fi
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $build_shared != default ] \

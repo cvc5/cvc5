@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sets-exp
 (set-logic ALL)
 (set-info :status unsat)

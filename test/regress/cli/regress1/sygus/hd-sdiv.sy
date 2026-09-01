@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status
 (set-logic BV)

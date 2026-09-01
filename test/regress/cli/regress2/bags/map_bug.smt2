@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --no-debug-check-models
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :status sat)
 (set-option :debug-check-models true)

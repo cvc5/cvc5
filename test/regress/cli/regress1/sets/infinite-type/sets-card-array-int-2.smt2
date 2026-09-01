@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic QF_ALL)
 (set-info :status sat)
 (set-option :sets-exp true)
