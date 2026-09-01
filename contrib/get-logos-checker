@@ -53,6 +53,7 @@ mkdir -p $BASE_DIR/tmp/
 if ! [ -x "$(command -v lake)" ]; then
   export ELAN_HOME="$BASE_DIR/elan"
   if ! [ -x "$ELAN_HOME/bin/lake" ]; then
+    rm -f $BASE_DIR/tmp/elan-init.sh
     download "https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh" $BASE_DIR/tmp/elan-init.sh
     bash $BASE_DIR/tmp/elan-init.sh -y --default-toolchain none --no-modify-path
   fi
@@ -61,15 +62,24 @@ fi
 
 ##### Logos
 LOGOS_DIR="$BASE_DIR/logos-checker"
-mkdir -p $LOGOS_DIR
+LOGOS_STAMP="$LOGOS_DIR/.cvc5-pinned-version"
 
-# download and unpack logos, at the commit pinned at the top of this script
+# download and unpack logos, at the commit pinned at the top of this script.
+# The tree is emptied first: unpacking over the previous version leaves behind
+# any file deleted upstream, and lake would then build a mix of old and new
+# sources. The stamp records which commit the tree holds, so that rerunning
+# this script on an unchanged pin keeps .lake and stays incremental.
 # Note we delete a previously downloaded archive first, since the download
 # helper passes -c to wget, which appends to (instead of replacing) the file
 # left over from a previous version.
-rm -f $BASE_DIR/tmp/logos.tgz
-download "https://github.com/cvc5/logos/archive/$LOGOS_VERSION.tar.gz" $BASE_DIR/tmp/logos.tgz
-tar --strip 1 -xzf $BASE_DIR/tmp/logos.tgz -C $LOGOS_DIR
+if [ "$(cat $LOGOS_STAMP 2>/dev/null)" != "$LOGOS_VERSION" ]; then
+  rm -rf $LOGOS_DIR
+  mkdir -p $LOGOS_DIR
+  rm -f $BASE_DIR/tmp/logos.tgz
+  download "https://github.com/cvc5/logos/archive/$LOGOS_VERSION.tar.gz" $BASE_DIR/tmp/logos.tgz
+  tar --strip 1 -xzf $BASE_DIR/tmp/logos.tgz -C $LOGOS_DIR
+  echo "$LOGOS_VERSION" > $LOGOS_STAMP
+fi
 
 # Build and install Logos. Logos provides a build script that configures the
 # Lean toolchain for the host before invoking Lake. In particular, on older

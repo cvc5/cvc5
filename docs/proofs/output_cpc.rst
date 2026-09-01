@@ -73,7 +73,7 @@ Logos checker, and create scripts for generating proofs with cvc5 and checking
 them with the Logos proof checker.
 
 Logos targets the fragment of CPC that is used by safe builds of cvc5, that is,
-builds configured with ``./configure.sh safe-mode``.
+builds configured with ``./configure.sh safe``.
 The expert CPC rules used by non-safe builds, which are defined in
 :cvc5repo:`CpcExpert.eo <proofs/eo/cpc/expert/CpcExpert.eo>`, lie outside that
 fragment, and Logos will report a parse error on them.
