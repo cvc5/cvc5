@@ -13,9 +13,7 @@
 #include "theory/fp/theory_fp.h"
 
 #include <set>
-#include <stack>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "base/configuration.h"
@@ -26,6 +24,7 @@
 #include "theory/fp/fp_word_blaster.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/fp/theory_fp_utils.h"
+#include "theory/incomplete_id.h"
 #include "theory/output_channel.h"
 #include "theory/theory_model.h"
 #include "util/floatingpoint.h"
@@ -42,6 +41,7 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_FP, env, out, valuation),
       d_wordBlaster(new FpWordBlaster(nodeManager(), userContext())),
       d_registeredTerms(userContext()),
+      d_purifiedArgs(userContext()),
       d_abstractionMap(userContext()),
       d_rewriter(nodeManager(), options().fp.fpExp),
       d_state(env, valuation),
@@ -49,7 +49,8 @@ TheoryFp::TheoryFp(Env& env, OutputChannel& out, Valuation valuation)
       d_notify(d_im),
       d_wbFactsCache(userContext()),
       d_invalidateModelCache(context(), true),
-      d_true(nodeManager()->mkConst(true))
+      d_true(nodeManager()->mkConst(true)),
+      d_stats(statisticsRegistry(), "theory::fp::")
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
@@ -159,18 +160,27 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
     // Get the values
     Assert(m->hasTerm(abstract));
     Assert(m->hasTerm(concrete[0]));
-    Assert(m->hasTerm(concrete[1]));
+    // Note: while the value for concrete[1] that we get from the model has to
+    // be const, it is not necessarily the case that `m->hasTerm(concrete[1])`.
+    // The arithmetic solver computes values for the variables in shared terms
+    // but does not necessarily add the shared terms themselves.
 
     Node abstractValue = m->getValue(abstract);
     Node floatValue = m->getValue(concrete[0]);
     Node undefValue = m->getValue(concrete[1]);
 
-    Assert(!abstractValue.isNull());
-    Assert(!floatValue.isNull());
-    Assert(!undefValue.isNull());
-    Assert(abstractValue.isConst());
-    Assert(floatValue.isConst());
-    Assert(undefValue.isConst());
+    if (abstractValue.isNull() || floatValue.isNull() || undefValue.isNull()
+        || !abstractValue.isConst() || !floatValue.isConst()
+        || !undefValue.isConst())
+    {
+      // Without usable model values for the abstraction and its arguments we
+      // cannot refine. This can happen when model construction involving
+      // other theories fails to produce constants (see issue #12759). Give
+      // up on this model rather than refine with corrupted values.
+      ++d_stats.d_abstractionUnusableValues;
+      d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
+      return false;
+    }
 
     // Work out the actual value for those args
     Node evaluate =
@@ -190,10 +200,25 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
 
     if (abstractValue != concreteValue)
     {
-      // Need refinement lemmas
-      // only in the normal and subnormal case
-      Assert(floatValue.getConst<FloatingPoint>().isNormal()
-             || floatValue.getConst<FloatingPoint>().isSubnormal());
+      // Refinement lemmas are only sound in the normal and subnormal case;
+      // the registration lemmas (see registerTerm) fix the value of the
+      // abstraction for NaN, infinity and zero arguments. Reaching this
+      // point with such an argument value means the model is inconsistent
+      // with the registration lemmas, e.g. because argument values were
+      // corrupted by other reasoning (see issues #12340, #12759). The
+      // registration lemmas were already sent in this user context, so
+      // nothing new can be learned by re-sending them. Give up on this
+      // model rather than crash or refine with corrupted values.
+      const FloatingPoint& fv = floatValue.getConst<FloatingPoint>();
+      if (!fv.isNormal() && !fv.isSubnormal())
+      {
+        Assert(getValuation().isModelUnsound())
+            << "model value " << floatValue << " of " << concrete[0]
+            << " contradicts the registration lemmas of " << abstract;
+        ++d_stats.d_abstractionInconsistentValues;
+        d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
+        return false;
+      }
 
       Node defined = nm->mkNode(
           Kind::AND,
@@ -201,6 +226,17 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
                       nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, concrete[0])),
            nm->mkNode(Kind::NOT,
                       nm->mkNode(Kind::FLOATINGPOINT_IS_INF, concrete[0]))});
+
+      // Unlike rounding (see the TO_FP_FROM_REAL case below, where the
+      // model-anchored equivalences had to be weakened to implications),
+      // fp.to_real is exact: on defined (non-NaN, non-infinity) arguments it
+      // is an order embedding, injective up to the zero class (-0 and +0 both
+      // map to 0, and fp.geq/fp.leq treat them as equal). Both directions of
+      // the equivalences below are therefore sound. The "backward"
+      // constraints compare against the floats obtained by rounding the
+      // abstraction's model value up resp. down, i.e., against the exact
+      // representable bounds enclosing it.
+
       // First the "forward" constraints
       Node fg = nm->mkNode(
           Kind::IMPLIES,
@@ -209,7 +245,7 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
               Kind::EQUAL,
               {nm->mkNode(Kind::FLOATINGPOINT_GEQ, concrete[0], floatValue),
                nm->mkNode(Kind::GEQ, abstract, concreteValue)}));
-      handleLemma(fg, InferenceId::FP_PREPROCESS);
+      bool sent = handleLemma(fg, InferenceId::FP_PREPROCESS);
 
       Node fl = nm->mkNode(
           Kind::IMPLIES,
@@ -218,7 +254,7 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
               Kind::EQUAL,
               {nm->mkNode(Kind::FLOATINGPOINT_LEQ, concrete[0], floatValue),
                nm->mkNode(Kind::LEQ, abstract, concreteValue)}));
-      handleLemma(fl, InferenceId::FP_PREPROCESS);
+      sent = handleLemma(fl, InferenceId::FP_PREPROCESS) || sent;
 
       // Then the backwards constraints
       Node floatAboveAbstract = rewrite(
@@ -236,7 +272,7 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
               {nm->mkNode(
                    Kind::FLOATINGPOINT_GEQ, concrete[0], floatAboveAbstract),
                nm->mkNode(Kind::GEQ, abstract, abstractValue)}));
-      handleLemma(bg, InferenceId::FP_PREPROCESS);
+      sent = handleLemma(bg, InferenceId::FP_PREPROCESS) || sent;
 
       Node floatBelowAbstract = rewrite(
           nm->mkNode(Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
@@ -253,10 +289,24 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
               {nm->mkNode(
                    Kind::FLOATINGPOINT_LEQ, concrete[0], floatBelowAbstract),
                nm->mkNode(Kind::LEQ, abstract, abstractValue)}));
-      handleLemma(bl, InferenceId::FP_PREPROCESS);
+      sent = handleLemma(bl, InferenceId::FP_PREPROCESS) || sent;
       // TODO : see if the overflow conditions could be improved #1914
 
-      return true;
+      if (!sent)
+      {
+        // All refinement lemmas for these model values were already sent in a
+        // previous round, yet the model still violates them: the model is
+        // inconsistent with the current assertions (cf. the non-normal case
+        // above). Note that fg and fl above are equivalences and that their
+        // left-hand sides hold in the model (concrete[0] is floatValue), thus
+        // together they force abstract to be concreteValue and do exclude
+        // this model. Give up on it rather than accept it.
+        Assert(getValuation().isModelUnsound())
+            << "model of " << abstract << " violates its refinement lemmas";
+        ++d_stats.d_abstractionNoProgress;
+        d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
+      }
+      return sent;
     }
     else
     {
@@ -279,12 +329,15 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
     Node rmValue = m->getValue(concrete[0]);
     Node realValue = m->getValue(concrete[1]);
 
-    Assert(!abstractValue.isNull());
-    Assert(!rmValue.isNull());
-    Assert(!realValue.isNull());
-    Assert(abstractValue.isConst());
-    Assert(rmValue.isConst());
-    Assert(realValue.isConst());
+    if (abstractValue.isNull() || rmValue.isNull() || realValue.isNull()
+        || !abstractValue.isConst() || !rmValue.isConst()
+        || !realValue.isConst())
+    {
+      // See the FLOATINGPOINT_TO_REAL_TOTAL case above.
+      ++d_stats.d_abstractionUnusableValues;
+      d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
+      return false;
+    }
 
     // Work out the actual value for those args
     Node evaluate =
@@ -308,61 +361,147 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
 
     if (abstractValue != concreteValue)
     {
-      Assert(!abstractValue.getConst<FloatingPoint>().isNaN());
-      Assert(!concreteValue.getConst<FloatingPoint>().isNaN());
+      // A conversion from real never yields NaN (ensured by the rewriter for
+      // concreteValue) and registerTerm rules out NaN for the abstraction
+      // skolem. Reaching this point with a NaN value means the model is
+      // inconsistent with the registration lemmas (see issue #12354). The
+      // registration lemmas were already sent in this user context, so
+      // nothing new can be learned by re-sending them. Give up on this
+      // model rather than crash.
+      if (abstractValue.getConst<FloatingPoint>().isNaN()
+          || concreteValue.getConst<FloatingPoint>().isNaN())
+      {
+        Assert(getValuation().isModelUnsound())
+            << "NaN model value of " << abstract
+            << " contradicts its registration lemmas";
+        ++d_stats.d_abstractionInconsistentValues;
+        d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
+        return false;
+      }
 
       Node correctRoundingMode = nm->mkNode(Kind::EQUAL, concrete[0], rmValue);
       // TODO : Generalise to all rounding modes  #1914
 
-      // First the "forward" constraints
-      Node fg = nm->mkNode(
-          Kind::IMPLIES,
-          correctRoundingMode,
-          nm->mkNode(
-              Kind::EQUAL,
-              {nm->mkNode(Kind::GEQ, concrete[1], realValue),
-               nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, concreteValue)}));
-      handleLemma(fg, InferenceId::FP_PREPROCESS);
+      RoundingMode rm = rmValue.getConst<RoundingMode>();
+      bool sent = false;
 
-      Node fl = nm->mkNode(
-          Kind::IMPLIES,
-          correctRoundingMode,
-          nm->mkNode(
-              Kind::EQUAL,
-              {nm->mkNode(Kind::LEQ, concrete[1], realValue),
-               nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, concreteValue)}));
-      handleLemma(fl, InferenceId::FP_PREPROCESS);
+      // For a float constant c and a fixed rounding mode, to_fp(rm, x) >=_fp c
+      // holds iff x is (strictly) above the exact real lower boundary of c's
+      // rounding cell, and dually to_fp(rm, x) <=_fp c holds iff x is
+      // (strictly) below the lower boundary of the cell of nextUp(c). These
+      // cell-boundary equivalences are sound and exclude the whole spurious
+      // rounding cell in one step, which is required for the refinement loop
+      // to converge (the model value of x could otherwise slide from cell to
+      // cell indefinitely).
+      //
+      // Where the boundary is not available, i.e., if c is an infinity or if
+      // the cell of c is unbounded (c is the largest resp. smallest finite
+      // value of its format), fall back to the monotonicity implication
+      // anchored at a real v that converts to c:
+      //   x >= v  -->  to_fp(rm, x) >=_fp c
+      // and dually for <=. Note that only this direction is valid: rounding
+      // is monotone but not injective, thus to_fp(rm, x) >=_fp to_fp(rm, v)
+      // does not imply x >= v (x slightly below v may round to the same
+      // float). Asserting the equivalence excludes satisfiable regions around
+      // v and makes the solver refutation unsound (see issues #12370,
+      // #12780). Since v is in the cell of c, this implication is the weaker,
+      // model-anchored variant of the cell-boundary equivalence above.
+      //
+      // Note that the equivalences also imply the monotonicity implications
+      // for every real in the cell of c, thus no additional lemmas anchored
+      // at the model values are required.
+      //
+      // @param c The float to anchor the lemmas at, must not be NaN.
+      // @param v A real that converts to c, null if there is none.
+      auto sendCellLemmas = [&](const FloatingPoint& c, TNode v) {
+        Assert(!c.isNaN());
+        Node cn = nm->mkConst(c);
+        Node geq = nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, cn);
+        Node leq = nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, cn);
+        Node lower, upper;
+        // The cell of c has a finite lower boundary unless c is an infinity or
+        // the smallest finite value of its format.
+        if (!c.isInfinite() && !FloatingPoint::nextDown(c).isInfinite())
+        {
+          auto [lb, lstrict] = utils::roundingCellLowerBound(c, rm);
+          lower = nm->mkNode(Kind::EQUAL,
+                             {geq,
+                              nm->mkNode(lstrict ? Kind::GT : Kind::GEQ,
+                                         concrete[1],
+                                         nm->mkConstReal(lb))});
+        }
+        else if (!v.isNull())
+        {
+          lower = nm->mkNode(Kind::IMPLIES,
+                             {nm->mkNode(Kind::GEQ, concrete[1], v), geq});
+        }
+        // The cell of c has a finite upper boundary, the lower boundary of the
+        // cell of nextUp(c), unless c is an infinity or the largest finite
+        // value of its format. Note that F <=_fp c iff not (F >=_fp nextUp(c))
+        // for non-NaN F.
+        FloatingPoint s = FloatingPoint::nextUp(c);
+        if (!c.isInfinite() && !s.isInfinite())
+        {
+          // nextDown(s) is c (up to the sign of zero) and thus finite, hence
+          // s being finite is all the preconditions require here
+          auto [ub, sstrict] = utils::roundingCellLowerBound(s, rm);
+          upper = nm->mkNode(Kind::EQUAL,
+                             {leq,
+                              nm->mkNode(sstrict ? Kind::LEQ : Kind::LT,
+                                         concrete[1],
+                                         nm->mkConstReal(ub))});
+        }
+        else if (!v.isNull())
+        {
+          upper = nm->mkNode(Kind::IMPLIES,
+                             {nm->mkNode(Kind::LEQ, concrete[1], v), leq});
+        }
+        for (const Node& l : {lower, upper})
+        {
+          if (!l.isNull())
+          {
+            sent =
+                handleLemma(nm->mkNode(Kind::IMPLIES, correctRoundingMode, l),
+                            InferenceId::FP_PREPROCESS)
+                || sent;
+          }
+        }
+      };
 
-      // Then the backwards constraints
-      if (!abstractValue.getConst<FloatingPoint>().isInfinite())
+      // Anchor the lemmas at the correct rounding of the model value of x,
+      // which the model value of the abstraction disagrees with, ...
+      sendCellLemmas(concreteValue.getConst<FloatingPoint>(), realValue);
+      // ... and at the model value of the abstraction, which converts to
+      // itself unless it is an infinity.
+      const FloatingPoint& av = abstractValue.getConst<FloatingPoint>();
+      Node realValueOfAbstract;
+      if (!av.isInfinite())
       {
-        Node realValueOfAbstract =
+        realValueOfAbstract =
             rewrite(nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                abstractValue,
                                nm->mkConstReal(Rational(0U))));
-
-        Node bg = nm->mkNode(
-            Kind::IMPLIES,
-            correctRoundingMode,
-            nm->mkNode(
-                Kind::EQUAL,
-                {nm->mkNode(Kind::GEQ, concrete[1], realValueOfAbstract),
-                 nm->mkNode(
-                     Kind::FLOATINGPOINT_GEQ, abstract, abstractValue)}));
-        handleLemma(bg, InferenceId::FP_PREPROCESS);
-
-        Node bl = nm->mkNode(
-            Kind::IMPLIES,
-            correctRoundingMode,
-            nm->mkNode(
-                Kind::EQUAL,
-                {nm->mkNode(Kind::LEQ, concrete[1], realValueOfAbstract),
-                 nm->mkNode(
-                     Kind::FLOATINGPOINT_LEQ, abstract, abstractValue)}));
-        handleLemma(bl, InferenceId::FP_PREPROCESS);
       }
+      sendCellLemmas(av, realValueOfAbstract);
 
-      return true;
+      if (!sent)
+      {
+        // All refinement lemmas for these model values were already sent in a
+        // previous round. Either the model is inconsistent with the current
+        // assertions (cf. the NaN case above), or the lemmas are too weak to
+        // exclude it: unlike in the FLOATINGPOINT_TO_REAL_TOTAL case above,
+        // they are implications rather than equivalences, and they are
+        // formulated in terms of fp.leq/fp.geq and of the rationals the
+        // results denote, all of which identify -zero and +zero (which is why
+        // registerTerm() constrains the sign of the abstraction separately).
+        // Give up on this model rather than accept it.
+        Assert(getValuation().isModelUnsound())
+            << "model of " << abstract
+            << " is not excluded by its refinement lemmas";
+        ++d_stats.d_abstractionNoProgress;
+        d_im.setModelUnsound(IncompleteId::FP_ABSTRACTION_REFINEMENT);
+      }
+      return sent;
     }
     else
     {
@@ -523,31 +662,35 @@ void TheoryFp::registerTerm(TNode node)
   else if (k == Kind::FLOATINGPOINT_TO_REAL_TOTAL)
   {
     // Purify (fp.to_real x)
-    Node sk = purifyConversions(node);
+    Node sk = nm->getSkolemManager()->mkPurifySkolem(node);
     Assert(sk.getKind() == Kind::SKOLEM);
-    // Purify the children of this node and use it for the lemmas/refining the
-    // abstraction. This is required to properly process nested conversions.
-    // Otherwise, when getting the values for those terms from the model, we
-    // may get unexpected results if the nested conversions need to be refined
-    // still.
-    Node pn =
-        nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                   {purifyConversions(node[0]), purifyConversions(node[1])});
+    // Purify the arguments of this node and use them for the lemmas/refining
+    // the abstraction. This is required to properly process nested
+    // conversions and, more generally, arguments whose bottom-up model
+    // evaluation may disagree with the model's leaf assignments (e.g. terms
+    // containing unrefined conversions). The refinement lemmas then only
+    // reference leaf skolems whose model values are direct assignments.
+    Node pn = nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
+                         purifyArgument(node[0]),
+                         purifyArgument(node[1]));
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, pn);
 
+    // Constrain the abstraction skolem sk directly (rather than node or pn)
+    // so that the model value of the abstraction cannot violate these
+    // lemmas via a broken congruence chain.
     Node pd =
         nm->mkNode(Kind::IMPLIES,
                    {nm->mkNode(Kind::OR,
                                {nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, pn[0]),
                                 nm->mkNode(Kind::FLOATINGPOINT_IS_INF, pn[0])}),
-                    nm->mkNode(Kind::EQUAL, pn, pn[1])});
+                    nm->mkNode(Kind::EQUAL, sk, pn[1])});
     handleLemma(pd, InferenceId::FP_REGISTER_TERM);
 
     Node z = nm->mkNode(
         Kind::IMPLIES,
         {nm->mkNode(Kind::FLOATINGPOINT_IS_ZERO, pn[0]),
-         nm->mkNode(Kind::EQUAL, pn, nm->mkConstReal(Rational(0U)))});
+         nm->mkNode(Kind::EQUAL, sk, nm->mkConstReal(Rational(0U)))});
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
     return;
 
@@ -556,32 +699,49 @@ void TheoryFp::registerTerm(TNode node)
   else if (k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL)
   {
     // Purify ((_ to_fp eb sb) rm x)
-    Node sk = purifyConversions(node);
+    Node sk = nm->getSkolemManager()->mkPurifySkolem(node);
     Assert(sk.getKind() == Kind::SKOLEM);
-    // Purify the children of this node and use it for the lemmas/refining the
-    // abstraction. This is required to properly process nested conversions.
-    // Otherwise, when getting the values for those terms from the model, we
-    // may get unexpected results if the nested conversions need to be refined
-    // still.
-    Node pn = nm->mkNode(Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
-                         {node.getOperator(),
-                          purifyConversions(node[0]),
-                          purifyConversions(node[1])});
+    // Purify the arguments of this node and use them for the lemmas/refining
+    // the abstraction (see FLOATINGPOINT_TO_REAL_TOTAL above).
+    Node pn = nm->mkNode(
+        Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
+        {node.getOperator(), purifyArgument(node[0]), purifyArgument(node[1])});
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, pn);
 
+    // Constrain the abstraction skolem sk directly (see above).
     Node nnan =
-        nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, pn));
+        nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_NAN, sk));
     handleLemma(nnan, InferenceId::FP_REGISTER_TERM);
 
+    Node zero = nm->mkConstReal(Rational(0U));
     Node z = nm->mkNode(
         Kind::IMPLIES,
-        {nm->mkNode(Kind::EQUAL, pn[1], nm->mkConstReal(Rational(0U))),
+        {nm->mkNode(Kind::EQUAL, pn[1], zero),
          nm->mkNode(Kind::EQUAL,
-                    pn,
+                    sk,
                     nm->mkConst(FloatingPoint::makeZero(
-                        pn.getType().getConst<FloatingPointSize>(), false)))});
+                        sk.getType().getConst<FloatingPointSize>(), false)))});
     handleLemma(z, InferenceId::FP_REGISTER_TERM);
+
+    // The sign of the result is the sign of the argument, in every rounding
+    // mode and also when the conversion underflows to zero. Constraining the
+    // sign here is required: the refinement lemmas in refineAbstraction are
+    // formulated in terms of fp.leq/fp.geq and of the rationals the results
+    // denote, all of which identify -zero and +zero, and can therefore not
+    // rule out a model that assigns the abstraction a zero whose sign
+    // differs from the sign of the correct rounding.
+    Node sp = nm->mkNode(
+        Kind::IMPLIES,
+        {nm->mkNode(Kind::GT, pn[1], zero),
+         nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_NEG, sk))});
+    handleLemma(sp, InferenceId::FP_REGISTER_TERM);
+
+    Node sn = nm->mkNode(
+        Kind::IMPLIES,
+        {nm->mkNode(Kind::LT, pn[1], zero),
+         nm->mkNode(Kind::NOT, nm->mkNode(Kind::FLOATINGPOINT_IS_POS, sk))});
+    handleLemma(sn, InferenceId::FP_REGISTER_TERM);
     return;
 
     // TODO : rounding-mode specific bounds on floats that don't give infinity
@@ -623,15 +783,16 @@ void TheoryFp::preRegisterTerm(TNode node)
   return;
 }
 
-void TheoryFp::handleLemma(Node node, InferenceId id)
+bool TheoryFp::handleLemma(Node node, InferenceId id)
 {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   Node lemma = rewrite(node);
   if (lemma != d_true)
   {
     /* We only send non-trivial lemmas. */
-    d_im.lemma(lemma, id);
+    return d_im.lemma(lemma, id);
   }
+  return false;
 }
 
 bool TheoryFp::propagateLit(TNode node)
@@ -962,63 +1123,30 @@ bool TheoryFp::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
   return true;
 }
 
-Node TheoryFp::purifyConversions(TNode n)
+Node TheoryFp::purifyArgument(TNode n)
 {
-  NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-
-  std::vector<TNode> toVisit = {n};
-  std::unordered_map<TNode, Node> result;
-  while (!toVisit.empty())
+  if (n.getNumChildren() == 0)
   {
-    TNode curr = toVisit.back();
-    toVisit.pop_back();
-
-    Kind k = curr.getKind();
-    auto [it, inserted] = result.emplace(curr, Node::null());
-    if (!inserted)
-    {
-      if (it->second.isNull())
-      {
-        NodeBuilder nb(nm, k);
-        if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          auto itc = result.find(curr.getOperator());
-          Assert(itc != result.end());
-          Assert(!itc->second.isNull());
-          nb << itc->second;
-        }
-        for (TNode nc : curr)
-        {
-          auto itc = result.find(nc);
-          Assert(itc != result.end());
-          Assert(!itc->second.isNull());
-          nb << itc->second;
-        }
-        it->second = nb;
-      }
-    }
-    else if (curr.getNumChildren() == 0)
-    {
-      it->second = curr;
-    }
-    else if (k == Kind::FLOATINGPOINT_TO_REAL_TOTAL
-             || k == Kind::FLOATINGPOINT_TO_FP_FROM_REAL)
-    {
-      Node sk = sm->mkPurifySkolem(curr);
-      it->second = sk;
-    }
-    else
-    {
-      toVisit.push_back(curr);
-      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        toVisit.push_back(curr.getOperator());
-      }
-      toVisit.insert(toVisit.end(), curr.begin(), curr.end());
-    }
+    return n;
   }
-  return result.at(n);
+  SkolemManager* sm = nodeManager()->getSkolemManager();
+  Node sk = sm->mkPurifySkolem(n);
+  if (d_purifiedArgs.insert(n))
+  {
+    handleLemma(n.eqNode(sk), InferenceId::FP_REGISTER_TERM);
+  }
+  return sk;
+}
+
+TheoryFp::Statistics::Statistics(StatisticsRegistry& reg,
+                                 const std::string& name)
+    : d_abstractionUnusableValues(
+          reg.registerInt(name + "NumAbstractionUnusableValues")),
+      d_abstractionInconsistentValues(
+          reg.registerInt(name + "NumAbstractionInconsistentValues")),
+      d_abstractionNoProgress(
+          reg.registerInt(name + "NumAbstractionNoProgress"))
+{
 }
 
 }  // namespace fp

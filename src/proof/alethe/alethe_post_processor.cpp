@@ -2870,7 +2870,7 @@ bool AletheProofPostprocessCallback::update(Node res,
       return addAletheStep(AletheRule::LA_MULT_ABS_COMPARISON,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
-                           {},
+                           children,
                            {},
                            *cdp);
     }
