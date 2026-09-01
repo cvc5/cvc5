@@ -100,6 +100,21 @@ class RegExpEntail
    */
   static bool isConstRegExp(TNode t);
   /**
+   * Is the regular expression r nullable, i.e. does it contain the empty
+   * string? Note that r is *not* required to be a constant regular expression.
+   *
+   * If this method returns true, then res is updated to whether r contains the
+   * empty string. If this method returns false, then whether r is nullable
+   * could not be determined.
+   *
+   * The cases handled by this method are intentionally kept in sync with the
+   * $re_nullable program of the cpc signature, which is used to check
+   * applications of ProofRewriteRule::STR_IN_RE_EVAL. In particular, we fail
+   * for (str.to_re s) for non-constant s, as well as for regular expression
+   * kinds not covered by that program, e.g. re.loop.
+   */
+  static bool isNullable(TNode r, bool& res);
+  /**
    * Does the substring of s occur in constant regular expression r?
    */
   static bool testConstStringInRegExp(String& s, TNode r);

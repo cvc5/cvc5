@@ -5,6 +5,10 @@ cvc5 1.3.5 prerelease
 
 ## Changes
 
+- The `configure.sh` script now **requires a build type** to be given as its
+  first argument. The build types `production`, `safe-mode` and `stable-mode`
+  are renamed to `unrestricted`, `safe` and `stable`, respectively.
+
 - The C API no longer terminates the process when an error occurs. Instead of
   printing to stderr and calling `exit()`, C API functions now record the error
   in thread-local state and return a default value (e.g., `NULL`, `false`, or
