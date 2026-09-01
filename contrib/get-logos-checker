@@ -98,7 +98,7 @@ cat << EOF > $BASE_DIR/bin/cpc_logos_gen_and_check.sh
 #!/usr/bin/env bash
 
 echo "=== Generate proof: \$@"
-$BASE_DIR/bin/cpc_logos_gen.sh \$@ > logos.proof.cpc
+$BASE_DIR/bin/cpc_logos_gen.sh "\$@" > logos.proof.cpc
 
 echo "=== Check proof with logos"
 $BASE_DIR/bin/logos_check.sh logos.proof.cpc
@@ -109,18 +109,18 @@ cat << EOF > $BASE_DIR/bin/cpc_logos_gen.sh
 #!/usr/bin/env bash
 
 # call cvc5 and remove the first line of the output (should be "unsat", "(", ")")
-\$@ --dump-proofs | tail -n +3 | head -n -1
+"\$@" --dump-proofs | tail -n +3 | head -n -1
 EOF
 chmod +x $BASE_DIR/bin/cpc_logos_gen.sh
 
 cat << EOF > $BASE_DIR/bin/logos_check.sh
 #!/usr/bin/env bash
 
-cat \$@ | grep WARNING
-CHECK=\$(cat \$@ | grep "step\|assume")
+cat "\$@" | grep WARNING
+CHECK=\$(cat "\$@" | grep "step\|assume")
 [ -z "\$CHECK" ] && echo "; WARNING: Empty proof"
 
-$BASE_DIR/bin/logos \$@
+$BASE_DIR/bin/logos "\$@"
 
 EOF
 chmod +x $BASE_DIR/bin/logos_check.sh
