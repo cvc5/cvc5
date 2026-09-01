@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; Rewrites for table.project:
 ;   ((_ table.project 0 1 ... n-1) A) = A
 ;   ((_ table.project j...) ((_ table.project i...) A)) = ((_ table.project i[j]...) A)

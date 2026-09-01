@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; The same three rewrites for rel.project.
 (set-logic HO_ALL)
 (set-info :status unsat)
