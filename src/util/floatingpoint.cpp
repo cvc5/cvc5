@@ -289,9 +289,9 @@ FloatingPoint FloatingPoint::rem(const FloatingPoint& arg) const
 }
 
 FloatingPoint FloatingPoint::maxTotal(const FloatingPoint& arg,
-                                      bool zeroCaseLeft) const
+                                      bool zeroCaseRight) const
 {
-  return FloatingPoint(d_fpl->maxTotal(*arg.d_fpl, zeroCaseLeft));
+  return FloatingPoint(d_fpl->maxTotal(*arg.d_fpl, zeroCaseRight));
 }
 
 FloatingPoint FloatingPoint::minTotal(const FloatingPoint& arg,

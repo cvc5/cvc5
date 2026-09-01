@@ -654,7 +654,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralMPFR::rem(
 /* -------------------------------------------------------------------------- */
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralMPFR::maxTotal(
-    const FloatingPointLiteral& arg, bool zeroCaseLeft) const
+    const FloatingPointLiteral& arg, bool zeroCaseRight) const
 {
   const auto& a = asMPFR(arg);
   Assert(d_fp_size == a.d_fp_size);
@@ -679,7 +679,7 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralMPFR::maxTotal(
   {
     if (isNegative() != a.isNegative())
     {
-      if (zeroCaseLeft)
+      if (zeroCaseRight)
       {
         return clone();
       }
