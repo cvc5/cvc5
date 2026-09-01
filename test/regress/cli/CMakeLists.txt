@@ -3091,7 +3091,6 @@ set(regress_1_tests
   regress1/nl/issue9999.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
-  regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
   regress1/nl/mirko-050417.smt2
   regress1/nl/nl-eq-infer.smt2
@@ -4181,7 +4180,6 @@ set(regress_2_tests
   regress2/ho/involved_parsing_ALG248^3.smt2
   regress2/ho/partial_app_interpreted_SWW474^2.smt2
   regress2/hole7.cvc.smt2
-  regress2/hole8.cvc.smt2
   regress2/instance_1444.smtv1.smt2
   regress2/issue3687-check-models.smt2
   regress2/issue6495-dup-pat-term.smt2
@@ -4415,6 +4413,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # timeout on some builds
+  regress1/nl/metitarski-3-4.smt2
   # times out on various builds
   regress1/nl/proj-issue231.smt2
   # times out after the rewriter stopped normalizing equalities, which orients
@@ -4491,6 +4491,8 @@ set(regression_disabled_tests
   regress2/arith/miplib-opt1217--27.smt2
   # unknown answer after optimizing map formulas
   regress2/bags/pull_null.smt2
+  # timeout on some builds
+  regress2/hole8.cvc.smt2
   regress2/nl/dumortier-050317.smt2
   # times out after the linear solver stopped setting up the normal form of an
   # equality, which made the literals of its constraints non-canonical

@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: -i
 ; EXPECT: sat
 (set-logic QF_UFSLIA)

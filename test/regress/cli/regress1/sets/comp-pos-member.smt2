@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --sets-exp --full-saturate-quant
 ; EXPECT: unsat

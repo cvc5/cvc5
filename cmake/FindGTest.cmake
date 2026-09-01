@@ -61,6 +61,7 @@ if(NOT GTest_FOUND_SYSTEM)
         DOWNLOAD_NAME gtest.tar.gz
         CMAKE_ARGS
           -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+          -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         BUILD_COMMAND ${CMAKE_COMMAND} --build .
             --config ${CMAKE_BUILD_TYPE} --target gtest

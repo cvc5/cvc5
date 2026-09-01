@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --macros-quant
 ; EXPECT: unsat
 ; this will fail if type rule for APPLY_UF is made strict

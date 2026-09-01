@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --mbqi -q
 ; EXPECT: sat
 (set-logic ALL)

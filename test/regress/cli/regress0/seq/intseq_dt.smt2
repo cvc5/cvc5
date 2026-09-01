@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ;COMMAND-LINE: --dt-nested-rec
 ;EXPECT: unsat
 (set-logic ALL)

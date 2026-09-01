@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-fun
 ; EXPECT: unsat
 (set-logic UFNIA)

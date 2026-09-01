@@ -40,7 +40,6 @@ class Color:
     ENDC = "\033[0m"
 
 is_windows = sys.platform.startswith('win')
-ADMISSIBLE_MODE_ERROR = re.compile(r'in (?:safe|stable) mode')
 
 class BulletSymbol:
     # On Windows, the special characters cause this error:
@@ -58,10 +57,6 @@ def print_ok(msg):
 
 def print_error(err):
     print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
-
-def has_admissible_mode_error(output, error):
-    return bool(ADMISSIBLE_MODE_ERROR.search(output.decode()) or
-                ADMISSIBLE_MODE_ERROR.search(error.decode()))
 
 class Tester:
 
@@ -369,11 +364,6 @@ class CpcTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            # if we throw an admissible error (with text "in safe mode" or
-            # "in stable mode"), we allow the benchmark to be skipped.
-            if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-                has_admissible_mode_error(output, error)):
-                return EXIT_SKIP
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
             if exit_code != EXIT_OK:
@@ -409,8 +399,15 @@ class CpcTester(Tester):
                     print()
                     print_outputs(output, error)
                 return exit_code
-            if ("correct" not in output) and ("incomplete" not in output):
-                print_error("Invalid proof")
+            # Proofs that contain trust steps are reported as "incomplete" by
+            # ethos. These are tolerated, apart from in safe mode, where all
+            # features that lack proof support are disabled and hence proofs
+            # are expected to be complete.
+            valid = ["correct"] if benchmark_info.safe_mode \
+                else ["correct", "incomplete"]
+            if not any(v in output for v in valid):
+                print_error("Incomplete proof" if "incomplete" in output
+                            else "Invalid proof")
                 print()
                 print_outputs(output, error)
                 return EXIT_FAILURE
@@ -591,7 +588,6 @@ BenchmarkInfo = collections.namedtuple(
         "command_line_args",
         "compare_outputs",
         "safe_mode",
-        "stable_mode"
     ],
 )
 
@@ -761,6 +757,14 @@ def get_cvc5_features(cvc5_binary, timeout):
             elif value == "no":
                 disabled_features.append(key)
 
+    # Safe and stable builds are both "restricted" builds. This synthetic
+    # feature allows a benchmark that is not admissible in either to be
+    # excluded with a single "REQUIRES: unrestricted-mode".
+    if "safe-mode" in features or "stable-mode" in features:
+        disabled_features.append("unrestricted-mode")
+    else:
+        features.append("unrestricted-mode")
+
     return features, disabled_features
 
 def check_scrubber(scrubber_error, scrubber):
@@ -795,11 +799,6 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
-    # For all testers, if we throw an admissible error (with text
-    # "in safe mode" or "in stable mode"), we allow the benchmark to be skipped.
-    if ((benchmark_info.safe_mode or benchmark_info.stable_mode) and
-        has_admissible_mode_error(output, error)):
-        return (output, error, EXIT_SKIP)
     if is_timeout(exit_status, output, error):
         return (output, error, STATUS_TIMEOUT)
 
@@ -1012,7 +1011,6 @@ def run_regression(
             command_line_args=all_args,
             compare_outputs=True,
             safe_mode=("safe-mode" in cvc5_features),
-            stable_mode=("stable-mode" in cvc5_features)
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):

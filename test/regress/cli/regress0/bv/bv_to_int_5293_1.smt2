@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic UFBV)
