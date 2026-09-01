@@ -1,8 +1,7 @@
-; COMMAND-LINE: --no-debug-check-models
 ; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --no-debug-check-models
 (set-logic HO_ALL)
 (set-info :status sat)
-(set-option :debug-check-models true)
 (declare-const E (Bag (Tuple Int Int Int Int Int Int Int Int Int)))
 (declare-const D (Bag (Tuple Int Int)))
 (declare-const r (-> (Tuple Int Int Int Int Int Int Int Int Int) (Tuple Int Int Int Int Int Int Int Int Int Int Int)))
