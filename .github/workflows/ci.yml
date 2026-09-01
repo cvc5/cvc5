@@ -50,7 +50,7 @@ jobs:
           - name: ubuntu:unrestricted
             os: ubuntu-22.04
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production
+            cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -63,7 +63,7 @@ jobs:
           - name: ubuntu:safe
             os: ubuntu-22.04
             config: safe --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-safe
+            cache-key: safe
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -74,7 +74,7 @@ jobs:
           - name: ubuntu:stable
             os: ubuntu-22.04
             config: stable --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-stable
+            cache-key: stable
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -87,7 +87,7 @@ jobs:
             use-clang: true
             use-libcxx: true
             config: unrestricted --auto-download -DBUILD_GMP=1
-            cache-key: production-libcxx
+            cache-key: unrestricted-libcxx
             strip-bin: strip
             check-examples: true
             package-name: cvc5-Linux-x86_64-libcxx
@@ -97,7 +97,7 @@ jobs:
           - name: ubuntu:unrestricted-arm64
             os: ubuntu-22.04-arm
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-arm64
+            cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -111,7 +111,7 @@ jobs:
             use-clang: true
             use-libcxx: true
             config: unrestricted --auto-download -DBUILD_GMP=1
-            cache-key: production-arm64-libcxx
+            cache-key: unrestricted-arm64-libcxx
             strip-bin: strip
             check-examples: true
             package-name: cvc5-Linux-arm64-libcxx
@@ -121,7 +121,7 @@ jobs:
           - name: macos:unrestricted
             os: macos-15-intel
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production
+            cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -134,7 +134,7 @@ jobs:
           - name: macos:unrestricted-arm64
             os: macos-15
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-arm64
+            cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -148,7 +148,7 @@ jobs:
           - name: win64:unrestricted
             os: windows-latest
             config: unrestricted --auto-download --all-bindings
-            cache-key: production-win64-native
+            cache-key: unrestricted-win64-native
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -162,7 +162,7 @@ jobs:
           - name: win64:unrestricted-arm64
             os: windows-11-arm
             config: unrestricted --auto-download --all-bindings
-            cache-key: production-win64-native-arm64
+            cache-key: unrestricted-win64-native-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -177,7 +177,7 @@ jobs:
           - name: wasm:unrestricted
             os: ubuntu-22.04
             config: unrestricted --static --static-binary --auto-download --wasm-web=no-modular-static-page
-            cache-key: productionwasm
+            cache-key: unrestricted-wasm
             wasm-build: true
             wasm-pkg-name: cvc5-Wasm
             build-shared: false
@@ -210,7 +210,7 @@ jobs:
           - name: ubuntu:unrestricted-gpl
             os: ubuntu-22.04
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-gpl
+            cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
             gpl-tag: -gpl
@@ -218,7 +218,7 @@ jobs:
           - name: ubuntu:unrestricted-arm64-gpl
             os: ubuntu-22.04-arm
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-arm64-gpl
+            cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-Linux-arm64
             gpl-tag: -gpl
@@ -226,7 +226,7 @@ jobs:
           - name: macos:unrestricted-gpl
             os: macos-15-intel
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-gpl
+            cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64
             macos-target: 10.13
@@ -235,7 +235,7 @@ jobs:
           - name: macos:unrestricted-arm64-gpl
             os: macos-15
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-arm64-gpl
+            cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
             java-version: 11
@@ -247,7 +247,7 @@ jobs:
           - name: win64:unrestricted-gpl
             os: windows-latest
             config: unrestricted --auto-download --gpl --cocoa --normaliz
-            cache-key: production-win64-native-gpl
+            cache-key: unrestricted-win64-native-gpl
             strip-bin: strip
             windows-build: true
             shell: 'msys2 {0}'
@@ -256,7 +256,7 @@ jobs:
           - name: win64:unrestricted-arm64-gpl
             os: windows-11-arm
             config: unrestricted --auto-download --gpl --cocoa --normaliz
-            cache-key: production-win64-native-arm64-gpl
+            cache-key: unrestricted-win64-native-arm64-gpl
             strip-bin: strip
             java-version: 21
             windows-build: true
