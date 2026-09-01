@@ -330,4 +330,20 @@ TEST_F(TestCApiBlackGrammar, copy_release)
   // we cannot reliably check that querying on the (now freed) grammar fails
   // unless ASAN is enabled
 }
+TEST_F(TestCApiBlackGrammar, release_after_add_rule)
+{
+  // Grammars are mutable, releasing a grammar after it was modified must
+  // still find (and free) it.
+  cvc5_set_option(d_solver, "sygus", "true");
+  Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
+  std::vector<Cvc5Term> bvars;
+  std::vector<Cvc5Term> symbols = {start};
+  Cvc5Grammar g = cvc5_mk_grammar(
+      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  cvc5_grammar_add_rule(g, start, cvc5_mk_false(d_tm));
+  cvc5_grammar_add_any_constant(g, start);
+  cvc5_grammar_release(g);
+  ASSERT_FALSE(cvc5_has_error());
+}
+
 }  // namespace cvc5::internal::test

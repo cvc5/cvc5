@@ -70,6 +70,9 @@ int main()
   } while (t);
   printf("Finished parsing terms\n");
 
+  cvc5_parser_delete(parser2);
+  cvc5_parser_delete(parser1);
+  cvc5_symbol_manager_delete(sm);
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
 }
