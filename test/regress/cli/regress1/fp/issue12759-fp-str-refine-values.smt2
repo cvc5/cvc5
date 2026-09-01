@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 ; Note: the strings-model-length warnings below are integral to this test:
 ; the oversized strings model is what corrupted the model values seen by the

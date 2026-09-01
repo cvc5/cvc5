@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 ; Satisfiable Real -> Float32 -> Real round trip where the rounding is not the
 ; identity: x must round to 5/8 while being strictly greater than 5/8, i.e. the

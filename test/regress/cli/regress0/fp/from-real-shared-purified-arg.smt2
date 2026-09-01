@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 ; Two abstracted real-to-FP conversions sharing the same non-leaf real
 ; argument: exercises TheoryFp::purifyArgument's per-argument caching (the

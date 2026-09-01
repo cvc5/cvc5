@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE:
 ; COMMAND-LINE: --check-proofs
 ; EXPECT: sat
