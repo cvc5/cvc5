@@ -62,6 +62,12 @@ void TheorySetsRels::check(Theory::Effort level)
                 << std::endl;
   if (Theory::fullEffort(level))
   {
+    // This is the first relational step of a full-effort check: drop what the
+    // previous check collected and collect the current relational terms and
+    // memberships. This is the only collectRelsInfo/clearCaches pair per check;
+    // the caches stay live for the transitive-closure steps that follow in this
+    // pass, which consume them.
+    clearCaches();
     collectRelsInfo();
     check();
     d_im.doPendingLemmas();
@@ -119,14 +125,11 @@ void TheorySetsRels::check()
           applyProductRule(product_terms[j], rel_rep, exp);
         }
       }
-      if (kind_terms.find(Kind::RELATION_TCLOSURE) != kind_terms.end())
-      {
-        std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
-        for (unsigned int j = 0; j < tc_terms.size(); j++)
-        {
-          applyTCRule(mem, tc_terms[j], rel_rep, exp);
-        }
-      }
+      // Note: the transitive-closure DOWN rule (applyTCRule) is not applied
+      // here. It introduces fresh skolem elements and can do so unboundedly, so
+      // it is run as its own step (checkTransitiveClosure), at most once per
+      // postCheck. The UP rule (doTCInference, below) still runs here, using
+      // the TC graph built by buildTCGraphForRel.
       if (kind_terms.find(Kind::RELATION_JOIN_IMAGE) != kind_terms.end())
       {
         std::vector<Node>& join_image_terms =
@@ -182,22 +185,6 @@ void TheorySetsRels::check()
           ++term_it;
         }
       }
-      else if (k_t_it->first == Kind::RELATION_TCLOSURE)
-      {
-        while (term_it != k_t_it->second.end())
-        {
-          // Protect d_tcr_tcGraph from being overwritten,
-          // if it already exists
-          if (d_rel_nodes.find(*term_it) == d_rel_nodes.end()
-              && d_rRep_tcGraph.find(getRepresentative((*term_it)[0]))
-                     == d_rRep_tcGraph.end())
-          {
-            buildTCGraphForRel(*term_it);
-            d_rel_nodes.insert(*term_it);
-          }
-          ++term_it;
-        }
-      }
       else if (k_t_it->first == Kind::RELATION_JOIN_IMAGE)
       {
         while (term_it != k_t_it->second.end())
@@ -218,9 +205,13 @@ void TheorySetsRels::check()
     }
     ++t_it;
   }
-  doTCInference();
+  // Note: the transitive-closure rules run as their own steps
+  // (checkTransitiveClosureDown / checkTransitiveClosureUp) and consume the
+  // caches collected above, so they are not cleared here.
+}
 
-  // clean up
+void TheorySetsRels::clearCaches()
+{
   d_tuple_reps.clear();
   d_rReps_memberReps_exp_cache.clear();
   d_terms_cache.clear();
@@ -230,6 +221,73 @@ void TheorySetsRels::check()
   d_rRep_tcGraph.clear();
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
+}
+
+void TheorySetsRels::checkTransitiveClosureDown()
+{
+  Trace("rels") << "\n[sets-rels] *********** Start transitive closure down "
+                   "***********\n"
+                << std::endl;
+  // Seed the closure graph of every TC term with the members of its base
+  // relation. This is the only place the graph is built during a check: the
+  // down rule below and the up rule only add edges to it.
+  for (TERM_IT t_it = d_terms_cache.begin(); t_it != d_terms_cache.end();
+       ++t_it)
+  {
+    KIND_TERM_IT k_t_it = t_it->second.find(Kind::RELATION_TCLOSURE);
+    if (k_t_it != t_it->second.end())
+    {
+      for (const Node& tc_term : k_t_it->second)
+      {
+        buildTCGraphForRel(tc_term);
+      }
+    }
+  }
+  // DOWN rule: for every (member, TC term) pair, apply applyTCRule. This both
+  // emits the down-rule split (introducing fresh skolems) and adds the TC
+  // membership as an edge of d_tcr_tcGraph, which the UP rule (doTCInference)
+  // consumes. A single sweep over the current members is performed (no fixpoint
+  // loop), so only finitely many fresh elements are introduced per call.
+  for (MEM_IT m_it = d_rReps_memberReps_cache.begin();
+       m_it != d_rReps_memberReps_cache.end();
+       ++m_it)
+  {
+    Node rel_rep = m_it->first;
+    std::map<Kind, std::vector<Node> >& kind_terms = d_terms_cache[rel_rep];
+    if (kind_terms.find(Kind::RELATION_TCLOSURE) == kind_terms.end())
+    {
+      continue;
+    }
+    std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
+    for (unsigned int i = 0; i < m_it->second.size(); i++)
+    {
+      Node mem = d_rReps_memberReps_cache[rel_rep][i];
+      Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
+      for (unsigned int j = 0; j < tc_terms.size(); j++)
+      {
+        applyTCRule(mem, tc_terms[j], rel_rep, exp);
+      }
+    }
+  }
+  Trace("rels") << "\n[sets-rels] *********** Done with transitive closure "
+                   "down ***********\n"
+                << std::endl;
+}
+
+void TheorySetsRels::checkTransitiveClosureUp()
+{
+  Trace("rels") << "\n[sets-rels] *********** Start transitive closure up "
+                   "***********\n"
+                << std::endl;
+  // UP rule: chain the edges of the graph seeded by the base relation's
+  // members and extended by the down rule. The caches are cleared at the start
+  // of the next check, not here.
+  doTCInference();
+  d_im.doPendingLemmas();
+  Assert(!d_im.hasPendingLemma());
+  Trace("rels") << "\n[sets-rels] *********** Done with transitive closure up "
+                   "***********\n"
+                << std::endl;
 }
 
 /*
@@ -642,16 +700,8 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
                       << tc_rel << ", its representative = " << tc_rel_rep
                       << " with member rep = " << mem_rep
                       << " and explanation = " << exp << std::endl;
-  MEM_IT mem_it = d_rReps_memberReps_cache.find(tc_rel[0]);
-
-  if (mem_it != d_rReps_memberReps_cache.end()
-      && d_rel_nodes.find(tc_rel) == d_rel_nodes.end()
-      && d_rRep_tcGraph.find(getRepresentative(tc_rel[0]))
-             == d_rRep_tcGraph.end())
-  {
-    buildTCGraphForRel(tc_rel);
-    d_rel_nodes.insert(tc_rel);
-  }
+  // The closure graph of tc_rel was already seeded with the members of its
+  // base relation by checkTransitiveClosureDown, so it is not built here.
 
   // mem_rep is a member of tc_rel[0] or mem_rep can be infered by TC_Graph of
   // tc_rel[0], thus skip
@@ -665,51 +715,12 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
   }
   NodeManager* nm = nodeManager();
 
-  // add mem_rep to d_tcrRep_tcGraph
-  TC_IT tc_it = d_tcr_tcGraph.find(tc_rel);
-  Node mem_rep_fst =
-      getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0));
-  Node mem_rep_snd =
-      getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1));
-  Node mem_rep_tup = RelsUtils::constructPair(tc_rel, mem_rep_fst, mem_rep_snd);
+  // record the asserted closure membership as an edge of the graph of tc_rel
+  addTCEdge(tc_rel,
+            getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0)),
+            getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1)),
+            exp);
 
-  if (tc_it != d_tcr_tcGraph.end())
-  {
-    std::map<Node, std::map<Node, Node> >::iterator tc_exp_it =
-        d_tcr_tcGraph_exps.find(tc_rel);
-
-    TC_GRAPH_IT tc_graph_it = (tc_it->second).find(mem_rep_fst);
-    Assert(tc_exp_it != d_tcr_tcGraph_exps.end());
-    std::map<Node, Node>::iterator exp_map_it =
-        (tc_exp_it->second).find(mem_rep_tup);
-
-    if (exp_map_it == (tc_exp_it->second).end())
-    {
-      (tc_exp_it->second)[mem_rep_tup] = exp;
-    }
-
-    if (tc_graph_it != (tc_it->second).end())
-    {
-      (tc_graph_it->second).insert(mem_rep_snd);
-    }
-    else
-    {
-      std::unordered_set<Node> sets;
-      sets.insert(mem_rep_snd);
-      (tc_it->second)[mem_rep_fst] = sets;
-    }
-  }
-  else
-  {
-    std::map<Node, Node> exp_map;
-    std::unordered_set<Node> sets;
-    std::map<Node, std::unordered_set<Node> > element_map;
-    sets.insert(mem_rep_snd);
-    element_map[mem_rep_fst] = sets;
-    d_tcr_tcGraph[tc_rel] = element_map;
-    exp_map[mem_rep_tup] = exp;
-    d_tcr_tcGraph_exps[tc_rel] = exp_map;
-  }
   Node fst_element = TupleUtils::nthElementOfTuple(exp[0], 0);
   Node snd_element = TupleUtils::nthElementOfTuple(exp[0], 1);
   Node sk_1 = d_skCache.mkTypedSkolemCached(fst_element.getType(),
@@ -821,47 +832,47 @@ void TheorySetsRels::isTCReachable(
   }
 }
 
+void TheorySetsRels::addTCEdge(Node tc_rel,
+                               Node fst_rep,
+                               Node snd_rep,
+                               Node exp)
+{
+  // A closure graph only ever grows: an edge and its explanation are added if
+  // the edge is new, and an edge already in the graph keeps the explanation it
+  // was added with. Nothing is removed or replaced, so the memberships that
+  // applyTCRule and buildTCGraphForRel contribute for the same term accumulate
+  // instead of one discarding the other.
+  d_tcr_tcGraph[tc_rel][fst_rep].insert(snd_rep);
+  d_tcr_tcGraph_exps[tc_rel].emplace(
+      RelsUtils::constructPair(tc_rel, fst_rep, snd_rep), exp);
+}
+
 void TheorySetsRels::buildTCGraphForRel(Node tc_rel)
 {
-  std::map<Node, Node> rel_tc_graph_exps;
-  std::map<Node, std::unordered_set<Node> > rel_tc_graph;
-
   Node rel_rep = getRepresentative(tc_rel[0]);
-  Node tc_rel_rep = getRepresentative(tc_rel);
-  const std::vector<Node>& members = d_rReps_memberReps_cache[rel_rep];
+  MEM_IT mem_it = d_rReps_memberReps_cache.find(rel_rep);
+  if (mem_it == d_rReps_memberReps_cache.end())
+  {
+    // the base relation has no asserted members, so there is nothing to add
+    return;
+  }
+  const std::vector<Node>& members = mem_it->second;
   const std::vector<Node>& exps = d_rReps_memberReps_exp_cache[rel_rep];
+  // collectRelsInfo maintains these two as parallel vectors
+  Assert(members.size() == exps.size());
 
+  std::map<Node, std::unordered_set<Node> >& rel_tc_graph =
+      d_rRep_tcGraph[rel_rep];
   for (size_t i = 0, msize = members.size(); i < msize; i++)
   {
     Node fst_element_rep =
         getRepresentative(TupleUtils::nthElementOfTuple(members[i], 0));
     Node snd_element_rep =
         getRepresentative(TupleUtils::nthElementOfTuple(members[i], 1));
-    Node tuple_rep =
-        RelsUtils::constructPair(rel_rep, fst_element_rep, snd_element_rep);
-    std::map<Node, std::unordered_set<Node> >::iterator rel_tc_graph_it =
-        rel_tc_graph.find(fst_element_rep);
-
-    if (rel_tc_graph_it == rel_tc_graph.end())
-    {
-      std::unordered_set<Node> snd_elements;
-      snd_elements.insert(snd_element_rep);
-      rel_tc_graph[fst_element_rep] = snd_elements;
-      rel_tc_graph_exps[tuple_rep] = exps[i];
-    }
-    else if ((rel_tc_graph_it->second).find(snd_element_rep)
-             == (rel_tc_graph_it->second).end())
-    {
-      (rel_tc_graph_it->second).insert(snd_element_rep);
-      rel_tc_graph_exps[tuple_rep] = exps[i];
-    }
-  }
-
-  if (members.size() > 0)
-  {
-    d_rRep_tcGraph[rel_rep] = rel_tc_graph;
-    d_tcr_tcGraph_exps[tc_rel] = rel_tc_graph_exps;
-    d_tcr_tcGraph[tc_rel] = rel_tc_graph;
+    // the members of the base relation are edges of the closure graph, and are
+    // tracked per base relation as well for isTCReachable
+    rel_tc_graph[fst_element_rep].insert(snd_element_rep);
+    addTCEdge(tc_rel, fst_element_rep, snd_element_rep, exps[i]);
   }
 }
 
