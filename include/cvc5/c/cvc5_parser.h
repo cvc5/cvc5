@@ -242,6 +242,12 @@ CVC5_EXPORT Cvc5InputParser* cvc5_parser_new(Cvc5* cvc5, Cvc5SymbolManager* sm);
  * is only freed once it has been deleted and all of its commands have been
  * released, either individually or all at once via `cvc5_parser_release()`.
  *
+ * @note Consequently, if commands are still alive when this function is
+ *       called, it does not free the parser: it only drops the handle held by
+ *       the user, and the parser is freed later, when the last of its commands
+ *       is released. To free everything right away, call
+ *       `cvc5_parser_release()` before this function.
+ *
  * Terms and sorts obtained via the parser are managed by the term manager and
  * remain valid independently of the parser (see
  * `cvc5_term_manager_delete()`).

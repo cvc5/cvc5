@@ -15,13 +15,18 @@ intervention**.
 
 All objects created via a term manager (:cpp:type:`Cvc5TermManager`) or a
 solver (:cpp:type:`Cvc5`) instance, e.g., sorts, terms, datatypes and
-statistics, are **managed by the term manager**. As in the C++ API, these objects keep
-the term manager alive: they **remain valid** after the term manager and solver
-instances that created them have been deleted via
+statistics, are **managed by the term manager**. As in the C++ API, these
+objects keep the term manager alive: they **remain valid** after the term
+manager and solver instances that created them have been deleted via
 :cpp:func:`cvc5_term_manager_delete()` and :cpp:func:`cvc5_delete()`, until
-they are released. Consequently, deleting a term manager does not free objects
-that are still referenced. The memory of a term manager is freed once it has
-been deleted and all of its managed objects have been released.
+they are released, either individually via the corresponding
+``cvc5_*_release()`` function or all at once via
+:cpp:func:`cvc5_term_manager_release()`. Consequently, deleting a term manager
+does not free objects that are still referenced, and does not free the term
+manager itself while any of them are alive: its memory is freed once it has
+been deleted **and** all of its managed objects have been released. Calling
+:cpp:func:`cvc5_term_manager_release()` before
+:cpp:func:`cvc5_term_manager_delete()` thus frees everything right away.
 
 Results (:cpp:type:`Cvc5Result`), synthesis results
 (:cpp:type:`Cvc5SynthResult`), proofs (:cpp:type:`Cvc5Proof`) and grammars

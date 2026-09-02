@@ -2682,8 +2682,10 @@ void cvc5_term_manager_delete(Cvc5TermManager* tm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  // Managed objects (and solver instances) keep the term manager alive, it
-  // is only freed once all of them have been released.
+  // This only drops the handle held by the user. Managed objects (and solver
+  // instances) keep the term manager alive, so if any of them are still alive
+  // here, the term manager is not freed yet, but only once the last of them is
+  // released. `cvc5_term_manager_release()` releases them all at once.
   tm->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }

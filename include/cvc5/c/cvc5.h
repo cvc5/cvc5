@@ -2603,6 +2603,12 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
  * released, either individually or all at once via
  * `cvc5_term_manager_release()`.
  *
+ * @note Consequently, if managed objects are still alive when this function is
+ *       called, it does not free the term manager: it only drops the handle
+ *       held by the user, and the term manager is freed later, when the last
+ *       of its managed objects is released. To free everything right away,
+ *       call `cvc5_term_manager_release()` before this function.
+ *
  * @param tm The term manager instance.
  */
 CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
@@ -4132,7 +4138,9 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  *
  * Statistics created via the solver are managed by the associated term manager
  * and remain valid after the solver instance has been deleted, until they are
- * released (see `cvc5_term_manager_delete()`).
+ * released, either individually via `cvc5_stats_release()` resp.
+ * `cvc5_stat_release()`, or all at once via `cvc5_term_manager_release()`
+ * (see `cvc5_term_manager_delete()`).
  *
  * Results (`Cvc5Result`), synthesis results (`Cvc5SynthResult`), proofs
  * (`Cvc5Proof`) and grammars (`Cvc5Grammar`) are managed by the solver:
