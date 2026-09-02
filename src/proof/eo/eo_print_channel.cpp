@@ -29,12 +29,8 @@ EoPrintChannel::~EoPrintChannel() {}
 
 EoPrintChannelOut::EoPrintChannelOut(std::ostream& out,
                                      const LetBinding* lbind,
-                                     const std::string& tprefix,
                                      bool trackWarn)
-    : d_out(out),
-      d_lbind(lbind),
-      d_termLetPrefix(tprefix),
-      d_trackWarn(trackWarn)
+    : d_out(out), d_lbind(lbind), d_trackWarn(trackWarn)
 {
 }
 
@@ -167,6 +163,16 @@ void EoPrintChannelOut::printTrustStep(ProofRule r,
   d_out << std::endl;
   // trust takes a premise-list which must be specified even if empty
   printStepInternal("trust", n, i, premises, {nc}, false, true);
+}
+
+void EoPrintChannelOut::printTermLet(const LetBinding& lbind, TNode n)
+{
+  // use define command which does not invoke type checking
+  d_out << "(define " << lbind.getPrefix() << lbind.getId(n);
+  d_out << " () ";
+  // the top-most term is the one we are defining, so it is not letified
+  Printer::getPrinter(d_out)->toStream(d_out, n, &lbind, false);
+  d_out << ")" << std::endl;
 }
 
 void EoPrintChannelOut::printNodeInternal(std::ostream& out, Node n)

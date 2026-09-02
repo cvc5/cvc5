@@ -159,6 +159,10 @@ libcvc5_add_sources(
   proof/eo/eo_print_channel.h
   proof/eo/eo_printer.cpp
   proof/eo/eo_printer.h
+  proof/eo/logos_node_converter.cpp
+  proof/eo/logos_node_converter.h
+  proof/eo/logos_print_channel.cpp
+  proof/eo/logos_print_channel.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
   proof/buffered_proof_generator.cpp
