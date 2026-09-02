@@ -233,14 +233,18 @@ class FloatingPoint
 
   /**
    * Floating-point max (total version).
-   * zeroCase: true to return the left (rather than the right operand) in case
-   *           of max(-0,+0) or max(+0,-0).
+   * @param arg           The floating-point to compare for max.
+   * @param zeroCaseRight True to return the right (rather than the left
+   *                      operand) in case of max(-0,+0) or max(+0,-0).
+   *                      Note that the polarity is the opposite of minTotal's,
+   *                      see FloatingPointLiteral::maxTotal.
    */
-  FloatingPoint maxTotal(const FloatingPoint& arg, bool zeroCaseLeft) const;
+  FloatingPoint maxTotal(const FloatingPoint& arg, bool zeroCaseRight) const;
   /**
    * Floating-point min (total version).
-   * zeroCase: true to return the left (rather than the right operand) in case
-   *           of min(-0,+0) or min(+0,-0).
+   * @param arg          The floating-point to compare for min.
+   * @param zeroCaseLeft True to return the left (rather than the right operand)
+   *                     in case of min(-0,+0) or min(+0,-0).
    */
   FloatingPoint minTotal(const FloatingPoint& arg, bool zeroCaseLeft) const;
 
