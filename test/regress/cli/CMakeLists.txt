@@ -1013,6 +1013,7 @@ set(regress_0_tests
   regress0/fp/issue12354-from-real-refine.smt2
   regress0/fp/issue12370-from-real-refine.smt2
   regress0/fp/issue12780-from-real-refine.smt2
+  regress0/fp/issue12867-min-max-zero.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2

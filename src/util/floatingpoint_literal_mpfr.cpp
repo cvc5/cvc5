@@ -674,16 +674,18 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralMPFR::maxTotal(
     return clone();
   }
 
-  // Handle the +-zero case
+  // Handle the +-zero case.
   if (isZero() && a.isZero())
   {
     if (isNegative() != a.isNegative())
     {
       if (zeroCaseLeft)
       {
-        return clone();
+        // The right operand is selected for max, as defined by SymFPU's max,
+        // which is what FLOATINGPOINT_MAX_TOTAL is word-blasted to.
+        return a.clone();
       }
-      return a.clone();
+      return clone();
     }
     return clone();
   }
@@ -715,13 +717,15 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralMPFR::minTotal(
     return clone();
   }
 
-  // Handle the +-zero case
+  // Handle the +-zero case.
   if (isZero() && a.isZero())
   {
     if (isNegative() != a.isNegative())
     {
       if (zeroCaseLeft)
       {
+        // The left operand is selected for min, as defined by SymFPU's min,
+        // which is what FLOATINGPOINT_MIN_TOTAL is word-blasted to.
         return clone();
       }
       return a.clone();
