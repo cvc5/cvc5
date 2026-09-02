@@ -17,8 +17,8 @@ extern "C" {
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_parser.h>
 
-#include <deque>
 #include <fstream>
+#include <memory>
 
 #include "api/c/cvc5_c_structs.h"
 #include "api/c/cvc5_checks.h"
@@ -39,7 +39,9 @@ struct cvc5_cmd_t
   }
   /** The associated command instance. */
   cvc5::parser::Command d_cmd;
-  /** The associated parserinstance. */
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated parser instance. */
   Cvc5InputParser* d_parser = nullptr;
 };
 
@@ -55,11 +57,22 @@ struct Cvc5SymbolManager
         d_sm(*d_sm_wrapped),
         d_tm(tm)
   {
+    // The symbol manager keeps the term manager alive (e.g., to export
+    // declared terms and sorts).
+    d_tm->inc_ref();
   }
+  /**
+   * Constructor.
+   * @param sm The wrapped symbol manager instance.
+   * @param tm The associated term manager.
+   */
   Cvc5SymbolManager(cvc5::parser::SymbolManager& sm, Cvc5TermManager* tm)
       : d_sm(sm), d_tm(tm)
   {
+    d_tm->inc_ref();
   }
+  /** Destructor. */
+  ~Cvc5SymbolManager() { d_tm->dec_ref(); }
   /**
    * The created symbol manager instance.
    *
@@ -104,6 +117,37 @@ struct Cvc5InputParser
    */
   Cvc5Command export_cmd(const cvc5::parser::Command& cmd);
 
+  /**
+   * Decrement the external ref count of a command. If the ref count reaches
+   * zero, the command is released (freed).
+   * @param cmd The command to release.
+   */
+  void release(cvc5_cmd_t* cmd);
+  /**
+   * Increment the external ref count of a command.
+   * @param cmd The command to copy.
+   * @return The copied command.
+   */
+  cvc5_cmd_t* copy(cvc5_cmd_t* cmd);
+  /** Release all managed command objects. */
+  void release();
+
+  /**
+   * Increment the number of external handles to this parser.
+   *
+   * A handle is held by the user (returned by `cvc5_parser_new()` and dropped
+   * via `cvc5_parser_delete()`) and by each command allocated by this parser.
+   */
+  void inc_ref();
+  /**
+   * Decrement the number of external handles to this parser.
+   *
+   * The parser is freed once it has no external handles and no managed
+   * command objects left. Commands thus keep their parser alive until they
+   * are released, and remain valid after `cvc5_parser_delete()`.
+   */
+  void dec_ref();
+
   /** The associated input parser instance. */
   cvc5::parser::InputParser d_parser;
   /** The associated solver instance. */
@@ -115,12 +159,19 @@ struct Cvc5InputParser
    * given via constructor but created by the parser.
    */
   std::unique_ptr<Cvc5SymbolManager> d_sm_wrapped;
+
+ private:
+  /** Free this parser if it has no external handles and no commands. */
+  void free_if_unused();
+
+  /** The number of external handles to this parser. */
+  uint32_t d_refs = 1;
   /**
    * The allocated command objects.
-   * @note We use a deque here to ensure that pointers to its elements remain
-   *       valid on insertion.
+   * @note Commands are never exported more than once, we thus key this cache
+   *       on the allocated wrapper object.
    */
-  std::deque<cvc5_cmd_t> d_alloc_cmds;
+  std::unordered_map<cvc5_cmd_t*, std::unique_ptr<cvc5_cmd_t>> d_alloc_cmds;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -128,8 +179,63 @@ struct Cvc5InputParser
 Cvc5Command Cvc5InputParser::export_cmd(const cvc5::parser::Command& cmd)
 {
   Assert(!cmd.isNull());
-  d_alloc_cmds.emplace_back(this, cmd);
-  return &d_alloc_cmds.back();
+  auto c = std::make_unique<cvc5_cmd_t>(this, cmd);
+  cvc5_cmd_t* res = c.get();
+  d_alloc_cmds.emplace(res, std::move(c));
+  // the command keeps this parser alive
+  inc_ref();
+  return res;
+}
+
+void Cvc5InputParser::release(cvc5_cmd_t* cmd)
+{
+  if (cmd)
+  {
+    cmd->d_refs -= 1;
+    if (cmd->d_refs == 0)
+    {
+      Assert(d_alloc_cmds.find(cmd) != d_alloc_cmds.end());
+      d_alloc_cmds.erase(cmd);
+      dec_ref();
+    }
+  }
+}
+
+cvc5_cmd_t* Cvc5InputParser::copy(cvc5_cmd_t* cmd)
+{
+  if (cmd)
+  {
+    cmd->d_refs += 1;
+  }
+  return cmd;
+}
+
+void Cvc5InputParser::release()
+{
+  size_t ncmds = d_alloc_cmds.size();
+  d_alloc_cmds.clear();
+  // drop the handles held by the released commands
+  Assert(d_refs >= ncmds);
+  d_refs -= ncmds;
+  free_if_unused();
+}
+
+void Cvc5InputParser::inc_ref() { d_refs += 1; }
+
+void Cvc5InputParser::dec_ref()
+{
+  Assert(d_refs > 0);
+  d_refs -= 1;
+  free_if_unused();
+}
+
+void Cvc5InputParser::free_if_unused()
+{
+  if (d_refs == 0)
+  {
+    Assert(d_alloc_cmds.empty());
+    delete this;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -255,6 +361,24 @@ const char* cvc5_cmd_invoke(Cvc5Command cmd, Cvc5* cvc5, Cvc5SymbolManager* sm)
   return str.c_str();
 }
 
+Cvc5Command cvc5_cmd_copy(Cvc5Command cmd)
+{
+  Cvc5Command res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_CMD(cmd);
+  res = cmd->d_parser->copy(cmd);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_cmd_release(Cvc5Command cmd)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_CMD(cmd);
+  cmd->d_parser->release(cmd);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 const char* cvc5_cmd_to_string(const Cvc5Command cmd)
 {
   static thread_local std::string str;
@@ -298,7 +422,9 @@ void cvc5_parser_delete(Cvc5InputParser* parser)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(parser);
-  delete parser;
+  // Commands allocated by this parser keep it alive, it is only freed once
+  // all of them have been released.
+  parser->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -306,7 +432,7 @@ void cvc5_parser_release(Cvc5InputParser* parser)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(parser);
-  parser->d_alloc_cmds.clear();
+  parser->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 

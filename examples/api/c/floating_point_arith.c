@@ -186,6 +186,7 @@ int main()
   printf("Expect unsat: %s\n", cvc5_result_to_string(r));
 
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return 0;
 }

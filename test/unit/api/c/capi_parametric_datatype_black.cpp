@@ -29,7 +29,11 @@ class TestCApiBlackParametricDatatype : public ::testing::Test
     d_bool = cvc5_get_boolean_sort(d_tm);
   }
 
-  void TearDown() override { cvc5_term_manager_delete(d_tm); }
+  void TearDown() override
+  {
+    cvc5_term_manager_release(d_tm);
+    cvc5_term_manager_delete(d_tm);
+  }
 
   Cvc5TermManager* d_tm;
   Cvc5Sort d_bool;

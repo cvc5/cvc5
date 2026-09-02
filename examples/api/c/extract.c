@@ -60,6 +60,7 @@ int main()
          cvc5_result_to_string(cvc5_check_sat_assuming(slv, 1, assumptions)));
 
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return 0;
 }

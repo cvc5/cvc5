@@ -79,6 +79,11 @@ typedef struct Cvc5InputParser Cvc5InputParser;
 
 /**
  * Construct a new instance of a cvc5 symbol manager.
+ *
+ * @note A symbol manager keeps its associated term manager alive, i.e., it
+ *       remains usable after the term manager has been deleted via
+ *       `cvc5_term_manager_delete()`.
+ *
  * @param tm The associated term manager instance.
  * @return The cvc5 symbol manager instance.
  */
@@ -187,6 +192,28 @@ CVC5_EXPORT const char* cvc5_cmd_to_string(const Cvc5Command cmd);
  */
 CVC5_EXPORT const char* cvc5_cmd_get_name(const Cvc5Command cmd);
 
+/**
+ * Make copy of command, increases reference counter of `cmd`.
+ *
+ * @param cmd The command to copy.
+ * @return The same command with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Command cvc5_cmd_copy(Cvc5Command cmd);
+
+/**
+ * Release copy of command, decrements reference counter of `cmd`.
+ *
+ * @param cmd The command to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_cmd_release(Cvc5Command cmd);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -208,6 +235,26 @@ CVC5_EXPORT Cvc5InputParser* cvc5_parser_new(Cvc5* cvc5, Cvc5SymbolManager* sm);
 
 /**
  * Delete a cvc5 input parser instance.
+ *
+ * Command objects created via the parser are managed by the parser. They keep
+ * the parser alive and thus remain valid after the parser has been deleted,
+ * until they are released via `cvc5_cmd_release()`. The memory of the parser
+ * is only freed once it has been deleted and all of its commands have been
+ * released, either individually or all at once via `cvc5_parser_release()`.
+ *
+ * @note Consequently, if commands are still alive when this function is
+ *       called, it does not free the parser: it only drops the handle held by
+ *       the user, and the parser is freed later, when the last of its commands
+ *       is released. To free everything right away, call
+ *       `cvc5_parser_release()` before this function.
+ *
+ * Terms and sorts obtained via the parser are managed by the term manager and
+ * remain valid independently of the parser (see
+ * `cvc5_term_manager_delete()`).
+ *
+ * @note The parser must not be used after the solver or symbol manager
+ *       instances associated with it have been deleted.
+ *
  * @param parser The input parser instance.
  */
 CVC5_EXPORT void cvc5_parser_delete(Cvc5InputParser* parser);

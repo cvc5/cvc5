@@ -18,9 +18,9 @@ extern "C" {
 }
 #include <cvc5/cvc5.h>
 
-#include <deque>
 #include <fstream>
 #include <memory>
+#include <unordered_set>
 
 /* -------------------------------------------------------------------------- */
 /* Wrapper structs (associated with Cvc5TermManager)                          */
@@ -183,54 +183,6 @@ struct cvc5_dt_cons_decl_t
   Cvc5TermManager* d_tm = nullptr;
 };
 
-/*
- * Note: the statistic(s) wrappers must be complete types before the
- * definition of Cvc5TermManager below, which stores them in a std::deque
- * (which, unlike std::vector, does not support incomplete element types
- * with all standard library implementations, e.g., libc++).
- */
-/** Wrapper for cvc5 C++ statistic. */
-struct cvc5_stat_t
-{
-  /**
-   * Constructor.
-   * @param tm     The associated term manager instance.
-   * @param stat   The wrapped C++ statistic.
-   */
-  cvc5_stat_t(Cvc5TermManager* tm, const cvc5::Stat& stat)
-      : d_stat(stat), d_tm(tm)
-  {
-  }
-  /** The wrapped C++ statistic. */
-  cvc5::Stat d_stat;
-  /** External refs count. */
-  uint32_t d_refs = 1;
-  /** The associated term manager instance. */
-  Cvc5TermManager* d_tm = nullptr;
-};
-
-/** Wrapper for cvc5 C++ statistics. */
-struct cvc5_stats_t
-{
-  /**
-   * Constructor.
-   * @param tm     The associated term manager instance.
-   * @param stat   The wrapped C++ statistics.
-   */
-  cvc5_stats_t(Cvc5TermManager* tm, const cvc5::Statistics& stat)
-      : d_stat(stat), d_tm(tm)
-  {
-  }
-  /** The wrapped C++ statistics. */
-  cvc5::Statistics d_stat;
-  /** External refs count. */
-  uint32_t d_refs = 1;
-  /** The associated term manager instance. */
-  Cvc5TermManager* d_tm = nullptr;
-  /** The associated iterator. */
-  std::unique_ptr<cvc5::Statistics::iterator> d_iter = nullptr;
-};
-
 /**
  * Wrapper for cvc5 C++ term manager.
  * @note Visibility of this struct is set to export for linkage of parser
@@ -292,7 +244,7 @@ struct CVC5_EXPORT Cvc5TermManager
    */
   Cvc5Statistics export_stats(const cvc5::Statistics& stat);
 
-  /* Manual memory management for sorts and terms. ------ */
+  /* Manual memory management for managed objects. ------ */
 
   /**
    * Decrement the external ref count of a term. If the ref count reaches zero,
@@ -391,9 +343,56 @@ struct CVC5_EXPORT Cvc5TermManager
    * @return The copied datatype constructor declaration.
    */
   cvc5_dt_cons_decl_t* copy(cvc5_dt_cons_decl_t* decl);
+  /**
+   * Decrement the external ref count of a statistic. If the ref count reaches
+   * zero, the statistic is released (freed).
+   * @param stat The statistic to release.
+   */
+  void release(cvc5_stat_t* stat);
+  /**
+   * Increment the external ref count of a statistic.
+   * @param stat The statistic to copy.
+   * @return The copied statistic.
+   */
+  cvc5_stat_t* copy(cvc5_stat_t* stat);
+  /**
+   * Decrement the external ref count of a statistics object. If the ref count
+   * reaches zero, the statistics object is released (freed).
+   * @param stat The statistics object to release.
+   */
+  void release(cvc5_stats_t* stat);
+  /**
+   * Increment the external ref count of a statistics object.
+   * @param stat The statistics object to copy.
+   * @return The copied statistics object.
+   */
+  cvc5_stats_t* copy(cvc5_stats_t* stat);
 
-  /** Release all managed objects. */
+  /**
+   * Release all managed objects.
+   * @note This invalidates all managed objects, i.e., all objects created via
+   *       this term manager or via a solver instance associated with it.
+   */
   void release();
+
+  /* Lifetime management of the term manager itself. ---- */
+
+  /**
+   * Increment the number of external handles to this term manager.
+   *
+   * A handle is held by the user (returned by `cvc5_term_manager_new()` and
+   * dropped via `cvc5_term_manager_delete()`) and by each `Cvc5` solver and
+   * `Cvc5SymbolManager` instance created from this term manager.
+   */
+  void inc_ref();
+  /**
+   * Decrement the number of external handles to this term manager.
+   *
+   * The term manager is freed once it has no external handles and no managed
+   * objects left. Managed objects thus keep their term manager alive until
+   * they are released, and remain valid after `cvc5_term_manager_delete()`.
+   */
+  void dec_ref();
 
   /* ---------------------------------------------------- */
 
@@ -401,6 +400,13 @@ struct CVC5_EXPORT Cvc5TermManager
   cvc5::TermManager d_tm;
 
  private:
+  /** Determine if there are any managed objects that are still alive. */
+  bool has_objects() const;
+  /** Free this term manager if it has no external handles and no objects. */
+  void free_if_unused();
+
+  /** The number of external handles to this term manager. */
+  uint32_t d_refs = 1;
   /** Cache of allocated sorts. */
   std::unordered_map<cvc5::Sort, cvc5_sort_t> d_alloc_sorts;
   /** Cache of allocated terms. */
@@ -421,22 +427,32 @@ struct CVC5_EXPORT Cvc5TermManager
       d_alloc_dt_cons_decls;
   /**
    * Cache of allocated statistic objects.
-   * @note We use a deque here to ensure that pointers to its elements remain
-   *       valid on insertion.
+   * @note Statistic objects are never exported more than once, we thus key
+   *       this cache on the allocated wrapper object (as for grammars).
    */
-  std::deque<cvc5_stat_t> d_alloc_stats;
+  std::unordered_map<cvc5_stat_t*, std::unique_ptr<cvc5_stat_t>> d_alloc_stats;
   /**
    * Cache of allocated statistics objects.
    * @note See `d_alloc_stats`.
    */
-  std::deque<cvc5_stats_t> d_alloc_statistics;
+  std::unordered_map<cvc5_stats_t*, std::unique_ptr<cvc5_stats_t>>
+      d_alloc_statistics;
 };
 
 /* -------------------------------------------------------------------------- */
 /* Wrapper structs (associated with Cvc5)                                     */
 /* -------------------------------------------------------------------------- */
 
-/** Wrapper for cvc5 C++ results. */
+/**
+ * Wrapper for cvc5 C++ results.
+ *
+ * @note A result is associated with the solver that created it: deleting the
+ *       solver drops one reference to it, which frees it unless the user
+ *       holds an additional reference (obtained via `cvc5_result_copy()`).
+ *       Such a result outlives its solver: as in the C++ API, `cvc5::Result`
+ *       references neither the solver nor the node manager, so it stays valid
+ *       and is freed by the final `cvc5_result_release()`.
+ */
 struct cvc5_result_t
 {
   /**
@@ -448,15 +464,31 @@ struct cvc5_result_t
       : d_result(result), d_cvc5(cvc5)
   {
   }
+  /**
+   * Increment the ref count of this result.
+   * @return This result.
+   */
+  cvc5_result_t* copy();
+  /**
+   * Decrement the ref count of this result. If the ref count reaches zero,
+   * this result is freed.
+   */
+  void release();
   /** The wrapped C++ result. */
   cvc5::Result d_result;
-  /** External refs count. */
+  /** Refs count (the associated solver holds one reference). */
   uint32_t d_refs = 1;
-  /** The associated solver instance. */
+  /**
+   * The solver this result was created by, while it is still alive. Reset to
+   * NULL when that solver is deleted (a result does not keep it alive).
+   */
   Cvc5* d_cvc5 = nullptr;
 };
 
-/** Wrapper for cvc5 C++ synthesis results. */
+/**
+ * Wrapper for cvc5 C++ synthesis results.
+ * @note See `cvc5_result_t`.
+ */
 struct cvc5_synth_result_t
 {
   /**
@@ -468,62 +500,132 @@ struct cvc5_synth_result_t
       : d_result(result), d_cvc5(cvc5)
   {
   }
+  /**
+   * Increment the ref count of this synthesis result.
+   * @return This synthesis result.
+   */
+  cvc5_synth_result_t* copy();
+  /**
+   * Decrement the ref count of this synthesis result. If the ref count
+   * reaches zero, this synthesis result is freed.
+   */
+  void release();
   /** The wrapped C++ result. */
   cvc5::SynthResult d_result;
-  /** External refs count. */
+  /** Refs count (the associated solver holds one reference). */
   uint32_t d_refs = 1;
-  /** The associated solver instance. */
+  /**
+   * The solver this synthesis result was created by, while it is still alive.
+   * See `cvc5_result_t::d_cvc5`.
+   */
   Cvc5* d_cvc5 = nullptr;
 };
 
-/** Wrapper for cvc5 C++ proofs. */
+/**
+ * Wrapper for cvc5 C++ proofs.
+ *
+ * @note Like results, a proof is associated with the solver that created it:
+ *       deleting that solver drops one reference to it. A proof the user
+ *       kept a reference to outlives the solver. Unlike a result, a proof
+ *       needs a term manager (to export the terms and child proofs it is
+ *       queried for), and holds a counted handle on it, mirroring the C++
+ *       API where `cvc5::Proof` holds a `NodeManagerSharedPtr`.
+ */
 struct cvc5_proof_t
 {
   /**
    * Constructor.
-   * @param cvc5   The associated solver instance.
+   * @param cvc5  The associated solver instance, may be NULL for a proof
+   *              created from another proof after its solver was deleted.
+   * @param tm    The associated term manager.
    * @param proof The wrapped C++ proof.
    */
-  cvc5_proof_t(Cvc5* cvc5, const cvc5::Proof& proof)
-      : d_proof(proof), d_cvc5(cvc5)
-  {
-  }
+  cvc5_proof_t(Cvc5* cvc5, Cvc5TermManager* tm, const cvc5::Proof& proof);
+  /** Destructor. */
+  ~cvc5_proof_t();
+  /**
+   * Increment the ref count of this proof.
+   * @return This proof.
+   */
+  cvc5_proof_t* copy();
+  /**
+   * Decrement the ref count of this proof. If the ref count reaches zero,
+   * this proof is freed.
+   */
+  void release();
+  /**
+   * Export a proof obtained from this proof (e.g., one of its children).
+   * @param proof The proof to export.
+   */
+  Cvc5Proof export_proof(const cvc5::Proof& proof);
   /** The wrapped C++ proof. */
   cvc5::Proof d_proof;
-  /** External refs count. */
+  /** Refs count (the associated solver holds one reference). */
   uint32_t d_refs = 1;
-  /** The associated solver instance. */
+  /**
+   * The solver this proof was created by, while it is still alive. Reset to
+   * NULL when that solver is deleted.
+   */
   Cvc5* d_cvc5 = nullptr;
+  /** The associated term manager, kept alive by this proof. */
+  Cvc5TermManager* d_tm = nullptr;
 };
 
-/** Wrapper for cvc5 C++ grammars. */
+/**
+ * Wrapper for cvc5 C++ grammars.
+ * @note See `cvc5_proof_t`. A grammar does not need a term manager (none of
+ *       its functions creates new objects), the wrapped `cvc5::Grammar` keeps
+ *       the node manager it needs alive by itself.
+ */
 struct cvc5_grammar_t
 {
   /**
    * Constructor.
-   * @param cvc5   The associated solver instance.
+   * @param cvc5    The associated solver instance.
    * @param grammar The wrapped C++ grammar.
    */
   cvc5_grammar_t(Cvc5* cvc5, const cvc5::Grammar& grammar)
       : d_grammar(grammar), d_cvc5(cvc5)
   {
   }
+  /**
+   * Increment the ref count of this grammar.
+   * @return This grammar.
+   */
+  cvc5_grammar_t* copy();
+  /**
+   * Decrement the ref count of this grammar. If the ref count reaches zero,
+   * this grammar is freed.
+   */
+  void release();
   /** The wrapped C++ grammar. */
   cvc5::Grammar d_grammar;
-  /** External refs count. */
+  /** Refs count (the associated solver holds one reference). */
   uint32_t d_refs = 1;
-  /** The associated solver instance. */
+  /**
+   * The solver this grammar was created by, while it is still alive. Reset to
+   * NULL when that solver is deleted.
+   */
   Cvc5* d_cvc5 = nullptr;
 };
 
-/** Wrapper for cvc5 C++ solver instance. */
+/**
+ * Wrapper for cvc5 C++ solver instance.
+ *
+ * Statistics created via a solver instance are managed by the associated term
+ * manager and thus remain valid after the solver instance has been deleted.
+ * Results, synthesis results, proofs and grammars are managed by the solver
+ * itself: it holds one reference to each of them and drops it on deletion,
+ * but they may outlive the solver if the user still holds a reference (see
+ * `cvc5_result_t`).
+ */
 struct Cvc5
 {
   /**
    * Constructor.
    * @param tm The associated term manager instance.
    */
-  Cvc5(Cvc5TermManager* tm) : d_solver(tm->d_tm), d_tm(tm) {}
+  Cvc5(Cvc5TermManager* tm);
 
   /** Destructor. */
   ~Cvc5();
@@ -534,94 +636,68 @@ struct Cvc5
    */
   Cvc5Result export_result(const cvc5::Result& result);
   /**
-   * Decrement the external ref count of a result. If the ref count reaches
-   * zero, the result is released (freed).
-   * @param result The result to release.
-   */
-  void release(cvc5_result_t* result);
-  /**
-   * Increment the external ref count of a result.
-   * @param result The result to copy.
-   * @return The copied result.
-   */
-  cvc5_result_t* copy(cvc5_result_t* result);
-
-  /**
    * Export C++ synthesis result to C API.
-   * @param result Thesynthesis  result to export.
+   * @param result The synthesis result to export.
    */
   Cvc5SynthResult export_synth_result(const cvc5::SynthResult& result);
   /**
-   * Decrement the external ref count of a synthesis result. If the ref count
-   * reaches zero, the result is released (freed).
-   * @param result The result to release.
+   * Remove a result from the cache of allocated results.
+   * @param result The result to remove.
    */
-  void release(cvc5_synth_result_t* result);
+  void deregister(cvc5_result_t* result);
   /**
-   * Increment the external ref count of a synthesis result.
-   * @param result The synthesis result to copy.
-   * @return The copied synthesis result.
+   * Remove a synthesis result from the cache of allocated synthesis results.
+   * @param result The synthesis result to remove.
    */
-  cvc5_synth_result_t* copy(cvc5_synth_result_t* result);
-
+  void deregister(cvc5_synth_result_t* result);
   /**
    * Export C++ proof to C API.
    * @param proof The proof to export.
    */
   Cvc5Proof export_proof(const cvc5::Proof& proof);
   /**
-   * Decrement the external ref count of a proof. If the ref count reaches
-   * zero, the proof is released (freed).
-   * @param proof The proof to release.
-   */
-  void release(cvc5_proof_t* proof);
-  /**
-   * Increment the external ref count of a proof.
-   * @param proof The proof to copy.
-   * @return The copied proof.
-   */
-  cvc5_proof_t* copy(cvc5_proof_t* proof);
-
-  /**
    * Export C++ grammar to C API.
    * @param grammar The grammar to export.
    */
   Cvc5Grammar export_grammar(const cvc5::Grammar& grammar);
   /**
-   * Decrement the external ref count of a grammar. If the ref count reaches
-   * zero, the grammar is released (freed).
-   * @param grammar The grammar to release.
+   * Remove a proof from the set of proofs created by this solver.
+   * @param proof The proof to remove.
    */
-  void release(cvc5_grammar_t* grammar);
+  void deregister(cvc5_proof_t* proof);
   /**
-   * Increment the external ref count of a grammar.
-   * @param grammar The grammar to copy.
-   * @return The copied grammar.
+   * Remove a grammar from the set of grammars created by this solver.
+   * @param grammar The grammar to remove.
    */
-  cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
+  void deregister(cvc5_grammar_t* grammar);
 
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
   Cvc5TermManager* d_tm = nullptr;
-
-  /** Cache of allocated results. */
-  std::unordered_map<cvc5::Result, cvc5_result_t> d_alloc_results;
-  /** Cache of allocated syntheis results. */
-  std::unordered_map<cvc5::SynthResult, cvc5_synth_result_t>
-      d_alloc_synth_results;
-  /** Cache of allocated proofs. */
-  std::unordered_map<cvc5::Proof, cvc5_proof_t> d_alloc_proofs;
   /**
-   * Cache of allocated grammars.
-   * @note Grammars are mutable (rules can be added after creation) and their
-   *       hash depends on their content. We thus can not use the grammar as
-   *       key (as for the other objects above) but key the cache on the
-   *       allocated wrapper object. Grammars are never exported more than
-   *       once, so we do not lose anything here.
+   * The results created by this solver.
+   * @note Non-owning: results are reference counted and free themselves. This
+   *       set records which results this solver has to drop a reference on
+   *       when it is deleted. Each export allocates its own wrapper (results
+   *       are not deduplicated), so that this is exactly one reference each.
    */
-  std::unordered_map<cvc5_grammar_t*, std::unique_ptr<cvc5_grammar_t>>
-      d_alloc_grammars;
+  std::unordered_set<cvc5_result_t*> d_alloc_results;
+  /**
+   * The synthesis results created by this solver.
+   * @note See `d_alloc_results`.
+   */
+  std::unordered_set<cvc5_synth_result_t*> d_alloc_synth_results;
+  /**
+   * The proofs created by this solver.
+   * @note See `d_alloc_results`.
+   */
+  std::unordered_set<cvc5_proof_t*> d_alloc_proofs;
+  /**
+   * The grammars created by this solver.
+   * @note See `d_alloc_results`.
+   */
+  std::unordered_set<cvc5_grammar_t*> d_alloc_grammars;
   /** Out file stream for output tag (configured via `cvc5_get_output()`. */
   std::ofstream d_output_tag_file_stream;
   /**
@@ -655,6 +731,48 @@ struct Cvc5
     Cvc5Plugin* d_plugin;
   };
   std::unique_ptr<PluginCpp> d_plugin = nullptr;
+};
+
+/** Wrapper for cvc5 C++ statistic. */
+struct cvc5_stat_t
+{
+  /**
+   * Constructor.
+   * @param tm     The associated term manager instance.
+   * @param stat   The wrapped C++ statistic.
+   */
+  cvc5_stat_t(Cvc5TermManager* tm, const cvc5::Stat& stat)
+      : d_stat(stat), d_tm(tm)
+  {
+  }
+  /** The wrapped C++ statistic. */
+  cvc5::Stat d_stat;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated term manager instance. */
+  Cvc5TermManager* d_tm = nullptr;
+};
+
+/** Wrapper for cvc5 C++ statistics. */
+struct cvc5_stats_t
+{
+  /**
+   * Constructor.
+   * @param tm     The associated term manager instance.
+   * @param stat   The wrapped C++ statistics.
+   */
+  cvc5_stats_t(Cvc5TermManager* tm, const cvc5::Statistics& stat)
+      : d_stat(stat), d_tm(tm)
+  {
+  }
+  /** The wrapped C++ statistics. */
+  cvc5::Statistics d_stat;
+  /** External refs count. */
+  uint32_t d_refs = 1;
+  /** The associated term manager instance. */
+  Cvc5TermManager* d_tm = nullptr;
+  /** The associated iterator. */
+  std::unique_ptr<cvc5::Statistics::iterator> d_iter = nullptr;
 };
 
 /* -------------------------------------------------------------------------- */

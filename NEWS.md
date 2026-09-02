@@ -9,6 +9,28 @@ cvc5 1.3.5 prerelease
   first argument. The build types `production`, `safe-mode` and `stable-mode`
   are renamed to `unrestricted`, `safe` and `stable`, respectively.
 
+- Objects created via the C API (sorts, terms, proofs, statistics, ...) now
+  keep their term manager alive and remain valid after
+  `cvc5_term_manager_delete()` and `cvc5_delete()` have been called, until they
+  are released via the corresponding `cvc5_*_release()` function. Results and
+  synthesis results, proofs and grammars are still released together with the
+  solver that created them, but now outlive it if a reference to them is kept
+  via the corresponding `cvc5_*_copy()` function. This matches
+  the lifetime guarantees of the C++ API. As a consequence, deleting a term
+  manager no longer frees objects that have not been released. To free all
+  managed objects at once, call `cvc5_term_manager_release()` before
+  `cvc5_term_manager_delete()`.
+
+- Analogously, commands created via `cvc5_parser_next_command()` now keep their
+  parser alive and remain valid after `cvc5_parser_delete()`, until they are
+  released via the new function `cvc5_cmd_release()`. To free all commands at
+  once, call `cvc5_parser_release()` before `cvc5_parser_delete()`.
+
+- Added functions `cvc5_stat_copy()`, `cvc5_stat_release()`,
+  `cvc5_stats_copy()`, `cvc5_stats_release()`, `cvc5_cmd_copy()` and
+  `cvc5_cmd_release()`. Statistics and command objects are now reference
+  counted like all other objects of the C API.
+
 - The C API no longer terminates the process when an error occurs. Instead of
   printing to stderr and calling `exit()`, C API functions now record the error
   in thread-local state and return a default value (e.g., `NULL`, `false`, or

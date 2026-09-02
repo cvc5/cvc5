@@ -32,7 +32,11 @@ class TestCApiBlackTermManager : public ::testing::Test
     d_int = cvc5_get_integer_sort(d_tm);
     d_real = cvc5_get_real_sort(d_tm);
   }
-  void TearDown() override { cvc5_term_manager_delete(d_tm); }
+  void TearDown() override
+  {
+    cvc5_term_manager_release(d_tm);
+    cvc5_term_manager_delete(d_tm);
+  }
 
   Cvc5TermManager* d_tm;
   Cvc5Sort d_bool;
@@ -115,6 +119,7 @@ TEST_F(TestCApiBlackTermManager, mk_array_sort)
       cvc5_mk_array_sort(
           d_tm, cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm)),
       "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -202,6 +207,7 @@ TEST_F(TestCApiBlackTermManager, mk_dt_sort)
     ASSERT_CVC5_ERROR(
         cvc5_mk_dt_sort(d_tm, decl),
         "datatype declaration is not associated with this term manager");
+    cvc5_term_manager_release(tm);
     cvc5_term_manager_delete(tm);
   }
 }
@@ -314,6 +320,7 @@ TEST_F(TestCApiBlackTermManager, mk_dt_sorts)
     ASSERT_CVC5_ERROR(
         cvc5_mk_dt_sorts(d_tm, decls.size(), decls.data()),
         "expected a datatype declaration associated with this term manager");
+    cvc5_term_manager_release(tm);
     cvc5_term_manager_delete(tm);
   }
 }
@@ -369,6 +376,7 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
   domain = {cvc5_get_boolean_sort(tm), cvc5_get_integer_sort(tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(tm, domain.size(), domain.data(), d_int),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -412,6 +420,7 @@ TEST_F(TestCApiBlackTermManager, mk_predicate_sort)
   sorts = {d_int};
   ASSERT_CVC5_ERROR(cvc5_mk_predicate_sort(tm, sorts.size(), sorts.data()),
                     "expected a sort associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -449,6 +458,7 @@ TEST_F(TestCApiBlackTermManager, mk_record_sort)
   ASSERT_CVC5_ERROR(
       cvc5_mk_record_sort(d_tm, names.size(), names.data(), sorts.data()),
       "expected a sort associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -464,6 +474,7 @@ TEST_F(TestCApiBlackTermManager, mk_set_sort)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_set_sort(d_tm, cvc5_get_boolean_sort(tm)),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -479,6 +490,7 @@ TEST_F(TestCApiBlackTermManager, mk_bag_sort)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_bag_sort(d_tm, cvc5_get_boolean_sort(tm)),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -494,6 +506,7 @@ TEST_F(TestCApiBlackTermManager, mk_sequence_sort)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_sequence_sort(d_tm, cvc5_get_boolean_sort(tm)),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -566,6 +579,7 @@ TEST_F(TestCApiBlackTermManager, mk_tuple_sort)
   sorts = {cvc5_get_boolean_sort(tm)};
   ASSERT_CVC5_ERROR(cvc5_mk_tuple_sort(d_tm, sorts.size(), sorts.data()),
                     "expected a sort associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -580,6 +594,7 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_sort)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_sort(tm, d_int),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -719,6 +734,7 @@ TEST_F(TestCApiBlackTermManager, mk_const_array)
               tm, cvc5_get_integer_sort(tm), cvc5_get_integer_sort(tm)),
           zero),
       "term is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -738,6 +754,7 @@ TEST_F(TestCApiBlackTermManager, mk_var)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_var(tm, d_bool, "b"),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -830,6 +847,7 @@ TEST_F(TestCApiBlackTermManager, mk_fp)
       cvc5_mk_fp_from_ieee(
           tm, cvc5_mk_bv_uint64(tm, 1, 0), cvc5_mk_bv_uint64(tm, 5, 0), sig),
       "term is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -849,6 +867,7 @@ TEST_F(TestCApiBlackTermManager, mk_cardinality_constraint)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_cardinality_constraint(tm, unsort, 3),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -865,6 +884,7 @@ TEST_F(TestCApiBlackTermManager, mk_empty_set)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_empty_set(tm, sort),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -881,6 +901,7 @@ TEST_F(TestCApiBlackTermManager, mk_empty_bag)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_empty_bag(tm, sort),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -896,6 +917,7 @@ TEST_F(TestCApiBlackTermManager, mk_empty_sequence)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_empty_sequence(tm, sort),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1082,6 +1104,7 @@ TEST_F(TestCApiBlackTermManager, mk_sep_nil)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_sep_nil(tm, d_bool),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1294,6 +1317,7 @@ TEST_F(TestCApiBlackTermManager, mk_term)
           t_bool};
   ASSERT_CVC5_ERROR(cvc5_mk_term(tm, CVC5_KIND_IMPLIES, 3, args.data()),
                     "expected a term associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1408,6 +1432,7 @@ TEST_F(TestCApiBlackTermManager, mk_term_from_op)
   idxs = {1};
   (void)cvc5_mk_term_from_op(
       tm, cvc5_mk_op(tm, CVC5_KIND_DIVISIBLE, 1, idxs.data()), 1, args.data());
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1432,6 +1457,7 @@ TEST_F(TestCApiBlackTermManager, mk_tuple)
   args = {cvc5_mk_bv(d_tm, 3, "101", 2)};
   ASSERT_CVC5_ERROR(cvc5_mk_tuple(tm, 1, args.data()),
                     "expected a term associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1447,6 +1473,7 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_some)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_some(tm, cvc5_mk_bv(d_tm, 3, "101", 2)),
                     "term is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1470,6 +1497,7 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_val)
       cvc5_mk_nullable_val(
           tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
       "term is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1493,6 +1521,7 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_is_null)
       cvc5_mk_nullable_is_null(
           tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
       "term is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1516,6 +1545,7 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_is_some)
       cvc5_mk_nullable_is_some(
           tm, cvc5_mk_nullable_some(d_tm, cvc5_mk_integer_int64(d_tm, 5))),
       "term is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1536,6 +1566,7 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_null)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_null(tm, sort),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1560,6 +1591,7 @@ TEST_F(TestCApiBlackTermManager, mk_nullable_lift)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_nullable_lift(tm, CVC5_KIND_ADD, 2, args.data()),
                     "expected a term associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1573,6 +1605,7 @@ TEST_F(TestCApiBlackTermManager, mk_universe_set)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_universe_set(tm, d_bool),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1592,6 +1625,7 @@ TEST_F(TestCApiBlackTermManager, mk_const)
   Cvc5TermManager* tm = cvc5_term_manager_new();
   ASSERT_CVC5_ERROR(cvc5_mk_const(tm, d_bool, nullptr),
                     "sort is not associated with this term manager");
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 

@@ -232,6 +232,10 @@ CVC5_EXPORT Cvc5Result cvc5_result_copy(Cvc5Result result);
  * @note This step is optional and allows users to release resources in a more
  *       fine-grained manner. Further, any API function that returns a copy
  *       that is owned by the callee of the function and thus, can be released.
+ * @note A result is released together with the solver that created it. To use
+ *       a result after that solver has been deleted, keep a reference to it
+ *       via `cvc5_result_copy()` and release that reference when done. The
+ *       same applies to synthesis results, proofs and grammars.
  */
 CVC5_EXPORT void cvc5_result_release(Cvc5Result result);
 
@@ -400,6 +404,10 @@ CVC5_EXPORT Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result);
 
 /**
  * Release copy of synthesis result, decrements reference counter of `result`.
+ *
+ * @note A synthesis result is released together with the solver that created
+ *       it. To use it after that solver has been deleted, keep a reference to
+ *       it via `cvc5_synth_result_copy()`.
  *
  * @param result The result to release.
  *
@@ -2555,6 +2563,9 @@ CVC5_EXPORT Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar);
 /**
  * Release copy of grammar, decrements reference counter of `grammar`.
  *
+ * @note A grammar is released together with the solver that created it. To
+ *       use it afterwards, keep a reference to it via `cvc5_grammar_copy()`.
+ *
  * @param grammar The grammar to release.
  *
  * @note This step is optional and allows users to release resources in a more
@@ -2581,6 +2592,23 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
 
 /**
  * Delete a cvc5 term manager instance.
+ *
+ * Objects created via the term manager (sorts, terms, operators, datatypes,
+ * ...), as well as the statistics of solver instances associated with the
+ * term manager, are managed by the term manager. They keep the term manager
+ * alive and thus remain valid after the term manager has been deleted, until
+ * they are released via the corresponding `cvc5_*_release()` function. The
+ * memory of the term manager (and of the objects it manages) is only freed once
+ * the term manager has been deleted and all of its managed objects have been
+ * released, either individually or all at once via
+ * `cvc5_term_manager_release()`.
+ *
+ * @note Consequently, if managed objects are still alive when this function is
+ *       called, it does not free the term manager: it only drops the handle
+ *       held by the user, and the term manager is freed later, when the last
+ *       of its managed objects is released. To free everything right away,
+ *       call `cvc5_term_manager_release()` before this function.
+ *
  * @param tm The term manager instance.
  */
 CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
@@ -2588,10 +2616,11 @@ CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
 /**
  * Release all managed references.
  *
- * This will free all memory used by any managed objects allocated by the
- * term manager.
+ * This will free all memory used by any managed objects created via the term
+ * manager or via a solver instance associated with the term manager.
  *
- * @note This invalidates all managed objects created by the term manager.
+ * @note This invalidates all managed objects created via the term manager and
+ *       its associated solver instances.
  *
  * @param tm The term manager instance.
  */
@@ -3872,6 +3901,9 @@ CVC5_EXPORT Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
 /**
  * Release copy of proof, decrements reference counter of `proof`.
  *
+ * @note A proof is released together with the solver that created it. To use
+ *       it afterwards, keep a reference to it via `cvc5_proof_copy()`.
+ *
  * @param proof The proof to release.
  *
  * @note This step is optional and allows users to release resources in a more
@@ -3977,6 +4009,28 @@ CVC5_EXPORT void cvc5_stat_get_histogram(Cvc5Stat stat,
  */
 CVC5_EXPORT const char* cvc5_stat_to_string(Cvc5Stat stat);
 
+/**
+ * Make copy of statistic, increases reference counter of `stat`.
+ *
+ * @param stat The statistic to copy.
+ * @return The same statistic with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Stat cvc5_stat_copy(Cvc5Stat stat);
+
+/**
+ * Release copy of statistic, decrements reference counter of `stat`.
+ *
+ * @param stat The statistic to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_stat_release(Cvc5Stat stat);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -4039,6 +4093,29 @@ CVC5_EXPORT Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name);
  */
 CVC5_EXPORT const char* cvc5_stats_to_string(Cvc5Statistics stat);
 
+/**
+ * Make copy of statistics object, increases reference counter of `stat`.
+ *
+ * @param stat The statistics object to copy.
+ * @return The same statistics object with its reference count increased by
+ *         one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Statistics cvc5_stats_copy(Cvc5Statistics stat);
+
+/**
+ * Release copy of statistics object, decrements reference counter of `stat`.
+ *
+ * @param stat The statistics object to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_stats_release(Cvc5Statistics stat);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -4058,12 +4135,35 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
 
 /**
  * Delete a cvc5 solver instance.
+ *
+ * Statistics created via the solver are managed by the associated term manager
+ * and remain valid after the solver instance has been deleted, until they are
+ * released, either individually via `cvc5_stats_release()` resp.
+ * `cvc5_stat_release()`, or all at once via `cvc5_term_manager_release()`
+ * (see `cvc5_term_manager_delete()`).
+ *
+ * Results (`Cvc5Result`), synthesis results (`Cvc5SynthResult`), proofs
+ * (`Cvc5Proof`) and grammars (`Cvc5Grammar`) are managed by the solver:
+ * deleting it drops one reference to each such object it created, which frees
+ * those the user did not keep a reference to. An object the user kept a
+ * reference to (via the corresponding `cvc5_*_copy()` function) outlives the
+ * solver, as in the C++ API, and is freed by its final release. Proofs
+ * additionally keep the term manager alive, since querying them creates new
+ * terms and proofs.
+ *
+ * @note A solver instance keeps its associated term manager alive. Solver and
+ *       term manager instances may thus be deleted in any order.
+ *
  * @param cvc5 The solver instance.
  */
 CVC5_EXPORT void cvc5_delete(Cvc5* cvc5);
 
 /**
  * Get the associated term manager of a cvc5 solver instance.
+ *
+ * @note The returned term manager is kept alive by the solver instance and can
+ *       be used as long as the solver instance has not been deleted.
+ *
  * @param cvc5 The solver instance.
  * @return The term manager.
  */
