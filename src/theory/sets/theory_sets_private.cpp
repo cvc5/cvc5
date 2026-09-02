@@ -56,6 +56,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_hasEnabledRels(false),
       d_rels_enabled(false),
       d_tc_enabled(false),
+      d_join_enabled(false),
       d_hasEnabledCard(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
@@ -261,6 +262,7 @@ void TheorySetsPrivate::fullEffortReset()
   d_card_enabled = false;
   d_rels_enabled = false;
   d_tc_enabled = false;
+  d_join_enabled = false;
   // reset the state object
   d_state.reset();
   // reset the inference manager
@@ -341,6 +343,10 @@ void TheorySetsPrivate::checkBasic()
         if (nk == Kind::RELATION_TCLOSURE)
         {
           d_tc_enabled = true;
+        }
+        if (nk == Kind::RELATION_JOIN)
+        {
+          d_join_enabled = true;
         }
       }
       else if (isHigherOrderKind(nk))
@@ -484,11 +490,24 @@ bool TheorySetsPrivate::needsTCGroundingLastCall() const
   return d_tc_enabled && options().sets.relsAcyclicHammer;
 }
 
+bool TheorySetsPrivate::needsJoinGroundingLastCall() const
+{
+  return d_join_enabled && options().sets.relsAcyclicHammer;
+}
+
 void TheorySetsPrivate::checkTransitiveClosureLastCall()
 {
   if (needsTCGroundingLastCall())
   {
     d_rels->checkTransitiveClosureLastCall(d_hasEnabledCard);
+  }
+}
+
+void TheorySetsPrivate::checkJoinLastCall()
+{
+  if (needsJoinGroundingLastCall())
+  {
+    d_rels->checkJoinLastCall(d_hasEnabledCard);
   }
 }
 

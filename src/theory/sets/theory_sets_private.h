@@ -362,10 +362,22 @@ class TheorySetsPrivate : protected EnvObj
    */
   void checkTransitiveClosureLastCall();
   /**
+   * Last-call check (only relevant under --rels-acyclic-hammer, which
+   * disables the case split lemma in TheorySetsRels::applyJoinRule): confirm
+   * every currently-known join membership is backed up by known base relation
+   * memberships.
+   */
+  void checkJoinLastCall();
+  /**
    * True under --rels-acyclic-hammer if rel.tclosure has been used, used to
    * drive TheorySets::needsCheckLastEffort().
    */
   bool needsTCGroundingLastCall() const;
+  /**
+   * True under --rels-acyclic-hammer if rel.join has been used, used to
+   * drive TheorySets::needsCheckLastEffort().
+   */
+  bool needsJoinGroundingLastCall() const;
   /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
   void checkFilters();
   /** Run the set.map inference rules (checkMapUp / checkMapDown). */
@@ -459,6 +471,13 @@ class TheorySetsPrivate : protected EnvObj
    * needsTCGroundingLastCall.
    */
   bool d_tc_enabled;
+  /** is relational join (rel.join) specifically enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * rel.join term is asserted to this theory. Used in
+   * needsJoinGroundingLastCall.
+   */
+  bool d_join_enabled;
   /** Have we ever seen cardinality? */
   bool d_hasEnabledCard;
   /** is cardinality enabled?

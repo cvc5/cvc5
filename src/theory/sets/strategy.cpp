@@ -59,6 +59,7 @@ void Strategy::initializeStrategy()
   markStartEffort(Theory::EFFORT_LAST_CALL);
   addStrategyStep(SETS_CHECK_ACYCLICITY_LAST_CALL);
   addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL);
+  addStrategyStep(SETS_CHECK_JOIN_LAST_CALL);
   markEndEffort(Theory::EFFORT_LAST_CALL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
@@ -97,6 +98,9 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
       break;
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL:
       d_setsSolver->checkTransitiveClosureLastCall();
+      break;
+    case Step::SETS_CHECK_JOIN_LAST_CALL:
+      d_setsSolver->checkJoinLastCall();
       break;
 
     default: Unreachable(); break;

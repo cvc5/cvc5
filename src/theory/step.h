@@ -60,9 +60,11 @@ enum Step : uint32_t
   // ContrMinimal lemmas applied
   SETS_CHECK_ACYCLICITY_LAST_CALL,
   // last-call check (only relevant under --rels-acyclic-hammer) that every
-  // transitive-closure membership is grounded by
-  // known base-relation members
+  // transitive-closure membership is grounded by known base-relation members
   SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL,
+  // last-call check (only relevant under --rels-acyclic-hammer) that every
+  // membership in joined relations is grounded by known base-relation members
+  SETS_CHECK_JOIN_LAST_CALL,
   // unknown inference step
   UNKNOWN
 };

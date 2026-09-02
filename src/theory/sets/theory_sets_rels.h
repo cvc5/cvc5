@@ -141,6 +141,15 @@ class TheorySetsRels : protected EnvObj
    * (SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN).
    */
   void checkTransitiveClosureLastCall(bool cardinalityUsed);
+  /**
+   * Last-call check, only relevant under --rels-acyclic-hammer (which
+   * disables applyJoinRule's eager case split). Checks that all join
+   * memberships are justified by the base relation. If not, and cardinalityUsed
+   * is false, sends a grounded conflict (see applyJoinGroundingConflict). If
+   * cardinalityUsed is true (i.e., set.card is used), reports incompleteness
+   * (SETS_RELS_JOIN_GROUNDING_UNKNOWN).
+   */
+  void checkJoinLastCall(bool cardinalityUsed);
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 
@@ -283,6 +292,12 @@ class TheorySetsRels : protected EnvObj
    * Introduces no fresh skolems.
    */
   void applyTCGroundingConflict(Node mem_rep, Node tc_rel, Node exp);
+  /**
+   * Sends a conflict for a join membership mem_rep in join_rel that is not
+   * justified by members of join_rel[0] and join_rel[1]. Introduces no fresh
+   * skolems.
+   */
+  void applyJoinGroundingConflict(Node mem_rep, Node join_rel, Node exp);
   /** Build the TC graph for tc_rel's base relation, if not already built. */
   void buildTCGraphForRel(Node tc_rel);
   /** Ensure buildTCGraphForRel has been called for tc_rel. */
@@ -325,6 +340,11 @@ class TheorySetsRels : protected EnvObj
                      std::unordered_set<Node>& hasSeen,
                      std::map<Node, std::unordered_set<Node>>& tc_graph,
                      bool& isReachable);
+  /**
+   * True if mem_rep is justified by currently-known members of join_rel[0] and
+   * join_rel[1].
+   */
+  bool isJoinReachable(Node mem_rep, Node join_rel);
 
   /** Helper functions */
   bool hasTerm(Node a);

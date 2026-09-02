@@ -398,6 +398,55 @@ void TheorySetsRels::checkTransitiveClosureLastCall(bool cardinalityUsed)
                 << std::endl;
 }
 
+void TheorySetsRels::checkJoinLastCall(bool cardinalityUsed)
+{
+  Trace("rels") << "\n[sets-rels] *********** Start join "
+                   "last call ***********\n"
+                << std::endl;
+  collectRelsInfo();
+  for (MEM_IT m_it = d_rReps_memberReps_cache.begin();
+       m_it != d_rReps_memberReps_cache.end();
+       ++m_it)
+  {
+    Node rel_rep = m_it->first;
+    std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
+    if (kind_terms.find(Kind::RELATION_JOIN) == kind_terms.end())
+    {
+      continue;
+    }
+    std::vector<Node>& join_terms = kind_terms[Kind::RELATION_JOIN];
+    for (unsigned int i = 0; i < m_it->second.size(); i++)
+    {
+      Node mem = d_rReps_memberReps_cache[rel_rep][i];
+      Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
+      for (unsigned int j = 0; j < join_terms.size(); j++)
+      {
+        Node join_rel = join_terms[j];
+        if (!isJoinReachable(mem, join_rel))
+        {
+          if (cardinalityUsed)
+          {
+            // Cardinality-driven model completion can later introduce a fresh
+            // member that would justify mem. We cannot confirm nor refute this
+            // join membership in this case, so report incompleteness.
+            d_im.setModelUnsound(
+                IncompleteId::SETS_RELS_JOIN_GROUNDING_UNKNOWN);
+          }
+          else
+          {
+            applyJoinGroundingConflict(mem, join_rel, exp);
+          }
+        }
+      }
+    }
+  }
+  // don't flush pending lemmas
+  clearCaches();
+  Trace("rels") << "\n[sets-rels] *********** Done with transitive closure "
+                   "last call ***********\n"
+                << std::endl;
+}
+
 /*
  * Populate relational terms data structure
  */
@@ -1024,6 +1073,125 @@ void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
       d_falseNode, InferenceId::SETS_RELS_TCLOSURE_GROUNDING_CONFLICT, reason);
 }
 
+void TheorySetsRels::applyJoinGroundingConflict(Node mem_rep,
+                                                Node join_rel,
+                                                Node exp)
+{
+  Trace("rels-debug") << "[Theory::Rels] *********** Applying "
+                         "RELATION_JOIN grounding conflict on a join term "
+                         "= "
+                      << join_rel << " with member rep = " << mem_rep
+                      << " and explanation = " << exp << std::endl;
+
+  NodeManager* nm = nodeManager();
+  Node r1 = join_rel[0];
+  Node r2 = join_rel[1];
+  Node r1_rep = getRepresentative(r1);
+  Node r2_rep = getRepresentative(r2);
+
+  // Build the set containing exactly r1's currently-known positive
+  // members.
+  Node rel1_Value;
+  MEM_IT mem_it = d_rReps_memberReps_cache.find(r1_rep);
+  if (mem_it != d_rReps_memberReps_cache.end())
+  {
+    for (const Node& m : mem_it->second)
+    {
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, m);
+      rel1_Value = rel1_Value.isNull()
+                       ? singleton
+                       : nm->mkNode(Kind::SET_UNION, rel1_Value, singleton);
+    }
+  }
+  if (rel1_Value.isNull())
+  {
+    rel1_Value = d_treg.getEmptySet(r1.getType());
+  }
+
+  // Build the set containing exactly r2's currently-known positive
+  // members.
+  Node rel2_Value;
+  MEM_IT mem_it2 = d_rReps_memberReps_cache.find(r2_rep);
+  if (mem_it2 != d_rReps_memberReps_cache.end())
+  {
+    for (const Node& m : mem_it2->second)
+    {
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, m);
+      rel2_Value = rel2_Value.isNull()
+                       ? singleton
+                       : nm->mkNode(Kind::SET_UNION, rel2_Value, singleton);
+    }
+  }
+  if (rel2_Value.isNull())
+  {
+    rel2_Value = d_treg.getEmptySet(r2.getType());
+  }
+
+  Node reason = nm->mkNode(Kind::AND,
+                           exp,
+                           nm->mkNode(Kind::EQUAL, r1, rel1_Value),
+                           nm->mkNode(Kind::EQUAL, r2, rel2_Value));
+
+  Trace("rels-cycles") << "JoinGroundingConflict: " << reason << " => false"
+                       << std::endl;
+
+  sendInfer(
+      d_falseNode, InferenceId::SETS_RELS_JOIN_GROUNDING_CONFLICT, reason);
+}
+
+bool TheorySetsRels::isJoinReachable(Node mem_rep, Node join_rel)
+{
+  Node r1 = join_rel[0];
+  Node r2 = join_rel[1];
+  Node r1_rep = getRepresentative(r1);
+  Node r2_rep = getRepresentative(r2);
+
+  unsigned int s1_len = r1.getType().getSetElementType().getTupleLength();
+  unsigned int tup_len =
+      join_rel.getType().getSetElementType().getTupleLength();
+
+  computeTupleReps(mem_rep);
+  std::vector<Node>& mem_reps = d_tuple_reps[mem_rep];
+
+  MEM_IT r1_mem_it = d_rReps_memberReps_cache.find(r1_rep);
+  if (r1_mem_it == d_rReps_memberReps_cache.end())
+  {
+    return false;
+  }
+  for (const Node& r1_mem : r1_mem_it->second)
+  {
+    computeTupleReps(r1_mem);
+    std::vector<Node>& r1_mem_reps = d_tuple_reps[r1_mem];
+    // r1_mem must agree with mem_rep on the join_rel[0]-side prefix (all of
+    // r1_mem's components except its last, the candidate shared element).
+    bool prefixMatches = true;
+    for (unsigned int k = 0; k + 1 < s1_len; k++)
+    {
+      if (r1_mem_reps[k] != mem_reps[k])
+      {
+        prefixMatches = false;
+        break;
+      }
+    }
+    if (!prefixMatches)
+    {
+      continue;
+    }
+    Node shared_cand = r1_mem_reps[s1_len - 1];
+    std::vector<Node> r2_pattern;
+    r2_pattern.push_back(shared_cand);
+    for (unsigned int k = s1_len - 1; k < tup_len; k++)
+    {
+      r2_pattern.push_back(mem_reps[k]);
+    }
+    if (d_membership_trie[r2_rep].existsTerm(r2_pattern) != Node::null())
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool TheorySetsRels::isTCReachable(Node mem_rep, Node tc_rel)
 {
   MEM_IT mem_it = d_rReps_memberReps_cache.find(getRepresentative(tc_rel[0]));
@@ -1410,8 +1578,15 @@ void TheorySetsRels::applyJoinRule(Node join_rel, Node join_rel_rep, Node exp)
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
     fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
     sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
+    // Only needed because shared_x was just asserted into the facts above:
+    // under --rels-acyclic-hammer, those facts are never sent, so shared_x is
+    // never asserted to be a member of anything and there is nothing to
+    // share. Registering it anyway (as this used to do unconditionally) would
+    // leave a fresh, permanently-live, totally unconstrained element of
+    // shared_type sitting in the equality engine for every unjustified join
+    // membership, for no benefit.
+    makeSharedTerm(shared_x);
   }
-  makeSharedTerm(shared_x);
 }
 
 void TheorySetsRels::applyTableJoinRule(Node n, Node nRep, Node exp)

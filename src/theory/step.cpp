@@ -44,6 +44,9 @@ std::ostream& operator<<(std::ostream& out, Step s)
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL:
       out << "SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL";
       break;
+    case Step::SETS_CHECK_JOIN_LAST_CALL:
+      out << "SETS_CHECK_JOIN_LAST_CALL";
+      break;
     case Step::UNKNOWN: out << "?"; break;
     default:
       Unreachable();
