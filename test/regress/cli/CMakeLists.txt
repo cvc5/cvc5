@@ -2620,6 +2620,7 @@ set(regress_0_tests
   regress0/use_approx/bug812_approx.smt2
   regress0/use_approx/error0_approx.smt2
   regress0/use_approx/issue2429_approx.smt2
+  regress0/use_approx/lra-relaxation-path.smt2
   regress0/use_approx/issue4714_approx.smt2
   regress0/use_approx/replay-early-close-depth-range.smt2
   regress0/use_approx/siegel-nl-bases_approx.smt2
