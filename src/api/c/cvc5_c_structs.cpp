@@ -439,6 +439,52 @@ Cvc5::Cvc5(Cvc5TermManager* tm) : d_solver(tm->d_tm), d_tm(tm)
   d_tm->inc_ref();
 }
 
+Cvc5::~Cvc5()
+{
+  // Drop one reference on each result created by this solver: results the
+  // user holds an additional reference to (via `cvc5_result_copy()`) survive
+  // detached from the solver, the others are freed here.
+  for (cvc5_result_t* res : d_alloc_results)
+  {
+    res->d_cvc5 = nullptr;
+    res->release();
+  }
+  d_alloc_results.clear();
+  for (cvc5_synth_result_t* res : d_alloc_synth_results)
+  {
+    res->d_cvc5 = nullptr;
+    res->release();
+  }
+  d_alloc_synth_results.clear();
+  for (cvc5_proof_t* res : d_alloc_proofs)
+  {
+    res->d_cvc5 = nullptr;
+    res->release();
+  }
+  d_alloc_proofs.clear();
+  for (cvc5_grammar_t* res : d_alloc_grammars)
+  {
+    res->d_cvc5 = nullptr;
+    res->release();
+  }
+  d_alloc_grammars.clear();
+  if (d_output_tag_file_stream.is_open())
+  {
+    d_output_tag_file_stream.close();
+  }
+  // reset redirected output stream returned by Solver::getOutput()
+  if (d_output_tag_stream)
+  {
+    Assert(d_output_tag_streambuf);
+    d_output_tag_stream->rdbuf(d_output_tag_streambuf);
+  }
+  // Drop our handle to the term manager. Note that this may free the term
+  // manager wrapper (if it was already deleted by the user and no managed
+  // objects are left). This is safe, the C++ solver instance holds its own
+  // copy of the C++ term manager.
+  d_tm->dec_ref();
+}
+
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
 {
   Assert(!result.isNull());
@@ -591,52 +637,6 @@ void Cvc5::deregister(cvc5_grammar_t* grammar)
 {
   Assert(d_alloc_grammars.find(grammar) != d_alloc_grammars.end());
   d_alloc_grammars.erase(grammar);
-}
-
-Cvc5::~Cvc5()
-{
-  // Drop one reference on each result created by this solver: results the
-  // user holds an additional reference to (via `cvc5_result_copy()`) survive
-  // detached from the solver, the others are freed here.
-  for (cvc5_result_t* res : d_alloc_results)
-  {
-    res->d_cvc5 = nullptr;
-    res->release();
-  }
-  d_alloc_results.clear();
-  for (cvc5_synth_result_t* res : d_alloc_synth_results)
-  {
-    res->d_cvc5 = nullptr;
-    res->release();
-  }
-  d_alloc_synth_results.clear();
-  for (cvc5_proof_t* res : d_alloc_proofs)
-  {
-    res->d_cvc5 = nullptr;
-    res->release();
-  }
-  d_alloc_proofs.clear();
-  for (cvc5_grammar_t* res : d_alloc_grammars)
-  {
-    res->d_cvc5 = nullptr;
-    res->release();
-  }
-  d_alloc_grammars.clear();
-  if (d_output_tag_file_stream.is_open())
-  {
-    d_output_tag_file_stream.close();
-  }
-  // reset redirected output stream returned by Solver::getOutput()
-  if (d_output_tag_stream)
-  {
-    Assert(d_output_tag_streambuf);
-    d_output_tag_stream->rdbuf(d_output_tag_streambuf);
-  }
-  // Drop our handle to the term manager. Note that this may free the term
-  // manager wrapper (if it was already deleted by the user and no managed
-  // objects are left). This is safe, the C++ solver instance holds its own
-  // copy of the C++ term manager.
-  d_tm->dec_ref();
 }
 
 std::vector<cvc5::Term> Cvc5::PluginCpp::check()
