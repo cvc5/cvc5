@@ -81,6 +81,11 @@ enum class IncompleteId
   // introduce a fresh relation member), so we could not confirm whether the
   // membership is actually justified
   SETS_RELS_JOIN_GROUNDING_UNKNOWN,
+  // a relation acyclicity cycle-sequence needed to unroll further than the
+  // user-provided --rels-acyclic-unroll-max bound to be resolved, so we
+  // could not confirm whether the acyclicity constraint is actually
+  // satisfied
+  SETS_RELS_ACYCLIC_UNROLL_MAX_REACHED,
   // we skipped processing a looping word equation
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership

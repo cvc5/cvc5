@@ -40,3 +40,11 @@ name   = "Sets Theory"
   type       = "bool"
   default    = "false"
   help       = "disable the TCLOSURE_UP and JOIN_SPLIT relational lemmas"
+
+[[option]]
+  name       = "relsAcyclicUnrollMax"
+  category   = "expert"
+  long       = "rels-acyclic-unroll-max=N"
+  type       = "int64_t"
+  default    = "-1"
+  help       = "caps relation-acyclicity cycle-witness unrolling at N edges (-1 == no limit, default); obligations that would need to unroll further are reported as incomplete instead of unrolled unboundedly"
