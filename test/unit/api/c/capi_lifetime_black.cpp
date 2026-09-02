@@ -198,6 +198,35 @@ TEST_F(TestCApiBlackLifetime, solverOutlivesTermManager)
   cvc5_delete(slv);
 }
 
+TEST_F(TestCApiBlackLifetime, resultOutlivesSolverWhenCopied)
+{
+  // A result is released together with the solver that created it, but the
+  // user can keep it alive by holding a reference to it. It then outlives
+  // both the solver and the term manager: as in the C++ API, `cvc5::Result`
+  // references neither of them.
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  Cvc5Result res = cvc5_result_copy(cvc5_check_sat(slv));
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+  ASSERT_TRUE(cvc5_result_is_sat(res));
+  ASSERT_EQ(std::string(cvc5_result_to_string(res)), "sat");
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_result_release(res);
+}
+
+TEST_F(TestCApiBlackLifetime, resultReleasedWithSolver)
+{
+  // Without such a reference, a result is freed together with the solver
+  // (the leak checker would flag it otherwise).
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  (void)cvc5_check_sat(slv);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+  ASSERT_FALSE(cvc5_has_error());
+}
+
 TEST_F(TestCApiBlackLifetime, deleteSolverBeforeTermManager)
 {
   // Deleting solver and term manager in the usual order, with objects
@@ -206,7 +235,8 @@ TEST_F(TestCApiBlackLifetime, deleteSolverBeforeTermManager)
   Cvc5* slv = cvc5_new(tm);
   Cvc5Term t = cvc5_mk_true(tm);
   cvc5_assert_formula(slv, t);
-  Cvc5Result res = cvc5_check_sat(slv);
+  // keep a reference so that the result outlives the solver
+  Cvc5Result res = cvc5_result_copy(cvc5_check_sat(slv));
   cvc5_delete(slv);
   cvc5_term_manager_delete(tm);
   ASSERT_TRUE(cvc5_result_is_sat(res));
@@ -256,7 +286,9 @@ TEST_F(TestCApiBlackLifetime, grammarOutlivesSolverAndTermManager)
   Cvc5Term start = cvc5_mk_var(tm, b, "start");
   Cvc5Term f = cvc5_mk_boolean(tm, false);
   Cvc5Term symbols[1] = {start};
-  Cvc5Grammar g = cvc5_mk_grammar(slv, 0, nullptr, 1, symbols);
+  // keep a reference so that the grammar outlives the solver
+  Cvc5Grammar g =
+      cvc5_grammar_copy(cvc5_mk_grammar(slv, 0, nullptr, 1, symbols));
   cvc5_grammar_add_rule(g, start, f);
   cvc5_term_release(f);
   cvc5_term_release(start);
@@ -287,7 +319,8 @@ TEST_F(TestCApiBlackLifetime, proofOutlivesSolverAndTermManager)
   const Cvc5Proof* proofs =
       cvc5_get_proof(slv, CVC5_PROOF_COMPONENT_FULL, &size);
   ASSERT_GT(size, 0);
-  Cvc5Proof proof = proofs[0];
+  // keep a reference so that the proof outlives the solver
+  Cvc5Proof proof = cvc5_proof_copy(proofs[0]);
   cvc5_result_release(res);
   cvc5_term_release(not_x);
   cvc5_term_release(x);
