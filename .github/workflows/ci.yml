@@ -47,10 +47,10 @@ jobs:
         gpl-build:
           - ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name == 'schedule') }}
         build:
-          - name: ubuntu:production
+          - name: ubuntu:unrestricted
             os: ubuntu-22.04
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production
+            cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -60,10 +60,10 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:safe-mode
+          - name: ubuntu:safe
             os: ubuntu-22.04
             config: safe --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-safe
+            cache-key: safe
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -71,10 +71,10 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:stable-mode
+          - name: ubuntu:stable
             os: ubuntu-22.04
             config: stable --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-stable
+            cache-key: stable
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -82,22 +82,22 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester dump
 
-          - name: ubuntu:production-libc++
+          - name: ubuntu:unrestricted-libc++
             os: ubuntu-24.04
             use-clang: true
             use-libcxx: true
             config: unrestricted --auto-download -DBUILD_GMP=1
-            cache-key: production-libcxx
+            cache-key: unrestricted-libcxx
             strip-bin: strip
             check-examples: true
             package-name: cvc5-Linux-x86_64-libcxx
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:production-arm64
+          - name: ubuntu:unrestricted-arm64
             os: ubuntu-22.04-arm
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-arm64
+            cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -106,22 +106,22 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:production-arm64-libc++
+          - name: ubuntu:unrestricted-arm64-libc++
             os: ubuntu-24.04-arm
             use-clang: true
             use-libcxx: true
             config: unrestricted --auto-download -DBUILD_GMP=1
-            cache-key: production-arm64-libcxx
+            cache-key: unrestricted-arm64-libcxx
             strip-bin: strip
             check-examples: true
             package-name: cvc5-Linux-arm64-libcxx
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: macos:production
+          - name: macos:unrestricted
             os: macos-15-intel
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production
+            cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -131,10 +131,10 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: macos:production-arm64
+          - name: macos:unrestricted-arm64
             os: macos-15
             config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-arm64
+            cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -145,10 +145,10 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: win64:production
+          - name: win64:unrestricted
             os: windows-latest
             config: unrestricted --auto-download --all-bindings
-            cache-key: production-win64-native
+            cache-key: unrestricted-win64-native
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -159,10 +159,10 @@ jobs:
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: win64:production-arm64
+          - name: win64:unrestricted-arm64
             os: windows-11-arm
             config: unrestricted --auto-download --all-bindings
-            cache-key: production-win64-native-arm64
+            cache-key: unrestricted-win64-native-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -174,17 +174,17 @@ jobs:
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: wasm:production
+          - name: wasm:unrestricted
             os: ubuntu-22.04
             config: unrestricted --static --static-binary --auto-download --wasm-web=no-modular-static-page
-            cache-key: productionwasm
+            cache-key: unrestricted-wasm
             wasm-build: true
             wasm-pkg-name: cvc5-Wasm
             build-shared: false
             build-static: true
 
             # Job used to build the documentation
-          - name: ubuntu:production-dbg
+          - name: ubuntu:unrestricted-dbg
             os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
             config: >-
               unrestricted --auto-download --assertions --tracing --unit-testing --editline
@@ -198,7 +198,7 @@ jobs:
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
 
           # Use NO_GLOBAL_POLY_CTX=1 to ensure cvc5 does not use LibPoly's global context (testing purposes)
-          - name: ubuntu:production-dbg-clang
+          - name: ubuntu:unrestricted-dbg-clang
             os: ubuntu-22.04
             use-clang: true
             config: unrestricted --auto-download --assertions --tracing --cln --gpl --glpk --unit-testing -DNO_GLOBAL_POLY_CTX=1
@@ -207,35 +207,35 @@ jobs:
             run_regression_args: --tester cpc --tester alethe --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
           # GPL versions
-          - name: ubuntu:production-gpl
+          - name: ubuntu:unrestricted-gpl
             os: ubuntu-22.04
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-gpl
+            cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
             gpl-tag: -gpl
 
-          - name: ubuntu:production-arm64-gpl
+          - name: ubuntu:unrestricted-arm64-gpl
             os: ubuntu-22.04-arm
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-arm64-gpl
+            cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-Linux-arm64
             gpl-tag: -gpl
 
-          - name: macos:production-gpl
+          - name: macos:unrestricted-gpl
             os: macos-15-intel
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-gpl
+            cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64
             macos-target: 10.13
             gpl-tag: -gpl
 
-          - name: macos:production-arm64-gpl
+          - name: macos:unrestricted-arm64-gpl
             os: macos-15
             config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-arm64-gpl
+            cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
             java-version: 11
@@ -244,19 +244,19 @@ jobs:
 
           # Windows builds with CoCoALib are generated for testing purposes only
           # but are not currently uploaded.
-          - name: win64:production-gpl
+          - name: win64:unrestricted-gpl
             os: windows-latest
             config: unrestricted --auto-download --gpl --cocoa --normaliz
-            cache-key: production-win64-native-gpl
+            cache-key: unrestricted-win64-native-gpl
             strip-bin: strip
             windows-build: true
             shell: 'msys2 {0}'
             gpl-tag: -gpl
 
-          - name: win64:production-arm64-gpl
+          - name: win64:unrestricted-arm64-gpl
             os: windows-11-arm
             config: unrestricted --auto-download --gpl --cocoa --normaliz
-            cache-key: production-win64-native-arm64-gpl
+            cache-key: unrestricted-win64-native-arm64-gpl
             strip-bin: strip
             java-version: 21
             windows-build: true
@@ -266,22 +266,22 @@ jobs:
         exclude:
           - gpl-build: false
             build:
-              name: ubuntu:production-gpl
+              name: ubuntu:unrestricted-gpl
           - gpl-build: false
             build:
-              name: ubuntu:production-arm64-gpl
+              name: ubuntu:unrestricted-arm64-gpl
           - gpl-build: false
             build:
-              name: macos:production-gpl
+              name: macos:unrestricted-gpl
           - gpl-build: false
             build:
-              name: macos:production-arm64-gpl
+              name: macos:unrestricted-arm64-gpl
           - gpl-build: false
             build:
-              name: win64:production-gpl
+              name: win64:unrestricted-gpl
           - gpl-build: false
             build:
-              name: win64:production-arm64-gpl
+              name: win64:unrestricted-arm64-gpl
 
     name: ${{ matrix.build.name }}
     runs-on: ${{ matrix.build.os }}

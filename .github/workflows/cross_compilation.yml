@@ -13,19 +13,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: ubuntu:production-arm64-cross
+          - name: ubuntu:unrestricted-arm64-cross
             os: ubuntu-latest
             config: unrestricted --auto-download --arm64
             strip-bin: aarch64-linux-gnu-strip
 
-          - name: macos:production-arm64-cross
+          - name: macos:unrestricted-arm64-cross
             os: macos-15-intel
             config: unrestricted --auto-download --all-bindings --editline --arm64
             strip-bin: strip
             python-bindings: true
             macos-target: 11.0
 
-          - name: win64:production-cross
+          - name: win64:unrestricted-cross
             os: ubuntu-latest
             config: unrestricted --auto-download --win64
             strip-bin: x86_64-w64-mingw32-strip
