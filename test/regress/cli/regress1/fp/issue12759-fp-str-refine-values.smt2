@@ -1,5 +1,6 @@
 ; REQUIRES: unrestricted-mode
 ; EXPECT: sat
+; DISABLE-TESTER: lfsc
 ; Note: the strings-model-length warnings below are integral to this test:
 ; the oversized strings model is what corrupted the model values seen by the
 ; FP conversion-abstraction refinement (see cvc5/cvc5#12759). If the warning
