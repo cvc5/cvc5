@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+#
+# Check that the Eunoia definition of CPC in proofs/eo/cpc still compiles, and
+# that the Lean proof checker generated from it is up to date with it.
+#
+# That checker is Logos (https://github.com/cvc5/logos), whose proof rules
+# are not written by hand but compiled from proofs/eo/cpc; the semantics they
+# are verified against live in Logos itself. This script sets up the Eunoia
+# compiler that performs that compilation and asks whether recompiling this
+# signature would change what the pinned Logos has.
+#
+# The pin is not here. It is LOGOS_VERSION in contrib/get-logos-checker, which
+# this reads, so that the Logos that checks proofs and the Logos that CPC is
+# checked against are the same commit.
+#
+# This has nothing to do with running a checker on a proof, which is what
+# contrib/get-ethos-checker and contrib/get-logos-checker set up. Nothing here
+# needs Lean, and nothing here builds or runs cvc5: what is compiled is Eunoia
+# source text.
+#
+# The work is done by Logos' own install/install-cpc.sh --check, which performs
+# the whole install of both of its packages, Cpc and CpcMini, into a throwaway
+# copy and compares. Calling it rather than reimplementing the comparison is
+# what keeps this check from drifting from the install it is checking.
+#
+# There are two outcomes to separate:
+#
+#   - the signature does not compile. This is a change to proofs/eo that the
+#     Eunoia compiler cannot handle (exit 1). This should be rare, and fixing
+#     it requires updating the Eunoia compiler in the ethos repository.
+#
+#   - the signature compiles, but the pinned checker was generated from an
+#     older version of it (exit 2). This cannot be fixed in the cvc5 pull
+#     request: it requires proving the new rules on a branch of Logos, merging
+#     that PR, and moving the pin on the cvc5 pull request to the commit it
+#     produced.
+#
+# What is and is not seen: rules added to or removed from the calculus and any
+# change to the signature-wide modules are caught. An existing rule whose
+# statement changed in a way that breaks its Lean proof is not, since
+# install-cpc.sh preserves rule files; that failure is caught by building the
+# checker, which happens in its own repository.
+#
+# What this check establishes, and what to do when a rule cannot readily be
+# proven in Logos, is documented in docs/proofs/output_cpc.rst.
+#
+# Usage: contrib/check-logos-compilation [OPTION]...
+#
+#   --version      print the pinned Logos commit and exit
+#   -h, --help     show this message
+#
+# Anything else is passed on to install-cpc.sh, so --ethos PATH compiles with
+# an ethos checkout that is already on the machine.
+
+set -e -o pipefail
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+CVC_DIR="$(realpath "$SCRIPT_DIR/../")"
+GET_LOGOS="$SCRIPT_DIR/get-logos-checker"
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+  sed -n '2,/^[^#]/{/^#/!d; s/^# \{0,1\}//; p;}' "$0"
+  exit 0
+fi
+
+# The one pin, read from the one place that has it. Reading it rather than
+# repeating it is what keeps the two scripts from ever naming different
+# commits.
+if [ ! -f "$GET_LOGOS" ]; then
+  echo "error: $GET_LOGOS not found; it is where the Logos commit is pinned." >&2
+  exit 1
+fi
+LOGOS_VERSION="$(bash "$GET_LOGOS" --version)"
+if ! printf '%s' "$LOGOS_VERSION" | grep -Eq '^[0-9a-f]{40}$'; then
+  echo "error: $(basename "$GET_LOGOS") --version did not print a commit:" >&2
+  echo "  $LOGOS_VERSION" >&2
+  exit 1
+fi
+
+if [ "${1:-}" = "--version" ]; then
+  echo "$LOGOS_VERSION"
+  exit 0
+fi
+
+BASE_DIR="$CVC_DIR/deps"
+COMPILER_DIR="$BASE_DIR/cpc-compiler"
+VERSION_FILE="$COMPILER_DIR/.cvc5-pinned-version"
+INSTALL_CPC="$COMPILER_DIR/install/install-cpc.sh"
+ENV_FILE="$COMPILER_DIR/install/deps/eoc-env.sh"
+SIGNATURE="$CVC_DIR/proofs/eo/cpc/Cpc.eo"
+
+if [ ! -f "$SIGNATURE" ]; then
+  echo "error: $SIGNATURE not found." >&2
+  exit 1
+fi
+
+# utility function to download a file
+function download {
+  if [ -x "$(command -v wget)" ]; then
+    wget -c -O "$2" "$1"
+  elif [ -x "$(command -v curl)" ]; then
+    curl -L "$1" >"$2"
+  else
+    echo "Can't figure out how to download from web.  Please install wget or curl." >&2
+    exit 1
+  fi
+}
+
+# Whether deps/cpc-compiler is a usable setup of the pinned commit. eoc-env.sh
+# records absolute paths, so a directory that was moved, or restored from a
+# cache under a different workspace, still has the file while pointing nowhere;
+# that counts as needing setup rather than as a compile failure later on.
+function compiler_is_current {
+  [ -f "$INSTALL_CPC" ] || return 1
+  [ -f "$VERSION_FILE" ] || return 1
+  [ "$(cat "$VERSION_FILE")" = "$LOGOS_VERSION" ] || return 1
+  [ -f "$ENV_FILE" ] || return 1
+  local EOC_ETHOS_DIR="" EOC_ETHOS_EOC=""
+  # shellcheck source=/dev/null
+  source "$ENV_FILE"
+  [ -f "$EOC_ETHOS_DIR/tools/eoc/driver.py" ] || return 1
+  [ -x "$EOC_ETHOS_EOC" ] || return 1
+  return 0
+}
+
+# Download the pinned checker and build the Eunoia compiler. The compiler comes
+# from the ethos commit that Logos pins in install/get-eo-compiler.sh, and is
+# placed under deps/cpc-compiler/install/deps, which is self-contained: that
+# ethos is deliberately not the one contrib/get-ethos-checker uses, and the two
+# must not be mixed, since ethos-eoc reads its Lean and Eunoia templates out of
+# the tree it was configured from and a mixed run compiles with the wrong
+# templates and still succeeds.
+function setup_compiler {
+  echo "=== Setting up the Eunoia compiler for CPC, pinned to logos $LOGOS_VERSION"
+  mkdir -p "$BASE_DIR/tmp"
+  rm -rf "$COMPILER_DIR"
+  mkdir -p "$COMPILER_DIR"
+  rm -f "$BASE_DIR/tmp/logos.tgz"
+  download "https://github.com/cvc5/logos/archive/$LOGOS_VERSION.tar.gz" \
+           "$BASE_DIR/tmp/logos.tgz"
+  tar --strip 1 -xzf "$BASE_DIR/tmp/logos.tgz" -C "$COMPILER_DIR"
+  rm "$BASE_DIR/tmp/logos.tgz"
+  if [ ! -f "$COMPILER_DIR/install/get-eo-compiler.sh" ]; then
+    echo "error: logos $LOGOS_VERSION has no install/get-eo-compiler.sh." >&2
+    echo "The pin in $(basename "$GET_LOGOS") predates the install scripts this" >&2
+    echo "check drives; move it to a commit that has them." >&2
+    exit 1
+  fi
+  bash "$COMPILER_DIR/install/get-eo-compiler.sh"
+  echo "$LOGOS_VERSION" > "$VERSION_FILE"
+}
+
+compiler_is_current || setup_compiler
+
+echo ""
+echo "=== Checking $SIGNATURE against logos $LOGOS_VERSION"
+
+# install-cpc.sh exits 1 both when the compile fails and when a package is
+# merely out of date, so the two are told apart by the line it prints on the
+# latter.
+set +e
+output="$(bash "$INSTALL_CPC" --signature "$SIGNATURE" --check "$@" 2>&1)"
+status=$?
+set -e
+
+printf '%s\n' "$output"
+
+if [ "$status" -eq 0 ]; then
+  echo ""
+  echo "proofs/eo/cpc is in sync with the pinned checker."
+  exit 0
+fi
+
+if ! printf '%s\n' "$output" | grep -q 'is NOT up to date with'; then
+  echo "" >&2
+  echo "error: the CPC signature did not compile with the Eunoia compiler that" >&2
+  echo "generates the Lean checker from it. This is a change to proofs/eo that" >&2
+  echo "the compiler cannot handle; the output above says where." >&2
+  exit 1
+fi
+
+echo "" >&2
+echo "error: the CPC signature compiles, but the pinned checker was generated" >&2
+echo "from an older version of it: updating CPC requires an updated version of" >&2
+echo "Logos to check it against, after which LOGOS_VERSION in" >&2
+echo "$(basename "$GET_LOGOS") is moved to it." >&2
+echo "See https://github.com/cvc5/logos#regenerating-the-calculus" >&2
+echo "" >&2
+echo "docs/proofs/output_cpc.rst describes what this check establishes and how" >&2
+echo "to proceed when a rule cannot readily be proven in Logos." >&2
+
+exit 2

@@ -1,0 +1,104 @@
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'proofs/eo/**'
+      - 'contrib/check-logos-compilation'
+      - 'contrib/get-logos-checker'
+      - '.github/workflows/cpc_logos.yml'
+  pull_request:
+    # Keep in sync with the push filter above; GitHub Actions does not support
+    # YAML anchors.
+    paths:
+      - 'proofs/eo/**'
+      - 'contrib/check-logos-compilation'
+      - 'contrib/get-logos-checker'
+      - '.github/workflows/cpc_logos.yml'
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+name: cpc-logos
+
+concurrency:
+  group: cpc-logos-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
+
+permissions:
+  contents: read
+
+jobs:
+  check-logos-compilation:
+    name: Check CPC-Logos synchronization
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # Query the result already recorded by GitHub for Logos's own CI at the
+      # exact pinned commit. This does not dispatch or rerun Logos CI. Logos
+      # runs its groups as separate jobs of one workflow named CI, all of them
+      # required, so the conclusion of the run is the whole of its verdict.
+      - name: Check Logos CI result
+        # Authenticated: the anonymous rate limit is shared per runner IP.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          logos_version="$(./contrib/check-logos-compilation --version)"
+          api_url="https://api.github.com/repos/cvc5/logos/actions/runs"
+          api_url+="?head_sha=${logos_version}&status=success&per_page=100"
+          response="$(curl --fail-with-body --silent --show-error --retry 3 \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "${api_url}")"
+          if ! run_url="$(jq -er --arg sha "${logos_version}" \
+            'first(.workflow_runs[]
+                   | select(.name == "CI"
+                            and .head_sha == $sha
+                            and .status == "completed"
+                            and .conclusion == "success")
+                   | .html_url)' <<< "${response}")"; then
+            echo "::error title=Logos CI has not passed::No successful Logos CI run was found for ${logos_version}."
+            exit 1
+          fi
+          echo "Logos CI passed for ${logos_version}: ${run_url}"
+
+      # ethos-eoc is a cmake/C++17 project and needs the GMP headers. Nothing
+      # else here builds or runs cvc5: what is compiled is the Eunoia source
+      # text of proofs/eo/cpc.
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgmp-dev
+
+      # The pinned Logos commit and, transitively, the ethos commit it pins are
+      # both fixed by the two scripts below -- the pin itself lives in
+      # get-logos-checker and check-logos-compilation reads it from there -- so
+      # their hashes are the whole cache key.
+      # Restore and save are separate so that a failed install is not written
+      # to the cache, where it would be restored by every later run under a key
+      # that nothing invalidates.
+      - name: Restore CPC compiler cache
+        id: cpc-compiler-cache
+        uses: actions/cache/restore@v5
+        with:
+          path: deps/cpc-compiler
+          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-logos-checker', 'contrib/check-logos-compilation') }}
+
+      # The check sets the compiler up itself when it is not there. Do not mask
+      # its nonzero exit status: a passing check must mean that CPC is in sync
+      # with the pinned Logos, so both a compilation failure (exit 1) and a
+      # signature ahead of the pinned Logos (exit 2) fail the job.
+      - name: Check that CPC is in sync with the pinned Logos
+        run: ./contrib/check-logos-compilation
+
+      # The setup writes .cvc5-pinned-version last, so its presence is what
+      # says the install completed; the check's own outcome is irrelevant here.
+      - name: Save CPC compiler cache
+        if: always() && steps.cpc-compiler-cache.outputs.cache-hit != 'true' && hashFiles('deps/cpc-compiler/.cvc5-pinned-version') != ''
+        uses: actions/cache/save@v5
+        with:
+          path: deps/cpc-compiler
+          key: ${{ runner.os }}-cpc-compiler-${{ hashFiles('contrib/get-logos-checker', 'contrib/check-logos-compilation') }}

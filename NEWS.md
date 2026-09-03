@@ -61,6 +61,15 @@ cvc5 1.3.5 prerelease
   directly an input assertion, the proof would instead end with an `assume`
   command.
 
+- Added support for checking CPC proofs with Logos, a proof checker written in
+  Lean whose CPC rules are generated from the Eunoia definition in this
+  repository. Logos can be installed with `./contrib/get-logos-checker`. Its
+  current scope is the CPC fragment used by safe builds of cvc5; expert CPC
+  rules and some SMT-LIB input features, including parametric datatypes and
+  `define-fun`, are not yet supported. The CPC definition is corroborated by
+  Logos only when Logos's own CI passes for the Logos commit pinned by
+  `contrib/get-logos-checker`.
+
 cvc5 1.3.4
 ==========
 
