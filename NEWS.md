@@ -3,6 +3,15 @@ This file contains a summary of important user-visible changes.
 cvc5 1.3.5 prerelease
 =====================
 
+## New Features
+
+- Added the `int.star-contains` predicate for reasoning about integer
+  semilinear sets (LIA*). It is enabled by configuring with `--normaliz`
+  (requires `--gpl`), which builds cvc5 with the Normaliz library.
+
+cvc5 1.3.5 prerelease
+=====================
+
 ## Changes
 
 - The `configure.sh` script now **requires a build type** to be given as its
