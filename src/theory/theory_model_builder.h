@@ -15,6 +15,7 @@
 #ifndef CVC5__THEORY__THEORY_MODEL_BUILDER_H
 #define CVC5__THEORY__THEORY_MODEL_BUILDER_H
 
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -147,6 +148,31 @@ class TheoryEngineModelBuilder : protected EnvObj
    * each child is constant.
    */
   Node normalize(TheoryModel* m, TNode r, bool evalOnly);
+  /**
+   * Does n contain a symbol, i.e. a variable that is not a bound variable?
+   */
+  static bool hasSymbol(TNode n);
+  /**
+   * Assign the representative of the equivalence class eqc, whose model value
+   * is the lambda lambdaReps[eqc]. The body of this lambda may contain free
+   * symbols, whose model values are used to fully evaluate it here.
+   *
+   * This is called after all other representatives have been assigned in
+   * buildModel, since the model values of function symbols, which the body of
+   * the lambda may depend on, are computed on demand.
+   *
+   * @param tm The model.
+   * @param eqc The equivalence class to assign, which must be a key of
+   * lambdaReps.
+   * @param lambdaReps Maps equivalence classes to the (non-evaluated) lambda
+   * values that were assigned to them.
+   * @param processing The equivalence classes we are currently processing,
+   * which is used to break cyclic dependencies between lambda values.
+   */
+  void assignLambdaRepresentative(TheoryModel* tm,
+                                  const Node& eqc,
+                                  const std::map<Node, Node>& lambdaReps,
+                                  std::unordered_set<Node>& processing);
   /** assign constant representative
    *
    * Called when equivalence class eqc is assigned a constant
