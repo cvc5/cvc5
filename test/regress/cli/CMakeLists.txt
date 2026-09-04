@@ -2742,6 +2742,8 @@ set(regress_1_tests
   regress1/bags/all1.smt2
   regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
+  regress1/bags/calcite_pull_constant_through_union.smt2
+  regress1/bags/calcite_push_project_past_setop.smt2
   regress1/bags/bag_partition1.smt2
   regress1/bags/bags-of-bags-subtypes.smt2
   regress1/bags/bug_bagsome_geq.smt2
@@ -2812,6 +2814,7 @@ set(regress_1_tests
   regress1/bags/table_join3.smt2
   regress1/bags/table_project1.smt2
   regress1/bags/table_project2.smt2
+  regress1/bags/table_project3.smt2
   regress1/bags/union_disjoint.smt2
   regress1/bags/union_max1.smt2
   regress1/bags/union_max2.smt2
@@ -3644,8 +3647,10 @@ set(regress_1_tests
   regress1/sets/relation_group3.smt2
   regress1/sets/relation_group4.smt2
   regress1/sets/relation_group5.smt2
+  regress1/sets/calcite_merge_filter.smt2
   regress1/sets/relation_project1.smt2
   regress1/sets/relation_project2.smt2
+  regress1/sets/relation_project3.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
