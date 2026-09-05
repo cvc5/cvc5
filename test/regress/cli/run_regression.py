@@ -765,6 +765,15 @@ def get_cvc5_features(cvc5_binary, timeout):
     else:
         features.append("unrestricted-mode")
 
+    # Synthetic feature describing the host rather than the build, so that a
+    # regression can be restricted to, or excluded from, a platform. Needed
+    # for benchmarks whose expected exit status is a signal: an abort is
+    # reported as -6 by subprocess on POSIX, but not on Windows.
+    if is_windows:
+        features.append("windows")
+    else:
+        disabled_features.append("windows")
+
     return features, disabled_features
 
 def check_scrubber(scrubber_error, scrubber):

@@ -48,6 +48,34 @@ class CheckModels : protected EnvObj
   void checkModel(theory::TheoryModel* m,
                   const context::CDList<Node>& al,
                   bool hardFailure);
+
+ private:
+  /**
+   * Attempt to check a separation logic assertion that could not be evaluated
+   * directly against the heap model (e.g. because it contains a magic wand).
+   *
+   * We pin the heap to the concrete heap model and the free symbols of the
+   * assertion to their model values, then ask a subsolver whether the
+   * assertion is still satisfiable. Since the pinned heap describes exactly
+   * one heap (the model heap), a satisfiable result means the model satisfies
+   * the assertion, and an unsatisfiable result means it does not.
+   *
+   * @param m The model.
+   * @param sepHeap The concrete heap model term.
+   * @param sepNeq The separation nil equality of the model.
+   * @param heapIsGround Whether sepHeap and sepNeq are ground, i.e. whether
+   * they describe exactly one heap. If they do not, this declines to check
+   * rather than reporting a result it did not establish.
+   * @param assertion The assertion to check.
+   * @return the Boolean constant true if the model satisfies the assertion,
+   * false if it provably does not, or the null node if this could not be
+   * determined (e.g. the subsolver returned unknown).
+   */
+  Node checkSepAssertionWithSubsolver(theory::TheoryModel* m,
+                                      TNode sepHeap,
+                                      TNode sepNeq,
+                                      bool heapIsGround,
+                                      TNode assertion);
 };
 
 }  // namespace smt

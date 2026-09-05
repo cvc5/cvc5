@@ -284,6 +284,13 @@ class TheoryModel : protected EnvObj
   void setHeapModel(Node h, Node neq);
   /** get the heap and value sep.nil is equal to */
   bool getHeapModel(Node& h, Node& neq) const;
+  /**
+   * Set the labels that denote a fragment of the heap model, i.e. those an
+   * internal (@sep_label phi L) fact can be checked against.
+   */
+  void setSepHeapLabels(const std::unordered_set<Node>& labels);
+  /** Does lbl denote a fragment of the heap model? */
+  bool isSepHeapLabel(TNode lbl) const;
   //---------------------------- end separation logic
 
   /** get domain elements for uninterpreted sort t */
@@ -478,6 +485,8 @@ class TheoryModel : protected EnvObj
   Node d_sep_heap;
   /** the value of the nil element */
   Node d_sep_nil_eq;
+  /** the labels denoting a fragment of the heap, see setSepHeapLabels */
+  std::unordered_set<Node> d_sep_heap_labels;
   //---------------------------- end separation logic
 
   //---------------------------- function values
