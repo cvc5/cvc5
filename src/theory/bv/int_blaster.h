@@ -18,6 +18,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdo.h"
+#include "cvc5/cvc5_proof_rule.h"
 #include "options/smt_options.h"
 #include "proof/proof_generator.h"
 #include "proof/trust_node.h"
@@ -93,6 +94,7 @@ namespace cvc5::internal {
 class IntBlaster : protected EnvObj, public ProofGenerator
 {
   using CDNodeMap = context::CDHashMap<Node, Node>;
+  using CDNodeRuleMap = context::CDHashMap<Node, ProofRule>;
 
  public:
   /**
@@ -137,8 +139,11 @@ class IntBlaster : protected EnvObj, public ProofGenerator
   /**
    * Get proof for fact, where fact may correspond to:
    * (1) An equality of the form (= n n') where n was rewritten to n' in the
-   * method trustedIntBlast.
-   * (2) A lemma added to lemmas in the method trustedIntBlast.
+   * method trustedIntBlast, proven by ProofRule::BV_INTBLAST_STEP.
+   * (2) A range constraint added in addRangeConstraint or
+   * addQuantifiedRangeConstraint, proven by ProofRule::BV_INTBLAST_RANGE.
+   * (3) A bitwise constraint added in addBitwiseConstraint, proven by
+   * ProofRule::BV_INTBLAST_BITWISE.
    */
   std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** identify */
@@ -376,6 +381,13 @@ class IntBlaster : protected EnvObj, public ProofGenerator
    *   used in for options::SolveBVAsIntMode::BITWISE
    */
   context::CDHashSet<Node> d_bitwiseAssertions;
+
+  /**
+   * Maps facts proved by this generator (either translation equalities or
+   * lemmas) to the proof rule that proves them, so that getProofFor can
+   * dispatch to the appropriate rule.
+   */
+  CDNodeRuleMap d_factProofRule;
 
   /** Useful constants */
   Node d_zero;

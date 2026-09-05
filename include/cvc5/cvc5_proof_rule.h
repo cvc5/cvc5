@@ -1423,6 +1423,49 @@ enum ENUM(ProofRule)
   EVALUE(BV_POLY_NORM_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Int-blasting translation step**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F}{F}
+   *
+   * where :math:`F` is an equality between a bit-vector (or Boolean) term and
+   * its integer translation, computed by the int-blasting preprocessing pass.
+   * This rule is a placeholder that does not yet check the correctness of
+   * :math:`F`.
+   * \endverbatim
+   */
+  EVALUE(BV_INTBLAST_STEP),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Int-blasting range constraint**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F}{F}
+   *
+   * where :math:`F` is a range constraint on an integer variable introduced
+   * by the int-blasting preprocessing pass. This rule is a placeholder that
+   * does not yet check the correctness of :math:`F`.
+   * \endverbatim
+   */
+  EVALUE(BV_INTBLAST_RANGE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Bit-vectors -- Int-blasting bitwise constraint**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid F}{F}
+   *
+   * where :math:`F` is a bitwise constraint introduced by the int-blasting
+   * preprocessing pass when translating bit-wise operators. This rule is a
+   * placeholder that does not yet check the correctness of :math:`F`.
+   * \endverbatim
+   */
+  EVALUE(BV_INTBLAST_BITWISE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Datatypes -- Split**
    *
    * .. math::

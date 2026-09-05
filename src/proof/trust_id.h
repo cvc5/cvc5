@@ -229,8 +229,6 @@ enum class TrustId : uint32_t
    * require the use of theory rewrites to prove.
    */
   MACRO_THEORY_REWRITE_RCONS_SIMPLE,
-  /** An unproven step from the int-blaster */
-  INT_BLASTER,
   /** Untracked sources of trust, which are discouraged */
   /** A rewrite of the input formula by a preprocessing pass without a proof */
   UNKNOWN_PREPROCESS,

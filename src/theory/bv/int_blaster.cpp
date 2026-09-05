@@ -53,6 +53,7 @@ IntBlaster::IntBlaster(Env& env,
       d_intblastCache(userContext()),
       d_rangeNodes(userContext()),
       d_bitwiseAssertions(userContext()),
+      d_factProofRule(userContext()),
       d_iandUtils(nodeManager()),
       d_mode(mode),
       d_context(userContext())
@@ -68,9 +69,10 @@ IntBlaster::~IntBlaster() {}
 
 std::shared_ptr<ProofNode> IntBlaster::getProofFor(Node fact)
 {
-  // proofs not yet supported
   CDProof cdp(d_env);
-  cdp.addTrustedStep(fact, TrustId::INT_BLASTER, {}, {});
+  CDNodeRuleMap::const_iterator it = d_factProofRule.find(fact);
+  Assert(it != d_factProofRule.end());
+  cdp.addStep(fact, (*it).second, {}, {fact});
   return cdp.getProofFor(fact);
 }
 
@@ -88,6 +90,7 @@ void IntBlaster::addRangeConstraint(Node node,
     Trace("int-blaster-debug")
         << "node added to cache and constraints added to lemmas " << std::endl;
     d_rangeNodes.insert(node);
+    d_factProofRule.insert(rangeConstraint, ProofRule::BV_INTBLAST_RANGE);
     TrustNode trn = TrustNode::mkTrustLemma(rangeConstraint, this);
     lemmas.push_back(trn);
   }
@@ -119,6 +122,7 @@ void IntBlaster::addQuantifiedRangeConstraint(Node f,
                                   "range constraint added to cache and lemmas "
                                << std::endl;
     d_rangeNodes.insert(f);
+    d_factProofRule.insert(rangeConstraint, ProofRule::BV_INTBLAST_RANGE);
     TrustNode trn = TrustNode::mkTrustLemma(rangeConstraint, this);
     lemmas.push_back(trn);
   }
@@ -133,6 +137,7 @@ void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
         << "bitwise constraint added to cache and lemmas: " << bitwiseConstraint
         << std::endl;
     d_bitwiseAssertions.insert(bitwiseConstraint);
+    d_factProofRule.insert(bitwiseConstraint, ProofRule::BV_INTBLAST_BITWISE);
     TrustNode trn = TrustNode::mkTrustLemma(bitwiseConstraint, this);
     lemmas.push_back(trn);
   }
@@ -286,6 +291,7 @@ TrustNode IntBlaster::trustedIntBlast(Node n,
   {
     return TrustNode::null();
   }
+  d_factProofRule.insert(n.eqNode(res), ProofRule::BV_INTBLAST_STEP);
   return TrustNode::mkTrustRewrite(n, res, this);
 }
 

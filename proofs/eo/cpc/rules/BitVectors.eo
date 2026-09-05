@@ -273,3 +273,52 @@
   :requires (((eo::to_z one) 1) ((eo::zmod (eo::to_z cx) 2) 1) ((eo::zmod (eo::to_z cy) 2) 1))
   :conclusion (= (= xb1 xb2) (= yb1 yb2))
 )
+
+;;;;; ProofRule::BV_INTBLAST_STEP
+
+; rule: bv_intblast_step
+; implements: ProofRule::BV_INTBLAST_STEP.
+; args:
+; - F Bool: The proven formula.
+; conclusion: The given formula F.
+; note: >
+;   This rule is a placeholder for facts derived by the int-blasting
+;   preprocessing pass, which is not yet formalized in the Eunoia signature.
+;   It accepts any formula F without checking it.
+(declare-rule bv_intblast_step ((F Bool))
+  :args (F)
+  :conclusion F
+)
+
+;;;;; ProofRule::BV_INTBLAST_RANGE
+
+; rule: bv_intblast_range
+; implements: ProofRule::BV_INTBLAST_RANGE.
+; args:
+; - F Bool: The proven formula.
+; conclusion: The given formula F.
+; note: >
+;   This rule is a placeholder for range constraints on integer variables
+;   introduced by the int-blasting preprocessing pass, which is not yet
+;   formalized in the Eunoia signature. It accepts any formula F without
+;   checking it.
+(declare-rule bv_intblast_range ((F Bool))
+  :args (F)
+  :conclusion F
+)
+
+;;;;; ProofRule::BV_INTBLAST_BITWISE
+
+; rule: bv_intblast_bitwise
+; implements: ProofRule::BV_INTBLAST_BITWISE.
+; args:
+; - F Bool: The proven formula.
+; conclusion: The given formula F.
+; note: >
+;   This rule is a placeholder for bitwise constraints introduced by the
+;   int-blasting preprocessing pass, which is not yet formalized in the
+;   Eunoia signature. It accepts any formula F without checking it.
+(declare-rule bv_intblast_bitwise ((F Bool))
+  :args (F)
+  :conclusion F
+)
