@@ -1199,9 +1199,11 @@ void TheorySep::initializeBounds()
   {
     n_emp = d_card_max;
   }
-  else if (d_type_references.empty())
+  if (n_emp == 0 && d_type_references.empty())
   {
-    // must include at least one constant TODO: remove?
+    // We must include at least one constant, so that the set of locations is
+    // not empty. Otherwise, computeLabelModel has no location to fall back on
+    // for a location in the model that has no corresponding term.
     n_emp = 1;
   }
   Trace("sep-bound") << "Cardinality element size : " << d_card_max
