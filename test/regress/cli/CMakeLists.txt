@@ -1961,6 +1961,7 @@ set(regress_0_tests
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2
+  regress0/sep/issue12915-bv-to-int-sep-nil.smt2
   regress0/sep/issue12917-wand-star-consequent.smt2
   regress0/sep/issue12916-wand-not-emp-no-pto.smt2
   regress0/sep/issue12918-hole-pto-data.smt2
