@@ -166,6 +166,7 @@ TheoryArithPrivate::TheoryArithPrivate(Env& env,
       d_lhsTmp(),
       d_approxStats(nullptr),
       d_attemptSolveIntTurnedOff(userContext(), 0),
+      d_consecutiveRelaxFailures(0),
       d_dioSolveResources(0),
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
@@ -3251,6 +3252,34 @@ void TheoryArithPrivate::turnOffApproxFor(int32_t rounds)
   ++(d_statistics.d_approxDisabled);
 }
 
+void TheoryArithPrivate::noteRelaxationOutcome()
+{
+  if (d_qflraStatus != Result::UNKNOWN)
+  {
+    // Importing the relaxation produced either an exact model or a conflict.
+    // Either is a useful answer, so this does not count against the solver --
+    // note that d_relaxLin*Failures is a coarser measure than this, as it also
+    // counts an import that came back UNSAT when the relaxation said feasible.
+    d_consecutiveRelaxFailures = 0;
+    return;
+  }
+  ++d_consecutiveRelaxFailures;
+  uint64_t limit = options().arith.approxRelaxFailureLimit;
+  if (limit == 0 || d_consecutiveRelaxFailures < limit)
+  {
+    return;
+  }
+  // The integer path gives up on the approximate solver once it has repeatedly
+  // failed to produce something usable, but the real relaxation path had no
+  // such guard: turnOffApproxFor() was only ever reached from solveInteger(),
+  // which a pure-real logic never enters. On problems whose LP relaxation is
+  // too unconstrained to be informative the relaxation therefore came back
+  // "feasible" on every check, was imported, failed, and was tried again, with
+  // nothing able to stop it.
+  d_consecutiveRelaxFailures = 0;
+  turnOffApproxFor(options().arith.replayNumericFailurePenalty);
+}
+
 bool TheoryArithPrivate::safeToCallApprox() const
 {
   unsigned numRows = 0;
@@ -3506,8 +3535,14 @@ void TheoryArithPrivate::importSolution(
   {
     static constexpr int64_t pass2Limit = 20;
     SimplexDecisionProcedure& simplex = selectSimplex(false);
+    // The pivot limit is state on the SimplexDecisionProcedure, not an
+    // argument to findModel(), so lowering it here would otherwise leak into
+    // every later call on this object -- including pass 1, which is the same
+    // object under --use-fcsimplex and --use-soi. Put it back afterwards.
+    int64_t savedLimit = simplex.getVarOrderPivotLimit();
     simplex.setVarOrderPivotLimit(pass2Limit);
     d_qflraStatus = simplex.findModel(false);
+    simplex.setVarOrderPivotLimit(savedLimit);
   }
 
   if (TraceIsOn("arith::importSolution"))
@@ -3623,6 +3658,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel)
         {
           ++d_statistics.d_relaxLinFeasFailures;
         }
+        noteRelaxationOutcome();
         break;
       case LinInfeasible:
         // todo attempt to recreate approximate conflict
@@ -3634,6 +3670,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel)
         {
           ++d_statistics.d_relaxLinInfeasFailures;
         }
+        noteRelaxationOutcome();
         break;
       case LinExhausted:
         ++d_statistics.d_relaxLinExhausted;
