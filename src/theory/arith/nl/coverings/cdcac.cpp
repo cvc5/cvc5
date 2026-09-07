@@ -232,6 +232,7 @@ PolyVector requiredCoefficientsOriginal(const poly::Polynomial& p,
     auto coeff = coefficient(p, deg);
     Assert(poly::is_constant(coeff)
            == lp_polynomial_is_constant(coeff.get_internal()));
+    if (poly::is_zero(coeff)) continue;
     if (poly::is_constant(coeff)) break;
     res.add(coeff);
     if (evaluate_constraint(coeff, assignment, poly::SignCondition::NE))
