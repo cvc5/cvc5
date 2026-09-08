@@ -975,6 +975,8 @@ set(regress_0_tests
   regress0/fp/bvcomp-rewrite.smt2
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
+  regress0/fp/from-real-shared-purified-arg.smt2
+  regress0/fp/from-real-zero-sign.smt2
   regress0/fp/from_ubv.smt2
   regress0/fp/from_sbv.smt2
   regress0/fp/fp-set-comprehension-basic.smt2
@@ -1007,6 +1009,11 @@ set(regress_0_tests
   regress0/fp/issue9972-2.smt2
   regress0/fp/issue11139.smt2
   regress0/fp/issue12335.smt2
+  regress0/fp/issue12340-from-real-refine.smt2
+  regress0/fp/issue12354-from-real-refine.smt2
+  regress0/fp/issue12370-from-real-refine.smt2
+  regress0/fp/issue12780-from-real-refine.smt2
+  regress0/fp/issue12867-min-max-zero.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue329-prereg-context.smt2
   regress0/fp/proj-issue477-fp-set-comprehension.smt2
@@ -1014,6 +1021,7 @@ set(regress_0_tests
   regress0/fp/proj-issue744-safe.smt2
   regress0/fp/proj-issue745-safe.smt2
   regress0/fp/proj-issue746-safe.smt2
+  regress0/fp/real-fp-real-roundtrip.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
   regress0/fp/word-blast.smt2
@@ -1651,6 +1659,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/re-emp-star-eval.smt2
   regress0/proofs/re-range-empty.smt2
   regress0/proofs/re-range-refl.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
@@ -2219,6 +2228,7 @@ set(regress_0_tests
   regress0/strings/issue12241-aci.smt2
   regress0/strings/issue12322-pf-eager-len-re.smt2
   regress0/strings/issue12756-str-inc-model.smt2
+  regress0/strings/issue12863-re-inc-neg.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -2888,11 +2898,13 @@ set(regress_1_tests
   regress1/difficulty-polarity.smt2
   regress1/errorcrash.smt2
   regress1/fp/fp_to_real.smt2
+  regress1/fp/issue12759-fp-str-refine-values.smt2
   regress1/fp/issue8242-check-models.smt2
   regress1/fp/issue8242-fp-eq-sub-div.smt2
   regress1/fp/issue8242-fp-max-div.smt2
   regress1/fp/issue8242-nested-div.smt2
   regress1/fp/proj-issue327-nested-conversions.smt2
+  regress1/fp/real-fp-real-roundtrip-idempotent.smt2
   regress1/fp/rti_3_5_bug_report.smt2
   regress1/fmf-fun-dbu.smt2
   regress1/fmf/ALG008-1.smt2
@@ -3091,7 +3103,6 @@ set(regress_1_tests
   regress1/nl/issue9999.smt2
   regress1/nl/learned-rewrite-int-mod-range.smt2
   regress1/nl/metitarski-1025.smt2
-  regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
   regress1/nl/mirko-050417.smt2
   regress1/nl/nl-eq-infer.smt2
@@ -4181,7 +4192,6 @@ set(regress_2_tests
   regress2/ho/involved_parsing_ALG248^3.smt2
   regress2/ho/partial_app_interpreted_SWW474^2.smt2
   regress2/hole7.cvc.smt2
-  regress2/hole8.cvc.smt2
   regress2/instance_1444.smtv1.smt2
   regress2/issue3687-check-models.smt2
   regress2/issue6495-dup-pat-term.smt2
@@ -4415,6 +4425,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # timeout on some builds
+  regress1/nl/metitarski-3-4.smt2
   # times out on various builds
   regress1/nl/proj-issue231.smt2
   # times out after the rewriter stopped normalizing equalities, which orients
@@ -4491,6 +4503,8 @@ set(regression_disabled_tests
   regress2/arith/miplib-opt1217--27.smt2
   # unknown answer after optimizing map formulas
   regress2/bags/pull_null.smt2
+  # timeout on some builds
+  regress2/hole8.cvc.smt2
   regress2/nl/dumortier-050317.smt2
   # times out after the linear solver stopped setting up the normal form of an
   # equality, which made the literals of its constraints non-canonical

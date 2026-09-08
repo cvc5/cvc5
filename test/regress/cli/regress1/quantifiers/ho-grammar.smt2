@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --mbqi --mbqi-enum
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

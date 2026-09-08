@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --ext-rewrite-quant --sygus-inst -q
 ; EXPECT: sat
 (set-logic ALL)

@@ -3,7 +3,9 @@ Building cvc5
 
 .. code:: bash
 
-    ./configure.sh
+    ./configure.sh <build type>
+        # a build type is mandatory, run ./configure.sh --help for the
+        #   list of available build types
         # use --prefix to specify an install prefix (default: /usr/local)
         # use --name=<PATH> for custom build directory
         # use --auto-download to download and build missing, required or
@@ -81,7 +83,7 @@ you can cross-compile cvc5 as follows:
 
 .. code:: bash
 
-  ./configure.sh --win64 --static <configure options...>
+  ./configure.sh unrestricted --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -117,7 +119,7 @@ Then, in the cvc5 directory:
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -143,7 +145,7 @@ For example, to generate a HTML page, use:
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=HTML --name=prod
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=HTML --name=prod
 
   cd prod
   make            # use -jN for parallel build with N threads
@@ -154,7 +156,7 @@ On the other hand, to generate a modularized glue code to be imported by custom 
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
 
   cd prod
   make            # use -jN for parallel build with N threads
@@ -486,7 +488,7 @@ Testing Unit Tests
 The unit tests are not built by default.
 
 Note that cvc5 can only be configured with unit tests in non-static builds with
-assertions enabled (e.g. ``./configure.sh --unit-testing --assertions``).
+assertions enabled (e.g. ``./configure.sh unrestricted --unit-testing --assertions``).
 
 .. code::
 
@@ -594,6 +596,6 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  ./configure.sh --static <options>
+  ./configure.sh unrestricted --static <options>
 
 7. Follow remaining steps from `build instructions <#building-cvc5>`_
