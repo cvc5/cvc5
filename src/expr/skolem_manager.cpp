@@ -614,11 +614,10 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     }
     case SkolemId::FF_DISEQ_WITNESS:
     {
-      Assert(cacheVals.size() == 1);
-      Assert(cacheVals[0].getKind() == Kind::NOT
-             && cacheVals[0][0].getKind() == Kind::EQUAL);
-      Assert(cacheVals[0][0][0].getType().isFiniteField());
-      return cacheVals[0][0][0].getType();
+      Assert(cacheVals.size() == 2);
+      Assert(cacheVals[0].getType().isFiniteField());
+      Assert(cacheVals[0].getType() == cacheVals[1].getType());
+      return cacheVals[0].getType();
     }
     //
     default: break;

@@ -792,9 +792,10 @@ enum ENUM(SkolemId)
    * inverse of ``(- a b)``. It is used to encode the disequality as the
    * polynomial equation ``(= (+ (* (- a b) k) -1) 0)``.
    *
-   * - Number of skolem indices: ``1``
-   *   - ``1:`` The disequality.
-   * - Sort: The finite field sort of the disequality.
+   * - Number of skolem indices: ``2``
+   *   - ``1:`` The term ``a``, as defined above
+   *   - ``2:`` The term ``b``, as defined above
+   * - Sort: The finite field sort of a and b.
    */
   EVALUE(FF_DISEQ_WITNESS),
 
