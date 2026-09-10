@@ -1045,8 +1045,11 @@ void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
   Node rel_rep = getRepresentative(rel);
 
   // Build the set containing exactly rel's currently-known positive
-  // members.
+  // members, and collect each component of each member of R and their
+  // representatives.
   Node relValue;
+  std::map<Node, Node> memMap;   // original term -> representative
+  std::set<Node> memComponents;  // representatives of the member components
   MEM_IT mem_it = d_rReps_memberReps_cache.find(rel_rep);
   if (mem_it != d_rReps_memberReps_cache.end())
   {
@@ -1056,6 +1059,14 @@ void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
       relValue = relValue.isNull()
                      ? singleton
                      : nm->mkNode(Kind::SET_UNION, relValue, singleton);
+      Node srcTerm = TupleUtils::nthElementOfTuple(m, 0);
+      Node srcRep = getRepresentative(srcTerm);
+      Node sinkTerm = TupleUtils::nthElementOfTuple(m, 1);
+      Node sinkRep = getRepresentative(sinkTerm);
+      memMap.emplace(srcTerm, srcRep);
+      memMap.emplace(sinkTerm, sinkRep);
+      memComponents.insert(srcRep);
+      memComponents.insert(sinkRep);
     }
   }
   if (relValue.isNull())
@@ -1063,8 +1074,44 @@ void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
     relValue = d_treg.getEmptySet(rel.getType());
   }
 
-  Node reason =
-      nm->mkNode(Kind::AND, exp, nm->mkNode(Kind::EQUAL, rel, relValue));
+  // encode the model into the lemma's antecedent. Include the tc(R)-membership,
+  // the known members of R, and assert equality between each member component
+  // and its representative. Also assert that the representatives of the member
+  // components are distinct.
+  Node a0 = TupleUtils::nthElementOfTuple(mem_rep, 0);
+  Node aRep = getRepresentative(a0);
+  Node b0 = TupleUtils::nthElementOfTuple(mem_rep, 1);
+  Node bRep = getRepresentative(b0);
+  std::vector<Node> reasonConjuncts;
+  reasonConjuncts.push_back(exp);
+  reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, rel, relValue));
+  if (a0 != aRep)
+  {
+    reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, a0, aRep));
+  }
+  if (b0 != bRep)
+  {
+    reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, b0, bRep));
+  }
+  for (const auto& [memTerm, memRep] : memMap)
+  {
+    if (memTerm != memRep)
+    {
+      reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, memTerm, memRep));
+    }
+  }
+  memComponents.insert(aRep);
+  memComponents.insert(bRep);
+
+  if (memComponents.size() >= 2)
+  {
+    std::vector<Node> distinctReps(memComponents.begin(), memComponents.end());
+    reasonConjuncts.push_back(nm->mkNode(Kind::DISTINCT, distinctReps));
+  }
+
+  Node reason = reasonConjuncts.size() == 1
+                    ? reasonConjuncts[0]
+                    : nm->mkNode(Kind::AND, reasonConjuncts);
 
   Trace("rels-cycles") << "TCGroundingConflict: " << reason << " => false"
                        << std::endl;

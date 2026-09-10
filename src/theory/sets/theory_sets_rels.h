@@ -288,8 +288,8 @@ class TheorySetsRels : protected EnvObj
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
   /**
    * Sends a conflict for a transitive-closure membership mem_rep in
-   * tc_rel that is not reachable via members of tc_rel[0].
-   * Introduces no fresh skolems.
+   * tc_rel that is not reachable via members of tc_rel[0]. Introduces no
+   * fresh skolems.
    */
   void applyTCGroundingConflict(Node mem_rep, Node tc_rel, Node exp);
   /**
