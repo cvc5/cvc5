@@ -110,7 +110,7 @@ jobs:
       run: echo "bin=$(cygpath -m $(dirname $(which cc)))" >> $GITHUB_OUTPUT
 
     - name: Build wheels
-      uses: pypa/cibuildwheel@v3.3.0
+      uses: pypa/cibuildwheel@v4.2.0
       with:
         package-dir: ./build/src/api/python/
       env:
@@ -138,7 +138,6 @@ jobs:
         CIBW_ENVIRONMENT_WINDOWS: >
           PATH="${{ steps.mingw64-path.outputs.bin }};$PATH"
         CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
-        CIBW_TEST_SKIP: "cp38-macosx_arm64" # Silence warning. See: https://github.com/pypa/cibuildwheel/pull/1171
 
     # - uses: actions/upload-artifact@v6
     #   with:
