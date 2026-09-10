@@ -2030,11 +2030,10 @@ void TheorySetsRels::doCycleInference()
     Node l = c_it->second.second;
     if (maxUnroll >= 0 && s.size() >= static_cast<size_t>(maxUnroll))
     {
-      // Capped by --rels-acyclic-unroll-max: do not unroll this obligation
-      // any further. We cannot confirm whether the acyclicity constraint is
-      // actually satisfied beyond this point, so report incompleteness
-      // instead of silently under-approximating.
-      d_im.setModelUnsound(IncompleteId::SETS_RELS_ACYCLIC_UNROLL_MAX_REACHED);
+      // Set by --rels-acyclic-unroll-max: defer unrolling this obligation
+      // further so that shorter cycles are prioritized during full effort
+      // solving. checkAcyclicityLastCall makes sure that full cycle inference
+      // is performed before a model is accepted.
       ++c_it;
       continue;
     }
@@ -2095,34 +2094,22 @@ void TheorySetsRels::checkAcyclicityLastCall(Valuation& val)
     }
     else
     {
-      int64_t maxUnroll = options().sets.relsAcyclicUnrollMax;
-      if (maxUnroll >= 0 && N > static_cast<size_t>(maxUnroll))
+      // --rels-acyclic-unroll-max limits the number of cycle elements that can
+      // be unrolled during the full effort check. If the model's current value
+      // of l is larger than that, we must complete full cycle inference before
+      // accepting a model.
+      Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: "
+                          << "catching up cnt from " << s.size() << " to " << N
+                          << " (l = " << l << ")" << std::endl;
+      // Ensure that all cycle-unrolling lemmas have been applied up to the
+      // model's current value of l.
+      while (s.size() < N)
       {
-        // The model wants a cycle longer than --rels-acyclic-unroll-max
-        // allows us to catch up to. We cannot confirm whether the
-        // acyclicity constraint is actually satisfied in that case.
-        Trace("rels-debug")
-            << "[Theory::Rels] checkAcyclicityLastCall: model wants l = " << N
-            << " but --rels-acyclic-unroll-max caps unrolling at " << maxUnroll
-            << "; reporting model unsound" << std::endl;
-        d_im.setModelUnsound(
-            IncompleteId::SETS_RELS_ACYCLIC_UNROLL_MAX_REACHED);
-      }
-      else
-      {
-        Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: "
-                            << "catching up cnt from " << s.size() << " to "
-                            << N << " (l = " << l << ")" << std::endl;
-        // Ensure that all cycle-unrolling lemmas have been applied up to the
-        // model's current value of l.
-        while (s.size() < N)
-        {
-          Node acyc_exp =
-              nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)).negate();
-          s = applyUnrollCycle(rels, s, l);
-          applySplitCycleLenRule(rels, s, l);
-          applyContrMinimalRule(rels, s, l, acyc_exp);
-        }
+        Node acyc_exp =
+            nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)).negate();
+        s = applyUnrollCycle(rels, s, l);
+        applySplitCycleLenRule(rels, s, l);
+        applyContrMinimalRule(rels, s, l, acyc_exp);
       }
     }
     ++c_it;
