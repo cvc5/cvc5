@@ -173,8 +173,6 @@ cvc5 1.4.0 prerelease
     bit-vector conversions and string flat forms structurally recursive, marking
     index arguments as `:opaque`, and changing `set.insert` to take a typed list
     instead of a list.
-  * Improved proof support for Alethe: premises are now generated for the
-    `la_mult_abs_comparison` rule.
   * Fixes cases of open SAT proofs, and fixes CaDiCaL proofs for resolution
     steps with a single premise.
   * Fixes a possible cyclic proof and several incomplete proofs for the theory
