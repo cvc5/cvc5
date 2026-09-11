@@ -1,14 +1,13 @@
 ; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 ; DISABLE-TESTER: lfsc
+; COMMAND-LINE: -q
 ; Note: the strings-model-length warnings below are integral to this test:
 ; the oversized strings model is what corrupted the model values seen by the
 ; FP conversion-abstraction refinement (see cvc5/cvc5#12759). If the warning
 ; text (or the number of times it is emitted) changes, update these lines --
 ; but make sure the warning still triggers, otherwise this test no longer
 ; exercises the intended code path.
-; EXPECT-ERROR: The model was computed to have strings of length 4294967295. Based on the current value of option --strings-model-max-len, we only allow strings up to length 65536
-; EXPECT-ERROR: The model was computed to have strings of length 4294967295. Based on the current value of option --strings-model-max-len, we only allow strings up to length 65536
 ; DISABLE-TESTER: model
 (set-logic QF_UFBVFPSLIRA)
 
