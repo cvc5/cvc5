@@ -1,0 +1,46 @@
+; Reduction of test/regress/cli/regress0/proofs/issue9770-open-sat-proof.smt2
+; where the two define-fun (inv_main86, inv_main92) have been inlined by hand.
+; The top-level conjunction is miniscoped into ~73 separate assertions, several
+; of which are clauses that are also SAT literals. This used to make the SAT
+; proof manager justify such an input clause from a resolution chain that in
+; turn depended on it, i.e. a cycle at the node level, which made the chain be
+; dropped and the overall proof be open.
+; EXPECT: unsat
+(set-logic QF_LIA)
+(declare-const x24 Bool)
+(declare-const x17 Bool)
+(declare-const x23 Bool)
+(declare-const x204 Bool)
+(declare-const x1575 Bool)
+(declare-const x1574 Bool)
+(declare-const x158 Bool)
+(declare-const x1587 Bool)
+(declare-const x206 Bool)
+(declare-const x2 Bool)
+(declare-const x20 Bool)
+(declare-const x2044 Bool)
+(declare-const x20443 Bool)
+(declare-const x204434 Bool)
+(declare-const x18 Bool)
+(declare-const x1573 Bool)
+(declare-const x1873 Bool)
+(declare-const x187 Bool)
+(declare-const x1 Bool)
+(declare-const x15 Bool)
+(declare-const x4 Bool)
+(declare-const x9 Bool)
+(declare-const x18737 Bool)
+(declare-const x12 Bool)
+(declare-const x157 Bool)
+(declare-const x5 Bool)
+(declare-const x3 Bool)
+(declare-const x56 Bool)
+(declare-const x49 Int)
+(declare-const x53 Bool)
+(declare-const x Bool)
+(declare-fun G () Int)
+(declare-fun R () Int)
+(declare-fun Y () Int)
+(declare-fun Z () Int)
+(assert (and (or x20 x1573) (or x187 x24) (or x204 x17) (or x18 x3) (or x2044 x1587) (or x157 x56) (or x206 x1575) (or x9 x4) (or x x15) (or x9 x18737) (or x1 x20443 x204434) (or x1873 x2) (or x9 x158) (or x9 x1574) (or x12 x23) (or x5 x53) (or (<= 0 (* Z (- 1))) (<= 0 R) (<= (- 1) (* Y (- 1)))) (or (<= 0 R) (> 0 Z) (> 0 (* Z (- 1)))) (or (<= 0 Z) (<= (- 1) (* Y (- 1)))) (or (and (= 0 G) (= 1 G)) (and (= 1 x49) (= 0 x49)) (and (= 0 x49) (= 1 x49)) (not (or (<= 0 (* Z (- 1))) (<= 0 R) (<= (- 1) (* Y (- 1))))) (not (or (<= 0 R) (<= (- 1) (* Y (- 1))))))))
+(check-sat)
