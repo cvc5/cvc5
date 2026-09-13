@@ -242,6 +242,16 @@ class TheorySep : public Theory
   Node d_emp_arg;
   // map from ( atom, label, child index ) -> label
   std::map<Node, std::map<Node, std::map<int, Node> > > d_label_map;
+  /**
+   * Like d_label_map, but for the sublabels of the guarded reduction of a
+   * negated star/pto/emp or a positive wand (see reduceFact). The guarded
+   * reduction is a search for a witness partition (resp. counterexample
+   * extension) over fresh sublabels, and its outcome is only meaningful if
+   * those sublabels are free when the search runs. They are therefore not
+   * shared with the positive reduction of the same atom at the same label,
+   * whose sublabels may already be fixed for other reasons (issue #12913).
+   */
+  std::map<Node, std::map<Node, std::map<int, Node> > > d_guard_label_map;
 
   /**
    * Maps label sets to their direct parents. A set may have multiple parents
@@ -249,10 +259,14 @@ class TheorySep : public Theory
    */
   std::map<Node, std::vector<Node> > d_parentMap;
   /**
-   * Maps label sets to their direct children. This map is only stored for
-   * labels with children that do not share a root label with the base label.
+   * Maps label sets to the lists of their direct children. This map is only
+   * stored for labels with children that do not share a root label with the
+   * base label. A label may have more than one list of children: the label of
+   * the conclusion of a sep.wand is the disjoint union of the label of the
+   * wand and the label of its premise, and if that conclusion is itself a
+   * sep.star, it is also the disjoint union of the labels of its arguments.
    */
-  std::map<Node, std::vector<Node> > d_childrenMap;
+  std::map<Node, std::vector<std::vector<Node> > > d_childrenMap;
 
   /**
    * This sends the lemmas:
@@ -314,7 +328,12 @@ class TheorySep : public Theory
   // get location/data type
   // get the base label for the spatial assertion
   Node getBaseLabel();
-  Node getLabel(Node atom, int child, Node lbl);
+  /**
+   * Get the label for the child-th child of atom at label lbl, creating it if
+   * it does not exist. If guard is true, this is the label used by the
+   * guarded reduction (d_guard_label_map), otherwise d_label_map.
+   */
+  Node getLabel(Node atom, int child, Node lbl, bool guard = false);
   /**
    * Apply label lbl to all top-level spatial assertions, recursively, in n.
    */
@@ -322,7 +341,8 @@ class TheorySep : public Theory
   void getLabelChildren(Node atom,
                         Node lbl,
                         std::vector<Node>& children,
-                        std::vector<Node>& labels);
+                        std::vector<Node>& labels,
+                        bool guard = false);
 
   class HeapInfo
   {
@@ -360,6 +380,7 @@ class TheorySep : public Theory
                         std::map<Node, Node>& pto_model,
                         TypeNode rtn,
                         std::map<Node, bool>& active_lbl,
+                        bool guard,
                         unsigned ind = 0);
   void setInactiveAssertionRec(
       Node fact,
