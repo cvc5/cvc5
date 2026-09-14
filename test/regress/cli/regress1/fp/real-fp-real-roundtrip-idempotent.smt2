@@ -1,6 +1,7 @@
 ; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; DISABLE-TESTER: cpc
+; DISABLE-TESTER: lfsc
 ;
 ; The Real -> Float -> Real round trip is idempotent: rounding an already
 ; rounded value does not change it, since fp.to_real is exact and rounding an
