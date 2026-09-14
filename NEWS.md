@@ -177,6 +177,8 @@ cvc5 1.4.0 prerelease
     steps with a single premise.
   * Fixes a possible cyclic proof and several incomplete proofs for the theory
     of datatypes.
+  * The current CPC proofs are checkable by Ethos 0.2.4
+    (see `./contrib/get-ethos-checker`).
 
 - **Build**
   * The `configure.sh` script now **requires a build type** to be given as its
