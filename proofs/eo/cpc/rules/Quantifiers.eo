@@ -2,6 +2,22 @@
 (include "../programs/Datatypes.eo")
 (include "../theories/Quantifiers.eo")
 
+; program: $is_instantiation
+; args:
+; - xs @List: The bound variable list.
+; - ts @List: The term list.
+; return: >
+;   True iff the type of ts matches the type of xs.
+(program $is_instantiation
+  ((T Type) (xs @List :list) (ts @List :list) (t T) (s String))
+  :signature (@List @List) Bool
+  (
+  (($is_instantiation @list.nil @list.nil) true)
+  (($is_instantiation (@list (eo::var s T) xs) (@list t ts))
+    (eo::requires (eo::typeof t) T ($is_instantiation xs ts)))
+  )
+)
+
 ; rule: instantiate
 ; implements: ProofRule::INSTANTIATE.
 ; premises:
@@ -12,6 +28,7 @@
 (declare-rule instantiate ((F Bool) (xs @List) (ts @List))
   :premises ((forall xs F))
   :args (ts)
+  :requires ((($is_instantiation xs ts) true))
   :conclusion ($substitute_simul F xs ts))
 
 ; program: $mk_skolems
@@ -39,6 +56,7 @@
 ;   introduced via $mk_skolems.
 (declare-rule skolemize ((x @List) (G Bool))
   :premises ((not (forall x G)))
+  :requires ((($is_closed (forall x G)) true) ((eo::list_setof @list x) x))
   :conclusion ($substitute_simul (not G) x ($mk_skolems x (forall x G) 0))
 )
 
@@ -56,6 +74,38 @@
 
 ;;;;; ProofRule::ALPHA_EQUIV
 
+; define: $is_unique_var_list
+; args:
+; - xs @List: The first bound variable list.
+; return: true if xs is variable list that is pairwise unique.
+(define $is_unique_var_list ((xs @List))
+  (eo::and ($is_var_list xs) (eo::eq (eo::list_setof @list xs) xs)))
+
+; program: $is_renaming_rec
+; args:
+; - xs @List: The first bound variable list.
+; - ys @List: The second bound variable list.
+; return: >
+;   True iff the type of xs matches the type of ys.
+(program $is_renaming_rec
+  ((T Type) (xs @List :list) (ys @List :list) (s1 String) (s2 String))
+  :signature (@List @List) Bool
+  (
+  (($is_renaming_rec @list.nil @list.nil) true)
+  (($is_renaming_rec (@list (eo::var s1 T) xs) (@list (eo::var s2 T) ys))
+    ($is_renaming_rec xs ys))
+  )
+)
+; define: $is_renaming
+; args:
+; - xs @List: The first bound variable list.
+; - ys @List: The second bound variable list.
+; return: >
+;   True if ys is a valid renaming of xs, i.e. same type and both lists
+;   are pairwise unique.
+(define $is_renaming ((xs @List) (ys @List))
+  (eo::and ($is_unique_var_list xs) ($is_unique_var_list ys) ($is_renaming_rec xs ys)))
+
 ; rule: alpha_equiv
 ; implements: ProofRule::ALPHA_EQUIV.
 ; args:
@@ -72,11 +122,10 @@
 ;   t. The substitution is valid renaming due to the requirement check.
 (declare-rule alpha_equiv ((T Type) (t T) (vs @List) (ts @List))
   :args (t vs ts)
-  :requires ((($is_var_list vs) true)
-             (($is_var_list ts) true)
+  :requires ((($is_renaming vs ts) true)
              (($contains_atomic_term_list_free t vs) false)
-             (($contains_atomic_term_list t ts) false))
-  :conclusion (= t ($substitute_simul t vs ts))
+             (($contains_atomic_term_list_free t ts) false))
+  :conclusion (= t ($rename_simul t vs ts))
 )
 
 ;;;;; ProofRewriteRule::BETA_REDUCE
@@ -92,6 +141,7 @@
   :requires ((($beta_reduce a @list.nil) b))
   :conclusion (= a b)
 )
+
 
 ;;;;; ProofRule::QUANT_VAR_REORDERING
 
@@ -127,34 +177,18 @@
 
 ;;;;; ProofRewriteRule::QUANT_UNUSED_VARS
 
-; program: $mk_quant_unused_vars_rec
+; program: $get_unused_vars
 ; args:
-; - x @List: The list of variables of the quantified formula.
-; - F Bool: The body of the quantified formula.
-; return: the sublist of variables in x that should be quantified for F.
-(program $mk_quant_unused_vars_rec ((T Type) (xs @List :list) (x T) (F Bool))
-  :signature (@List Bool) eo::List
+; - F Bool: The quantified formula we are removing unused variables from.
+; - G Bool: The result of removing unused variables from F.
+; return: the variables that were removed from F to obtain G, discarding duplicates.
+(program $get_unused_vars ((Q (-> @List Bool Bool)) (x @List) (y @List) (F Bool))
+  :signature (Bool Bool) @List
   (
-  (($mk_quant_unused_vars_rec @list.nil F)    @list.nil)
-  (($mk_quant_unused_vars_rec (@list x xs) F) (eo::define ((r ($mk_quant_unused_vars_rec xs F)))
-                                              (eo::ite ($contains_atomic_term F x)
-                                                ; remove the duplicate of x in r if it exists
-                                                (_ @list x (eo::list_erase @list r x))
-                                                r)))
-  )
-)
-
-; program: $mk_quant
-; args:
-; - Q (-> @List Bool Bool): The quantifier, expected to be forall or exists.
-; - x @List: The list of variables of the quantified formula.
-; - F Bool: The body of the quantified formula.
-; return: The quantified formula (Q x F), or just F if x is the empty list.
-(program $mk_quant ((Q (-> @List Bool Bool)) (x @List) (F Bool))
-  :signature ((-> @List Bool Bool) @List Bool) Bool
-  (
-  (($mk_quant Q @list.nil F) F)
-  (($mk_quant Q x F) (Q x F))
+  (($get_unused_vars (Q x F) (Q y F)) (eo::define ((sx (eo::list_setof @list x)))
+                                      (eo::requires (eo::list_minclude @list sx y) true
+                                        (eo::list_diff @list sx y))))
+  (($get_unused_vars (Q x F) F)       (eo::list_setof @list x))
   )
 )
 
@@ -163,11 +197,12 @@
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
-;   The variables removed from the left hand side do not occur in its body.
+;   The variables removed from the left hand side do not occur free in the left hand side.
 ; conclusion: The given equality.
 (declare-rule quant-unused-vars ((Q (-> @List Bool Bool)) (x @List) (F Bool) (G Bool))
   :args ((= (Q x F) G))
-  :requires ((($mk_quant Q ($mk_quant_unused_vars_rec x F) F) G))
+  :requires (((eo::or (eo::eq Q forall) (eo::eq Q exists)) true)
+             (($contains_atomic_term_list_free G ($get_unused_vars (Q x F) G)) false))
   :conclusion (= (Q x F) G)
 )
 
@@ -244,12 +279,12 @@
 (program $is_quant_miniscope_or ((x @List) (xs @List :list) (ys @List :list) (f Bool) (fs Bool :list) (g Bool) (gs Bool :list))
   :signature (@List Bool Bool) Bool
   (
-  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_atomic_term_list f x) false
+  (($is_quant_miniscope_or x (or f fs) (or f gs))                     (eo::requires ($contains_atomic_term_list_free f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
-  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_atomic_term_list f x) false
+  (($is_quant_miniscope_or x (or f fs) (or (forall @list.nil f) gs))  (eo::requires ($contains_atomic_term_list_free f x) false
                                                                         ($is_quant_miniscope_or x fs gs)))
   (($is_quant_miniscope_or (@list x xs) (or f fs) (or (forall (@list x ys) f) gs))  
-                                                                      (eo::requires ($contains_atomic_term gs x) false
+                                                                      (eo::requires ($contains_atomic_term_free gs x) false
                                                                         ($is_quant_miniscope_or xs (or f fs) (or (forall ys f) gs))))
   (($is_quant_miniscope_or @list.nil false false)                     true)
   (($is_quant_miniscope_or x f g)                                     false)
@@ -282,7 +317,7 @@
 ; conclusion: The given equality.
 (declare-rule quant-miniscope-ite ((x @List) (A Bool) (F1 Bool) (F2 Bool))
   :args ((= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2))))
-  :requires ((($contains_atomic_term_list A x) false))
+  :requires ((($contains_atomic_term_list_free A x) false))
   :conclusion (= (forall x (ite A F1 F2)) (ite A (forall x F1) (forall x F2)))
 )
 
@@ -295,7 +330,7 @@
 ; return: >
 ;    The result of eliminating x from F. This method does not evaluate if t contains x.
 (define $mk_quant_var_elim_eq_subs ((T Type :implicit) (x T) (t T) (F Bool))
-  (eo::requires ($contains_atomic_term t x) false ($substitute x t F)))
+  (eo::requires ($contains_atomic_term_free t x) false ($substitute x t F)))
 
 ; program: $mk_quant_var_elim_eq
 ; args:
@@ -329,6 +364,17 @@
 
 ;;;;; ProofRewriteRule::QUANT_DT_SPLIT
 
+; define: $is_quant_dt_split_conj_subs
+; args:
+; - x T: The variable we are eliminating.
+; - c C: The constructor term we are substituting x with.
+; - F Bool: The body of the left hand side of the equality.
+; - G Bool: The conjunct we are testing.
+; return: >
+;   True if G is the result of replacing x in F by c, and x and c have the same type.
+(define $is_quant_dt_split_conj_subs ((T Type :implicit) (x T) (c T) (F Bool) (G Bool))
+  (eo::requires (eo::typeof c) (eo::typeof x) (eo::eq ($substitute x c F) G)))
+
 ; program: $is_quant_dt_split_conj
 ; args:
 ; - x T: The variable we are eliminating.
@@ -342,12 +388,17 @@
 (program $is_quant_dt_split_conj ((T Type) (U Type) (C Type) (W Type) (x T) (cx T) (c (-> U W)) (y U) (ys @List :list) (zs @List :list) (F Bool) (G Bool))
   :signature (T C @List Bool Bool) Bool
   (
-    (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G)) (eo::requires ($contains_atomic_term zs y) false  ; ensure no shadowing
-                                                                            ($is_quant_dt_split_conj x c ys F (forall zs G))))
-    (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))    (eo::requires ($contains_atomic_term zs y) false  ; ensure no shadowing
-                                                                            ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G))))
-    (($is_quant_dt_split_conj x c @list.nil F (forall @list.nil G))       ($is_quant_dt_split_conj x c @list.nil F G))
-    (($is_quant_dt_split_conj x cx @list.nil F G)                         (eo::eq ($substitute x cx F) G))
+    (($is_quant_dt_split_conj x c (@list y ys) F (forall (@list y zs) G))
+      (eo::requires (eo::list_find @list zs y) -1  ; ensure no shadowing
+        ($is_quant_dt_split_conj x c ys F (forall zs G))))
+    (($is_quant_dt_split_conj x c @list.nil F (forall (@list y zs) G))
+      (eo::requires (eo::list_find @list zs y) -1  ; ensure no shadowing
+      (eo::requires ($contains_atomic_term_free F y) false
+        ($is_quant_dt_split_conj x (c y) @list.nil F (forall zs G)))))
+    (($is_quant_dt_split_conj x cx @list.nil F (forall @list.nil G))
+      ($is_quant_dt_split_conj_subs x cx F G))
+    (($is_quant_dt_split_conj x cx @list.nil F G)
+      ($is_quant_dt_split_conj_subs x cx F G))
   )
 )
 

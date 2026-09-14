@@ -116,28 +116,32 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 
     if (d_lang == modes::InputLanguage::SMT_LIB_2_6)
     {
-      d_historyFilename = string(getenv("HOME")) + "/.cvc5_history_smtlib2";
+      const char* home = getenv("HOME");
+      if (home != nullptr)
+      {
+        d_historyFilename = string(home) + "/.cvc5_history_smtlib2";
+        int err = ::read_history(d_historyFilename.c_str());
+        if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
+        {
+          if (err == 0)
+          {
+            d_solver->getDriverOptions().err()
+                << "Read " << ::history_length << " lines of history from "
+                << d_historyFilename << std::endl;
+          }
+          else
+          {
+            d_solver->getDriverOptions().err()
+                << "Could not read history from " << d_historyFilename << ": "
+                << strerror(err) << std::endl;
+          }
+        }
+      }
       commandsBegin = smt2_commands;
       commandsEnd =
           smt2_commands + sizeof(smt2_commands) / sizeof(*smt2_commands);
       d_usingEditline = true;
-      int err = ::read_history(d_historyFilename.c_str());
       ::stifle_history(s_historyLimit);
-      if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
-      {
-        if (err == 0)
-        {
-          d_solver->getDriverOptions().err()
-              << "Read " << ::history_length << " lines of history from "
-              << d_historyFilename << std::endl;
-        }
-        else
-        {
-          d_solver->getDriverOptions().err()
-              << "Could not read history from " << d_historyFilename << ": "
-              << strerror(err) << std::endl;
-        }
-      }
     }
   }
 #endif /* HAVE_LIBEDITLINE */
@@ -146,6 +150,10 @@ InteractiveShell::InteractiveShell(main::CommandExecutor* cexec,
 InteractiveShell::~InteractiveShell()
 {
 #if HAVE_LIBEDITLINE
+  if (d_historyFilename.empty())
+  {
+    return;
+  }
   int err = ::write_history(d_historyFilename.c_str());
   if (d_solver->getOptionInfo("verbosity").intValue() >= 1)
   {

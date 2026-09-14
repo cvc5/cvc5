@@ -324,7 +324,6 @@
                                            (eo::define ((ex ($run_evaluate xb)))
                                            (eo::define ((w ($bv_bitwidth (eo::typeof ex))))
                                              (eo::to_bin (eo::add w en) (eo::to_z ex))))))
-      (($run_evaluate (@bv n m))           (eo::to_bin ($run_evaluate m) ($run_evaluate n)))
       (($run_evaluate (@bvsize xb))        ($bv_bitwidth (eo::typeof xb)))
 
       ; arith bv conversions

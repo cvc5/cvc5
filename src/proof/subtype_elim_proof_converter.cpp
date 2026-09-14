@@ -559,7 +559,11 @@ bool SubtypeElimConverterCallback::prove(const Node& src,
   NodeManager* nm = nodeManager();
   for (size_t j = 0; j < 2; j++)
   {
-    conv[j] = nm->mkNode(Kind::TO_REAL, src[j]);
+    // note that TO_REAL is strictly Int -> Real, so we only cast the sides
+    // that are integer. Note that src may be a mixed arithmetic relation here,
+    // in which case one of its sides is already Real.
+    conv[j] = src[j].getType().isInteger() ? nm->mkNode(Kind::TO_REAL, src[j])
+                                           : src[j];
     convEq[j] = conv[j].eqNode(tgt[j]);
     if (conv[j] != tgt[j])
     {

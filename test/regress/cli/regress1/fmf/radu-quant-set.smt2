@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-bound
 ; EXPECT: unsat
 (set-logic ALL)

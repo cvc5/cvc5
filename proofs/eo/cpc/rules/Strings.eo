@@ -219,7 +219,7 @@
 ; conclusion: The given witness skolem has length n.
 (declare-rule exists_string_length ((U Type) (n Int) (id Int))
   :args ((Seq U) n id)
-  :requires (((eo::gt n -1) true))
+  :requires ((($is_numeral n) true) (($is_numeral id) true))
   :conclusion (= (str.len (@witness_string_length (Seq U) n id)) n)
 )
 
@@ -466,6 +466,7 @@
 ; conclusion: The reduction predicate for s.
 (declare-rule string_reduction ((U Type) (s U))
   :args (s)
+  :requires ((($is_closed s) true))
   :conclusion (and ($str_reduction_pred s) (= s (@purify s)))
 )
 
@@ -559,7 +560,8 @@
 ; conclusion: The given equality.
 (declare-rule re-eq-elim ((r1 RegLan) (r2 RegLan) (Q Bool))
   :args ((= (= r1 r2) Q))
-  :requires ((Q (forall ((@var.re_eq String)) (= (str.in_re @var.re_eq r1) (str.in_re @var.re_eq r2)))))
+  :requires ((($is_closed (= r1 r2)) true)
+             (Q (forall ((@var.re_eq String)) (= (str.in_re @var.re_eq r1) (str.in_re @var.re_eq r2)))))
   :conclusion (= (= r1 r2) Q)
 )
 
@@ -941,7 +943,7 @@
 ; conclusion: The given equality.
 (declare-rule str-replace-re-all-eval ((s String) (r RegLan) (t String) (u String))
   :args ((= (str.replace_re_all s r t) u))
-  :requires ((($str_eval_replace_re_all s r t) u))
+  :requires (((eo::is_str s) true) (($str_eval_replace_re_all s r t) u))
   :conclusion (= (str.replace_re_all s r t) u)
 )
 

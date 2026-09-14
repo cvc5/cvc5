@@ -220,7 +220,8 @@ class SkolemCache
   Node mkSkolemFun(NodeManager* nm,
                    SkolemId id,
                    Node a = Node::null(),
-                   Node b = Node::null());
+                   Node b = Node::null(),
+                   Node c = Node::null());
 
  private:
   /**
@@ -253,9 +254,11 @@ class SkolemCache
   std::unordered_set<Node> d_allSkolems;
   /**
    * Get cache vals, which returns the vector of terms from (possibly null)
-   * a and b that should be passed to the skolem manager.
+   * a, b, and c that should be passed to the skolem manager.
    */
-  std::vector<Node> getSkolemCacheVals(const Node& a, const Node& b) const;
+  std::vector<Node> getSkolemCacheVals(const Node& a,
+                                       const Node& b,
+                                       const Node& c) const;
 };
 
 }  // namespace strings
