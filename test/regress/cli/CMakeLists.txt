@@ -975,6 +975,9 @@ set(regress_0_tests
   regress0/fp/bvcomp-rewrite.smt2
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
+  regress0/fp/from-real-overflow-boundary.smt2
+  regress0/fp/from-real-overflow-negative.smt2
+  regress0/fp/from-real-overflow-saturate.smt2
   regress0/fp/from-real-shared-purified-arg.smt2
   regress0/fp/from-real-zero-sign.smt2
   regress0/fp/from_ubv.smt2
@@ -1012,6 +1015,7 @@ set(regress_0_tests
   regress0/fp/issue12340-from-real-refine.smt2
   regress0/fp/issue12354-from-real-refine.smt2
   regress0/fp/issue12370-from-real-refine.smt2
+  regress0/fp/issue12371-from-real-overflow.smt2
   regress0/fp/issue12780-from-real-refine.smt2
   regress0/fp/issue12867-min-max-zero.smt2
   regress0/fp/issuepr650.smt2
