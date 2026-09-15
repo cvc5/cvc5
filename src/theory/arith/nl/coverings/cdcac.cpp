@@ -59,6 +59,7 @@ void CDCAC::reset()
   d_constraints.reset();
   d_assignment.clear();
   d_nextIntervalId = 1;
+  d_nullifiedPolynomial = false;
 }
 
 poly::detail::variable_printer CDCAC::get_stream_variable(
@@ -222,11 +223,16 @@ namespace {
  * 10.1016/j.jlamp.2020.100633, which mostly follows the projection operator due
  * to McCallum. It uses all coefficients until one is either constant or does
  * not vanish over the current assignment.
+ * If all coefficients vanish over the current assignment, p is nullified there
+ * and McCallum's projection operator is not sound. This is reported via
+ * `nullified`.
  */
 PolyVector requiredCoefficientsOriginal(const poly::Polynomial& p,
-                                        const poly::Assignment& assignment)
+                                        const poly::Assignment& assignment,
+                                        bool& nullified)
 {
   PolyVector res;
+  nullified = true;
   for (long deg = degree(p); deg >= 0; --deg)
   {
     auto coeff = coefficient(p, deg);
@@ -234,9 +240,15 @@ PolyVector requiredCoefficientsOriginal(const poly::Polynomial& p,
            == lp_polynomial_is_constant(coeff.get_internal()));
     if (poly::is_zero(coeff)) continue;
     if (poly::is_constant(coeff)) break;
+    if (poly::is_constant(coeff))
+    {
+      nullified = false;
+      break;
+    }
     res.add(coeff);
     if (evaluate_constraint(coeff, assignment, poly::SignCondition::NE))
     {
+      nullified = false;
       break;
     }
   }
@@ -334,14 +346,24 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                               d_constraints.varMapper(),
                                               d_env.getRewriter())
         << std::endl;
+    bool nullified = false;
     Trace("cdcac::projection")
-        << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
+        << "Original: "
+        << requiredCoefficientsOriginal(p, d_assignment, nullified)
         << std::endl;
   }
   switch (options().arith.nlCovProjection)
   {
     case options::nlCovProjectionMode::MCCALLUM:
-      return requiredCoefficientsOriginal(p, d_assignment);
+    {
+      bool nullified = false;
+      PolyVector res = requiredCoefficientsOriginal(p, d_assignment, nullified);
+      if (nullified)
+      {
+        d_nullifiedPolynomial = true;
+      }
+      return res;
+    }
     case options::nlCovProjectionMode::LAZARD:
       return requiredCoefficientsLazard(p, d_assignment);
     case options::nlCovProjectionMode::LAZARDMOD:
@@ -351,8 +373,11 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                                 d_constraints.varMapper(),
                                                 d_env.getRewriter());
     default:
+    {
       DebugUnhandled();
-      return requiredCoefficientsOriginal(p, d_assignment);
+      bool nullified = false;
+      return requiredCoefficientsOriginal(p, d_assignment, nullified);
+    }
   }
 }
 

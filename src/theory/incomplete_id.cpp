@@ -26,6 +26,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::NONE: return "NONE";
     case IncompleteId::ARITH_NL_DISABLED: return "ARITH_NL_DISABLED";
     case IncompleteId::ARITH_NL: return "ARITH_NL";
+    case IncompleteId::ARITH_NL_COVERING_NULLIFIED:
+      return "ARITH_NL_COVERING_NULLIFIED";
     case IncompleteId::FP_ABSTRACTION_REFINEMENT:
       return "FP_ABSTRACTION_REFINEMENT";
     case IncompleteId::QUANTIFIERS: return "QUANTIFIERS";

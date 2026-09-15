@@ -148,6 +148,15 @@ class CDCAC : protected EnvObj
    */
   std::vector<CACInterval> getUnsatCover(bool returnFirstInterval = false);
 
+  /**
+   * Returns true if a polynomial was nullified over the current assignment
+   * while computing the required coefficients for the projection. In this case
+   * the projection operator we used is not sound and the result of
+   * getUnsatCover() may be wrong, i.e. the returned covering may exclude
+   * satisfiable regions.
+   */
+  bool foundNullifiedPolynomial() const { return d_nullifiedPolynomial; }
+
   void startNewProof();
   /**
    * Finish the generated proof (if proofs are enabled) with a scope over the
@@ -237,6 +246,12 @@ class CDCAC : protected EnvObj
 
   /** The next interval id */
   size_t d_nextIntervalId = 1;
+
+  /**
+   * Whether a polynomial was nullified over the current assignment while
+   * computing the required coefficients, see foundNullifiedPolynomial().
+   */
+  bool d_nullifiedPolynomial = false;
 };
 
 }  // namespace coverings

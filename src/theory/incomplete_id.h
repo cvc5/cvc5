@@ -35,6 +35,9 @@ enum class IncompleteId
   ARITH_NL_DISABLED,
   // the non-linear arithmetic solver was incomplete
   ARITH_NL,
+  // (refutation unsound) the coverings solver used a projection operator that
+  // is not sound when a polynomial is nullified over the current assignment
+  ARITH_NL_COVERING_NULLIFIED,
   // the floating-point solver could not refine a conversion abstraction,
   // e.g. because model values for its arguments were unavailable
   FP_ABSTRACTION_REFINEMENT,
