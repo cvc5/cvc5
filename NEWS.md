@@ -62,8 +62,13 @@ cvc5 1.3.5 prerelease
   command.
 
 - Fixes a bug in the coverings solver, where zero coefficients were ignored from the
-loop that collects relevant coefficients for the projections, whereas they should break
-the loop. (#12926)
+  loop that collects relevant coefficients for the projections, whereas they should break
+  the loop. (#12926)
+
+- Fixes a bug in the coverings solver, where nullified polynomials were being ignored,
+  while they invalidate the guarantees expected by the algorithm. We now detect nullified
+  polynomials and, in such cases, restart the coverings solver with the variables in reverse
+  order, in an attempt to avoid nullification. If it still happens we give up. (#12945)
 
 cvc5 1.3.4
 ==========
