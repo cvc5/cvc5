@@ -1196,6 +1196,7 @@ set(regress_0_tests
   regress0/nl/issue12239-subtype-elim.smt2
   regress0/nl/issue12408-nl-fm.smt2
   regress0/nl/issue12607-shared-term-factor.smt2
+  regress0/nl/issue12926-nl-cov-zero-coeff.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2

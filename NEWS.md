@@ -61,6 +61,10 @@ cvc5 1.3.5 prerelease
   directly an input assertion, the proof would instead end with an `assume`
   command.
 
+- Fixes a bug in the coverings solver, where zero coefficients were ignored from the
+loop that collects relevant coefficients for the projections, whereas they should break
+the loop. (#12926)
+
 cvc5 1.3.4
 ==========
 
