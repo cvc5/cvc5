@@ -58,6 +58,12 @@ struct CACInterval
   PolyVector d_downPolys;
   /** The constraints used to derive this interval. */
   std::vector<Node> d_origins;
+  /**
+   * Whether this interval only excludes the sample point it was derived from.
+   * This is the case if the sample could not be generalized to a cell because
+   * the projection was not sound there, see CDCAC::pointOnlyInterval().
+   */
+  bool d_pointOnly = false;
 };
 /** Check whether to intervals are the same. */
 bool operator==(const CACInterval& lhs, const CACInterval& rhs);

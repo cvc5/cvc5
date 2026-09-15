@@ -13,6 +13,8 @@
 
 #include "theory/arith/nl/coverings/cdcac.h"
 
+#include <algorithm>
+
 #ifdef CVC5_POLY_IMP
 
 #include "options/arith_options.h"
@@ -59,6 +61,8 @@ void CDCAC::reset()
   d_constraints.reset();
   d_assignment.clear();
   d_nextIntervalId = 1;
+  d_nullifiedPolynomial = false;
+  d_pointOnlyCount = 0;
 }
 
 poly::detail::variable_printer CDCAC::get_stream_variable(
@@ -222,20 +226,34 @@ namespace {
  * 10.1016/j.jlamp.2020.100633, which mostly follows the projection operator due
  * to McCallum. It uses all coefficients until one is either constant or does
  * not vanish over the current assignment.
+ * If all coefficients vanish over the current assignment, p is nullified there
+ * and McCallum's projection operator is not sound. This is reported via
+ * `nullified`.
  */
 PolyVector requiredCoefficientsOriginal(const poly::Polynomial& p,
-                                        const poly::Assignment& assignment)
+                                        const poly::Assignment& assignment,
+                                        bool& nullified)
 {
   PolyVector res;
+  nullified = true;
   for (long deg = degree(p); deg >= 0; --deg)
   {
     auto coeff = coefficient(p, deg);
     Assert(poly::is_constant(coeff)
            == lp_polynomial_is_constant(coeff.get_internal()));
-    if (poly::is_constant(coeff)) break;
+    // a zero coefficient vanishes everywhere: it neither contributes to the
+    // projection nor tells us anything about whether p is nullified
+    if (poly::is_zero(coeff)) continue;
+    // a non-zero constant coefficient vanishes nowhere
+    if (poly::is_constant(coeff))
+    {
+      nullified = false;
+      break;
+    }
     res.add(coeff);
     if (evaluate_constraint(coeff, assignment, poly::SignCondition::NE))
     {
+      nullified = false;
       break;
     }
   }
@@ -333,14 +351,19 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                               d_constraints.varMapper(),
                                               d_env.getRewriter())
         << std::endl;
+    bool nullified = false;
     Trace("cdcac::projection")
-        << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
+        << "Original: "
+        << requiredCoefficientsOriginal(p, d_assignment, nullified)
         << std::endl;
   }
   switch (options().arith.nlCovProjection)
   {
     case options::nlCovProjectionMode::MCCALLUM:
-      return requiredCoefficientsOriginal(p, d_assignment);
+    {
+      bool nullified = false;
+      return requiredCoefficientsOriginal(p, d_assignment, nullified);
+    }
     case options::nlCovProjectionMode::LAZARD:
       return requiredCoefficientsLazard(p, d_assignment);
     case options::nlCovProjectionMode::LAZARDMOD:
@@ -350,8 +373,11 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                                 d_constraints.varMapper(),
                                                 d_env.getRewriter());
     default:
+    {
       DebugUnhandled();
-      return requiredCoefficientsOriginal(p, d_assignment);
+      bool nullified = false;
+      return requiredCoefficientsOriginal(p, d_assignment, nullified);
+    }
   }
 }
 
@@ -458,6 +484,26 @@ CACInterval CDCAC::intervalFromCharacterization(
   }
   // Push lower-dimensional polys to down
   m.pushDownPolys(d, d_variableOrdering[cur_variable]);
+
+  // McCallum's projection operator is not sound if one of the characterizing
+  // polynomials is nullified over the current assignment, hence we must not
+  // generalize the sample to a cell then. We only exclude the sample itself
+  // instead, unless we have done so too often already and give up on
+  // soundness (see CoveringsSolver::checkProjectionSoundness()).
+  for (const auto& p : m)
+  {
+    bool nullified = false;
+    requiredCoefficientsOriginal(p, d_assignment, nullified);
+    if (!nullified) continue;
+    Trace("cdcac") << p << " is nullified over " << d_assignment << std::endl;
+    if (d_pointOnlyCount >= s_maxPointOnly)
+    {
+      d_nullifiedPolynomial = true;
+      break;
+    }
+    ++d_pointOnlyCount;
+    return pointOnlyInterval(sample);
+  }
 
   // Collect -oo, all roots, oo
 
@@ -611,14 +657,27 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
       return {};
     }
     Trace("cdcac") << "Refuting Sample: " << d_assignment << std::endl;
-    auto characterization = constructCharacterization(cov);
-    Trace("cdcac") << "Characterization: " << characterization << std::endl;
+    CACInterval newInterval;
+    if (std::any_of(cov.begin(), cov.end(), [](const CACInterval& i) {
+          return i.d_pointOnly;
+        }))
+    {
+      // The covering contains an interval that only excludes a single sample
+      // point and thus can not be generalized. Hence, neither can this sample.
+      d_assignment.unset(d_variableOrdering[curVariable]);
+      newInterval = pointOnlyInterval(sample);
+    }
+    else
+    {
+      auto characterization = constructCharacterization(cov);
+      Trace("cdcac") << "Characterization: " << characterization << std::endl;
 
-    d_assignment.unset(d_variableOrdering[curVariable]);
+      d_assignment.unset(d_variableOrdering[curVariable]);
 
-    Trace("cdcac") << "Building interval..." << std::endl;
-    auto newInterval =
-        intervalFromCharacterization(characterization, curVariable, sample);
+      Trace("cdcac") << "Building interval..." << std::endl;
+      newInterval =
+          intervalFromCharacterization(characterization, curVariable, sample);
+    }
     Trace("cdcac") << "New interval: " << newInterval.d_interval << std::endl;
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
@@ -728,6 +787,20 @@ CACInterval CDCAC::buildIntegralityInterval(std::size_t cur_variable,
                      {pvar - pbelow, pvar - pabove},
                      {},
                      {}};
+}
+
+CACInterval CDCAC::pointOnlyInterval(const poly::Value& sample)
+{
+  Trace("cdcac") << "Only excluding the sample " << sample << std::endl;
+  CACInterval res{d_nextIntervalId++,
+                  poly::Interval(sample, false, sample, false),
+                  {},
+                  {},
+                  {},
+                  {},
+                  {}};
+  res.d_pointOnly = true;
+  return res;
 }
 
 bool CDCAC::hasRootAbove(const poly::Polynomial& p,

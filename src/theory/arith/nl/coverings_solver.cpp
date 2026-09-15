@@ -19,6 +19,7 @@
 #include "theory/arith/nl/coverings/cdcac.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
+#include "theory/incomplete_id.h"
 #include "theory/inference_id.h"
 #include "theory/theory.h"
 #include "util/rational.h"
@@ -104,6 +105,26 @@ void CoveringsSolver::initLastCall(
 #endif
 }
 
+void CoveringsSolver::checkProjectionSoundness()
+{
+#ifdef CVC5_POLY_IMP
+  if (!d_CAC.foundNullifiedPolynomial())
+  {
+    return;
+  }
+  // McCallum's projection operator, which we use by default, is not sound if
+  // some polynomial is nullified over the current assignment. The decision
+  // procedure then only excludes the sample point instead of a cell, but it
+  // gives up on that after a while, as it may not terminate. In that case the
+  // covering we computed may exclude regions that are actually satisfiable, so
+  // that any resulting conflict may be spurious. We thus mark ourselves as
+  // refutation unsound, which makes cvc5 answer "unknown" instead of "unsat".
+  Trace("nl-cov") << "Projection was unsound, marking refutation unsound"
+                  << std::endl;
+  d_im.setRefutationUnsound(IncompleteId::ARITH_NL_COVERING_NULLIFIED);
+#endif
+}
+
 void CoveringsSolver::checkFull()
 {
 #ifdef CVC5_POLY_IMP
@@ -123,6 +144,7 @@ void CoveringsSolver::checkFull()
   else
   {
     d_foundSatisfiability = false;
+    checkProjectionSoundness();
     auto mis = collectConstraints(covering);
     Trace("nl-cov") << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
@@ -157,6 +179,7 @@ void CoveringsSolver::checkPartial()
   }
   else
   {
+    checkProjectionSoundness();
     auto* nm = nodeManager();
     Node first_var =
         d_CAC.getConstraints().varMapper()(d_CAC.getVariableOrdering()[0]);

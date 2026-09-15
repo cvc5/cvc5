@@ -79,6 +79,14 @@ class CoveringsSolver : protected EnvObj
 
  private:
   /**
+   * Checks whether the projection operator used by the coverings solver was
+   * sound for the last call to the decision procedure. If it was not, we mark
+   * ourselves as refutation unsound so that cvc5 answers "unknown" instead of
+   * a potentially wrong "unsat".
+   */
+  void checkProjectionSoundness();
+
+  /**
    * Add the variable assignment `var = value` to the nonlinear model.
    * Depending on `value`, it is either added as substitution or witness.
    * @return true iff the substitution was added to the model.
