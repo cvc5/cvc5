@@ -4,7 +4,7 @@ name: cmake-version
 jobs:
   build:
     continue-on-error: true
-    name: ubuntu:production-dbg
+    name: ubuntu:unrestricted-dbg
     runs-on: ubuntu-latest
     strategy:
       matrix:
