@@ -2785,6 +2785,8 @@ set(regress_1_tests
   regress1/bags/map3.smt2
   regress1/bags/map4.smt2
   regress1/bags/map-lazy-lam.smt2
+  regress1/bags/map-up-pair.smt2
+  regress1/bags/map-up-pair-sat.smt2
   regress1/bags/murxla1.smt2
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2

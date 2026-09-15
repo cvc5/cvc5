@@ -309,6 +309,26 @@ class InferenceGenerator
   InferInfo mapUp2(Node n, Node uf, Node size, Node y, Node x);
 
   /**
+   * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
+   * (Bag E)
+   * @param x is an element of type E
+   * @param y is an element of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   (and (not (= x y)) (= (f x) (f y)))
+   *   (>= (bag.count (f x) skolem)
+   *       (+ (bag.count x A) (bag.count y A))))
+   * where skolem is a fresh variable equals (bag.map f A))
+   *
+   * mapUp1 bounds the multiplicity of an image below by one element of its
+   * preimage. This bounds it by two, which is what it takes to see that a map
+   * is not a set: (bag.setof (bag.map f A)) = (bag.map f A) caps every image
+   * at one, and only a lower bound of two contradicts it.
+   * This rule works well for primary key constraints.
+   */
+  InferInfo mapUpPair(Node n, Node x, Node y);
+
+  /**
    * @param n is (bag.filter p A) where p is a function (-> E Bool),
    * A a bag of type (Bag E)
    * @param e is an element of type E

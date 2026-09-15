@@ -13,6 +13,7 @@
 #include "theory/bags/bag_solver.h"
 
 #include "expr/emptybag.h"
+#include "options/bags_options.h"
 #include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
@@ -286,6 +287,24 @@ void BagSolver::checkMap(Node n)
   {
     InferInfo upInference = d_ig.mapUp1(n, x);
     d_im.lemmaTheoryInference(&upInference);
+  }
+
+  if (options().bags.bagsMapUpPair)
+  {
+    for (std::set<Node>::const_iterator i = upwards.begin(); i != upwards.end();
+         ++i)
+    {
+      std::set<Node>::const_iterator j = i;
+      for (++j; j != upwards.end(); ++j)
+      {
+        if (d_state.areEqual(*i, *j))
+        {
+          continue;  // the disequality premise cannot hold
+        }
+        InferInfo pairInference = d_ig.mapUpPair(n, *i, *j);
+        d_im.lemmaTheoryInference(&pairInference);
+      }
+    }
   }
 
   if (d_state.isInjective(n[0]))

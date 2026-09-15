@@ -164,6 +164,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_MAP_DOWN_INJECTIVE: return "BAGS_MAP_DOWN_INJECTIVE";
     case InferenceId::BAGS_MAP_UP1: return "BAGS_MAP_UP1";
     case InferenceId::BAGS_MAP_UP2: return "BAGS_MAP_UP2";
+    case InferenceId::BAGS_MAP_UP_PAIR: return "BAGS_MAP_UP_PAIR";
     case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
     case InferenceId::BAGS_FILTER_UP: return "BAGS_FILTER_UP";
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";

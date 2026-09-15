@@ -8,3 +8,11 @@ name   = "Bags Theory"
   type       = "bool"
   default    = "true"
   help       = "enables the bags solver in applicable logics"
+
+[[option]]
+  name       = "bagsMapUpPair"
+  category   = "expert"
+  long       = "bags-map-up-pair"
+  type       = "bool"
+  default    = "false"
+  help       = "bound the multiplicity of an image of bag.map below by the sum over two elements of its preimage, not just one"

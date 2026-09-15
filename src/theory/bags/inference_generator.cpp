@@ -520,6 +520,40 @@ InferInfo InferenceGenerator::mapUp1(Node n, Node x)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::mapUpPair(Node n, Node x, Node y)
+{
+  Assert(n.getKind() == Kind::BAG_MAP);
+  AssertEqual(x.getType(), n[1].getType().getBagElementType());
+  AssertEqual(y.getType(), n[1].getType().getBagElementType());
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_UP_PAIR);
+  Node f = n[0];
+  Node A = n[1];
+
+  Node countX = getMultiplicityTerm(x, A);
+  Node countY = getMultiplicityTerm(y, A);
+  registerCountTerm(countX);
+  registerCountTerm(countY);
+
+  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node f_y = d_nm->mkNode(Kind::APPLY_UF, f, y);
+  Node mapSkolem = registerAndAssertSkolemLemma(n);
+  Node countMap = getMultiplicityTerm(f_x, mapSkolem);
+  registerCountTerm(countMap);
+
+  // x and y are distinct elements of A that f sends to the same image, so both
+  // multiplicities are summed into the multiplicity of that image
+  // x != y
+  inferInfo.d_premises.push_back(x.eqNode(y).notNode());
+  // f(x) == f(y)
+  inferInfo.d_premises.push_back(f_x.eqNode(f_y));
+  // (>= (bag.count (f x) skolem)
+  //       (+ (bag.count x A) (bag.count y A))))
+  inferInfo.d_conclusion = d_nm->mkNode(
+      Kind::GEQ, countMap, d_nm->mkNode(Kind::ADD, countX, countY));
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::mapUp2(Node n, Node uf, Node size, Node y, Node x)
 {
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
