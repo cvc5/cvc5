@@ -113,7 +113,9 @@ void CoveringsSolver::checkProjectionSoundness()
     return;
   }
   // McCallum's projection operator, which we use by default, is not sound if
-  // some polynomial is nullified over the current assignment. In that case the
+  // some polynomial is nullified over the current assignment. The decision
+  // procedure then only excludes the sample point instead of a cell, but it
+  // gives up on that after a while, as it may not terminate. In that case the
   // covering we computed may exclude regions that are actually satisfiable, so
   // that any resulting conflict may be spurious. We thus mark ourselves as
   // refutation unsound, which makes cvc5 answer "unknown" instead of "unsat".

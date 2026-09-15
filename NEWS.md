@@ -66,9 +66,9 @@ loop that collects relevant coefficients for the projections, whereas they shoul
 the loop. (#12926)
 
 - Fixes a bug in the coverings solver, where nullified polynomials were being ignored,
-while they invalidate the guarantees expected by the algorithm. For now we just detect
-nullified polynomials and abort if they appear. In future releases we will add a mechanism
-for recovering the solutions even in such cases. (#12943)
+while they invalidate the guarantees expected by the algorithm. We now detect nullified
+polynomials and, instead of generalizing the sample point to a cell, only exclude the
+sample point itself. If this happens too often, we abort with unknown. (#12943)
 
 cvc5 1.3.4
 ==========

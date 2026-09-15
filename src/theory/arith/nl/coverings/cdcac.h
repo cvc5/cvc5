@@ -150,8 +150,9 @@ class CDCAC : protected EnvObj
 
   /**
    * Returns true if a polynomial was nullified over the current assignment
-   * while computing the required coefficients for the projection. In this case
-   * the projection operator we used is not sound and the result of
+   * while characterizing a covering and we did not exclude only the sample
+   * point (see pointOnlyInterval()) because we did so too often already. In
+   * this case the projection operator we used is not sound and the result of
    * getUnsatCover() may be wrong, i.e. the returned covering may exclude
    * satisfiable regions.
    */
@@ -190,6 +191,18 @@ class CDCAC : protected EnvObj
    */
   CACInterval buildIntegralityInterval(std::size_t cur_variable,
                                        const poly::Value& value);
+
+  /**
+   * Constructs an interval that only excludes the given sample point. This is
+   * used instead of intervalFromCharacterization() when the sample can not be
+   * generalized to a cell soundly: McCallum's projection operator is not sound
+   * if a polynomial of the characterization is nullified over the current
+   * assignment. Excluding only the sample is always sound, as its infeasibility
+   * was established by the covering of the next variable. Such an interval
+   * carries no characterizing polynomials, and hence any covering containing
+   * it can not be generalized either (see getUnsatCoverImpl()).
+   */
+  CACInterval pointOnlyInterval(const poly::Value& sample);
 
   /**
    * Check whether the polynomial has a real root above the given value (when
@@ -249,9 +262,19 @@ class CDCAC : protected EnvObj
 
   /**
    * Whether a polynomial was nullified over the current assignment while
-   * computing the required coefficients, see foundNullifiedPolynomial().
+   * characterizing a covering and we gave up on soundness, see
+   * foundNullifiedPolynomial().
    */
   bool d_nullifiedPolynomial = false;
+
+  /**
+   * The number of point-only intervals constructed since the last reset().
+   * Excluding single points may not terminate (e.g. if a polynomial is
+   * nullified over a whole line), hence we give up on soundness after
+   * s_maxPointOnly of them.
+   */
+  size_t d_pointOnlyCount = 0;
+  static constexpr size_t s_maxPointOnly = 100;
 };
 
 }  // namespace coverings

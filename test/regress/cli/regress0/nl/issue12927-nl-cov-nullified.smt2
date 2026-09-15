@@ -1,9 +1,9 @@
 ; REQUIRES: poly
 ; COMMAND-LINE: --nl-ext=none --nl-cov
-; EXPECT: unknown
-; The expected answer is sat. McCallum's projection operator, which the
-; coverings solver uses by default, is not sound here since a polynomial is
-; nullified over the current assignment, so we answer unknown for now.
+; EXPECT: sat
+; McCallum's projection operator, which the coverings solver uses by default,
+; is not sound here since a polynomial is nullified over the current
+; assignment. The coverings solver must only exclude the sample point then.
 (set-logic QF_NRA)
 (declare-fun x1 () Real)
 (declare-fun x2 () Real)
