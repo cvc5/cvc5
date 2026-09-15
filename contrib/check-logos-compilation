@@ -18,10 +18,11 @@
 # needs Lean, and nothing here builds or runs cvc5: what is compiled is Eunoia
 # source text.
 #
-# The work is done by Logos' own install/install-cpc.sh --check, which performs
-# the whole install of both of its packages, Cpc and CpcMini, into a throwaway
-# copy and compares. Calling it rather than reimplementing the comparison is
-# what keeps this check from drifting from the install it is checking.
+# The work is done by Logos' own install/install-cpc.sh --check. With neither
+# --all nor --mini, it performs a trial install of Cpc into a throwaway copy
+# and compares it with the pinned package. CpcMini is not checked by this cvc5
+# CI path. Calling the script rather than reimplementing the comparison is what
+# keeps this check from drifting from the install it is checking.
 #
 # There are two outcomes to separate:
 #
@@ -155,9 +156,8 @@ compiler_is_current || setup_compiler
 echo ""
 echo "=== Checking $SIGNATURE against logos $LOGOS_VERSION"
 
-# install-cpc.sh exits 1 both when the compile fails and when a package is
-# merely out of date, so the two are told apart by the line it prints on the
-# latter.
+# install-cpc.sh exits 1 both when the compile fails and when Cpc is merely out
+# of date, so the two are told apart by the line it prints on the latter.
 set +e
 output="$(bash "$INSTALL_CPC" --signature "$SIGNATURE" --check "$@" 2>&1)"
 status=$?
