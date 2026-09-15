@@ -263,10 +263,6 @@ jobs:
             shell: 'msys2 {0}'
             gpl-tag: -gpl
 
-          # CoCoALib is GPL-licensed, so the CoCoA-enabled WASM build is
-          # kept separate from wasm:unrestricted (BSD), which runs on
-          # every PR. This one follows the other platforms' GPL builds:
-          # releases plus nightly testing.
           - name: wasm:unrestricted-gpl
             os: ubuntu-22.04
             config: unrestricted --static --static-binary --auto-download --wasm-web=no-modular-static-page --cocoa --gpl
