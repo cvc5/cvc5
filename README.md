@@ -5,6 +5,7 @@
 [![Coverage](
   https://img.shields.io/endpoint?url=https://cvc5.stanford.edu/downloads/builds/coverage/nightly-coverage.json)](
     https://cvc5.stanford.edu/downloads/builds/coverage)
+[![inspect.software](https://raw.githubusercontent.com/inspect-software/badges/main/v1/c/cvc5/cvc5.svg)](https://inspect.software/software/cvc5/cvc5)
 
 cvc5
 ===============================================================================
