@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 (set-logic ALL)
 (set-info :status sat)
 (set-option :strings-lazy-pp false)

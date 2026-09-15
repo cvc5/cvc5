@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --no-strings-lazy-pp -i
 ; EXPECT: sat
 ; EXPECT: sat

@@ -695,7 +695,9 @@ SumPair SumPair::mkSumPair(const Polynomial& p)
 
 Comparison::Comparison(TNode n) : NodeWrapper(n)
 {
-  Assert(isNormalForm()) << "Bad comparison normal form: " << n;
+  // Note we do not assert that n is in normal form here, since this
+  // constructor is used by isNormalAtom to check whether it is. The assertion
+  // is made in parseNormalForm.
 }
 
 SumPair Comparison::toSumPair() const

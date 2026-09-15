@@ -5,21 +5,22 @@ set -e -o pipefail
 
 usage () {
 cat <<EOF
-Usage: $0 [<build type>] [<option> ...]
+Usage: $0 <build type> [<option> ...]
 
-Build types:
-  production
-    Optimized, assertions and tracing disabled
+Build types (exactly one must be specified):
+  unrestricted
+    Optimized, assertions and tracing disabled, all features enabled
+  stable
+    Like unrestricted, but features that are not robust are disabled
+  safe
+    Like unrestricted, but features that are not robust or that lack full
+    proof and model support are disabled
   debug
-    Unoptimized, debug symbols, assertions, and tracing enabled
+    Unrestricted, unoptimized, debug symbols, assertions, and tracing enabled
   testing
-    Optimized debug build
+    Unrestricted, optimized debug build
   competition
-    Maximally optimized, assertions and tracing disabled, muzzled
-  safe-mode
-    Like production except --safe-mode is set to safe
-  stable-mode
-    Like production except --safe-mode is set to stable
+    Unrestricted, maximally optimized, assertions and tracing disabled, muzzled
 
 
 General options;
@@ -33,6 +34,7 @@ General options;
   --win64                  cross-compile for Windows 64 bit
   --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
+  --ccache                 use ccache to speed up rebuilds
   --docs                   build Api documentation
   --docs-ga                build API documentation with Google Analytics
 
@@ -133,6 +135,7 @@ buildtype=default
 asan=default
 assertions=default
 auto_download=default
+ccache=default
 cln=default
 clang_tidy=default
 coverage=default
@@ -276,6 +279,8 @@ do
 
     --ninja) ninja=ON;;
 
+    --ccache) ccache=ON;;
+
     --docs) docs=ON;;
     --no-docs) docs=OFF;;
 
@@ -411,13 +416,22 @@ do
 
     -*) die "invalid option '$1' (try -h)";;
 
-    *) case $1 in
-         production)      buildtype=Production;;
+    *) [ $buildtype != default ] && die "more than one build type specified (try -h)"
+       case $1 in
+         unrestricted)    buildtype=Production;;
+         stable)          buildtype=Production; stable_mode=ON;;
+         safe)            buildtype=Production; safe_mode=ON;;
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
-         safe-mode)       buildtype=Production; safe_mode=ON;;
-         stable-mode)     buildtype=Production; stable_mode=ON;;
+         production)      die "build type 'production' is no longer available." \
+                              "Use 'unrestricted' to have the previous behavior." \
+                              "Alternatively, the build types 'safe' and 'stable'" \
+                              "are available (try -h)";;
+         safe-mode)       die "build type 'safe-mode' is no longer available." \
+                              "Use 'safe' instead";;
+         stable-mode)     die "build type 'stable-mode' is no longer available." \
+                              "Use 'stable' instead";;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
@@ -427,14 +441,15 @@ done
 
 #--------------------------------------------------------------------------#
 
+[ $buildtype = default ] && die "no build type specified (try -h)"
+
 if [ $werror != default ]; then
   export CFLAGS=-Werror
   export CXXFLAGS=-Werror
   cmake_opts="$cmake_opts -DTREAT_WARNING_AS_ERROR=$werror"
 fi
 
-[ $buildtype != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
+cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
 
 [ $asan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
@@ -472,6 +487,12 @@ fi
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-aarch64.cmake')"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
+if [ $ccache != default ]; then
+  command -v ccache &> /dev/null \
+    || die "ccache not found (required by --ccache)"
+  cmake_opts="$cmake_opts -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+  cmake_opts="$cmake_opts -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+fi
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $build_shared != default ] \
