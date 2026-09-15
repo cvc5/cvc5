@@ -1,0 +1,7 @@
+(set-logic QF_ALL)
+(set-info :status unsat)
+(declare-heap (Int Int))
+(assert (not (and sep.emp (pto 1 1))))
+(assert (or sep.emp (pto 3 3)))
+(assert (sep (pto 1 1) (pto 2 2)))
+(check-sat)
