@@ -113,7 +113,8 @@ later). Setting up emsdk can be done as follows:
 
 .. note::
 
-  Versions older than 6.0.8 are not supported. Emscripten's ``getrusage()``
+  Versions older than 6.0.8 are not supported, and ``configure.sh`` rejects
+  them. Emscripten's ``getrusage()``
   used to write past the end of the caller's ``struct rusage``, corrupting
   adjacent memory. cvc5 calls it from its resource manager and, in GPL
   builds, indirectly through CoCoALib, so older SDKs can produce binaries
