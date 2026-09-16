@@ -72,6 +72,7 @@ class Statistics;
 struct APIStatistics;
 class Term;
 class PluginInternal;
+class Weight;
 
 using NodeManagerSharedPtr = std::shared_ptr<internal::NodeManager>;
 
@@ -1196,6 +1197,7 @@ class CVC5_EXPORT Term
   friend class Grammar;
   friend class PluginInternal;
   friend class SynthResult;
+  friend class Weight;
   friend struct std::hash<Term>;
 
  public:
@@ -3081,6 +3083,103 @@ struct CVC5_EXPORT hash<cvc5::Datatype>
 namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
+/* Weight                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A weight attribute for Sygus grammars. A weight attribute is declared via
+ * ``Solver::declareWeight()`` and can then be used to assign weights to
+ * grammar rules, according to the definition of weights in the SyGuS IF 2.1
+ * standard.
+ */
+class CVC5_EXPORT Weight
+{
+  friend class Grammar;
+  friend class Solver;
+  friend struct std::hash<Weight>;
+
+ public:
+  /**
+   * Get the name of this weight attribute.
+   *
+   * @return The name of this weight attribute.
+   */
+  std::string getName() const;
+
+  /**
+   * Get the default value of this weight attribute.
+   *
+   * @return The default value of this weight attribute.
+   */
+  cvc5::Term getDefaultValue() const;
+
+  /**
+   * Equality operator.
+   *
+   * @note Both weights must belong to the same term manager.
+   *
+   * @param w The weight to compare to for equality.
+   * @return True if both weights are equal.
+   */
+  bool operator==(const Weight& w) const;
+
+  /**
+   * Disequality operator.
+   * @param w The weight to compare to for disequality.
+   * @return True if both weights are not equal.
+   */
+  bool operator!=(const Weight& w) const;
+
+  /**
+   * Less-than operator.
+   * @param w The weight to compare to.
+   * @return True if this weight compares less than @p w.
+   */
+  bool operator<(const Weight& w) const;
+
+  /** Nullary constructor. Needed for the Cython API. */
+  Weight();
+
+ private:
+  /**
+   * Constructor.
+   * @param tm The term manager associated with this weight.
+   * @param name The name of this weight attribute.
+   * @param defaultValue The default integer value for the weight attribute.
+   */
+  Weight(TermManager* tm, const std::string& name, const Term& defaultValue);
+
+  /** Helper to convert a public weight map to an internal node map. */
+  static std::map<internal::Node, internal::Node> weightMapToNodeMap(
+      const std::map<Weight, Term>& weights);
+
+  /** The associated term manager. */
+  TermManager* d_tm;
+  /** Internal node representing the weight. */
+  std::shared_ptr<internal::Node> d_node;
+};
+
+}  // namespace cvc5
+
+namespace std {
+
+/**
+ * Hash function for Weights.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::Weight>
+{
+  size_t operator()(const cvc5::Weight& w) const;
+};
+
+}  // namespace std
+
+namespace cvc5 {
+
+/** A mapping from weight attributes to values. */
+using WeightMap = std::map<Weight, Term>;
+
+/* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -3130,28 +3229,36 @@ class CVC5_EXPORT Grammar
    * Add `rule` to the set of rules corresponding to `ntSymbol`.
    * @param ntSymbol The non-terminal to which the rule is added.
    * @param rule The rule to add.
+   * @param weights The weights of this rule.
    */
-  void addRule(const Term& ntSymbol, const Term& rule);
+  void addRule(const Term& ntSymbol,
+               const Term& rule,
+               const WeightMap& weights = {});
 
   /**
    * Add `rules` to the set of rules corresponding to `ntSymbol`.
    * @param ntSymbol The non-terminal to which the rules are added.
    * @param rules The rules to add.
+   * @param weights The weights of each rule in `rules`.
    */
-  void addRules(const Term& ntSymbol, const std::vector<Term>& rules);
+  void addRules(const Term& ntSymbol,
+                const std::vector<Term>& rules,
+                const std::vector<WeightMap>& weights = {});
 
   /**
    * Allow `ntSymbol` to be an arbitrary constant.
    * @param ntSymbol The non-terminal allowed to be any constant.
+   * @param weights The weights of this constant.
    */
-  void addAnyConstant(const Term& ntSymbol);
+  void addAnyConstant(const Term& ntSymbol, const WeightMap& weights = {});
 
   /**
    * Allow `ntSymbol` to be any input variable to corresponding
    * synth-fun/synth-inv with the same sort as `ntSymbol`.
    * @param ntSymbol The non-terminal allowed to be any input variable.
+   * @param weights The weights of the input variables.
    */
-  void addAnyVariable(const Term& ntSymbol);
+  void addAnyVariable(const Term& ntSymbol, const WeightMap& weights = {});
 
   /**
    * @return A string representation of this grammar.
@@ -3769,6 +3876,7 @@ class CVC5_EXPORT TermManager
   friend class Grammar;
   friend class Plugin;
   friend class Solver;
+  friend class Weight;
 
  public:
   /** Constructor. */
@@ -6752,6 +6860,57 @@ class CVC5_EXPORT Solver
    * @return The universal variable.
    */
   Term declareSygusVar(const std::string& symbol, const Sort& sort) const;
+
+  /**
+   * Declare a new weight attribute \p symbol for Sygus grammars.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-weight <symbol>)
+   * \endverbatim
+   *
+   * @param symbol The name of the weight attribute.
+   * @return The weight attribute.
+   */
+  Weight declareWeight(const std::string& symbol) const;
+
+  /**
+   * Declare a new weight attribute \p symbol for Sygus grammars.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (declare-weight <symbol> :default <defaultValue>)
+   * \endverbatim
+   *
+   * @param symbol The name of the weight attribute.
+   * @param defaultValue The default integer value for the weight attribute.
+   * @return The weight attribute.
+   */
+  Weight declareWeight(const std::string& symbol,
+                       const Term& defaultValue) const;
+
+  /**
+   * Create a weight symbol for \p term with weight attribute \p weight.
+   *
+   * SyGuS v2:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (_ <weight> <term>)
+   * \endverbatim
+   *
+   * @param weight The weight attribute for the weight symbol.
+   * @param term The term with which to create the weight symbol.
+   * @return The weight symbol.
+   */
+  Term mkWeightSymbol(const Weight& weight, const Term& term) const;
 
   /**
    * Create a Sygus grammar. The first non-terminal is treated as the starting

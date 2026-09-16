@@ -191,6 +191,31 @@ children = "1:"
 comment  = "datatypes sygus evaluation function"
 typerule = "::cvc5::internal::theory::datatypes::DtSygusEvalTypeRule"
 
+[[kinds]]
+type     = "operator"
+name     = "DT_SYGUS_WEIGHT"
+children = 2
+comment  = "datatypes sygus weight"
+typerule = "::cvc5::internal::theory::datatypes::DtSygusWeightTypeRule"
+
+[[kinds]]
+type      = "constant"
+name      = "WEIGHT_SYMBOL_OP"
+class_key = "class"
+cpp_type  = "WeightSymbol"
+hasher    = "::cvc5::internal::WeightSymbolHashFunction"
+header    = "expr/weight_symbol.h"
+comment   = "the weight symbol operator; payload is an instance of the cvc5::internal::WeightSymbol class"
+typerule  = "::cvc5::internal::theory::datatypes::WeightSymbolOpTypeRule"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "WEIGHT_SYMBOL"
+K2       = "WEIGHT_SYMBOL_OP"
+children = 0
+comment  = "a symbol denoting the weight of a function to synthesize"
+typerule = "::cvc5::internal::theory::datatypes::WeightSymbolTypeRule"
+
 # Kinds for match terms. For example, the match term
 #   (match l (((cons h t) h) (nil 0))) 
 # is represented by the AST

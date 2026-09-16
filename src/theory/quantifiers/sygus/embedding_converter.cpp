@@ -12,6 +12,7 @@
 
 #include "theory/quantifiers/sygus/embedding_converter.h"
 
+#include "expr/weight_symbol.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/smt2/smt2_printer.h"
@@ -391,6 +392,13 @@ Node EmbeddingConverter::convertToEmbedding(Node n)
           ret = nm->mkNode(
               Kind::LAMBDA, lvl, nm->mkNode(Kind::DT_SYGUS_EVAL, eargs));
         }
+      }
+      else if (ret_k == Kind::WEIGHT_SYMBOL)
+      {
+        const WeightSymbol& ws = cur.getOperator().getConst<WeightSymbol>();
+        ret = nm->mkNode(Kind::DT_SYGUS_WEIGHT,
+                         ws.getWeight(),
+                         d_synth_fun_vars[ws.getUF()]);
       }
       else if (childChanged)
       {
