@@ -211,6 +211,10 @@ cvc5 1.4.0 prerelease
   * LibPoly is now linked statically on Windows, and build triplet detection is
     fixed for Windows on ARM.
 
+- Fixes a bug in the coverings solver, where zero coefficients were ignored from the
+loop that collects relevant coefficients for the projections, whereas they should break
+the loop. (#12926)
+
 cvc5 1.3.4
 ==========
 
