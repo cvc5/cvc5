@@ -11,13 +11,20 @@
  */
 #include "prop/cadical/cdclt_propagator.h"
 
+#include <algorithm>
+
 namespace cvc5::internal::prop::cadical {
 
 CadicalPropagator::CadicalPropagator(prop::TheoryProxy* proxy,
                                      context::Context* context,
                                      CaDiCaL::Solver& solver,
-                                     StatisticsRegistry& stats)
-    : d_proxy(proxy), d_context(*context), d_solver(solver), d_stats(stats)
+                                     StatisticsRegistry& stats,
+                                     bool proofs)
+    : d_proxy(proxy),
+      d_context(*context),
+      d_solver(solver),
+      d_proofs(proofs),
+      d_stats(stats)
 {
   d_var_info.emplace_back();  // 0: Not used
 }
@@ -422,7 +429,8 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     // incremental checks. The reason is still a theory explanation and needs
     // the same user-level activation guard as reasons requested during search.
     // Add activation literal of the clause's user level to the reason.
-    SatLiteral alit = activation_lit(clause_user_level(clause));
+    SatLiteral alit = activation_lit(
+        std::max(min_clause_user_level(), clause_user_level(clause)));
     if (alit != undefSatLiteral)
     {
       d_reason.push_back(alit);
@@ -499,7 +507,8 @@ void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
   //       level N - 2. In this case we can add the clause at N - 2 instead
   //       of deleting the clause when popping user level N, which would
   //       require us to relearn the clause again.
-  uint32_t max_user_level = d_in_search ? 0 : current_user_level();
+  uint32_t max_user_level =
+      d_in_search ? min_clause_user_level() : current_user_level();
   for (const SatLiteral& lit : clause)
   {
     SatVariable var = lit.getSatVariable();
