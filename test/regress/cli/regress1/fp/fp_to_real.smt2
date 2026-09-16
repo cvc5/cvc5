@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic QF_FPLRA)
 (declare-const c1 Bool)
 (declare-const c2 Bool)

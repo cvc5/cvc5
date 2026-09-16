@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction --bv-abstraction-size=3
 ; EXPECT: sat
 ; A satisfiable multiplication (a * b = 15 with a, b > 1) whose initial
