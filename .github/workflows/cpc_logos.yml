@@ -1,20 +1,9 @@
 on:
+  # No branch or path filters: this is a required check, so it must report a
+  # status on every pull request and on merge queue branches
+  # (gh-readonly-queue/*), which are covered by push.
   push:
-    branches:
-      - main
-    paths:
-      - 'proofs/eo/**'
-      - 'contrib/check-logos-compilation'
-      - 'contrib/get-logos-checker'
-      - '.github/workflows/cpc_logos.yml'
   pull_request:
-    # Keep in sync with the push filter above; GitHub Actions does not support
-    # YAML anchors.
-    paths:
-      - 'proofs/eo/**'
-      - 'contrib/check-logos-compilation'
-      - 'contrib/get-logos-checker'
-      - '.github/workflows/cpc_logos.yml'
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
