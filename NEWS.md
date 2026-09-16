@@ -211,9 +211,14 @@ cvc5 1.4.0 prerelease
   * LibPoly is now linked statically on Windows, and build triplet detection is
     fixed for Windows on ARM.
 
-- Fixes a bug in the coverings solver, where zero coefficients were ignored from the
-loop that collects relevant coefficients for the projections, whereas they should break
-the loop. (#12926)
+- Fixes two bugs in the coverings solver:
+  + Zero coefficients were being used to break the loop that collects relevant
+    coefficients for the projections, when they should have been ignored. (#12926)
+  + Nullified polynomials were being ignored, even though they invalidate the
+    guarantees expected by the algorithm. We now detect nullified polynomials and,
+    in such cases, restart the coverings solver with the variables in reverse
+    order, in an attempt to avoid nullification. If there is still some nullified
+    polynomial, we give up. (#12927)
 
 cvc5 1.3.4
 ==========
