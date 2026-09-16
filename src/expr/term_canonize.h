@@ -58,15 +58,31 @@ class TermCanonize
 
   /** get term order
    *
-   * Returns true if a < b in the term ordering used by this class. Note this
-   * is a strict ordering, i.e. this method returns false if a and b are equal,
-   * and thus can be used as a comparator e.g. for std::sort. The term order is
-   * determined by the leftmost position in a and b whose operators o_a and o_b
-   * are distinct at that position. Then a < b iff o_a < o_b in the built-in
-   * node ordering.
+   * Returns true if a < b in the strict term ordering used by this class,
+   * and false if a and b are equal. This can be used as a comparator for
+   * std::sort.
+   *
+   * Bound variables precede all other nodes. Two bound variables are compared
+   * using the built-in node ordering.
+   *
+   * For all other nodes, compare their operators using the built-in node
+   * ordering, using the node itself when it has no operator (e.g. a constant
+   * or a free variable). If these are equal, the node with fewer children
+   * comes first. If the numbers of children are also equal, recursively
+   * compare the first pair of distinct children, from left to right. If all
+   * children are equal, return false.
    */
   bool getTermOrder(Node a, Node b);
-  /** get canonical free variable #i of type tn */
+  /**
+   * Get canonical free variable #i of type tn and type class tc.
+   *
+   * @param tn The type of the variable.
+   * @param i The index of the variable within its type / type class pair.
+   * @param tc The type class identifier, as returned by TypeClassCallback.
+   * Different type classes have distinct canonical variables even for the
+   * same type and index. The default is 0, the type class used when no callback
+   * is provided.
+   */
   Node getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc = 0);
   /**
    * Return the range of the free variable in the above map, or 0 if it does not

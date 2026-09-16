@@ -291,7 +291,7 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
       }
       // if var reordering did not apply, we likely will not succeed below
     }
-    // if not syntactically equal, maybe it can be transformed
+    // Prove the remaining equality after variable renaming and reordering.
     bool success = false;
     if (sret == q)
     {
@@ -301,6 +301,12 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
     {
       Node eq2 = sret.eqNode(q);
       transEq.push_back(eq2);
+      // Try to transform sret into q by recursively normalizing associative,
+      // commutative, and idempotent operators and applying congruence. Order
+      // commutative children by their canonical forms to align corresponding
+      // subterms. The proof utility also tries arithmetic and bit-vector
+      // polynomial normalization and rewriting; if it fails, we fall back to
+      // extended rewriting of the equality below.
       std::map<Node, Node> canonCache;
       expr::EqualityNodeLessCallback orderChildren =
           [this, &canonCache](const Node& a, const Node& b) {
