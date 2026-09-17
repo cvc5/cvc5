@@ -53,7 +53,8 @@ Env::Env(NodeManager* nm, const Options* opts)
       d_options(),
       d_resourceManager(),
       d_uninterpretedSortOwner(theory::THEORY_UF),
-      d_boolTermSkolems(d_userContext.get())
+      d_boolTermSkolems(d_userContext.get()),
+      d_recursiveFunctions(d_userContext.get())
 {
   if (opts != nullptr)
   {
@@ -317,6 +318,16 @@ const std::vector<Plugin*>& Env::getPlugins() const { return d_plugins; }
 theory::quantifiers::OracleChecker* Env::getOracleChecker() const
 {
   return d_ochecker.get();
+}
+
+void Env::registerRecursiveFunction(const Node& f)
+{
+  d_recursiveFunctions.insert(f);
+}
+
+bool Env::isRecursiveFunction(const Node& f) const
+{
+  return d_recursiveFunctions.find(f) != d_recursiveFunctions.end();
 }
 
 void Env::registerBooleanTermSkolem(const Node& k)

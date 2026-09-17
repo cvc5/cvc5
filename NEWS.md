@@ -45,6 +45,10 @@ cvc5 1.4.0 prerelease
 
 ## Changes
 
+- Eliminate quantified aliases before recursive-function finite model finding
+  when `--fmf-fun --macros-quant` is enabled, while preserving the recursive
+  definitions and their models.
+
 - **CaDiCaL** is now the **default CDCL(T) SAT solver** for all logics
   (`--sat-solver=cadical`). MiniSat is still selected by default in incremental
   mode, and can always be selected explicitly via `--sat-solver=minisat`.

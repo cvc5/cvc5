@@ -49,3 +49,5 @@ cvc5_add_unit_test_white(theory_strings_word_white theory)
 cvc5_add_unit_test_white(theory_white theory)
 cvc5_add_unit_test_white(type_enumerator_white theory)
 cvc5_add_unit_test_white(arith_poly_white theory)
+
+cvc5_add_unit_test_black(theory_recursive_functions_black theory)

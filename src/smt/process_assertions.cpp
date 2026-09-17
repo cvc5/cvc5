@@ -253,6 +253,16 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     // to FMF
     if (options().quantifiers.fmfFunWellDefined)
     {
+      // Eliminate aliases of recursive functions before the FMF reduction
+      // adds input-domain obligations under their universal quantifiers.
+      if (options().quantifiers.macrosQuant)
+      {
+        if (applyPass("non-clausal-simp", ap)
+            == PreprocessingPassResult::CONFLICT)
+        {
+          return false;
+        }
+      }
       applyPass("fun-def-fmf", ap);
     }
     if (options().quantifiers.preSkolemQuant
