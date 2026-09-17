@@ -1196,6 +1196,8 @@ set(regress_0_tests
   regress0/nl/issue12239-subtype-elim.smt2
   regress0/nl/issue12408-nl-fm.smt2
   regress0/nl/issue12607-shared-term-factor.smt2
+  regress0/nl/issue12926-nl-cov-zero-coeff.smt2
+  regress0/nl/issue12927-nl-cov-nullified.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1544,6 +1546,7 @@ set(regress_0_tests
   regress0/proofs/dd.fastclose.smt2
   regress0/proofs/dd.fastclose2.smt2
   regress0/proofs/dd.fastclose3.smt2
+  regress0/proofs/dd.frd-seek.smt2
   regress0/proofs/dd.read6-cadical.smt2
   regress0/proofs/dd.S715-026__dic_loop__ordering_buffers.adb_11_83_range_check___00.smt2
   regress0/proofs/dd_ada_open.smt2
@@ -1593,6 +1596,7 @@ set(regress_0_tests
   regress0/proofs/issue12746-bv-invert-solve-mult.smt2
   regress0/proofs/issue12708-check-proofs-arith-cm.smt2
   regress0/proofs/issue12709-open-sat-proof.smt2
+  regress0/proofs/issue12942-cpc-alpha-eq.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
@@ -2680,6 +2684,26 @@ set(regress_1_tests
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/uf-abduct.smt2
   regress1/abduction/yoni-true-sol.smt2
+  regress1/arith/liastar/assume_not_nonnegative.smt2
+  regress1/arith/liastar/assume_nonnegative.smt2
+  regress1/arith/liastar/constant_lambda.smt2
+  regress1/arith/liastar/disjoint_union.smt2
+  regress1/arith/liastar/f2_sat.smt2
+  regress1/arith/liastar/f2_unsat.smt2
+  regress1/arith/liastar/lineality_line_sat.smt2
+  regress1/arith/liastar/lineality_line_unsat.smt2
+  regress1/arith/liastar/neg_line.smt2
+  regress1/arith/liastar/neg_mixed_sat.smt2
+  regress1/arith/liastar/neg_parity_unsat.smt2
+  regress1/arith/liastar/neg_sum_sat.smt2
+  regress1/arith/liastar/neg_sum_unsat.smt2
+  regress1/arith/liastar/paper2008.smt2
+  regress1/arith/liastar/paper2020.smt2
+  regress1/arith/liastar/query026.smt2
+  regress1/arith/liastar/sat1.smt2
+  regress1/arith/liastar/sat2.smt2
+  regress1/arith/liastar/simple.smt2
+  regress1/arith/liastar/two-star-predicates.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
@@ -3184,6 +3208,8 @@ set(regress_1_tests
   regress1/proofs/alpha-eq-var-shadow-name-only.smt2
   regress1/proofs/alpha-eq-var-shadow-name-only2.smt2
   regress1/proofs/base-lfsc-treesize.smt2
+  regress1/proofs/dd.sll2c_insert_unequal.i_123.smt2
+  regress1/proofs/dd.verisec_sendmail__tTflag_arr_one_loop_false-unreach-call_true-termination.i_7.smt2
   regress1/proofs/dd.SEQ035_size5.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue-dt-tester-conflict-cons-eq-clash.smt2
@@ -3292,6 +3318,8 @@ set(regress_1_tests
   regress1/quantifiers/constfunc.cvc.smt2
   regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2
   regress1/quantifiers/dd.bug812-ieval.smt2
+  regress1/quantifiers/dd.prob_00691_024339__38669730.smt2
+  regress1/quantifiers/dd2.prob_00691_024339__38669730.smt2
   regress1/quantifiers/dd_ghc_macro_quant_prenex.smt2
   regress1/quantifiers/dd_full_xor-rcons-open.smt2
   regress1/quantifiers/dd_RNDPRE_4_28-subtype-elim.smt2
