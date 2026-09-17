@@ -749,7 +749,7 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
                                  RelsUtils::constructPair(tc_rel, sk_1, sk_2),
                                  tc_rel))}));
 
-  sendInfer(conc, InferenceId::SETS_RELS_TCLOSURE_UP, reason);
+  sendInfer(conc, InferenceId::SETS_RELS_TCLOSURE_DOWN, reason);
 }
 
 bool TheorySetsRels::isTCReachable(Node mem_rep, Node tc_rel)
@@ -948,13 +948,13 @@ void TheorySetsRels::doTCInference(
     // Use andReasons to ensure deterministic node ID assignments
     Node andReasons = nm->mkNode(Kind::AND, all_reasons);
     sendInfer(nm->mkNode(Kind::SET_MEMBER, tc_mem, tc_rel),
-              InferenceId::SETS_RELS_TCLOSURE_FWD,
+              InferenceId::SETS_RELS_TCLOSURE_UP,
               andReasons);
   }
   else
   {
     sendInfer(nm->mkNode(Kind::SET_MEMBER, tc_mem, tc_rel),
-              InferenceId::SETS_RELS_TCLOSURE_FWD,
+              InferenceId::SETS_RELS_TCLOSURE_UP,
               all_reasons.front());
   }
 

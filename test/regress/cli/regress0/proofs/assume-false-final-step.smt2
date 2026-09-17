@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --dump-proofs --proof-format=cpc
 ; SCRUBBER: grep -o -E 'unsat|:rule eq_resolve' | sed 's/:rule //'
 ; EXPECT: unsat

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --minimal-unsat-cores
 ; EXPECT: unsat
 (set-logic ALL)

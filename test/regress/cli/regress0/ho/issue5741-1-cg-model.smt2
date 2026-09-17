@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :status sat)
 (declare-fun a ((_ BitVec 32) (_ BitVec 32)) (_ BitVec 32))
