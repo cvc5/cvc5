@@ -87,9 +87,35 @@ def generate_cmake_version_file(version, is_release):
     open(filename, 'w').write(tpl)
 
 
+def finalize_news_file(version):
+    """Drop the prerelease marker from the version section in the news file.
+
+    The release notes on the release page are extracted from the section
+    titled 'cvc5 <version>', so a leftover 'prerelease' marker makes the
+    release page show the notes of the previous release.
+    """
+    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                            'NEWS.md')
+    content = open(filename).read()
+    title = 'cvc5 {}'.format(version)
+    re_prerelease = re.compile(
+        r'^{} prerelease[ \t]*\n=+[ \t]*$'.format(re.escape(title)),
+        re.MULTILINE)
+    newcontent, count = re_prerelease.subn(
+        '{}\n{}'.format(title, '=' * len(title)), content, count=1)
+    if count == 0:
+        logging.debug(
+            'no prerelease section for {} in NEWS.md'.format(version))
+        return False
+    open(filename, 'w').write(newcontent)
+    return True
+
+
 def make_release_commit(version):
     """Make the release commit"""
     tagname = 'cvc5-{}'.format(version)
+    if finalize_news_file(version):
+        exec(['git', 'add', 'NEWS.md'])
     exec(['git', 'add', 'cmake/version-base.cmake'])
     exec(['git', 'commit', '-m', 'Bump version to {}'.format(version)])
     exec(['git', 'tag', tagname])
