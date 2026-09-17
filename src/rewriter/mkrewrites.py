@@ -361,7 +361,6 @@ def gen_rewrite_db(args):
 
     printer_code = []
     ids = []
-    rule_sources = {}
     printer_code = []
 
     decl_individual_rewrites = []
@@ -370,8 +369,6 @@ def gen_rewrite_db(args):
     for flag_expert, rewrites_file in rewrites_files:
         db = gen_individual_rewrite_db(Path(rewrites_file), individual_rewrites_cpp, flag_expert)
         ids += db.ids
-        source = Path(os.path.relpath(rewrites_file, args.src_dir)).as_posix()
-        rule_sources.update({id: source for id in db.ids})
         printer_code += db.printer_code
         decl_individual_rewrites.append(f"void {db.function_name}(NodeManager* nm, RewriteDb&);")
         call_individual_rewrites.append(f"{db.function_name}(nm, db);")
@@ -379,9 +376,8 @@ def gen_rewrite_db(args):
     # Note that we manually indent by two spaces, since we do not clang-format
     # the include file automatically.
     def doc(rule: str):
-        name = rule.lower().replace('_', '-')
-        return (f'  /** From {rule_sources[rule]}:\n'
-                f'   *  Auto-generated from RARE rule {name} */')
+        rule = rule.lower().replace('_', '-')
+        return f'  /** Auto-generated from RARE rule {rule} */'
 
     # Note that we do not automatically clang-format the API include file,
     # since this breaks the documentation for latex formulas which require
