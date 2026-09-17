@@ -82,6 +82,15 @@ if(NOT CoCoA_FOUND_SYSTEM)
 
   set(CoCoA_CXX_COMPILER "${CMAKE_CXX_COMPILER}")
   if(EMSCRIPTEN)
+    # CoCoALib needs exception catching as well. emcc defaults to
+    # -fignore-exceptions, which drops CoCoALib's own catch blocks and,
+    # because no landing pads are emitted, also skips destructors in
+    # CoCoALib frames that an exception caught by cvc5 unwinds through
+    if(CoCoA_CXXFLAGS)
+      set(CoCoA_CXXFLAGS "${CoCoA_CXXFLAGS} -fexceptions")
+    else()
+      set(CoCoA_CXXFLAGS "-fexceptions")
+    endif()
     set(CoCoA_EM_WRAPPER "${DEPS_BASE}/em++-cocoa-wrapper")
     configure_file(
       "${CMAKE_CURRENT_LIST_DIR}/deps-utils/em++-cocoa-wrapper.sh.in"
