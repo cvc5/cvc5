@@ -45,6 +45,10 @@ class BagSolver : protected EnvObj
   void checkBasicOperations();
 
   /**
+   * translate basic bag basic constraints into liastar constraints
+   */
+  void checkLiastarConstraints();
+  /**
    * apply inference rules for operators with quantifiers:
    * BAG_MAP
    */

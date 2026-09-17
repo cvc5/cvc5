@@ -89,6 +89,49 @@ void BagSolver::checkBasicOperations()
   }
 }
 
+void BagSolver::checkLiastarConstraints()
+{
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  // representatives of the equivalent classes of true and false
+
+  eq::EqClassesIterator repIt = eq::EqClassesIterator(ee);
+  while (!repIt.isFinished())
+  {
+    Node eqc = (*repIt);
+
+    if (eqc.getType().isBag())
+    {
+      d_state.registerBag(eqc);
+    }
+
+    if (eqc == d_true)
+    {
+      Trace("bags-liastar") << "Eqc [ true ] = { ";
+      eq::EqClassIterator it = eq::EqClassIterator(eqc, ee);
+      while (!it.isFinished())
+      {
+        Trace("bags-liastar") << (*it) << " ";
+        ++it;
+      }
+      Trace("bags-liastar") << "} " << std::endl;
+    }
+
+    if (eqc == d_false)
+    {
+      Trace("bags-liastar") << "Eqc [ false ] = { ";
+      eq::EqClassIterator it = eq::EqClassIterator(eqc, ee);
+      while (!it.isFinished())
+      {
+        Trace("bags-liastar") << (*it) << " ";
+        ++it;
+      }
+      Trace("bags-liastar") << "} " << std::endl;
+    }
+
+    ++repIt;
+  }
+}
+
 void BagSolver::checkQuantifiedOperations()
 {
   for (const Node& bag : d_state.getBags())
