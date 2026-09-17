@@ -134,15 +134,22 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n)
-   *   \circ \cdots \circ \sigma_{ids}(F_1)}
+   *   \inferrule{F_1 \dots F_n \mid t, ids?, ida?}{t =
+   *   \texttt{apply}_{ida}(t, \sigma_{ids}(F_1), \dots, \sigma_{ids}(F_n))}
    *
-   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
-   * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
-   * determines how to convert the formulas :math:`F_1 \dots F_n` into
-   * substitutions. It is an optional argument, where by default the premises
-   * are equalities of the form `(= x y)` and converted into substitutions
-   * :math:`x\mapsto y`.
+   * where :math:`\sigma_{ids}(F_i)` are substitutions. The optional MethodId
+   * identifier :math:`ids` determines how to convert the formulas
+   * :math:`F_1 \dots F_n` into substitutions. It defaults to ``SB_DEFAULT``,
+   * where the premises are equalities of the form `(= x y)` and converted into
+   * substitutions :math:`x\mapsto y`.
+   *
+   * The optional MethodId identifier :math:`ida` determines how
+   * :math:`\texttt{apply}_{ida}` applies these substitutions to :math:`t`.
+   * It defaults to ``SBA_SEQUENTIAL``, which applies them in reverse order,
+   * yielding :math:`t \circ \sigma_{ids}(F_n) \circ \cdots \circ \sigma_{ids}(F_1)`.
+   * Alternatively, ``SBA_SIMUL`` applies the substitutions simultaneously, and
+   * ``SBA_FIXPOINT`` applies them to a fixpoint. For ``SBA_FIXPOINT``, the
+   * substitutions must form a terminating rewrite system.
    * \endverbatim
    */
   EVALUE(SUBS),
@@ -4201,883 +4208,1322 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
-  /** Auto-generated from RARE rule arith-div-total-zero-real */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-div-total-zero-real */
   EVALUE(ARITH_DIV_TOTAL_ZERO_REAL),
-  /** Auto-generated from RARE rule arith-div-total-zero-int */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-div-total-zero-int */
   EVALUE(ARITH_DIV_TOTAL_ZERO_INT),
-  /** Auto-generated from RARE rule arith-int-div-total */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-div-total */
   EVALUE(ARITH_INT_DIV_TOTAL),
-  /** Auto-generated from RARE rule arith-int-div-total-one */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-div-total-one */
   EVALUE(ARITH_INT_DIV_TOTAL_ONE),
-  /** Auto-generated from RARE rule arith-int-div-total-zero */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-div-total-zero */
   EVALUE(ARITH_INT_DIV_TOTAL_ZERO),
-  /** Auto-generated from RARE rule arith-int-div-total-neg */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-div-total-neg */
   EVALUE(ARITH_INT_DIV_TOTAL_NEG),
-  /** Auto-generated from RARE rule arith-int-mod-total */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-mod-total */
   EVALUE(ARITH_INT_MOD_TOTAL),
-  /** Auto-generated from RARE rule arith-int-mod-total-one */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-mod-total-one */
   EVALUE(ARITH_INT_MOD_TOTAL_ONE),
-  /** Auto-generated from RARE rule arith-int-mod-total-zero */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-mod-total-zero */
   EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
-  /** Auto-generated from RARE rule arith-int-mod-total-neg */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-mod-total-neg */
   EVALUE(ARITH_INT_MOD_TOTAL_NEG),
-  /** Auto-generated from RARE rule arith-elim-gt */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-elim-gt */
   EVALUE(ARITH_ELIM_GT),
-  /** Auto-generated from RARE rule arith-elim-lt */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-elim-lt */
   EVALUE(ARITH_ELIM_LT),
-  /** Auto-generated from RARE rule arith-elim-int-gt */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-elim-int-gt */
   EVALUE(ARITH_ELIM_INT_GT),
-  /** Auto-generated from RARE rule arith-elim-int-lt */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-elim-int-lt */
   EVALUE(ARITH_ELIM_INT_LT),
-  /** Auto-generated from RARE rule arith-elim-leq */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-elim-leq */
   EVALUE(ARITH_ELIM_LEQ),
-  /** Auto-generated from RARE rule arith-leq-norm */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-leq-norm */
   EVALUE(ARITH_LEQ_NORM),
-  /** Auto-generated from RARE rule arith-geq-tighten */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-geq-tighten */
   EVALUE(ARITH_GEQ_TIGHTEN),
-  /** Auto-generated from RARE rule arith-geq-norm1-int */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-geq-norm1-int */
   EVALUE(ARITH_GEQ_NORM1_INT),
-  /** Auto-generated from RARE rule arith-geq-norm1-real */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-geq-norm1-real */
   EVALUE(ARITH_GEQ_NORM1_REAL),
-  /** Auto-generated from RARE rule arith-eq-elim-real */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-eq-elim-real */
   EVALUE(ARITH_EQ_ELIM_REAL),
-  /** Auto-generated from RARE rule arith-eq-elim-int */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-eq-elim-int */
   EVALUE(ARITH_EQ_ELIM_INT),
-  /** Auto-generated from RARE rule arith-to-int-elim-to-real */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-to-int-elim-to-real */
   EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
-  /** Auto-generated from RARE rule arith-mod-over-mod-1 */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-mod-over-mod-1 */
   EVALUE(ARITH_MOD_OVER_MOD_1),
-  /** Auto-generated from RARE rule arith-mod-over-mod */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-mod-over-mod */
   EVALUE(ARITH_MOD_OVER_MOD),
-  /** Auto-generated from RARE rule arith-mod-over-mod-mult */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-mod-over-mod-mult */
   EVALUE(ARITH_MOD_OVER_MOD_MULT),
-  /** Auto-generated from RARE rule arith-int-eq-conflict */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-eq-conflict */
   EVALUE(ARITH_INT_EQ_CONFLICT),
-  /** Auto-generated from RARE rule arith-int-geq-tighten */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-int-geq-tighten */
   EVALUE(ARITH_INT_GEQ_TIGHTEN),
-  /** Auto-generated from RARE rule arith-divisible-elim */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-divisible-elim */
   EVALUE(ARITH_DIVISIBLE_ELIM),
-  /** Auto-generated from RARE rule arith-abs-eq */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-abs-eq */
   EVALUE(ARITH_ABS_EQ),
-  /** Auto-generated from RARE rule arith-abs-int-gt */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-abs-int-gt */
   EVALUE(ARITH_ABS_INT_GT),
-  /** Auto-generated from RARE rule arith-abs-real-gt */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-abs-real-gt */
   EVALUE(ARITH_ABS_REAL_GT),
-  /** Auto-generated from RARE rule arith-geq-ite-lift */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-geq-ite-lift */
   EVALUE(ARITH_GEQ_ITE_LIFT),
-  /** Auto-generated from RARE rule arith-leq-ite-lift */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-leq-ite-lift */
   EVALUE(ARITH_LEQ_ITE_LIFT),
-  /** Auto-generated from RARE rule arith-min-lt1 */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-min-lt1 */
   EVALUE(ARITH_MIN_LT1),
-  /** Auto-generated from RARE rule arith-min-lt2 */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-min-lt2 */
   EVALUE(ARITH_MIN_LT2),
-  /** Auto-generated from RARE rule arith-max-geq1 */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-max-geq1 */
   EVALUE(ARITH_MAX_GEQ1),
-  /** Auto-generated from RARE rule arith-max-geq2 */
+  /** From src/theory/arith/rewrites:
+   *  Auto-generated from RARE rule arith-max-geq2 */
   EVALUE(ARITH_MAX_GEQ2),
-  /** Auto-generated from RARE rule array-read-over-write */
+  /** From src/theory/arrays/rewrites:
+   *  Auto-generated from RARE rule array-read-over-write */
   EVALUE(ARRAY_READ_OVER_WRITE),
-  /** Auto-generated from RARE rule array-read-over-write2 */
+  /** From src/theory/arrays/rewrites:
+   *  Auto-generated from RARE rule array-read-over-write2 */
   EVALUE(ARRAY_READ_OVER_WRITE2),
-  /** Auto-generated from RARE rule array-store-overwrite */
+  /** From src/theory/arrays/rewrites:
+   *  Auto-generated from RARE rule array-store-overwrite */
   EVALUE(ARRAY_STORE_OVERWRITE),
-  /** Auto-generated from RARE rule array-store-self */
+  /** From src/theory/arrays/rewrites:
+   *  Auto-generated from RARE rule array-store-self */
   EVALUE(ARRAY_STORE_SELF),
-  /** Auto-generated from RARE rule array-read-over-write-split */
+  /** From src/theory/arrays/rewrites:
+   *  Auto-generated from RARE rule array-read-over-write-split */
   EVALUE(ARRAY_READ_OVER_WRITE_SPLIT),
-  /** Auto-generated from RARE rule array-store-swap */
+  /** From src/theory/arrays/rewrites:
+   *  Auto-generated from RARE rule array-store-swap */
   EVALUE(ARRAY_STORE_SWAP),
-  /** Auto-generated from RARE rule bool-double-not-elim */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-double-not-elim */
   EVALUE(BOOL_DOUBLE_NOT_ELIM),
-  /** Auto-generated from RARE rule bool-not-true */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-not-true */
   EVALUE(BOOL_NOT_TRUE),
-  /** Auto-generated from RARE rule bool-not-false */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-not-false */
   EVALUE(BOOL_NOT_FALSE),
-  /** Auto-generated from RARE rule bool-eq-true */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-eq-true */
   EVALUE(BOOL_EQ_TRUE),
-  /** Auto-generated from RARE rule bool-eq-false */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-eq-false */
   EVALUE(BOOL_EQ_FALSE),
-  /** Auto-generated from RARE rule bool-eq-nrefl */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-eq-nrefl */
   EVALUE(BOOL_EQ_NREFL),
-  /** Auto-generated from RARE rule bool-impl-false1 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-impl-false1 */
   EVALUE(BOOL_IMPL_FALSE1),
-  /** Auto-generated from RARE rule bool-impl-false2 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-impl-false2 */
   EVALUE(BOOL_IMPL_FALSE2),
-  /** Auto-generated from RARE rule bool-impl-true1 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-impl-true1 */
   EVALUE(BOOL_IMPL_TRUE1),
-  /** Auto-generated from RARE rule bool-impl-true2 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-impl-true2 */
   EVALUE(BOOL_IMPL_TRUE2),
-  /** Auto-generated from RARE rule bool-impl-elim */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-impl-elim */
   EVALUE(BOOL_IMPL_ELIM),
-  /** Auto-generated from RARE rule bool-dual-impl-eq */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-dual-impl-eq */
   EVALUE(BOOL_DUAL_IMPL_EQ),
-  /** Auto-generated from RARE rule bool-and-conf */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-and-conf */
   EVALUE(BOOL_AND_CONF),
-  /** Auto-generated from RARE rule bool-and-conf2 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-and-conf2 */
   EVALUE(BOOL_AND_CONF2),
-  /** Auto-generated from RARE rule bool-or-taut */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-or-taut */
   EVALUE(BOOL_OR_TAUT),
-  /** Auto-generated from RARE rule bool-or-taut2 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-or-taut2 */
   EVALUE(BOOL_OR_TAUT2),
-  /** Auto-generated from RARE rule bool-or-de-morgan */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-or-de-morgan */
   EVALUE(BOOL_OR_DE_MORGAN),
-  /** Auto-generated from RARE rule bool-implies-de-morgan */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-implies-de-morgan */
   EVALUE(BOOL_IMPLIES_DE_MORGAN),
-  /** Auto-generated from RARE rule bool-and-de-morgan */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-and-de-morgan */
   EVALUE(BOOL_AND_DE_MORGAN),
-  /** Auto-generated from RARE rule bool-or-and-distrib */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-or-and-distrib */
   EVALUE(BOOL_OR_AND_DISTRIB),
-  /** Auto-generated from RARE rule bool-implies-or-distrib */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-implies-or-distrib */
   EVALUE(BOOL_IMPLIES_OR_DISTRIB),
-  /** Auto-generated from RARE rule bool-xor-refl */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-xor-refl */
   EVALUE(BOOL_XOR_REFL),
-  /** Auto-generated from RARE rule bool-xor-nrefl */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-xor-nrefl */
   EVALUE(BOOL_XOR_NREFL),
-  /** Auto-generated from RARE rule bool-xor-false */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-xor-false */
   EVALUE(BOOL_XOR_FALSE),
-  /** Auto-generated from RARE rule bool-xor-true */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-xor-true */
   EVALUE(BOOL_XOR_TRUE),
-  /** Auto-generated from RARE rule bool-xor-comm */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-xor-comm */
   EVALUE(BOOL_XOR_COMM),
-  /** Auto-generated from RARE rule bool-xor-elim */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-xor-elim */
   EVALUE(BOOL_XOR_ELIM),
-  /** Auto-generated from RARE rule bool-not-xor-elim */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-not-xor-elim */
   EVALUE(BOOL_NOT_XOR_ELIM),
-  /** Auto-generated from RARE rule bool-not-eq-elim1 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-not-eq-elim1 */
   EVALUE(BOOL_NOT_EQ_ELIM1),
-  /** Auto-generated from RARE rule bool-not-eq-elim2 */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-not-eq-elim2 */
   EVALUE(BOOL_NOT_EQ_ELIM2),
-  /** Auto-generated from RARE rule ite-neg-branch */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-neg-branch */
   EVALUE(ITE_NEG_BRANCH),
-  /** Auto-generated from RARE rule ite-then-true */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-then-true */
   EVALUE(ITE_THEN_TRUE),
-  /** Auto-generated from RARE rule ite-else-false */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-else-false */
   EVALUE(ITE_ELSE_FALSE),
-  /** Auto-generated from RARE rule ite-then-false */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-then-false */
   EVALUE(ITE_THEN_FALSE),
-  /** Auto-generated from RARE rule ite-else-true */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-else-true */
   EVALUE(ITE_ELSE_TRUE),
-  /** Auto-generated from RARE rule ite-then-lookahead-self */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-then-lookahead-self */
   EVALUE(ITE_THEN_LOOKAHEAD_SELF),
-  /** Auto-generated from RARE rule ite-else-lookahead-self */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-else-lookahead-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_SELF),
-  /** Auto-generated from RARE rule ite-then-lookahead-not-self */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-then-lookahead-not-self */
   EVALUE(ITE_THEN_LOOKAHEAD_NOT_SELF),
-  /** Auto-generated from RARE rule ite-else-lookahead-not-self */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-else-lookahead-not-self */
   EVALUE(ITE_ELSE_LOOKAHEAD_NOT_SELF),
-  /** Auto-generated from RARE rule ite-expand */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule ite-expand */
   EVALUE(ITE_EXPAND),
-  /** Auto-generated from RARE rule bool-not-ite-elim */
+  /** From src/theory/booleans/rewrites:
+   *  Auto-generated from RARE rule bool-not-ite-elim */
   EVALUE(BOOL_NOT_ITE_ELIM),
-  /** Auto-generated from RARE rule ite-true-cond */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-true-cond */
   EVALUE(ITE_TRUE_COND),
-  /** Auto-generated from RARE rule ite-false-cond */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-false-cond */
   EVALUE(ITE_FALSE_COND),
-  /** Auto-generated from RARE rule ite-not-cond */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-not-cond */
   EVALUE(ITE_NOT_COND),
-  /** Auto-generated from RARE rule ite-eq-branch */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-eq-branch */
   EVALUE(ITE_EQ_BRANCH),
-  /** Auto-generated from RARE rule ite-then-lookahead */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-then-lookahead */
   EVALUE(ITE_THEN_LOOKAHEAD),
-  /** Auto-generated from RARE rule ite-else-lookahead */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-else-lookahead */
   EVALUE(ITE_ELSE_LOOKAHEAD),
-  /** Auto-generated from RARE rule ite-then-neg-lookahead */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-then-neg-lookahead */
   EVALUE(ITE_THEN_NEG_LOOKAHEAD),
-  /** Auto-generated from RARE rule ite-else-neg-lookahead */
+  /** From src/theory/builtin/rewrites:
+   *  Auto-generated from RARE rule ite-else-neg-lookahead */
   EVALUE(ITE_ELSE_NEG_LOOKAHEAD),
-  /** Auto-generated from RARE rule bv-concat-extract-merge */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-concat-extract-merge */
   EVALUE(BV_CONCAT_EXTRACT_MERGE),
-  /** Auto-generated from RARE rule bv-extract-extract */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-extract */
   EVALUE(BV_EXTRACT_EXTRACT),
-  /** Auto-generated from RARE rule bv-extract-whole */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-whole */
   EVALUE(BV_EXTRACT_WHOLE),
-  /** Auto-generated from RARE rule bv-extract-concat-1 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-concat-1 */
   EVALUE(BV_EXTRACT_CONCAT_1),
-  /** Auto-generated from RARE rule bv-extract-concat-2 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-concat-2 */
   EVALUE(BV_EXTRACT_CONCAT_2),
-  /** Auto-generated from RARE rule bv-extract-concat-3 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-concat-3 */
   EVALUE(BV_EXTRACT_CONCAT_3),
-  /** Auto-generated from RARE rule bv-extract-concat-4 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-concat-4 */
   EVALUE(BV_EXTRACT_CONCAT_4),
-  /** Auto-generated from RARE rule bv-eq-extract-elim1 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-eq-extract-elim1 */
   EVALUE(BV_EQ_EXTRACT_ELIM1),
-  /** Auto-generated from RARE rule bv-eq-extract-elim2 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-eq-extract-elim2 */
   EVALUE(BV_EQ_EXTRACT_ELIM2),
-  /** Auto-generated from RARE rule bv-eq-extract-elim3 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-eq-extract-elim3 */
   EVALUE(BV_EQ_EXTRACT_ELIM3),
-  /** Auto-generated from RARE rule bv-extract-not */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-not */
   EVALUE(BV_EXTRACT_NOT),
-  /** Auto-generated from RARE rule bv-extract-sign-extend-1 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-sign-extend-1 */
   EVALUE(BV_EXTRACT_SIGN_EXTEND_1),
-  /** Auto-generated from RARE rule bv-extract-sign-extend-2 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-sign-extend-2 */
   EVALUE(BV_EXTRACT_SIGN_EXTEND_2),
-  /** Auto-generated from RARE rule bv-extract-sign-extend-3 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-extract-sign-extend-3 */
   EVALUE(BV_EXTRACT_SIGN_EXTEND_3),
-  /** Auto-generated from RARE rule bv-not-xor */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-not-xor */
   EVALUE(BV_NOT_XOR),
-  /** Auto-generated from RARE rule bv-and-simplify-1 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-and-simplify-1 */
   EVALUE(BV_AND_SIMPLIFY_1),
-  /** Auto-generated from RARE rule bv-and-simplify-2 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-and-simplify-2 */
   EVALUE(BV_AND_SIMPLIFY_2),
-  /** Auto-generated from RARE rule bv-or-simplify-1 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-or-simplify-1 */
   EVALUE(BV_OR_SIMPLIFY_1),
-  /** Auto-generated from RARE rule bv-or-simplify-2 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-or-simplify-2 */
   EVALUE(BV_OR_SIMPLIFY_2),
-  /** Auto-generated from RARE rule bv-xor-simplify-1 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-xor-simplify-1 */
   EVALUE(BV_XOR_SIMPLIFY_1),
-  /** Auto-generated from RARE rule bv-xor-simplify-2 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-xor-simplify-2 */
   EVALUE(BV_XOR_SIMPLIFY_2),
-  /** Auto-generated from RARE rule bv-xor-simplify-3 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-xor-simplify-3 */
   EVALUE(BV_XOR_SIMPLIFY_3),
-  /** Auto-generated from RARE rule bv-ult-add-one */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-ult-add-one */
   EVALUE(BV_ULT_ADD_ONE),
-  /** Auto-generated from RARE rule bv-mult-slt-mult-1 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-mult-slt-mult-1 */
   EVALUE(BV_MULT_SLT_MULT_1),
-  /** Auto-generated from RARE rule bv-mult-slt-mult-2 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-mult-slt-mult-2 */
   EVALUE(BV_MULT_SLT_MULT_2),
-  /** Auto-generated from RARE rule bv-commutative-xor */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-commutative-xor */
   EVALUE(BV_COMMUTATIVE_XOR),
-  /** Auto-generated from RARE rule bv-commutative-comp */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-commutative-comp */
   EVALUE(BV_COMMUTATIVE_COMP),
-  /** Auto-generated from RARE rule bv-zero-extend-eliminate-0 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-zero-extend-eliminate-0 */
   EVALUE(BV_ZERO_EXTEND_ELIMINATE_0),
-  /** Auto-generated from RARE rule bv-sign-extend-eliminate-0 */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-sign-extend-eliminate-0 */
   EVALUE(BV_SIGN_EXTEND_ELIMINATE_0),
-  /** Auto-generated from RARE rule bv-not-neq */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-not-neq */
   EVALUE(BV_NOT_NEQ),
-  /** Auto-generated from RARE rule bv-ult-ones */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-ult-ones */
   EVALUE(BV_ULT_ONES),
-  /** Auto-generated from RARE rule bv-concat-merge-const */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-concat-merge-const */
   EVALUE(BV_CONCAT_MERGE_CONST),
-  /** Auto-generated from RARE rule bv-commutative-add */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-commutative-add */
   EVALUE(BV_COMMUTATIVE_ADD),
-  /** Auto-generated from RARE rule bv-sub-eliminate */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-sub-eliminate */
   EVALUE(BV_SUB_ELIMINATE),
-  /** Auto-generated from RARE rule bv-ite-width-one */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-ite-width-one */
   EVALUE(BV_ITE_WIDTH_ONE),
-  /** Auto-generated from RARE rule bv-ite-width-one-not */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-ite-width-one-not */
   EVALUE(BV_ITE_WIDTH_ONE_NOT),
-  /** Auto-generated from RARE rule bv-eq-xor-solve */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-eq-xor-solve */
   EVALUE(BV_EQ_XOR_SOLVE),
-  /** Auto-generated from RARE rule bv-eq-not-solve */
+  /** From src/theory/bv/rewrites:
+   *  Auto-generated from RARE rule bv-eq-not-solve */
   EVALUE(BV_EQ_NOT_SOLVE),
-  /** Auto-generated from RARE rule bv-ugt-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-ugt-eliminate */
   EVALUE(BV_UGT_ELIMINATE),
-  /** Auto-generated from RARE rule bv-uge-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-uge-eliminate */
   EVALUE(BV_UGE_ELIMINATE),
-  /** Auto-generated from RARE rule bv-sgt-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-sgt-eliminate */
   EVALUE(BV_SGT_ELIMINATE),
-  /** Auto-generated from RARE rule bv-sge-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-sge-eliminate */
   EVALUE(BV_SGE_ELIMINATE),
-  /** Auto-generated from RARE rule bv-sle-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-sle-eliminate */
   EVALUE(BV_SLE_ELIMINATE),
-  /** Auto-generated from RARE rule bv-redor-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-redor-eliminate */
   EVALUE(BV_REDOR_ELIMINATE),
-  /** Auto-generated from RARE rule bv-redand-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-redand-eliminate */
   EVALUE(BV_REDAND_ELIMINATE),
-  /** Auto-generated from RARE rule bv-ule-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-ule-eliminate */
   EVALUE(BV_ULE_ELIMINATE),
-  /** Auto-generated from RARE rule bv-comp-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-comp-eliminate */
   EVALUE(BV_COMP_ELIMINATE),
-  /** Auto-generated from RARE rule bv-rotate-left-eliminate-1 */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-rotate-left-eliminate-1 */
   EVALUE(BV_ROTATE_LEFT_ELIMINATE_1),
-  /** Auto-generated from RARE rule bv-rotate-left-eliminate-2 */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-rotate-left-eliminate-2 */
   EVALUE(BV_ROTATE_LEFT_ELIMINATE_2),
-  /** Auto-generated from RARE rule bv-rotate-right-eliminate-1 */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-rotate-right-eliminate-1 */
   EVALUE(BV_ROTATE_RIGHT_ELIMINATE_1),
-  /** Auto-generated from RARE rule bv-rotate-right-eliminate-2 */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-rotate-right-eliminate-2 */
   EVALUE(BV_ROTATE_RIGHT_ELIMINATE_2),
-  /** Auto-generated from RARE rule bv-nand-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-nand-eliminate */
   EVALUE(BV_NAND_ELIMINATE),
-  /** Auto-generated from RARE rule bv-nor-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-nor-eliminate */
   EVALUE(BV_NOR_ELIMINATE),
-  /** Auto-generated from RARE rule bv-xnor-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-xnor-eliminate */
   EVALUE(BV_XNOR_ELIMINATE),
-  /** Auto-generated from RARE rule bv-sdiv-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-sdiv-eliminate */
   EVALUE(BV_SDIV_ELIMINATE),
-  /** Auto-generated from RARE rule bv-zero-extend-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-zero-extend-eliminate */
   EVALUE(BV_ZERO_EXTEND_ELIMINATE),
-  /** Auto-generated from RARE rule bv-uaddo-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-uaddo-eliminate */
   EVALUE(BV_UADDO_ELIMINATE),
-  /** Auto-generated from RARE rule bv-saddo-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-saddo-eliminate */
   EVALUE(BV_SADDO_ELIMINATE),
-  /** Auto-generated from RARE rule bv-sdivo-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-sdivo-eliminate */
   EVALUE(BV_SDIVO_ELIMINATE),
-  /** Auto-generated from RARE rule bv-smod-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-smod-eliminate */
   EVALUE(BV_SMOD_ELIMINATE),
-  /** Auto-generated from RARE rule bv-srem-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-srem-eliminate */
   EVALUE(BV_SREM_ELIMINATE),
-  /** Auto-generated from RARE rule bv-usubo-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-usubo-eliminate */
   EVALUE(BV_USUBO_ELIMINATE),
-  /** Auto-generated from RARE rule bv-ssubo-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-ssubo-eliminate */
   EVALUE(BV_SSUBO_ELIMINATE),
-  /** Auto-generated from RARE rule bv-nego-eliminate */
+  /** From src/theory/bv/rewrites-elimination:
+   *  Auto-generated from RARE rule bv-nego-eliminate */
   EVALUE(BV_NEGO_ELIMINATE),
-  /** Auto-generated from RARE rule bv-ite-equal-children */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-equal-children */
   EVALUE(BV_ITE_EQUAL_CHILDREN),
-  /** Auto-generated from RARE rule bv-ite-const-children-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-const-children-1 */
   EVALUE(BV_ITE_CONST_CHILDREN_1),
-  /** Auto-generated from RARE rule bv-ite-const-children-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-const-children-2 */
   EVALUE(BV_ITE_CONST_CHILDREN_2),
-  /** Auto-generated from RARE rule bv-ite-equal-cond-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-equal-cond-1 */
   EVALUE(BV_ITE_EQUAL_COND_1),
-  /** Auto-generated from RARE rule bv-ite-equal-cond-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-equal-cond-2 */
   EVALUE(BV_ITE_EQUAL_COND_2),
-  /** Auto-generated from RARE rule bv-ite-equal-cond-3 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-equal-cond-3 */
   EVALUE(BV_ITE_EQUAL_COND_3),
-  /** Auto-generated from RARE rule bv-ite-merge-then-if */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-merge-then-if */
   EVALUE(BV_ITE_MERGE_THEN_IF),
-  /** Auto-generated from RARE rule bv-ite-merge-else-if */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-merge-else-if */
   EVALUE(BV_ITE_MERGE_ELSE_IF),
-  /** Auto-generated from RARE rule bv-ite-merge-then-else */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-merge-then-else */
   EVALUE(BV_ITE_MERGE_THEN_ELSE),
-  /** Auto-generated from RARE rule bv-ite-merge-else-else */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ite-merge-else-else */
   EVALUE(BV_ITE_MERGE_ELSE_ELSE),
-  /** Auto-generated from RARE rule bv-shl-by-const-0 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-shl-by-const-0 */
   EVALUE(BV_SHL_BY_CONST_0),
-  /** Auto-generated from RARE rule bv-shl-by-const-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-shl-by-const-1 */
   EVALUE(BV_SHL_BY_CONST_1),
-  /** Auto-generated from RARE rule bv-shl-by-const-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-shl-by-const-2 */
   EVALUE(BV_SHL_BY_CONST_2),
-  /** Auto-generated from RARE rule bv-lshr-by-const-0 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-lshr-by-const-0 */
   EVALUE(BV_LSHR_BY_CONST_0),
-  /** Auto-generated from RARE rule bv-lshr-by-const-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-lshr-by-const-1 */
   EVALUE(BV_LSHR_BY_CONST_1),
-  /** Auto-generated from RARE rule bv-lshr-by-const-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-lshr-by-const-2 */
   EVALUE(BV_LSHR_BY_CONST_2),
-  /** Auto-generated from RARE rule bv-ashr-by-const-0 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ashr-by-const-0 */
   EVALUE(BV_ASHR_BY_CONST_0),
-  /** Auto-generated from RARE rule bv-ashr-by-const-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ashr-by-const-1 */
   EVALUE(BV_ASHR_BY_CONST_1),
-  /** Auto-generated from RARE rule bv-ashr-by-const-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ashr-by-const-2 */
   EVALUE(BV_ASHR_BY_CONST_2),
-  /** Auto-generated from RARE rule bv-and-concat-pullup */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-and-concat-pullup */
   EVALUE(BV_AND_CONCAT_PULLUP),
-  /** Auto-generated from RARE rule bv-or-concat-pullup */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-or-concat-pullup */
   EVALUE(BV_OR_CONCAT_PULLUP),
-  /** Auto-generated from RARE rule bv-xor-concat-pullup */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-xor-concat-pullup */
   EVALUE(BV_XOR_CONCAT_PULLUP),
-  /** Auto-generated from RARE rule bv-and-concat-pullup2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-and-concat-pullup2 */
   EVALUE(BV_AND_CONCAT_PULLUP2),
-  /** Auto-generated from RARE rule bv-or-concat-pullup2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-or-concat-pullup2 */
   EVALUE(BV_OR_CONCAT_PULLUP2),
-  /** Auto-generated from RARE rule bv-xor-concat-pullup2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-xor-concat-pullup2 */
   EVALUE(BV_XOR_CONCAT_PULLUP2),
-  /** Auto-generated from RARE rule bv-and-concat-pullup3 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-and-concat-pullup3 */
   EVALUE(BV_AND_CONCAT_PULLUP3),
-  /** Auto-generated from RARE rule bv-or-concat-pullup3 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-or-concat-pullup3 */
   EVALUE(BV_OR_CONCAT_PULLUP3),
-  /** Auto-generated from RARE rule bv-xor-concat-pullup3 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-xor-concat-pullup3 */
   EVALUE(BV_XOR_CONCAT_PULLUP3),
-  /** Auto-generated from RARE rule bv-xor-duplicate */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-xor-duplicate */
   EVALUE(BV_XOR_DUPLICATE),
-  /** Auto-generated from RARE rule bv-xor-ones */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-xor-ones */
   EVALUE(BV_XOR_ONES),
-  /** Auto-generated from RARE rule bv-xor-not */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-xor-not */
   EVALUE(BV_XOR_NOT),
-  /** Auto-generated from RARE rule bv-not-idemp */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-not-idemp */
   EVALUE(BV_NOT_IDEMP),
-  /** Auto-generated from RARE rule bv-ult-zero-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ult-zero-1 */
   EVALUE(BV_ULT_ZERO_1),
-  /** Auto-generated from RARE rule bv-ult-zero-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ult-zero-2 */
   EVALUE(BV_ULT_ZERO_2),
-  /** Auto-generated from RARE rule bv-ult-self */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ult-self */
   EVALUE(BV_ULT_SELF),
-  /** Auto-generated from RARE rule bv-lt-self */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-lt-self */
   EVALUE(BV_LT_SELF),
-  /** Auto-generated from RARE rule bv-ule-self */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ule-self */
   EVALUE(BV_ULE_SELF),
-  /** Auto-generated from RARE rule bv-ule-zero */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ule-zero */
   EVALUE(BV_ULE_ZERO),
-  /** Auto-generated from RARE rule bv-zero-ule */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-zero-ule */
   EVALUE(BV_ZERO_ULE),
-  /** Auto-generated from RARE rule bv-sle-self */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-sle-self */
   EVALUE(BV_SLE_SELF),
-  /** Auto-generated from RARE rule bv-ule-max */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ule-max */
   EVALUE(BV_ULE_MAX),
-  /** Auto-generated from RARE rule bv-not-ult */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-not-ult */
   EVALUE(BV_NOT_ULT),
-  /** Auto-generated from RARE rule bv-mult-pow2-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-mult-pow2-1 */
   EVALUE(BV_MULT_POW2_1),
-  /** Auto-generated from RARE rule bv-mult-pow2-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-mult-pow2-2 */
   EVALUE(BV_MULT_POW2_2),
-  /** Auto-generated from RARE rule bv-mult-pow2-2b */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-mult-pow2-2b */
   EVALUE(BV_MULT_POW2_2B),
-  /** Auto-generated from RARE rule bv-extract-mult-leading-bit */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-extract-mult-leading-bit */
   EVALUE(BV_EXTRACT_MULT_LEADING_BIT),
-  /** Auto-generated from RARE rule bv-udiv-pow2-not-one */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-udiv-pow2-not-one */
   EVALUE(BV_UDIV_POW2_NOT_ONE),
-  /** Auto-generated from RARE rule bv-udiv-zero */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-udiv-zero */
   EVALUE(BV_UDIV_ZERO),
-  /** Auto-generated from RARE rule bv-udiv-one */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-udiv-one */
   EVALUE(BV_UDIV_ONE),
-  /** Auto-generated from RARE rule bv-urem-pow2-not-one */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-urem-pow2-not-one */
   EVALUE(BV_UREM_POW2_NOT_ONE),
-  /** Auto-generated from RARE rule bv-urem-one */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-urem-one */
   EVALUE(BV_UREM_ONE),
-  /** Auto-generated from RARE rule bv-urem-self */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-urem-self */
   EVALUE(BV_UREM_SELF),
-  /** Auto-generated from RARE rule bv-shl-zero */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-shl-zero */
   EVALUE(BV_SHL_ZERO),
-  /** Auto-generated from RARE rule bv-lshr-zero */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-lshr-zero */
   EVALUE(BV_LSHR_ZERO),
-  /** Auto-generated from RARE rule bv-ashr-zero */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ashr-zero */
   EVALUE(BV_ASHR_ZERO),
-  /** Auto-generated from RARE rule bv-ugt-urem */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ugt-urem */
   EVALUE(BV_UGT_UREM),
-  /** Auto-generated from RARE rule bv-ult-one */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-ult-one */
   EVALUE(BV_ULT_ONE),
-  /** Auto-generated from RARE rule bv-merge-sign-extend-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-merge-sign-extend-1 */
   EVALUE(BV_MERGE_SIGN_EXTEND_1),
-  /** Auto-generated from RARE rule bv-merge-sign-extend-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-merge-sign-extend-2 */
   EVALUE(BV_MERGE_SIGN_EXTEND_2),
-  /** Auto-generated from RARE rule bv-sign-extend-eq-const-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-sign-extend-eq-const-1 */
   EVALUE(BV_SIGN_EXTEND_EQ_CONST_1),
-  /** Auto-generated from RARE rule bv-sign-extend-eq-const-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-sign-extend-eq-const-2 */
   EVALUE(BV_SIGN_EXTEND_EQ_CONST_2),
-  /** Auto-generated from RARE rule bv-zero-extend-eq-const-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-zero-extend-eq-const-1 */
   EVALUE(BV_ZERO_EXTEND_EQ_CONST_1),
-  /** Auto-generated from RARE rule bv-zero-extend-eq-const-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-zero-extend-eq-const-2 */
   EVALUE(BV_ZERO_EXTEND_EQ_CONST_2),
-  /** Auto-generated from RARE rule bv-zero-extend-ult-const-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-zero-extend-ult-const-1 */
   EVALUE(BV_ZERO_EXTEND_ULT_CONST_1),
-  /** Auto-generated from RARE rule bv-zero-extend-ult-const-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-zero-extend-ult-const-2 */
   EVALUE(BV_ZERO_EXTEND_ULT_CONST_2),
-  /** Auto-generated from RARE rule bv-sign-extend-ult-const-1 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-sign-extend-ult-const-1 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_1),
-  /** Auto-generated from RARE rule bv-sign-extend-ult-const-2 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-sign-extend-ult-const-2 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_2),
-  /** Auto-generated from RARE rule bv-sign-extend-ult-const-3 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-sign-extend-ult-const-3 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_3),
-  /** Auto-generated from RARE rule bv-sign-extend-ult-const-4 */
+  /** From src/theory/bv/rewrites-simplification:
+   *  Auto-generated from RARE rule bv-sign-extend-ult-const-4 */
   EVALUE(BV_SIGN_EXTEND_ULT_CONST_4),
-  /** Auto-generated from RARE rule sets-eq-singleton-emp */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-eq-singleton-emp */
   EVALUE(SETS_EQ_SINGLETON_EMP),
-  /** Auto-generated from RARE rule sets-member-singleton */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-member-singleton */
   EVALUE(SETS_MEMBER_SINGLETON),
-  /** Auto-generated from RARE rule sets-member-emp */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-member-emp */
   EVALUE(SETS_MEMBER_EMP),
-  /** Auto-generated from RARE rule sets-subset-elim */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-subset-elim */
   EVALUE(SETS_SUBSET_ELIM),
-  /** Auto-generated from RARE rule sets-union-comm */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-union-comm */
   EVALUE(SETS_UNION_COMM),
-  /** Auto-generated from RARE rule sets-inter-comm */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-inter-comm */
   EVALUE(SETS_INTER_COMM),
-  /** Auto-generated from RARE rule sets-inter-emp1 */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-inter-emp1 */
   EVALUE(SETS_INTER_EMP1),
-  /** Auto-generated from RARE rule sets-inter-emp2 */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-inter-emp2 */
   EVALUE(SETS_INTER_EMP2),
-  /** Auto-generated from RARE rule sets-minus-emp1 */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-minus-emp1 */
   EVALUE(SETS_MINUS_EMP1),
-  /** Auto-generated from RARE rule sets-minus-emp2 */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-minus-emp2 */
   EVALUE(SETS_MINUS_EMP2),
-  /** Auto-generated from RARE rule sets-union-emp1 */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-union-emp1 */
   EVALUE(SETS_UNION_EMP1),
-  /** Auto-generated from RARE rule sets-union-emp2 */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-union-emp2 */
   EVALUE(SETS_UNION_EMP2),
-  /** Auto-generated from RARE rule sets-inter-member */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-inter-member */
   EVALUE(SETS_INTER_MEMBER),
-  /** Auto-generated from RARE rule sets-minus-member */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-minus-member */
   EVALUE(SETS_MINUS_MEMBER),
-  /** Auto-generated from RARE rule sets-union-member */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-union-member */
   EVALUE(SETS_UNION_MEMBER),
-  /** Auto-generated from RARE rule sets-choose-singleton */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-choose-singleton */
   EVALUE(SETS_CHOOSE_SINGLETON),
-  /** Auto-generated from RARE rule sets-minus-self */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-minus-self */
   EVALUE(SETS_MINUS_SELF),
-  /** Auto-generated from RARE rule sets-is-empty-elim */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-is-empty-elim */
   EVALUE(SETS_IS_EMPTY_ELIM),
-  /** Auto-generated from RARE rule sets-is-singleton-elim */
+  /** From src/theory/sets/rewrites:
+   *  Auto-generated from RARE rule sets-is-singleton-elim */
   EVALUE(SETS_IS_SINGLETON_ELIM),
-  /** Auto-generated from RARE rule str-eq-ctn-false */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-ctn-false */
   EVALUE(STR_EQ_CTN_FALSE),
-  /** Auto-generated from RARE rule str-eq-ctn-full-false1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-ctn-full-false1 */
   EVALUE(STR_EQ_CTN_FULL_FALSE1),
-  /** Auto-generated from RARE rule str-eq-ctn-full-false2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-ctn-full-false2 */
   EVALUE(STR_EQ_CTN_FULL_FALSE2),
-  /** Auto-generated from RARE rule str-eq-len-false */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-len-false */
   EVALUE(STR_EQ_LEN_FALSE),
-  /** Auto-generated from RARE rule str-substr-empty-str */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-empty-str */
   EVALUE(STR_SUBSTR_EMPTY_STR),
-  /** Auto-generated from RARE rule str-substr-empty-range */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-empty-range */
   EVALUE(STR_SUBSTR_EMPTY_RANGE),
-  /** Auto-generated from RARE rule str-substr-empty-start */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-empty-start */
   EVALUE(STR_SUBSTR_EMPTY_START),
-  /** Auto-generated from RARE rule str-substr-empty-start-neg */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-empty-start-neg */
   EVALUE(STR_SUBSTR_EMPTY_START_NEG),
-  /** Auto-generated from RARE rule str-substr-substr-start-geq-len */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-substr-start-geq-len */
   EVALUE(STR_SUBSTR_SUBSTR_START_GEQ_LEN),
-  /** Auto-generated from RARE rule str-substr-eq-empty */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-eq-empty */
   EVALUE(STR_SUBSTR_EQ_EMPTY),
-  /** Auto-generated from RARE rule str-substr-z-eq-empty-leq */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-z-eq-empty-leq */
   EVALUE(STR_SUBSTR_Z_EQ_EMPTY_LEQ),
-  /** Auto-generated from RARE rule str-substr-eq-empty-leq-len */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-eq-empty-leq-len */
   EVALUE(STR_SUBSTR_EQ_EMPTY_LEQ_LEN),
-  /** Auto-generated from RARE rule str-len-replace-inv */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-len-replace-inv */
   EVALUE(STR_LEN_REPLACE_INV),
-  /** Auto-generated from RARE rule str-len-replace-all-inv */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-len-replace-all-inv */
   EVALUE(STR_LEN_REPLACE_ALL_INV),
-  /** Auto-generated from RARE rule str-len-update-inv */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-len-update-inv */
   EVALUE(STR_LEN_UPDATE_INV),
-  /** Auto-generated from RARE rule str-update-in-first-concat */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-update-in-first-concat */
   EVALUE(STR_UPDATE_IN_FIRST_CONCAT),
-  /** Auto-generated from RARE rule str-len-substr-in-range */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-len-substr-in-range */
   EVALUE(STR_LEN_SUBSTR_IN_RANGE),
-  /** Auto-generated from RARE rule str-concat-clash */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-clash */
   EVALUE(STR_CONCAT_CLASH),
-  /** Auto-generated from RARE rule str-concat-clash-rev */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-clash-rev */
   EVALUE(STR_CONCAT_CLASH_REV),
-  /** Auto-generated from RARE rule str-concat-clash2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-clash2 */
   EVALUE(STR_CONCAT_CLASH2),
-  /** Auto-generated from RARE rule str-concat-clash2-rev */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-clash2-rev */
   EVALUE(STR_CONCAT_CLASH2_REV),
-  /** Auto-generated from RARE rule str-concat-unify */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-unify */
   EVALUE(STR_CONCAT_UNIFY),
-  /** Auto-generated from RARE rule str-concat-unify-rev */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-unify-rev */
   EVALUE(STR_CONCAT_UNIFY_REV),
-  /** Auto-generated from RARE rule str-concat-unify-base */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-unify-base */
   EVALUE(STR_CONCAT_UNIFY_BASE),
-  /** Auto-generated from RARE rule str-concat-unify-base-rev */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-concat-unify-base-rev */
   EVALUE(STR_CONCAT_UNIFY_BASE_REV),
-  /** Auto-generated from RARE rule str-prefixof-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-prefixof-elim */
   EVALUE(STR_PREFIXOF_ELIM),
-  /** Auto-generated from RARE rule str-suffixof-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-suffixof-elim */
   EVALUE(STR_SUFFIXOF_ELIM),
-  /** Auto-generated from RARE rule str-prefixof-eq */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-prefixof-eq */
   EVALUE(STR_PREFIXOF_EQ),
-  /** Auto-generated from RARE rule str-suffixof-eq */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-suffixof-eq */
   EVALUE(STR_SUFFIXOF_EQ),
-  /** Auto-generated from RARE rule str-prefixof-one */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-prefixof-one */
   EVALUE(STR_PREFIXOF_ONE),
-  /** Auto-generated from RARE rule str-suffixof-one */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-suffixof-one */
   EVALUE(STR_SUFFIXOF_ONE),
-  /** Auto-generated from RARE rule str-substr-combine1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-combine1 */
   EVALUE(STR_SUBSTR_COMBINE1),
-  /** Auto-generated from RARE rule str-substr-combine2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-combine2 */
   EVALUE(STR_SUBSTR_COMBINE2),
-  /** Auto-generated from RARE rule str-substr-combine3 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-combine3 */
   EVALUE(STR_SUBSTR_COMBINE3),
-  /** Auto-generated from RARE rule str-substr-combine4 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-combine4 */
   EVALUE(STR_SUBSTR_COMBINE4),
-  /** Auto-generated from RARE rule str-substr-concat1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-concat1 */
   EVALUE(STR_SUBSTR_CONCAT1),
-  /** Auto-generated from RARE rule str-substr-concat2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-concat2 */
   EVALUE(STR_SUBSTR_CONCAT2),
-  /** Auto-generated from RARE rule str-substr-replace */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-replace */
   EVALUE(STR_SUBSTR_REPLACE),
-  /** Auto-generated from RARE rule str-substr-full */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-full */
   EVALUE(STR_SUBSTR_FULL),
-  /** Auto-generated from RARE rule str-substr-full-eq */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-full-eq */
   EVALUE(STR_SUBSTR_FULL_EQ),
-  /** Auto-generated from RARE rule str-contains-refl */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-refl */
   EVALUE(STR_CONTAINS_REFL),
-  /** Auto-generated from RARE rule str-contains-concat-find */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-concat-find */
   EVALUE(STR_CONTAINS_CONCAT_FIND),
-  /** Auto-generated from RARE rule str-contains-concat-find-contra */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-concat-find-contra */
   EVALUE(STR_CONTAINS_CONCAT_FIND_CONTRA),
-  /** Auto-generated from RARE rule str-contains-split-char */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-split-char */
   EVALUE(STR_CONTAINS_SPLIT_CHAR),
-  /** Auto-generated from RARE rule str-contains-leq-len-eq */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-leq-len-eq */
   EVALUE(STR_CONTAINS_LEQ_LEN_EQ),
-  /** Auto-generated from RARE rule str-contains-emp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-emp */
   EVALUE(STR_CONTAINS_EMP),
-  /** Auto-generated from RARE rule str-contains-char */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-char */
   EVALUE(STR_CONTAINS_CHAR),
-  /** Auto-generated from RARE rule str-at-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-at-elim */
   EVALUE(STR_AT_ELIM),
-  /** Auto-generated from RARE rule str-replace-self */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-self */
   EVALUE(STR_REPLACE_SELF),
-  /** Auto-generated from RARE rule str-replace-id */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-id */
   EVALUE(STR_REPLACE_ID),
-  /** Auto-generated from RARE rule str-replace-prefix */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-prefix */
   EVALUE(STR_REPLACE_PREFIX),
-  /** Auto-generated from RARE rule str-replace-no-contains */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-no-contains */
   EVALUE(STR_REPLACE_NO_CONTAINS),
-  /** Auto-generated from RARE rule str-replace-find-base */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-find-base */
   EVALUE(STR_REPLACE_FIND_BASE),
-  /** Auto-generated from RARE rule str-replace-find-first-concat */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-find-first-concat */
   EVALUE(STR_REPLACE_FIND_FIRST_CONCAT),
-  /** Auto-generated from RARE rule str-replace-empty */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-empty */
   EVALUE(STR_REPLACE_EMPTY),
-  /** Auto-generated from RARE rule str-replace-one-pre */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-one-pre */
   EVALUE(STR_REPLACE_ONE_PRE),
-  /** Auto-generated from RARE rule str-replace-find-pre */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-find-pre */
   EVALUE(STR_REPLACE_FIND_PRE),
-  /** Auto-generated from RARE rule str-replace-all-no-contains */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
-  /** Auto-generated from RARE rule str-replace-all-empty */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-all-empty */
   EVALUE(STR_REPLACE_ALL_EMPTY),
-  /** Auto-generated from RARE rule str-replace-all-id */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-all-id */
   EVALUE(STR_REPLACE_ALL_ID),
-  /** Auto-generated from RARE rule str-replace-all-self */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-all-self */
   EVALUE(STR_REPLACE_ALL_SELF),
-  /** Auto-generated from RARE rule str-replace-re-none */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-re-none */
   EVALUE(STR_REPLACE_RE_NONE),
-  /** Auto-generated from RARE rule str-replace-re-all-none */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-re-all-none */
   EVALUE(STR_REPLACE_RE_ALL_NONE),
-  /** Auto-generated from RARE rule str-len-concat-rec */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-len-concat-rec */
   EVALUE(STR_LEN_CONCAT_REC),
-  /** Auto-generated from RARE rule str-len-eq-zero-concat-rec */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-len-eq-zero-concat-rec */
   EVALUE(STR_LEN_EQ_ZERO_CONCAT_REC),
-  /** Auto-generated from RARE rule str-len-eq-zero-base */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-len-eq-zero-base */
   EVALUE(STR_LEN_EQ_ZERO_BASE),
-  /** Auto-generated from RARE rule str-indexof-self */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-self */
   EVALUE(STR_INDEXOF_SELF),
-  /** Auto-generated from RARE rule str-indexof-no-contains */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-no-contains */
   EVALUE(STR_INDEXOF_NO_CONTAINS),
-  /** Auto-generated from RARE rule str-indexof-oob */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-oob */
   EVALUE(STR_INDEXOF_OOB),
-  /** Auto-generated from RARE rule str-indexof-oob2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-oob2 */
   EVALUE(STR_INDEXOF_OOB2),
-  /** Auto-generated from RARE rule str-indexof-contains-pre */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
-  /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-contains-concat-pre */
   EVALUE(STR_INDEXOF_CONTAINS_CONCAT_PRE),
-  /** Auto-generated from RARE rule str-indexof-find-emp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-find-emp */
   EVALUE(STR_INDEXOF_FIND_EMP),
-  /** Auto-generated from RARE rule str-indexof-eq-irr */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-eq-irr */
   EVALUE(STR_INDEXOF_EQ_IRR),
-  /** Auto-generated from RARE rule str-indexof-re-none */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-re-none */
   EVALUE(STR_INDEXOF_RE_NONE),
-  /** Auto-generated from RARE rule str-indexof-re-emp-re */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-indexof-re-emp-re */
   EVALUE(STR_INDEXOF_RE_EMP_RE),
-  /** Auto-generated from RARE rule str-to-lower-concat */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-lower-concat */
   EVALUE(STR_TO_LOWER_CONCAT),
-  /** Auto-generated from RARE rule str-to-upper-concat */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-upper-concat */
   EVALUE(STR_TO_UPPER_CONCAT),
-  /** Auto-generated from RARE rule str-to-lower-upper */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-lower-upper */
   EVALUE(STR_TO_LOWER_UPPER),
-  /** Auto-generated from RARE rule str-to-upper-lower */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-upper-lower */
   EVALUE(STR_TO_UPPER_LOWER),
-  /** Auto-generated from RARE rule str-to-lower-len */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-lower-len */
   EVALUE(STR_TO_LOWER_LEN),
-  /** Auto-generated from RARE rule str-to-upper-len */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-upper-len */
   EVALUE(STR_TO_UPPER_LEN),
-  /** Auto-generated from RARE rule str-to-lower-from-int */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-lower-from-int */
   EVALUE(STR_TO_LOWER_FROM_INT),
-  /** Auto-generated from RARE rule str-to-upper-from-int */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-upper-from-int */
   EVALUE(STR_TO_UPPER_FROM_INT),
-  /** Auto-generated from RARE rule str-to-int-concat-neg-one */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-to-int-concat-neg-one */
   EVALUE(STR_TO_INT_CONCAT_NEG_ONE),
-  /** Auto-generated from RARE rule str-is-digit-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-is-digit-elim */
   EVALUE(STR_IS_DIGIT_ELIM),
-  /** Auto-generated from RARE rule str-leq-empty */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-leq-empty */
   EVALUE(STR_LEQ_EMPTY),
-  /** Auto-generated from RARE rule str-leq-empty-eq */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-leq-empty-eq */
   EVALUE(STR_LEQ_EMPTY_EQ),
-  /** Auto-generated from RARE rule str-leq-concat-false */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-leq-concat-false */
   EVALUE(STR_LEQ_CONCAT_FALSE),
-  /** Auto-generated from RARE rule str-leq-concat-true */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-leq-concat-true */
   EVALUE(STR_LEQ_CONCAT_TRUE),
-  /** Auto-generated from RARE rule str-leq-concat-base-1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-leq-concat-base-1 */
   EVALUE(STR_LEQ_CONCAT_BASE_1),
-  /** Auto-generated from RARE rule str-leq-concat-base-2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-leq-concat-base-2 */
   EVALUE(STR_LEQ_CONCAT_BASE_2),
-  /** Auto-generated from RARE rule str-lt-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-lt-elim */
   EVALUE(STR_LT_ELIM),
-  /** Auto-generated from RARE rule str-from-int-no-ctn-nondigit */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-from-int-no-ctn-nondigit */
   EVALUE(STR_FROM_INT_NO_CTN_NONDIGIT),
-  /** Auto-generated from RARE rule str-substr-ctn-contra */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-ctn-contra */
   EVALUE(STR_SUBSTR_CTN_CONTRA),
-  /** Auto-generated from RARE rule str-substr-ctn */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-ctn */
   EVALUE(STR_SUBSTR_CTN),
-  /** Auto-generated from RARE rule str-replace-dual-ctn */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-dual-ctn */
   EVALUE(STR_REPLACE_DUAL_CTN),
-  /** Auto-generated from RARE rule str-replace-dual-ctn-false */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-dual-ctn-false */
   EVALUE(STR_REPLACE_DUAL_CTN_FALSE),
-  /** Auto-generated from RARE rule str-replace-self-ctn-simp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-self-ctn-simp */
   EVALUE(STR_REPLACE_SELF_CTN_SIMP),
-  /** Auto-generated from RARE rule str-replace-emp-ctn-src */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-replace-emp-ctn-src */
   EVALUE(STR_REPLACE_EMP_CTN_SRC),
-  /** Auto-generated from RARE rule str-substr-char-start-eq-len */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-char-start-eq-len */
   EVALUE(STR_SUBSTR_CHAR_START_EQ_LEN),
-  /** Auto-generated from RARE rule str-contains-repl-char */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-repl-char */
   EVALUE(STR_CONTAINS_REPL_CHAR),
-  /** Auto-generated from RARE rule str-contains-repl-self-tgt-char */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-repl-self-tgt-char */
   EVALUE(STR_CONTAINS_REPL_SELF_TGT_CHAR),
-  /** Auto-generated from RARE rule str-contains-repl-self */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-repl-self */
   EVALUE(STR_CONTAINS_REPL_SELF),
-  /** Auto-generated from RARE rule str-contains-repl-tgt */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-contains-repl-tgt */
   EVALUE(STR_CONTAINS_REPL_TGT),
-  /** Auto-generated from RARE rule str-repl-repl-len-id */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-len-id */
   EVALUE(STR_REPL_REPL_LEN_ID),
-  /** Auto-generated from RARE rule str-repl-repl-src-tgt-no-ctn */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-src-tgt-no-ctn */
   EVALUE(STR_REPL_REPL_SRC_TGT_NO_CTN),
-  /** Auto-generated from RARE rule str-repl-repl-tgt-self */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-tgt-self */
   EVALUE(STR_REPL_REPL_TGT_SELF),
-  /** Auto-generated from RARE rule str-repl-repl-tgt-no-ctn */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-tgt-no-ctn */
   EVALUE(STR_REPL_REPL_TGT_NO_CTN),
-  /** Auto-generated from RARE rule str-repl-repl-src-self */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-src-self */
   EVALUE(STR_REPL_REPL_SRC_SELF),
-  /** Auto-generated from RARE rule str-repl-repl-src-inv-no-ctn1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-src-inv-no-ctn1 */
   EVALUE(STR_REPL_REPL_SRC_INV_NO_CTN1),
-  /** Auto-generated from RARE rule str-repl-repl-src-inv-no-ctn2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-src-inv-no-ctn2 */
   EVALUE(STR_REPL_REPL_SRC_INV_NO_CTN2),
-  /** Auto-generated from RARE rule str-repl-repl-src-inv-no-ctn3 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-src-inv-no-ctn3 */
   EVALUE(STR_REPL_REPL_SRC_INV_NO_CTN3),
-  /** Auto-generated from RARE rule str-repl-repl-dual-self */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-dual-self */
   EVALUE(STR_REPL_REPL_DUAL_SELF),
-  /** Auto-generated from RARE rule str-repl-repl-dual-ite1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-dual-ite1 */
   EVALUE(STR_REPL_REPL_DUAL_ITE1),
-  /** Auto-generated from RARE rule str-repl-repl-dual-ite2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-dual-ite2 */
   EVALUE(STR_REPL_REPL_DUAL_ITE2),
-  /** Auto-generated from RARE rule str-repl-repl-lookahead-id-simp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-repl-repl-lookahead-id-simp */
   EVALUE(STR_REPL_REPL_LOOKAHEAD_ID_SIMP),
-  /** Auto-generated from RARE rule re-all-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-all-elim */
   EVALUE(RE_ALL_ELIM),
-  /** Auto-generated from RARE rule re-opt-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-opt-elim */
   EVALUE(RE_OPT_ELIM),
-  /** Auto-generated from RARE rule re-diff-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-diff-elim */
   EVALUE(RE_DIFF_ELIM),
-  /** Auto-generated from RARE rule re-plus-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-plus-elim */
   EVALUE(RE_PLUS_ELIM),
-  /** Auto-generated from RARE rule re-repeat-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-repeat-elim */
   EVALUE(RE_REPEAT_ELIM),
-  /** Auto-generated from RARE rule re-concat-star-swap */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-concat-star-swap */
   EVALUE(RE_CONCAT_STAR_SWAP),
-  /** Auto-generated from RARE rule re-concat-star-repeat */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-concat-star-repeat */
   EVALUE(RE_CONCAT_STAR_REPEAT),
-  /** Auto-generated from RARE rule re-concat-star-nullable1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-concat-star-nullable1 */
   EVALUE(RE_CONCAT_STAR_NULLABLE1),
-  /** Auto-generated from RARE rule re-concat-star-nullable2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-concat-star-nullable2 */
   EVALUE(RE_CONCAT_STAR_NULLABLE2),
-  /** Auto-generated from RARE rule re-concat-merge */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-concat-merge */
   EVALUE(RE_CONCAT_MERGE),
-  /** Auto-generated from RARE rule re-union-all */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-union-all */
   EVALUE(RE_UNION_ALL),
-  /** Auto-generated from RARE rule re-union-const-elim */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-union-const-elim */
   EVALUE(RE_UNION_CONST_ELIM),
-  /** Auto-generated from RARE rule re-inter-all */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-inter-all */
   EVALUE(RE_INTER_ALL),
-  /** Auto-generated from RARE rule re-star-none */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-star-none */
   EVALUE(RE_STAR_NONE),
-  /** Auto-generated from RARE rule re-star-emp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-star-emp */
   EVALUE(RE_STAR_EMP),
-  /** Auto-generated from RARE rule re-star-star */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-star-star */
   EVALUE(RE_STAR_STAR),
-  /** Auto-generated from RARE rule re-range-refl */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-range-refl */
   EVALUE(RE_RANGE_REFL),
-  /** Auto-generated from RARE rule re-range-emp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-range-emp */
   EVALUE(RE_RANGE_EMP),
-  /** Auto-generated from RARE rule re-range-non-singleton-1 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-range-non-singleton-1 */
   EVALUE(RE_RANGE_NON_SINGLETON_1),
-  /** Auto-generated from RARE rule re-range-non-singleton-2 */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-range-non-singleton-2 */
   EVALUE(RE_RANGE_NON_SINGLETON_2),
-  /** Auto-generated from RARE rule re-star-union-char */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-star-union-char */
   EVALUE(RE_STAR_UNION_CHAR),
-  /** Auto-generated from RARE rule re-star-union-drop-emp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-star-union-drop-emp */
   EVALUE(RE_STAR_UNION_DROP_EMP),
-  /** Auto-generated from RARE rule re-loop-neg */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-loop-neg */
   EVALUE(RE_LOOP_NEG),
-  /** Auto-generated from RARE rule re-loop-star */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-loop-star */
   EVALUE(RE_LOOP_STAR),
-  /** Auto-generated from RARE rule re-inter-cstring */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-inter-cstring */
   EVALUE(RE_INTER_CSTRING),
-  /** Auto-generated from RARE rule re-inter-cstring-neg */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule re-inter-cstring-neg */
   EVALUE(RE_INTER_CSTRING_NEG),
-  /** Auto-generated from RARE rule str-substr-len-include */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-len-include */
   EVALUE(STR_SUBSTR_LEN_INCLUDE),
-  /** Auto-generated from RARE rule str-substr-len-include-pre */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-len-include-pre */
   EVALUE(STR_SUBSTR_LEN_INCLUDE_PRE),
-  /** Auto-generated from RARE rule str-substr-len-norm */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-substr-len-norm */
   EVALUE(STR_SUBSTR_LEN_NORM),
-  /** Auto-generated from RARE rule seq-len-rev */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule seq-len-rev */
   EVALUE(SEQ_LEN_REV),
-  /** Auto-generated from RARE rule seq-rev-rev */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule seq-rev-rev */
   EVALUE(SEQ_REV_REV),
-  /** Auto-generated from RARE rule seq-rev-concat */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule seq-rev-concat */
   EVALUE(SEQ_REV_CONCAT),
-  /** Auto-generated from RARE rule str-eq-repl-self-emp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-repl-self-emp */
   EVALUE(STR_EQ_REPL_SELF_EMP),
-  /** Auto-generated from RARE rule str-eq-repl-no-change */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-repl-no-change */
   EVALUE(STR_EQ_REPL_NO_CHANGE),
-  /** Auto-generated from RARE rule str-eq-repl-tgt-eq-len */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-repl-tgt-eq-len */
   EVALUE(STR_EQ_REPL_TGT_EQ_LEN),
-  /** Auto-generated from RARE rule str-eq-repl-len-one-emp-prefix */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-repl-len-one-emp-prefix */
   EVALUE(STR_EQ_REPL_LEN_ONE_EMP_PREFIX),
-  /** Auto-generated from RARE rule str-eq-repl-emp-tgt-nemp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-repl-emp-tgt-nemp */
   EVALUE(STR_EQ_REPL_EMP_TGT_NEMP),
-  /** Auto-generated from RARE rule str-eq-repl-nemp-src-emp */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-repl-nemp-src-emp */
   EVALUE(STR_EQ_REPL_NEMP_SRC_EMP),
-  /** Auto-generated from RARE rule str-eq-repl-self-src */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule str-eq-repl-self-src */
   EVALUE(STR_EQ_REPL_SELF_SRC),
-  /** Auto-generated from RARE rule seq-len-unit */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule seq-len-unit */
   EVALUE(SEQ_LEN_UNIT),
-  /** Auto-generated from RARE rule seq-nth-unit */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule seq-nth-unit */
   EVALUE(SEQ_NTH_UNIT),
-  /** Auto-generated from RARE rule seq-rev-unit */
+  /** From src/theory/strings/rewrites:
+   *  Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
-  /** Auto-generated from RARE rule re-in-empty */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule re-in-empty */
   EVALUE(RE_IN_EMPTY),
-  /** Auto-generated from RARE rule re-in-sigma */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule re-in-sigma */
   EVALUE(RE_IN_SIGMA),
-  /** Auto-generated from RARE rule re-in-sigma-star */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule re-in-sigma-star */
   EVALUE(RE_IN_SIGMA_STAR),
-  /** Auto-generated from RARE rule re-in-cstring */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule re-in-cstring */
   EVALUE(RE_IN_CSTRING),
-  /** Auto-generated from RARE rule re-in-comp */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule re-in-comp */
   EVALUE(RE_IN_COMP),
-  /** Auto-generated from RARE rule str-in-re-union-elim */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule str-in-re-union-elim */
   EVALUE(STR_IN_RE_UNION_ELIM),
-  /** Auto-generated from RARE rule str-in-re-inter-elim */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule str-in-re-inter-elim */
   EVALUE(STR_IN_RE_INTER_ELIM),
-  /** Auto-generated from RARE rule str-in-re-range-elim */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule str-in-re-range-elim */
   EVALUE(STR_IN_RE_RANGE_ELIM),
-  /** Auto-generated from RARE rule str-in-re-contains */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule str-in-re-contains */
   EVALUE(STR_IN_RE_CONTAINS),
-  /** Auto-generated from RARE rule str-in-re-from-int-nemp-dig-range */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule str-in-re-from-int-nemp-dig-range */
   EVALUE(STR_IN_RE_FROM_INT_NEMP_DIG_RANGE),
-  /** Auto-generated from RARE rule str-in-re-from-int-dig-range */
+  /** From src/theory/strings/rewrites-regexp-membership:
+   *  Auto-generated from RARE rule str-in-re-from-int-dig-range */
   EVALUE(STR_IN_RE_FROM_INT_DIG_RANGE),
-  /** Auto-generated from RARE rule eq-refl */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule eq-refl */
   EVALUE(EQ_REFL),
-  /** Auto-generated from RARE rule eq-symm */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule eq-symm */
   EVALUE(EQ_SYMM),
-  /** Auto-generated from RARE rule eq-cond-deq */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule eq-cond-deq */
   EVALUE(EQ_COND_DEQ),
-  /** Auto-generated from RARE rule eq-ite-lift */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule eq-ite-lift */
   EVALUE(EQ_ITE_LIFT),
-  /** Auto-generated from RARE rule distinct-binary-elim */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule distinct-binary-elim */
   EVALUE(DISTINCT_BINARY_ELIM),
-  /** Auto-generated from RARE rule uf-bv2nat-int2bv */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-bv2nat-int2bv */
   EVALUE(UF_BV2NAT_INT2BV),
-  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extend */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-bv2nat-int2bv-extend */
   EVALUE(UF_BV2NAT_INT2BV_EXTEND),
-  /** Auto-generated from RARE rule uf-bv2nat-int2bv-extract */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-bv2nat-int2bv-extract */
   EVALUE(UF_BV2NAT_INT2BV_EXTRACT),
-  /** Auto-generated from RARE rule uf-int2bv-bv2nat */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-int2bv-bv2nat */
   EVALUE(UF_INT2BV_BV2NAT),
-  /** Auto-generated from RARE rule uf-bv2nat-geq-elim */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-bv2nat-geq-elim */
   EVALUE(UF_BV2NAT_GEQ_ELIM),
-  /** Auto-generated from RARE rule uf-int2bv-bvult-equiv */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-int2bv-bvult-equiv */
   EVALUE(UF_INT2BV_BVULT_EQUIV),
-  /** Auto-generated from RARE rule uf-int2bv-bvule-equiv */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-int2bv-bvule-equiv */
   EVALUE(UF_INT2BV_BVULE_EQUIV),
-  /** Auto-generated from RARE rule uf-sbv-to-int-elim */
+  /** From src/theory/uf/rewrites:
+   *  Auto-generated from RARE rule uf-sbv-to-int-elim */
   EVALUE(UF_SBV_TO_INT_ELIM),
-  /** Auto-generated from RARE rule arith-sine-zero */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-sine-zero */
   EVALUE(ARITH_SINE_ZERO),
-  /** Auto-generated from RARE rule arith-sine-pi2 */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-sine-pi2 */
   EVALUE(ARITH_SINE_PI2),
-  /** Auto-generated from RARE rule arith-cosine-elim */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-cosine-elim */
   EVALUE(ARITH_COSINE_ELIM),
-  /** Auto-generated from RARE rule arith-tangent-elim */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-tangent-elim */
   EVALUE(ARITH_TANGENT_ELIM),
-  /** Auto-generated from RARE rule arith-secent-elim */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-secent-elim */
   EVALUE(ARITH_SECENT_ELIM),
-  /** Auto-generated from RARE rule arith-cosecent-elim */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-cosecent-elim */
   EVALUE(ARITH_COSECENT_ELIM),
-  /** Auto-generated from RARE rule arith-cotangent-elim */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-cotangent-elim */
   EVALUE(ARITH_COTANGENT_ELIM),
-  /** Auto-generated from RARE rule arith-pi-not-int */
+  /** From src/theory/arith/rewrites-transcendentals:
+   *  Auto-generated from RARE rule arith-pi-not-int */
   EVALUE(ARITH_PI_NOT_INT),
-  /** Auto-generated from RARE rule sets-card-singleton */
+  /** From src/theory/sets/rewrites-card:
+   *  Auto-generated from RARE rule sets-card-singleton */
   EVALUE(SETS_CARD_SINGLETON),
-  /** Auto-generated from RARE rule sets-card-union */
+  /** From src/theory/sets/rewrites-card:
+   *  Auto-generated from RARE rule sets-card-union */
   EVALUE(SETS_CARD_UNION),
-  /** Auto-generated from RARE rule sets-card-minus */
+  /** From src/theory/sets/rewrites-card:
+   *  Auto-generated from RARE rule sets-card-minus */
   EVALUE(SETS_CARD_MINUS),
-  /** Auto-generated from RARE rule sets-card-emp */
+  /** From src/theory/sets/rewrites-card:
+   *  Auto-generated from RARE rule sets-card-emp */
   EVALUE(SETS_CARD_EMP),
 // ${rules}$
 #ifdef CVC5_API_USE_C_ENUMS
