@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const x (_ BitVec 63))
