@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=sum --mbqi
 ; EXPECT: sat
 (set-logic UFBV)

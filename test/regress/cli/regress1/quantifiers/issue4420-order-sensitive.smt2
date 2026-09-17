@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-jh-rlv-order
 ; EXPECT: unsat
 (set-logic AUFBVFPDTNIRA)

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sat-solver=minisat
 ; EXPECT: unknown
 ; DISABLE-TESTER: lfsc
