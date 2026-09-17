@@ -34,7 +34,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BAGS, env, out, valuation),
       d_state(env, valuation),
       d_im(env, *this, d_state),
-      d_ig(env.getNodeManager(), &d_state, &d_im),
+      d_ig(env, &d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
       d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
@@ -410,8 +410,20 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     for (std::pair<Node, Node> pair : elements)
     {
       Node key = d_state.getRepresentative(pair.first);
-      Node countSkolem = pair.second;
-      Node value = m->getRepresentative(countSkolem);
+      Node multiplicity = pair.second;
+      Node value = m->getRepresentative(multiplicity);
+      if (!value.isConst())
+      {
+        // The multiplicity is a count term rather than a variable, so the
+        // model may not represent its class by its value, and it cannot be
+        // evaluated while the values of the bags it reads are still being
+        // built. Its value is the one arithmetic assigned it: a count term is
+        // integer sorted, so it is shared with arithmetic, and
+        // getCandidateModelValue dispatches on the type of the term.
+        value = d_valuation.getCandidateModelValue(multiplicity);
+      }
+      Assert(value.isConst()) << "no model value for the multiplicity "
+                              << multiplicity;
       elementReps[key] = value;
     }
     Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);

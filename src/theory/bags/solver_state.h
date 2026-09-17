@@ -42,8 +42,9 @@ class SolverState : public TheoryState
    * register the pair <element, multiplicity> with the given bag
    * @param bag a representative of type (Bag E)
    * @param element a representative of type E
-   * @param multiplicity an integer variable, or an integer constant when the
-   * multiplicity of element in bag is determined by rewriting
+   * @param multiplicity an integer term whose value the model determines:
+   * the count term itself, an integer constant when the multiplicity of
+   * element in bag is determined by rewriting, or a skolem variable
    * @pre (= (bag.count element bag) multiplicity)
    */
   void registerCountTerm(Node bag, Node element, Node multiplicity);

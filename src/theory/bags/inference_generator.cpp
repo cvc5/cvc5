@@ -33,10 +33,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-InferenceGenerator::InferenceGenerator(NodeManager* nm,
+InferenceGenerator::InferenceGenerator(Env& env,
                                        SolverState* state,
                                        InferenceManager* im)
-    : d_nm(nm), d_sm(d_nm->getSkolemManager()), d_state(state), d_im(im)
+    : EnvObj(env),
+      d_nm(env.getNodeManager()),
+      d_sm(d_nm->getSkolemManager()),
+      d_state(state),
+      d_im(im)
 {
   d_true = d_nm->mkConst(true);
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -48,13 +52,37 @@ void InferenceGenerator::registerCountTerm(Node n)
   Assert(n.getKind() == Kind::BAG_COUNT);
   Node element = d_state->getRepresentative(n[0]);
   Node bag = d_state->getRepresentative(n[1]);
-  Node count = d_nm->mkNode(Kind::BAG_COUNT, element, bag);
-  // if the multiplicity is already determined by rewriting, use it directly
-  // instead of introducing a skolem that would immediately be fixed to that
-  // constant by its own defining lemma
-  Node determined = getDeterminedCount(element, bag);
-  Node multiplicity =
-      determined.isNull() ? assertSkolemDefinition(count) : determined;
+  Node count = rewrite(d_nm->mkNode(Kind::BAG_COUNT, element, bag));
+  if (count.isConst())
+  {
+    // rewriting determines the multiplicity, so nothing has to be introduced
+    // or asserted for it
+    d_state->registerCountTerm(bag, element, count);
+    return;
+  }
+  // What TheoryBags::collectModelValues needs of a multiplicity is a term
+  // whose value it can read. A count term that the equality engine already has
+  // is such a term: it reached the equality engine by being asserted, so the
+  // model has a value for it. A count term that the equality engine does not
+  // have is not, and no lemma makes it one reliably -- asserting a bound on it
+  // does not even make it shared with arithmetic in every case -- so those are
+  // the multiplicities, and the only ones, that need a purification skolem to
+  // turn them into a leaf that arithmetic assigns.
+  eq::EqualityEngine* ee = d_state->getEqualityEngine();
+  Node multiplicity;
+  if (ee->hasTerm(count))
+  {
+    multiplicity = count;
+  }
+  else if (ee->hasTerm(n))
+  {
+    // n is congruent to count, so it has the multiplicity of element in bag
+    multiplicity = n;
+  }
+  else
+  {
+    multiplicity = assertSkolemDefinition(count);
+  }
   d_state->registerCountTerm(bag, element, multiplicity);
 }
 
@@ -184,22 +212,6 @@ bool InferenceGenerator::needsPurification(const Node& n) const
   // and congruence over bag.count relates it to the count terms of the terms
   // that are equal to n.
   return false;
-}
-
-Node InferenceGenerator::getDeterminedCount(const Node& element,
-                                            const Node& bag) const
-{
-  // these are the cases of BagsRewriter::rewriteBagCount
-  if (bag.isConst() && bag.getKind() == Kind::BAG_EMPTY)
-  {
-    return d_zero;
-  }
-  if (bag.getKind() == Kind::BAG_MAKE && element == bag[0] && bag[1].isConst()
-      && bag[1].getConst<Rational>() > Rational(0))
-  {
-    return bag[1];
-  }
-  return Node::null();
 }
 
 Node InferenceGenerator::assertSkolemDefinition(Node n)

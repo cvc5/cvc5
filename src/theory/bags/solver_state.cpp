@@ -46,10 +46,9 @@ void SolverState::registerCountTerm(Node bag, Node element, Node multiplicity)
   Assert(bag.getType().isBag() && bag == getRepresentative(bag));
   Assert(CVC5_EQUAL(element.getType(), bag.getType().getBagElementType())
          && element == getRepresentative(element));
-  // the multiplicity is a skolem variable, unless it is already determined by
-  // rewriting, in which case it is an integer constant
-  Assert((multiplicity.isVar() || multiplicity.isConst())
-         && multiplicity.getType().isInteger());
+  // the multiplicity is the count term itself, an integer constant when
+  // rewriting determines it, or a skolem variable
+  Assert(multiplicity.getType().isInteger());
   std::pair<Node, Node> pair = std::make_pair(element, multiplicity);
   if (std::find(d_bagElements[bag].begin(), d_bagElements[bag].end(), pair)
       == d_bagElements[bag].end())

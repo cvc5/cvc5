@@ -17,6 +17,7 @@
 
 #include "expr/node.h"
 #include "infer_info.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -29,10 +30,10 @@ class SolverState;
  * An inference generator class. This class is used by the core solver to
  * generate lemmas
  */
-class InferenceGenerator
+class InferenceGenerator : protected EnvObj
 {
  public:
-  InferenceGenerator(NodeManager* nm, SolverState* state, InferenceManager* im);
+  InferenceGenerator(Env& env, SolverState* state, InferenceManager* im);
 
   /**
    * @param n a node of the form (bag.count e A)
@@ -546,13 +547,6 @@ class InferenceGenerator
    * needs to purify n first.
    */
   bool needsPurification(const Node& n) const;
-  /**
-   * @param element a representative of type E
-   * @param bag a representative of type (Bag E)
-   * @return the multiplicity of element in bag when it is determined by
-   * rewriting, and the null node otherwise.
-   */
-  Node getDeterminedCount(const Node& element, const Node& bag) const;
   /**
    * generate the purification skolem of n, and add a pending lemma for its
    * definition the first time it is generated in the current user context
