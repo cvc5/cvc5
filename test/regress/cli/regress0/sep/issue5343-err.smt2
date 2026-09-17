@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; REQUIRES: no-competition
 ; COMMAND-LINE:
 ; EXPECT: (error "ERROR: the type of the separation logic heap has not been declared (e.g. via a declare-heap command), and we have a separation logic constraint (wand true true)
