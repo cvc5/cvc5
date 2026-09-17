@@ -29,6 +29,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * Return a heap-allocated copy of the given string.
+ * @note We do not use strdup() here since it is not part of the C11
+ *       standard (it is POSIX / C23), and this file is compiled with
+ *       -std=c11.
+ */
+static char* copy_string(const char* str)
+{
+  size_t len = strlen(str) + 1;
+  char* res = malloc(len);
+  assert(res);
+  memcpy(res, str, len);
+  return res;
+}
+
 char* parse(const char* instr, const char* inlang, const char* outlang)
 {
   assert(strcmp(inlang, "smt2") == 0);
@@ -73,12 +88,14 @@ char* parse(const char* instr, const char* inlang, const char* outlang)
   const char* error_msg;
   Cvc5Term e = cvc5_parser_next_term(parser, &error_msg);
   assert(!error_msg);
-  char* s = strdup(cvc5_term_to_string(e));
+  char* s = copy_string(cvc5_term_to_string(e));
   assert(!cvc5_parser_next_term(parser, &error_msg));
   assert(!error_msg);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(smgr);
   cvc5_delete(solver);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return s;
 }

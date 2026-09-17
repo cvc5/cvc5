@@ -376,6 +376,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
           cbCheckFoundModel(
               stats.registerInt("cadical::propagator::cb_check_found_model")),
           cbDecide(stats.registerInt("cadical::propagator::cb_decide")),
+          cbDecideSkipped(
+              stats.registerInt("cadical::propagator::cb_decide_skipped")),
           cbPropagate(stats.registerInt("cadical::propagator::cb_propagate")),
           cbAddReasonClauseLit(stats.registerInt(
               "cadical::propagator::cb_add_reason_clause_lit")),
@@ -393,6 +395,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     IntStat notifyBacktrack;
     IntStat cbCheckFoundModel;
     IntStat cbDecide;
+    IntStat cbDecideSkipped;
     IntStat cbPropagate;
     IntStat cbAddReasonClauseLit;
     IntStat cbHasExternalClause;
