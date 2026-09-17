@@ -296,8 +296,11 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 void CadicalSolver::initialize(TheoryProxy* theoryProxy)
 {
   d_proxy = theoryProxy;
-  d_propagator.reset(new CadicalPropagator(
-      theoryProxy, d_context, *d_solver, statisticsRegistry()));
+  d_propagator.reset(new CadicalPropagator(theoryProxy,
+                                           d_context,
+                                           *d_solver,
+                                           statisticsRegistry(),
+                                           d_env.isSatProofProducing()));
   if (!d_env.getPlugins().empty())
   {
     d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));

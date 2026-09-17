@@ -27,7 +27,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   CadicalPropagator(prop::TheoryProxy* proxy,
                     context::Context* context,
                     CaDiCaL::Solver& solver,
-                    StatisticsRegistry& stats);
+                    StatisticsRegistry& stats,
+                    bool proofs);
 
   /**
    * Notification from the SAT solver on assignment of a new literal.
@@ -224,6 +225,25 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   uint32_t clause_user_level(const SatClause& clause) const;
 
+  /**
+   * Determine the lowest user level a clause derived during search (a theory
+   * lemma or a theory propagation explanation) may be attached to.
+   *
+   * Such a clause is valid independently of the user assertion level, so by
+   * default it is attached to the level its literals depend on, which may be
+   * lower than the current user level. When we are producing proofs this is
+   * unsound bookkeeping: the proof of the clause is stored user-context
+   * dependently by PropPfManager and is discarded when the current user level
+   * is popped, while the SAT solver would keep the clause and may use it in a
+   * later refutation, which then has the clause as a free assumption. Hence we
+   * do not let such clauses outlive the current user level when proofs are
+   * enabled.
+   */
+  uint32_t min_clause_user_level() const
+  {
+    return d_proofs ? static_cast<uint32_t>(current_user_level()) : 0;
+  }
+
   /** Return the current user (assertion) level. */
   size_t current_user_level() const { return d_active_vars_control.size(); }
 
@@ -265,6 +285,9 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   /** The SAT context. */
   context::Context& d_context;
   CaDiCaL::Solver& d_solver;
+
+  /** True if we are producing proofs, see min_clause_user_level(). */
+  bool d_proofs;
 
   /** Struct to store information on variables. */
   struct VarInfo
