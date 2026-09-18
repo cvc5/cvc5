@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-ext=full --no-new-prop
 ; EXPECT: sat
 (set-logic QF_NRA)

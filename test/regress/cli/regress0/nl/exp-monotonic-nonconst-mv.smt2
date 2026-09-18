@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --rlimit=10000
 ; EXPECT: sat
 ;

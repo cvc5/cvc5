@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --incremental
 ; EXPECT: sat
 (set-logic ALL)

@@ -1,6 +1,28 @@
 #!/usr/bin/env bash
+#
+# Download, build and install the Logos proof checker, together with scripts
+# that generate a CPC proof with cvc5 and check it with Logos.
+#
+# Usage: contrib/get-logos-checker [OPTION]...
+#
+#   --version      print the pinned Logos commit and exit
+#   -h, --help     show this message
 
 set -e -o pipefail
+
+# The commit of cvc5/logos this repository is pinned to. This is the only
+# place that pin lives: contrib/check-logos-compilation reads it from here, so
+# the checker that is installed and the checker that proofs/eo/cpc is checked
+# against are the same one by construction. Moving this line moves both.
+LOGOS_VERSION="664c35d6e188a62d5b5dac8fb403d19b9e0f4baa"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --version) echo "$LOGOS_VERSION"; exit 0 ;;
+    -h|--help) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "error: unknown option $1" >&2; exit 1 ;;
+  esac
+done
 
 # utility function to download a file
 function download {
@@ -31,6 +53,7 @@ mkdir -p $BASE_DIR/tmp/
 if ! [ -x "$(command -v lake)" ]; then
   export ELAN_HOME="$BASE_DIR/elan"
   if ! [ -x "$ELAN_HOME/bin/lake" ]; then
+    rm -f $BASE_DIR/tmp/elan-init.sh
     download "https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh" $BASE_DIR/tmp/elan-init.sh
     bash $BASE_DIR/tmp/elan-init.sh -y --default-toolchain none --no-modify-path
   fi
@@ -39,16 +62,24 @@ fi
 
 ##### Logos
 LOGOS_DIR="$BASE_DIR/logos-checker"
-mkdir -p $LOGOS_DIR
+LOGOS_STAMP="$LOGOS_DIR/.cvc5-pinned-version"
 
-# download and unpack logos
-LOGOS_VERSION="c8b547b92ad0f0736da7b87fc778f98bba0e2a5f"
+# download and unpack logos, at the commit pinned at the top of this script.
+# The tree is emptied first: unpacking over the previous version leaves behind
+# any file deleted upstream, and lake would then build a mix of old and new
+# sources. The stamp records which commit the tree holds, so that rerunning
+# this script on an unchanged pin keeps .lake and stays incremental.
 # Note we delete a previously downloaded archive first, since the download
 # helper passes -c to wget, which appends to (instead of replacing) the file
 # left over from a previous version.
-rm -f $BASE_DIR/tmp/logos.tgz
-download "https://github.com/ajreynol/logos/archive/$LOGOS_VERSION.tar.gz" $BASE_DIR/tmp/logos.tgz
-tar --strip 1 -xzf $BASE_DIR/tmp/logos.tgz -C $LOGOS_DIR
+if [ "$(cat $LOGOS_STAMP 2>/dev/null)" != "$LOGOS_VERSION" ]; then
+  rm -rf $LOGOS_DIR
+  mkdir -p $LOGOS_DIR
+  rm -f $BASE_DIR/tmp/logos.tgz
+  download "https://github.com/cvc5/logos/archive/$LOGOS_VERSION.tar.gz" $BASE_DIR/tmp/logos.tgz
+  tar --strip 1 -xzf $BASE_DIR/tmp/logos.tgz -C $LOGOS_DIR
+  echo "$LOGOS_VERSION" > $LOGOS_STAMP
+fi
 
 # Build and install Logos. Logos provides a build script that configures the
 # Lean toolchain for the host before invoking Lake. In particular, on older
@@ -77,7 +108,7 @@ cat << EOF > $BASE_DIR/bin/cpc_logos_gen_and_check.sh
 #!/usr/bin/env bash
 
 echo "=== Generate proof: \$@"
-$BASE_DIR/bin/cpc_logos_gen.sh \$@ > logos.proof.cpc
+$BASE_DIR/bin/cpc_logos_gen.sh "\$@" > logos.proof.cpc
 
 echo "=== Check proof with logos"
 $BASE_DIR/bin/logos_check.sh logos.proof.cpc
@@ -88,18 +119,18 @@ cat << EOF > $BASE_DIR/bin/cpc_logos_gen.sh
 #!/usr/bin/env bash
 
 # call cvc5 and remove the first line of the output (should be "unsat", "(", ")")
-\$@ --dump-proofs | tail -n +3 | head -n -1
+"\$@" --dump-proofs | tail -n +3 | head -n -1
 EOF
 chmod +x $BASE_DIR/bin/cpc_logos_gen.sh
 
 cat << EOF > $BASE_DIR/bin/logos_check.sh
 #!/usr/bin/env bash
 
-cat \$@ | grep WARNING
-CHECK=\$(cat \$@ | grep "step\|assume")
+cat "\$@" | grep WARNING
+CHECK=\$(cat "\$@" | grep "step\|assume")
 [ -z "\$CHECK" ] && echo "; WARNING: Empty proof"
 
-$BASE_DIR/bin/logos \$@
+$BASE_DIR/bin/logos "\$@"
 
 EOF
 chmod +x $BASE_DIR/bin/logos_check.sh

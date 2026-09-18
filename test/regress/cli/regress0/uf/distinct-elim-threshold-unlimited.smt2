@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --distinct-elim-threshold=0 -o post-asserts
 ; SCRUBBER: grep -o "distinct x\|distinct y\|^sat$"
 ; EXPECT: sat
