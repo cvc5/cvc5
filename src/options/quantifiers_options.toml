@@ -220,7 +220,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiCheckTimeout"
-  category   = "regular"
+  category   = "common"
   long       = "mbqi-check-timeout=N"
   type       = "uint64_t"
   default    = "500"
@@ -895,7 +895,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqiTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1159,7 +1159,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRepairConstTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "sygus-repair-const-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1415,7 +1415,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusVerifyTimeout"
-  category   = "regular"
+  category   = "common"
   long       = "sygus-verify-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1513,7 +1513,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusExprMinerCheckTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "uint64_t"
   default    = "0"
