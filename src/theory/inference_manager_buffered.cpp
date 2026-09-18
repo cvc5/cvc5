@@ -12,6 +12,8 @@
 
 #include "theory/inference_manager_buffered.h"
 
+#include "base/check.h"
+#include "base/output.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
