@@ -24,6 +24,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
@@ -493,6 +494,167 @@ Node mkCodeRange(Node t, uint32_t alphaCard)
       Kind::AND,
       {nm->mkNode(Kind::GEQ, t, nm->mkConstInt(Rational(0))),
        nm->mkNode(Kind::LT, t, nm->mkConstInt(Rational(alphaCard)))});
+}
+
+Node getConcatConclusion(NodeManager* nm,
+                         Node x,
+                         Node y,
+                         ProofRule rule,
+                         bool isRev,
+                         SkolemCache* skc,
+                         std::vector<Node>& newSkolems)
+{
+  Trace("strings-csolver") << "getConcatConclusion: " << x << " " << y << " "
+                           << rule << " " << isRev << std::endl;
+  Node conc;
+  if (rule == ProofRule::CONCAT_SPLIT || rule == ProofRule::CONCAT_LPROP)
+  {
+    Node sk = skc->mkSkolemCached(x,
+                                  y,
+                                  isRev ? SkolemCache::SK_ID_V_UNIFIED_SPT_REV
+                                        : SkolemCache::SK_ID_V_UNIFIED_SPT,
+                                  "v_spt");
+    newSkolems.push_back(sk);
+    Node eq1 = x.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, y)
+                              : nm->mkNode(Kind::STRING_CONCAT, y, sk));
+
+    if (rule == ProofRule::CONCAT_LPROP)
+    {
+      conc = eq1;
+    }
+    else
+    {
+      Node eq2 = y.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, x)
+                                : nm->mkNode(Kind::STRING_CONCAT, x, sk));
+      conc = nm->mkNode(Kind::OR, eq1, eq2);
+    }
+    // we can assume its length is greater than zero
+    Node emp = Word::mkEmptyWord(sk.getType());
+    conc = nm->mkNode(Kind::AND,
+                      {conc,
+                       sk.eqNode(emp).negate(),
+                       nm->mkNode(Kind::GT,
+                                  {nm->mkNode(Kind::STRING_LENGTH, sk),
+                                   nm->mkConstInt(Rational(0))})});
+  }
+  else if (rule == ProofRule::CONCAT_CSPLIT)
+  {
+    Assert(y.isConst());
+    size_t yLen = Word::getLength(y);
+    Node firstChar =
+        yLen == 1 ? y : (isRev ? Word::suffix(y, 1) : Word::prefix(y, 1));
+    Node sk = skc->mkSkolemCached(
+        x,
+        isRev ? SkolemCache::SK_ID_VC_SPT_REV : SkolemCache::SK_ID_VC_SPT,
+        "c_spt");
+    newSkolems.push_back(sk);
+    conc = x.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, firstChar)
+                          : nm->mkNode(Kind::STRING_CONCAT, firstChar, sk));
+  }
+  else if (rule == ProofRule::CONCAT_CPROP)
+  {
+    // expect (str.++ z d) and c
+    Assert(x.getKind() == Kind::STRING_CONCAT && x.getNumChildren() == 2);
+    Node z = x[isRev ? 1 : 0];
+    Node d = x[isRev ? 0 : 1];
+    Assert(d.isConst());
+    Node c = y;
+    Assert(c.isConst());
+    size_t p = getSufficientNonEmptyOverlap(c, d, isRev);
+    Node rp = nm->mkConstInt(p);
+    Node preC = (isRev ? mkSuffixOfLen(c, rp) : mkPrefix(c, rp));
+    Node sk = skc->mkSkolemCached(
+        z,
+        preC,
+        isRev ? SkolemCache::SK_ID_C_SPT_REV : SkolemCache::SK_ID_C_SPT,
+        "c_spt");
+    newSkolems.push_back(sk);
+    conc = z.eqNode(isRev ? nm->mkNode(Kind::STRING_CONCAT, sk, preC)
+                          : nm->mkNode(Kind::STRING_CONCAT, preC, sk));
+  }
+
+  return conc;
+}
+
+size_t getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
+{
+  Assert(c.isConst() && c.getType().isStringLike());
+  Assert(d.isConst() && d.getType().isStringLike());
+  size_t p;
+  size_t p2;
+  size_t cLen = Word::getLength(c);
+  if (isRev)
+  {
+    // Since non-empty, we start with character 1
+    Node c1 = Word::prefix(c, cLen - 1);
+    p = cLen - Word::roverlap(c1, d);
+    p2 = Word::rfind(c1, d);
+  }
+  else
+  {
+    Node c1 = Word::substr(c, 1);
+    p = cLen - Word::overlap(c1, d);
+    p2 = Word::find(c1, d);
+  }
+  return p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+}
+
+Node getDecomposeConclusion(NodeManager* nm,
+                            Node x,
+                            Node l,
+                            bool isRev,
+                            SkolemCache* skc,
+                            std::vector<Node>& newSkolems)
+{
+  Assert(l.getType().isInteger());
+  Node n =
+      isRev ? nm->mkNode(Kind::SUB, nm->mkNode(Kind::STRING_LENGTH, x), l) : l;
+  Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
+  newSkolems.push_back(sk1);
+  Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
+  newSkolems.push_back(sk2);
+  Node conc = x.eqNode(nm->mkNode(Kind::STRING_CONCAT, sk1, sk2));
+  // add the length constraint to the conclusion
+  Node lc = nm->mkNode(Kind::STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
+  return nm->mkNode(Kind::AND, conc, lc);
+}
+
+Node getExtensionalityConclusion(NodeManager* nm,
+                                 const Node& a,
+                                 const Node& b,
+                                 SkolemCache* skc)
+{
+  Node k = skc->mkSkolemFun(nm, SkolemId::STRINGS_DEQ_DIFF, a, b);
+  // we could use seq.nth instead of substr
+  Node ss1, ss2;
+  if (a.getType().isString())
+  {
+    // substring of length 1
+    Node one = nm->mkConstInt(Rational(1));
+    ss1 = nm->mkNode(Kind::STRING_SUBSTR, a, k, one);
+    ss2 = nm->mkNode(Kind::STRING_SUBSTR, b, k, one);
+  }
+  else
+  {
+    // as an optimization, for sequences, use seq.nth
+    ss1 = nm->mkNode(Kind::SEQ_NTH, a, k);
+    ss2 = nm->mkNode(Kind::SEQ_NTH, b, k);
+  }
+
+  // disequality between nth/substr
+  Node conc1 = ss1.eqNode(ss2).negate();
+
+  // The skolem k is in the bounds of at least
+  // one string/sequence
+  Node len1 = nm->mkNode(Kind::STRING_LENGTH, a);
+  Node len2 = nm->mkNode(Kind::STRING_LENGTH, b);
+  Node zero = nm->mkConstInt(Rational(0));
+  Node conc2 = nm->mkNode(Kind::LEQ, zero, k);
+  Node conc3 = nm->mkNode(Kind::LT, k, len1);
+  Node lenDeq = nm->mkNode(Kind::EQUAL, len1, len2).negate();
+
+  std::vector<Node> concs = {conc1, conc2, conc3};
+  return nm->mkNode(Kind::OR, lenDeq, nm->mkAnd(concs));
 }
 
 }  // namespace utils
