@@ -2745,6 +2745,7 @@ set(regress_1_tests
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
   regress1/bags/all1.smt2
+  regress1/bags/all2.smt2
   regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
@@ -4305,6 +4306,7 @@ set(regress_3_tests
   regress3/arith/abz5_1400.smtv1.smt2
   regress3/arith_prp-13-24.smt2
   regress3/auflia-fuzz06.smtv1.smt2
+  regress3/bags/reduce_constants_dup.smt2
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
@@ -4414,7 +4416,6 @@ set(regression_disabled_tests
   # demonstrates instance where RE inference in necessary, times out
   regress1/strings/re-uf.smt2
   ###
-  regress1/bags/all2.smt2
   regress1/bags/card3.smt2
   regress1/bags/fol_0000119.smt2
   regress1/bags/murxla6.smt2
@@ -4530,9 +4531,6 @@ set(regression_disabled_tests
   # enumerated for its grammar. Note the enumeration order depends on the node
   # ordering, hence this only manifests on some platforms.
   regress2/sygus/mpg_guard1-dd.sy
-  # unknown after adding the membership premise to the injective map down
-  # rule in 85663b2a9, see issue #12952
-  regress3/bags/reduce_constants_dup.smt2
   # time out
   regress3/unifpi-solve-car_1.lus.sy
   # unknown (is sat)
