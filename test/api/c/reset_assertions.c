@@ -47,5 +47,6 @@ int main()
   cvc5_assert_formula(solver, arr_at_four_eq_ten);
   printf("%s\n", cvc5_result_to_string(cvc5_check_sat(solver)));
   cvc5_delete(solver);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }

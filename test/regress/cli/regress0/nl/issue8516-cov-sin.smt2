@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; REQUIRES: poly
 ; SCRUBBER: grep -o "Term of kind sin is not compatible"
 ; EXPECT: Term of kind sin is not compatible

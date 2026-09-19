@@ -9,9 +9,8 @@
 ; program: $abconv_ubv_to_int_elim
 ; args:
 ; - b (BitVec n): A bitvector.
-; - i Int: The current position in b we are considering.
-; - ns (@TList Int): The list of bits still to process.
-; - p Int: Equal to 2 to the power of i.
+; - ns (@TList Int): The list of bit positions still to process, in increasing order.
+; - p Int: Equal to 2 to the power of the first position in ns.
 ; return: >
 ;   The result of the reduction for the remaining bits for (ubv_to_int b),
 ;   which is an arithmetic sum.

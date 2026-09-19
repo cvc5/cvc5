@@ -50,25 +50,6 @@ std::optional<bool> tryEvaluateRelationReflexive(Kind rel,
 Node buildRelation(Kind kind, Node left, Node right, bool negate = false);
 
 /**
- * Build an integer equality from the given sum. The result is equivalent to the
- * sum being equal to zero. We first normalize the non-constant coefficients to
- * integers (using GCD and LCM). If the coefficient is non-integral after that,
- * the result is false. We then put the term with minimal absolute coefficient
- * to the left side of the equality and make its coefficient positive.
- * The sum is taken as rvalue as it is modified in the process.
- */
-Node buildIntegerEquality(NodeManager* nm, Sum&& sum);
-
-/**
- * Build a real equality from the given sum. The result is equivalent to the sum
- * being equal to zero. We first extract the leading term and normalize its
- * coefficient to be plus or minus one. The result is the (normalized) leading
- * term being equal to the rest of the sum.
- * The sum is taken as rvalue as it is modified in the process.
- */
-Node buildRealEquality(NodeManager* nm, Sum&& sum);
-
-/**
  * Build an integer inequality from the given sum. The result is equivalent to
  * `(k sum 0)`. We first normalize the non-constant coefficients to integers
  * (using GCD and LCM), tighten the inequality if possible and turn it into a
@@ -92,16 +73,24 @@ Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
  * For example, this returns (= x 1) for the input (= (+ x 1) 2). The returned
  * node is either an equality or a Boolean constant.
  *
- * Note this normalization is not applied by the rewriter, since it does not
- * preserve the terms of the equality, which is incompatible with theory
+ * Note that this normalization is *not* applied by the rewriter, since it does
+ * not preserve the terms of the equality, which is incompatible with theory
  * combination. It is instead applied to equalities in the input via
- * ppStaticRewrite, and by utilities that require equalities in normal form.
+ * ppStaticRewrite, by the extended rewriter, by the linear arithmetic solver,
+ * and by utilities that require equalities in normal form.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the difference of the
+ * sides of atom, and false if it is a positive one. This is used by the
+ * rewriter to orient atom in the same direction as its normal form, which
+ * ensures that a normal form is itself in rewritten form.
  *
  * @param nm Pointer to the node manager.
  * @param atom The equality to normalize.
+ * @param negated Whether the returned equality is a negative multiple of atom.
  * @return The normal form of atom.
  */
-Node normalizeEquality(NodeManager* nm, TNode atom);
+Node normalizeEquality(NodeManager* nm, TNode atom, bool* negated = nullptr);
 
 /**
  * Decompose sum into a (non-constant, constant) part.

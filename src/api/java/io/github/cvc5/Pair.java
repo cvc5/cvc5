@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import java.util.Objects;
+
 /**
  * A simple generic container class to hold a pair of objects.
  *
@@ -46,7 +48,9 @@ public class Pair<K, V>
    * Compare this Pair to the specified object for equality.
    *
    * It returns {@code true} if the given object is also a Pair and
-   * both the first and second elements are equal (using their equals method).
+   * both the first and second elements are equal. Elements are compared with
+   * {@link java.util.Objects#equals(Object, Object)}, so {@code null} elements
+   * are permitted and compare equal to each other.
    *
    * @param pair the object to compare with this pair
    * @return {@code true} if the specified object is equal to this pair,
@@ -60,6 +64,22 @@ public class Pair<K, V>
     if (pair == null || getClass() != pair.getClass())
       return false;
 
-    return first.equals(((Pair<?, ?>) pair).first) && second.equals(((Pair<?, ?>) pair).second);
+    return Objects.equals(first, ((Pair<?, ?>) pair).first)
+        && Objects.equals(second, ((Pair<?, ?>) pair).second);
+  }
+
+  /**
+   * Return a hash code value for this pair.
+   *
+   * The hash code is derived from the hash codes of the first and second
+   * elements, so that pairs that are equal according to
+   * {@link #equals(Object)} have the same hash code.
+   *
+   * @return a hash code value for this pair
+   */
+  @Override
+  public int hashCode()
+  {
+    return Objects.hash(first, second);
   }
 }

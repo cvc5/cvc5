@@ -403,6 +403,38 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, *response));
   }
 
+  if (kind == Kind::EQUAL)
+  {
+    // We do not normalize equalities here, since this does not preserve their
+    // terms, see rewriter::normalizeEquality. However, if the normal form of
+    // the equality is a Boolean constant, we return that constant, which e.g.
+    // is the case for (= (* 2 x) 1) for integer x. This ensures that the
+    // rewritten form of an equality is a Boolean constant whenever it is
+    // equivalent to one, which is relied upon e.g. when setting up atoms in
+    // the linear solver.
+    bool negated = false;
+    Node norm = rewriter::normalizeEquality(d_nm, atom, &negated);
+    if (norm.isConst())
+    {
+      return RewriteResponse(REWRITE_DONE, norm);
+    }
+    // Otherwise, we only orient the equality, which we do so that it points in
+    // the same direction as its normal form, i.e. so that the difference of
+    // its sides is a positive multiple of the difference of the sides of norm.
+    // Note this makes the normal form of an equality itself in rewritten form,
+    // which ensures that the linear solver does not have to introduce a second
+    // atom for an equality that is already in normal form, see
+    // TheoryArithPrivate::setupAtom.
+    if (negated)
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             d_nm->mkNode(Kind::EQUAL, atom[1], atom[0]));
+    }
+    return RewriteResponse(REWRITE_DONE, atom);
+  }
+
+  // Equalities were handled above, hence the atom is an inequality here.
+  Assert(kind != Kind::EQUAL);
   bool negate = false;
 
   switch (atom.getKind())
@@ -426,11 +458,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   if (rewriter::isIntegral(sum))
   {
     Trace("arith-rewriter") << "...sum is integral" << std::endl;
-    if (kind == Kind::EQUAL)
-    {
-      return RewriteResponse(
-          REWRITE_DONE, rewriter::buildIntegerEquality(d_nm, std::move(sum)));
-    }
     return RewriteResponse(
         REWRITE_DONE,
         rewriter::buildIntegerInequality(d_nm, std::move(sum), kind));
@@ -438,11 +465,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   else
   {
     Trace("arith-rewriter") << "...sum is not integral" << std::endl;
-    if (kind == Kind::EQUAL)
-    {
-      return RewriteResponse(REWRITE_DONE,
-                             rewriter::buildRealEquality(d_nm, std::move(sum)));
-    }
     return RewriteResponse(
         REWRITE_DONE,
         rewriter::buildRealInequality(d_nm, std::move(sum), kind));
