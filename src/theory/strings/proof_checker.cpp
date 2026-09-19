@@ -19,7 +19,6 @@
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/skolem_cache.h"
-#include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -292,12 +291,12 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(args.size() == 1);
       SkolemCache skc(nm, nullptr);
-      ret = TermRegistry::eagerReduce(t, &skc, d_alphaCard);
+      ret = utils::eagerReduce(t, &skc, d_alphaCard);
     }
     else if (id == ProofRule::STRING_LENGTH_POS)
     {
       Assert(args.size() == 1);
-      ret = TermRegistry::lengthPositive(t);
+      ret = utils::lengthPositive(t);
     }
     if (ret.isNull())
     {

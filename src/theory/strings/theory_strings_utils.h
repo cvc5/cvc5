@@ -243,6 +243,29 @@ Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
  */
 Node mkCodeRange(Node t, uint32_t alphaCard);
 
+/** The eager reduce routine
+ *
+ * Constructs a lemma for t that is incomplete, but communicates pertinent
+ * information about t. This is analogous to StringsPreprocess::reduce.
+ *
+ * In practice, we send this lemma eagerly, as soon as t is registered.
+ *
+ * @param t The node to reduce,
+ * @param sc The Skolem cache to use for new variables,
+ * @param alphaCard The cardinality of the alphabet we are assuming
+ * @return The eager reduction for t.
+ */
+Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
+/**
+ * Returns a lemma indicating that the length of a term t whose type is
+ * string-like has positive length. The exact form of this lemma depends
+ * on what works best in practice, currently:
+ *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+ *
+ * @param t The node to reduce,
+ * @return The positive length lemma for t.
+ */
+Node lengthPositive(Node t);
 /**
  * This returns the conclusion of the proof rule corresponding to splitting
  * on the arrangement of terms x and y appearing in an equation of the form
