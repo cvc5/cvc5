@@ -273,6 +273,27 @@ void TheorySep::postProcessModel(TheoryModel* m)
     m_heap = nm->mkNode(Kind::SEP_STAR, sep_children);
   }
   m->setHeapModel(m_heap, m_neq);
+  // Tell the model which labels denote a fragment of this heap, so that the
+  // internal labelled facts checked by --debug-check-models can be evaluated
+  // against it. The labels a sep.wand introduces are excluded: they describe
+  // the heaps the wand quantifies over, which this model says nothing about.
+  std::unordered_set<Node> heapLabels = d_heapModelLabels;
+  heapLabels.insert(blbl);
+  for (const std::pair<const Node, std::map<Node, std::map<int, Node> > >& am :
+       d_label_map)
+  {
+    for (const std::pair<const Node, std::map<int, Node> >& lm : am.second)
+    {
+      for (const std::pair<const int, Node>& cm : lm.second)
+      {
+        if (isHeapModelLabel(cm.second))
+        {
+          heapLabels.insert(cm.second);
+        }
+      }
+    }
+  }
+  m->setSepHeapLabels(heapLabels);
 
   Trace("sep-model") << "Finished printing model for TheorySep." << std::endl;
 }
@@ -1446,6 +1467,48 @@ std::vector<Node> TheorySep::getRootLabels(Node p) const
   return roots;
 }
 
+bool TheorySep::isHeapModelLabel(Node lbl) const
+{
+  // Walk up the disjoint union relation looking for the base label. Note this
+  // deliberately does not use getRootLabels: a sep.wand reparents the current
+  // label under its consequent label, so the base label and a wand's
+  // antecedent label can share a root while denoting fragments of different
+  // heaps.
+  std::unordered_set<Node> visited;
+  std::vector<Node> visit;
+  visit.push_back(lbl);
+  do
+  {
+    Node cur = visit.back();
+    visit.pop_back();
+    if (cur == d_base_label
+        || d_heapModelLabels.find(cur) != d_heapModelLabels.end())
+    {
+      return true;
+    }
+    if (visited.find(cur) != visited.end())
+    {
+      continue;
+    }
+    visited.insert(cur);
+    std::map<Node, std::vector<Node> >::const_iterator itp =
+        d_parentMap.find(cur);
+    if (itp != d_parentMap.end())
+    {
+      visit.insert(visit.end(), itp->second.begin(), itp->second.end());
+    }
+  } while (!visit.empty());
+  return false;
+}
+
+void TheorySep::recordHeapModelLabel(Node lbl, Node o_lbl)
+{
+  if (isHeapModelLabel(o_lbl))
+  {
+    d_heapModelLabels.insert(lbl);
+  }
+}
+
 bool TheorySep::sharesRootLabel(Node p, Node q) const
 {
   if (p == q)
@@ -1658,6 +1721,7 @@ Node TheorySep::instantiateLabel(Node n,
       else
       {
         // nested star/wand, label it and return
+        recordHeapModelLabel(lbl_v, o_lbl);
         return nodeManager()->mkNode(Kind::SEP_LABEL, n, lbl_v);
       }
     }
@@ -1680,6 +1744,7 @@ Node TheorySep::instantiateLabel(Node n,
       if (inBaseHeap)
       {
         Node s = nm->mkNode(Kind::SET_SINGLETON, n[0]);
+        recordHeapModelLabel(s, o_lbl);
         children.push_back(nodeManager()->mkNode(
             Kind::SEP_LABEL,
             nodeManager()->mkNode(Kind::SEP_PTO, n[0], n[1]),
