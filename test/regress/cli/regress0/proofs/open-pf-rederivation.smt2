@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --bv-solver=bitblast-internal
 ; EXPECT: unsat
 (set-logic ALL)

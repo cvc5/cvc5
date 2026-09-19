@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find
 ; EXPECT: sat
 ; DISABLE-TESTER: model

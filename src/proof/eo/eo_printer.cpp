@@ -32,7 +32,9 @@
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/builtin/generic_op.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/string.h"
 
@@ -351,8 +353,18 @@ bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
     case ProofRewriteRule::SEQ_EVAL_OP: return true;
     case ProofRewriteRule::STR_IN_RE_EVAL:
+    {
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
+      if (theory::strings::Word::isEmpty(n[0][0]))
+      {
+        // If the string is empty, the signature only requires determining
+        // whether the regular expression is nullable, which does not require
+        // it to be evaluatable.
+        bool res;
+        return theory::strings::RegExpEntail::isNullable(n[0][1], res);
+      }
       return canEvaluateRegExp(n[0][1]);
+    }
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::LAMBDA_ELIM:
@@ -954,6 +966,47 @@ void EoPrinter::print(EoPrintChannelOut& aout,
     // [5] print proof body
     printProofInternal(ao, pnBody, i == 1);
   }
+  // [6] If the body of the proof is an assumption, then no step was printed
+  // for it above and the proof would end with an assume command. We print a
+  // dummy step here so that the proof always ends with a step.
+  if (pnBody->getRule() == ProofRule::ASSUME)
+  {
+    printAssumeBodyStep(aout, pnBody);
+  }
+}
+
+void EoPrinter::printAssumeBodyStep(EoPrintChannelOut& aout,
+                                    const ProofNode* pn)
+{
+  Assert(pn->getRule() == ProofRule::ASSUME);
+  // The body of the proof is an assumption. This is the case e.g. if false is
+  // one of the input assertions, in which case the proof of false is the
+  // assumption of false itself. Since we require that proofs end with a step
+  // and not an assume command, we print a dummy derivation of the assumed
+  // formula F from the assumption of F:
+  //
+  //                            ------------- refl
+  //   @p_a: F                  @p_r: (= F F)
+  //  ------------------------------------------ eq_resolve
+  //   @p_c: F
+  Node f = d_tproc.convert(pn->getResult());
+  bool wasAlloc = false;
+  size_t aid = allocateAssumeId(pn->getResult(), wasAlloc);
+  if (wasAlloc)
+  {
+    // Print the assumption if it was not printed above, which should only
+    // happen if we are not printing the proof within a scope.
+    aout.printAssume(f, aid, false);
+  }
+  d_pfIdCounter++;
+  size_t rid = d_pfIdCounter;
+  aout.printStep("refl", f.eqNode(f), rid, {}, {f});
+  d_pfIdCounter++;
+  aout.printStep("eq_resolve", f, d_pfIdCounter, {aid, rid}, {});
+  // Note that F is not necessarily false here, since this method applies to
+  // any proof whose body is an assumption, e.g. the preprocessed input proof
+  // printed when proof logging. The dummy step is unnecessary in that case,
+  // but harmless.
 }
 
 void EoPrinter::printNext(EoPrintChannelOut& aout,
