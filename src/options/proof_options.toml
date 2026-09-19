@@ -81,7 +81,7 @@ name   = "Proof"
 
 [[option]]
   name       = "checkProofsComplete"
-  category   = "common"
+  category   = "expert"
   long       = "check-proofs-complete"
   type       = "bool"
   default    = "false"

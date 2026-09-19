@@ -14,7 +14,6 @@
 
 #include "expr/dtype_cons.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
