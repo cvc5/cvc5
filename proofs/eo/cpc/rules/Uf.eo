@@ -30,7 +30,7 @@
 
 ; rule: symm
 ; implements: ProofRule::SYMM
-; args:
+; premises:
 ; - F Bool: The (dis)equality to apply symmetry to.
 ; conclusion: The inverted version of the (dis)equality F.
 (declare-rule symm ((F Bool))
