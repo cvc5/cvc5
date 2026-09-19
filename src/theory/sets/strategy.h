@@ -50,6 +50,12 @@ class Strategy : public StrategyBase
    */
   void runStep(Step s, Theory::Effort e, Theory::Effort effort) override;
 
+  /**
+   * Flush the facts that sets buffered before this check, then run the
+   * standard check loop of StrategyBase::postCheck.
+   */
+  void postCheck(Theory::Effort e) override;
+
  private:
   /** The sets solver that owns this strategy and implements the steps. */
   TheorySetsPrivate* d_setsSolver;
