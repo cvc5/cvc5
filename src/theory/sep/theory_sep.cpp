@@ -429,17 +429,21 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       // A is the disjoint union of B and C.
       if (!sharesRootLabel(slbl, d_base_label))
       {
-        std::map<Node, std::vector<Node> >::iterator itc =
+        std::map<Node, std::vector<std::vector<Node> > >::iterator itc =
             d_childrenMap.find(slbl);
         if (itc != d_childrenMap.end())
         {
-          std::vector<Node> disjs;
-          for (const Node& c : itc->second)
+          // apply downwards closure for each list of children of slbl
+          for (const std::vector<Node>& cs : itc->second)
           {
-            disjs.push_back(nm->mkNode(Kind::SEP_LABEL, satom, c));
+            std::vector<Node> disjs;
+            for (const Node& c : cs)
+            {
+              disjs.push_back(nm->mkNode(Kind::SEP_LABEL, satom, c));
+            }
+            Node conc2 = nm->mkNode(Kind::OR, disjs);
+            conc = conc.isNull() ? conc2 : nm->mkNode(Kind::AND, conc, conc2);
           }
-          Node conc2 = nm->mkNode(Kind::OR, disjs);
-          conc = conc.isNull() ? conc2 : nm->mkNode(Kind::AND, conc, conc2);
         }
       }
       // note semantics of sep.nil is enforced globally
@@ -501,8 +505,40 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     AlwaysAssert(!lit.isNull());
     d_neg_guards.push_back(lit);
     d_guard_to_assertion[lit] = satom;
-    // Node lem = nm->mkNode( EQUAL, lit, conc );
-    Node lem = nm->mkNode(Kind::OR, lit.negate(), conc);
+    // The guarded reduction is a search: for a negated star, for a partition
+    // witnessing the star; for a positive wand, for an extension refuting
+    // it. The guard is decided true by STRAT_SEP_NEG_GUARD to run the search
+    // and is learned false only when the search is exhausted, in which case
+    // the constraint holds and postCheck may skip it. That reading is only
+    // correct if the search ranges over sublabels that are free when it
+    // starts. The sublabels of the positive reduction (d_label_map) may
+    // already be fixed, e.g. by that reduction having been used
+    // contrapositively, so the search uses its own (d_guard_label_map).
+    Node gconc = conc;
+    if (satom.getKind() == Kind::SEP_STAR || satom.getKind() == Kind::SEP_WAND)
+    {
+      std::vector<Node> gchildren;
+      std::vector<Node> glabels;
+      getLabelChildren(satom, slbl, gchildren, glabels, true);
+      Assert(gchildren.size() > 1);
+      if (satom.getKind() == Kind::SEP_STAR)
+      {
+        makeDisjointHeap(slbl, glabels);
+      }
+      else
+      {
+        Assert(!d_nil_ref.isNull());
+        Node nrlem =
+            nm->mkNode(Kind::SET_MEMBER, d_nil_ref, glabels[0]).negate();
+        d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
+        makeDisjointHeap(glabels[1], {slbl, glabels[0]});
+      }
+      gconc = nm->mkNode(Kind::AND, gchildren);
+    }
+    // The reduction is also conditioned on the fact: the guard and its
+    // strategy persist across backtracking, the fact does not, and a guard
+    // whose fact is not asserted must be inert.
+    Node lem = nm->mkNode(Kind::OR, {fact.negate(), lit.negate(), gconc});
     Trace("sep-lemma") << "Sep::Lemma : (neg) reduction : " << lem << std::endl;
     d_im.lemma(lem, InferenceId::SEP_NEG_REDUCTION);
   }
@@ -681,7 +717,7 @@ void TheorySep::postCheck(Effort level)
         {
           Assert(atom.getKind() == Kind::SEP_LABEL);
           TNode slbl = atom[1];
-          std::map<Node, std::map<int, Node> >& lms = d_label_map[satom];
+          std::map<Node, std::map<int, Node> >& lms = d_guard_label_map[satom];
           if (lms.find(slbl) != lms.end())
           {
             Trace("sep-process-debug") << "Active lbl : " << slbl << std::endl;
@@ -719,7 +755,7 @@ void TheorySep::postCheck(Effort level)
     Trace("sep-process") << "--> Active negated atom : " << satom
                          << ", lbl = " << slbl << std::endl;
     // add refinement lemma
-    if (!ContainsKey(d_label_map[satom], slbl))
+    if (!ContainsKey(d_guard_label_map[satom], slbl))
     {
       Trace("sep-process-debug") << "  no children." << std::endl;
       Assert(satom.getKind() == Kind::SEP_PTO
@@ -737,7 +773,7 @@ void TheorySep::postCheck(Effort level)
     // get model values
     std::map<int, Node> mvals;
     for (const std::pair<const int, Node>& sub_element :
-         d_label_map[satom][slbl])
+         d_guard_label_map[satom][slbl])
     {
       int sub_index = sub_element.first;
       Node sub_lbl = sub_element.second;
@@ -755,8 +791,15 @@ void TheorySep::postCheck(Effort level)
     // new refinement
     // instantiate the label
     std::map<Node, Node> visited;
-    Node inst = instantiateLabel(
-        satom, slbl, slbl, o_b_lbl_mval, visited, d_pto_model, tn, active_lbl);
+    Node inst = instantiateLabel(satom,
+                                 slbl,
+                                 slbl,
+                                 o_b_lbl_mval,
+                                 visited,
+                                 d_pto_model,
+                                 tn,
+                                 active_lbl,
+                                 true);
     Trace("sep-inst-debug") << "    applied inst : " << inst << std::endl;
     if (inst.isNull())
     {
@@ -1352,17 +1395,19 @@ Node TheorySep::mkUnion(TypeNode tn, std::vector<Node>& locs)
   }
 }
 
-Node TheorySep::getLabel(Node atom, int child, Node lbl)
+Node TheorySep::getLabel(Node atom, int child, Node lbl, bool guard)
 {
-  std::map<int, Node>::iterator it = d_label_map[atom][lbl].find(child);
-  if (it == d_label_map[atom][lbl].end())
+  std::map<Node, std::map<Node, std::map<int, Node> > >& lmap =
+      guard ? d_guard_label_map : d_label_map;
+  std::map<int, Node>::iterator it = lmap[atom][lbl].find(child);
+  if (it == lmap[atom][lbl].end())
   {
     Assert(!d_type_ref.isNull());
     std::stringstream ss;
-    ss << "__Lc" << child;
+    ss << (guard ? "__Lg" : "__Lc") << child;
     TypeNode ltn = nodeManager()->mkSetType(d_type_ref);
     Node n_lbl = NodeManager::mkDummySkolem(ss.str(), ltn);
-    d_label_map[atom][lbl][child] = n_lbl;
+    lmap[atom][lbl][child] = n_lbl;
     return n_lbl;
   }
   else
@@ -1378,8 +1423,11 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   Assert(children.size() >= 2);
   if (!sharesRootLabel(parent, d_base_label))
   {
-    Assert(d_childrenMap.find(parent) == d_childrenMap.end());
-    d_childrenMap[parent] = children;
+    std::vector<std::vector<Node> >& cm = d_childrenMap[parent];
+    if (std::find(cm.begin(), cm.end(), children) == cm.end())
+    {
+      cm.push_back(children);
+    }
   }
   // remember parent relationships
   for (const Node& c : children)
@@ -1520,9 +1568,12 @@ Node TheorySep::instantiateLabel(Node n,
                                  std::map<Node, Node>& pto_model,
                                  TypeNode rtn,
                                  std::map<Node, bool>& active_lbl,
+                                 bool guard,
                                  unsigned ind)
 {
   NodeManager* nm = nodeManager();
+  std::map<Node, std::map<Node, std::map<int, Node> > >& lmap =
+      guard ? d_guard_label_map : d_label_map;
   Trace("sep-inst-debug") << "Instantiate label " << n << " " << lbl << " "
                           << lbl_v << std::endl;
   if (options().sep.sepMinimalRefine && lbl != o_lbl
@@ -1554,10 +1605,10 @@ Node TheorySep::instantiateLabel(Node n,
       {
         std::vector<Node> children;
         children.resize(n.getNumChildren());
-        Assert(d_label_map[n].find(lbl) != d_label_map[n].end());
+        Assert(lmap[n].find(lbl) != lmap[n].end());
         std::map<int, Node> mvals;
-        for (std::map<int, Node>::iterator itl = d_label_map[n][lbl].begin();
-             itl != d_label_map[n][lbl].end();
+        for (std::map<int, Node>::iterator itl = lmap[n][lbl].begin();
+             itl != lmap[n][lbl].end();
              ++itl)
         {
           Node sub_lbl = itl->second;
@@ -1568,8 +1619,8 @@ Node TheorySep::instantiateLabel(Node n,
           Node lbl_mval;
           if (n.getKind() == Kind::SEP_WAND && sub_index == 1)
           {
-            Assert(d_label_map[n][lbl].find(0) != d_label_map[n][lbl].end());
-            Node sub_lbl_0 = d_label_map[n][lbl][0];
+            Assert(lmap[n][lbl].find(0) != lmap[n][lbl].end());
+            Node sub_lbl_0 = lmap[n][lbl][0];
             computeLabelModel(sub_lbl_0);
             Assert(d_label_model.find(sub_lbl_0) != d_label_model.end());
             lbl_mval = nodeManager()->mkNode(
@@ -1594,6 +1645,7 @@ Node TheorySep::instantiateLabel(Node n,
                                                  pto_model,
                                                  rtn,
                                                  active_lbl,
+                                                 guard,
                                                  ind + 1);
           if (children[sub_index].isNull())
           {
@@ -1609,8 +1661,8 @@ Node TheorySep::instantiateLabel(Node n,
           bchildren.insert(bchildren.end(), children.begin(), children.end());
           Node vsu;
           std::vector<Node> vs;
-          for (std::map<int, Node>::iterator itl = d_label_map[n][lbl].begin();
-               itl != d_label_map[n][lbl].end();
+          for (std::map<int, Node>::iterator itl = lmap[n][lbl].begin();
+               itl != lmap[n][lbl].end();
                ++itl)
           {
             Node sub_lbl = itl->second;
@@ -1641,7 +1693,7 @@ Node TheorySep::instantiateLabel(Node n,
         {
           std::vector<Node> wchildren;
           // disjoint constraints
-          Node sub_lbl_0 = d_label_map[n][lbl][0];
+          Node sub_lbl_0 = lmap[n][lbl][0];
           Node lbl_mval_0 =
               d_label_model[sub_lbl_0].getValue(nodeManager(), rtn);
           wchildren.push_back(nodeManager()
@@ -1734,6 +1786,7 @@ Node TheorySep::instantiateLabel(Node n,
                                       pto_model,
                                       rtn,
                                       active_lbl,
+                                      guard,
                                       ind);
           if (aln.isNull())
           {
@@ -1776,9 +1829,13 @@ void TheorySep::setInactiveAssertionRec(
   TNode slbl = atom[1];
   if (satom.getKind() == Kind::SEP_WAND || satom.getKind() == Kind::SEP_STAR)
   {
+    // the children of a guarded (negated star / positive wand) assertion
+    // live at the labels of its guarded reduction
+    bool use_polarity =
+        satom.getKind() == Kind::SEP_WAND ? !polarity : polarity;
     for (size_t j = 0, nchild = satom.getNumChildren(); j < nchild; j++)
     {
-      Node lblc = getLabel(satom, j, slbl);
+      Node lblc = getLabel(satom, j, slbl, !use_polarity);
       for (unsigned k = 0; k < lbl_to_assertions[lblc].size(); k++)
       {
         setInactiveAssertionRec(
@@ -1791,11 +1848,12 @@ void TheorySep::setInactiveAssertionRec(
 void TheorySep::getLabelChildren(Node satom,
                                  Node lbl,
                                  std::vector<Node>& children,
-                                 std::vector<Node>& labels)
+                                 std::vector<Node>& labels,
+                                 bool guard)
 {
   for (size_t i = 0, nchild = satom.getNumChildren(); i < nchild; i++)
   {
-    Node lblc = getLabel(satom, i, lbl);
+    Node lblc = getLabel(satom, i, lbl, guard);
     Assert(!lblc.isNull());
     std::map<Node, Node> visited;
     Node lc = applyLabel(satom[i], lblc, visited);
