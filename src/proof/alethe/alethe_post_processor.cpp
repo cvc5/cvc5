@@ -2357,7 +2357,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     //
     // The coefficients given to LA_GENERIC are derived from the scaling
     // factors k1 ... kn of this rule: inequality premises are given |ki|,
-    // since la_generic accounts for the direction of the inequality itself,
+    // since LA_GENERIC accounts for the direction of the inequality itself,
     // while equality premises are given (- ki). The conclusion is given
     // coefficient 1.
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
