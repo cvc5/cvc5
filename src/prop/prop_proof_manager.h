@@ -21,6 +21,7 @@
 #include "context/cdo.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
+#include "prop/opt_clauses_manager.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/proof_post_processor.h"
 #include "smt/env_obj.h"
@@ -163,6 +164,25 @@ class PropPfManager : protected EnvObj
                             bool input,
                             bool doNormalize = true);
   /**
+   * Notification that the SAT solver has added the given clause at user level
+   * clLevel, which is below the user level we are currently in.
+   *
+   * SAT solvers may keep a clause at the lowest user level its literals depend
+   * on rather than at the level it was derived in, so that popping back to an
+   * intermediate level does not force the clause to be relearned. The proof of
+   * the clause, however, is registered in d_proof at the level we are currently
+   * in and would be discarded when that level is popped, leaving the clause
+   * without a justification if the SAT solver later uses it. See issue #12884.
+   *
+   * We therefore eagerly compute the proof of the clause here and hand it to
+   * d_optClausesManager, which reinserts it into d_proof (and reinserts the
+   * clause into d_lemmaClauses) when we pop back to clLevel.
+   *
+   * @param clause The clause that was added to the SAT solver.
+   * @param clLevel The user level the SAT solver keeps the clause at.
+   */
+  void notifyClauseInsertedAtLevel(const SatClause& clause, uint32_t clLevel);
+  /**
    * Clausifies the given propagation lemma *without* registering the resulting
    * clause in the SAT solver, as this is handled internally by the SAT
    * solver. The clausification steps and the generator within the trust node
@@ -186,6 +206,13 @@ class PropPfManager : protected EnvObj
   LazyCDProof* getCnfProof();
 
  private:
+  /**
+   * Get the node corresponding to a clause in the SAT solver. This must
+   * construct the same node that normalizeAndRegister used as the key for the
+   * clause's proof, i.e. its literals ordered by node id and without
+   * duplicates.
+   */
+  Node getClauseNode(const SatClause& clause) const;
   /** Retrieve the proofs for clauses derived from the input */
   std::vector<std::shared_ptr<ProofNode>> getInputClausesProofs();
   /** Retrieve the proofs for clauses derived from lemmas */
@@ -247,6 +274,20 @@ class PropPfManager : protected EnvObj
   theory::InferenceId d_currLemmaId;
   /** The current propagation being processed via this class. */
   Node d_currPropagationProcessed;
+  /**
+   * Maps user levels to the proofs of clauses that the SAT solver keeps at
+   * that level although they were derived above it. Used by
+   * d_optClausesManager to restore them into d_proof when the user context
+   * pops.
+   */
+  std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optClausesPfs;
+  /** As above, but for restoring the clauses themselves into d_lemmaClauses. */
+  std::map<int, std::vector<Node>> d_optClauseLevels;
+  /**
+   * Manager for the clauses the SAT solver keeps at a user level below the one
+   * their proof was generated in.
+   */
+  OptimizedClausesManager d_optClausesManager;
   /** Temporary, pointer to SAT proof manager */
   SatProofManager* d_satPm;
   /**

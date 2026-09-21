@@ -11,20 +11,15 @@
  */
 #include "prop/cadical/cdclt_propagator.h"
 
-#include <algorithm>
+#include "prop/prop_proof_manager.h"
 
 namespace cvc5::internal::prop::cadical {
 
 CadicalPropagator::CadicalPropagator(prop::TheoryProxy* proxy,
                                      context::Context* context,
                                      CaDiCaL::Solver& solver,
-                                     StatisticsRegistry& stats,
-                                     bool proofs)
-    : d_proxy(proxy),
-      d_context(*context),
-      d_solver(solver),
-      d_proofs(proofs),
-      d_stats(stats)
+                                     StatisticsRegistry& stats)
+    : d_proxy(proxy), d_context(*context), d_solver(solver), d_stats(stats)
 {
   d_var_info.emplace_back();  // 0: Not used
 }
@@ -429,12 +424,15 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     // incremental checks. The reason is still a theory explanation and needs
     // the same user-level activation guard as reasons requested during search.
     // Add activation literal of the clause's user level to the reason.
-    SatLiteral alit = activation_lit(
-        std::max(min_clause_user_level(), clause_user_level(clause)));
+    uint32_t reason_user_level = clause_user_level(clause);
+    SatLiteral alit = activation_lit(reason_user_level);
     if (alit != undefSatLiteral)
     {
       d_reason.push_back(alit);
     }
+    // As in add_clause(), the reason is kept by the SAT solver at the user
+    // level its literals depend on, so its proof must be kept as well.
+    notify_clause_level(clause, reason_user_level);
     d_reason.insert(d_reason.end(), clause.begin(), clause.end());
     d_processing_reason = true;
     Trace("cadical::propagator")
@@ -498,6 +496,17 @@ SatValue CadicalPropagator::value(SatLiteral lit) const
   return val;
 }
 
+void CadicalPropagator::notify_clause_level(const SatClause& clause,
+                                            uint32_t user_level)
+{
+  if (d_ppm == nullptr || clause.empty()
+      || user_level >= current_user_level())
+  {
+    return;
+  }
+  d_ppm->notifyClauseInsertedAtLevel(clause, user_level);
+}
+
 void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
 {
   std::vector<CadicalLit> lits;
@@ -507,8 +516,7 @@ void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
   //       level N - 2. In this case we can add the clause at N - 2 instead
   //       of deleting the clause when popping user level N, which would
   //       require us to relearn the clause again.
-  uint32_t max_user_level =
-      d_in_search ? min_clause_user_level() : current_user_level();
+  uint32_t max_user_level = d_in_search ? 0 : current_user_level();
   for (const SatLiteral& lit : clause)
   {
     SatVariable var = lit.getSatVariable();
@@ -546,6 +554,9 @@ void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
     {
       lits.insert(lits.begin(), toCadicalLit(alit));
     }
+    // The clause survives popping back to max_user_level, so its proof has to
+    // survive as well.
+    notify_clause_level(clause, max_user_level);
     // Do not immediately add clauses added during search. We have to buffer
     // them and add them during the cb_add_reason_clause_lit callback.
     if (d_in_search)

@@ -18,6 +18,10 @@
 #include "prop/sat_solver_types.h"
 #include "prop/theory_proxy.h"
 
+namespace cvc5::internal::prop {
+class PropPfManager;
+}
+
 namespace cvc5::internal::prop::cadical {
 
 class CadicalPropagator : public CaDiCaL::ExternalPropagator,
@@ -27,8 +31,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   CadicalPropagator(prop::TheoryProxy* proxy,
                     context::Context* context,
                     CaDiCaL::Solver& solver,
-                    StatisticsRegistry& stats,
-                    bool proofs);
+                    StatisticsRegistry& stats);
 
   /**
    * Notification from the SAT solver on assignment of a new literal.
@@ -191,6 +194,14 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void user_pop();
 
+  /**
+   * Set the proof manager to notify when a clause is attached to a user level
+   * below the current one, see PropPfManager::notifyClauseInsertedAtLevel.
+   *
+   * @param ppm The proof manager, or nullptr if we are not producing proofs.
+   */
+  void set_proof_manager(prop::PropPfManager* ppm) { d_ppm = ppm; }
+
   bool is_fixed(const SatVariable var) const
   {
     Assert(var < d_var_info.size());
@@ -224,25 +235,6 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * it and only gets disabled once the level it actually depends on is popped.
    */
   uint32_t clause_user_level(const SatClause& clause) const;
-
-  /**
-   * Determine the lowest user level a clause derived during search (a theory
-   * lemma or a theory propagation explanation) may be attached to.
-   *
-   * Such a clause is valid independently of the user assertion level, so by
-   * default it is attached to the level its literals depend on, which may be
-   * lower than the current user level. When we are producing proofs this is
-   * unsound bookkeeping: the proof of the clause is stored user-context
-   * dependently by PropPfManager and is discarded when the current user level
-   * is popped, while the SAT solver would keep the clause and may use it in a
-   * later refutation, which then has the clause as a free assumption. Hence we
-   * do not let such clauses outlive the current user level when proofs are
-   * enabled.
-   */
-  uint32_t min_clause_user_level() const
-  {
-    return d_proofs ? static_cast<uint32_t>(current_user_level()) : 0;
-  }
 
   /** Return the current user (assertion) level. */
   size_t current_user_level() const { return d_active_vars_control.size(); }
@@ -279,6 +271,14 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   int next_propagation();
 
+  /**
+   * Notify the proof manager, if any, that the SAT solver keeps the given
+   * clause at the given user level. This is a no-op if the level is the
+   * current one, in which case the proof of the clause has the same lifetime
+   * as the clause itself.
+   */
+  void notify_clause_level(const SatClause& clause, uint32_t user_level);
+
   /** The associated theory proxy. */
   prop::TheoryProxy* d_proxy = nullptr;
 
@@ -286,8 +286,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   context::Context& d_context;
   CaDiCaL::Solver& d_solver;
 
-  /** True if we are producing proofs, see min_clause_user_level(). */
-  bool d_proofs;
+  /** The proof manager to notify about clause levels, null if no proofs. */
+  prop::PropPfManager* d_ppm = nullptr;
 
   /** Struct to store information on variables. */
   struct VarInfo

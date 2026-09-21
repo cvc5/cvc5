@@ -296,11 +296,8 @@ CadicalSolver::Statistics::Statistics(StatisticsRegistry& registry,
 void CadicalSolver::initialize(TheoryProxy* theoryProxy)
 {
   d_proxy = theoryProxy;
-  d_propagator.reset(new CadicalPropagator(theoryProxy,
-                                           d_context,
-                                           *d_solver,
-                                           statisticsRegistry(),
-                                           d_env.isSatProofProducing()));
+  d_propagator.reset(new CadicalPropagator(
+      theoryProxy, d_context, *d_solver, statisticsRegistry()));
   if (!d_env.getPlugins().empty())
   {
     d_clause_learner.reset(new ClauseLearner(*theoryProxy, 0));
@@ -316,9 +313,12 @@ void CadicalSolver::initialize(TheoryProxy* theoryProxy)
   initialize();
 }
 
-void CadicalSolver::attachProofManager(CVC5_UNUSED PropPfManager* ppm)
+void CadicalSolver::attachProofManager(PropPfManager* ppm)
 {
-  // not implemented yet
+  // The propagator notifies the proof manager whenever it keeps a clause at a
+  // user level below the one the clause's proof was generated in.
+  Assert(d_propagator);
+  d_propagator->set_proof_manager(ppm);
 }
 
 void CadicalSolver::push()
