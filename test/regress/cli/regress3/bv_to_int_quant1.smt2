@@ -1,5 +1,5 @@
-; Logos requires safe mode, which disallows the expert option cegqi-all.
-; DISABLE-TESTER: cpc-logos
+; Expert options such as cegqi-all require unrestricted mode.
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE:  --cegqi-all --full-saturate-quant --bvand-integer-granularity=1 --solve-bv-as-int=sum 
 ; COMMAND-LINE:  --cegqi-all --full-saturate-quant --bvand-integer-granularity=1 --solve-bv-as-int=sum  --bv-to-int-use-pow2
 ; EXPECT: unsat

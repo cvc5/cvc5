@@ -1,5 +1,5 @@
-; Logos requires safe mode, which disallows the expert option dt-stc-ind.
-; DISABLE-TESTER: cpc-logos
+; Expert options dt-stc-ind and conjecture-gen require unrestricted mode.
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --dt-stc-ind --conjecture-gen
 ; DISABLE-TESTER: unsat-core
 ; EXPECT: unsat
