@@ -29,18 +29,6 @@ For more details on Eunoia and a comprehensive overview of the language
 supported by the Ethos checker, see the user manual
 `here <https://github.com/cvc5/ethos/blob/main/user_manual.md>`_.
 
-`Logos <https://github.com/ajreynol/logos>`_ is an alternative checker for the
-CPC format, written in Lean, whose soundness is proven in Lean against a
-formalization of the semantics of SMT-LIB.
-It accepts the same proof syntax as Ethos, but does not read Eunoia
-signatures; instead, its proof rules are generated from the definition of CPC.
-The cvc5 repository contains a
-:cvc5repo:`script <contrib/get-logos-checker>` to download and install the
-Logos checker, and create scripts for generating proofs with cvc5 and checking
-them with the Logos proof checker.
-Note that Logos currently covers the fragment of CPC that is used by safe
-builds of cvc5, that is, builds configured with ``./configure.sh safe-mode``.
-
 Note that several proof rules in the Cooperating Proof Calculus are not yet
 supported in Eunoia signatures. 
 Steps that use such rules are printed as `trust` steps in the proof.
