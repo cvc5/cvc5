@@ -1,3 +1,5 @@
+; Logos requires safe mode, which disallows solve-bv-as-int.
+; DISABLE-TESTER: cpc-logos
 ; COMMAND-LINE:  --solve-bv-as-int=bv
 ; COMMAND-LINE:  --cegqi-all --full-saturate-quant --bvand-integer-granularity=1 --solve-bv-as-int=sum 
 ; EXPECT: unsat

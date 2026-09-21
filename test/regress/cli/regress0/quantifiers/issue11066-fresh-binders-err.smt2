@@ -1,3 +1,5 @@
+; Aliased bound variables make the CPC quant-unused-vars step invalid.
+; DISABLE-TESTER: cpc-logos
 ; DISABLE-TESTER: dump
 ; DISABLE-TESTER: alethe
 ; DISABLE-TESTER: cpc

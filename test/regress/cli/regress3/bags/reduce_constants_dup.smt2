@@ -1,3 +1,5 @@
+; Logos requires safe mode, which disallows uf-lazy-ll with fmf-bound.
+; DISABLE-TESTER: cpc-logos
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc

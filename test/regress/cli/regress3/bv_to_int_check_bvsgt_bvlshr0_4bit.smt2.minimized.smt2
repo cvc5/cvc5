@@ -1,3 +1,5 @@
+; Logos requires safe mode, which disallows solve-bv-as-int.
+; DISABLE-TESTER: cpc-logos
 ; COMMAND-LINE:  --solve-bv-as-int=bv
 ; COMMAND-LINE:  --solve-bv-as-int=sum
 ; COMMAND-LINE:  --solve-bv-as-int=sum --bv-to-int-use-pow2

@@ -1,3 +1,5 @@
+; Safe mode required by Logos disallows finite-model-find with uf-ss.
+; DISABLE-TESTER: cpc-logos
 ; COMMAND-LINE: --finite-model-find --uf-ss=no-minimal
 ; EXPECT: unsat
 (set-logic ALL)

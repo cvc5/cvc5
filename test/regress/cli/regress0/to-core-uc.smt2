@@ -1,3 +1,5 @@
+; The cpc-logos tester cannot extract a proof from the unsat-core output.
+; DISABLE-TESTER: cpc-logos
 ; COMMAND-LINE: --produce-proofs --produce-unsat-assumptions --check-proofs
 ; SCRUBBER: grep -E 'unsat'
 ; EXPECT: unsat
