@@ -2362,8 +2362,7 @@ bool AletheProofPostprocessCallback::update(Node res,
     // coefficient 1.
     case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
     {
-      // the conclusion of this rule is always an inequality (the fusion of the
-      // premise relations, which are over-approximated by inequalities)
+      // the conclusion of this rule is always an inequality
       Assert(res.getKind() != Kind::EQUAL);
       std::vector<Node> resArgs;
       std::vector<Node> lits{d_cl};
@@ -2372,12 +2371,9 @@ bool AletheProofPostprocessCallback::update(Node res,
         const Node& child = children[i];
         lits.push_back(child.notNode());
         Rational coeff = args[i].getConst<Rational>();
-        // equality premises are scaled by the negated coefficient, so that
-        // their contribution cancels against the conclusion's, whereas
-        // inequality premises take the absolute value of the coefficient (the
-        // sign of the coefficient in this rule only marks whether the premise
-        // is a lower or an upper bound, which la_generic derives from the
-        // relation itself)
+        // equalities are multiplied by minus its coefficient since LA_GENERIC
+        // does not infer the sign for the scaling for equalities, only for
+        // inequalities (which is why for them the absulote value is taken)
         coeff = child.getKind() == Kind::EQUAL ? -coeff : coeff.abs();
         new_args.push_back(nm->mkConstRealOrInt(args[i].getType(), coeff));
         resArgs.push_back(child);
