@@ -429,17 +429,21 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       // A is the disjoint union of B and C.
       if (!sharesRootLabel(slbl, d_base_label))
       {
-        std::map<Node, std::vector<Node> >::iterator itc =
+        std::map<Node, std::vector<std::vector<Node> > >::iterator itc =
             d_childrenMap.find(slbl);
         if (itc != d_childrenMap.end())
         {
-          std::vector<Node> disjs;
-          for (const Node& c : itc->second)
+          // apply downwards closure for each list of children of slbl
+          for (const std::vector<Node>& cs : itc->second)
           {
-            disjs.push_back(nm->mkNode(Kind::SEP_LABEL, satom, c));
+            std::vector<Node> disjs;
+            for (const Node& c : cs)
+            {
+              disjs.push_back(nm->mkNode(Kind::SEP_LABEL, satom, c));
+            }
+            Node conc2 = nm->mkNode(Kind::OR, disjs);
+            conc = conc.isNull() ? conc2 : nm->mkNode(Kind::AND, conc, conc2);
           }
-          Node conc2 = nm->mkNode(Kind::OR, disjs);
-          conc = conc.isNull() ? conc2 : nm->mkNode(Kind::AND, conc, conc2);
         }
       }
       // note semantics of sep.nil is enforced globally
@@ -1378,8 +1382,11 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   Assert(children.size() >= 2);
   if (!sharesRootLabel(parent, d_base_label))
   {
-    Assert(d_childrenMap.find(parent) == d_childrenMap.end());
-    d_childrenMap[parent] = children;
+    std::vector<std::vector<Node> >& cm = d_childrenMap[parent];
+    if (std::find(cm.begin(), cm.end(), children) == cm.end())
+    {
+      cm.push_back(children);
+    }
   }
   // remember parent relationships
   for (const Node& c : children)
