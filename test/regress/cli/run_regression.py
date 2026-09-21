@@ -448,10 +448,11 @@ class CpcLogosTester(CpcTesterBase):
             print_info("Skipped: requires a safe build")
             return EXIT_SKIP
         with tempfile.NamedTemporaryFile(suffix=".cpc") as tmpf:
-            # Logos does not have the trust rule, hence we require that cvc5
-            # generates a complete proof in the first place. Note that in a
-            # safe build, --check-proofs implies --check-proofs-complete, which
-            # cannot be given here, as it is an expert option.
+            # Logos does not support trust steps. In a safe build,
+            # --check-proofs implies --check-proofs-complete unless the
+            # benchmark explicitly requests a granularity below dsl-rewrite.
+            # Such coarse proofs may still be rejected by Logos. We cannot
+            # pass --check-proofs-complete directly, as it is an expert option.
             cvc5_args = [
                 "--dump-proofs",
                 "--proof-print-conclusion",
@@ -474,7 +475,7 @@ class CpcLogosTester(CpcTesterBase):
             # Logos does not support lambda, which cvc5 prints in the
             # preamble of the proof for benchmarks that use define-fun. Note
             # that plain definitions are printed as define, which is supported.
-            if b"lambda" in proof:
+            if b"(lambda " in proof:
                 print_info("Skipped: proof contains a lambda")
                 return EXIT_SKIP
             tmpf.write(proof)
@@ -495,8 +496,8 @@ class CpcLogosTester(CpcTesterBase):
                     print_outputs(output, error)
                 return exit_code
             # Logos prints its verdict as the only line on standard output.
-            # We do not accept the verdict "incomplete" here, since all proofs
-            # are expected to be complete in a safe build.
+            # We do not accept the verdict "incomplete" here, since Logos
+            # must check a complete proof.
             if output.strip() != "correct":
                 print_error("Invalid proof")
                 print()
@@ -1119,7 +1120,8 @@ def run_regression(
 
     # Run cvc5 on the benchmark with the different testers and check whether
     # the exit status, stdout output, stderr output are as expected.
-    exit_code = EXIT_OK
+    # Report a skip only if every tester skips.
+    exit_code = EXIT_SKIP
     watchdog = start_ctest_timeout_watchdog(timeout, len(tests))
     try:
         for tester, benchmark_info in tests:
@@ -1128,8 +1130,8 @@ def run_regression(
                 exit_code = EXIT_FAILURE
             elif exit_code == EXIT_TIMEOUT or test_exit_code == EXIT_TIMEOUT:
                 exit_code = EXIT_TIMEOUT
-            else:
-                exit_code = test_exit_code
+            elif test_exit_code == EXIT_OK:
+                exit_code = EXIT_OK
     finally:
         if watchdog is not None:
             watchdog.cancel()
