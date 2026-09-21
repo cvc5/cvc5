@@ -1027,6 +1027,7 @@ def run_regression(
                     testers.remove("alethe")
                 if "cpc" in testers:
                     testers.remove("cpc")
+            if disable_tester in ("proof", "cpc"):
                 if "cpc-logos" in testers:
                     testers.remove("cpc-logos")
 

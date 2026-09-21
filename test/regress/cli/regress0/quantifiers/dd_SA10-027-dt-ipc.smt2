@@ -1,5 +1,3 @@
-; Logos rejects dt-inst for the overloaded datatype constructors.
-; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 ; DISABLE-TESTER: cpc
 ; Disabled cpc due to overloaded constructors
