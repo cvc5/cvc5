@@ -4597,6 +4597,22 @@ foreach(tester ${testers})
     DEPENDS build-regress)
 endforeach()
 
+# The cpc-logos tester requires a safe build, since Logos only supports the
+# fragment of CPC that is used in safe mode. The target is added in any case,
+# so that invoking it in a non-safe build reports why it is not available
+# instead of checking nothing.
+if(ENABLE_SAFE_MODE)
+  add_custom_target(regress-cpc-logos
+    COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester cpc-logos'
+      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    DEPENDS build-regress)
+else()
+  add_custom_target(regress-cpc-logos
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "Error: target regress-cpc-logos requires a safe build of cvc5, configure with ./configure.sh safe-mode"
+    COMMAND ${CMAKE_COMMAND} -E false)
+endif()
+
 # We must ensure that the cvc5 binary is built before running any tests.
 # In principle, this would just be a matter of adding a dependency on the
 # 'test' target (defined by CTest). However, that built-in targets are not
@@ -4632,6 +4648,7 @@ macro(cvc5_add_regression_test level file)
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
     --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
+    --logos-binary ${PROJECT_SOURCE_DIR}/deps/bin/logos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
