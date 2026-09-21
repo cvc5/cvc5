@@ -1,7 +1,8 @@
 (include "../theories/BitVectors.eo")
 (include "../theories/Ints.eo")
 
-(declare-parameterized-const int_to_bv ((w Int :opaque)) (-> Int (BitVec w)))
+(declare-parameterized-const int_to_bv ((w Int :opaque))
+  (-> Int (eo::requires ($is_numeral w) true (BitVec w))))
 
 (declare-parameterized-const ubv_to_int ((m Int :implicit)) (-> (BitVec m) Int))
 
@@ -16,3 +17,8 @@
 ;   This function is not a function in SMT-LIB. It is a (deprecated) synonym of
 ;   the SMT-LIB standard operator ubv_to_int.
 (define bv2nat () ubv_to_int)
+
+; Symbolic BV constant.
+; note: We use this as an alias for int_to_bv, as the two have the same semantics.
+; note: The order of arguments swaps.
+(define @bv ((value Int) (w Int)) (int_to_bv w value))

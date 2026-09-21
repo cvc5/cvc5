@@ -40,7 +40,8 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
       d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
       d_termReg(env),
       d_solver(env, d_state, d_im),
-      d_cpacb(*this)
+      d_cpacb(*this),
+      d_strat(this, &d_solver, &d_state, &d_im)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -233,119 +234,9 @@ void TheoryBags::collectBagsAndCountTerms()
 
 void TheoryBags::postCheck(Effort effort)
 {
-  d_im.doPendingFacts();
-  Assert(d_strat.isStrategyInit());
-  if (!d_state.isInConflict() && !d_valuation.needCheck()
-      && d_strat.hasStrategyEffort(effort))
-  {
-    Trace("bags::TheoryBags::postCheck") << "effort: " << effort << std::endl;
-
-    // TODO issue #78: add ++(d_statistics.d_checkRuns);
-    bool sentLemma = false;
-    bool hadPending = false;
-    Trace("bags-check") << "Full effort check..." << std::endl;
-    do
-    {
-      d_im.reset();
-      // TODO issue #78: add ++(d_statistics.d_strategyRuns);
-      Trace("bags-check") << "  * Run strategy..." << std::endl;
-      initialize();
-      runStrategy(effort);
-
-      // remember if we had pending facts or lemmas
-      hadPending = d_im.hasPending();
-      // Send the facts *and* the lemmas. We send lemmas regardless of whether
-      // we send facts since some lemmas cannot be dropped. Other lemmas are
-      // otherwise avoided by aborting the strategy when a fact is ready.
-      d_im.doPending();
-      // Did we successfully send a lemma? Notice that if hasPending = true
-      // and sentLemma = false, then the above call may have:
-      // (1) had no pending lemmas, but successfully processed pending facts,
-      // (2) unsuccessfully processed pending lemmas.
-      // In either case, we repeat the strategy if we are not in conflict.
-      sentLemma = d_im.hasSentLemma();
-      if (TraceIsOn("bags-check"))
-      {
-        Trace("bags-check") << "  ...finish run strategy: ";
-        Trace("bags-check") << (hadPending ? "hadPending " : "");
-        Trace("bags-check") << (sentLemma ? "sentLemma " : "");
-        Trace("bags-check") << (d_state.isInConflict() ? "conflict " : "");
-        if (!hadPending && !sentLemma && !d_state.isInConflict())
-        {
-          Trace("bags-check") << "(none)";
-        }
-        Trace("bags-check") << std::endl;
-      }
-      // repeat if we did not add a lemma or conflict, and we had pending
-      // facts or lemmas.
-    } while (!d_state.isInConflict() && !sentLemma && hadPending);
-  }
-  Trace("bags-check") << "Theory of bags, done check : " << effort << std::endl;
-  Assert(!d_im.hasPendingFact());
-  Assert(!d_im.hasPendingLemma());
-}
-
-void TheoryBags::runStrategy(Theory::Effort e)
-{
-  std::vector<std::pair<InferStep, size_t>>::iterator it = d_strat.stepBegin(e);
-  std::vector<std::pair<InferStep, size_t>>::iterator stepEnd =
-      d_strat.stepEnd(e);
-
-  Trace("bags-process") << "----check, next round---" << std::endl;
-  while (it != stepEnd)
-  {
-    InferStep curr = it->first;
-    if (curr == BREAK)
-    {
-      if (d_state.isInConflict() || d_im.hasPending())
-      {
-        break;
-      }
-    }
-    else
-    {
-      if (runInferStep(curr, it->second) || d_state.isInConflict())
-      {
-        break;
-      }
-    }
-    ++it;
-  }
-  Trace("bags-process") << "----finished round---" << std::endl;
-}
-
-/** run the given inference step */
-bool TheoryBags::runInferStep(InferStep s, int effort)
-{
-  Trace("bags-process") << "Run " << s;
-  if (effort > 0)
-  {
-    Trace("bags-process") << ", effort = " << effort;
-  }
-  Trace("bags-process") << "..." << std::endl;
-  switch (s)
-  {
-    case CHECK_INIT: break;
-    case CHECK_BAG_MAKE:
-    {
-      if (d_solver.checkBagMake())
-      {
-        return true;
-      }
-      break;
-    }
-    case CHECK_BASIC_OPERATIONS: d_solver.checkBasicOperations(); break;
-    case CHECK_QUANTIFIED_OPERATIONS:
-      d_solver.checkQuantifiedOperations();
-      break;
-    default: Unreachable(); break;
-  }
-  Trace("bags-process") << "Done " << s
-                        << ", addedFact = " << d_im.hasPendingFact()
-                        << ", addedLemma = " << d_im.hasPendingLemma()
-                        << ", conflict = " << d_state.isInConflict()
-                        << std::endl;
-  return false;
+  // run the standard strategy check loop, which repeatedly runs the bags
+  // strategy and sends the resulting facts and lemmas
+  d_strat.postCheck(effort);
 }
 
 void TheoryBags::notifyFact(CVC5_UNUSED TNode atom,

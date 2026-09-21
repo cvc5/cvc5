@@ -111,7 +111,7 @@ TEST_F(TestPropWhiteCadicalPropagator, learned_clause_uses_max_intro_level)
   // the current level's (5), so it survives popping level 2.
   d_prop->in_search(true);
   SatClause clause{SatLiteral(4)};  // variable 4 was introduced at level 1
-  d_prop->add_clause(clause);
+  d_prop->add_clause(clause, false);
   EXPECT_EQ(nextClause(),
             (std::vector<int>{toCadicalLit(SatLiteral(3)),
                               toCadicalLit(SatLiteral(4))}));
@@ -122,7 +122,7 @@ TEST_F(TestPropWhiteCadicalPropagator, learned_clause_takes_max_over_literals)
   // max over several literals: {1 (level 0), 4 (level 1)} -> level 1 -> 3.
   d_prop->in_search(true);
   SatClause clause{SatLiteral(1), SatLiteral(4)};
-  d_prop->add_clause(clause);
+  d_prop->add_clause(clause, false);
   EXPECT_EQ(nextClause(),
             (std::vector<int>{toCadicalLit(SatLiteral(3)),
                               toCadicalLit(SatLiteral(1)),
@@ -135,7 +135,7 @@ TEST_F(TestPropWhiteCadicalPropagator, learned_clause_over_base_level)
   // must not get any activation literal, even at user level 2.
   d_prop->in_search(true);
   SatClause clause{SatLiteral(1), SatLiteral(2)};
-  d_prop->add_clause(clause);
+  d_prop->add_clause(clause, false);
   EXPECT_EQ(nextClause(),
             (std::vector<int>{toCadicalLit(SatLiteral(1)),
                               toCadicalLit(SatLiteral(2))}));

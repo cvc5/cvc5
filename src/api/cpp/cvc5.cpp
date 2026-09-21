@@ -6821,8 +6821,16 @@ Solver::Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original)
     : d_tm(tm)
 {
   d_originalOptions = std::move(original);
+  resetInternal();
+}
+
+void Solver::resetInternal()
+{
+  // Release the previous engine, if any, before constructing the new one so
+  // that two engines are never alive at the same time.
+  d_slv.reset();
   d_slv.reset(
-      new internal::SolverEngine(tm.d_nm.get(), d_originalOptions.get()));
+      new internal::SolverEngine(d_tm.d_nm.get(), d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
 }

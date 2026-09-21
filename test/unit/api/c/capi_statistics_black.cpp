@@ -19,6 +19,7 @@ extern "C" {
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -34,6 +35,7 @@ class TestCApiBlackStatistics : public ::testing::Test
   void TearDown() override
   {
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
   Cvc5TermManager* d_tm;
@@ -42,7 +44,7 @@ class TestCApiBlackStatistics : public ::testing::Test
 
 TEST_F(TestCApiBlackStatistics, stat_is_internal)
 {
-  ASSERT_DEATH(cvc5_stat_is_internal(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_is_internal(nullptr), "invalid statistic");
   Cvc5Stat stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                                  "theory::strings::checkRuns");
   ASSERT_TRUE(cvc5_stat_is_int(stat));
@@ -51,7 +53,7 @@ TEST_F(TestCApiBlackStatistics, stat_is_internal)
 
 TEST_F(TestCApiBlackStatistics, stat_is_default)
 {
-  ASSERT_DEATH(cvc5_stat_is_default(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_is_default(nullptr), "invalid statistic");
   Cvc5Stat stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                                  "theory::strings::checkRuns");
   ASSERT_TRUE(cvc5_stat_is_int(stat));
@@ -60,7 +62,7 @@ TEST_F(TestCApiBlackStatistics, stat_is_default)
 
 TEST_F(TestCApiBlackStatistics, stat_is_int)
 {
-  ASSERT_DEATH(cvc5_stat_is_int(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_is_int(nullptr), "invalid statistic");
   Cvc5Stat stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                                  "theory::strings::checkRuns");
   ASSERT_TRUE(cvc5_stat_is_int(stat));
@@ -68,19 +70,19 @@ TEST_F(TestCApiBlackStatistics, stat_is_int)
 
 TEST_F(TestCApiBlackStatistics, stat_get_int)
 {
-  ASSERT_DEATH(cvc5_stat_get_int(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_int(nullptr), "invalid statistic");
   Cvc5Stat stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                                  "theory::strings::checkRuns");
   ASSERT_TRUE(cvc5_stat_is_int(stat));
   (void)cvc5_stat_get_int(stat);
   stat = cvc5_stats_get(cvc5_get_statistics(d_solver), "global::totalTime");
   ASSERT_TRUE(cvc5_stat_is_string(stat));
-  ASSERT_DEATH(cvc5_stat_get_int(stat), "expected Stat of type int64_t");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_int(stat), "expected Stat of type int64_t");
 }
 
 TEST_F(TestCApiBlackStatistics, stat_is_double)
 {
-  ASSERT_DEATH(cvc5_stat_is_double(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_is_double(nullptr), "invalid statistic");
   Cvc5Stat stat =
       cvc5_stats_get(cvc5_get_statistics(d_solver), "global::totalTime");
   ASSERT_FALSE(cvc5_stat_is_double(stat));
@@ -88,16 +90,16 @@ TEST_F(TestCApiBlackStatistics, stat_is_double)
 
 TEST_F(TestCApiBlackStatistics, stat_get_double)
 {
-  ASSERT_DEATH(cvc5_stat_get_double(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_double(nullptr), "invalid statistic");
   Cvc5Stat stat =
       cvc5_stats_get(cvc5_get_statistics(d_solver), "global::totalTime");
   ASSERT_FALSE(cvc5_stat_is_double(stat));
-  ASSERT_DEATH(cvc5_stat_get_double(stat), "expected Stat of type double");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_double(stat), "expected Stat of type double");
 }
 
 TEST_F(TestCApiBlackStatistics, stat_is_string)
 {
-  ASSERT_DEATH(cvc5_stat_is_string(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_is_string(nullptr), "invalid statistic");
   Cvc5Stat stat =
       cvc5_stats_get(cvc5_get_statistics(d_solver), "global::totalTime");
   ASSERT_TRUE(cvc5_stat_is_string(stat));
@@ -105,7 +107,7 @@ TEST_F(TestCApiBlackStatistics, stat_is_string)
 
 TEST_F(TestCApiBlackStatistics, stat_get_string)
 {
-  ASSERT_DEATH(cvc5_stat_get_string(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_string(nullptr), "invalid statistic");
   Cvc5Stat stat =
       cvc5_stats_get(cvc5_get_statistics(d_solver), "global::totalTime");
   ASSERT_TRUE(cvc5_stat_is_string(stat));
@@ -113,12 +115,13 @@ TEST_F(TestCApiBlackStatistics, stat_get_string)
   stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                         "theory::strings::checkRuns");
   ASSERT_FALSE(cvc5_stat_is_string(stat));
-  ASSERT_DEATH(cvc5_stat_get_string(stat), "expected Stat of type std::string");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_string(stat),
+                    "expected Stat of type std::string");
 }
 
 TEST_F(TestCApiBlackStatistics, stat_is_histogram)
 {
-  ASSERT_DEATH(cvc5_stat_is_histogram(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_is_histogram(nullptr), "invalid statistic");
   Cvc5Stat stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                                  "theory::strings::reductions");
   ASSERT_TRUE(cvc5_stat_is_histogram(stat));
@@ -133,24 +136,24 @@ TEST_F(TestCApiBlackStatistics, stat_get_histogram)
                                  "theory::strings::reductions");
   ASSERT_TRUE(cvc5_stat_is_histogram(stat));
   cvc5_stat_get_histogram(stat, &keys, &values, &size);
-  ASSERT_DEATH(cvc5_stat_get_histogram(nullptr, &keys, &values, &size),
-               "invalid statistic");
-  ASSERT_DEATH(cvc5_stat_get_histogram(stat, nullptr, &values, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_stat_get_histogram(stat, &keys, nullptr, &size),
-               "unexpected NULL argument");
-  ASSERT_DEATH(cvc5_stat_get_histogram(stat, &keys, &values, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_histogram(nullptr, &keys, &values, &size),
+                    "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_histogram(stat, nullptr, &values, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_histogram(stat, &keys, nullptr, &size),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_histogram(stat, &keys, &values, nullptr),
+                    "unexpected NULL argument");
   stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                         "theory::strings::checkRuns");
   ASSERT_FALSE(cvc5_stat_is_histogram(stat));
-  ASSERT_DEATH(cvc5_stat_get_histogram(stat, &keys, &values, &size),
-               "expected Stat of typ");
+  ASSERT_CVC5_ERROR(cvc5_stat_get_histogram(stat, &keys, &values, &size),
+                    "expected Stat of typ");
 }
 
 TEST_F(TestCApiBlackStatistics, stat_to_string)
 {
-  ASSERT_DEATH(cvc5_stat_to_string(nullptr), "invalid statistic");
+  ASSERT_CVC5_ERROR(cvc5_stat_to_string(nullptr), "invalid statistic");
   Cvc5Stat stat = cvc5_stats_get(cvc5_get_statistics(d_solver),
                                  "theory::strings::reductions");
   (void)cvc5_stat_to_string(stat);
@@ -158,24 +161,26 @@ TEST_F(TestCApiBlackStatistics, stat_to_string)
 
 TEST_F(TestCApiBlackStatistics, stats_iter_init)
 {
-  ASSERT_DEATH(cvc5_stats_iter_init(nullptr, false, false),
-               "invalid statistics");
+  ASSERT_CVC5_ERROR(cvc5_stats_iter_init(nullptr, false, false),
+                    "invalid statistics");
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
   cvc5_stats_iter_init(stats, true, true);
 }
 
 TEST_F(TestCApiBlackStatistics, stats_iter_has_next)
 {
-  ASSERT_DEATH(cvc5_stats_iter_has_next(nullptr), "invalid statistics");
+  ASSERT_CVC5_ERROR(cvc5_stats_iter_has_next(nullptr), "invalid statistics");
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
-  ASSERT_DEATH(cvc5_stats_iter_has_next(stats), "iterator not initialized");
+  ASSERT_CVC5_ERROR(cvc5_stats_iter_has_next(stats),
+                    "iterator not initialized");
   cvc5_stats_iter_init(stats, true, true);
   ASSERT_TRUE(cvc5_stats_iter_has_next(stats));
 }
 
 TEST_F(TestCApiBlackStatistics, stats_iter_next)
 {
-  ASSERT_DEATH(cvc5_stats_iter_next(nullptr, nullptr), "invalid statistics");
+  ASSERT_CVC5_ERROR(cvc5_stats_iter_next(nullptr, nullptr),
+                    "invalid statistics");
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
   cvc5_stats_iter_init(stats, true, true);
   ASSERT_TRUE(cvc5_stats_iter_has_next(stats));
@@ -185,17 +190,39 @@ TEST_F(TestCApiBlackStatistics, stats_iter_next)
 TEST_F(TestCApiBlackStatistics, stats_get)
 {
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
-  ASSERT_DEATH(cvc5_stats_get(nullptr, "global::totalTime"),
-               "invalid statistics");
-  ASSERT_DEATH(cvc5_stats_get(stats, nullptr), "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_stats_get(nullptr, "global::totalTime"),
+                    "invalid statistics");
+  ASSERT_CVC5_ERROR(cvc5_stats_get(stats, nullptr), "unexpected NULL argument");
   (void)cvc5_stats_get(stats, "global::totalTime");
 }
 
 TEST_F(TestCApiBlackStatistics, stats_to_string)
 {
-  ASSERT_DEATH(cvc5_stats_to_string(nullptr), "invalid statistics");
+  ASSERT_CVC5_ERROR(cvc5_stats_to_string(nullptr), "invalid statistics");
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
   (void)cvc5_stats_to_string(stats);
+}
+
+TEST_F(TestCApiBlackStatistics, stat_handles_remain_valid)
+{
+  // Handles to statistic objects must remain valid while further statistic
+  // objects are created.
+  Cvc5Statistics stats = cvc5_get_statistics(d_solver);
+  std::vector<Cvc5Stat> handles;
+  std::vector<std::string> strs;
+  cvc5_stats_iter_init(stats, true, true);
+  while (cvc5_stats_iter_has_next(stats))
+  {
+    Cvc5Stat stat = cvc5_stats_iter_next(stats, nullptr);
+    handles.push_back(stat);
+    strs.push_back(cvc5_stat_to_string(stat));
+  }
+  ASSERT_GT(handles.size(), 1);
+  for (size_t i = 0; i < handles.size(); ++i)
+  {
+    ASSERT_EQ(cvc5_stat_to_string(handles[i]), strs[i]);
+  }
+  ASSERT_FALSE(cvc5_has_error());
 }
 
 }  // namespace cvc5::internal::test

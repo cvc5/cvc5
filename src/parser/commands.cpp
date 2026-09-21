@@ -165,17 +165,10 @@ void Cmd::printResult(cvc5::Solver* solver, std::ostream& out) const
 
 void Cmd::resetSolver(cvc5::Solver* solver)
 {
-  std::unique_ptr<internal::Options> opts =
-      std::make_unique<internal::Options>();
-  opts->copyValues(*solver->d_originalOptions);
-  // This reconstructs a new solver object at the same memory location as the
-  // current one. Note that this command does not own the solver object!
-  // It may be safer to instead make the ResetCommand a special case in the
-  // CommandExecutor such that this reconstruction can be done within the
-  // CommandExecutor, who actually owns the solver.
-  TermManager& tm = solver->getTermManager();
-  solver->~Solver();
-  new (solver) cvc5::Solver(tm, std::move(opts));
+  // Note that this command does not own the solver object, and other objects
+  // (e.g. the InputParser) hold a pointer to it, so the solver has to be reset
+  // in place rather than replaced.
+  solver->resetInternal();
 }
 
 internal::Node Cmd::termToNode(const cvc5::Term& term)

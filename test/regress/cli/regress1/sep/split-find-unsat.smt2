@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE:
 ; EXPECT: unsat
 (set-logic QF_ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --term-sort-overload --sygus-out=status
 (set-logic ALL)
