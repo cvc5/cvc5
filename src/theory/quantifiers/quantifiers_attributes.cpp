@@ -59,7 +59,10 @@ bool QAttributes::isStandard() const
          && !d_isQuantBounded && !d_hasPool;
 }
 
-QuantAttributes::QuantAttributes() {}
+QuantAttributes::QuantAttributes(context::Context* userContext)
+    : d_fun_defs(userContext)
+{
+}
 
 void QuantAttributes::setUserAttribute(const std::string& attr,
                                        TNode n,
@@ -216,12 +219,12 @@ void QuantAttributes::computeAttributes(Node q)
   if (qa.isFunDef())
   {
     Node f = qa.d_fundef_f;
-    if (d_fun_defs.find(f) != d_fun_defs.end())
+    if (d_fun_defs.contains(f))
     {
       AlwaysAssert(false) << "Cannot define function " << f
                           << " more than once." << std::endl;
     }
-    d_fun_defs[f] = true;
+    d_fun_defs.insert(f);
   }
 }
 

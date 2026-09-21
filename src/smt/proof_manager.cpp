@@ -138,7 +138,11 @@ PfManager::PfManager(Env& env)
     {
       d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
-    d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
+    // The Alethe translation handles this macro directly via la_generic
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    {
+      d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
+    }
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
@@ -341,7 +345,8 @@ void PfManager::printProof(std::ostream& out,
     options::ProofCheckMode oldMode = options().proof.proofCheck;
     d_pnm->getChecker()->setProofCheckMode(options::ProofCheckMode::NONE);
     proof::AletheNodeConverter anc(nodeManager(),
-                                   options().proof.proofAletheDefineSkolems);
+                                   options().proof.proofAletheDefineSkolems,
+                                   options().proof.proofAletheTesting);
     proof::AletheProofPostprocess vpfpp(d_env, anc);
     if (vpfpp.process(fp))
     {

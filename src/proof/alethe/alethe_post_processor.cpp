@@ -1013,8 +1013,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                            {},
                            *cdp);
     }
-    // If the trusted rule is a theory lemma from arithmetic, we try to phrase
-    // it with "lia_generic".
     case ProofRule::TRUST:
     {
       // check for case where the trust step is introducing an equality between
@@ -1034,36 +1032,6 @@ bool AletheProofPostprocessCallback::update(Node res,
       }
       TrustId tid;
       bool hasTrustId = getTrustId(args[0], tid);
-      if (hasTrustId && tid == TrustId::THEORY_LEMMA)
-      {
-        // if we are in the arithmetic case, we rather add a LIA_GENERIC step
-        if (res.getKind() == Kind::NOT && res[0].getKind() == Kind::AND)
-        {
-          Trace("alethe-proof") << "... test each arg if ineq\n";
-          bool allIneqs = true;
-          for (const Node& arg : res[0])
-          {
-            Node toTest = arg.getKind() == Kind::NOT ? arg[0] : arg;
-            Kind k = toTest.getKind();
-            if (k != Kind::LT && k != Kind::LEQ && k != Kind::GT
-                && k != Kind::GEQ && k != Kind::EQUAL)
-            {
-              Trace("alethe-proof") << "... arg " << arg << " not ineq\n";
-              allIneqs = false;
-              break;
-            }
-          }
-          if (allIneqs)
-          {
-            return addAletheStep(AletheRule::LIA_GENERIC,
-                                 res,
-                                 nm->mkNode(Kind::SEXPR, d_cl, res),
-                                 children,
-                                 {},
-                                 *cdp);
-          }
-        }
-      }
       std::stringstream ss;
       if (hasTrustId)
       {
@@ -1082,12 +1050,27 @@ bool AletheProofPostprocessCallback::update(Node res,
       std::vector<Node> newArgs{
           NodeManager::mkRawSymbol(ss.str(), nm->sExprType())};
       newArgs.insert(newArgs.end(), args.begin() + 1, args.end());
-      return addAletheStep(AletheRule::HOLE,
+      return addAletheStep(options().proof.proofAletheTesting
+                               ? AletheRule::UNDEFINED
+                               : AletheRule::HOLE,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl, res),
                            children,
                            newArgs,
                            *cdp);
+    }
+    case ProofRule::TRUST_THEORY_REWRITE:
+    {
+      // Use sexp to ensure deterministic node ID assignments
+      Node sexp = nm->mkNode(Kind::SEXPR, d_cl, res);
+      return addAletheStep(
+          options().proof.proofAletheTesting ? AletheRule::UNDEFINED
+                                             : AletheRule::HOLE,
+          res,
+          sexp,
+          children,
+          {nm->mkRawSymbol("\"untranslated rewrite\"", nm->sExprType())},
+          *cdp);
     }
     // ======== Resolution and N-ary Resolution
     // Because the RESOLUTION rule is merely a special case of CHAIN_RESOLUTION,
@@ -2365,6 +2348,50 @@ bool AletheProofPostprocessCallback::update(Node res,
                            d_resPivots ? resArgs : std::vector<Node>(),
                            *cdp);
     }
+    // ======== Adding Scaled Inequalities
+    //
+    // -------------------------------------- LA_GENERIC
+    // (cl (not P1) ... (not Pn) (>< t1 t2))              P1 ... Pn
+    // ------------------------------------------------------------- RESOLUTION
+    //  (cl (>< t1 t2))
+    //
+    // The coefficients given to LA_GENERIC are derived from the scaling
+    // factors k1 ... kn of this rule: inequality premises are given |ki|,
+    // since LA_GENERIC accounts for the direction of the inequality itself,
+    // while equality premises are given (- ki). The conclusion is given
+    // coefficient 1.
+    case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
+    {
+      // the conclusion of this rule is always an inequality
+      Assert(res.getKind() != Kind::EQUAL);
+      std::vector<Node> resArgs;
+      std::vector<Node> lits{d_cl};
+      for (size_t i = 0, size = children.size(); i < size; i++)
+      {
+        const Node& child = children[i];
+        lits.push_back(child.notNode());
+        Rational coeff = args[i].getConst<Rational>();
+        // equalities are multiplied by minus its coefficient since LA_GENERIC
+        // does not infer the sign for the scaling for equalities, only for
+        // inequalities (which is why for them the absulote value is taken)
+        coeff = child.getKind() == Kind::EQUAL ? -coeff : coeff.abs();
+        new_args.push_back(nm->mkConstRealOrInt(args[i].getType(), coeff));
+        resArgs.push_back(child);
+        resArgs.push_back(d_false);
+      }
+      lits.push_back(res);
+      new_args.push_back(nm->mkConstReal(Rational(1)));
+      Node laGen = nm->mkNode(Kind::SEXPR, lits);
+      addAletheStep(AletheRule::LA_GENERIC, laGen, laGen, {}, new_args, *cdp);
+      std::vector<Node> resChildren{laGen};
+      resChildren.insert(resChildren.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           resChildren,
+                           d_resPivots ? resArgs : std::vector<Node>(),
+                           *cdp);
+    }
     // Direct translation
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
@@ -2871,6 +2898,41 @@ bool AletheProofPostprocessCallback::update(Node res,
         }
       }
       return success;
+    }
+    // incremental linearization rules for multiplication
+    case ProofRule::ARITH_MULT_SIGN:
+    {
+      return addAletheStep(AletheRule::LA_MULT_SIGN,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_MULT_ABS_COMPARISON:
+    {
+      return addAletheStep(AletheRule::LA_MULT_ABS_COMPARISON,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           {},
+                           *cdp);
+    }
+    case ProofRule::ARITH_MULT_TANGENT:
+    {
+      // upper
+      Node ruleStr = nm->mkRawSymbol(args.back().getConst<bool>()
+                                         ? "\"mult-tangent-upper\""
+                                         : "\"mult-tangent-lower\"",
+                                     nm->sExprType());
+      std::vector<Node> ruleArgs{ruleStr};
+      ruleArgs.insert(ruleArgs.end(), args.begin(), args.end() - 1);
+      return addAletheStep(AletheRule::RARE_REWRITE,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           {},
+                           ruleArgs,
+                           *cdp);
     }
     // arrays_idx
     case ProofRule::ARRAYS_READ_OVER_WRITE_1:

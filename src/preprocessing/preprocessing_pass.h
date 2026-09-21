@@ -35,6 +35,11 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
+
+namespace theory {
+class TrustSubstitutionMap;
+}
+
 namespace preprocessing {
 
 class AssertionPipeline;
@@ -66,6 +71,10 @@ class PreprocessingPass : protected EnvObj
    */
   virtual PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) = 0;
+
+  /** Add top level substitutions and update skolem metadata in assertions. */
+  void addSubstitutions(AssertionPipeline* assertionsToPreprocess,
+                        theory::TrustSubstitutionMap& tm);
 
   /* Context for Preprocessing Passes that initializes necessary variables */
   PreprocessingPassContext* d_preprocContext;

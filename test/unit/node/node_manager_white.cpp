@@ -75,6 +75,17 @@ TEST_F(TestNodeWhiteNodeManager, topological_sort)
     std::vector<NodeValue*> result = {n1.d_nv, n2.d_nv};
     ASSERT_EQ(NodeManager::TopologicalSort(roots), result);
   }
+
+  {
+    TypeNode intType = d_nodeManager->integerType();
+    TypeNode fnType = d_nodeManager->mkFunctionType(intType, intType);
+    Node f = d_skolemManager->mkDummySkolem("f", fnType);
+    Node x = d_skolemManager->mkDummySkolem("x", intType);
+    Node fx = d_nodeManager->mkNode(Kind::APPLY_UF, f, x);
+    std::vector<NodeValue*> roots = {fx.d_nv, f.d_nv};
+    std::vector<NodeValue*> result = {f.d_nv, fx.d_nv};
+    ASSERT_EQ(NodeManager::TopologicalSort(roots), result);
+  }
 }
 }  // namespace test
 }  // namespace cvc5::internal

@@ -37,6 +37,12 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
+SortInference::SortInference(Env& env) : EnvObj(env), d_sortCount(1)
+{
+  d_sortInferSubsortSc =
+      nodeManager()->mkSortConstructor("@sort-infer-subsort", 1);
+}
+
 void SortInference::UnionFind::print(CVC5_UNUSED const char* c)
 {
   for (std::map<int, int>::iterator it = d_eqc.begin(); it != d_eqc.end(); ++it)
@@ -145,6 +151,7 @@ void SortInference::reset()
 void SortInference::initialize(const std::vector<Node>& assertions)
 {
   Trace("sort-inference-proc") << "Calculating sort inference..." << std::endl;
+  d_non_monotonic_sorts_orig.clear();
   // process all assertions
   std::map<Node, int> visited;
   NodeManager* nm = nodeManager();
@@ -191,18 +198,32 @@ void SortInference::initialize(const std::vector<Node>& assertions)
     Trace("sort-inference") << std::endl;
   }
 
-  // determine monotonicity of sorts
   Trace("sort-inference-proc")
-      << "Calculating monotonicty for subsorts..." << std::endl;
-  std::map<Node, std::map<int, bool> > visitedm;
+      << "Calculating monotonicty for original sorts..." << std::endl;
+  std::map<Node, std::map<int, bool> > visitedmt;
   for (const Node& a : assertions)
   {
     Trace("sort-inference-debug")
-        << "Process monotonicity for " << a << std::endl;
+        << "Process type monotonicity for " << a << std::endl;
     std::map<Node, Node> var_bound;
-    processMonotonic(a, true, true, var_bound, visitedm);
+    processMonotonic(a, true, true, var_bound, visitedmt, true);
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
+
+  // Classify inferred subsorts based on monotonicity of their original sorts.
+  for (const std::pair<const TypeNode, std::vector<int> >& tss :
+       d_type_sub_sorts)
+  {
+    if (d_non_monotonic_sorts_orig.find(tss.first)
+        == d_non_monotonic_sorts_orig.end())
+    {
+      continue;
+    }
+    for (int ss : tss.second)
+    {
+      d_non_monotonic_sorts[ss] = true;
+    }
+  }
 
   Trace("sort-inference") << "We have " << d_sub_sorts.size()
                           << " sub-sorts : " << std::endl;
@@ -316,21 +337,6 @@ void SortInference::getNewAssertions(std::vector<Node>& new_asserts)
   // no sub-sort information is stored
   reset();
   Trace("sort-inference-debug") << "Finished sort inference" << std::endl;
-}
-
-void SortInference::computeMonotonicity(const std::vector<Node>& assertions)
-{
-  std::map<Node, std::map<int, bool> > visitedmt;
-  Trace("sort-inference-proc")
-      << "Calculating monotonicty for types..." << std::endl;
-  for (const Node& a : assertions)
-  {
-    Trace("sort-inference-debug")
-        << "Process type monotonicity for " << a << std::endl;
-    std::map<Node, Node> var_bound;
-    processMonotonic(a, true, true, var_bound, visitedmt, true);
-  }
-  Trace("sort-inference-proc") << "...done" << std::endl;
 }
 
 void SortInference::setEqual(int t1, int t2)
@@ -689,8 +695,9 @@ TypeNode SortInference::getOrCreateTypeForId(int t, TypeNode pref)
     {
       // must create new type
       std::stringstream ss;
-      ss << "it_" << t << "_" << pref;
-      retType = nodeManager()->mkSort(ss.str());
+      ss << rt;
+      TypeNode indexType = nodeManager()->mkRawSymbolType(ss.str());
+      retType = nodeManager()->mkSort(d_sortInferSubsortSc, {indexType});
     }
     Trace("sort-inference")
         << "-> Make type " << retType << " to correspond to ";
@@ -1062,13 +1069,6 @@ bool SortInference::isWellSorted(Node n)
     }
     return true;
   }
-}
-
-bool SortInference::isMonotonic(TypeNode tn) const
-{
-  Assert(tn.isUninterpretedSort());
-  return d_non_monotonic_sorts_orig.find(tn)
-         == d_non_monotonic_sorts_orig.end();
 }
 
 bool SortInference::isHandledApplyUf(Kind k) const

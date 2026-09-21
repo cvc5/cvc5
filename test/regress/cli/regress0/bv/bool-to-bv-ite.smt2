@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bool-to-bv=ite
 ; COMMAND-LINE: --bool-to-bv=ite --bv-solver=bitblast-internal
 ; EXPECT: sat

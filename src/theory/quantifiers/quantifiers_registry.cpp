@@ -22,7 +22,7 @@ namespace quantifiers {
 
 QuantifiersRegistry::QuantifiersRegistry(Env& env)
     : QuantifiersUtil(env),
-      d_quantAttr(),
+      d_quantAttr(userContext()),
       d_quantBoundInf(options().quantifiers.fmfTypeCompletionThresh,
                       options().quantifiers.finiteModelFind),
       d_quantPreproc(env)

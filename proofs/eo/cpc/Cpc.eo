@@ -4,6 +4,21 @@
 ; Cooperating Proof Calculus. It is a faithful formalization of cvc5's theory
 ; signatures and proof rules.
 ;
+; The Ethos checker (https://github.com/cvc5/ethos) checks CPC proofs against
+; this signature. For details see ./contrib/get-ethos-checker.
+;
+; Additionally, the proof rules in this signature are formally verified in Lean
+; against a deep embedding of the semantics of the operators it defines. That
+; verification is maintained as part of the Logos proof checker
+; (https://github.com/cvc5/logos): its proof rules are generated from this
+; signature. Thus, any update to this signature must be verified in Logos as
+; well. This correspondence is enforced by the CI of cvc5, see
+; ./contrib/check-logos-compilation. What that requires of a change to this
+; signature, including what to do when a rule cannot readily be proven in Logos,
+; is documented in ./docs/proofs/output_cpc.rst. Note that Logos is also an
+; executable proof checker, whose soundness follows from that verification. For
+; details see ./contrib/get-logos-checker.
+;
 ; NOTE: cvc5 does not strictly follow the SMT-LIB version 2.6 standard. In
 ; particular, it contains many extensions, including non-standard theories as
 ; well as non-standard extensions of existing theories. Moreover, some standard
@@ -55,11 +70,16 @@
 ; Discrepancies between cvc5's Proof API and the formal Eunoia definition are
 ; also noted when applicable by disclaimer:.
 ;
+; In program documentation, args lists the call arguments in :signature order,
+; not the variables used to match and destructure those arguments in cases.
+; In rule documentation, args and premises describe :args and :premises
+; (or :premise-list), respectively.
+;
 ; This signature does *not* contain definitions for expert theories and rules.
 ; An additional set of theory definitions and rules can be found at
 ; ./expert/CpcExpert.eo. This contains all definitions of theories and rules
 ; that are not supported by cvc5 when safe mode is enabled.
-; 
+;
 ; Typically, we use $ as the prefix of symbols introduced by define and
 ; program.  For clarity, we sometimes use @ as the prefix of symbols introduced
 ; by simple define commands.
@@ -216,7 +236,9 @@
                                               (eo::ite (eo::is_z len) -1
                                                 (str.to_code ex))))))
       (($run_evaluate (str.from_code n))    (eo::define ((ex ($run_evaluate n)))
-                                              (eo::ite ($str_is_code_point ex) (eo::to_str n) "")))
+                                              (eo::ite (eo::is_z ex) 
+                                                (eo::ite ($str_is_code_point ex) (eo::to_str n) "")
+                                                (str.from_code n))))
       (($run_evaluate (str.to_int ssx))     (eo::define ((ex ($run_evaluate ssx)))
                                               ($str_to_int_eval ex)))
       (($run_evaluate (str.from_int n))     (eo::define ((en ($run_evaluate n)))
@@ -312,7 +334,7 @@
       (($run_evaluate (repeat n xb))       (eo::define ((en ($run_evaluate n)))
                                            (eo::define ((ex ($run_evaluate xb)))
                                            (eo::ite (eo::and (eo::is_z en) (eo::not (eo::is_neg en)))
-                                             ($bv_repeat_eval_rec en ex)
+                                             ($bv_eval_concat ($bv_unfold_repeat_rec en ex))
                                              (repeat en ex)))))
       (($run_evaluate (sign_extend n xb))  (eo::define ((en ($run_evaluate n)))
                                            (eo::define ((ex ($run_evaluate xb)))
@@ -322,7 +344,6 @@
                                            (eo::define ((ex ($run_evaluate xb)))
                                            (eo::define ((w ($bv_bitwidth (eo::typeof ex))))
                                              (eo::to_bin (eo::add w en) (eo::to_z ex))))))
-      (($run_evaluate (@bv n m))           (eo::to_bin ($run_evaluate m) ($run_evaluate n)))
       (($run_evaluate (@bvsize xb))        ($bv_bitwidth (eo::typeof xb)))
 
       ; arith bv conversions
@@ -372,7 +393,7 @@
 ; conclusion: The term t is not equal to s.
 (declare-rule distinct_values ((U Type) (t U) (s U))
   :args (t s)
-  :requires ((($are_distinct_terms t s) true))
+  :requires ((($are_distinct_terms (eo::typeof t) t s) true))
   :conclusion (not (= t s))
 )
 
@@ -526,11 +547,11 @@
 ; note: >
 ;   If the argument list contains duplicates, then it is trivially false,
 ;   hence there is no need to check for duplicates.
-(declare-rule distinct-card-conflict ((T Type) (U Type) (xs @List :list))
+(declare-rule distinct-card-conflict ((T Type) (xs (@TList T) :list))
   :args ((= (distinct xs) false))
   :requires (((eo::gt
-                (eo::list_len @list xs)
-                ($compute_card ($assoc_nil_nth_type @list xs 0))) true))
+                (eo::list_len @tlist xs)
+                ($compute_card ($assoc_nil_nth_type @tlist xs 0))) true))
   :conclusion (= (distinct xs) false)
 )
 

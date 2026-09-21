@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --solve-bv-as-int=sum --full-saturate-quant
 ; EXPECT: unsat
 (set-logic UFBV)

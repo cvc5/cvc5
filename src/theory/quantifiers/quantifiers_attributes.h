@@ -15,6 +15,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 #define CVC5__THEORY__QUANTIFIERS__QUANTIFIERS_ATTRIBUTES_H
 
+#include "context/cdhashset.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
 
@@ -195,7 +196,7 @@ struct QAttributes
 class QuantAttributes
 {
  public:
-  QuantAttributes();
+  QuantAttributes(context::Context* userContext);
   ~QuantAttributes() {}
   /** set user attribute
    * This function applies an attribute
@@ -283,8 +284,8 @@ class QuantAttributes
   static Node mkAttrInternal(NodeManager* nm, AttrType at);
   /** cache of attributes */
   std::map<Node, QAttributes> d_qattr;
-  /** function definitions */
-  std::map<Node, bool> d_fun_defs;
+  /** Function definitions active in the current user context. */
+  context::CDHashSet<Node> d_fun_defs;
 };
 
 /**

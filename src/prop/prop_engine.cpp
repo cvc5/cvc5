@@ -494,11 +494,21 @@ Result PropEngine::checkSat()
     result = d_satSolver->solve(assumptions);
   }
 
+  ResourceManager* rm = resourceManager();
+  bool wasInterrupted = result == SAT_VALUE_UNKNOWN;
+  // If a resource limit expires during a full theory check, the SAT solver may
+  // still return SAT before observing its termination callback. In that case,
+  // the candidate model may not have been fully checked by the theories.
+  if (result == SAT_VALUE_TRUE && (d_interrupted || rm->out()))
+  {
+    wasInterrupted = true;
+    result = SAT_VALUE_UNKNOWN;
+  }
+
   d_theoryProxy->postsolve(result);
 
-  if (result == SAT_VALUE_UNKNOWN)
+  if (wasInterrupted)
   {
-    ResourceManager* rm = resourceManager();
     UnknownExplanation why = UnknownExplanation::INTERRUPTED;
     if (rm->outOfTime())
     {

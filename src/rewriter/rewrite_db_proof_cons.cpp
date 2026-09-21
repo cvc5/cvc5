@@ -1372,8 +1372,11 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         for (const Node& s : pcur.d_vars)
         {
           Trace("rpc-debug") << "  - step: " << s << std::endl;
+          // Fixed-point steps are an explicit rewrite chain. Register them as
+          // pre-rewrites so they are applied in the recorded order before
+          // child rewriting changes the current redex.
           tcpg.addRewriteStep(
-              s[0], s[1], cdp, false, TrustId::NONE, false, emptyPath ? 0 : tc);
+              s[0], s[1], cdp, true, TrustId::NONE, false, emptyPath ? 0 : tc);
           // the next rewrite should be applied at the depth that adds the
           // length of the path.
           tc += path.size();

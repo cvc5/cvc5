@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-nested-qe
 ; EXPECT: sat
 (set-logic LIA)

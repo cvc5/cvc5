@@ -83,7 +83,7 @@ class SolverEngineState : protected EnvObj
    *
    * @param r The result of the check-sat call.
    */
-  void notifyCheckSatResult(const Result& r);
+  void notifyCheckSatResult(const Result& r, SolverEngine* solver = nullptr);
   /**
    * Notify that the result of the last check-synth or check-synth-next was r.
    * @param r The result of the check-synth or check-synth-next call.
@@ -139,6 +139,11 @@ class SolverEngineState : protected EnvObj
   bool isQueryMade() const;
   /** Get the status of the last check-sat */
   Result getStatus() const;
+  /**
+   * Get the solver engine that is responsible for the checkSatisfiability
+   * result. If null, then the parent solver engine is assumed.
+   */
+  SolverEngine* getStatusSolver() const;
   /** Get the SMT mode we are in */
   SmtMode getMode() const;
   //---------------------------- end queries
@@ -166,7 +171,10 @@ class SolverEngineState : protected EnvObj
    * SolverEngine.
    */
   Result d_status;
-
+  /**
+   * The solver engine that is responsible for the checkSatisfiability result.
+   */
+  SolverEngine* d_statusSolver;
   /**
    * The expected status of the next satisfiability check.
    */

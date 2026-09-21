@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --simplification=none
 ; EXPECT: unsat
 (set-logic HO_ALL)

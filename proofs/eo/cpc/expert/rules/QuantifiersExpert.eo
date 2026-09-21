@@ -4,7 +4,7 @@
 
 ; witness for invertibility condition
 (declare-parameterized-const @witness_inv_condition ((F Bool :opaque))
-  ($assoc_nil_nth_type @list ($get_var_list F) 0))
+  ($get_nth_var_type F 0))
 
 ;;;;; ProofRule::EXISTS_INV_CONDITION
 

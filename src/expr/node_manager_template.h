@@ -768,6 +768,9 @@ class NodeManager
   /** Make a new sort with the given name of arity 0. */
   TypeNode mkSort(const std::string& name, bool fresh = true);
 
+  /** Make a type that prints as the given raw symbol. */
+  TypeNode mkRawSymbolType(const std::string& symbol);
+
   /** Make a new sort by parameterizing the given sort constructor. */
   TypeNode mkSort(TypeNode constructor, const std::vector<TypeNode>& children);
 

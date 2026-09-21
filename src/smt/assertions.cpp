@@ -145,7 +145,7 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
         defRew = defRewBody.getNode();
         defRew = nm->mkNode(Kind::LAMBDA, n[1][0], defRew);
       }
-      if (!isFunDef && expr::hasSubterm(defRew, n[0]))
+      if (expr::hasSubterm(defRew, n[0]))
       {
         return;
       }

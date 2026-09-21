@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --incremental
 ; COMMAND-LINE: --incremental --bv-solver=bitblast-internal
 ; EXPECT: sat

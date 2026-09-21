@@ -154,6 +154,34 @@ FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
 {
 }
 
+FloatingPointLiteralSymFPU::FloatingPointLiteralSymFPU(
+    FloatingPointLiteralSymFPU&& other) noexcept
+    : FloatingPointLiteral(other.getSize()), d_symuf(std::move(other.d_symuf))
+{
+}
+
+FloatingPointLiteralSymFPU& FloatingPointLiteralSymFPU::operator=(
+    const FloatingPointLiteralSymFPU& other)
+{
+  if (this != &other)
+  {
+    d_fp_size = other.d_fp_size;
+    d_symuf.reset(new SymFPUUnpackedFloatLiteral(*other.d_symuf));
+  }
+  return *this;
+}
+
+FloatingPointLiteralSymFPU& FloatingPointLiteralSymFPU::operator=(
+    FloatingPointLiteralSymFPU&& other) noexcept
+{
+  if (this != &other)
+  {
+    d_fp_size = other.d_fp_size;
+    d_symuf = std::move(other.d_symuf);
+  }
+  return *this;
+}
+
 FloatingPointLiteralSymFPU::~FloatingPointLiteralSymFPU() {}
 
 /* -------------------------------------------------------------------------- */
@@ -405,14 +433,14 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::rem(
 /* -------------------------------------------------------------------------- */
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::maxTotal(
-    const FloatingPointLiteral& arg, bool zeroCaseLeft) const
+    const FloatingPointLiteral& arg, bool zeroCaseRight) const
 {
   const auto& a = asSymFPU(arg);
   Assert(d_fp_size == a.d_fp_size);
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
       symfpu::max<symfpuLiteral::traits>(
-          d_fp_size, *d_symuf, *a.d_symuf, zeroCaseLeft)));
+          d_fp_size, *d_symuf, *a.d_symuf, zeroCaseRight)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::minTotal(

@@ -34,9 +34,15 @@ class AletheNodeConverter : public BaseEoNodeConverter
    * @param nm The node manager
    * @param defineSkolems Whether Skolem definitions will be saved to be printed
    * separately.
+   * @param isTesting Whether the converter is running in Alethe testing mode
+   * (excludes BV, datatypes, and strings kinds/types).
    */
-  AletheNodeConverter(NodeManager* nm, bool defineSkolems = false)
-      : BaseEoNodeConverter(nm), d_defineSkolems(defineSkolems)
+  AletheNodeConverter(NodeManager* nm,
+                      bool defineSkolems = false,
+                      bool isTesting = false)
+      : BaseEoNodeConverter(nm),
+        d_defineSkolems(defineSkolems),
+        d_isTesting(isTesting)
   {
   }
   ~AletheNodeConverter() {}
@@ -89,6 +95,13 @@ class AletheNodeConverter : public BaseEoNodeConverter
   std::string d_error;
   /** Whether Skolem definitions will be saved to be printed separately. */
   bool d_defineSkolems;
+  /** Whether the converter is running in Alethe testing mode. When true, BV,
+   * datatypes, and strings kinds/types are reported as unsupported. */
+  bool d_isTesting;
+
+  /** Set d_error to indicate that kind k is unsupported and return a null
+   * node. */
+  Node recordUnsupportedKind(Kind k);
 
   /**
    * As above but uses the s-expression type.

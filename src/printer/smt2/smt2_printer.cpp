@@ -635,7 +635,7 @@ bool Smt2Printer::toStreamBase(std::ostream& out,
       if (n.hasName())
       {
         std::string s = n.getName();
-        if (k == Kind::RAW_SYMBOL)
+        if (k == Kind::RAW_SYMBOL || k == Kind::RAW_SYMBOL_TYPE)
         {
           // raw symbols are never quoted
           out << s;
@@ -1230,6 +1230,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::FINITE_FIELD_BITSUM: return "ff.bitsum";
     case Kind::FINITE_FIELD_MULT: return "ff.mul";
     case Kind::FINITE_FIELD_NEG: return "ff.neg";
+    case Kind::FINITE_FIELD_IDEAL: return "@ff.ideal";
+    case Kind::FINITE_FIELD_VARIETY: return "@ff.variety";
 
     // bv theory
     case Kind::BITVECTOR_CONCAT: return "concat";

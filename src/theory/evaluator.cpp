@@ -12,7 +12,7 @@
 
 #include "theory/evaluator.h"
 
-#include <math.h>
+#include <cmath>
 
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"

@@ -160,8 +160,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(arith, nlCov, false, "safe options");
       // never use symmetry breaker, which does not have proofs
       SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
-      // always use cegqi midpoint, which avoids virtual term substitution
-      SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
       // class of rewrites in quantifiers we don't have proof support for but is
@@ -407,6 +405,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
 
 void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
+  if (opts.base.incrementalSolving && !opts.prop.satSolverWasSetByUser)
+  {
+    // use minisat by default if incremental is enabled, due to performance
+    SET_AND_NOTIFY_VAL_SYM(
+        prop, satSolver, options::SatSolverMode::MINISAT, "incremental");
+  }
   if (opts.quantifiers.sygusInstWasSetByUser)
   {
     if (opts.quantifiers.sygusInst && isSygus(opts))
@@ -847,7 +851,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // DIO solver typically makes things worse for quantifier-free logics with
   // non-linear arithmetic.
   if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
-      && !logic.isLinear())
+      && !logic.isLinear() && !opts.arith.arithDioSolverWasSetByUser)
   {
     SET_AND_NOTIFY(
         arith, arithDioSolver, false, "quantifier-free non-linear logic");
@@ -1026,6 +1030,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (isOutputOn(OutputTag::NORMALIZE))
   {
     SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
+  }
+  if (logic.isQuantified())
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        arith,
+        nlExtInitialSignLemmas,
+        false,
+        "Preemptive lemmas for incremental linearization are disabled "
+        "when the logic has quantifiers");
   }
 }
 
@@ -1275,7 +1288,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
 
   // disable modes not supported by incremental
   SET_AND_NOTIFY(smt, sortInference, false, "incremental solving");
-  SET_AND_NOTIFY(uf, ufssFairnessMonotone, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, globalNegate, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, cegqiNestedQE, false, "incremental solving");
   SET_AND_NOTIFY(arith, arithMLTrick, false, "incremental solving");

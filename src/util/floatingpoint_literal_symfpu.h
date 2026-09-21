@@ -57,8 +57,17 @@ class FloatingPointLiteralSymFPU : public FloatingPointLiteral
                              const BitVector& bv,
                              bool signedBV);
 
-  /** Copy Constructor.*/
+  /** Copy constructor. */
   FloatingPointLiteralSymFPU(const FloatingPointLiteralSymFPU& other);
+  /** Move constructor. */
+  FloatingPointLiteralSymFPU(FloatingPointLiteralSymFPU&& other) noexcept;
+
+  /** Copy Assignment. */
+  FloatingPointLiteralSymFPU& operator=(
+      const FloatingPointLiteralSymFPU& other);
+  /** Move Assignment. */
+  FloatingPointLiteralSymFPU& operator=(
+      FloatingPointLiteralSymFPU&& other) noexcept;
 
   /** Destructor. */
   ~FloatingPointLiteralSymFPU();
@@ -109,7 +118,7 @@ class FloatingPointLiteralSymFPU : public FloatingPointLiteral
       const FloatingPointLiteral& arg) const override;
 
   std::unique_ptr<FloatingPointLiteral> maxTotal(
-      const FloatingPointLiteral& arg, bool zeroCaseLeft) const override;
+      const FloatingPointLiteral& arg, bool zeroCaseRight) const override;
   std::unique_ptr<FloatingPointLiteral> minTotal(
       const FloatingPointLiteral& arg, bool zeroCaseLeft) const override;
 

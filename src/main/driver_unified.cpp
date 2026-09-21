@@ -12,9 +12,9 @@
 
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_parser.h>
-#include <stdio.h>
 #include <unistd.h>
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -201,16 +201,7 @@ int runCvc5(int argc, char* argv[], std::unique_ptr<cvc5::Solver>& solver)
       if (isInteractive)
       {
         auto& out = solver->getDriverOptions().out();
-        out << Configuration::getPackageName() << " "
-            << Configuration::getVersionString();
-        if (Configuration::isGitBuild())
-        {
-          out << " [" << Configuration::getGitInfo() << "]";
-        }
-        out << (Configuration::isDebugBuild() ? " DEBUG" : "") << " assertions:"
-            << (Configuration::isAssertionBuild() ? "on" : "off") << std::endl
-            << std::endl
-            << Configuration::copyright() << std::endl;
+        out << Configuration::aboutAndCopyright();
       }
 
       while (true)

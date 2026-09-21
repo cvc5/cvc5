@@ -70,10 +70,12 @@ add_dependencies(cvc5parser-objs gen-expr gen-options)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
 if(USE_POLY)
-  add_dependencies(cvc5parser-objs Polyxx)
-  target_include_directories(cvc5parser-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
-  add_dependencies(cvc5parserapi-objs Polyxx)
-  target_include_directories(cvc5parserapi-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
+  # The LibPoly headers include <gmp.h>, so GMP's include directory is needed
+  # here as well when GMP lives outside the default system include path.
+  add_dependencies(cvc5parser-objs Polyxx GMP)
+  target_include_directories(cvc5parser-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
+  add_dependencies(cvc5parserapi-objs Polyxx GMP)
+  target_include_directories(cvc5parserapi-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
 endif()
 
 add_library(cvc5parser

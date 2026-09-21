@@ -390,7 +390,7 @@ void SineSolver::checkMonotonic()
   }
 
   unsigned mdir_index = 0;
-  int monotonic_dir = -1;
+  MonotonicityDirection monotonic_dir = MonotonicityDirection::NONE;
   Node mono_bounds[2];
   Node targ, targval, t, tval;
   for (const auto& sarg : tf_args)
@@ -422,7 +422,7 @@ void SineSolver::checkMonotonic()
         tval = Node::null();
         mono_bounds[1] = d_mpoints[mdir_index];
         mdir_index++;
-        monotonic_dir = regionToMonotonicityDir(mdir_index);
+        monotonic_dir = regionToMonotonicityDir(indexToRegion(mdir_index));
         if (mdir_index < d_mpoints.size())
         {
           mono_bounds[0] = d_mpoints[mdir_index];
@@ -440,7 +440,7 @@ void SineSolver::checkMonotonic()
     {
       // can't take this value into account for monotonicity
       tval = Node::null();
-      d_data->d_tf_region[s] = -1;
+      d_data->d_tf_region[s] = TranscendentalRegion::INVALID;
       Trace("nl-ext-concavity")
           << "Cannot determine the region of transcendental function " << s
           << ", perhaps its value is close to the boundary "
@@ -449,16 +449,16 @@ void SineSolver::checkMonotonic()
     else
     {
       // store the concavity region
-      d_data->d_tf_region[s] = mdir_index;
-      Trace("nl-ext-concavity")
-          << "Transcendental function " << s << " is in region #" << mdir_index;
+      d_data->d_tf_region[s] = indexToRegion(mdir_index);
+      Trace("nl-ext-concavity") << "Transcendental function " << s
+                                << " is in region " << d_data->d_tf_region[s];
     }
     Trace("nl-ext-concavity") << ", arg model value = " << sargval << std::endl;
 
     if (!tval.isNull())
     {
       Node mono_lem;
-      if (monotonic_dir == 1
+      if (monotonic_dir == MonotonicityDirection::INCREASING
           && sval.getConst<Rational>() > tval.getConst<Rational>())
       {
         mono_lem =
@@ -466,7 +466,7 @@ void SineSolver::checkMonotonic()
                                 {NodeManager::mkNode(Kind::GEQ, targ, sarg),
                                  NodeManager::mkNode(Kind::GEQ, t, s)});
       }
-      else if (monotonic_dir == -1
+      else if (monotonic_dir == MonotonicityDirection::DECREASING
                && sval.getConst<Rational>() < tval.getConst<Rational>())
       {
         mono_lem =
@@ -502,11 +502,14 @@ void SineSolver::checkMonotonic()
   }
 }
 
-void SineSolver::doTangentLemma(
-    TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d)
+void SineSolver::doTangentLemma(TNode e,
+                                TNode c,
+                                TNode poly_approx,
+                                TranscendentalRegion region,
+                                std::uint64_t d)
 {
   NodeManager* nm = nodeManager();
-  Assert(region != -1);
+  Assert(isValidRegion(region));
 
   Trace("nl-ext-sine") << c << " in region " << region << std::endl;
   // compute tangent plane
@@ -514,8 +517,9 @@ void SineSolver::doTangentLemma(
   // We use zero slope tangent planes, since the concavity of the Taylor
   // approximation cannot be easily established.
   Convexity convexity = regionToConvexity(region);
-  int mdir = regionToMonotonicityDir(region);
-  bool usec = (mdir == 1) == (convexity == Convexity::CONCAVE);
+  MonotonicityDirection mdir = regionToMonotonicityDir(region);
+  bool usec = (mdir == MonotonicityDirection::INCREASING)
+              == (convexity == Convexity::CONCAVE);
   Node lem = nm->mkNode(
       Kind::IMPLIES,
       {nm->mkNode(
@@ -596,9 +600,9 @@ void SineSolver::doSecantLemmas(TNode e,
                                 TNode poly_approx_c,
                                 unsigned d,
                                 unsigned actual_d,
-                                int region)
+                                TranscendentalRegion region)
 {
-  Assert(region != -1);
+  Assert(isValidRegion(region));
   d_data->doSecantLemmas(getSecantBounds(e, c, d, region),
                          poly_approx,
                          c,
@@ -612,7 +616,7 @@ void SineSolver::doSecantLemmas(TNode e,
 std::pair<Node, Node> SineSolver::getSecantBounds(TNode e,
                                                   TNode c,
                                                   unsigned d,
-                                                  int region)
+                                                  TranscendentalRegion region)
 {
   std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, c, d);
 
