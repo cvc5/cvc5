@@ -70,12 +70,9 @@ const char* toString(InferenceId i)
       return "ARITH_NL_SHARED_TERM_SPLIT";
     case InferenceId::ARITH_NL_SHARED_TERM_FACTOR_SPLIT:
       return "ARITH_NL_SHARED_TERM_FACTOR_SPLIT";
-    case InferenceId::ARITH_NL_CM_QUADRATIC_EQ:
-      return "ARITH_NL_CM_QUADRATIC_EQ";
     case InferenceId::ARITH_NL_SPLIT_ZERO: return "ARITH_NL_SPLIT_ZERO";
     case InferenceId::ARITH_NL_SIGN: return "ARITH_NL_SIGN";
     case InferenceId::ARITH_NL_COMPARISON: return "ARITH_NL_COMPARISON";
-    case InferenceId::ARITH_NL_INFER_BOUNDS: return "ARITH_NL_INFER_BOUNDS";
     case InferenceId::ARITH_NL_INFER_BOUNDS_NT:
       return "ARITH_NL_INFER_BOUNDS_NT";
     case InferenceId::ARITH_NL_FACTOR: return "ARITH_NL_FACTOR";
@@ -149,7 +146,6 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_BAG_MAKE: return "BAGS_BAG_MAKE";
     case InferenceId::BAGS_BAG_MAKE_SPLIT: return "BAGS_BAG_MAKE_SPLIT";
     case InferenceId::BAGS_SKOLEM: return "BAGS_SKOLEM";
-    case InferenceId::BAGS_EQUALITY: return "BAGS_EQUALITY";
     case InferenceId::BAGS_CG_SPLIT: return "BAGS_CG_SPLIT";
     case InferenceId::BAGS_DISEQUALITY: return "BAGS_DISEQUALITY";
     case InferenceId::BAGS_EMPTY: return "BAGS_EMPTY";
@@ -171,7 +167,6 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_CARD_EMPTY: return "BAGS_CARD_EMPTY";
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
-    case InferenceId::TABLES_JOIN_UP: return "TABLES_JOIN_UP";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
     case InferenceId::TABLES_GROUP_NOT_EMPTY: return "TABLES_GROUP_NOT_EMPTY";
     case InferenceId::TABLES_GROUP_UP1: return "TABLES_GROUP_UP1";
@@ -187,10 +182,6 @@ const char* toString(InferenceId i)
       return "BV_BITBLAST_EAGER_LEMMA";
     case InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA:
       return "BV_BITBLAST_INTERNAL_BITBLAST_LEMMA";
-    case InferenceId::BV_LAYERED_CONFLICT: return "BV_LAYERED_CONFLICT";
-    case InferenceId::BV_LAYERED_LEMMA: return "BV_LAYERED_LEMMA";
-    case InferenceId::BV_EXTF_LEMMA: return "BV_EXTF_LEMMA";
-    case InferenceId::BV_EXTF_COLLAPSE: return "BV_EXTF_COLLAPSE";
 
     case InferenceId::DATATYPES_PURIFY: return "DATATYPES_PURIFY";
     case InferenceId::DATATYPES_UNIF: return "DATATYPES_UNIF";
@@ -211,7 +202,6 @@ const char* toString(InferenceId i)
     case InferenceId::DATATYPES_REC_SINGLETON_FORCE_DEQ:
       return "DATATYPES_REC_SINGLETON_FORCE_DEQ";
     case InferenceId::DATATYPES_CYCLE: return "DATATYPES_CYCLE";
-    case InferenceId::DATATYPES_SIZE_POS: return "DATATYPES_SIZE_POS";
     case InferenceId::DATATYPES_HEIGHT_ZERO: return "DATATYPES_HEIGHT_ZERO";
     case InferenceId::DATATYPES_SYGUS_SYM_BREAK:
       return "DATATYPES_SYGUS_SYM_BREAK";
@@ -227,8 +217,6 @@ const char* toString(InferenceId i)
       return "DATATYPES_SYGUS_FAIR_SIZE_CONFLICT";
     case InferenceId::DATATYPES_SYGUS_VAR_AGNOSTIC:
       return "DATATYPES_SYGUS_VAR_AGNOSTIC";
-    case InferenceId::DATATYPES_SYGUS_SIZE_CORRECTION:
-      return "DATATYPES_SYGUS_SIZE_CORRECTION";
     case InferenceId::DATATYPES_SYGUS_VALUE_CORRECTION:
       return "DATATYPES_SYGUS_VALUE_CORRECTION";
     case InferenceId::DATATYPES_SYGUS_MT_BOUND:
@@ -444,8 +432,8 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_PRODUCE_COMPOSE:
       return "SETS_RELS_PRODUCE_COMPOSE";
     case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";
-    case InferenceId::SETS_RELS_TCLOSURE_FWD: return "SETS_RELS_TCLOSURE_FWD";
     case InferenceId::SETS_RELS_TCLOSURE_UP: return "SETS_RELS_TCLOSURE_UP";
+    case InferenceId::SETS_RELS_TCLOSURE_DOWN: return "SETS_RELS_TCLOSURE_DOWN";
     case InferenceId::SETS_RELS_TRANSPOSE_EQ: return "SETS_RELS_TRANSPOSE_EQ";
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
@@ -515,7 +503,6 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_DEQ_LENGTH_SP: return "STRINGS_DEQ_LENGTH_SP";
     case InferenceId::STRINGS_DEQ_EXTENSIONALITY:
       return "STRINGS_DEQ_EXTENSIONALITY";
-    case InferenceId::STRINGS_CODE_PROXY: return "STRINGS_CODE_PROXY";
     case InferenceId::STRINGS_CODE_INJ: return "STRINGS_CODE_INJ";
     case InferenceId::STRINGS_ARRAY_UPDATE_UNIT:
       return "STRINGS_ARRAY_UPDATE_UNIT";
@@ -535,8 +522,6 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_ARRAY_UPDATE_BOUND:
       return "STRINGS_ARRAY_UPDATE_BOUND";
     case InferenceId::STRINGS_ARRAY_EQ_SPLIT: return "STRINGS_ARRAY_EQ_SPLIT";
-    case InferenceId::STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT:
-      return "STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT";
     case InferenceId::STRINGS_ARRAY_NTH_REV: return "STRINGS_ARRAY_NTH_REV";
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";
@@ -581,9 +566,6 @@ const char* toString(InferenceId i)
     case InferenceId::UF_CARD_COMBINED: return "UF_CARD_COMBINED";
     case InferenceId::UF_CARD_ENFORCE_NEGATIVE:
       return "UF_CARD_ENFORCE_NEGATIVE";
-    case InferenceId::UF_CARD_EQUIV: return "UF_CARD_EQUIV";
-    case InferenceId::UF_CARD_MONOTONE_COMBINED:
-      return "UF_CARD_MONOTONE_COMBINED";
     case InferenceId::UF_CARD_SIMPLE_CONFLICT: return "UF_CARD_SIMPLE_CONFLICT";
     case InferenceId::UF_CARD_SPLIT: return "UF_CARD_SPLIT";
 
