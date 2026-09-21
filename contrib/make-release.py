@@ -87,9 +87,44 @@ def generate_cmake_version_file(version, is_release):
     open(filename, 'w').write(tpl)
 
 
-def make_release_commit(version):
+def finalize_news_file(version):
+    """Check the news file and drop the prerelease marker of its top section.
+
+    The release notes on the release page are extracted from the section
+    titled 'cvc5 <version>', so the top section of the news file has to be
+    titled like that. A leftover 'prerelease' marker is removed, any other
+    title (in particular, a different version) is an error.
+    Returns whether the news file was modified.
+    """
+    filename = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                            'NEWS.md')
+    content = open(filename).read()
+    re_section = re.compile(r'^(cvc5 .*?)[ \t]*\n=+[ \t]*$', re.MULTILINE)
+    m = re_section.search(content)
+    if not m:
+        logging.error('Did not find any release section in NEWS.md')
+        sys.exit(1)
+
+    curtitle = m.group(1)
+    title = 'cvc5 {}'.format(version)
+    if curtitle == title:
+        return False
+    if curtitle != '{} prerelease'.format(title):
+        logging.error("Top section of NEWS.md is titled '{}', expected '{}' "
+                      "or '{} prerelease'".format(curtitle, title, title))
+        sys.exit(1)
+
+    newcontent = '{}{}\n{}{}'.format(content[:m.start()], title,
+                                     '=' * len(title), content[m.end():])
+    open(filename, 'w').write(newcontent)
+    return True
+
+
+def make_release_commit(version, news_updated):
     """Make the release commit"""
     tagname = 'cvc5-{}'.format(version)
+    if news_updated:
+        exec(['git', 'add', 'NEWS.md'])
     exec(['git', 'add', 'cmake/version-base.cmake'])
     exec(['git', 'commit', '-m', 'Bump version to {}'.format(version)])
     exec(['git', 'tag', tagname])
@@ -109,10 +144,13 @@ if __name__ == '__main__':
     # Compute next version
     version = identify_next_version()
 
+    # Check the news file before touching anything else
+    news_updated = finalize_news_file(version)
+
     # release commit
     logging.info('Performing release commit')
     generate_cmake_version_file(version, True)
-    tagname = make_release_commit(version)
+    tagname = make_release_commit(version, news_updated)
 
     # post-release commit
     logging.info('Performing post-release commit')
