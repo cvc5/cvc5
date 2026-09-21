@@ -875,6 +875,15 @@ Node IntBlaster::translateNoChildren(Node original,
       Rational r = Rational(c, Integer(1));
       translation = d_nm->mkConstInt(r);
     }
+    else if (original.getType().isBitVector())
+    {
+      // Other leaves of bit-vector type, e.g. nullary operators of that type
+      // such as sep.nil, are not translated. We cast them to an integer so
+      // that the translation has the same type as the translation of any
+      // other bit-vector term, as reconstructNode does for terms with
+      // children.
+      translation = castToType(original, d_nm->integerType());
+    }
     else
     {
       // Other constants or operators stay the same.
