@@ -1,3 +1,5 @@
+; Logos proof checking exceeds the 600-second timeout.
+; DISABLE-TESTER: cpc-logos
 ; DISABLE-TESTER: lfsc
 (set-logic QF_UFIDL)
 (set-info :source |

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
 ; EXPECT: unknown
 (set-logic ALL)

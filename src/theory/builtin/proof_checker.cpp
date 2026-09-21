@@ -21,7 +21,6 @@
 #include "smt/env.h"
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
