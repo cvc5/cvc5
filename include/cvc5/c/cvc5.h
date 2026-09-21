@@ -4151,6 +4151,14 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  * additionally keep the term manager alive, since querying them creates new
  * terms and proofs.
  *
+ * Input parser instances (`Cvc5InputParser`) created via the solver keep it
+ * alive and thus remain usable after the solver has been deleted, until they
+ * are deleted themselves (see `cvc5_parser_delete()`). The memory of the
+ * solver is only freed once it has been deleted and all of its input parsers
+ * have been freed. Consequently, dropping the reference the solver holds on
+ * each of its results, synthesis results, proofs and grammars is deferred
+ * until then as well.
+ *
  * @note A solver instance keeps its associated term manager alive. Solver and
  *       term manager instances may thus be deleted in any order.
  *

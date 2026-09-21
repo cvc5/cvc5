@@ -4476,7 +4476,12 @@ Cvc5* cvc5_new(Cvc5TermManager* tm)
 void cvc5_delete(Cvc5* cvc5)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
-  delete cvc5;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  // This only drops the handle held by the user. Input parser instances keep
+  // the solver alive, so if any of them are still alive here, the solver is
+  // not freed yet, but only once the last of them is freed (see
+  // `cvc5_parser_delete()`).
+  cvc5->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 

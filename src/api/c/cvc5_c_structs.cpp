@@ -485,6 +485,23 @@ Cvc5::~Cvc5()
   d_tm->dec_ref();
 }
 
+void Cvc5::inc_ref() { d_refs += 1; }
+
+void Cvc5::dec_ref()
+{
+  Assert(d_refs > 0);
+  d_refs -= 1;
+  free_if_unused();
+}
+
+void Cvc5::free_if_unused()
+{
+  if (d_refs == 0)
+  {
+    delete this;
+  }
+}
+
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
 {
   Assert(!result.isNull());
