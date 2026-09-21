@@ -422,8 +422,8 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
         // getCandidateModelValue dispatches on the type of the term.
         value = d_valuation.getCandidateModelValue(multiplicity);
       }
-      Assert(value.isConst()) << "no model value for the multiplicity "
-                              << multiplicity;
+      Assert(value.isConst())
+          << "no model value for the multiplicity " << multiplicity;
       elementReps[key] = value;
     }
     Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
