@@ -1984,6 +1984,8 @@ set(regress_0_tests
   regress0/seq/len_simplify.smt2
   regress0/seq/mixed-types-seq-nth.smt2
   regress0/seq/nested-const-unsat.smt2
+  regress0/seq/nth-concat-unit-sym-prefix.smt2
+  regress0/seq/nth-concat-unit-sym-prefix2.smt2
   regress0/seq/nth-concat-unit.smt2
   regress0/seq/nth-model-semi-eval.smt2
   regress0/seq/nth-oob.smt2
@@ -2046,6 +2048,7 @@ set(regress_0_tests
   regress0/seq/update-concat-non-atomic2.smt2
   regress0/seq/update-eq.smt2
   regress0/seq/update-eq-unsat.smt2
+  regress0/seq/update-index-oob.smt2
   regress0/seq/wrong-model-020322.smt2
   regress0/seq/wrong-sat-020322.smt2
   regress0/sets/abt-min.smt2
@@ -2210,6 +2213,8 @@ set(regress_0_tests
   regress0/strings/ext-op-re-eval-simple-test.smt2
   regress0/strings/foreign-theory-rew-simple.smt2
   regress0/strings/from_code.smt2
+  regress0/strings/indexof-len-oob.smt2
+  regress0/strings/indexof-prefix-concat.smt2
   regress0/strings/out-of-bound-code-point.smt2
   regress0/strings/from-int-eval.smt2
   regress0/strings/gen-esc-seq.smt2
@@ -2308,6 +2313,7 @@ set(regress_0_tests
   regress0/strings/proj-issue784-3.smt2
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
+  regress0/strings/replace-all-const-find.smt2
   regress0/strings/replace-find-base.smt2
   regress0/strings/re-const-elim-rewrite-test.smt2
   regress0/strings/re-consume-bi-dir.smt2
@@ -2339,6 +2345,7 @@ set(regress_0_tests
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/replace-all-rew-more.smt2
   regress0/strings/replace-const.smt2
+  regress0/strings/replace-prefix-concat.smt2
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
@@ -2375,12 +2382,19 @@ set(regress_0_tests
   regress0/strings/strings-native-simple.cvc.smt2
   regress0/strings/strip-endpoint-itos.smt2
   regress0/strings/substr-rewrites.smt2
+  regress0/strings/to-lower-idem.smt2
+  regress0/strings/to-upper-idem.smt2
   regress0/strings/tolower-rrs.smt2
   regress0/strings/tolower-simple.smt2
   regress0/strings/type001.smt2
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
+  regress0/strings/update-empty.smt2
+  regress0/strings/update-exact-first-concat.smt2
+  regress0/strings/update-index-neg.smt2
+  regress0/strings/update-index-oob.smt2
+  regress0/strings/update-rev.smt2
   regress0/strings/update-rewrites-simple.smt2
   regress0/sygus/abduct-pponly.smt2
   regress0/sygus/assume-simple.sy
