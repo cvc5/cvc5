@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -33,7 +30,7 @@ else()
 endif()
 
 macro(cvc5_add_java_api_test name dir)
-  set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/java/${dir})
+  set(test_bin_dir ${PROJECT_BINARY_DIR}/bin/test/api/java/${dir})
   add_jar(${name}
     SOURCES ${name}.java
     INCLUDE_JARS ${CVC5_JAR_PATH}

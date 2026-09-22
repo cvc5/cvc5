@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -167,11 +164,10 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
  *    value to set the 3rd entry to; see #3)
  */
 static struct option cmdlineOptions[] = {
-// clang-format off
+    // clang-format off
   ${cmdoptions_long}$
-// clang-format on
-  {nullptr, no_argument, nullptr, '\0'}
-};
+    // clang-format on
+    {nullptr, no_argument, nullptr, '\0'}};
 
 std::string suggestCommandLineOptions(const std::string& optionName)
 {
@@ -282,11 +278,11 @@ void parseInternal(cvc5::Solver& solver,
 
     switch (c)
     {
-// clang-format off
+      // clang-format off
     ${parseinternal_impl}$
-// clang-format on
+        // clang-format on
 
-    case ':' :
+        case ':':
       // This can be a long or short option, and the way to get at the
       // name of it is different.
       throw OptionException(std::string("option `") + option

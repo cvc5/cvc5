@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,9 +27,10 @@ namespace arrays {
 
 InferenceManager::InferenceManager(Env& env, Theory& t, TheoryState& state)
     : TheoryInferenceManager(env, t, state, "theory::arrays::", false),
-      d_lemmaPg(isProofEnabled() ? new EagerProofGenerator(
-                    env, userContext(), "ArrayLemmaProofGenerator")
-                                 : nullptr)
+      d_lemmaPg(isProofEnabled()
+                    ? new EagerProofGenerator(
+                          env, userContext(), "ArrayLemmaProofGenerator")
+                    : nullptr)
 {
 }
 
@@ -127,7 +125,8 @@ void InferenceManager::convert(ProofRule& id,
         DebugUnhandled() << "Unknown rule " << id << "\n";
       }
       children.push_back(exp);
-      args.push_back(mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE_ARRAYS));
+      args.push_back(
+          mkTrustId(nodeManager(), TrustId::THEORY_INFERENCE_ARRAYS));
       args.push_back(conc);
       id = ProofRule::TRUST;
       break;

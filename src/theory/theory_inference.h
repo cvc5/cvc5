@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,7 +83,10 @@ class TheoryInference
 class SimpleTheoryLemma : public TheoryInference
 {
  public:
-  SimpleTheoryLemma(InferenceId id, Node n, LemmaProperty p, ProofGenerator* pg);
+  SimpleTheoryLemma(InferenceId id,
+                    Node n,
+                    LemmaProperty p,
+                    ProofGenerator* pg);
   virtual ~SimpleTheoryLemma() {}
   /** Process lemma */
   TrustNode processLemma(LemmaProperty& p) override;
@@ -110,7 +110,10 @@ class SimpleTheoryLemma : public TheoryInference
 class SimpleTheoryInternalFact : public TheoryInference
 {
  public:
-  SimpleTheoryInternalFact(InferenceId id, Node conc, Node exp, ProofGenerator* pg);
+  SimpleTheoryInternalFact(InferenceId id,
+                           Node conc,
+                           Node exp,
+                           ProofGenerator* pg);
   virtual ~SimpleTheoryInternalFact() {}
   /** Process internal fact */
   Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;

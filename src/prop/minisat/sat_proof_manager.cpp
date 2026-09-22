@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -343,7 +340,7 @@ void SatProofManager::processRedundantLit(
     toProcess.push_back(MinisatSatSolver::toSatLiteral(reason[i]));
   }
   Node clauseNode = getClauseNode(reason);
-    // check if redundant literals in the reason. The first literal is the one we
+  // check if redundant literals in the reason. The first literal is the one we
   // will be eliminating, so we check the others
   for (unsigned i = 0, size = toProcess.size(); i < size; ++i)
   {
@@ -482,7 +479,7 @@ void SatProofManager::explainLit(SatLiteral lit,
       Trace("sat-proof") << "SatProofManager::explainLit:   " << children[i];
       if (i > 0)
       {
-        Trace("sat-proof") << " [" << lits[i] << ", " << pols[i] << "]";
+        Trace("sat-proof") << " [" << lits[i - 1] << ", " << pols[i - 1] << "]";
       }
       Trace("sat-proof") << "\n";
     }
@@ -644,7 +641,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       Trace("sat-proof") << "SatProofManager::finalizeProof:   " << children[i];
       if (i > 0)
       {
-        Trace("sat-proof") << " [" << args[i - 1] << "]";
+        Trace("sat-proof") << " [" << lits[i - 1] << ", " << pols[i - 1] << "]";
       }
       Trace("sat-proof") << "\n";
     }

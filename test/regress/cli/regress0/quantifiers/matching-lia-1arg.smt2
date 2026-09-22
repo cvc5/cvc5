@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --purify-triggers
 ; EXPECT: unsat
 (set-logic ALL)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Tim King, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,9 +11,9 @@
  * the push pop of cvc5. This also gives an example option.
  */
 
-#include <iostream>
-
 #include <cvc5/cvc5.h>
+
+#include <iostream>
 
 using namespace std;
 using namespace cvc5;
@@ -25,7 +22,7 @@ int main()
 {
   TermManager tm;
   Solver slv(tm);
-  slv.setLogic("QF_LIRA"); // Set the logic
+  slv.setLogic("QF_LIRA");  // Set the logic
 
   // Prove that if given x (Integer) and y (Real) then
   // the maximum value of y - x is 2/3
@@ -57,7 +54,6 @@ int main()
   cout << "Given the assertions " << assertions << endl;
   slv.assertFormula(assertions);
 
-
   slv.push();
   Term diff_leq_two_thirds = tm.mkTerm(Kind::LEQ, {diff, two_thirds});
   cout << "Prove that " << diff_leq_two_thirds << " with cvc5." << endl;
@@ -77,7 +73,7 @@ int main()
   cout << "Result from cvc5 is: " << slv.checkSat() << endl;
   slv.pop();
 
-  cout << "Thus the maximum value of (y - x) is 2/3."<< endl;
+  cout << "Thus the maximum value of (y - x) is 2/3." << endl;
 
   return 0;
 }

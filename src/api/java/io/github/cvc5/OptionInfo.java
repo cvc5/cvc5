@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,9 +56,12 @@ public class OptionInfo extends AbstractPointer
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);
-    try {
+    try
+    {
       this.category = OptionCategory.fromInt(getCategory(pointer));
-    } catch (CVC5ApiException e) {
+    }
+    catch (CVC5ApiException e)
+    {
       throw new RuntimeException("Invalid OptionCategory value", e);
     }
     this.baseInfo = getBaseInfo(pointer);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,9 +80,8 @@ SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
 {
 }
 
-void SygusGrammarNorm::TypeObject::addConsInfo(
-    SygusGrammarNorm* sygus_norm,
-    const DTypeConstructor& cons)
+void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
+                                               const DTypeConstructor& cons)
 {
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
@@ -106,8 +102,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(
     consTypes.push_back(atype);
   }
 
-  d_sdt.addConstructor(
-      sygus_op, cons.getName(), consTypes, cons.getWeight());
+  d_sdt.addConstructor(sygus_op, cons.getName(), consTypes, cons.getWeight());
 }
 
 void SygusGrammarNorm::TypeObject::initializeDatatype(
@@ -223,10 +218,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     /* adds to Root: "type" */
     std::vector<TypeNode> ctypes;
     ctypes.push_back(t);
-    to.d_sdt.addConstructor(iden_op,
-                            "id",
-                            ctypes,
-                            0);
+    to.d_sdt.addConstructor(iden_op, "id", ctypes, 0);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding  " << t << " to " << to.d_unres_tn << "\n";
     /* adds to Root: "type + Root" */
@@ -265,10 +257,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   /* adds to Root: (\lambda x. x ) Next */
   std::vector<TypeNode> ctypes;
   ctypes.push_back(sygus_norm->normalizeSygusRec(to.d_tn, dt, d_elem_pos));
-  to.d_sdt.addConstructor(iden_op,
-                          "id_next",
-                          ctypes,
-                          0);
+  to.d_sdt.addConstructor(iden_op, "id_next", ctypes, 0);
 }
 
 std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
@@ -358,8 +347,8 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     if (!TransfChain::isId(sygus_tn, nm->operatorOf(Kind::ADD), sop))
     {
       Trace("sygus-grammar-normalize-infer")
-          << "\tCollecting for NON_ID_ELEMS the sop " << sop
-          << " in position " << op_pos[i] << "\n";
+          << "\tCollecting for NON_ID_ELEMS the sop " << sop << " in position "
+          << op_pos[i] << "\n";
       elem_pos.push_back(op_pos[i]);
     }
   }
@@ -466,7 +455,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   }
 
   /* Determine normalization transformation based on sygus type and given
-    * operators */
+   * operators */
   std::unique_ptr<Transf> transformation = inferTransf(tn, dt, op_pos);
   /* If a transformation was selected, apply it */
   if (transformation != nullptr)

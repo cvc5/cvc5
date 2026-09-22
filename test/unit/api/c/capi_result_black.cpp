@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@ extern "C" {
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -37,6 +35,7 @@ class TestCApiBlackResult : public ::testing::Test
   void TearDown() override
   {
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
   Cvc5TermManager* d_tm;
@@ -48,7 +47,7 @@ class TestCApiBlackResult : public ::testing::Test
 
 TEST_F(TestCApiBlackResult, is_null)
 {
-  ASSERT_DEATH(cvc5_result_is_null(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_null(nullptr), "invalid result");
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
   cvc5_assert_formula(
@@ -81,7 +80,7 @@ TEST_F(TestCApiBlackResult, is_equal_disequal)
 
 TEST_F(TestCApiBlackResult, is_sat)
 {
-  ASSERT_DEATH(cvc5_result_is_sat(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_sat(nullptr), "invalid result");
 
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
@@ -95,7 +94,7 @@ TEST_F(TestCApiBlackResult, is_sat)
 
 TEST_F(TestCApiBlackResult, is_unsat)
 {
-  ASSERT_DEATH(cvc5_result_is_unsat(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_unsat(nullptr), "invalid result");
 
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
@@ -110,7 +109,7 @@ TEST_F(TestCApiBlackResult, is_unsat)
 
 TEST_F(TestCApiBlackResult, is_unknown)
 {
-  ASSERT_DEATH(cvc5_result_is_unknown(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_is_unknown(nullptr), "invalid result");
 
   cvc5_set_logic(d_solver, "QF_NIA");
   cvc5_set_option(d_solver, "incremental", "false");
@@ -128,8 +127,7 @@ TEST_F(TestCApiBlackResult, is_unknown)
   ASSERT_TRUE(cvc5_result_is_unknown(res));
   Cvc5UnknownExplanation ue = cvc5_result_get_unknown_explanation(res);
   ASSERT_EQ(ue, CVC5_UNKNOWN_EXPLANATION_INCOMPLETE);
-  ASSERT_EQ(cvc5_unknown_explanation_to_string(ue),
-            std::string("INCOMPLETE"));
+  ASSERT_EQ(cvc5_unknown_explanation_to_string(ue), std::string("INCOMPLETE"));
 }
 
 TEST_F(TestCApiBlackResult, hash)
@@ -146,13 +144,13 @@ TEST_F(TestCApiBlackResult, hash)
   Cvc5Result res2 = cvc5_check_sat(d_solver);
   ASSERT_EQ(cvc5_result_hash(res1), cvc5_result_hash(res1));
   ASSERT_NE(cvc5_result_hash(res1), cvc5_result_hash(res2));
-  ASSERT_DEATH(cvc5_result_hash(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_hash(nullptr), "invalid result");
 }
 
 TEST_F(TestCApiBlackResult, copy_release)
 {
-  ASSERT_DEATH(cvc5_result_copy(nullptr), "invalid result");
-  ASSERT_DEATH(cvc5_result_release(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_copy(nullptr), "invalid result");
+  ASSERT_CVC5_ERROR(cvc5_result_release(nullptr), "invalid result");
   Cvc5Term x = cvc5_mk_const(d_tm, d_uninterpreted, "x");
   std::vector<Cvc5Term> args = {x, x};
   cvc5_assert_formula(

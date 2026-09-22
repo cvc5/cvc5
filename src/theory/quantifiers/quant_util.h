@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,7 @@ class QuantifiersUtil : protected EnvObj
 {
  public:
   QuantifiersUtil(Env& env);
-  virtual ~QuantifiersUtil(){}
+  virtual ~QuantifiersUtil() {}
   /**  Called at the beginning of check-sat call. */
   virtual void presolve() {}
   /* reset
@@ -63,22 +60,30 @@ class QuantifiersUtil : protected EnvObj
 
 class QuantPhaseReq
 {
-private:
+ private:
   /** helper functions compute phase requirements */
-  void computePhaseReqs( Node n, bool polarity, std::map< Node, int >& phaseReqs );
-public:
-  QuantPhaseReq(){}
-  QuantPhaseReq( Node n, bool computeEq = false );
-  ~QuantPhaseReq(){}
-  void initialize( Node n, bool computeEq );
+  void computePhaseReqs(Node n, bool polarity, std::map<Node, int>& phaseReqs);
+
+ public:
+  QuantPhaseReq() {}
+  QuantPhaseReq(Node n, bool computeEq = false);
+  ~QuantPhaseReq() {}
+  void initialize(Node n, bool computeEq);
   /** is phase required */
-  bool isPhaseReq( Node lit ) { return d_phase_reqs.find( lit )!=d_phase_reqs.end(); }
+  bool isPhaseReq(Node lit)
+  {
+    return d_phase_reqs.find(lit) != d_phase_reqs.end();
+  }
   /** get phase requirement */
-  bool getPhaseReq( Node lit ) { return d_phase_reqs.find( lit )==d_phase_reqs.end() ? false : d_phase_reqs[ lit ]; }
+  bool getPhaseReq(Node lit)
+  {
+    return d_phase_reqs.find(lit) == d_phase_reqs.end() ? false
+                                                        : d_phase_reqs[lit];
+  }
   /** phase requirements for each quantifier for each instantiation literal */
-  std::map< Node, bool > d_phase_reqs;
-  std::map< Node, bool > d_phase_reqs_equality;
-  std::map< Node, Node > d_phase_reqs_equality_term;
+  std::map<Node, bool> d_phase_reqs;
+  std::map<Node, bool> d_phase_reqs_equality;
+  std::map<Node, Node> d_phase_reqs_equality_term;
 
   /**
    * Get the polarity of the child^th child of n, assuming its polarity
@@ -111,7 +116,7 @@ public:
                                 bool& newPol);
 };
 
-}
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif /* CVC5__THEORY__QUANT_UTIL_H */

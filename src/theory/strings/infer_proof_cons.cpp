@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -202,7 +199,6 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_I_NORM:
     case InferenceId::STRINGS_LEN_NORM:
     case InferenceId::STRINGS_NORMAL_FORM:
-    case InferenceId::STRINGS_CODE_PROXY:
     case InferenceId::STRINGS_EXTF_REW_SAME:
     case InferenceId::STRINGS_I_CYCLE_CONFLICT:
     {
@@ -373,8 +369,10 @@ bool InferProofCons::convert(Env& env,
       // the length constraint
       std::vector<Node> lenConstraint;
       // these inferences have a length constraint as the last explain
-      if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY
-          || infer == InferenceId::STRINGS_SSPLIT_CST || infer == InferenceId::STRINGS_SSPLIT_VAR
+      if (infer == InferenceId::STRINGS_N_UNIFY
+          || infer == InferenceId::STRINGS_F_UNIFY
+          || infer == InferenceId::STRINGS_SSPLIT_CST
+          || infer == InferenceId::STRINGS_SSPLIT_VAR
           || infer == InferenceId::STRINGS_SSPLIT_VAR_PROP
           || infer == InferenceId::STRINGS_SSPLIT_CST_PROP)
       {
@@ -545,7 +543,8 @@ bool InferProofCons::convert(Env& env,
           mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
           std::swap(t0, s0);
         }
-        if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
+        if (infer == InferenceId::STRINGS_N_UNIFY
+            || infer == InferenceId::STRINGS_F_UNIFY)
         {
           if (conc.getKind() != Kind::EQUAL)
           {
@@ -557,14 +556,15 @@ bool InferProofCons::convert(Env& env,
             mainEqCeq = psb.tryStep(ProofRule::SYMM, {mainEqCeq}, {});
             std::swap(t0, s0);
           }
-          Assert(conc[0].isConst() == t0.isConst());
-          Assert(conc[1].isConst() == s0.isConst());
+          AssertEqual(conc[0].isConst(), t0.isConst());
+          AssertEqual(conc[1].isConst(), s0.isConst());
         }
         ProofRule rule = ProofRule::UNKNOWN;
         // the form of the required length constraint expected by the proof
         Node lenReq;
         bool lenSuccess = false;
-        if (infer == InferenceId::STRINGS_N_UNIFY || infer == InferenceId::STRINGS_F_UNIFY)
+        if (infer == InferenceId::STRINGS_N_UNIFY
+            || infer == InferenceId::STRINGS_F_UNIFY)
         {
           // first, splice if necessary
           mainEqCeq = spliceConstants(
@@ -614,8 +614,8 @@ bool InferProofCons::convert(Env& env,
           for (unsigned r = 0; r < 2; r++)
           {
             lenReq = nm->mkNode(Kind::GT,
-                                nm->mkNode(Kind::STRING_LENGTH, t0),
-                                nm->mkNode(Kind::STRING_LENGTH, s0));
+                                {nm->mkNode(Kind::STRING_LENGTH, t0),
+                                 nm->mkNode(Kind::STRING_LENGTH, s0)});
             if (convertLengthPf(lenReq, lenConstraint, psb))
             {
               lenSuccess = true;
@@ -714,7 +714,8 @@ bool InferProofCons::convert(Env& env,
           || conc[1][0].getKind() != Kind::STRING_LENGTH)
       {
         Trace("strings-ipc-deq") << "malformed application" << std::endl;
-        DebugUnhandled() << "unexpected conclusion " << conc << " for " << infer;
+        DebugUnhandled() << "unexpected conclusion " << conc << " for "
+                         << infer;
       }
       else
       {
@@ -755,8 +756,8 @@ bool InferProofCons::convert(Env& env,
         }
         else
         {
-          DebugUnhandled()
-              << "Failed to convert length " << lenReq << " " << ps.d_children;
+          DebugUnhandled() << "Failed to convert length " << lenReq << " "
+                           << ps.d_children;
           Trace("strings-ipc-deq") << "...fail length" << std::endl;
         }
       }
@@ -791,16 +792,16 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_RE_UNFOLD_POS:
     case InferenceId::STRINGS_RE_UNFOLD_NEG:
     {
-      Assert (!ps.d_children.empty());
+      Assert(!ps.d_children.empty());
       size_t nchild = ps.d_children.size();
-      Node mem = ps.d_children[nchild-1];
-      if (nchild>1)
+      Node mem = ps.d_children[nchild - 1];
+      if (nchild > 1)
       {
         // if more than one, apply MACRO_SR_PRED_ELIM
         std::vector<Node> tcs;
         tcs.insert(tcs.end(),
-                          ps.d_children.begin(),
-                          ps.d_children.begin() + (nchild-1));
+                   ps.d_children.begin(),
+                   ps.d_children.begin() + (nchild - 1));
         mem = psb.applyPredElim(mem, tcs);
         useBuffer = true;
       }
@@ -839,7 +840,7 @@ bool InferProofCons::convert(Env& env,
       {
         mem = psb.tryStep(r, {mem}, args);
         // should match the conclusion
-        useBuffer = (mem==conc);
+        useBuffer = (mem == conc);
       }
       else
       {

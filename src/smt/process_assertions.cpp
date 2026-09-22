@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +23,6 @@
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -57,7 +53,10 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
-    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
+    : EnvObj(env),
+      d_slvStats(stats),
+      d_preprocessingPassContext(nullptr),
+      d_simplifyAssertionsDepth(0)
 {
   d_true = nodeManager()->mkConst(true);
 }
@@ -180,14 +179,14 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("real-to-int", ap);
   }
 
-  if (options().smt.solveIntAsBV > 0)
-  {
-    applyPass("int-to-bv", ap);
-  }
-
   if (options().smt.ackermann)
   {
     applyPass("ackermann", ap);
+  }
+
+  if (options().smt.solveIntAsBV > 0)
+  {
+    applyPass("int-to-bv", ap);
   }
 
   Trace("smt") << " assertions     : " << ap.size() << endl;
@@ -223,6 +222,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   if (options().smt.foreignTheoryRewrite)
   {
     applyPass("foreign-theory-rewrite", ap);
+  }
+  // Eagerly eliminate distinct terms up to the configured threshold. Only run
+  // if the threshold option was explicitly set by the user (a value of 0 means
+  // no limit, i.e. eliminate all distinct terms).
+  if (options().smt.distinctElimThresholdWasSetByUser)
+  {
+    applyPass("distinct-elim", ap);
   }
 
   // Assertions MUST BE guaranteed to be rewritten by this point
@@ -264,7 +270,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     // were already solved for in incremental mode
     applyPass("apply-substs", ap);
   }
-  if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
+  if (options().smt.sortInference)
   {
     applyPass("sort-inference", ap);
   }

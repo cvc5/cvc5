@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 
 #include <stack>
+
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -84,7 +82,7 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
                                     Node alit,
                                     CVC5_UNUSED CegInstEffort effort)
 {
-  Assert(d_inverter != NULL);
+  Assert(d_inverter != nullptr);
   // find path to pv
   std::vector<unsigned> path;
   Node sv = d_inverter->getSolveVariable(pv.getType());
@@ -400,7 +398,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   std::unordered_map<Node, bool> visited_contains_pv;
   std::unordered_map<TNode, Node>::iterator it;
   std::unordered_map<TNode, Node> curr_subs;
-  std::stack<std::stack<TNode> > visit;
+  std::stack<std::stack<TNode>> visit;
   TNode cur;
   visit.push(std::stack<TNode>());
   visit.top().push(lit);
@@ -662,11 +660,11 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     NodeManager* nm = lem.getNodeManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
-    std::map<Node, std::vector<Node> > extract_map;
+    std::map<Node, std::vector<Node>> extract_map;
     std::unordered_set<TNode> visited;
     Trace("cegqi-bv-pp-debug2") << "Register ce lemma " << lem << std::endl;
     collectExtracts(lem, extract_map, visited);
-    for (std::pair<const Node, std::vector<Node> >& es : extract_map)
+    for (std::pair<const Node, std::vector<Node>>& es : extract_map)
     {
       // sort based on the extract start position
       std::vector<Node>& curr_vec = es.second;
@@ -714,7 +712,7 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
       }
 
       Node conc = nm->mkNode(Kind::BITVECTOR_CONCAT, children);
-      Assert(conc.getType() == es.first.getType());
+      AssertEqual(conc.getType(), es.first.getType());
       Node eq_lem = conc.eqNode(es.first);
       Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
       new_lems.push_back(eq_lem);

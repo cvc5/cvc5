@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +35,8 @@ AttemptSolutionSDP::AttemptSolutionSDP(Env& env,
                                        TempVarMalloc tvmalloc)
     : SimplexDecisionProcedure(env, linEq, errors, conflictChannel, tvmalloc),
       d_statistics(statisticsRegistry())
-{ }
+{
+}
 
 AttemptSolutionSDP::Statistics::Statistics(StatisticsRegistry& sr)
     : d_searchTime(sr.registerTimer("theory::arith::attempt::searchTime")),
@@ -47,7 +45,9 @@ AttemptSolutionSDP::Statistics::Statistics(StatisticsRegistry& sr)
 {
 }
 
-bool AttemptSolutionSDP::matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const{
+bool AttemptSolutionSDP::matchesNewValue(const DenseMap<DeltaRational>& nv,
+                                         ArithVar v) const
+{
   return nv[v] == d_variables.getAssignment(v);
 }
 
@@ -58,21 +58,29 @@ Result::Status AttemptSolutionSDP::attempt(
   const DenseMap<DeltaRational>& newValues = sol.newValues;
 
   DenseSet needsToBeAdded;
-  for(DenseSet::const_iterator i = newBasis.begin(), i_end = newBasis.end(); i != i_end; ++i){
+  for (DenseSet::const_iterator i = newBasis.begin(), i_end = newBasis.end();
+       i != i_end;
+       ++i)
+  {
     ArithVar b = *i;
-    if(!d_tableau.isBasic(b)){
+    if (!d_tableau.isBasic(b))
+    {
       needsToBeAdded.add(b);
     }
   }
-  DenseMap<DeltaRational>::const_iterator nvi = newValues.begin(), nvi_end = newValues.end();
-  for(; nvi != nvi_end; ++nvi){
+  DenseMap<DeltaRational>::const_iterator nvi = newValues.begin(),
+                                          nvi_end = newValues.end();
+  for (; nvi != nvi_end; ++nvi)
+  {
     ArithVar currentlyNb = *nvi;
-    if(!d_tableau.isBasic(currentlyNb)){
-      if(!matchesNewValue(newValues, currentlyNb)){
+    if (!d_tableau.isBasic(currentlyNb))
+    {
+      if (!matchesNewValue(newValues, currentlyNb))
+      {
         const DeltaRational& newValue = newValues[currentlyNb];
-        Trace("arith::updateMany")
-          << "updateMany:" << currentlyNb << " "
-          << d_variables.getAssignment(currentlyNb) << " to "<< newValue << endl;
+        Trace("arith::updateMany") << "updateMany:" << currentlyNb << " "
+                                   << d_variables.getAssignment(currentlyNb)
+                                   << " to " << newValue << endl;
         d_linEq.update(currentlyNb, newValue);
         Assert(d_variables.assignmentIsConsistent(currentlyNb));
       }
@@ -81,36 +89,46 @@ Result::Status AttemptSolutionSDP::attempt(
   d_errorSet.reduceToSignals();
   d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
-  if(processSignals()){
+  if (processSignals())
+  {
     Trace("arith::findModel") << "attemptSolution() early conflict" << endl;
     d_conflictVariables.purge();
     return Result::UNSAT;
-  }else if(d_errorSet.errorEmpty()){
+  }
+  else if (d_errorSet.errorEmpty())
+  {
     Trace("arith::findModel") << "attemptSolution() fixed itself" << endl;
     return Result::SAT;
   }
 
-  while(!needsToBeAdded.empty() && !d_errorSet.errorEmpty()){
+  while (!needsToBeAdded.empty() && !d_errorSet.errorEmpty())
+  {
     ArithVar toRemove = ARITHVAR_SENTINEL;
     ArithVar toAdd = ARITHVAR_SENTINEL;
-    DenseSet::const_iterator i = needsToBeAdded.begin(), i_end = needsToBeAdded.end();
-    for(; toAdd == ARITHVAR_SENTINEL && i != i_end; ++i){
+    DenseSet::const_iterator i = needsToBeAdded.begin(),
+                             i_end = needsToBeAdded.end();
+    for (; toAdd == ARITHVAR_SENTINEL && i != i_end; ++i)
+    {
       ArithVar v = *i;
 
       Tableau::ColIterator colIter = d_tableau.colIterator(v);
-      for(; !colIter.atEnd(); ++colIter){
+      for (; !colIter.atEnd(); ++colIter)
+      {
         const Tableau::Entry& entry = *colIter;
         Assert(entry.getColVar() == v);
         ArithVar b = d_tableau.rowIndexToBasic(entry.getRowIndex());
-        if(!newBasis.isMember(b)){
+        if (!newBasis.isMember(b))
+        {
           toAdd = v;
 
-          bool favorBOverToRemove =
-            (toRemove == ARITHVAR_SENTINEL) ||
-            (matchesNewValue(newValues, toRemove) && !matchesNewValue(newValues, b)) ||
-            (d_tableau.basicRowLength(toRemove) > d_tableau.basicRowLength(b));
+          bool favorBOverToRemove = (toRemove == ARITHVAR_SENTINEL)
+                                    || (matchesNewValue(newValues, toRemove)
+                                        && !matchesNewValue(newValues, b))
+                                    || (d_tableau.basicRowLength(toRemove)
+                                        > d_tableau.basicRowLength(b));
 
-          if(favorBOverToRemove){
+          if (favorBOverToRemove)
+          {
             toRemove = b;
           }
         }
@@ -127,7 +145,8 @@ Result::Status AttemptSolutionSDP::attempt(
     needsToBeAdded.remove(toAdd);
 
     bool conflict = processSignals();
-    if(conflict){
+    if (conflict)
+    {
       d_errorSet.reduceToSignals();
       d_conflictVariables.purge();
 
@@ -136,14 +155,17 @@ Result::Status AttemptSolutionSDP::attempt(
   }
   Assert(d_conflictVariables.empty());
 
-  if(d_errorSet.errorEmpty()){
+  if (d_errorSet.errorEmpty())
+  {
     return Result::SAT;
-  }else{
+  }
+  else
+  {
     d_errorSet.reduceToSignals();
     return Result::UNKNOWN;
   }
 }
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Matthew Sotoudeh
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -116,13 +113,21 @@ bool TimerStat::running() const
 }
 
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
+    : CodeTimer(&timer, allow_reentrant)
+{
+}
+
+CodeTimer::CodeTimer(TimerStat* timer, bool allow_reentrant)
     : d_timer(timer), d_reentrant(false)
 {
   if constexpr (configuration::isStatisticsBuild())
   {
-    if (!allow_reentrant || !(d_reentrant = d_timer.running()))
+    if (d_timer)
     {
-      d_timer.start();
+      if (!allow_reentrant || !(d_reentrant = d_timer->running()))
+      {
+        d_timer->start();
+      }
     }
   }
 }
@@ -130,9 +135,12 @@ CodeTimer::~CodeTimer()
 {
   if constexpr (configuration::isStatisticsBuild())
   {
-    if (!d_reentrant)
+    if (d_timer)
     {
-      d_timer.stop();
+      if (!d_reentrant)
+      {
+        d_timer->stop();
+      }
     }
   }
 }

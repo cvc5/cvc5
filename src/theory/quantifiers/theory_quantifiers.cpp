@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,8 +58,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
   }
 }
 
-TheoryQuantifiers::~TheoryQuantifiers() {
-}
+TheoryQuantifiers::~TheoryQuantifiers() {}
 
 TheoryRewriter* TheoryQuantifiers::getTheoryRewriter() { return &d_rewriter; }
 
@@ -99,10 +95,11 @@ void TheoryQuantifiers::preRegisterTerm(TNode n)
       << "TheoryQuantifiers::preRegisterTerm() done " << n << std::endl;
 }
 
-
-void TheoryQuantifiers::presolve() {
+void TheoryQuantifiers::presolve()
+{
   Trace("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << std::endl;
-  if( getQuantifiersEngine() ){
+  if (getQuantifiersEngine())
+  {
     getQuantifiersEngine()->presolve();
   }
 }
@@ -130,11 +127,12 @@ bool TheoryQuantifiers::ppAssert(TrustNode tin,
   return false;
 }
 
-void TheoryQuantifiers::ppNotifyAssertions(
-    const std::vector<Node>& assertions) {
+void TheoryQuantifiers::ppNotifyAssertions(const std::vector<Node>& assertions)
+{
   Trace("quantifiers-presolve")
       << "TheoryQuantifiers::ppNotifyAssertions" << std::endl;
-  if (getQuantifiersEngine()) {
+  if (getQuantifiersEngine())
+  {
     getQuantifiersEngine()->ppNotifyAssertions(assertions);
   }
 }
@@ -142,7 +140,8 @@ void TheoryQuantifiers::ppNotifyAssertions(
 bool TheoryQuantifiers::collectModelValues(
     TheoryModel* m, CVC5_UNUSED const std::set<Node>& termSet)
 {
-  for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
+  for (assertions_iterator i = facts_begin(); i != facts_end(); ++i)
+  {
     if ((*i).d_assertion.getKind() == Kind::NOT)
     {
       Trace("quantifiers::collectModelInfo")

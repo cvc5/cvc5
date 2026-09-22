@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +17,13 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "proof/proof_set.h"
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+class CDProof;
+
 namespace theory {
 namespace arith {
 
@@ -91,6 +92,19 @@ class Pow2Solver : protected EnvObj
    * Cleared at each last call effort check.
    * */
   std::vector<Node> d_pow2s;
+  /**
+   * A CDProofSet that hands out CDProof objects for lemmas.
+   */
+  std::unique_ptr<CDProofSet<CDProof>> d_proof;
+
+  /**
+   * Checks whether proofs are enabled.
+   */
+  bool isProofEnabled() const;
+  /**
+   * Creates and returns a new CDProof that can be used to prove some lemma.
+   */
+  CDProof* getProof();
 
   /**
    * Value-based refinement lemma for i of the form (pow2 x). Returns:

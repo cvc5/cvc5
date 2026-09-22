@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,10 @@ InferenceManager::InferenceManager(Env& env,
   d_false = nodeManager()->mkConst(false);
 }
 
-bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
+bool InferenceManager::assertFactRec(Node fact,
+                                     InferenceId id,
+                                     Node exp,
+                                     int inferType)
 {
   // should we send this fact out as a lemma?
   if (inferType != -1)

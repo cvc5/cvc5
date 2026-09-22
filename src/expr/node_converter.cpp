@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -213,7 +210,7 @@ TypeNode NodeConverter::convertType(TypeNode tn)
         // type nodes.
         NodeBuilder nb(d_nm, ret.getKind());
         // there are no parameterized types
-        Assert (ret.getMetaKind() != kind::metakind::PARAMETERIZED);
+        Assert(ret.getMetaKind() != kind::metakind::PARAMETERIZED);
         for (TypeNode::const_iterator j = ret.begin(), iend = ret.end();
              j != iend;
              ++j)

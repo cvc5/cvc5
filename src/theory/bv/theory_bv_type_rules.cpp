@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Leni Aniva
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "theory/bv/theory_bv_type_rules.h"
 
 #include <algorithm>
+#include <limits>
 
 #include "expr/type_node.h"
 #include "util/bitvector.h"
@@ -26,6 +24,24 @@
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
+
+namespace {
+
+bool checkBvResultSize(uint64_t size, std::ostream* errOut)
+{
+  if (size > std::numeric_limits<uint32_t>::max())
+  {
+    if (errOut)
+    {
+      (*errOut) << "resulting bit-vector size is too large; must fit a 32-bit "
+                   "unsigned integer";
+    }
+    return false;
+  }
+  return true;
+}
+
+}  // namespace
 
 bool isMaybeBoolean(const TypeNode& tn)
 {
@@ -303,7 +319,12 @@ TypeNode BitVectorConcatTypeRule::computeType(NodeManager* nodeManager,
       isAbstract = true;
       continue;
     }
-    size += t.getBitVectorSize();
+    uint64_t nextSize = static_cast<uint64_t>(size) + t.getBitVectorSize();
+    if (!checkBvResultSize(nextSize, errOut))
+    {
+      return TypeNode::null();
+    }
+    size = static_cast<uint32_t>(nextSize);
   }
   // if any child is abstract, we are abstract
   if (isAbstract)
@@ -407,7 +428,17 @@ TypeNode BitVectorBitTypeRule::computeType(NodeManager* nodeManager,
 TypeNode BitVectorExtractTypeRule::preComputeType(NodeManager* nm, TNode n)
 {
   BitVectorExtract extractInfo = n.getOperator().getConst<BitVectorExtract>();
-  return nm->mkBitVectorType(extractInfo.d_high - extractInfo.d_low + 1);
+  if (extractInfo.d_high < extractInfo.d_low)
+  {
+    return TypeNode::null();
+  }
+  uint64_t size =
+      static_cast<uint64_t>(extractInfo.d_high) - extractInfo.d_low + 1;
+  if (!checkBvResultSize(size, nullptr))
+  {
+    return TypeNode::null();
+  }
+  return nm->mkBitVectorType(static_cast<uint32_t>(size));
 }
 TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
@@ -448,8 +479,13 @@ TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
   }
   // note that its type is always concrete, even if the argument has abstract
   // type
-  return nodeManager->mkBitVectorType(extractInfo.d_high - extractInfo.d_low
-                                      + 1);
+  uint64_t size =
+      static_cast<uint64_t>(extractInfo.d_high) - extractInfo.d_low + 1;
+  if (!checkBvResultSize(size, errOut))
+  {
+    return TypeNode::null();
+  }
+  return nodeManager->mkBitVectorType(static_cast<uint32_t>(size));
 }
 
 TypeNode BitVectorRepeatTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
@@ -486,7 +522,12 @@ TypeNode BitVectorRepeatTypeRule::computeType(NodeManager* nodeManager,
     return ensureBv(nodeManager, t);
   }
   Assert(t.isBitVector());
-  return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
+  uint64_t size = static_cast<uint64_t>(repeatAmount) * t.getBitVectorSize();
+  if (!checkBvResultSize(size, errOut))
+  {
+    return TypeNode::null();
+  }
+  return nodeManager->mkBitVectorType(static_cast<uint32_t>(size));
 }
 
 TypeNode BitVectorExtendTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
@@ -515,7 +556,12 @@ TypeNode BitVectorExtendTypeRule::computeType(NodeManager* nodeManager,
   uint32_t extendAmount = n.getKind() == Kind::BITVECTOR_SIGN_EXTEND
                               ? n.getOperator().getConst<BitVectorSignExtend>()
                               : n.getOperator().getConst<BitVectorZeroExtend>();
-  return nodeManager->mkBitVectorType(extendAmount + t.getBitVectorSize());
+  uint64_t size = static_cast<uint64_t>(extendAmount) + t.getBitVectorSize();
+  if (!checkBvResultSize(size, errOut))
+  {
+    return TypeNode::null();
+  }
+  return nodeManager->mkBitVectorType(static_cast<uint32_t>(size));
 }
 
 TypeNode BitVectorEagerAtomTypeRule::preComputeType(NodeManager* nm,

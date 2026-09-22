@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -245,7 +242,7 @@ Node SygusEvalUnfold::unfold(Node en,
     {
       ev = itv->second;
     }
-    Assert(en[0].getType() == ev.getType());
+    AssertEqual(en[0].getType(), ev.getType());
     Assert(ev.isConst());
   }
   Trace("sygus-eval-unfold-debug")

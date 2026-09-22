@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -159,7 +156,15 @@ TypeNode DatatypeSelectorTypeRule::computeType(
 {
   Assert(n.getKind() == Kind::APPLY_SELECTOR);
   TypeNode selType = n.getOperator().getTypeOrNull();
-  TypeNode t = selType[0];
+  if (!selType.isDatatypeSelector())
+  {
+    if (errOut)
+    {
+      (*errOut) << "expected selector to apply";
+    }
+    return TypeNode::null();
+  }
+  TypeNode t = selType.getDatatypeSelectorDomainType();
   Assert(t.isDatatype());
   if ((t.isParametricDatatype() || check) && n.getNumChildren() != 1)
   {
@@ -184,7 +189,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(
     }
     // note that parametric datatype matching does not account for gradual
     // types.
-    if (!m.doMatching(selType[0], childType))
+    if (!m.doMatching(t, childType))
     {
       if (errOut)
       {
@@ -196,11 +201,12 @@ TypeNode DatatypeSelectorTypeRule::computeType(
     std::vector<TypeNode> types, matches;
     m.getTypes(types);
     m.getMatches(matches);
-    TypeNode range = selType[1];
+    TypeNode range = selType.getDatatypeSelectorRangeType();
     range = range.substitute(
         types.begin(), types.end(), matches.begin(), matches.end());
     Trace("typecheck-idt") << "Return (selector) " << range << " for " << n
-                           << " from " << selType[1] << std::endl;
+                           << " from " << selType.getDatatypeSelectorRangeType()
+                           << std::endl;
     return range;
   }
   else
@@ -210,9 +216,9 @@ TypeNode DatatypeSelectorTypeRule::computeType(
       Trace("typecheck-idt") << "typecheck sel: " << n << std::endl;
       Trace("typecheck-idt") << "sel type: " << selType << std::endl;
       TypeNode childType = n[0].getTypeOrNull();
-      if (!selType[0].isComparableTo(childType))
+      if (!t.isComparableTo(childType))
       {
-        Trace("typecheck-idt") << "ERROR: " << selType[0].getKind() << " "
+        Trace("typecheck-idt") << "ERROR: " << t.getKind() << " "
                                << childType.getKind() << std::endl;
         if (errOut)
         {
@@ -221,7 +227,7 @@ TypeNode DatatypeSelectorTypeRule::computeType(
         return TypeNode::null();
       }
     }
-    return selType[1];
+    return selType.getDatatypeSelectorRangeType();
   }
 }
 
@@ -604,7 +610,7 @@ TypeNode MatchTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
     const DType& pdt = patType.getDType();
     // compare datatypes instead of the types to catch parametric case,
     // where the pattern has parametric type.
-    if (hdt.getTypeNode() != pdt.getTypeNode())
+    if (!CVC5_EQUAL(hdt.getTypeNode(), pdt.getTypeNode()))
     {
       if (errOut)
       {
@@ -801,6 +807,15 @@ TypeNode NullableLiftTypeRule::computeType(NodeManager* nodeManager,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     std::vector<TypeNode> funArgTypes = functionType.getArgTypes();
+    if (n.getNumChildren() != funArgTypes.size() + 1)
+    {
+      std::stringstream ss;
+      ss << "Function '" << n[0] << "' has type '" << functionType
+         << "' which expects " << funArgTypes.size() << " arguments, but term '"
+         << n << "' has " << (n.getNumChildren() - 1) << " arguments.";
+
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
     for (size_t i = 1; i < n.getNumChildren(); i++)
     {
       TypeNode argType = n[i].getType(check);

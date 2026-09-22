@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Kshitij Bansal, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,11 +18,13 @@
 
 namespace cvc5::internal {
 
-std::ostream& operator<<(std::ostream& out, const EmptySet& asa) {
+std::ostream& operator<<(std::ostream& out, const EmptySet& asa)
+{
   return out << "emptyset(" << asa.getType() << ')';
 }
 
-size_t EmptySetHashFunction::operator()(const EmptySet& es) const {
+size_t EmptySetHashFunction::operator()(const EmptySet& es) const
+{
   return std::hash<TypeNode>()(es.getType());
 }
 
@@ -37,7 +36,8 @@ EmptySet::EmptySet(const TypeNode& setType) : d_type(new TypeNode(setType)) {}
 
 EmptySet::EmptySet(const EmptySet& es) : d_type(new TypeNode(es.getType())) {}
 
-EmptySet& EmptySet::operator=(const EmptySet& es) {
+EmptySet& EmptySet::operator=(const EmptySet& es)
+{
   (*d_type) = es.getType();
   return *this;
 }

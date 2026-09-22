@@ -1,3 +1,3 @@
 ; COMMAND-LINE: --version
-; EXPECT: This is cvc5 version
-; SCRUBBER: grep -o "This is cvc5 version"
+; EXPECT: 1
+; SCRUBBER: grep -E "^cvc5 [0-9]+\.[0-9]+\.[0-9]+" | wc -l

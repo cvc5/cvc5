@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +56,7 @@ class TheoryState;
 class TrustSubstitutionMap;
 
 namespace eq {
-  class EqualityEngine;
+class EqualityEngine;
 }  // namespace eq
 
 /**
@@ -192,6 +189,13 @@ class Theory : protected EnvObj
 
   /** Pointer to proof node manager */
   ProofNodeManager* d_pnm;
+
+  /**
+   * Whether we can exit early from check at standard effort if no facts are
+   * asserted.
+   */
+  bool d_checkEarlyExit;
+
   /**
    * Are proofs enabled?
    *
@@ -300,7 +304,7 @@ class Theory : protected EnvObj
    * Note this method does not take into account "Boolean term skolem". Boolean
    * term skolems always belong to THEORY_UF. This case is handled in
    * Env::theoryOf.
-   * 
+   *
    * @param node The node in question.
    * @param mdoe The theoryof mode, which impacts which theory owns e.g.
    * variables.

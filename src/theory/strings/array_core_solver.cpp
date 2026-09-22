@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Ying Sheng, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,7 +89,7 @@ void ArrayCoreSolver::checkNth(const std::vector<Node>& nthTerms)
       TNode x = nthTerms[i][0];
       TNode y = nthTerms[j][0];
 
-      if (x.getType() != y.getType())
+      if (!CVC5_EQUAL(x.getType(), y.getType()))
       {
         continue;
       }
@@ -134,8 +131,8 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       Node left = nm->mkNode(Kind::SEQ_NTH, termProxy, n[1]);
       Node cond = nm->mkNode(
           Kind::AND,
-          nm->mkNode(Kind::GEQ, n[1], nm->mkConstInt(Rational(0))),
-          nm->mkNode(Kind::LT, n[1], nm->mkNode(Kind::STRING_LENGTH, n[0])));
+          {nm->mkNode(Kind::GEQ, n[1], nm->mkConstInt(Rational(0))),
+           nm->mkNode(Kind::LT, n[1], nm->mkNode(Kind::STRING_LENGTH, n[0]))});
       Node body1 = nm->mkNode(Kind::SEQ_NTH, n[2], nm->mkConstInt(Rational(0)));
       Node body2 = nm->mkNode(Kind::SEQ_NTH, n[0], n[1]);
       Node right = nm->mkNode(Kind::ITE, cond, body1, body2);
@@ -156,12 +153,12 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
       // x = s
       lem = nm->mkNode(
           Kind::OR,
-          nm->mkNode(
-              Kind::AND,
-              left.eqNode(nm->mkNode(Kind::SEQ_NTH, n[0], n[1])).notNode(),
-              n.eqNode(n[0]).negate(),
-              cond),
-          n.eqNode(n[0]));
+          {nm->mkNode(
+               Kind::AND,
+               {left.eqNode(nm->mkNode(Kind::SEQ_NTH, n[0], n[1])).notNode(),
+                n.eqNode(n[0]).negate(),
+                cond}),
+           n.eqNode(n[0])});
       sendInference(exp, lem, InferenceId::STRINGS_ARRAY_UPDATE_BOUND, true);
     }
 
@@ -188,14 +185,13 @@ void ArrayCoreSolver::checkUpdate(const std::vector<Node>& updateTerms)
         Node nth = nm->mkNode(Kind::SEQ_NTH, termProxy, j);
         Node nthInBounds = nm->mkNode(
             Kind::AND,
-            nm->mkNode(Kind::LEQ, nm->mkConstInt(0), j),
-            nm->mkNode(Kind::LT, j, nm->mkNode(Kind::STRING_LENGTH, n[0])));
+            {nm->mkNode(Kind::LEQ, nm->mkConstInt(0), j),
+             nm->mkNode(Kind::LT, j, nm->mkNode(Kind::STRING_LENGTH, n[0]))});
         Node idxEq = i.eqNode(j);
         Node updateVal = nm->mkNode(Kind::SEQ_NTH, n[2], nm->mkConstInt(0));
-        Node iteNthInBounds = nm->mkNode(Kind::ITE,
-                                         i.eqNode(j),
-                                         updateVal,
-                                         nm->mkNode(Kind::SEQ_NTH, n[0], j));
+        Node iteNthInBounds = nm->mkNode(
+            Kind::ITE,
+            {i.eqNode(j), updateVal, nm->mkNode(Kind::SEQ_NTH, n[0], j)});
         Node rhs = nm->mkNode(Kind::ITE, nthInBounds, iteNthInBounds, nth);
         Node lem = nth.eqNode(rhs);
 

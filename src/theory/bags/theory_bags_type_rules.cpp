@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -397,7 +394,7 @@ TypeNode BagFilterTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
 {
   return TypeNode::null();
 }
-TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
+TypeNode BagFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
                                         std::ostream* errOut)
@@ -432,7 +429,7 @@ TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     if (!(argTypes.size() == 1 && argTypes[0] == elementType
-          && functionType.getRangeType() == nodeManager->booleanType()))
+          && functionType.getRangeType().isBoolean()))
     {
       if (errOut)
       {

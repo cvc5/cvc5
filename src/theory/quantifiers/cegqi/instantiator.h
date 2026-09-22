@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,20 +139,20 @@ class Instantiator : protected EnvObj
     return false;
   }
   /** has process assertion
-  *
-  * This method is called when the entailment:
-  *   E |= lit
-  * holds in current context E. Typically, lit belongs to the list of current
-  * assertions.
-  *
-  * This method is used to determine whether the instantiator implements
-  * processAssertion for literal lit.
-  *   If this method returns null, then this intantiator does not handle the
-  *   literal lit. Otherwise, this method returns a literal lit' such that:
-  *   (1) lit' is true in the current model,
-  *   (2) lit' implies lit.
-  *   where typically lit' = lit.
-  */
+   *
+   * This method is called when the entailment:
+   *   E |= lit
+   * holds in current context E. Typically, lit belongs to the list of current
+   * assertions.
+   *
+   * This method is used to determine whether the instantiator implements
+   * processAssertion for literal lit.
+   *   If this method returns null, then this intantiator does not handle the
+   *   literal lit. Otherwise, this method returns a literal lit' such that:
+   *   (1) lit' is true in the current model,
+   *   (2) lit' implies lit.
+   *   where typically lit' = lit.
+   */
   virtual Node hasProcessAssertion(CVC5_UNUSED CegInstantiator* ci,
                                    CVC5_UNUSED SolvedForm& sf,
                                    CVC5_UNUSED Node pv,
@@ -243,6 +240,7 @@ class Instantiator : protected EnvObj
 
   /** Identify this module (for debugging) */
   virtual std::string identify() const { return "Default"; }
+
  protected:
   /** the type of the variable we are instantiating */
   TypeNode d_type;
@@ -250,17 +248,18 @@ class Instantiator : protected EnvObj
   bool d_closed_enum_type;
 };
 
-class ModelValueInstantiator : public Instantiator {
-public:
- ModelValueInstantiator(Env& env, TypeNode tn) : Instantiator(env, tn) {}
- virtual ~ModelValueInstantiator() {}
- bool useModelValue(CVC5_UNUSED CegInstantiator* ci,
-                    CVC5_UNUSED SolvedForm& sf,
-                    CVC5_UNUSED Node pv,
-                    CVC5_UNUSED CegInstEffort effort) override
- {
-   return true;
- }
+class ModelValueInstantiator : public Instantiator
+{
+ public:
+  ModelValueInstantiator(Env& env, TypeNode tn) : Instantiator(env, tn) {}
+  virtual ~ModelValueInstantiator() {}
+  bool useModelValue(CVC5_UNUSED CegInstantiator* ci,
+                     CVC5_UNUSED SolvedForm& sf,
+                     CVC5_UNUSED Node pv,
+                     CVC5_UNUSED CegInstEffort effort) override
+  {
+    return true;
+  }
   std::string identify() const override { return "ModelValue"; }
 };
 

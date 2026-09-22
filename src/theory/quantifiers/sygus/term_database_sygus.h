@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -291,7 +288,7 @@ class TermDbSygus : protected EnvObj
   static void toStreamSygus(const char* c, Node n);
   /** print to sygus stream n on output out */
   static void toStreamSygus(std::ostream& out, Node n);
-  
+
  private:
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
@@ -314,7 +311,7 @@ class TermDbSygus : protected EnvObj
    */
   std::map<Node, SynthConjecture*> d_enum_to_conjecture;
   /** mapping from enumerator terms to the function-to-synthesize they are
-   * associated with 
+   * associated with
    */
   std::map<Node, Node> d_enum_to_synth_fun;
   /** mapping from enumerator terms to the guard they are associated with
@@ -360,7 +357,9 @@ class TermDbSygus : protected EnvObj
 
  private:
   /** computes the map d_min_type_depth */
-  void computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, unsigned type_depth );
+  void computeMinTypeDepthInternal(TypeNode root_tn,
+                                   TypeNode tn,
+                                   unsigned type_depth);
 
  private:
   /**
@@ -409,11 +408,13 @@ class TermDbSygus : protected EnvObj
    */
   bool canConstructKind(TypeNode tn, Kind k, std::vector<TypeNode>& argts);
 
-  Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
+  Node getSygusNormalized(Node n,
+                          std::map<TypeNode, int>& var_count,
+                          std::map<Node, Node>& subs);
   Node getNormalized(TypeNode t, Node prog);
   /** get anchor */
-  static Node getAnchor( Node n );
-  static unsigned getAnchorDepth( Node n );
+  static Node getAnchor(Node n);
+  static unsigned getAnchorDepth(Node n);
 };
 
 }  // namespace quantifiers

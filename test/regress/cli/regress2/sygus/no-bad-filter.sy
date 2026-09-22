@@ -1,4 +1,5 @@
-; COMMAND-LINE: --sygus-out=status --sygus-si=all --sygus-si-rcons-p=1
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sygus-out=status --sygus-si=all --sygus-si-rcons-p=1 --sat-solver=minisat
 ; EXPECT: feasible
 
 ; This regression ensures that we are not too aggressive in filtering

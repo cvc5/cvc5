@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -408,7 +405,7 @@ bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
                            : nm->mkNode(Kind::BITVECTOR_CONCAT, cpost);
           Node cg = nm->mkNode(Kind::BITVECTOR_CONCAT, {npre, c[i], npost});
           Trace("ajr-temp") << "Groupd " << c << " to " << cg << std::endl;
-          Assert(cg.getType() == c.getType());
+          AssertEqual(cg.getType(), c.getType());
           // should be shown by ACI_NORM
           tcpg.addRewriteStep(c,
                               cg,

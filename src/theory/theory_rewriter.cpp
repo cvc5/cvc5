@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,8 +35,8 @@ std::ostream& operator<<(std::ostream& os, RewriteStatus rs)
 {
   switch (rs)
   {
-    case RewriteStatus::REWRITE_DONE:       return os << "DONE";
-    case RewriteStatus::REWRITE_AGAIN:      return os << "AGAIN";
+    case RewriteStatus::REWRITE_DONE: return os << "DONE";
+    case RewriteStatus::REWRITE_AGAIN: return os << "AGAIN";
     case RewriteStatus::REWRITE_AGAIN_FULL: return os << "AGAIN_FULL";
   }
   Unreachable();

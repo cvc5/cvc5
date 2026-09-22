@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -130,8 +127,8 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
             a[2], bvl, bvlIndex + 1, visited);
         if (!val.isNull())
         {
-          Assert(a[1].getType() == bvl[bvlIndex].getType());
-          Assert(val.getType() == body.getType());
+          AssertEqual(a[1].getType(), bvl[bvlIndex].getType());
+          AssertEqual(val.getType(), body.getType());
           Node cond = bvl[bvlIndex].eqNode(a[1]);
           ret = NodeManager::mkNode(Kind::ITE, cond, val, body);
         }
@@ -420,7 +417,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     for (size_t i = 0, numCond = conds.size(); i < numCond; i++)
     {
       size_t ii = (numCond - 1) - i;
-      Assert(conds[ii].getType() == first_arg.getType());
+      AssertEqual(conds[ii].getType(), first_arg.getType());
       curr = nm->mkNode(Kind::STORE, curr, conds[ii], vals[ii]);
       // normalize it using the array rewriter utility, which must be done at
       // each iteration of this loop

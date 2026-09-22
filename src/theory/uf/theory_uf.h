@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,16 +62,17 @@ class TheoryUF : public Theory
 
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Trace("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
+      Trace("uf-notify") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2
+                         << ", " << reason << ")" << std::endl;
       d_uf.eqNotifyDisequal(t1, t2, reason);
     }
 
    private:
     /** Reference to the parent theory */
     TheoryUF& d_uf;
-  };/* class TheoryUF::NotifyClass */
+  }; /* class TheoryUF::NotifyClass */
 
-private:
+ private:
   /** The associated cardinality extension (or nullptr if it does not exist) */
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the lambda lifting utility */
@@ -105,7 +103,6 @@ private:
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
  public:
-
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
   TheoryUF(Env& env,
            OutputChannel& out,
@@ -154,6 +151,7 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
+
  private:
   /** Called when preregistering terms of kind APPLY_UF or HO_APPLY */
   void preRegisterFunctionTerm(TNode node);

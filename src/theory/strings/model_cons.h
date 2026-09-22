@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -62,13 +59,13 @@ class ModelCons : protected EnvObj
    * lts[i] for all elements in col.
    *
    * Must assign lts to *concrete* lengths.
-   * 
+   *
    * @param m Pointer to the theory model.
    * @param n The list of string terms.
    * @param cols Populated as a partition of n based on their lengths.
    * @param lts The list of lengths for each set in the parition cols.
    */
-  virtual void separateByLength(TheoryModel * m,
+  virtual void separateByLength(TheoryModel* m,
                                 const std::vector<Node>& n,
                                 std::vector<std::vector<Node>>& cols,
                                 std::vector<Node>& lts) = 0;

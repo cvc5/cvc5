@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,11 +43,11 @@ TEST_F(TestApiWhiteSolver, getOp)
   Term listhead = d_tm.mkTerm(Kind::APPLY_SELECTOR, {headTerm, listcons1});
 
   ASSERT_EQ(listnil.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_CONSTRUCTOR));
   ASSERT_EQ(listcons1.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_CONSTRUCTOR));
   ASSERT_EQ(listhead.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_SELECTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_SELECTOR));
 }
 
 }  // namespace test

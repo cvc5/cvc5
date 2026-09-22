@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -131,13 +128,12 @@ void Cmd::invoke(cvc5::Solver* solver,
   out << std::flush;
 }
 
-void Cmd::invokeAndPrintResult(cvc5::Solver* solver,
-                               parser::SymManager* sm)
+void Cmd::invokeAndPrintResult(cvc5::Solver* solver, parser::SymManager* sm)
 {
   invoke(solver, sm);
   // the output stream reference is retrieved here since it might change after
   // invoking a (set-option :out ...) command
-  std::ostream &out = solver->getDriverOptions().out();
+  std::ostream& out = solver->getDriverOptions().out();
   if (!ok())
   {
     out << *d_commandStatus;
@@ -169,17 +165,10 @@ void Cmd::printResult(cvc5::Solver* solver, std::ostream& out) const
 
 void Cmd::resetSolver(cvc5::Solver* solver)
 {
-  std::unique_ptr<internal::Options> opts =
-      std::make_unique<internal::Options>();
-  opts->copyValues(*solver->d_originalOptions);
-  // This reconstructs a new solver object at the same memory location as the
-  // current one. Note that this command does not own the solver object!
-  // It may be safer to instead make the ResetCommand a special case in the
-  // CommandExecutor such that this reconstruction can be done within the
-  // CommandExecutor, who actually owns the solver.
-  TermManager& tm = solver->getTermManager();
-  solver->~Solver();
-  new (solver) cvc5::Solver(tm, std::move(opts));
+  // Note that this command does not own the solver object, and other objects
+  // (e.g. the InputParser) hold a pointer to it, so the solver has to be reset
+  // in place rather than replaced.
+  solver->resetInternal();
 }
 
 internal::Node Cmd::termToNode(const cvc5::Term& term)
@@ -917,7 +906,7 @@ bool tryBindToTerm(SymManager* sm,
                    bool doOverload,
                    std::ostream* out = nullptr)
 {
-  if (!sm->bind(sym, t, true))
+  if (!sm->bind(sym, t, doOverload))
   {
     if (out)
     {

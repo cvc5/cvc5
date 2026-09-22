@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +17,7 @@
 
 #include "expr/node.h"
 #include "expr/node_converter.h"
-#include "proof/alf/alf_node_converter.h"
+#include "proof/eo/eo_node_converter.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -29,7 +26,7 @@ namespace proof {
  * This is a helper class for the Alethe post-processor that converts nodes into
  * their expected form in Alethe.
  */
-class AletheNodeConverter : public BaseAlfNodeConverter
+class AletheNodeConverter : public BaseEoNodeConverter
 {
  public:
   /** Constructor
@@ -37,9 +34,15 @@ class AletheNodeConverter : public BaseAlfNodeConverter
    * @param nm The node manager
    * @param defineSkolems Whether Skolem definitions will be saved to be printed
    * separately.
+   * @param isTesting Whether the converter is running in Alethe testing mode
+   * (excludes BV, datatypes, and strings kinds/types).
    */
-  AletheNodeConverter(NodeManager* nm, bool defineSkolems = false)
-      : BaseAlfNodeConverter(nm), d_defineSkolems(defineSkolems)
+  AletheNodeConverter(NodeManager* nm,
+                      bool defineSkolems = false,
+                      bool isTesting = false)
+      : BaseEoNodeConverter(nm),
+        d_defineSkolems(defineSkolems),
+        d_isTesting(isTesting)
   {
   }
   ~AletheNodeConverter() {}
@@ -92,6 +95,13 @@ class AletheNodeConverter : public BaseAlfNodeConverter
   std::string d_error;
   /** Whether Skolem definitions will be saved to be printed separately. */
   bool d_defineSkolems;
+  /** Whether the converter is running in Alethe testing mode. When true, BV,
+   * datatypes, and strings kinds/types are reported as unsupported. */
+  bool d_isTesting;
+
+  /** Set d_error to indicate that kind k is unsupported and return a null
+   * node. */
+  Node recordUnsupportedKind(Kind k);
 
   /**
    * As above but uses the s-expression type.

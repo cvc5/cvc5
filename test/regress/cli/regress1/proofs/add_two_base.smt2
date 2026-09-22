@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --lfsc-flatten --lfsc-expand-trust
 ; EXPECT: unsat
 

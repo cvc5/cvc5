@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hans-Joerg Schurr, Andrew Reynolds, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -171,6 +168,10 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
       return "ARITH_MULT_ABS_COMPARISON";
+    case ProofRule::ARITH_POW2_INIT: return "ARITH_POW2_INIT";
+    case ProofRule::ARITH_POW2_MONOTONE: return "ARITH_POW2_MONOTONE";
+    case ProofRule::ARITH_POW2_DIV0: return "ARITH_POW2_DIV0";
+    case ProofRule::ARITH_POW2_LOWER_BOUND: return "ARITH_POW2_LOWER_BOUND";
     case ProofRule::ARITH_REDUCTION: return "ARITH_REDUCTION";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
@@ -203,7 +204,21 @@ const char* toString(ProofRule rule)
       return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
     case ProofRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
       return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
-    //================================================= External rules
+    //================================================= Finite fields
+    case ProofRule::FF_ROOT_BRANCH: return "FF_ROOT_BRANCH";
+    case ProofRule::FF_EXHAUST_BRANCH: return "FF_EXHAUST_BRANCH";
+    case ProofRule::FF_FIELD_POLYS: return "FF_FIELD_POLYS";
+    case ProofRule::FF_ONE_UNSAT: return "FF_ONE_UNSAT";
+    case ProofRule::FF_POLY_CONVERSION: return "FF_POLY_CONVERSION";
+    case ProofRule::FF_IDEAL_GENERATOR: return "FF_IDEAL_GENERATOR";
+    case ProofRule::MACRO_FF_POLY_COMBINATION:
+      return "MACRO_FF_POLY_COMBINATION";
+    case ProofRule::FF_POLY_COMBINATION: return "FF_POLY_COMBINATION";
+    case ProofRule::FF_DISEQ: return "FF_DISEQ";
+    case ProofRule::FF_POLY_NORM: return "FF_POLY_NORM";
+    case ProofRule::FF_POLY_NORM_EQ:
+      return "FF_POLY_NORM_EQ";
+      //================================================= External rules
     case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
@@ -230,7 +245,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::UBV_TO_INT_ELIM: return "ubv-to-int-elim";
     case ProofRewriteRule::INT_TO_BV_ELIM: return "int-to-bv-elim";
     case ProofRewriteRule::MACRO_BOOL_NNF_NORM: return "macro-bool-nnf-norm";
-    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE: return "macro-bool-bv-invert-solve";
+    case ProofRewriteRule::MACRO_BOOL_EQ_CONST_EQ:
+      return "macro-bool-eq-const-eq";
+    case ProofRewriteRule::MACRO_BOOL_BV_INVERT_SOLVE:
+      return "macro-bool-bv-invert-solve";
     case ProofRewriteRule::MACRO_ARITH_INT_EQ_CONFLICT:
       return "macro-arith-int-eq-conflict";
     case ProofRewriteRule::MACRO_ARITH_INT_GEQ_TIGHTEN:
@@ -249,7 +267,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID:
       return "macro-lambda-capture-avoid";
     case ProofRewriteRule::ARRAYS_SELECT_CONST: return "arrays-select-const";
-    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP: return "macro-arrays-normalize-op";
+    case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_OP:
+      return "macro-arrays-normalize-op";
     case ProofRewriteRule::MACRO_ARRAYS_NORMALIZE_CONSTANT:
       return "macro-arrays-normalize-constant";
     case ProofRewriteRule::ARRAYS_EQ_RANGE_EXPAND:

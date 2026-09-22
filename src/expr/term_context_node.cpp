@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -68,9 +65,10 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   if (!ival.isConst() || !ival.getType().isInteger()
       || !ival.getConst<Rational>().getNumerator().fitsUnsignedInt())
   {
-    DebugUnhandled() << "TermContext::decomposeNodeHash: unexpected term context "
-                     "integer in hash "
-                  << h;
+    DebugUnhandled()
+        << "TermContext::decomposeNodeHash: unexpected term context "
+           "integer in hash "
+        << h;
     return Node::null();
   }
   val = ival.getConst<Rational>().getNumerator().toUnsignedInt();

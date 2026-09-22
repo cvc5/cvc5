@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +34,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
   if (check)
   {
     // bound variable lists, etc. cannot be abstracted
-    if (n[0].getTypeOrNull() != nodeManager->boundVarListType())
+    if (!CVC5_EQUAL(n[0].getTypeOrNull(), nodeManager->boundVarListType()))
     {
       if (errOut)
       {
@@ -56,7 +53,7 @@ TypeNode QuantifierTypeRule::computeType(NodeManager* nodeManager,
     }
     if (n.getNumChildren() == 3)
     {
-      if (n[2].getTypeOrNull() != nodeManager->instPatternListType())
+      if (!CVC5_EQUAL(n[2].getTypeOrNull(), nodeManager->instPatternListType()))
       {
         if (errOut)
         {

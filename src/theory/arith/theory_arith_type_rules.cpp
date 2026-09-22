@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -193,7 +190,7 @@ TypeNode RealNullaryOperatorTypeRule::preComputeType(
 }
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool check,
+                                                  CVC5_UNUSED bool check,
                                                   std::ostream* errOut)
 {
   // for nullary operators, we only computeType for check=true, since they are
@@ -259,7 +256,7 @@ TypeNode PowTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                   CVC5_UNUSED bool check,
                                   std::ostream* errOut)
 {
-  Assert (n.getKind() == Kind::POW);
+  Assert(n.getKind() == Kind::POW);
   TypeNode arg1 = n[0].getTypeOrNull();
   TypeNode arg2 = n[1].getTypeOrNull();
   TypeNode t = arg1.leastUpperBound(arg2);

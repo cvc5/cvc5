@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -91,21 +88,25 @@ Trigger::Trigger(Env& env,
   {
     output(OutputTag::TRIGGER) << (isUser ? "(user-trigger " : "(trigger ");
     QuantAttributes& qa = d_qreg.getQuantAttributes();
-    output(OutputTag::TRIGGER)
-        << qa.quantToString(q) << " " << d_trNode;
+    output(OutputTag::TRIGGER) << qa.quantToString(q) << " " << d_trNode;
   }
   QuantifiersStatistics& stats = qs.getStats();
-  if( d_nodes.size()==1 ){
+  if (d_nodes.size() == 1)
+  {
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
       d_mg = new InstMatchGeneratorSimple(env, this, q, d_nodes[0]);
       ++(stats.d_simple_triggers);
       output(OutputTag::TRIGGER) << " :simple";
-    }else{
+    }
+    else
+    {
       d_mg = InstMatchGenerator::mkInstMatchGenerator(env, this, q, d_nodes[0]);
       ++(stats.d_triggers);
     }
-  }else{
+  }
+  else
+  {
     if (options().quantifiers.multiTriggerCache)
     {
       d_mg = new InstMatchGeneratorMulti(env, this, q, d_nodes);
@@ -135,9 +136,7 @@ Trigger::Trigger(Env& env,
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
 }
 
-Trigger::~Trigger() {
-  delete d_mg;
-}
+Trigger::~Trigger() { delete d_mg; }
 
 void Trigger::resetInstantiationRound() { d_mg->resetInstantiationRound(); }
 
@@ -255,7 +254,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
   return visited[n];
 }
 
-void Trigger::debugPrint(const char* c) const
+void Trigger::debugPrint(CVC5_UNUSED const char* c) const
 {
   Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
 }

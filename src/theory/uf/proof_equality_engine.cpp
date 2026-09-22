@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -349,7 +346,8 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
         << std::endl
         << std::endl;
     // should have existed
-    DebugUnhandled() << "pfee::assertConflict: failed to get proof for " << conc;
+    DebugUnhandled() << "pfee::assertConflict: failed to get proof for "
+                     << conc;
     return TrustNode::null();
   }
   // clone it so that we have a fresh copy

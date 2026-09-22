@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Christopher L. Conway
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,11 +12,12 @@
 
 #include "parser/parser.h"
 
+#include <cvc5/cvc5_parser.h>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "parser/commands.h"
 #include "parser/lexer.h"
-#include <cvc5/cvc5_parser.h>
 #include "parser/smt2/smt2_parser.h"
 
 namespace cvc5 {
@@ -44,8 +42,7 @@ void Parser::setStreamInput(std::istream& input, const std::string& name)
   initializeInput(name);
 }
 
-void Parser::setStringInput(const std::string& input,
-                                const std::string& name)
+void Parser::setStringInput(const std::string& input, const std::string& name)
 {
   d_flexInput = Input::mkStringInput(input);
   initializeInput(name);

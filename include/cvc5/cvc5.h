@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,6 +72,8 @@ class Statistics;
 struct APIStatistics;
 class Term;
 class PluginInternal;
+
+using NodeManagerSharedPtr = std::shared_ptr<internal::NodeManager>;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -511,7 +510,8 @@ class CVC5_EXPORT Sort
    * The symbol of this sort is the string that was
    * provided when constructing it via
    * TermManager::mkUninterpretedSort(const std::optional<std::string>&), or
-   * TermManager::mkUninterpretedSortConstructorSort(size_t, const std::optional<std::string>&).
+   * TermManager::mkUninterpretedSortConstructorSort(size_t, const
+   * std::optional<std::string>&).
    *
    * @return The raw symbol of the sort.
    */
@@ -953,15 +953,15 @@ class CVC5_EXPORT Sort
       const std::vector<Sort>& sorts);
   /** Helper to convert a vector of internal TypeNodes to Sorts. */
   std::vector<Sort> static typeNodeVectorToSorts(
-      TermManager* tm, const std::vector<internal::TypeNode>& types);
+      NodeManagerSharedPtr nm, const std::vector<internal::TypeNode>& types);
 
   /**
    * Constructor.
-   * @param tm The associated term manager.
+   * @param nm The associated node manager.
    * @param t  The internal type that is to be wrapped by this sort.
    * @return The Sort.
    */
-  Sort(TermManager* tm, const internal::TypeNode& t);
+  Sort(NodeManagerSharedPtr nm, const internal::TypeNode& t);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -970,9 +970,9 @@ class CVC5_EXPORT Sort
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
   /**
    * The internal type wrapped by this sort.
@@ -1092,19 +1092,19 @@ class CVC5_EXPORT Op
  private:
   /**
    * Constructor for a single kind (non-indexed operator).
-   * @param tm The associated term manager.
+   * @param nm The associated node manager.
    * @param k  The kind of this Op.
    */
-  Op(TermManager* tm, const Kind k);
+  Op(NodeManagerSharedPtr nm, const Kind k);
 
   /**
    * Constructor.
-   * @param tm The associated term managaer.
+   * @param nm The associated node manager.
    * @param k The kind of this Op.
    * @param n The internal node that is to be wrapped by this term.
    * @return The Term.
    */
-  Op(TermManager* tm, const Kind k, const internal::Node& n);
+  Op(NodeManagerSharedPtr nm, const Kind k, const internal::Node& n);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -1137,9 +1137,9 @@ class CVC5_EXPORT Op
   Term getIndexHelper(size_t index);
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
   /** The kind of this operator. */
   Kind d_kind;
@@ -1450,25 +1450,13 @@ class CVC5_EXPORT Term
 
     /**
      * Constructor
-     * @param tm The associated term manager.
+     * @param nm The associated node manager.
      * @param e  A `std::shared pointer` to the node that we're iterating over.
      * @param p  The position of the iterator (e.g. which child it's on).
      */
-    const_iterator(TermManager* tm,
+    const_iterator(NodeManagerSharedPtr nm,
                    const std::shared_ptr<internal::Node>& e,
                    uint32_t p);
-
-    /**
-     * Copy constructor.
-     */
-    const_iterator(const const_iterator& it);
-
-    /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
 
     /**
      * Equality operator.
@@ -1504,9 +1492,9 @@ class CVC5_EXPORT Term
 
    private:
     /**
-     * The associated term manager.
+     * The associated node manager.
      */
-    TermManager* d_tm = nullptr;
+    NodeManagerSharedPtr d_nm = nullptr;
     /** The original node to be iterated over. */
     std::shared_ptr<internal::Node> d_origNode;
     /** Keeps track of the iteration position. */
@@ -1942,27 +1930,23 @@ class CVC5_EXPORT Term
 
  protected:
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
  private:
   /** Helper function to collect all elements of a set. */
   static void collectSet(std::set<Term>& set,
                          const internal::Node& node,
-                         TermManager* tm);
-  /** Helper function to collect all elements of a sequence. */
-  static void collectSequence(std::vector<Term>& seq,
-                              const internal::Node& node,
-                              TermManager* tm);
+                         const NodeManagerSharedPtr& nm);
 
   /**
    * Constructor.
-   * @param tm The associated term manager.
+   * @param nm The associated node manager.
    * @param n The internal node that is to be wrapped by this term.
    * @return The Term.
    */
-  Term(TermManager* tm, const internal::Node& n);
+  Term(NodeManagerSharedPtr nm, const internal::Node& n);
 
   /** @return The internal wrapped Node of this term. */
   const internal::Node& getNode(void) const;
@@ -1972,7 +1956,7 @@ class CVC5_EXPORT Term
       const std::vector<Term>& terms);
   /** Helper to convert a vector of internal Nodes to Terms. */
   std::vector<Term> static nodeVectorToTerms(
-      TermManager* tm, const std::vector<internal::Node>& nodes);
+      NodeManagerSharedPtr nm, const std::vector<internal::Node>& nodes);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2142,11 +2126,11 @@ class CVC5_EXPORT DatatypeConstructorDecl
  private:
   /**
    * Constructor.
-   * @param tm   The associated term manager.
+   * @param nm   The associated node manager.
    * @param name The name of the datatype constructor.
    * @return The DatatypeConstructorDecl.
    */
-  DatatypeConstructorDecl(TermManager* tm, const std::string& name);
+  DatatypeConstructorDecl(NodeManagerSharedPtr nm, const std::string& name);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2161,9 +2145,9 @@ class CVC5_EXPORT DatatypeConstructorDecl
   bool isResolved() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
   /**
    * The internal (intermediate) datatype constructor wrapped by this
@@ -2273,24 +2257,24 @@ class CVC5_EXPORT DatatypeDecl
  private:
   /**
    * Constructor.
-   * @param tm   The associated term manager.
+   * @param nm   The associated node manager.
    * @param name The name of the datatype.
    * @param isCoDatatype True if a codatatype is to be constructed.
    * @return The DatatypeDecl.
    */
-  DatatypeDecl(TermManager* tm,
+  DatatypeDecl(NodeManagerSharedPtr nm,
                const std::string& name,
                bool isCoDatatype = false);
 
   /**
    * Constructor for parameterized datatype declaration.
    * Create sorts parameter with TermManager::mkParamSort().
-   * @param tm   The associated term manager.
+   * @param nm   The associated node manager.
    * @param name The name of the datatype.
    * @param params A list of sort parameters.
    * @param isCoDatatype True if a codatatype is to be constructed.
    */
-  DatatypeDecl(TermManager* tm,
+  DatatypeDecl(NodeManagerSharedPtr nm,
                const std::string& name,
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
@@ -2305,9 +2289,9 @@ class CVC5_EXPORT DatatypeDecl
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
   /**
    * The internal (intermediate) datatype wrapped by this datatype
@@ -2409,11 +2393,12 @@ class CVC5_EXPORT DatatypeSelector
  private:
   /**
    * Constructor.
-   * @param tm   The associated term manager.
+   * @param nm   The associated node manager.
    * @param stor The internal datatype selector to be wrapped.
    * @return The DatatypeSelector.
    */
-  DatatypeSelector(TermManager* tm, const internal::DTypeSelector& stor);
+  DatatypeSelector(NodeManagerSharedPtr nm,
+                   const internal::DTypeSelector& stor);
 
   /**
    * Helper for isNull checks. This prevents calling an API function with
@@ -2422,9 +2407,9 @@ class CVC5_EXPORT DatatypeSelector
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
@@ -2619,13 +2604,6 @@ class CVC5_EXPORT DatatypeConstructor
     const_iterator();
 
     /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
      * Equality operator.
      * @param it The iterator to compare to for equality.
      * @return True if the iterators are equal.
@@ -2666,18 +2644,18 @@ class CVC5_EXPORT DatatypeConstructor
    private:
     /**
      * Constructor.
-     * @param tm   The associated term manager.
+     * @param nm   The associated node manager.
      * @param ctor The internal datatype constructor to iterate over.
      * @param begin True if this is a `begin()` iterator.
      */
-    const_iterator(TermManager* tm,
+    const_iterator(NodeManagerSharedPtr nm,
                    const internal::DTypeConstructor& ctor,
                    bool begin);
 
     /**
-     * The associated term manager.
+     * The associated node manager.
      */
-    TermManager* d_tm = nullptr;
+    NodeManagerSharedPtr d_nm = nullptr;
 
     /**
      * A pointer to the list of selectors of the internal datatype
@@ -2706,11 +2684,12 @@ class CVC5_EXPORT DatatypeConstructor
  private:
   /**
    * Constructor.
-   * @param tm   The associated term manager.
+   * @param nm   The associated node manager.
    * @param ctor The internal datatype constructor to be wrapped.
    * @return The DatatypeConstructor.
    */
-  DatatypeConstructor(TermManager* tm, const internal::DTypeConstructor& ctor);
+  DatatypeConstructor(NodeManagerSharedPtr nm,
+                      const internal::DTypeConstructor& ctor);
 
   /**
    * Return selector for name.
@@ -2726,9 +2705,9 @@ class CVC5_EXPORT DatatypeConstructor
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
@@ -2911,13 +2890,6 @@ class CVC5_EXPORT Datatype
     const_iterator();
 
     /**
-     * Assignment operator.
-     * @param it The iterator to assign to.
-     * @return The reference to the iterator after assignment.
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
      * Equality operator.
      * @param it The iterator to compare to for equality.
      * @return True if the iterators are equal.
@@ -2958,16 +2930,18 @@ class CVC5_EXPORT Datatype
    private:
     /**
      * Constructor.
-     * @param tm    The associated term manager.
+     * @param nm    The associated node manager.
      * @param dtype The internal datatype to iterate over.
      * @param begin True if this is a begin() iterator.
      */
-    const_iterator(TermManager* tm, const internal::DType& dtype, bool begin);
+    const_iterator(NodeManagerSharedPtr nm,
+                   const internal::DType& dtype,
+                   bool begin);
 
     /**
-     * The associated term manager.
+     * The associated node manager.
      */
-    TermManager* d_tm = nullptr;
+    NodeManagerSharedPtr d_nm = nullptr;
 
     /**
      * A pointer to the list of constructors of the internal datatype
@@ -2996,11 +2970,11 @@ class CVC5_EXPORT Datatype
  private:
   /**
    * Constructor.
-   * @param tm    The associated term manager.
+   * @param nm    The associated node manager.
    * @param dtype The internal datatype to be wrapped.
    * @return The Datatype.
    */
-  Datatype(TermManager* tm, const internal::DType& dtype);
+  Datatype(NodeManagerSharedPtr nm, const internal::DType& dtype);
 
   /**
    * Return constructor for name.
@@ -3023,9 +2997,9 @@ class CVC5_EXPORT Datatype
   bool isNullHelper() const;
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    */
-  TermManager* d_tm = nullptr;
+  NodeManagerSharedPtr d_nm = nullptr;
 
   /**
    * The internal datatype wrapped by this datatype.
@@ -3187,11 +3161,11 @@ class CVC5_EXPORT Grammar
  private:
   /**
    * Constructor.
-   * @param tm        The associated term manager.
+   * @param nm        The associated node manager.
    * @param sygusVars The input variables to synth-fun/synth-var.
    * @param ntSymbols The non-terminals of this grammar.
    */
-  Grammar(TermManager* tm,
+  Grammar(NodeManagerSharedPtr nm,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
 
@@ -3201,11 +3175,11 @@ class CVC5_EXPORT Grammar
   Sort resolve();
 
   /**
-   * The associated term manager.
+   * The associated node manager.
    * @note This is only needed temporarily until deprecated term/sort handling
    * functions are removed.
    */
-  TermManager* d_tm;
+  NodeManagerSharedPtr d_nm;
   /** The internal representation of this grammar. */
   std::shared_ptr<internal::SygusGrammar> d_grammar;
 };
@@ -3755,16 +3729,12 @@ class CVC5_EXPORT Proof
 
  private:
   /** Construct a proof by wrapping a ProofNode. */
-  Proof(TermManager* tm, const std::shared_ptr<internal::ProofNode> p);
+  Proof(NodeManagerSharedPtr nm, const std::shared_ptr<internal::ProofNode> p);
 
+  /** The associated node manager. */
+  NodeManagerSharedPtr d_nm;
   /** The internal proof node wrapped by this proof object. */
   std::shared_ptr<internal::ProofNode> d_proofNode;
-  /**
-   * The associated term manager.
-   * @note This is only needed temporarily until deprecated term/sort handling
-   * functions are removed.
-   */
-  TermManager* d_tm;
 };
 
 }  // namespace cvc5
@@ -4212,10 +4182,12 @@ class CVC5_EXPORT TermManager
    * @param s The string this constant represents.
    * @return The String constant.
    * @warning This function is deprecated and replaced by
-   *          \ref TermManager::mkString(const std::u32string& s) "TermManager::mkString(const std::u32string& s)".
-   *          It will be removed in a future release.
+   *          \ref TermManager::mkString(const std::u32string& s)
+   * "TermManager::mkString(const std::u32string& s)". It will be removed in a
+   * future release.
    */
-  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term
+  [[deprecated(
+      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
   mkString(const std::wstring& s);
   /**
    * Create a String constant from a `std::u32string`.
@@ -4531,21 +4503,25 @@ class CVC5_EXPORT TermManager
                                bool fresh = true);
   /**
    * Helper for mk-functions that call NodeManager::mkConst().
+   * @param nm The associated node manager.
    * @param t  The value.
    * @return The value term.
    */
   template <typename T>
-  Term mkValHelper(const T& t);
+  static Term mkValHelper(NodeManagerSharedPtr nm, const T& t);
   /** Helper for creating operators. */
   template <typename T>
   Op mkOpHelper(Kind kind, const T& t);
   /**
    * Helper for creating rational values.
+   * @param nm The associated node manager.
    * @param r  The value (either int or real).
    * @param    isInt True to create an integer value.
    * @return The rational value term.
    */
-  Term mkRationalValHelper(const internal::Rational& r, bool isInt);
+  static Term mkRationalValHelper(NodeManagerSharedPtr nm,
+                                  const internal::Rational& r,
+                                  bool isInt);
   /**
    * Helper for mkReal functions that take a string as argument.
    * @param s     The string representation of the real/int value.
@@ -4612,11 +4588,11 @@ class CVC5_EXPORT TermManager
   Term mkTermHelper(const Op& op, const std::vector<Term>& children);
 
   /** The associated node manager. */
-  std::unique_ptr<internal::NodeManager> d_nm;
+  std::shared_ptr<internal::NodeManager> d_nm;
   /** The statistics collected on the Api level. */
-  std::unique_ptr<APIStatistics> d_stats;
+  std::shared_ptr<APIStatistics> d_stats;
   /** The statistics registry (independent from any Solver's registry). */
-  std::unique_ptr<internal::StatisticsRegistry> d_statsReg;
+  std::shared_ptr<internal::StatisticsRegistry> d_statsReg;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -5347,10 +5323,12 @@ class CVC5_EXPORT Solver
    * @param s The string this constant represents.
    * @return The String constant.
    * @warning This function is deprecated and replaced by
-   *          `TermManager::mkString(const std::u32string& s)`. It will be removed in a future release.
+   *          `TermManager::mkString(const std::u32string& s)`. It will be
+   * removed in a future release.
    */
-  [[deprecated("Use TermManager::mkString(const std::u32string& s) instead")]] Term mkString(
-      const std::wstring& s) const;
+  [[deprecated(
+      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
+  mkString(const std::wstring& s) const;
 
   /**
    * Create an empty sequence of the given element sort.
@@ -7071,6 +7049,16 @@ class CVC5_EXPORT Solver
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);
 
   /**
+   * Reset this solver to the state it had right after construction: the
+   * underlying SMT engine is rebuilt from the original option settings.
+   *
+   * Note that this preserves the identity of this object, so pointers and
+   * references to it (e.g. the one held by InputParser) stay valid, as does
+   * its term manager and hence all terms and sorts created so far.
+   */
+  void resetInternal();
+
+  /**
    * Synthesize n-ary function following specified syntactic constraints.
    *
    * SMT-LIB:
@@ -7084,14 +7072,12 @@ class CVC5_EXPORT Solver
    * @param symbol The name of the function.
    * @param boundVars The parameters to this function.
    * @param sort The sort of the return value of this function.
-   * @param isInv Determines whether this is `synth-fun` or `synth-inv`.
    * @param grammar The syntactic constraints.
    * @return The function.
    */
   Term synthFunHelper(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       const Sort& sort,
-                      bool isInv = false,
                       Grammar* grammar = nullptr) const;
 
   /** Helper for getting timeout cores */
@@ -7114,15 +7100,15 @@ class CVC5_EXPORT Solver
   /** Vector version of above. */
   void ensureWellFormedTerms(const std::vector<Term>& ts) const;
 
+  /** The associated term manager. */
+  mutable TermManager d_tm;
+
   /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<internal::Options> d_originalOptions;
   /** The SMT engine of this solver. */
   std::unique_ptr<internal::SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<internal::Random> d_rng;
-
-  /** The associated term manager. */
-  TermManager& d_tm;
 };
 
 }  // namespace cvc5

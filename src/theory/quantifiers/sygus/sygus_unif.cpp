@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -89,7 +86,7 @@ Node SygusUnif::constructBestConditional(CVC5_UNUSED Node ce,
                                          const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
-  double r = Random::getRandom().pickDouble(0.0, 1.0);
+  double r = Random::getRandom().pick<double>(0.0, 1.0);
   unsigned cindex = r * conds.size();
   if (cindex > conds.size())
   {

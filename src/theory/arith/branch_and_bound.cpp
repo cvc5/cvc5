@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -97,10 +94,10 @@ std::vector<TrustNode> BranchAndBound::branchIntegerVariable(TNode var,
       Pf pfNotRawEq =
           literal == rawEq
               ? pfNotLit
-              : pnm->mkNode(
-                  ProofRule::MACRO_SR_PRED_TRANSFORM,
-                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
-                  {rawEq.negate()});
+              : pnm->mkNode(ProofRule::MACRO_SR_PRED_TRANSFORM,
+                            {pfNotLit,
+                             teq.getGenerator()->getProofFor(teq.getProven())},
+                            {rawEq.negate()});
       Pf pfBot =
           pnm->mkNode(ProofRule::CONTRA,
                       {pnm->mkNode(ProofRule::ARITH_TRICHOTOMY,

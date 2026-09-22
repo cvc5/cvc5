@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -88,7 +85,7 @@ bool BvPpAssert::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
       }
 
       Node concat = utils::mkConcat(children);
-      Assert(utils::getSize(concat) == utils::getSize(extract[0]));
+      AssertEqual(utils::getSize(concat), utils::getSize(extract[0]));
       if (d_valuation.isLegalElimination(extract[0], concat))
       {
         if (d_env.isProofProducing())
@@ -110,7 +107,7 @@ std::shared_ptr<ProofNode> BvPpAssert::getProofFor(Node fact)
   if (it == d_ppsolves.end())
   {
     DebugUnhandled() << "BvPpAssert::getProofFor: Failed to find source for "
-                  << fact;
+                     << fact;
     return nullptr;
   }
   Node assump = it->second.getProven();

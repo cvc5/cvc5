@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,7 +166,7 @@ void RelevanceManager::computeRelevance()
     d_success = false;
     return;
   }
-  for (const Node& node: d_input)
+  for (const Node& node : d_input)
   {
     if (!computeRelevanceFor(node))
     {
@@ -217,8 +214,8 @@ bool RelevanceManager::computeRelevanceFor(TNode input)
   return true;
 }
 
-bool RelevanceManager::updateJustifyLastChild(const RlvPair& cur,
-                                              std::vector<int32_t>& childrenJustify)
+bool RelevanceManager::updateJustifyLastChild(
+    const RlvPair& cur, std::vector<int32_t>& childrenJustify)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
@@ -335,8 +332,8 @@ int32_t RelevanceManager::justify(TNode n)
   std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>
       childJustify;
   RlvPairIntMap::iterator it;
-  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>::iterator
-      itc;
+  std::unordered_map<RlvPair, std::vector<int32_t>, RlvPairHashFunction>::
+      iterator itc;
   RlvPair cur;
   TCtxStack visit(&d_ptctx);
   visit.pushInitial(n);

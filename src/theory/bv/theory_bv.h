@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Andrew Reynolds, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -98,10 +95,27 @@ class TheoryBV : public Theory
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
+  /**
+   * Get the model value of given `node`.
+   *
+   * Recursively evaluates `node` from its leaves using the model of the
+   * internal bit-vector solver (leaves that have not been bit-blasted are
+   * value-initialized to 0).
+   *
+   * @param node The Node to evaluate under the current model.
+   * @return A node representing the value of the given node.
+   */
+  Node getValue(TNode node);
+
+  /**
+   * Mark the model value cache used by getValue() as stale. Must be called
+   * whenever the underlying model may have changed (e.g. between solve calls of
+   * the abstraction refinement loop).
+   */
+  void invalidateModelCache() { d_invalidateModelCache = true; }
+
  private:
   void notifySharedTerm(TNode t) override;
-
-  Node getValue(TNode node);
 
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
@@ -123,6 +137,8 @@ class TheoryBV : public Theory
 
   /** Flag indicating whether `d_modelCache` should be invalidated. */
   context::CDO<bool> d_invalidateModelCache;
+
+  bool d_inPostCheck;
 
   /**
    * Cache for getValue() calls.

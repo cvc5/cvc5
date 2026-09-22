@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +15,7 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
-#include "proof/alf/alf_printer.h"
+#include "proof/eo/eo_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -111,7 +108,7 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
   {
     // record stats for the rule
     d_ruleCount << r;
-    bool isHandled = proof::AlfPrinter::isHandled(options(), pn.get());
+    bool isHandled = proof::EoPrinter::isHandled(options(), pn.get());
     if (!isHandled)
     {
       d_ruleEouCount << r;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,19 +39,17 @@ using namespace std;
 namespace cvc5::internal {
 namespace theory {
 
-std::ostream& operator<<(std::ostream& os, Theory::Effort level){
-  switch(level){
-  case Theory::EFFORT_STANDARD:
-    os << "EFFORT_STANDARD"; break;
-  case Theory::EFFORT_FULL:
-    os << "EFFORT_FULL"; break;
-  case Theory::EFFORT_LAST_CALL:
-    os << "EFFORT_LAST_CALL"; break;
-  default:
-      Unreachable();
+std::ostream& operator<<(std::ostream& os, Theory::Effort level)
+{
+  switch (level)
+  {
+    case Theory::EFFORT_STANDARD: os << "EFFORT_STANDARD"; break;
+    case Theory::EFFORT_FULL: os << "EFFORT_FULL"; break;
+    case Theory::EFFORT_LAST_CALL: os << "EFFORT_LAST_CALL"; break;
+    default: Unreachable();
   }
   return os;
-}/* ostream& operator<<(ostream&, Theory::Effort) */
+} /* ostream& operator<<(ostream&, Theory::Effort) */
 
 Theory::Theory(TheoryId id,
                Env& env,
@@ -76,6 +71,7 @@ Theory::Theory(TheoryId id,
       d_quantEngine(nullptr),
       d_pnm(d_env.isTheoryProofProducing() ? d_env.getProofNodeManager()
                                            : nullptr),
+      d_checkEarlyExit(true),
       d_id(id),
       d_facts(d_env.getContext()),
       d_factsHead(d_env.getContext(), 0),
@@ -83,8 +79,7 @@ Theory::Theory(TheoryId id,
 {
 }
 
-Theory::~Theory() {
-}
+Theory::~Theory() {}
 
 bool Theory::needsEqualityEngine(CVC5_UNUSED EeSetupInfo& esi)
 {
@@ -144,7 +139,8 @@ TheoryId Theory::theoryOf(TNode node,
                           TheoryId usortOwner)
 {
   TheoryId tid = THEORY_BUILTIN;
-  switch(mode) {
+  switch (mode)
+  {
     case options::TheoryOfMode::THEORY_OF_TYPE_BASED:
       // Constants, variables, 0-ary constructors
       if (node.isVar())
@@ -232,9 +228,8 @@ TheoryId Theory::theoryOf(TNode node,
         // special case.
         tid = kindToTheoryId(node.getKind());
       }
-    break;
-  default:
-    Unreachable();
+      break;
+    default: Unreachable();
   }
   return tid;
 }
@@ -270,30 +265,34 @@ void Theory::computeCareGraph()
         // We don't care about the terms of different types
         continue;
       }
-      switch (d_valuation.getEqualityStatus(a, b)) {
-      case EQUALITY_TRUE_AND_PROPAGATED:
-      case EQUALITY_FALSE_AND_PROPAGATED:
-        // If we know about it, we should have propagated it, so we can skip
-        break;
-      default:
-        // Let's split on it
-        addCarePair(a, b);
-        break;
+      switch (d_valuation.getEqualityStatus(a, b))
+      {
+        case EQUALITY_TRUE_AND_PROPAGATED:
+        case EQUALITY_FALSE_AND_PROPAGATED:
+          // If we know about it, we should have propagated it, so we can skip
+          break;
+        default:
+          // Let's split on it
+          addCarePair(a, b);
+          break;
       }
     }
   }
 }
 
-void Theory::printFacts(std::ostream& os) const {
+void Theory::printFacts(std::ostream& os) const
+{
   unsigned i, n = d_facts.size();
-  for(i = 0; i < n; i++){
+  for (i = 0; i < n; i++)
+  {
     const Assertion& a_i = d_facts[i];
-    Node assertion  = a_i;
+    Node assertion = a_i;
     os << d_id << '[' << i << ']' << " " << assertion << endl;
   }
 }
 
-void Theory::debugPrintFacts() const{
+void Theory::debugPrintFacts() const
+{
   TraceChannel.getStream() << "Theory::debugPrintFacts()" << endl;
   printFacts(TraceChannel.getStream());
 }
@@ -421,7 +420,8 @@ std::pair<bool, Node> Theory::entailmentCheck(CVC5_UNUSED TNode lit)
   return make_pair(false, Node::null());
 }
 
-void Theory::addCarePair(TNode t1, TNode t2) {
+void Theory::addCarePair(TNode t1, TNode t2)
+{
   Assert(d_careGraph != nullptr);
   Trace("sharing") << "Theory::addCarePair: add pair " << d_id << " " << t1
                    << " " << t2 << std::endl;
@@ -494,7 +494,8 @@ bool Theory::areCareDisequal(TNode x, TNode y)
   return false;
 }
 
-void Theory::getCareGraph(CareGraph* careGraph) {
+void Theory::getCareGraph(CareGraph* careGraph)
+{
   Assert(careGraph != nullptr);
 
   Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
@@ -516,7 +517,8 @@ EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
   {
     return EQUALITY_UNKNOWN;
   }
-  Trace("sharing") << "Theory<" << getId() << ">::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
+  Trace("sharing") << "Theory<" << getId() << ">::getEqualityStatus(" << a
+                   << ", " << b << ")" << std::endl;
   Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
 
   // Check for equality (simplest)
@@ -541,11 +543,11 @@ EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
 void Theory::check(Effort level)
 {
   // see if we are already done (as an optimization)
-  if (done() && level < EFFORT_FULL)
+  if (d_checkEarlyExit && done() && level < EFFORT_FULL)
   {
     return;
   }
-  Assert(d_theoryState!=nullptr);
+  Assert(d_theoryState != nullptr);
   // standard calls for resource, stats
   d_out->spendResource(Resource::TheoryCheckStep);
   TimerStat::CodeTimer checkTimer(d_checkTime);

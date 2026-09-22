@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,8 +16,8 @@
 #define CVC5__REWRITER__REWRITE_PROOF_RULE__H
 
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "expr/nary_match_trie.h"
 #include "expr/node.h"
