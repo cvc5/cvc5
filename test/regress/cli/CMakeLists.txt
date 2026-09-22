@@ -2235,6 +2235,7 @@ set(regress_0_tests
   regress0/strings/issue12322-pf-eager-len-re.smt2
   regress0/strings/issue12756-str-inc-model.smt2
   regress0/strings/issue12863-re-inc-neg.smt2
+  regress0/strings/issue12905-arith-cm-alias.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
