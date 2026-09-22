@@ -60,6 +60,7 @@ class ContextManager;
 class SolverEngineState;
 class ResourceOutListener;
 class CheckModels;
+class GetValue;
 /** Subsolvers */
 class SmtSolver;
 class SmtDriver;
@@ -88,6 +89,7 @@ class QuantifiersEngine;
 class CVC5_EXPORT SolverEngine
 {
   friend class cvc5::Solver;
+  friend class smt::GetValue;
 
   /* .......................................................................  */
  public:
@@ -970,6 +972,17 @@ class CVC5_EXPORT SolverEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
   /**
+   * Check that a model is available, i.e. that cvc5 is producing models and is
+   * in "SAT mode", otherwise throw a (recoverable) exception. This is the
+   * portion of getAvailableModel that does not require the theory model to
+   * have been built. It is used by get-value in cases where the value of a
+   * term can be determined without building a model, see getValue.
+   *
+   * @param c used for giving an error message to indicate the context
+   * this method was called.
+   */
+  void checkModelAvailable(const char* c) const;
+  /**
    * Get the available proof, which is that of the prop engine if SAT
    * proof producing, or else a dummy proof SAT_REFUTATION whose assumptions
    * are the preprocessed input formulas.
@@ -1092,6 +1105,12 @@ class CVC5_EXPORT SolverEngine
    * The utility used for checking models
    */
   std::unique_ptr<smt::CheckModels> d_checkModels;
+
+  /**
+   * The utility used for getting model values. It maintains a cache of
+   * expanded definitions for the lifetime of this solver engine.
+   */
+  std::unique_ptr<smt::GetValue> d_getValue;
 
   /**
    * The proof manager, which manages all things related to checking,

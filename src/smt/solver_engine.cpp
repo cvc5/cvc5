@@ -105,6 +105,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_smtSolver(nullptr),
       d_smtDriver(nullptr),
       d_checkModels(nullptr),
+      d_getValue(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
       d_sygusSolver(nullptr),
@@ -123,6 +124,8 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_stats));
+  // make the get-value utility
+  d_getValue.reset(new GetValue(*d_env, *this));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state));
   // make the SyGuS solver
@@ -273,6 +276,7 @@ SolverEngine::~SolverEngine()
     d_interpolSolver.reset(nullptr);
     d_quantElimSolver.reset(nullptr);
     d_sygusSolver.reset(nullptr);
+    d_getValue.reset(nullptr);
     d_smtDriver.reset(nullptr);
     d_smtSolver.reset(nullptr);
 
@@ -658,7 +662,7 @@ void SolverEngine::defineFunctionRec(Node func,
   defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
-TheoryModel* SolverEngine::getAvailableModel(const char* c) const
+void SolverEngine::checkModelAvailable(const char* c) const
 {
   if (!d_env->getOptions().theory.assignFunctionValues)
   {
@@ -682,6 +686,11 @@ TheoryModel* SolverEngine::getAvailableModel(const char* c) const
     ss << "Cannot " << c << " when produce-models options is off.";
     throw ModalException(ss.str().c_str());
   }
+}
+
+TheoryModel* SolverEngine::getAvailableModel(const char* c) const
+{
+  checkModelAvailable(c);
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
   Assert(te != nullptr);
   // If the solver is in UNKNOWN mode, we use the latest available model (e.g.,
@@ -1229,9 +1238,7 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   }
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
-  TheoryModel* m = getAvailableModel("get-value");
-  GetValue gv(*d_env);
-  return gv.getValue(m, t, fromUser);
+  return d_getValue->getValue(t, fromUser);
 }
 
 std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs,
