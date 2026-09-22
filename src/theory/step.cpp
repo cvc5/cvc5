@@ -23,6 +23,14 @@ std::ostream& operator<<(std::ostream& out, Step s)
   {
     case Step::NONE: out << "NONE"; break;
     case Step::BREAK: out << "BREAK"; break;
+    case Step::BAGS_CHECK_INIT: out << "BAGS_CHECK_INIT"; break;
+    case Step::BAGS_CHECK_BAG_MAKE: out << "BAGS_CHECK_BAG_MAKE"; break;
+    case Step::BAGS_CHECK_BASIC_OPERATIONS:
+      out << "BAGS_CHECK_BASIC_OPERATIONS";
+      break;
+    case Step::BAGS_CHECK_QUANTIFIED_OPERATIONS:
+      out << "BAGS_CHECK_QUANTIFIED_OPERATIONS";
+      break;
     case Step::SETS_CHECK_RESET: out << "SETS_CHECK_RESET"; break;
     case Step::SETS_CHECK_BASIC: out << "SETS_CHECK_BASIC"; break;
     case Step::SETS_CHECK_CARDINALITY: out << "SETS_CHECK_CARDINALITY"; break;
