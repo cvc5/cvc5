@@ -1,8 +1,6 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
-; CPC checking fails because the signature does not define fp.to_real_total.
-; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (declare-const x Real)
