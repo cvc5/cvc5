@@ -19,6 +19,41 @@ class NodeIdMintingPoint extends Function {
 }
 
 /**
+ * The innermost ancestor directory named "src" of a file that defines a
+ * minting point. Both the checked-in sources and the sources generated into
+ * the build directory provide one.
+ */
+Folder getSourceDir() {
+  exists(NodeIdMintingPoint mint |
+    result = mint.getFile().getParentContainer+() and
+    result.getBaseName() = "src" and
+    not exists(Folder deeper |
+      deeper = mint.getFile().getParentContainer+() and
+      deeper.getBaseName() = "src" and
+      result = deeper.getParentContainer+()
+    )
+  )
+}
+
+/** A root directory of the analyzed source tree. */
+Folder getSourceRoot() { result = getSourceDir().getParentContainer() }
+
+/**
+ * Holds if `f` is defined in the analyzed source tree.
+ *
+ * The root is derived from where the minting points themselves are defined,
+ * rather than by matching the absolute path against a fixed pattern. Matching
+ * the path ties the result to where the repository happens to be checked out:
+ * the recursive case below then contributes nothing whenever the checkout has
+ * no matching path segment, the closure silently collapses to the two minting
+ * points, and the clang-tidy check that consumes this list stops matching
+ * anything instead of failing.
+ */
+predicate inSourceTree(Function f) {
+  f.getFile().getParentContainer+() = getSourceRoot()
+}
+
+/**
  * A recursive predicate to identify functions whose execution depends on 
  * or triggers a NodeId assignment.
  */
@@ -31,8 +66,8 @@ query predicate isNodeIdDependent(Function f) {
     f.calls(callee) and
     isNodeIdDependent(callee)
   ) and
-  // Focus only on the cvc5 source tree to avoid library noise
-  f.getFile().getAbsolutePath().matches("%/cvc5/%")
+  // Focus only on the analyzed source tree to avoid library noise
+  inSourceTree(f)
 }
 
 from Function f
