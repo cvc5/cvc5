@@ -57,7 +57,8 @@ class TheoryBags : public Theory
   //--------------------------------- end initialization
 
   /**
-   * initialize bag and count terms
+   * initialize bag and count terms. This is the first step of the strategy,
+   * run at the beginning of each of its passes.
    */
   void initialize();
   /**
@@ -83,10 +84,6 @@ class TheoryBags : public Theory
   void computeCareGraph() override;
   void processCarePairArgs(TNode a, TNode b) override;
   bool isCareArg(Node n, unsigned a);
-  /** run strategy for effort e */
-  void runStrategy(Theory::Effort e);
-  /** run the given inference step */
-  bool runInferStep(InferStep s, int effort);
 
  private:
   /** Functions to handle callbacks from equality engine */

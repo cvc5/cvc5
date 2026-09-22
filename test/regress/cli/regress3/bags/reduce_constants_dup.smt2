@@ -1,3 +1,5 @@
+; Safe and stable modes disallow combining uf-lazy-ll with fmf-bound.
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc
