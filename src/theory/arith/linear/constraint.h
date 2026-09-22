@@ -431,7 +431,19 @@ class Constraint
 
   bool hasLiteral() const { return !d_literal.isNull(); }
 
-  void setLiteral(Node n);
+  /**
+   * Set the literal of this constraint to n, or record n as an alternative
+   * literal for this constraint if it already has one.
+   *
+   * @param n The literal, which maps to this constraint in the node to
+   * constraint map of the database.
+   * @param nn The normal form of n, which is used for sanity checking that n
+   * indeed corresponds to this constraint. Note that n itself may not be in
+   * normal form, e.g. it may be an equality that is unnormalized or oriented
+   * differently, since the rewriter does not normalize equalities, see
+   * rewriter::normalizeEquality.
+   */
+  void setLiteral(Node n, Node nn);
 
   Node getLiteral() const
   {
@@ -1000,6 +1012,15 @@ class ConstraintDatabase : protected EnvObj
   NodetoConstraintMap d_nodetoConstraintMap;
 
   /**
+   * Maps a constraint to the literals, other than its own literal, that map
+   * to it in d_nodetoConstraintMap. This is non-empty only in the rare case
+   * where multiple atoms normalize to the same constraint, which is possible
+   * for equalities between integer terms, e.g. (= x 0) and (= (to_real x) 0.0).
+   * It is used to clean up d_nodetoConstraintMap when a constraint is deleted.
+   */
+  std::unordered_map<ConstraintP, std::vector<Node>> d_altLiterals;
+
+  /**
    * A queue of propagated constraints.
    * ConstraintCP are pointers.
    * The elements of the queue do not require destruction.
@@ -1107,8 +1128,15 @@ class ConstraintDatabase : protected EnvObj
 
   ~ConstraintDatabase();
 
-  /** Adds a literal to the database. */
-  ConstraintP addLiteral(TNode lit);
+  /**
+   * Adds a literal to the database.
+   *
+   * @param lit The literal, i.e. an atom or its negation.
+   * @param nlit The normal form of lit, which determines the constraint that
+   * lit corresponds to. This may differ from lit for equalities, whose normal
+   * form is not computed by the rewriter, see rewriter::normalizeEquality.
+   */
+  ConstraintP addLiteral(TNode lit, TNode nlit);
 
   /**
    * If hasLiteral() is true, returns the constraint.

@@ -24,6 +24,8 @@ namespace cvc5::internal {
  * This converts a node into one that does not involve (arithmetic) subtyping.
  * In particular, all applications of arithmetic symbols that involve at least
  * one (strict) Real child are such that all children are cast to real.
+ * Moreover, applications of TO_REAL to Real terms are eliminated, since
+ * TO_REAL is strictly a function from Int to Real.
  *
  * Note this converter is necessary since our type rules for arithmetic
  * operators are more permissive internally than in SMT-LIB, since e.g. ADD
