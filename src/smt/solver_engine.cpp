@@ -20,9 +20,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
-#include "expr/non_closed_node_converter.h"
 #include "expr/plugin.h"
-#include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
@@ -46,8 +44,8 @@
 #include "smt/check_models.h"
 #include "smt/context_manager.h"
 #include "smt/env.h"
-#include "smt/expand_definitions.h"
 #include "smt/find_synth_solver.h"
+#include "smt/get_value.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
@@ -1231,123 +1229,9 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   }
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
-  TypeNode expectedType = t.getType();
-
-  // We must expand definitions here, which replaces certain subterms of t
-  // by the form that is used internally. This is necessary for some corner
-  // cases of get-value to be accurate, e.g., when getting the value of
-  // a division-by-zero term, we require getting the appropriate skolem
-  // function corresponding to division-by-zero which may have been used during
-  // the previous satisfiability check.
-  std::unordered_map<Node, Node> cache;
-  ExpandDefs expDef(*d_env.get());
-  // Must apply substitutions first to ensure we expand definitions in the
-  // solved form of t as well.
-  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
-  n = expDef.expandDefinitions(n, cache);
-
-  Trace("smt") << "--- getting value of " << n << endl;
-  // There are two ways model values for terms are computed (for historical
-  // reasons).  One way is that used in check-model; the other is that
-  // used by the Model classes.  It's not clear to me exactly how these
-  // two are different, but they need to be unified.  This ugly hack here
-  // is to fix bug 554 until we can revamp boolean-terms and models [MGD]
-
-  // AJR : necessary?
-  if (!n.getType().isFunction())
-  {
-    n = d_env->getRewriter()->rewrite(n);
-  }
-
-  Trace("smt") << "--- getting value of " << n << endl;
   TheoryModel* m = getAvailableModel("get-value");
-  Assert(m != nullptr);
-  Node resultNode = m->getValue(n);
-  Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
-  Trace("smt") << "--- type " << resultNode.getType() << endl;
-  Trace("smt") << "--- expected type " << expectedType << endl;
-
-  // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType() == expectedType)
-      << "Run with -t smt for details.";
-
-  // Ensure it's a value (constant or const-ish like real algebraic
-  // numbers), or a lambda (for uninterpreted functions). This assertion only
-  // holds for models that do not have approximate values.
-  if (!m->isValue(resultNode))
-  {
-    bool subSuccess = false;
-    if (fromUser && d_env->getOptions().smt.checkModelSubsolver)
-    {
-      // invoke satisfiability check
-      // ensure symbols have been substituted
-      resultNode = m->simplify(resultNode);
-      // Note that we must be a "closed" term, i.e. one that can be
-      // given in an assertion.
-      if (NonClosedNodeConverter::isClosed(*d_env.get(), resultNode))
-      {
-        // set up a resource limit
-        ResourceManager* rm = getResourceManager();
-        rm->beginCall();
-        TypeNode rtn = resultNode.getType();
-        SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
-        Node k = skm->mkInternalSkolemFunction(
-            InternalSkolemId::GET_VALUE_PURIFY, rtn, {resultNode});
-        // the query is (k = resultNode)
-        Node checkQuery = resultNode.eqNode(k);
-        Options subOptions;
-        subOptions.copyValues(d_env->getOptions());
-        smt::SetDefaults::disableChecking(subOptions);
-        // ensure no infinite loop
-        subOptions.write_smt().checkModelSubsolver = false;
-        subOptions.write_smt().modelVarElimUneval = false;
-        subOptions.write_smt().simplificationMode =
-            options::SimplificationMode::NONE;
-        // initialize the subsolver
-        SubsolverSetupInfo ssi(*d_env.get(), subOptions);
-        std::unique_ptr<SolverEngine> getValueChecker;
-        initializeSubsolver(d_env->getNodeManager(), getValueChecker, ssi);
-        // disable all checking options
-        SetDefaults::disableChecking(getValueChecker->getOptions());
-        getValueChecker->assertFormula(checkQuery);
-        Result r = getValueChecker->checkSat();
-        if (r == Result::SAT)
-        {
-          // value is the result of getting the value of k
-          resultNode = getValueChecker->getValue(k);
-          subSuccess = m->isValue(resultNode);
-        }
-        // end resource limit
-        rm->refresh();
-      }
-    }
-    if (!subSuccess)
-    {
-      d_env->warning() << "Could not evaluate " << resultNode << " in getValue."
-                       << std::endl;
-    }
-  }
-
-  if (d_env->getOptions().smt.abstractValues)
-  {
-    TypeNode rtn = resultNode.getType();
-    if (rtn.isArray())
-    {
-      // construct the skolem function
-      SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
-      Node a = skm->mkInternalSkolemFunction(
-          InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
-      // add to top-level substitutions if applicable
-      theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
-      if (!tsm.get().hasSubstitution(resultNode))
-      {
-        tsm.addSubstitution(resultNode, a);
-      }
-      resultNode = a;
-      Trace("smt") << "--- abstract value >> " << resultNode << endl;
-    }
-  }
-  return resultNode;
+  GetValue gv(*d_env);
+  return gv.getValue(m, t, fromUser);
 }
 
 std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs,
