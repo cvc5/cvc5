@@ -48,19 +48,8 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   /**
    * Add substitution x -> t, where pg can provide a closed proof of (= x t)
    * in the remainder of this user context.
-   *
-   * If trackProof is false, the substitution is not tracked for proofs, that
-   * is, it does not occur as a premise of the proofs of applying this
-   * substitution map. This should only be used for substitutions that are not
-   * expected to apply to the formulas we require proofs for, e.g. definitions
-   * whose applications have already been expanded in the input. Note that if
-   * such a substitution does apply, then a trust step is used to justify the
-   * result instead.
    */
-  void addSubstitution(TNode x,
-                       TNode t,
-                       ProofGenerator* pg = nullptr,
-                       bool trackProof = true);
+  void addSubstitution(TNode x, TNode t, ProofGenerator* pg = nullptr);
   /**
    * Add substitution x -> t from a single proof step with rule id, no children
    * and arguments args.

@@ -98,10 +98,7 @@ void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
     if (std::find(fassumps.begin(), fassumps.end(), a) != fassumps.end())
     {
       Trace("unsat-core") << "\tyes\n";
-      // Add the input form of the assertion, which is a itself unless
-      // definitions were expanded in it. This ensures the core corresponds to
-      // the input, e.g. that named assertions can be identified.
-      coreSet.insert(as.getInputForm(a));
+      coreSet.insert(a);
     }
   }
   core.insert(core.end(), coreSet.begin(), coreSet.end());
@@ -234,11 +231,6 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
                    << std::endl;
   std::unordered_set<Node> removed;
   std::unordered_set<Node> adefs = as.getCurrentAssertionListDefitions();
-  // The definitions that are treated as macros are always part of the
-  // context, and are required for interpreting the assertions of the core.
-  const context::CDList<Node>& mdefs = as.getMacroDefinitions();
-  std::vector<Node> cassert(mdefs.begin(), mdefs.end());
-  cassert.insert(cassert.end(), core.begin(), core.end());
   for (const Node& skip : core)
   {
     std::unique_ptr<SolverEngine> coreChecker;
@@ -249,7 +241,7 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
     // add to removed set?
     removed.insert(skip);
     // assert everything to the subsolver
-    theory::assertToSubsolver(*coreChecker.get(), cassert, adefs, removed);
+    theory::assertToSubsolver(*coreChecker.get(), core, adefs, removed);
     Result r;
     try
     {
@@ -294,11 +286,6 @@ void UnsatCoreManager::partitionUnsatCore(const std::vector<Node>& core,
 {
   const Assertions& as = d_slv.getAssertions();
   std::unordered_set<Node> defs = as.getCurrentAssertionListDefitions();
-  // The definitions that are treated as macros do not occur in the core,
-  // since they are not assertions. They are required for interpreting the
-  // core, hence we always include them.
-  const context::CDList<Node>& mdefs = as.getMacroDefinitions();
-  coreDefs.insert(coreDefs.end(), mdefs.begin(), mdefs.end());
   for (const Node& c : core)
   {
     if (defs.find(c) != defs.end())

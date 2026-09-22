@@ -14,7 +14,6 @@
 
 #include "proof/proof.h"
 #include "proof/proof_node_manager.h"
-#include "smt/assertions.h"
 #include "smt/proof_manager.h"
 
 namespace cvc5::internal {
@@ -52,9 +51,7 @@ void ProofLoggerCpc::logCnfPreprocessInputs(const std::vector<Node>& inputs)
   std::shared_ptr<ProofNode> pfn = cdp.getProofFor(conc);
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
-  ProofInputInfo pii;
-  pii.initialize(d_as);
-  d_eop.print(d_eout, d_ppProof, m, &pii);
+  d_eop.print(d_eout, d_ppProof, m);
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 
@@ -76,9 +73,7 @@ void ProofLoggerCpc::logCnfPreprocessInputProofs(
     }
     ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
     d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
-    ProofInputInfo pii;
-    pii.initialize(d_as);
-    d_eop.print(d_eout, d_ppProof, m, &pii);
+    d_eop.print(d_eout, d_ppProof, m);
   }
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }

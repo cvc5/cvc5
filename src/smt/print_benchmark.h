@@ -57,14 +57,11 @@ class PrintBenchmark
    * @param outDef The output stream to print the definitions on.
    * @param def The definitions to print.
    * @param term The terms to print declarations and definitions from.
-   * @param skipSyms The symbols that should not be declared, e.g. those whose
-   * definitions are printed elsewhere.
    */
   void printDeclarationsFrom(std::ostream& outDecl,
                              std::ostream& outDef,
                              const std::vector<Node>& defs,
-                             const std::vector<Node>& terms,
-                             const std::unordered_set<Node>& skipSyms = {});
+                             const std::vector<Node>& terms);
   /**
    * Print assertions. This prints a parsable set of commands on the output
    * stream out that defines (recursive) functions in defs, and asserts

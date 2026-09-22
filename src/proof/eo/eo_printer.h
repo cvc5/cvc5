@@ -33,12 +33,6 @@
 
 namespace cvc5::internal {
 
-namespace printer {
-namespace smt2 {
-class Smt2Printer;
-}
-}  // namespace printer
-
 namespace proof {
 
 class EoPrinter : protected EnvObj
@@ -56,27 +50,19 @@ class EoPrinter : protected EnvObj
    * @param pfn The proof node.
    * @param psm The scope mode, which determines whether there are outermost
    * scope to process in pfn. If this is the case, we print assume steps.
-   * @param pii Information relating the assertions of pfn to the input, if
-   * they differ. This is the case e.g. if definitions were expanded in the
-   * assertions, in which case they are printed as macro definitions and the
-   * assumptions are printed in their input form.
    */
   void print(std::ostream& out,
              std::shared_ptr<ProofNode> pfn,
-             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-             const ProofInputInfo* pii = nullptr);
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
   /**
    * Same as above, but with a Eunoia print channel.
    * @param out The output stream.
    * @param pfn The proof node.
    * @param psm The scope mode.
-   * @param pii Information relating the assertions of pfn to the input, if
-   * they differ.
    */
   void print(EoPrintChannelOut& out,
              std::shared_ptr<ProofNode> pfn,
-             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-             const ProofInputInfo* pii = nullptr);
+             ProofScopeMode psm = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
   /**
    * Print the proof, assuming that previous proofs have been printed on this
    * printer that have (partially) given the definition of subterms and
@@ -192,55 +178,6 @@ class EoPrinter : protected EnvObj
   size_t allocateProofId(const ProofNode* pn, bool& wasAlloc);
   /** Print let list to output stream out */
   void printLetList(std::ostream& out, LetBinding& lbind);
-  /**
-   * Print the declarations and definitions for the given definitions and
-   * assertions of a proof.
-   *
-   * @param out The output stream.
-   * @param definitions The definitions of the proof, which are printed as
-   * ordinary definitions.
-   * @param assertions The assertions of the proof.
-   * @param macroDefs The definitions to print as macro definitions.
-   * @param pii Information relating the assertions to the input, see print.
-   * @return true if the definitions in macroDefs were printed as macro
-   * definitions. This is false if a symbol in macroDefs cannot be defined as
-   * a macro, in which case the assumptions of the proof should not be printed
-   * in their input form.
-   */
-  bool printDeclarations(std::ostream& out,
-                         const std::vector<Node>& definitions,
-                         const std::vector<Node>& assertions,
-                         const std::vector<Node>& macroDefs,
-                         const ProofInputInfo* pii);
-  /**
-   * Return true if we can define the symbols with the given names as macros,
-   * given that we print the given definitions and terms.
-   *
-   * This is false if a name is used by a sort we declare, since Eunoia has a
-   * single namespace for symbols, in contrast to SMT-LIB, where sorts and
-   * functions are in separate ones.
-   *
-   * @param names The names of the symbols we intend to define as macros.
-   * @param definitions The definitions we print.
-   * @param terms The terms we print declarations from.
-   * @return true if the symbols can be defined as macros.
-   */
-  bool canDefineMacros(const std::unordered_set<std::string>& names,
-                       const std::vector<Node>& definitions,
-                       const std::vector<Node>& terms) const;
-  /**
-   * Print the definition def, which is an equality (= f t), as a Eunoia
-   * define command, which is a macro. If t is a lambda, the definition is
-   * printed with the parameters of that lambda, e.g. (= f (lambda (x) t')) is
-   * printed as (define f ((x T)) t').
-   *
-   * @param out The output stream.
-   * @param eprinter The printer to use for printing the command.
-   * @param def The definition.
-   */
-  void printMacroDefinition(std::ostream& out,
-                            const printer::smt2::Smt2Printer& eprinter,
-                            const Node& def);
   /** Reference to the term processor */
   BaseEoNodeConverter& d_tproc;
   /** Assume id counter */

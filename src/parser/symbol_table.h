@@ -183,7 +183,7 @@ class CVC5_EXPORT SymbolTable
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(cvc5::Term fun) const;
+  bool isOverloadedFunction(const std::string& name, cvc5::Term fun) const;
 
   /** Get overloaded constant for type.
    * If possible, it returns the defined symbol with name

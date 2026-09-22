@@ -232,14 +232,6 @@ name   = "Proof"
   help       = "Print reference to original file instead of redeclaring"
 
 [[option]]
-  name       = "proofDefineFunMacros"
-  category   = "common"
-  long       = "proof-define-fun-macros"
-  type       = "bool"
-  default    = "false"
-  help       = "Treat define-fun as macros in proofs, where applications of defined functions are eagerly expanded in input assertions and definitions are printed as macro definitions instead of appearing as assumptions in proofs"
-
-[[option]]
   name       = "satProofMinDimacs"
   category   = "expert"
   long       = "sat-proof-min-dimacs"

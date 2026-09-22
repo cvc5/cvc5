@@ -15,9 +15,6 @@
 #ifndef CVC5__SMT__PROOF_MANAGER_H
 #define CVC5__SMT__PROOF_MANAGER_H
 
-#include <map>
-#include <vector>
-
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "options/proof_options.h"
@@ -48,38 +45,10 @@ enum class ProofScopeMode
 };
 
 namespace smt {
+
 class Assertions;
 class PreprocessProofGenerator;
 class ProofPostprocess;
-}  // namespace smt
-
-/**
- * Information relating the assertions of a proof to the input, which is used
- * for printing proofs whose assumptions match the input.
- *
- * This is relevant when define-fun are treated as macros (see option
- * proofDefineFunMacros), in which case the assertions given to the SMT solver
- * are the result of expanding the definitions in the input. For such proofs,
- * the definitions are printed as macro definitions and the assumptions are
- * printed in their input form, which is well defined since the two are
- * equivalent modulo the expansion of these definitions.
- */
-struct ProofInputInfo
-{
-  /** Initialize this class based on the assertions as */
-  void initialize(const smt::Assertions& as);
-  /**
-   * Get the input form of assertion a, which is a itself if a was not
-   * modified.
-   */
-  Node getInputForm(const Node& a) const;
-  /** The definitions that are treated as macros, in the order they were made */
-  std::vector<Node> d_macroDefs;
-  /** Maps assertions to their input form */
-  std::map<Node, Node> d_inputForm;
-};
-
-namespace smt {
 
 /**
  * This class is responsible for managing the proof output of SolverEngine, as
@@ -126,15 +95,12 @@ class PfManager : protected EnvObj
    * @param fp The proof to print.
    * @param mode The format (e.g. cpc, alethe) to print.
    * @param scopeMode The expected form of fp (see ProofScopeMode).
-   * @param as Reference to the assertions, which are used to relate the
-   * assumptions of fp to the input (see ProofInputInfo).
    * @param assertionNames The named assertions of the input.
    */
   void printProof(std::ostream& out,
                   std::shared_ptr<ProofNode> fp,
                   options::ProofFormatMode mode,
                   ProofScopeMode scopeMode,
-                  Assertions& as,
                   const std::map<Node, std::string>& assertionNames =
                       std::map<Node, std::string>());
 

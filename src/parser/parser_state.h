@@ -399,6 +399,12 @@ class CVC5_EXPORT ParserState
    */
   Sort mkFlatFunctionType(std::vector<Sort>& sorts, Sort range);
 
+  /**
+   * Construct and type check a function application. With parser macros,
+   * beta-reduce a lambda operator before the term reaches the solver.
+   */
+  Term mkApply(Kind kind, const std::vector<Term>& args);
+
   /** make higher-order apply
    *
    * This returns the left-associative curried application of (function) expr to
@@ -516,9 +522,9 @@ class CVC5_EXPORT ParserState
 
   //------------------------ operator overloading
   /** is this function overloaded? */
-  bool isOverloadedFunction(Term fun)
+  bool isOverloadedFunction(const std::string& name, Term fun)
   {
-    return d_symtab->isOverloadedFunction(fun);
+    return d_symtab->isOverloadedFunction(name, fun);
   }
 
   /** Get overloaded constant for type.

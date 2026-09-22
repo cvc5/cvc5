@@ -34,12 +34,10 @@ struct BenchmarkNoPrintAttributeId
 using BenchmarkNoPrintAttribute =
     expr::Attribute<BenchmarkNoPrintAttributeId, bool>;
 
-void PrintBenchmark::printDeclarationsFrom(
-    std::ostream& outDecl,
-    std::ostream& outDef,
-    const std::vector<Node>& defs,
-    const std::vector<Node>& terms,
-    const std::unordered_set<Node>& skipSyms)
+void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
+                                           std::ostream& outDef,
+                                           const std::vector<Node>& defs,
+                                           const std::vector<Node>& terms)
 {
   std::unordered_set<TypeNode> unorderedTypes;
   std::unordered_set<TNode> typeVisited;
@@ -128,7 +126,7 @@ void PrintBenchmark::printDeclarationsFrom(
     }
   }
   // go back and print the definitions
-  std::unordered_set<Node> alreadyPrintedDecl(skipSyms.begin(), skipSyms.end());
+  std::unordered_set<Node> alreadyPrintedDecl;
   std::unordered_set<Node> alreadyPrintedDef;
 
   std::unordered_map<Node, std::pair<bool, Node>>::const_iterator itd;

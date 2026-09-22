@@ -1552,14 +1552,11 @@ std::vector<Node> SolverEngine::getAssertionsInternal() const
   Assert(d_state->isFullyInited());
   // ensure that global declarations are processed
   d_smtSolver->getAssertions().refresh();
-  const Assertions& as = d_smtSolver->getAssertions();
-  const CDList<Node>& al = as.getAssertionList();
+  const CDList<Node>& al = d_smtSolver->getAssertions().getAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
   {
-    // return the input form of the assertion, which is n itself unless
-    // definitions were expanded in it
-    res.emplace_back(as.getInputForm(n));
+    res.emplace_back(n);
   }
   return res;
 }
@@ -1638,7 +1635,6 @@ void SolverEngine::printProof(std::ostream& out,
                           fp,
                           mode,
                           ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-                          d_smtSolver->getAssertions(),
                           assertionNames);
   out << ")" << std::endl;
 }
@@ -1809,16 +1805,10 @@ void SolverEngine::checkUnsatCore()
   d_env->verbose(1) << "SolverEngine::checkUnsatCore(): pushing core assertions"
                     << std::endl;
   // set up the subsolver
-  const Assertions& as = d_smtSolver->getAssertions();
-  std::unordered_set<Node> adefs = as.getCurrentAssertionListDefitions();
+  std::unordered_set<Node> adefs =
+      d_smtSolver->getAssertions().getCurrentAssertionListDefitions();
   std::unordered_set<Node> removed;
-  // The definitions that are treated as macros are always part of the
-  // context, and are required for interpreting the assertions of the core.
-  const CDList<Node>& mdefs = as.getMacroDefinitions();
-  std::vector<Node> cassert(mdefs.begin(), mdefs.end());
-  const std::vector<Node>& ccore = core.getCore();
-  cassert.insert(cassert.end(), ccore.begin(), ccore.end());
-  assertToSubsolver(*coreChecker.get(), cassert, adefs, removed);
+  assertToSubsolver(*coreChecker.get(), core.getCore(), adefs, removed);
   Result r;
   try
   {
@@ -2031,11 +2021,8 @@ void SolverEngine::proofToString(std::ostream& out,
                                  std::shared_ptr<ProofNode> fp)
 {
   options::ProofFormatMode format_mode = getOptions().proof.proofFormatMode;
-  d_pfManager->printProof(out,
-                          fp,
-                          format_mode,
-                          ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-                          d_smtSolver->getAssertions());
+  d_pfManager->printProof(
+      out, fp, format_mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
 }
 
 void SolverEngine::printInstantiations(std::ostream& out)

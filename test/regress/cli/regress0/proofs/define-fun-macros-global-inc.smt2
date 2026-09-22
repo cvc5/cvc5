@@ -1,5 +1,4 @@
-; COMMAND-LINE: --proof-define-fun-macros --check-proofs -i --global-declarations
-; DISABLE-TESTER: alethe
+; COMMAND-LINE: --parse-define-fun-macros --check-proofs -i --global-declarations
 ; EXPECT: unsat
 ; EXPECT: unsat
 (set-logic UFLIA)

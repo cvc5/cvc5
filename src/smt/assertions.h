@@ -15,10 +15,8 @@
 #ifndef CVC5__SMT__ASSERTIONS_H
 #define CVC5__SMT__ASSERTIONS_H
 
-#include <memory>
 #include <vector>
 
-#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -27,10 +25,6 @@
 namespace cvc5::internal {
 
 class LazyCDProof;
-
-namespace theory {
-class SubstitutionMap;
-}
 
 namespace smt {
 
@@ -48,8 +42,6 @@ class Assertions : protected EnvObj
 {
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
-  /** The type of our internal map from assertions to assertions */
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   Assertions(Env& env);
@@ -101,26 +93,6 @@ class Assertions : protected EnvObj
    * that correspond to definitions (define-fun or define-fun-rec).
    */
   const context::CDList<Node>& getAssertionListDefinitions() const;
-  /**
-   * Get the list of definitions that are treated as macros, in the order they
-   * were made. These are equalities of the form (= f t), where the
-   * applications of f have been expanded in the assertions maintained by this
-   * class. Thus, in contrast to the definitions above, they are *not*
-   * assertions themselves. This list is non-empty only if the option
-   * proofDefineFunMacros is true.
-   */
-  const context::CDList<Node>& getMacroDefinitions() const;
-  /**
-   * Get the input form of assertion n, that is, the form of n prior to
-   * expanding the definitions that are treated as macros. Returns n itself if
-   * n was not modified.
-   *
-   * Note that n and its input form are equivalent modulo the expansion of the
-   * definitions returned by getMacroDefinitions above. Hence, the input form
-   * can be used in an output (e.g. a proof) that treats these definitions as
-   * macros.
-   */
-  Node getInputForm(const Node& n) const;
   /** Get the set corresponding to the above */
   std::unordered_set<Node> getCurrentAssertionListDefitions() const;
   /**
@@ -152,59 +124,11 @@ class Assertions : protected EnvObj
    */
   void addFormula(TNode n, bool isFunDef, bool maybeHasFv);
   /**
-   * Process the definition n as a macro, where n is expected to be the
-   * assertion corresponding to a define-fun (or define-fun-rec) command. If
-   * successful, its applications are expanded in subsequent assertions and it
-   * is added to d_macroDefs, and notably it is *not* added to the list of
-   * assertions maintained by this class.
-   *
-   * This is only used when proofDefineFunMacros is true.
-   *
-   * @param n The definition.
-   * @return true if n was processed as a macro. This is false e.g. for
-   * (mutually) recursive function definitions, which cannot be expanded.
-   */
-  bool addMacroDefinition(const Node& n);
-  /**
-   * Expand applications of defined functions in n based on the definitions
-   * that have been treated as macros so far (stored in d_defSubs). If the
-   * substitution changes n, beta redexes introduced by the expansion are
-   * eliminated from the result.
-   *
-   * This is only used when proofDefineFunMacros is true.
-   *
-   * @param n The node to expand.
-   * @return The expanded form of n.
-   */
-  Node applyDefinitions(TNode n);
-  /**
-   * Return true if expanding the definitions that are treated as macros in n
-   * (see applyDefinitions) coincides with expanding them as macros, that is,
-   * with replacing their applications by their bodies.
-   *
-   * This is false e.g. for (P f), where f is a defined function that is
-   * passed as a higher-order argument, since expanding f there requires
-   * replacing it by a lambda term.
-   *
-   * @param n The node to check.
-   * @return true if expanding the definitions in n is macro expansion.
-   */
-  bool isMacroExpansion(TNode n) const;
-  /** Return true if n is a definition treated as a macro that has parameters */
-  bool isMacroWithParams(TNode n) const;
-  /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */
   AssertionList d_assertionList;
   /** The subset of above the correspond to define-fun or define-fun-rec */
   AssertionList d_assertionListDefs;
-  /** The definitions that are treated as macros, see getMacroDefinitions */
-  AssertionList d_macroDefs;
-  /**
-   * Maps the assertions in d_assertionList to their input form, for those
-   * that were changed by expanding the definitions in d_macroDefs.
-   */
-  NodeNodeMap d_inputForm;
   /**
    * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.
@@ -218,13 +142,6 @@ class Assertions : protected EnvObj
   std::vector<Node> d_assumptions;
   /** Proof generator storing proofs of rewriting for defined functions */
   std::shared_ptr<LazyCDProof> d_defFunRewPf;
-  /**
-   * The substitution corresponding to define-fun that are treated as macros.
-   * This is only allocated and used when proofDefineFunMacros is true, in
-   * which case definitions are not stored in the assertion list and instead
-   * are eagerly expanded in subsequent assertions via this substitution.
-   */
-  std::unique_ptr<theory::SubstitutionMap> d_defSubs;
 };
 
 }  // namespace smt
