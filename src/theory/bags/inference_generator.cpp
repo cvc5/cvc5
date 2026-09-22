@@ -513,12 +513,14 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
 
   Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
   Node y_equals_f_x = y.eqNode(f_x);
-  Node member = d_nm->mkNode(Kind::GEQ, countY, d_one);
-  inferInfo.d_premises.push_back(member);
 
-  Node count_x_equals_count_y = countX.eqNode(countY);
-  Node conclusion = y_equals_f_x.andNode(count_x_equals_count_y);
-  inferInfo.d_conclusion = conclusion;
+  // Since f is injective, x is the only candidate preimage of y. So the
+  // multiplicity of y in (bag.map f A) is the multiplicity of x in A when x is
+  // a preimage of y, and zero otherwise. Stating this as an equality, rather
+  // than only constraining the case (>= (bag.count y skolem) 1), lets the
+  // multiplicity of y be propagated directly.
+  Node ite = d_nm->mkNode(Kind::ITE, y_equals_f_x, countX, d_zero);
+  inferInfo.d_conclusion = countY.eqNode(ite);
 
   Trace("bags::InferenceGenerator::mapDown")
       << "conclusion: " << inferInfo.d_conclusion << std::endl;
