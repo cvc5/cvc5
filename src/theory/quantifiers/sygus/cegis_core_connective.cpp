@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -185,8 +182,7 @@ bool CegisCoreConnective::processInitialize(Node conj,
     Component& c = r == 0 ? d_pre : d_post;
     Kind rk = r == 0 ? Kind::OR : Kind::AND;
     int i = gti.getKindConsNum(rk);
-    if (i != -1 && gdt[i].getNumArgs() == 2
-        && gdt[i].getArgType(0) == gt
+    if (i != -1 && gdt[i].getNumArgs() == 2 && gdt[i].getArgType(0) == gt
         && gdt[i].getArgType(1) == gt)
     {
       Trace("sygus-ccore-init") << "  will do " << (r == 0 ? "pre" : "post")
@@ -220,9 +216,9 @@ bool CegisCoreConnective::processInitialize(Node conj,
 bool CegisCoreConnective::processConstructCandidates(
     const std::vector<Node>& enums,
     const std::vector<Node>& enum_values,
-    const std::vector<Node>& candidates,
+    CVC5_UNUSED const std::vector<Node>& candidates,
     std::vector<Node>& candidate_values,
-    bool satisfiedRl)
+    CVC5_UNUSED bool satisfiedRl)
 {
   Assert(isActive());
   bool ret = constructSolution(enums, enum_values, candidate_values);
@@ -298,7 +294,8 @@ bool CegisCoreConnective::constructSolution(
     Node fpred = cfilter.getFormula();
     if (!fpred.isNull() && !fpred.isConst())
     {
-      Trace("sygus-ccore-debug") << "...check filter pred " << fpred << std::endl;
+      Trace("sygus-ccore-debug")
+          << "...check filter pred " << fpred << std::endl;
       // check refinement points
       Node etsrn = d == 0 ? etsr : etsr.negate();
       std::unordered_set<Node> visited;
@@ -774,7 +771,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           // In the rare case in which the side condition implies the goal
           // already, then uasserts may be empty and any solution suffices.
           // Take the last enumerated term from the pool.
-          Assert (!passerts.empty());
+          Assert(!passerts.empty());
           uasserts.push_back(passerts.back());
         }
         Trace("sygus-ccore") << ">>> Solution : " << uasserts << std::endl;
@@ -786,7 +783,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
       {
         // should never happen, since we check that side condition is
         // satisfiable when initializing the sygus conjecture
-        Assert(false);
+        DebugUnhandled();
         Trace("sygus-ccore") << "--- Empty core, skip" << std::endl;
         return Node::null();
       }

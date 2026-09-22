@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@ extern "C" {
 
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -33,7 +31,11 @@ class TestCApiBlackOp : public ::testing::Test
     d_real = cvc5_get_real_sort(d_tm);
     d_uninterpreted = cvc5_mk_uninterpreted_sort(d_tm, "u");
   }
-  void TearDown() override { cvc5_term_manager_delete(d_tm); }
+  void TearDown() override
+  {
+    cvc5_term_manager_release(d_tm);
+    cvc5_term_manager_delete(d_tm);
+  }
 
   Cvc5TermManager* d_tm;
   Cvc5Sort d_bool;
@@ -58,7 +60,7 @@ TEST_F(TestCApiBlackOp, equal)
 
 TEST_F(TestCApiBlackOp, hash)
 {
-  ASSERT_DEATH(cvc5_op_hash(nullptr), "invalid operator");
+  ASSERT_CVC5_ERROR(cvc5_op_hash(nullptr), "invalid operator");
   std::vector<uint32_t> idxs = {4, 0};
   Cvc5Op op1 =
       cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), idxs.data());
@@ -71,8 +73,8 @@ TEST_F(TestCApiBlackOp, hash)
 
 TEST_F(TestCApiBlackOp, copy_release)
 {
-  ASSERT_DEATH(cvc5_op_copy(nullptr), "invalid op");
-  ASSERT_DEATH(cvc5_op_release(nullptr), "invalid op");
+  ASSERT_CVC5_ERROR(cvc5_op_copy(nullptr), "invalid op");
+  ASSERT_CVC5_ERROR(cvc5_op_release(nullptr), "invalid op");
   std::vector<uint32_t> idxs = {4, 0};
   Cvc5Op op =
       cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), idxs.data());
@@ -89,7 +91,7 @@ TEST_F(TestCApiBlackOp, copy_release)
 
 TEST_F(TestCApiBlackOp, get_kind)
 {
-  ASSERT_DEATH(cvc5_op_get_kind(nullptr), "invalid operator");
+  ASSERT_CVC5_ERROR(cvc5_op_get_kind(nullptr), "invalid operator");
   std::vector<uint32_t> idxs = {4, 0};
   ASSERT_EQ(cvc5_op_get_kind(cvc5_mk_op(
                 d_tm, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), idxs.data())),
@@ -99,23 +101,23 @@ TEST_F(TestCApiBlackOp, get_kind)
 TEST_F(TestCApiBlackOp, mk_op)
 {
   std::vector<uint32_t> idxs = {4, 0};
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_op(
           nullptr, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), idxs.data()),
       "unexpected NULL argument");
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), nullptr),
       "unexpected NULL argument");
   (void)cvc5_mk_op(d_tm, CVC5_KIND_ADD, 0, nullptr);
   idxs.push_back(2);
-  ASSERT_DEATH(
+  ASSERT_CVC5_ERROR(
       cvc5_mk_op(d_tm, CVC5_KIND_BITVECTOR_EXTRACT, idxs.size(), idxs.data()),
       "invalid number of indices");
 }
 
 TEST_F(TestCApiBlackOp, get_num_indices)
 {
-  ASSERT_DEATH(cvc5_op_get_num_indices(nullptr), "invalid operator");
+  ASSERT_CVC5_ERROR(cvc5_op_get_num_indices(nullptr), "invalid operator");
 
   // Operators with 0 indices
   Cvc5Op add = cvc5_mk_op(d_tm, CVC5_KIND_ADD, 0, nullptr);
@@ -216,8 +218,8 @@ TEST_F(TestCApiBlackOp, subscript_operator)
 {
   // Operators with 0 indices
   Cvc5Op add = cvc5_mk_op(d_tm, CVC5_KIND_ADD, 0, nullptr);
-  ASSERT_DEATH(cvc5_op_get_index(nullptr, 0), "invalid operator");
-  ASSERT_DEATH(cvc5_op_get_index(add, 0), "Op is not indexed");
+  ASSERT_CVC5_ERROR(cvc5_op_get_index(nullptr, 0), "invalid operator");
+  ASSERT_CVC5_ERROR(cvc5_op_get_index(add, 0), "Op is not indexed");
 
   // Operators with 1 index
   std::vector<uint32_t> idxs = {4};

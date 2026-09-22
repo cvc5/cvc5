@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -140,7 +137,8 @@ class SygusModule : protected EnvObj
    * quantifiers inference manager d_qim. For an example of such lemmas, see
    * Cegis::registerRefinementLemma.
    */
-  virtual void registerRefinementLemma(const std::vector<Node>& vars, Node lem)
+  virtual void registerRefinementLemma(
+      CVC5_UNUSED const std::vector<Node>& vars, CVC5_UNUSED Node lem)
   {
   }
   /**

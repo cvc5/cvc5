@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Leni Aniva, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,8 +27,7 @@ namespace rewriter {
 ${decl_individual_rewrites}$
     // clang-format on
 
-    void
-    addRules(NodeManager* nm, RewriteDb& db){
+    void addRules(NodeManager* nm, RewriteDb& db){
         // Calls to individual rewrites
         // clang-format off
   ${call_individual_rewrites}$

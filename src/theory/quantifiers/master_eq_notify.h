@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +21,7 @@
 
 namespace cvc5::internal {
 namespace theory {
-  
+
 class QuantifiersEngine;
 
 namespace quantifiers {
@@ -35,31 +32,38 @@ class MasterNotifyClass : public theory::eq::EqualityEngineNotify
  public:
   MasterNotifyClass(QuantifiersEngine* qe);
   /**
-    * Called when a new equivalence class is created in the master equality
-    * engine.
-    */
+   * Called when a new equivalence class is created in the master equality
+   * engine.
+   */
   void eqNotifyNewClass(TNode t) override;
 
-  bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+  bool eqNotifyTriggerPredicate(CVC5_UNUSED TNode predicate,
+                                CVC5_UNUSED bool value) override
   {
     return true;
   }
-  bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                    TNode t1,
-                                    TNode t2,
-                                    bool value) override
+  bool eqNotifyTriggerTermEquality(CVC5_UNUSED TheoryId tag,
+                                   CVC5_UNUSED TNode t1,
+                                   CVC5_UNUSED TNode t2,
+                                   CVC5_UNUSED bool value) override
   {
     return true;
   }
-  void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
-  void eqNotifyMerge(TNode t1, TNode t2) override;
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
+  void eqNotifyConstantTermMerge(CVC5_UNUSED TNode t1,
+                                 CVC5_UNUSED TNode t2) override
+  {
+  }
+  void eqNotifyMerge(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) override;
+  void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                        CVC5_UNUSED TNode t2,
+                        CVC5_UNUSED TNode reason) override
+  {
+  }
 
-  private:
+ private:
   /** Pointer to quantifiers engine */
   QuantifiersEngine* d_quantEngine;
 };
-
 
 }  // namespace quantifiers
 }  // namespace theory

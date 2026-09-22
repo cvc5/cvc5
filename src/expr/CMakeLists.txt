@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Andrew Reynolds, José Neto, Mathias Preiner
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -29,6 +26,8 @@ libcvc5_add_sources(
   attribute_unique_id.h
   bound_var_id.cpp
   bound_var_id.h
+  beta_reduce_converter.cpp
+  beta_reduce_converter.h
   bound_var_manager.cpp
   bound_var_manager.h
   cardinality_constraint.cpp
@@ -123,6 +122,8 @@ libcvc5_add_sources(
   variadic_trie.h
   non_closed_node_converter.cpp
   non_closed_node_converter.h
+  normalize_sort_converter.cpp
+  normalize_sort_converter.h
 )
 
 libcvc5_add_sources(GENERATED

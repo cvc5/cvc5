@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Daniel Larraz, Andres Noetzli
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -75,22 +72,27 @@ if(NOT GMP_FOUND_SYSTEM)
   set(GMP_VERSION "6.3.0")
 
   set(GMP_INCLUDE_DIR "${DEPS_BASE}/include/")
+  set(GMPXX_INCLUDE_DIR "${DEPS_BASE}/include/")
 
   # Newer versions of gcc use C23 as default C standard but GMP (as of 6.3.0)
   # only supports C17. To also support older compiler versions, we fix the
   # standard for GMP to C99.
   set(GMP_CFLAGS "-std=gnu99")
+  set(GMP_CXXFLAGS "")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
       set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.dll.a")
+      set(GMPXX_LIBRARIES "${DEPS_BASE}/lib/libgmpxx.dll.a")
     else()
       set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp${CMAKE_SHARED_LIBRARY_SUFFIX}")
+      set(GMPXX_LIBRARIES "${DEPS_BASE}/lib/libgmpxx${CMAKE_SHARED_LIBRARY_SUFFIX}")
     endif()
   else()
     set(LINK_OPTS --disable-shared --enable-static)
     set(GMP_LIBRARIES "${DEPS_BASE}/lib/libgmp.a")
+    set(GMPXX_LIBRARIES "${DEPS_BASE}/lib/libgmpxx.a")
   endif()
 
   set(CONFIGURE_OPTS "")  
@@ -120,11 +122,12 @@ if(NOT GMP_FOUND_SYSTEM)
         ${CONFIGURE_ENV}
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
       set(GMP_CFLAGS "${GMP_CFLAGS} --target=${TOOLCHAIN_PREFIX}")
+      set(GMP_CXXFLAGS "${GMP_CXXFLAGS} --target=${TOOLCHAIN_PREFIX}")
     endif()
   else()
     set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
-  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CFLAGS=${GMP_CFLAGS}")
+  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${GMP_CXXFLAGS}" env "CFLAGS=${GMP_CFLAGS}")
 
   # `CC_FOR_BUILD`, `--host`, and `--build` are passed to `configure` to ensure
   # that cross-compilation works (as suggested in the GMP documentation).
@@ -135,6 +138,7 @@ if(NOT GMP_FOUND_SYSTEM)
     ${COMMON_EP_CONFIG}
     URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
     URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
+    BUILD_IN_SOURCE ON
     CONFIGURE_COMMAND
       ${CONFIGURE_ENV}
           ${CONFIGURE_CMD_WRAPPER} ${SHELL} <SOURCE_DIR>/configure
@@ -143,35 +147,49 @@ if(NOT GMP_FOUND_SYSTEM)
           --with-pic
           --enable-cxx
           ${CONFIGURE_OPTS}
-    BUILD_BYPRODUCTS ${GMP_LIBRARIES}
+    BUILD_BYPRODUCTS ${GMP_LIBRARIES} ${GMPXX_LIBRARIES}
   )
 endif()
 
 set(GMP_FOUND TRUE)
+set(GMPXX_FOUND TRUE)
 
 
 if(BUILD_SHARED_LIBS)
   add_library(GMP SHARED IMPORTED GLOBAL)
+  add_library(GMPXX SHARED IMPORTED GLOBAL)
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(GMP PROPERTIES IMPORTED_IMPLIB "${GMP_LIBRARIES}")
+    set_target_properties(GMPXX PROPERTIES IMPORTED_IMPLIB "${GMPXX_LIBRARIES}")
   endif()
 else()
   add_library(GMP STATIC IMPORTED GLOBAL)
+  add_library(GMPXX STATIC IMPORTED GLOBAL)
 endif()
 set_target_properties(GMP PROPERTIES
   IMPORTED_LOCATION "${GMP_LIBRARIES}"
   INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${GMP_INCLUDE_DIR}"
+)
+set_target_properties(GMPXX PROPERTIES
+  IMPORTED_LOCATION "${GMPXX_LIBRARIES}"
+  INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${GMPXX_INCLUDE_DIR}"
+  INTERFACE_LINK_LIBRARIES GMP
 )
 
 mark_as_advanced(GMP_FOUND)
 mark_as_advanced(GMP_FOUND_SYSTEM)
 mark_as_advanced(GMP_INCLUDE_DIR)
 mark_as_advanced(GMP_LIBRARIES)
+mark_as_advanced(GMPXX_FOUND)
+mark_as_advanced(GMPXX_INCLUDE_DIR)
+mark_as_advanced(GMPXX_LIBRARIES)
 
 if(GMP_FOUND_SYSTEM)
   message(STATUS "Found GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
+  message(STATUS "Found GMPXX ${GMP_VERSION}: ${GMPXX_LIBRARIES}")
 else()
   message(STATUS "Building GMP ${GMP_VERSION}: ${GMP_LIBRARIES}")
+  message(STATUS "Building GMPXX ${GMP_VERSION}: ${GMPXX_LIBRARIES}")
   add_dependencies(GMP GMP-EP)
   # Static builds install the GMP static libraries.
   # These libraries are required to compile a program that
@@ -179,7 +197,7 @@ else()
   # On Windows, this installs the import libraries (LIB) and
   # the DLL libraries (BIN)
   install(
-    DIRECTORY ${DEPS_BASE}/${CMAKE_INSTALL_LIBDIR}/
+    DIRECTORY ${DEPS_BASE}/lib/
     TYPE LIB
     FILES_MATCHING PATTERN libgmp* PATTERN gmp*.pc
   )
@@ -199,7 +217,7 @@ else()
           -DINSTALL_NAME_TOOL=${CMAKE_INSTALL_NAME_TOOL}
           -DDYLIB_PATH=\${GMP_DYLIB}
           -DDEPS_BASE=${DEPS_BASE}
-          -P ${CMAKE_SOURCE_DIR}/cmake/update_rpath_macos.cmake)
+          -P ${PROJECT_SOURCE_DIR}/cmake/update_rpath_macos.cmake)
       endforeach()
     ")
   endif()

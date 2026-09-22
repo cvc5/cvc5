@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +38,7 @@ namespace rewriter {
  * (5) APPLY_UF is converted to HO_APPLY chains.
  * (6) Function constants are converted to lambdas.
  * (7) Annotations are applied to parametric datatype constructors.
+ * (8) NONLINEAR_MULT is reverted to MULT.
  *
  * This node converter converts from the default representation of cvc5 terms
  * to the representation of terms required by the DSL proof reconstruction

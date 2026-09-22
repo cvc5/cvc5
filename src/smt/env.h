@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +56,7 @@ class TrustSubstitutionMap;
 namespace quantifiers {
 class OracleChecker;
 }
-}
+}  // namespace theory
 
 /**
  * The environment class.
@@ -178,8 +175,8 @@ class Env
   /**
    * Return the output stream for the given output tag. If the output tag is
    * enabled, this returns the output stream from the `out` option. Otherwise,
-   * a null stream (`cvc5::internal::null_os`) is returned. The user of this method needs
-   * to make sure that a proper S-expression is printed.
+   * a null stream (`cvc5::internal::null_os`) is returned. The user of this
+   * method needs to make sure that a proper S-expression is printed.
    */
   std::ostream& output(OutputTag tag) const;
 
@@ -249,6 +246,10 @@ class Env
    * based on the assertions.
    */
   bool isFiniteType(TypeNode tn) const;
+  /**
+   * Is the given cardinality class infinite based on the options?
+   */
+  bool isFiniteCardinalityClass(CardinalityClass cc) const;
   /**
    * Is first class type.
    */

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +15,15 @@
 #ifndef CVC5__THEORY__SUBSTITUTIONS_H
 #define CVC5__THEORY__SUBSTITUTIONS_H
 
-//#include <algorithm>
+// #include <algorithm>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
-#include "expr/node.h"
-#include "context/context.h"
-#include "context/cdo.h"
 #include "context/cdhashmap.h"
+#include "context/cdo.h"
+#include "context/context.h"
+#include "expr/node.h"
 #include "util/hash.h"
 
 namespace cvc5::internal {
@@ -198,20 +195,20 @@ class SubstitutionMap
   /** To string */
   std::string toString() const;
 
-  void invalidateCache() {
-    d_cacheInvalidated = true;
-  }
+  void invalidateCache() { d_cacheInvalidated = true; }
 
 }; /* class SubstitutionMap */
 
-inline std::ostream& operator << (std::ostream& out, const SubstitutionMap& subst) {
+inline std::ostream& operator<<(std::ostream& out, const SubstitutionMap& subst)
+{
   subst.print(out);
   return out;
 }
 
 }  // namespace theory
 
-std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i);
+std::ostream& operator<<(std::ostream& out,
+                         const theory::SubstitutionMap::iterator& i);
 
 }  // namespace cvc5::internal
 

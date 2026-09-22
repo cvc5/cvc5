@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,7 @@ typedef std::unordered_set<Node> NodeSet;
 unsigned getSize(TNode node);
 
 /* Get bit at given index. */
-const bool getBit(TNode node, unsigned i);
+bool getBit(TNode node, unsigned i);
 
 /* Get the upper index of given extract node. */
 unsigned getExtractHigh(TNode node);
@@ -125,7 +122,10 @@ Node mkNaryNode(NodeManager* nm,
          || k == Kind::BITVECTOR_XOR || k == Kind::BITVECTOR_ADD
          || k == Kind::BITVECTOR_SUB || k == Kind::BITVECTOR_MULT);
 
-  if (nodes.size() == 1) { return nodes[0]; }
+  if (nodes.size() == 1)
+  {
+    return nodes[0];
+  }
   return nm->mkNode(k, nodes);
 }
 
@@ -134,18 +134,24 @@ Node mkNot(Node child);
 /* Create node of kind AND. */
 Node mkAnd(TNode node1, TNode node2);
 /* Create n-ary node of kind AND. */
-template<bool ref_count>
+template <bool ref_count>
 Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 {
   std::set<TNode> all(conjunctions.begin(), conjunctions.end());
   Assert(all.size() > 0);
 
   /* All the same, or just one  */
-  if (all.size() == 1) { return conjunctions[0]; }
+  if (all.size() == 1)
+  {
+    return conjunctions[0];
+  }
 
   NodeManager* nm = conjunctions[0].getNodeManager();
   NodeBuilder conjunction(nm, Kind::AND);
-  for (TNode n : all) { conjunction << n; }
+  for (TNode n : all)
+  {
+    conjunction << n;
+  }
   return conjunction;
 }
 
@@ -154,18 +160,24 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
 /* Create node of kind OR. */
 Node mkOr(TNode node1, TNode node2);
 /* Create n-ary node of kind OR.  */
-template<bool ref_count>
+template <bool ref_count>
 Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
 {
   std::set<TNode> all(nodes.begin(), nodes.end());
   Assert(all.size() > 0);
 
   /* All the same, or just one  */
-  if (all.size() == 1) { return nodes[0]; }
+  if (all.size() == 1)
+  {
+    return nodes[0];
+  }
 
   NodeManager* nm = nodes[0].getNodeManager();
   NodeBuilder disjunction(nm, Kind::OR);
-  for (TNode n : all) { disjunction << n; }
+  for (TNode n : all)
+  {
+    disjunction << n;
+  }
   return disjunction;
 }
 /* Create node of kind XOR. */
@@ -205,7 +217,7 @@ Node flattenAnd(std::vector<TNode>& queue);
 void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
-}
+}  // namespace utils
 
 }  // namespace bv
 }  // namespace theory

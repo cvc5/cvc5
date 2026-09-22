@@ -2,20 +2,17 @@
 
 ; Real-specific operators of arithmetic.
 
-; disclaimer: This function is overloaded in SMT-LIB and does not permit mixed arithmetic.
-(declare-parameterized-const / ((T Type :implicit) (U Type :implicit))
-  (-> T U
-      (eo::requires ($is_arith_type T) true
-      (eo::requires ($is_arith_type U) true
-      Real))) :left-assoc)
+; disclaimer: This function accepts only Reals as arguments in SMT-LIB.
+; We extend it to be overloaded. Furthermore note that SMT-LIB rational
+; values are interpreted as real division of integer values.
+(declare-parameterized-const / ((T Type :implicit))
+  (-> T T (eo::requires ($is_arith_type T) true Real)) :left-assoc)
 
 ; Internally generated terms.
 ; disclaimer: This function is not in SMT-LIB.
-(declare-parameterized-const /_total ((T Type :implicit) (U Type :implicit))
-  (-> T U
-      (eo::requires ($is_arith_type T) true
-      (eo::requires ($is_arith_type U) true
-      Real))) :left-assoc)
+(declare-parameterized-const /_total ((T Type :implicit))
+  (-> T T (eo::requires ($is_arith_type T) true Real)) :left-assoc)
 
 ; skolems
+; note: equivalent to (lambda ((x Real)) (/ x 0.0)).
 (declare-const @div_by_zero (-> Real Real))

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -146,11 +143,12 @@ public class QuickStart
       // However, for more complex terms,
       // it is easier to let the solver do the evaluation.
       //! [docs-java-quickstart-12 start]
-      Pair<BigInteger, BigInteger> xMinusYComputed =
-          new Pair<>(xPair.first.multiply(yPair.second).subtract(xPair.second.multiply(yPair.first)),
-              xPair.second.multiply(yPair.second));
+      Pair<BigInteger, BigInteger> xMinusYComputed = new Pair<>(
+          xPair.first.multiply(yPair.second).subtract(xPair.second.multiply(yPair.first)),
+          xPair.second.multiply(yPair.second));
       BigInteger g = xMinusYComputed.first.gcd(xMinusYComputed.second);
-      xMinusYComputed = new Pair<>(xMinusYComputed.first.divide(g), xMinusYComputed.second.divide(g));
+      xMinusYComputed =
+          new Pair<>(xMinusYComputed.first.divide(g), xMinusYComputed.second.divide(g));
       if (xMinusYComputed.equals(xMinusYPair))
       {
         System.out.println("computed correctly");
@@ -175,8 +173,7 @@ public class QuickStart
       //! [docs-java-quickstart-14 start]
       solver.assertFormula(tm.mkTerm(Kind.LT, tm.mkInteger(0), a));
       solver.assertFormula(tm.mkTerm(Kind.LT, tm.mkInteger(0), b));
-      solver.assertFormula(
-          tm.mkTerm(Kind.LT, tm.mkTerm(Kind.ADD, a, b), tm.mkInteger(1)));
+      solver.assertFormula(tm.mkTerm(Kind.LT, tm.mkTerm(Kind.ADD, a, b), tm.mkInteger(1)));
       solver.assertFormula(tm.mkTerm(Kind.LEQ, a, b));
       //! [docs-java-quickstart-14 end]
 

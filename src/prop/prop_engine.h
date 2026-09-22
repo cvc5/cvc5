@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -378,10 +375,14 @@ class PropEngine : protected EnvObj
    * @param trn The trust node storing the formula to assert.
    * @param removable Whether this lemma can be quietly removed based
    * on an activity heuristic.
+   * @param local Whether this lemma is considered local to the SAT context.
+   * In this case, we must cache whether it has been added to the SAT solver
+   * already.
    */
   void assertTrustedLemmaInternal(theory::InferenceId id,
                                   TrustNode trn,
-                                  bool removable);
+                                  bool removable,
+                                  bool local);
   /**
    * Assert node as a formula to the CNF stream
    * @param id The inference identifier.
@@ -448,6 +449,10 @@ class PropEngine : protected EnvObj
    * cores are enabled.
    */
   context::CDList<Node> d_assumptions;
+  /**
+   * Local lemmas
+   */
+  context::CDHashSet<Node> d_localLemmas;
   /** Statistics */
   struct Statistics
   {

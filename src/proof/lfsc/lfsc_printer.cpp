@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,7 +52,7 @@ LfscPrinter::LfscPrinter(Env& env,
 void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   Trace("lfsc-print-debug") << "; ORIGINAL PROOF: " << *pn << std::endl;
-  Assert (!pn->getChildren().empty());
+  Assert(!pn->getChildren().empty());
   // closing parentheses
   std::stringstream cparen;
   const std::vector<Node>& definitions = pn->getArguments();
@@ -383,7 +380,7 @@ void LfscPrinter::printTypeDefinition(
       if (tupleArityProcessed.find(arity) == tupleArityProcessed.end())
       {
         tupleArityProcessed.insert(arity);
-        if (arity>0)
+        if (arity > 0)
         {
           os << "(declare Tuple";
           os << "_" << arity;
@@ -869,7 +866,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       ProofRewriteRule di = ProofRewriteRule::NONE;
       if (!rewriter::getRewriteRule(args[0], di))
       {
-        Assert(false);
+        DebugUnhandled();
       }
       Trace("lfsc-print-debug2") << "Printing dsl rule " << di << std::endl;
       const rewriter::RewriteProofRule& rpr = d_rdb->getRule(di);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -156,7 +153,7 @@ size_t QueryGeneratorUnsat::getNextRandomIndex(
 {
   Assert(!d_terms.empty());
   Assert(processed.size() < d_terms.size());
-  size_t rindex = Random::getRandom().pick(0, d_terms.size() - 1);
+  size_t rindex = Random::getRandom().pick<size_t>(0, d_terms.size() - 1);
   while (processed.find(rindex) != processed.end())
   {
     rindex++;

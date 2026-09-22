@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -103,7 +100,7 @@ class ProofGenerator
    * may choose to override this function to verify the construction, although
    * we do not insist this is the case.
    */
-  virtual bool hasProofFor(Node f) { return true; }
+  virtual bool hasProofFor(CVC5_UNUSED Node f) { return true; }
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const = 0;
 };

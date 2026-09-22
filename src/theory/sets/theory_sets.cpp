@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,9 +43,7 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
   d_inferManager = &d_im;
 }
 
-TheorySets::~TheorySets()
-{
-}
+TheorySets::~TheorySets() {}
 
 TheoryRewriter* TheorySets::getTheoryRewriter() { return &d_rewriter; }
 
@@ -106,7 +101,7 @@ void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
 void TheorySets::notifyFact(TNode atom,
                             bool polarity,
                             TNode fact,
-                            bool isInternal)
+                            CVC5_UNUSED bool isInternal)
 {
   d_internal->notifyFact(atom, polarity, fact);
 }
@@ -117,16 +112,14 @@ bool TheorySets::collectModelValues(TheoryModel* m,
   return d_internal->collectModelValues(m, termSet);
 }
 
-void TheorySets::computeCareGraph() {
-  d_internal->computeCareGraph();
-}
+void TheorySets::computeCareGraph() { d_internal->computeCareGraph(); }
 
-TrustNode TheorySets::explain(TNode node)
+TrustNode TheorySets::explain(TNode node) { return d_im.explainLit(node); }
+
+Node TheorySets::getCandidateModelValue(CVC5_UNUSED TNode node)
 {
-  return d_im.explainLit(node);
+  return Node::null();
 }
-
-Node TheorySets::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheorySets::preRegisterTerm(TNode node)
 {
@@ -225,12 +218,11 @@ bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
   return status;
 }
 
-void TheorySets::presolve() {
-  d_internal->presolve();
-}
+void TheorySets::presolve() { d_internal->presolve(); }
 
-bool TheorySets::isEntailed( Node n, bool pol ) {
-  return d_internal->isEntailed( n, pol );
+bool TheorySets::isEntailed(Node n, bool pol)
+{
+  return d_internal->isEntailed(n, pol);
 }
 
 void TheorySets::processCarePairArgs(TNode a, TNode b)

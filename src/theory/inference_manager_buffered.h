@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 #define CVC5__THEORY__INFERENCE_MANAGER_BUFFERED_H
 
 #include "expr/node.h"
+#include "theory/theory.h"
 #include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"
 
@@ -88,7 +86,10 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * @param exp The explanation in the equality engine of the theory
    * @param pg The proof generator which can provide a proof for conc
    */
-  void addPendingFact(Node conc, InferenceId id, Node exp, ProofGenerator* pg = nullptr);
+  void addPendingFact(Node conc,
+                      InferenceId id,
+                      Node exp,
+                      ProofGenerator* pg = nullptr);
   /**
    * Add pending fact, where fact can be a (derived) class of the
    * theory inference base class.
@@ -127,6 +128,20 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * cleared after this call.
    */
   void doPendingLemmas();
+  /**
+   * Do pending method. This processes all pending facts, lemmas and pending
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
+   */
+  void doPending();
+  /**
+   * Have we processed an inference during this call to check? In particular,
+   * this returns true if we have a pending fact or lemma, or have encountered
+   * a conflict.
+   */
+  bool hasProcessed() const;
   /**
    * Do pending phase requirements. Calls the output channel for all pending
    * phase requirements and clears d_pendingReqPhase.

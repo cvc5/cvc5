@@ -186,6 +186,7 @@ name   = "Strings Theory"
   type       = "bool"
   default    = "false"
   help       = "use regular expressions for eager length conflicts"
+  no_support = ["proofs"]
 
 [[option]]
   name       = "stringEagerSolver"

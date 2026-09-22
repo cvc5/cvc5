@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -323,7 +320,6 @@ Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
 
 Sequence Sequence::substr(size_t i) const
 {
-  Assert(i >= 0);
   Assert(i <= size());
   std::vector<Node> retVec(d_seq.begin() + i, d_seq.end());
   return Sequence(getType(), retVec);
@@ -331,8 +327,6 @@ Sequence Sequence::substr(size_t i) const
 
 Sequence Sequence::substr(size_t i, size_t j) const
 {
-  Assert(i >= 0);
-  Assert(j >= 0);
   Assert(i + j <= size());
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;
   std::vector<Node> retVec(itr, itr + j);

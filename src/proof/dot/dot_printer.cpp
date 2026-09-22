@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Vinícius Braga Freire, Haniel Barbosa, Diego Della Rocca de Camargos
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -450,7 +447,7 @@ inline bool DotPrinter::isInput(const ProofNode* pn)
 inline bool DotPrinter::isSat(const ProofRule& rule)
 {
   return ProofRule::CHAIN_RESOLUTION <= rule
-         && rule <= ProofRule::MACRO_RESOLUTION_TRUST;
+         && rule <= ProofRule::CHAIN_M_RESOLUTION;
 }
 
 inline bool DotPrinter::isCNF(const ProofRule& rule)

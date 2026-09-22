@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -230,8 +227,8 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
         // debugging information
         if (TraceIsOn("sygus-rr-debug"))
         {
-          Trace("sygus-rr-debug") << "; candidate #1 ext-rewrites to: " << solbr
-                                  << std::endl;
+          Trace("sygus-rr-debug")
+              << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
           Trace("sygus-rr-debug")
               << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
         }
@@ -254,8 +251,8 @@ Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
           Node x = d_tds->getFreeVar(ptn, 0);
           Node lem = d_tds->getExplain()->getExplanationForEquality(x, exc_sol);
           lem = lem.negate();
-          Trace("sygus-rr-sb") << "Symmetry breaking lemma : " << lem
-                               << std::endl;
+          Trace("sygus-rr-sb")
+              << "Symmetry breaking lemma : " << lem << std::endl;
           d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
       }

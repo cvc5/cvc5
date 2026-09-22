@@ -19,7 +19,7 @@ name   = "Base"
   type       = "ManagedIn"
   default    = '{}'
   includes   = ["<iostream>", "options/managed_streams.h"]
-  help       = "Set the error (or diagnostic) output channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
+  help       = "Set the input channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
 
 [[option]]
   name       = "out"
@@ -29,7 +29,7 @@ name   = "Base"
   default    = '{}'
   alias      = ["regular-output-channel"]
   includes   = ["<iostream>", "options/managed_streams.h"]
-  help       = "Set the error (or diagnostic) output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
+  help       = "Set the regular output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
 
 [[option]]
   name       = "inputLanguage"
@@ -278,6 +278,13 @@ name   = "Base"
   name = "rare-db-expert"
   help = "upon initialization, print the set of expert RARE rewrite rules as they are defined in the proof signature."
   description = "With ``-o rare-db-expert``, upon initialization, cvc5 prints the entire set of expert RARE rewrite rules as they are defined in the proof signature."
+[[option.mode.NORMALIZE]]
+  name = "normalize"
+  help = "prints the benchmark after normalization"
+  description = "With ``-o normalize``, cvc5 prints the benchmark after normalization and terminates."
+  example-file = "regress0/printer/normalize.smt2"
+
+  
 
 # Stores then enabled output tags.
 [[option]]

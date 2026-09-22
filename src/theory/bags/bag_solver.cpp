@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,15 +29,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-BagSolver::BagSolver(Env& env,
-                     SolverState& s,
-                     InferenceManager& im,
-                     TermRegistry& tr)
+BagSolver::BagSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env),
       d_state(s),
       d_ig(env.getNodeManager(), &s, &im),
       d_im(im),
-      d_termReg(tr),
       d_mapCache(userContext())
 {
   d_zero = nodeManager()->mkConstInt(Rational(0));

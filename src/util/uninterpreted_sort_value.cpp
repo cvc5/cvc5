@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +26,13 @@ namespace cvc5::internal {
 std::ostream& operator<<(std::ostream& out, const UninterpretedSortValue& val)
 {
   return out << "@" << val.getType() << "_" << val.getIndex();
+}
+
+std::string UninterpretedSortValue::getSymbol() const
+{
+  std::ostringstream ss;
+  ss << *this;
+  return ss.str();
 }
 
 UninterpretedSortValue::UninterpretedSortValue(const TypeNode& type,

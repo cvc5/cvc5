@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 
 #include <stack>
+
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -64,10 +62,10 @@ BvInstantiator::BvInstantiator(Env& env, TypeNode tn, BvInverter* inv)
 }
 
 BvInstantiator::~BvInstantiator() {}
-void BvInstantiator::reset(CegInstantiator* ci,
-                           SolvedForm& sf,
-                           Node pv,
-                           CegInstEffort effort)
+void BvInstantiator::reset(CVC5_UNUSED CegInstantiator* ci,
+                           CVC5_UNUSED SolvedForm& sf,
+                           CVC5_UNUSED Node pv,
+                           CVC5_UNUSED CegInstEffort effort)
 {
   d_inst_id_counter = 0;
   d_var_to_inst_id.clear();
@@ -78,13 +76,13 @@ void BvInstantiator::reset(CegInstantiator* ci,
 }
 
 void BvInstantiator::processLiteral(CegInstantiator* ci,
-                                    SolvedForm& sf,
+                                    CVC5_UNUSED SolvedForm& sf,
                                     Node pv,
                                     Node lit,
                                     Node alit,
-                                    CegInstEffort effort)
+                                    CVC5_UNUSED CegInstEffort effort)
 {
-  Assert(d_inverter != NULL);
+  Assert(d_inverter != nullptr);
   // find path to pv
   std::vector<unsigned> path;
   Node sv = d_inverter->getSolveVariable(pv.getType());
@@ -122,17 +120,17 @@ void BvInstantiator::processLiteral(CegInstantiator* ci,
   }
 }
 
-bool BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
-                                         SolvedForm& sf,
-                                         Node pv,
-                                         CegInstEffort effort)
+bool BvInstantiator::hasProcessAssertion(CVC5_UNUSED CegInstantiator* ci,
+                                         CVC5_UNUSED SolvedForm& sf,
+                                         CVC5_UNUSED Node pv,
+                                         CVC5_UNUSED CegInstEffort effort)
 {
   return true;
 }
 
 Node BvInstantiator::hasProcessAssertion(CegInstantiator* ci,
-                                         SolvedForm& sf,
-                                         Node pv,
+                                         CVC5_UNUSED SolvedForm& sf,
+                                         CVC5_UNUSED Node pv,
                                          Node lit,
                                          CegInstEffort effort)
 {
@@ -170,12 +168,16 @@ Node BvInstantiator::processAssertionInternal(CegInstantiator* ci, Node lit)
 
   Node sm = ci->getModelValue(s);
   Node tm = ci->getModelValue(t);
-  Assert(!sm.isNull() && sm.isConst());
-  Assert(!tm.isNull() && tm.isConst());
   Trace("cegqi-bv") << "Model value: " << std::endl;
   Trace("cegqi-bv") << "   " << s << " " << k << " " << t << " is "
                     << std::endl;
   Trace("cegqi-bv") << "   " << sm << " <> " << tm << std::endl;
+  // in very rare cases e.g. strings of excessive length, the model value for
+  // a term may not be constant, in which case we fail to solve.
+  if (sm.isNull() || !sm.isConst() || tm.isNull() || !tm.isConst())
+  {
+    return Node::null();
+  }
 
   Node ret;
   if (options().quantifiers.cegqiBvIneqMode
@@ -264,9 +266,9 @@ bool BvInstantiator::processAssertion(CegInstantiator* ci,
   return false;
 }
 
-bool BvInstantiator::useModelValue(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
+bool BvInstantiator::useModelValue(CVC5_UNUSED CegInstantiator* ci,
+                                   CVC5_UNUSED SolvedForm& sf,
+                                   CVC5_UNUSED Node pv,
                                    CegInstEffort effort)
 {
   return effort < CEG_INST_EFFORT_FULL || options().quantifiers.cegqiFullEffort;
@@ -275,7 +277,7 @@ bool BvInstantiator::useModelValue(CegInstantiator* ci,
 bool BvInstantiator::processAssertions(CegInstantiator* ci,
                                        SolvedForm& sf,
                                        Node pv,
-                                       CegInstEffort effort)
+                                       CVC5_UNUSED CegInstEffort effort)
 {
   std::unordered_map<Node, std::vector<unsigned>>::iterator iti =
       d_var_to_inst_id.find(pv);
@@ -396,7 +398,7 @@ Node BvInstantiator::rewriteAssertionForSolvePv(CegInstantiator* ci,
   std::unordered_map<Node, bool> visited_contains_pv;
   std::unordered_map<TNode, Node>::iterator it;
   std::unordered_map<TNode, Node> curr_subs;
-  std::stack<std::stack<TNode> > visit;
+  std::stack<std::stack<TNode>> visit;
   TNode cur;
   visit.push(std::stack<TNode>());
   visit.top().push(lit);
@@ -658,11 +660,11 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
     NodeManager* nm = lem.getNodeManager();
     Trace("cegqi-bv-pp") << "-----remove extracts..." << std::endl;
     // map from terms to bitvector extracts applied to that term
-    std::map<Node, std::vector<Node> > extract_map;
+    std::map<Node, std::vector<Node>> extract_map;
     std::unordered_set<TNode> visited;
     Trace("cegqi-bv-pp-debug2") << "Register ce lemma " << lem << std::endl;
     collectExtracts(lem, extract_map, visited);
-    for (std::pair<const Node, std::vector<Node> >& es : extract_map)
+    for (std::pair<const Node, std::vector<Node>>& es : extract_map)
     {
       // sort based on the extract start position
       std::vector<Node>& curr_vec = es.second;
@@ -704,16 +706,13 @@ void BvInstantiatorPreprocess::registerCounterexampleLemma(
         Assert(boundaries[i - 1] > 0);
         Node ex = bv::utils::mkExtract(
             es.first, boundaries[i - 1] - 1, boundaries[i]);
-        Node var = NodeManager::mkDummySkolem(
-            "ek",
-            ex.getType(),
-            "variable to represent disjoint extract region");
+        Node var = NodeManager::mkDummySkolem("ek", ex.getType());
         children.push_back(var);
         vars.push_back(var);
       }
 
       Node conc = nm->mkNode(Kind::BITVECTOR_CONCAT, children);
-      Assert(conc.getType() == es.first.getType());
+      AssertEqual(conc.getType(), es.first.getType());
       Node eq_lem = conc.eqNode(es.first);
       Trace("cegqi-bv-pp") << "Introduced : " << eq_lem << std::endl;
       new_lems.push_back(eq_lem);

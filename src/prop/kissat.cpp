@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,10 +69,10 @@ KissatSolver::KissatSolver(StatisticsRegistry& registry,
 {
 }
 
-void KissatSolver::init()
+void KissatSolver::initialize()
 {
-  d_true = newVar();
-  d_false = newVar();
+  d_true = newVar(false, true);
+  d_false = newVar(false, true);
   kissat_add(d_solver, toKissatVar(d_true));
   kissat_add(d_solver, 0);
   kissat_add(d_solver, -toKissatVar(d_false));
@@ -84,7 +81,8 @@ void KissatSolver::init()
 
 KissatSolver::~KissatSolver() { kissat_release(d_solver); }
 
-ClauseId KissatSolver::addClause(SatClause& clause, bool removable)
+ClauseId KissatSolver::addClause(const SatClause& clause,
+                                 CVC5_UNUSED bool removable)
 {
   for (const SatLiteral& lit : clause)
   {
@@ -95,12 +93,8 @@ ClauseId KissatSolver::addClause(SatClause& clause, bool removable)
   return ClauseIdError;
 }
 
-ClauseId KissatSolver::addXorClause(SatClause& clause, bool rhs, bool removable)
-{
-  Unreachable() << "Kissat does not support adding XOR clauses.";
-}
-
-SatVariable KissatSolver::newVar(bool isTheoryAtom, bool canErase)
+SatVariable KissatSolver::newVar(CVC5_UNUSED bool isTheoryAtom,
+                                 CVC5_UNUSED bool canErase)
 {
   ++d_statistics.d_numVariables;
   return d_nextVarIdx++;
@@ -119,14 +113,23 @@ SatValue KissatSolver::solve()
   return res;
 }
 
-SatValue KissatSolver::solve(long unsigned int&)
+SatValue KissatSolver::solve(CVC5_UNUSED long unsigned int&)
 {
   Unimplemented() << "Setting limits for Kissat not supported yet";
+  return SAT_VALUE_UNKNOWN;
 };
 
-SatValue KissatSolver::solve(const std::vector<SatLiteral>& assumptions)
+SatValue KissatSolver::solve(
+    CVC5_UNUSED const std::vector<SatLiteral>& assumptions)
 {
   Unimplemented() << "Incremental solving with Kissat not supported yet";
+  return SAT_VALUE_UNKNOWN;
+}
+
+void KissatSolver::getUnsatAssumptions(
+    CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions)
+{
+  Unreachable() << "Kissat does not support unsat assumptions.";
 }
 
 void KissatSolver::interrupt() { kissat_terminate(d_solver); }
@@ -141,11 +144,6 @@ SatValue KissatSolver::modelValue(SatLiteral l)
 {
   Assert(d_okay);
   return value(l);
-}
-
-uint32_t KissatSolver::getAssertionLevel() const
-{
-  Unreachable() << "Kissat does not support assertion levels.";
 }
 
 bool KissatSolver::ok() const { return d_okay; }

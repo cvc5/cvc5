@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -943,6 +940,44 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique1)
   ASSERT_EQ(res[d_x], d_three32);
   ASSERT_EQ(res[d_y], d_four32);
   ASSERT_EQ(res[d_z], d_nine32);
+}
+
+TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique_neg_rhs)
+{
+  /* -------------------------------------------------------------------
+   * Regression: constants added inside the UREM are subtracted from the
+   * rhs while parsing, which may make the rhs negative. The resulting
+   * value must be reduced modulo prime (the UREM divisor), not modulo
+   * 2^width (as the BitVector constructor would do). Otherwise GE asserts
+   * an incorrect variable assignment, producing spurious UNSAT.
+   *
+   *   (x + 12) % 11 = 5   ->   x =  5 - 12 = -7 = 4 (mod 11)
+   *   (y + 18) % 11 = 8   ->   y =  8 - 18 = -10 = 1 (mod 11)
+   * ------------------------------------------------------------------- */
+
+  Node eq1 = d_nodeManager->mkNode(
+      Kind::EQUAL,
+      d_nodeManager->mkNode(
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_x_mul_one, d_twelve),
+          d_p),
+      d_five);
+
+  Node eq2 = d_nodeManager->mkNode(
+      Kind::EQUAL,
+      d_nodeManager->mkNode(
+          Kind::BITVECTOR_UREM,
+          d_nodeManager->mkNode(Kind::BITVECTOR_ADD, d_y_mul_one, d_eighteen),
+          d_p),
+      d_eight);
+
+  std::vector<Node> eqs = {eq1, eq2};
+  std::unordered_map<Node, Node> res;
+  BVGauss::Result ret = d_bv_gauss->gaussElimRewriteForUrem(eqs, res);
+  ASSERT_EQ(ret, BVGauss::Result::UNIQUE);
+  ASSERT_EQ(res.size(), 2);
+  ASSERT_EQ(res[d_x], d_four32);
+  ASSERT_EQ(res[d_y], d_one32);
 }
 
 TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique2)

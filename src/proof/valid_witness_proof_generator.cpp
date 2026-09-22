@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,8 +61,7 @@ Node mkProofSpec(NodeManager* nm, ProofRule r, const std::vector<Node>& args)
  * The inverse operation for mkProofSpec, if possible extracts the proof
  * rule and args from a given instantiation attribute attr.
  */
-bool ValidWitnessProofGenerator::getProofSpec(NodeManager* nm,
-                                              const Node& attr,
+bool ValidWitnessProofGenerator::getProofSpec(const Node& attr,
                                               ProofRule& r,
                                               std::vector<Node>& args)
 {
@@ -91,11 +87,13 @@ bool ValidWitnessProofGenerator::getProofSpec(NodeManager* nm,
   return false;
 }
 
-ValidWitnessProofGenerator::ValidWitnessProofGenerator(Env& env) : EnvObj(env) {}
+ValidWitnessProofGenerator::ValidWitnessProofGenerator(Env& env) : EnvObj(env)
+{
+}
 
 ValidWitnessProofGenerator::~ValidWitnessProofGenerator() {}
 
-std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact) 
+std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact)
 {
   Trace("valid-witness") << "ValidWitness: Prove " << fact << std::endl;
   bool success = false;
@@ -108,7 +106,7 @@ std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact)
     Node spec = fact.getAttribute(vwa);
     ProofRule r;
     std::vector<Node> args;
-    if (!spec.isNull() && getProofSpec(nodeManager(), spec, r, args))
+    if (!spec.isNull() && getProofSpec(spec, r, args))
     {
       success = true;
       cdp.addStep(fact, r, {}, args);
@@ -122,7 +120,10 @@ std::shared_ptr<ProofNode> ValidWitnessProofGenerator::getProofFor(Node fact)
   return cdp.getProofFor(fact);
 }
 
-std::string ValidWitnessProofGenerator::identify() const { return "ValidWitnessProofGenerator"; }
+std::string ValidWitnessProofGenerator::identify() const
+{
+  return "ValidWitnessProofGenerator";
+}
 
 Node ValidWitnessProofGenerator::mkWitness(NodeManager* nm,
                                            ProofRule r,
@@ -208,4 +209,3 @@ Node ValidWitnessProofGenerator::mkSkolem(NodeManager* nm,
 }
 
 }  // namespace cvc5::internal
-

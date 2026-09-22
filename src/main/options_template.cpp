@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -100,7 +97,6 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
   std::stringstream ssRegular;
   std::stringstream ssRegularNoSupport;
   std::stringstream ssExpert;
-  std::stringstream ssUndocumented;
   for (const auto& name : options::getNames())
   {
     auto info = solver.getOptionInfo(name);
@@ -116,7 +112,18 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
       }
       else
       {
-        ssRegularNoSupport << "- " << name << std::endl;
+        ssRegularNoSupport << "- " << name << " [";
+        bool firstTime = true;
+        for (std::string ns : info.noSupports)
+        {
+          if (!firstTime)
+          {
+            ssRegularNoSupport << ", ";
+          }
+          firstTime = false;
+          ssRegularNoSupport << ns;
+        }
+        ssRegularNoSupport << "]" << std::endl;
       }
     }
     else if (info.category == cvc5::modes::OptionCategory::COMMON)
@@ -126,7 +133,6 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
     else
     {
       Assert(info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
-      ssUndocumented << "- " << name << std::endl;
     }
   }
   os << "Common options:" << std::endl;
@@ -137,8 +143,6 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
   os << ssRegularNoSupport.str();
   os << "Expert options:" << std::endl;
   os << ssExpert.str();
-  os << "Undocumented options:" << std::endl;
-  os << ssUndocumented.str();
 }
 
 /**
@@ -160,18 +164,16 @@ void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
  *    value to set the 3rd entry to; see #3)
  */
 static struct option cmdlineOptions[] = {
-// clang-format off
+    // clang-format off
   ${cmdoptions_long}$
-// clang-format on
-  {nullptr, no_argument, nullptr, '\0'}
-};
+    // clang-format on
+    {nullptr, no_argument, nullptr, '\0'}};
 
 std::string suggestCommandLineOptions(const std::string& optionName)
 {
   DidYouMean didYouMean;
 
-  const char* opt;
-  for (size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i)
+  for (size_t i = 0; cmdlineOptions[i].name != nullptr; ++i)
   {
     didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
   }
@@ -276,11 +278,11 @@ void parseInternal(cvc5::Solver& solver,
 
     switch (c)
     {
-// clang-format off
+      // clang-format off
     ${parseinternal_impl}$
-// clang-format on
+        // clang-format on
 
-    case ':' :
+        case ':':
       // This can be a long or short option, and the way to get at the
       // name of it is different.
       throw OptionException(std::string("option `") + option

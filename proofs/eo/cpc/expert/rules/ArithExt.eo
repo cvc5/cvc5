@@ -2,16 +2,16 @@
 
 ;;;;; ProofRewriteRule::ARITH_POW_ELIM
 
-; define: $arith_unfold_pow_rec
+; program: $arith_unfold_pow_rec
 ; args:
 ; - n Int: The number of times to multiply, expected to be a non-negative numeral.
 ; - a T: The term to muliply.
 ; return: The result of multiplying a, n times.
 (program $arith_unfold_pow_rec ((T Type) (n Int) (a T))
-  :signature ((eo::quote n) T) (eo::ite (eo::eq n 0) Int T)
+  :signature (Int T) T
   (
-    (($arith_unfold_pow_rec 0 a)  1)
-    (($arith_unfold_pow_rec n a)  (eo::cons * a ($arith_unfold_pow_rec (eo::add n -1) a)))
+    (($arith_unfold_pow_rec 0 a)  ($arith_mk_one (eo::typeof a)))
+    (($arith_unfold_pow_rec n a)  (_ * a ($arith_unfold_pow_rec (eo::add n -1) a)))
   )
 )
 
@@ -34,6 +34,6 @@
 (declare-rule arith-pow-elim ((T Type) (a T) (n T) (b T))
   :args ((= (^ a n) b))
   :requires (((eo::to_q (eo::to_z n)) (eo::to_q n))
-             (($singleton_elim ($arith_unfold_pow (eo::to_z n) a)) b))
+             ((eo::list_singleton_elim * ($arith_unfold_pow (eo::to_z n) a)) b))
   :conclusion (= (^ a n) b)
 )

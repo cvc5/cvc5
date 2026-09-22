@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --deep-restart=input -o deep-restart
 ; EXPECT: (deep-restart ((= f k)))
 ; EXPECT: sat

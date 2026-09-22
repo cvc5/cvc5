@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Hans-Joerg Schurr, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +23,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace eq {
 
-void EqProof::debug_print(const char* c, unsigned tb) const
+void EqProof::debug_print(CVC5_UNUSED const char* c, unsigned tb) const
 {
   std::stringstream ss;
   debug_print(ss, tb);
@@ -593,7 +590,8 @@ bool EqProof::expandTransitivityForTheoryDisequalities(
   //   (= (= t1 t2) (= c1 c2))         (= (= c1 c2) false)
   //  --------------------------------------------------------------------- TR
   //                   (= (= t1 t2) false)
-  Node constApp = conclusion.getNodeManager()->mkNode(Kind::EQUAL, constChildren);
+  Node constApp =
+      conclusion.getNodeManager()->mkNode(Kind::EQUAL, constChildren);
   Node constEquality = constApp.eqNode(conclusion[1 - termPos]);
   Trace("eqproof-conv")
       << "EqProof::expandTransitivityForTheoryDisequalities: adding "
@@ -1164,6 +1162,14 @@ Node EqProof::addToProof(CDProof* p,
     }
     // Eliminate spurious premises. Reasoning below assumes no refl steps.
     cleanReflPremises(children);
+    // A recursive premise may have introduced the conclusion as an assumption
+    // while reconstructing a nested congruence. In that case, deriving it here
+    // would overwrite the assumption with a proof that depends on itself.
+    if (assumptions.count(conclusion))
+    {
+      visited[d_node] = conclusion;
+      return conclusion;
+    }
     // If any premise is of the form (= (t1 t2) false), then the transitivity
     // step may be coarse-grained and needs to be expanded. If the expansion
     // happens it also finalizes the proof of conclusion.
@@ -1252,6 +1258,14 @@ Node EqProof::addToProof(CDProof* p,
   }
   reduceNestedCongruence(
       arity, d_node, transitivityChildren, p, visited, assumptions, isNary);
+  // The process above may inadvertently make d_node be found to be an
+  // assumption of the proof. In which case the construction of the proof below
+  // would add a cyclic proof. So we test for short-circuit here.
+  if (assumptions.count(d_node))
+  {
+    visited[d_node] = d_node;
+    return d_node;
+  }
   // Congruences over n-ary operators may require changing the conclusion (as in
   // the above example). This is handled in a general manner below according to
   // whether the transitivity matrix computed by reduceNestedCongruence contains
@@ -1333,9 +1347,9 @@ Node EqProof::addToProof(CDProof* p,
       newChildren2.insert(newChildren2.end(),
                           d_node[1].begin() + arityPrefix2,
                           d_node[1].end());
-      conclusion = nm->mkNode(Kind::EQUAL,
-                              nm->mkNode(k, newChildren1),
-                              nm->mkNode(k, newChildren2));
+      conclusion = nm->mkNode(
+          Kind::EQUAL,
+          {nm->mkNode(k, newChildren1), nm->mkNode(k, newChildren2)});
       // update arity
       Assert((arity - emptyRows) == conclusion[0].getNumChildren());
       arity = arity - emptyRows;
@@ -1400,9 +1414,12 @@ Node EqProof::addToProof(CDProof* p,
         << "EqProof::addToProof: premises " << transitivityChildren[i] << "for "
         << i << "-th cong premise " << transConclusion << " don't justify it\n";
     unsigned sizeTrans = transitivityChildren[i].size();
-    // If no transitivity premise left or if (= ai bi) is an assumption (which
-    // might lead to a cycle with a transtivity step), nothing else to do.
-    if (sizeTrans == 0 || assumptions.count(transConclusion) > 0)
+    // If no transitivity premise left or if (= ai bi) is already present in
+    // the local proof, nothing else to do. Re-deriving it can create a cyclic
+    // proof when a congruence premise reuses the same fact through
+    // symmetry/rewriting.
+    if (sizeTrans == 0 || assumptions.count(transConclusion) > 0
+        || p->hasFact(transConclusion))
     {
       continue;
     }
@@ -1470,7 +1487,7 @@ Node EqProof::addToProof(CDProof* p,
   // rewriting
   if (!CDProof::isSame(conclusion, d_node))
   {
-    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a"
+    Trace("eqproof-conv") << "EqProof::addToProof: try to flatten via a "
                           << ProofRule::MACRO_SR_PRED_TRANSFORM
                           << " step the rebuilt conclusion " << conclusion
                           << " into " << d_node << "\n";

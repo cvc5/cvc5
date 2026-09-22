@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,7 +60,7 @@ bool SynthConjectureProcessFun::checkMatch(
        ++it)
   {
     Assert(it->first < d_arg_vars.size());
-    Assert(it->second.getType() == d_arg_vars[it->first].getType());
+    AssertEqual(it->second.getType(), d_arg_vars[it->first].getType());
     vars.push_back(d_arg_vars[it->first]);
     subs.push_back(it->second);
   }
@@ -225,9 +222,9 @@ unsigned SynthConjectureProcessFun::assignRelevantDef(
         {
           // marked as relevant, but template can be set equal to master
           d_arg_props[i].d_template = d_arg_vars[rid];
-          Trace("sygus-process-arg-deps") << " (new definition, map to master "
-                                          << d_arg_vars[rid] << ")."
-                                          << std::endl;
+          Trace("sygus-process-arg-deps")
+              << " (new definition, map to master " << d_arg_vars[rid] << ")."
+              << std::endl;
         }
         else
         {
@@ -239,8 +236,8 @@ unsigned SynthConjectureProcessFun::assignRelevantDef(
       {
         // has new definition
         d_arg_props[i].d_template = def;
-        Trace("sygus-process-arg-deps") << " (new definition " << def << ")."
-                                        << std::endl;
+        Trace("sygus-process-arg-deps")
+            << " (new definition " << def << ")." << std::endl;
       }
     }
   }
@@ -249,15 +246,15 @@ unsigned SynthConjectureProcessFun::assignRelevantDef(
 
 void SynthConjectureProcessFun::processTerms(
     std::vector<Node>& ns,
-    std::vector<Node>& ks,
+    CVC5_UNUSED std::vector<Node>& ks,
     Node nf,
     std::unordered_set<Node>& synth_fv,
     std::unordered_map<Node, std::unordered_set<Node>>& free_vars)
 {
   Assert(ns.size() == ks.size());
-  Trace("sygus-process-arg-deps") << "Process " << ns.size()
-                                  << " applications of " << d_synth_fun << "..."
-                                  << std::endl;
+  Trace("sygus-process-arg-deps")
+      << "Process " << ns.size() << " applications of " << d_synth_fun << "..."
+      << std::endl;
 
   // get the relevant variables
   // relevant variables are those that appear in the body of the conjunction
@@ -341,8 +338,8 @@ void SynthConjectureProcessFun::processTerms(
                                         << " (already relevant)." << std::endl;
         if (term_to_arg_carry.find(n[a]) == term_to_arg_carry.end())
         {
-          Trace("sygus-process-arg-deps") << "    carry " << n[a]
-                                          << " by argument #" << a << std::endl;
+          Trace("sygus-process-arg-deps")
+              << "    carry " << n[a] << " by argument #" << a << std::endl;
           term_to_arg_carry[n[a]] = a;
         }
       }
@@ -380,8 +377,8 @@ void SynthConjectureProcessFun::processTerms(
           {
             processed = true;
             Trace("sygus-process-arg-deps") << "    ...processed arg #" << a;
-            Trace("sygus-process-arg-deps") << " (consistent definition "
-                                            << n[a];
+            Trace("sygus-process-arg-deps")
+                << " (consistent definition " << n[a];
             Trace("sygus-process-arg-deps")
                 << " with " << d_arg_props[a].d_template << ")." << std::endl;
           }
@@ -394,8 +391,8 @@ void SynthConjectureProcessFun::processTerms(
       }
     }
 
-    Trace("sygus-process-arg-deps") << "  Look at argument terms..."
-                                    << std::endl;
+    Trace("sygus-process-arg-deps")
+        << "  Look at argument terms..." << std::endl;
 
     // list of all arguments
     std::vector<Node> arg_list;
@@ -410,28 +407,28 @@ void SynthConjectureProcessFun::processTerms(
       if (TraceIsOn("sygus-process-arg-deps"))
       {
         Trace("sygus-process-arg-deps") << "    argument " << nn;
-        Trace("sygus-process-arg-deps") << " (" << it->second.size()
-                                        << " positions)";
+        Trace("sygus-process-arg-deps")
+            << " (" << it->second.size() << " positions)";
         // check the status of this term
         if (nn.isVar() && synth_fv.find(nn) != synth_fv.end())
         {
           // is it relevant?
           if (rlv_vars.find(nn) != rlv_vars.end())
           {
-            Trace("sygus-process-arg-deps") << " is a relevant variable."
-                                            << std::endl;
+            Trace("sygus-process-arg-deps")
+                << " is a relevant variable." << std::endl;
           }
           else
           {
-            Trace("sygus-process-arg-deps") << " is an irrelevant variable."
-                                            << std::endl;
+            Trace("sygus-process-arg-deps")
+                << " is an irrelevant variable." << std::endl;
           }
         }
         else
         {
           // this can be more precise
-          Trace("sygus-process-arg-deps") << " is a relevant term."
-                                          << std::endl;
+          Trace("sygus-process-arg-deps")
+              << " is a relevant term." << std::endl;
         }
       }
     }
@@ -454,9 +451,9 @@ void SynthConjectureProcessFun::processTerms(
           Node def = inferDefinition(it->first, term_to_arg_carry, free_vars);
           if (!def.isNull())
           {
-            Trace("sygus-process-arg-deps") << "  *** Inferred definition "
-                                            << def << " for " << it->first
-                                            << std::endl;
+            Trace("sygus-process-arg-deps")
+                << "  *** Inferred definition " << def << " for " << it->first
+                << std::endl;
             // assign to each argument
             assignRelevantDef(def, it->second);
             // term_to_arg_carry[it->first] = rid;
@@ -479,8 +476,8 @@ void SynthConjectureProcessFun::processTerms(
             term_to_args.find(curr);
         if (it != term_to_args.end())
         {
-          Trace("sygus-process-arg-deps") << "  *** Decide relevant " << curr
-                                          << std::endl;
+          Trace("sygus-process-arg-deps")
+              << "  *** Decide relevant " << curr << std::endl;
           // assign relevant to each
           Node null_def;
           unsigned rid = assignRelevantDef(null_def, it->second);
@@ -606,7 +603,7 @@ bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
   {
     return its->second.isArgRelevant(i);
   }
-  Assert(false);
+  DebugUnhandled();
   return true;
 }
 
@@ -627,8 +624,8 @@ void SynthConjectureProcess::processConjunct(Node n,
                                              std::unordered_set<Node>& synth_fv)
 {
   Trace("sygus-process-arg-deps") << "Process conjunct: " << std::endl;
-  Trace("sygus-process-arg-deps") << "  " << n << " for synth fun " << f
-                                  << "..." << std::endl;
+  Trace("sygus-process-arg-deps")
+      << "  " << n << " for synth fun " << f << "..." << std::endl;
 
   // first, flatten the conjunct
   // make a copy of free variables since we may add new ones
@@ -780,12 +777,16 @@ void SynthConjectureProcess::getFreeVariables(
 }
 
 Node SynthConjectureProcess::getSymmetryBreakingPredicate(
-    Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth)
+    CVC5_UNUSED Node x,
+    CVC5_UNUSED Node e,
+    CVC5_UNUSED TypeNode tn,
+    CVC5_UNUSED unsigned tindex,
+    CVC5_UNUSED unsigned depth)
 {
   return Node::null();
 }
 
-void SynthConjectureProcess::debugPrint(const char* c) {}
+void SynthConjectureProcess::debugPrint(CVC5_UNUSED const char* c) {}
 void SynthConjectureProcess::getComponentVector(Kind k,
                                                 Node n,
                                                 std::vector<Node>& args)

@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Andres Noetzli, Mathias Preiner
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -25,7 +22,7 @@ if(NOT ONLY_PYTHON_EXT_SRC)
   # a directory within the Python wheel package so that
   # the package is self-contained. It works on Linux,
   # macOS, and Windows.
-  find_package(Repairwheel 0.3.1 REQUIRED)
+  find_package(Repairwheel 0.3.2 REQUIRED)
 endif()
 
 configure_file(genenums.py.in genenums.py)
@@ -126,14 +123,14 @@ execute_process(COMMAND
 
 # Set include_dirs and library_dirs variables that are used in setup.cfg.in
 if (WIN32)
-  set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include;${CMAKE_BINARY_DIR}/include")
-  set(SETUP_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/src;${CMAKE_BINARY_DIR}/src/parser")
+  set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+  set(SETUP_LIBRARY_DIRS "${PROJECT_BINARY_DIR}/src;${PROJECT_BINARY_DIR}/src/parser")
   set(SETUP_COMPILER "[build]\ncompiler=mingw32")
 else()
-  set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include:${CMAKE_BINARY_DIR}/include")
-  set(SETUP_LIBRARY_DIRS "${CMAKE_BINARY_DIR}/src:${CMAKE_BINARY_DIR}/src/parser")
+  set(SETUP_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include:${PROJECT_BINARY_DIR}/include")
+  set(SETUP_LIBRARY_DIRS "${PROJECT_BINARY_DIR}/src:${PROJECT_BINARY_DIR}/src/parser")
   # On Linux and macOS, set rpath variable too
-  set(SETUP_RPATH "rpath=${CMAKE_BINARY_DIR}/src:${CMAKE_BINARY_DIR}/src/parser")
+  set(SETUP_RPATH "rpath=${PROJECT_BINARY_DIR}/src:${PROJECT_BINARY_DIR}/src/parser")
 endif()
 
 # Set MACOS_ARCH variable that is used in setup.py.in
@@ -267,10 +264,10 @@ else()
   install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
     -DPython_EXECUTABLE=${Python_EXECUTABLE}
     -DRepairwheel_EXECUTABLE=${Repairwheel_EXECUTABLE}
-    -DBUILD_DIR=${CMAKE_BINARY_DIR}
+    -DBUILD_DIR=${PROJECT_BINARY_DIR}
     -DDEPS_BASE=${DEPS_BASE}
     -DINSTALL_CMD=\"${INSTALL_CMD}\"
-    -P ${CMAKE_SOURCE_DIR}/cmake/install_python_wheel.cmake)"
+    -P ${PROJECT_SOURCE_DIR}/cmake/install_python_wheel.cmake)"
     COMPONENT python-api)
 
 endif()

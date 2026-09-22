@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,7 @@ Node ElimWitnessNodeConverter::postConvert(Node n)
       Assert(n[2].getKind() == Kind::INST_PATTERN_LIST);
       ProofRule r;
       std::vector<Node> args;
-      if (ValidWitnessProofGenerator::getProofSpec(nm, n[2][0], r, args))
+      if (ValidWitnessProofGenerator::getProofSpec(n[2][0], r, args))
       {
         k = ValidWitnessProofGenerator::mkSkolem(nm, r, args);
         Node ax = ValidWitnessProofGenerator::mkAxiom(nm, k, r, args);

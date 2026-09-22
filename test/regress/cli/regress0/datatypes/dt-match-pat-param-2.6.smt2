@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --lang=smt2.6
 ; EXPECT: sat
 (set-logic ALL)

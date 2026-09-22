@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,18 +27,19 @@ ${metakind_fwd_decls}
 // clang-format on
 
 namespace expr {
-  class NodeValue;
-  }  // namespace expr
+class NodeValue;
+}  // namespace expr
 
 namespace kind {
 namespace metakind {
 
-struct NodeValueCompare {
+struct NodeValueCompare
+{
   template <bool pool>
   static bool compare(const cvc5::internal::expr::NodeValue* nv1,
                       const cvc5::internal::expr::NodeValue* nv2);
   static size_t constHash(const cvc5::internal::expr::NodeValue* nv);
-};/* struct NodeValueCompare */
+}; /* struct NodeValueCompare */
 
 /**
  * "metakinds" represent the "kinds" of kinds at the meta-level.
@@ -50,14 +48,15 @@ struct NodeValueCompare {
  * polluting the kind namespace.  For more documentation on what these
  * mean, see src/theory/builtin/kinds.
  */
-enum MetaKind_t {
-  INVALID = -1, /**< special node non-kinds like NULL_EXPR or LAST_KIND */
-  VARIABLE, /**< special node kinds: no operator */
-  OPERATOR, /**< operators that get "inlined" */
-  PARAMETERIZED, /**< parameterized ops (like APPLYs) that carry extra data */
-  CONSTANT, /**< constants */
+enum MetaKind_t
+{
+  INVALID = -1,    /**< special node non-kinds like NULL_EXPR or LAST_KIND */
+  VARIABLE,        /**< special node kinds: no operator */
+  OPERATOR,        /**< operators that get "inlined" */
+  PARAMETERIZED,   /**< parameterized ops (like APPLYs) that carry extra data */
+  CONSTANT,        /**< constants */
   NULLARY_OPERATOR /**< nullary operator */
-};/* enum MetaKind_t */
+}; /* enum MetaKind_t */
 
 /**
  * Write the string representation of a payload of a constant node to an output
@@ -94,7 +93,7 @@ typedef cvc5::internal::kind::metakind::MetaKind_t MetaKind;
 /**
  * Get the metakind for a particular kind.
  */
-MetaKind metaKindOf(Kind k);
+CVC5_EXPORT MetaKind metaKindOf(Kind k);
 
 /**
  * Map a kind of the operator to the kind of the enclosing expression. For
@@ -108,7 +107,8 @@ Kind operatorToKind(cvc5::internal::expr::NodeValue* nv);
 namespace expr {
 
 // Comparison predicate
-struct NodeValuePoolEq {
+struct NodeValuePoolEq
+{
   bool operator()(const NodeValue* nv1, const NodeValue* nv2) const
   {
     return cvc5::internal::kind::metakind::NodeValueCompare::compare<true>(nv1,

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,7 @@ class StatisticsRegistry;
 using StatExportData =
     std::variant<int64_t, double, std::string, std::map<std::string, uint64_t>>;
 namespace detail {
-  std::ostream& print(std::ostream& out, const StatExportData& sed);
+std::ostream& print(std::ostream& out, const StatExportData& sed);
 }
 
 /**
@@ -367,7 +364,7 @@ struct StatisticTimerValue : StatisticBaseValue
   uint64_t get() const;
 
   /**
-   * The cumulative duration of the timer so far. 
+   * The cumulative duration of the timer so far.
    * Does not include a currently running timer, but `get()` takes care of this.
    */
   duration d_duration;

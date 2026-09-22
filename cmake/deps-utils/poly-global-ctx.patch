@@ -1,0 +1,281 @@
+diff -urN a/include/polyxx/assignment.h b/include/polyxx/assignment.h
+--- a/include/polyxx/assignment.h
++++ b/include/polyxx/assignment.h
+@@ -19,8 +19,6 @@
+    public:
+     /** Construct an empty assignment with a custom context. */
+     Assignment(const Context& c);
+-    /** Construct an empty assignment. */
+-    Assignment() : Assignment(Context::get_context()) {}
+     /** Custom destructor. */
+     ~Assignment();
+ 
+diff -urN a/include/polyxx/context.h b/include/polyxx/context.h
+--- a/include/polyxx/context.h
++++ b/include/polyxx/context.h
+@@ -45,8 +45,6 @@
+      * Handle with care!
+      */
+     lp_polynomial_context_t* get_polynomial_context() const;
+-
+-    static const Context& get_context();
+   };
+ 
+-}  // namespace poly
+\ No newline at end of file
++}  // namespace poly
+diff -urN a/include/polyxx/dyadic_rational.h b/include/polyxx/dyadic_rational.h
+--- a/include/polyxx/dyadic_rational.h
++++ b/include/polyxx/dyadic_rational.h
+@@ -78,9 +78,6 @@
+     }
+   }  // namespace detail
+ 
+-  /** Stream the given DyadicRational to an output stream. */
+-  std::ostream& operator<<(std::ostream& os, const DyadicRational& dr);
+-
+   /** Get a double representation of a DyadicRational. */
+   double to_double(const DyadicRational& dr);
+ 
+diff -urN a/include/polyxx/interval_assignment.h b/include/polyxx/interval_assignment.h
+--- a/include/polyxx/interval_assignment.h
++++ b/include/polyxx/interval_assignment.h
+@@ -19,8 +19,6 @@
+    public:
+     /** Construct an empty assignment with a custom context. */
+     IntervalAssignment(const Context& c);
+-    /** Construct an empty assignment. */
+-    IntervalAssignment();
+     IntervalAssignment(const IntervalAssignment&) = delete;
+     IntervalAssignment(IntervalAssignment&& ia);
+     /** Custom destructor. */
+diff -urN a/include/polyxx/polynomial.h b/include/polyxx/polynomial.h
+--- a/include/polyxx/polynomial.h
++++ b/include/polyxx/polynomial.h
+@@ -30,29 +30,21 @@
+     Polynomial(const lp_polynomial_context_t* c);
+     /** Construct a zero polynomial from a custom context. */
+     Polynomial(const Context& c);
+-    /** Construct a zero polynomial. */
+-    Polynomial();
+ 
+     /** Construct a constant polynomial from an internal context pointer. */
+     Polynomial(const lp_polynomial_context_t* c, const Variable& v);
+     /** Construct from a variable and a custom context. */
+     Polynomial(const Context& c, const Variable& v);
+-    /** Construct from a variable. */
+-    Polynomial(const Variable& v);
+ 
+     /** Construct a constant polynomial from an internal context pointer. */
+     Polynomial(const lp_polynomial_context_t* c, const Integer& i, const Variable& v, unsigned n);
+     /** Construct i * v^n from a custom context. */
+     Polynomial(const Context& c, const Integer& i, const Variable& v, unsigned n);
+-    /** Construct i * v^n. */
+-    Polynomial(const Integer& i, const Variable& v, unsigned n);
+ 
+     /** Construct a constant polynomial from an internal context pointer. */
+     Polynomial(const lp_polynomial_context_t* c, const Integer& i);
+     /** Construct from an integer and a custom context. */
+     Polynomial(const Context& c, const Integer& i);
+-    /** Construct from an integer. */
+-    Polynomial(const Integer& i);
+ 
+     /** Copy from a Polynomial. */
+     Polynomial(const Polynomial& p);
+diff -urN a/include/polyxx/rational.h b/include/polyxx/rational.h
+--- a/include/polyxx/rational.h
++++ b/include/polyxx/rational.h
+@@ -91,9 +91,6 @@
+     }
+   }  // namespace detail
+ 
+-  /** Stream the given Rational to an output stream. */
+-  std::ostream& operator<<(std::ostream& os, const Rational& r);
+-
+   /** Give a double approximation. */
+   double to_double(const Rational& r);
+ 
+diff -urN a/include/polyxx/rational_interval.h b/include/polyxx/rational_interval.h
+--- a/include/polyxx/rational_interval.h
++++ b/include/polyxx/rational_interval.h
+@@ -60,9 +60,6 @@
+   /** Swap two intervals. */
+   void swap(RationalInterval& lhs, RationalInterval& rhs);
+ 
+-  /** Stream the given Interval to an output stream. */
+-  std::ostream& operator<<(std::ostream& os, const RationalInterval& i);
+-
+   /** Checks whether an interval contains an algebraic number. */
+   bool contains(const RationalInterval& ri, const AlgebraicNumber& an);
+   /** Checks whether an interval contains a dyadic rational. */
+diff -urN a/include/polyxx/variable.h b/include/polyxx/variable.h
+--- a/include/polyxx/variable.h
++++ b/include/polyxx/variable.h
+@@ -23,8 +23,6 @@
+     explicit Variable(lp_variable_t var);
+     /** Construct a new variable with the given name in the specified context. */
+     explicit Variable(const Context& c, const char* name);
+-    /** Construct a new variable with the given name in the default context. */
+-    explicit Variable(const char* name);
+ 
+     /** Get the internal lp_variable_t. Note that it's only a type alias for
+      * long.
+@@ -42,9 +40,6 @@
+     std::ostream& operator<<(std::ostream& os, const variable_printer& v);
+   }  // namespace detail
+ 
+-  /** Stream the given Variable to an output stream from the default context. */
+-  std::ostream& operator<<(std::ostream& os, const Variable& v);
+-
+   /** Stream the given Variable from the given context.
+    * Use as follows: os << stream_variable(c, v) << ...
+    */
+diff -urN a/src/polyxx/context.cpp b/src/polyxx/context.cpp
+--- a/src/polyxx/context.cpp
++++ b/src/polyxx/context.cpp
+@@ -47,9 +47,4 @@
+     return const_cast<lp_polynomial_context_t*>(mPolynomialContext.get());
+   }
+ 
+-  const Context& Context::get_context() {
+-    static Context c;
+-    return c;
+-  }
+-
+-}  // namespace poly
+\ No newline at end of file
++}  // namespace poly
+diff -urN a/src/polyxx/dyadic_rational.cpp b/src/polyxx/dyadic_rational.cpp
+--- a/src/polyxx/dyadic_rational.cpp
++++ b/src/polyxx/dyadic_rational.cpp
+@@ -53,10 +53,6 @@
+     return &mDRat;
+   }
+ 
+-  std::ostream& operator<<(std::ostream& os, const DyadicRational& r) {
+-    return stream_ptr(os, lp_dyadic_rational_to_string(r.get_internal()));
+-  }
+-
+   double to_double(const DyadicRational& r) {
+     return lp_dyadic_rational_to_double(r.get_internal());
+   }
+diff -urN a/src/polyxx/interval_assignment.cpp b/src/polyxx/interval_assignment.cpp
+--- a/src/polyxx/interval_assignment.cpp
++++ b/src/polyxx/interval_assignment.cpp
+@@ -5,8 +5,6 @@
+   IntervalAssignment::IntervalAssignment(const Context& c) {
+     lp_interval_assignment_construct(get_internal(), c.get_variable_db());
+   }
+-  IntervalAssignment::IntervalAssignment()
+-      : IntervalAssignment(Context::get_context()) {}
+   IntervalAssignment::IntervalAssignment(IntervalAssignment&& ia): mAssignment(ia.mAssignment) {
+     lp_interval_assignment_construct(ia.get_internal(), ia.mAssignment.var_db);
+   }
+@@ -55,4 +53,4 @@
+     return stream_ptr(os, lp_interval_assignment_to_string(a.get_internal()));
+   }
+ 
+-}  // namespace poly
+\ No newline at end of file
++}  // namespace poly
+diff -urN a/src/polyxx/polynomial.cpp b/src/polyxx/polynomial.cpp
+--- a/src/polyxx/polynomial.cpp
++++ b/src/polyxx/polynomial.cpp
+@@ -35,7 +35,6 @@
+       : mPoly(lp_polynomial_new(c), polynomial_deleter) {}
+   Polynomial::Polynomial(const Context& c)
+       : Polynomial(c.get_polynomial_context()) {}
+-  Polynomial::Polynomial() : Polynomial(Context::get_context()) {}
+ 
+   Polynomial::Polynomial(const lp_polynomial_context_t* c, const Variable& v)
+       : mPoly(lp_polynomial_alloc(), polynomial_deleter) {
+@@ -46,7 +45,6 @@
+   }
+   Polynomial::Polynomial(const Context& c, const Variable& v)
+       : Polynomial(c.get_polynomial_context(), v) {}
+-  Polynomial::Polynomial(const Variable& v) : Polynomial(Context::get_context(), v) {}
+ 
+   Polynomial::Polynomial(const lp_polynomial_context_t* c, const Integer& i, const Variable& v, unsigned n)
+       : mPoly(lp_polynomial_alloc(), polynomial_deleter) {
+@@ -56,8 +54,6 @@
+   }
+   Polynomial::Polynomial(const Context& c, const Integer& i, const Variable& v, unsigned n)
+       : Polynomial(c.get_polynomial_context(), i, v, n) {}
+-  Polynomial::Polynomial(const Integer& i, const Variable& v, unsigned n)
+-      : Polynomial(Context::get_context(), i, v, n) {}
+ 
+   Polynomial::Polynomial(const lp_polynomial_context_t* c, const Integer & i)
+       : mPoly(lp_polynomial_alloc(), polynomial_deleter) {
+@@ -65,7 +61,6 @@
+                                    i.get_internal(), lp_variable_null, 0);
+   }
+   Polynomial::Polynomial(const Context& c, const Integer& i) : Polynomial(c.get_polynomial_context(), i) {}
+-  Polynomial::Polynomial(const Integer& i) : Polynomial(Context::get_context(), i){};
+ 
+   Polynomial::Polynomial(const Polynomial& p)
+       : mPoly(lp_polynomial_new_copy(p.get_internal()), polynomial_deleter) {}
+diff -urN a/src/polyxx/rational.cpp b/src/polyxx/rational.cpp
+--- a/src/polyxx/rational.cpp
++++ b/src/polyxx/rational.cpp
+@@ -43,10 +43,6 @@
+   lp_rational_t* Rational::get_internal() { return &mRat; }
+   const lp_rational_t* Rational::get_internal() const { return &mRat; }
+ 
+-  std::ostream& operator<<(std::ostream& os, const Rational& r) {
+-    return stream_ptr(os, lp_rational_to_string(r.get_internal()));
+-  }
+-
+   double to_double(const Rational& r) {
+     return lp_rational_to_double(r.get_internal());
+   }
+diff -urN a/src/polyxx/rational_interval.cpp b/src/polyxx/rational_interval.cpp
+--- a/src/polyxx/rational_interval.cpp
++++ b/src/polyxx/rational_interval.cpp
+@@ -68,23 +68,6 @@
+     lp_rational_interval_swap(lhs.get_internal(), rhs.get_internal());
+   }
+ 
+-  std::ostream& operator<<(std::ostream& os, const RationalInterval& i) {
+-    if (i.get_internal()->is_point) {
+-      assert(!i.get_internal()->a_open && !i.get_internal()->b_open);
+-      os << "[ ";
+-      stream_ptr(os, lp_rational_to_string(&(i.get_internal()->a)));
+-      os << " ; ";
+-      stream_ptr(os, lp_rational_to_string(&(i.get_internal()->a)));
+-      return os << " ]";
+-    }
+-    os << (i.get_internal()->a_open ? "( " : "[ ");
+-    stream_ptr(os, lp_rational_to_string(&(i.get_internal()->a)));
+-    os << " ; ";
+-    stream_ptr(os, lp_rational_to_string(&(i.get_internal()->b)));
+-    os << (i.get_internal()->b_open ? " )" : " ]");
+-    return os;
+-  }
+-
+   bool contains(const RationalInterval& ri, const AlgebraicNumber& an) {
+     assert(false && "Not yet implemented in the library.");
+     return lp_rational_interval_contains_algebraic_number(ri.get_internal(),
+diff -urN a/src/polyxx/variable.cpp b/src/polyxx/variable.cpp
+--- a/src/polyxx/variable.cpp
++++ b/src/polyxx/variable.cpp
+@@ -8,8 +8,6 @@
+   Variable::Variable(lp_variable_t var) : mVariable(var) {}
+   Variable::Variable(const Context& c, const char* name)
+       : mVariable(lp_variable_db_new_variable(c.get_variable_db(), name)) {}
+-  Variable::Variable(const char* name)
+-      : Variable(Context::get_context(), name) {}
+ 
+   lp_variable_t Variable::get_internal() const { return mVariable; }
+ 
+@@ -19,11 +17,6 @@
+     }
+   }  // namespace detail
+ 
+-  std::ostream& operator<<(std::ostream& os, const Variable& v) {
+-    return os << lp_variable_db_get_name(
+-               Context::get_context().get_variable_db(), v.get_internal());
+-  }
+-
+   detail::variable_printer stream_variable(const Context& c, const Variable& v) {
+     return detail::variable_printer{c.get_variable_db(), v.get_internal()};
+   }

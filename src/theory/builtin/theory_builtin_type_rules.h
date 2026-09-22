@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,26 +15,16 @@
 #ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
 #define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
 
+#include <sstream>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
-
-#include <sstream>
 
 namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
 class EqualityTypeRule
-{
- public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
-
-class DistinctTypeRule
 {
  public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);
@@ -104,7 +91,7 @@ class TypeOfTypeRule
 class SortProperties
 {
  public:
-  static bool isWellFounded(TypeNode type) { return true; }
+  static bool isWellFounded(CVC5_UNUSED TypeNode type) { return true; }
   static Node mkGroundTerm(TypeNode type);
 };
 

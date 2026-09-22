@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -290,7 +287,7 @@ class SygusGrammarNorm : protected EnvObj
   {
    public:
     TransfChain(unsigned chain_op_pos, const std::vector<unsigned>& elem_pos)
-        : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos){};
+        : d_chain_op_pos(chain_op_pos), d_elem_pos(elem_pos) {};
 
     /** builds types encoding a chain in which each link contains a repetition
      * of the application of the chain operator over a non-identity element

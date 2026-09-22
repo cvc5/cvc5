@@ -1,34 +1,69 @@
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 5 * * *'
+
 name: CI
 
-# Prevents github from relying on clones of homebrew-core or homebrew-cask.
-# https://github.com/orgs/Homebrew/discussions/4612
-env:
-    HOMEBREW_NO_INSTALL_FROM_API: ""
-
 jobs:
+  setup-release-pages:
+    name: Set up release pages
+    runs-on: ubuntu-latest
+    concurrency:
+      group: setup-release-pages
+      cancel-in-progress: false
+    steps:
+      - name: Checkout code
+        if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+        uses: actions/checkout@v6
+
+      - name: Set up latest page
+        if: github.ref == 'refs/heads/main'
+        uses: ./.github/actions/setup-latest
+
+      - name: Set up new version page
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: ./.github/actions/setup-new-version
+        with:
+          # When using GITHUB_TOKEN, no further workflows are triggered
+          # See https://github.com/cvc5/cvc5/pull/8512
+          github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+
+  check-format:
+    name: Check code formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install clang-format and run format check
+        run: |
+          python3 -m pip install clang-format==22.1.2
+          ./contrib/format-code.sh check
+
   builds:
+    needs: [setup-release-pages]
     strategy:
       matrix:
-        has-tag:
-          - ${{ startsWith(github.ref, 'refs/tags/') }}
+        gpl-build:
+          - ${{ startsWith(github.ref, 'refs/tags/') || (github.event_name == 'schedule') }}
         build:
-          - name: ubuntu:production
+          - name: ubuntu:unrestricted
             os: ubuntu-22.04
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
             java-bindings: true
+            upload-maven-main: true
             check-examples: true
             package-name: cvc5-Linux-x86_64
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:safe-mode
+          - name: ubuntu:safe
             os: ubuntu-22.04
-            config: safe-mode --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-safe
+            config: safe --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: safe
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -36,10 +71,33 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester proof --tester cpc --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:production-arm64
+          - name: ubuntu:stable
+            os: ubuntu-22.04
+            config: stable --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: stable
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            check-examples: true
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester proof --tester cpc --tester model --tester dump
+
+          - name: ubuntu:unrestricted-libc++
+            os: ubuntu-24.04
+            use-clang: true
+            use-libcxx: true
+            config: unrestricted --auto-download -DBUILD_GMP=1
+            cache-key: unrestricted-libcxx
+            strip-bin: strip
+            check-examples: true
+            package-name: cvc5-Linux-x86_64-libcxx
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
+
+          - name: ubuntu:unrestricted-arm64
             os: ubuntu-22.04-arm
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-arm64
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -48,16 +106,22 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: ubuntu:production-arm64-cross
-            os: ubuntu-latest
-            config: production --auto-download --arm64
-            cache-key: production-arm64-cross
-            strip-bin: aarch64-linux-gnu-strip
+          - name: ubuntu:unrestricted-arm64-libc++
+            os: ubuntu-24.04-arm
+            use-clang: true
+            use-libcxx: true
+            config: unrestricted --auto-download -DBUILD_GMP=1
+            cache-key: unrestricted-arm64-libcxx
+            strip-bin: strip
+            check-examples: true
+            package-name: cvc5-Linux-arm64-libcxx
+            exclude_regress: 3-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: macos:production
-            os: macos-13
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production
+          - name: macos:unrestricted
+            os: macos-15-intel
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -67,10 +131,10 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: macos:production-arm64
-            os: macos-14
-            config: production --auto-download --all-bindings --editline -DBUILD_GMP=1
-            cache-key: production-arm64
+          - name: macos:unrestricted-arm64
+            os: macos-15
+            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -81,17 +145,10 @@ jobs:
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: macos:production-arm64-cross
-            os: macos-13
-            config: production --auto-download --all-bindings --editline --arm64
-            cache-key: production-arm64-cross
-            strip-bin: strip
-            python-bindings: true
-
-          - name: win64:production
+          - name: win64:unrestricted
             os: windows-latest
-            config: production --auto-download --all-bindings
-            cache-key: production-win64-native
+            config: unrestricted --auto-download --all-bindings
+            cache-key: unrestricted-win64-native
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -102,102 +159,142 @@ jobs:
             exclude_regress: 1-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: win64:production-cross
-            os: ubuntu-latest
-            config: production --auto-download --win64
-            cache-key: production-win64-cross
-            strip-bin: x86_64-w64-mingw32-strip
+          - name: win64:unrestricted-arm64
+            os: windows-11-arm
+            config: unrestricted --auto-download --all-bindings
+            cache-key: unrestricted-win64-native-arm64
+            strip-bin: strip
+            python-bindings: true
+            java-bindings: true
+            java-version: 21
             windows-build: true
+            shell: 'msys2 {0}'
+            check-examples: true
+            package-name: cvc5-Win64-arm64
+            exclude_regress: 1-4
+            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
 
-          - name: wasm:production
+          - name: wasm:unrestricted
             os: ubuntu-22.04
-            config: production --static --static-binary --auto-download --wasm-web=no-modular-static-page
-            cache-key: productionwasm
+            config: unrestricted --static --static-binary --auto-download --wasm-web=no-modular-static-page
+            cache-key: unrestricted-wasm
             wasm-build: true
             wasm-pkg-name: cvc5-Wasm
             build-shared: false
             build-static: true
 
-          - name: ubuntu:production-clang
-            os: ubuntu-22.04
-            env: CC=clang CXX=clang++
-            config: production --auto-download --no-poly
-            cache-key: productionclang
-            check-examples: true
-            exclude_regress: 3-4
-            run_regression_args: --tester base --tester model --tester synth --tester abduct --tester dump
-
             # Job used to build the documentation
-          - name: ubuntu:production-dbg
+          - name: ubuntu:unrestricted-dbg
             os: ubuntu-24.04 # Use Doxygen version from this Ubuntu release
             config: >-
-              production --auto-download --assertions --tracing --unit-testing --editline
-              --cocoa --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
+              unrestricted --auto-download --assertions --tracing --unit-testing --editline
+              --cocoa --normaliz --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
             cache-key: dbg
             python-bindings: true
             java-version: 21 # Use Javadoc from this Java version
             build-documentation: true
+            upload-maven-doc: true
             exclude_regress: 3-4
             run_regression_args: --tester base --tester model --tester synth --tester abduct --tester proof --tester dump
 
-          - name: ubuntu:production-dbg-clang
+          # Use NO_GLOBAL_POLY_CTX=1 to ensure cvc5 does not use LibPoly's global context (testing purposes)
+          - name: ubuntu:unrestricted-dbg-clang
             os: ubuntu-22.04
-            env: CC=clang CXX=clang++
-            config: production --auto-download --assertions --tracing --cln --gpl
+            use-clang: true
+            config: unrestricted --auto-download --assertions --tracing --cln --gpl --glpk --unit-testing -DNO_GLOBAL_POLY_CTX=1
             cache-key: dbgclang
             exclude_regress: 3-4
             run_regression_args: --tester cpc --tester alethe --tester base --tester model --tester synth --tester abduct --tester unsat-core --tester dump
 
           # GPL versions
-          - name: ubuntu:production-gpl
+          - name: ubuntu:unrestricted-gpl
             os: ubuntu-22.04
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-gpl
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
             gpl-tag: -gpl
 
-          - name: ubuntu:production-arm64-gpl
+          - name: ubuntu:unrestricted-arm64-gpl
             os: ubuntu-22.04-arm
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-arm64-gpl
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-Linux-arm64
             gpl-tag: -gpl
 
-          - name: macos:production-gpl
-            os: macos-13
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-gpl
+          - name: macos:unrestricted-gpl
+            os: macos-15-intel
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64
             macos-target: 10.13
             gpl-tag: -gpl
 
-          - name: macos:production-arm64-gpl
-            os: macos-14
-            config: production --auto-download --editline --gpl --cln --glpk --cocoa -DBUILD_GMP=1 -DBUILD_CLN=1
-            cache-key: production-arm64-gpl
+          - name: macos:unrestricted-arm64-gpl
+            os: macos-15
+            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
             java-version: 11
             macos-target: 11.0
             gpl-tag: -gpl
 
-        exclude:
-          - has-tag: false
-            build:
-              name: ubuntu:production-gpl
-          - has-tag: false
-            build:
-              name: ubuntu:production-arm64-gpl
-          - has-tag: false
-            build:
-              name: macos:production-gpl
-          - has-tag: false
-            build:
-              name: macos:production-arm64-gpl
+          # Windows builds with CoCoALib are generated for testing purposes only
+          # but are not currently uploaded.
+          - name: win64:unrestricted-gpl
+            os: windows-latest
+            config: unrestricted --auto-download --gpl --cocoa --normaliz
+            cache-key: unrestricted-win64-native-gpl
+            strip-bin: strip
+            windows-build: true
+            shell: 'msys2 {0}'
+            gpl-tag: -gpl
 
+          - name: win64:unrestricted-arm64-gpl
+            os: windows-11-arm
+            config: unrestricted --auto-download --gpl --cocoa --normaliz
+            cache-key: unrestricted-win64-native-arm64-gpl
+            strip-bin: strip
+            java-version: 21
+            windows-build: true
+            shell: 'msys2 {0}'
+            gpl-tag: -gpl
+
+          - name: wasm:unrestricted-gpl
+            os: ubuntu-22.04
+            config: unrestricted --static --static-binary --auto-download --wasm-web=no-modular-static-page --cocoa --gpl
+            cache-key: unrestricted-wasm-gpl
+            wasm-build: true
+            wasm-pkg-name: cvc5-Wasm
+            build-shared: false
+            build-static: true
+            gpl-tag: -gpl
+
+        exclude:
+          - gpl-build: false
+            build:
+              name: ubuntu:unrestricted-gpl
+          - gpl-build: false
+            build:
+              name: ubuntu:unrestricted-arm64-gpl
+          - gpl-build: false
+            build:
+              name: macos:unrestricted-gpl
+          - gpl-build: false
+            build:
+              name: macos:unrestricted-arm64-gpl
+          - gpl-build: false
+            build:
+              name: win64:unrestricted-gpl
+          - gpl-build: false
+            build:
+              name: win64:unrestricted-arm64-gpl
+          - gpl-build: false
+            build:
+              name: wasm:unrestricted-gpl
 
     name: ${{ matrix.build.name }}
     runs-on: ${{ matrix.build.os }}
@@ -208,12 +305,11 @@ jobs:
       cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
 
     steps:
-
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
     # with the minimum required Java version (currently Java 8).
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: ${{ matrix.build.java-version || '8' }}
@@ -229,18 +325,11 @@ jobs:
       uses: ./.github/actions/install-dependencies
       with:
         with-documentation: ${{ matrix.build.build-documentation }}
+        use-clang: ${{ matrix.build.use-clang }}
+        use-libcxx: ${{ matrix.build.use-libcxx }}
         windows-build: ${{ matrix.build.windows-build }}
         wasm-build: ${{ matrix.build.wasm-build }}
         shell: ${{ matrix.build.shell }}
-
-    - name: Install pyGithub
-      if: matrix.build.package-name || matrix.build.wasm-pkg-name
-      run: |
-        # Upgrading pyopenssl resolves the following error:
-        # AttributeError:
-        #   module 'lib' has no attribute 'X509_V_FLAG_NOTIFY_POLICY'
-        python3 -m pip install -U pyopenssl
-        python3 -m pip install pyGithub
 
     - name: Setup caches
       uses: ./.github/actions/setup-cache
@@ -254,7 +343,6 @@ jobs:
       id: configure-and-build
       uses: ./.github/actions/configure-and-build
       with:
-        configure-env: ${{ matrix.build.env }}
         configure-config: ${{ matrix.build.config }}
         macos-target: ${{ matrix.build.macos-target }}
         build-shared: ${{ matrix.build.build-shared }}
@@ -286,7 +374,7 @@ jobs:
         shell: ${{ matrix.build.shell }}
 
     - name: Build documentation
-      if: matrix.build.build-documentation
+      if: matrix.build.build-documentation && (github.event_name != 'schedule')
       uses: ./.github/actions/build-documentation
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
@@ -298,10 +386,8 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.shared-build-dir }}
         package-name: ${{ matrix.build.package-name }}-shared${{ matrix.build.gpl-tag }}
-        # when using GITHUB_TOKEN, no further workflows are triggered
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
 
     - name: Create and add static package to latest and release
       id: create-static-package
@@ -310,10 +396,8 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         package-name: ${{ matrix.build.package-name }}-static${{ matrix.build.gpl-tag }}
-        # when using GITHUB_TOKEN, no further workflows are triggered
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
 
     - name: Create and add WASM to latest and release
       if: matrix.build.wasm-pkg-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
@@ -321,25 +405,85 @@ jobs:
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         wasm-name: ${{ matrix.build.wasm-pkg-name }}${{ matrix.build.gpl-tag }}
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
         shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
 
     - name: Create and add JAR to latest and release
       if: matrix.build.java-bindings && matrix.build.package-name && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
       uses: ./.github/actions/add-jar
       with:
-        install-path: ${{ steps.create-static-package.outputs.install-path }}
-        jar-libs-dir: cvc5-libs
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         jar-name: ${{ matrix.build.package-name }}${{ matrix.build.gpl-tag }}-java-api
-        github-token-latest: ${{ secrets.GITHUB_TOKEN }}
-        github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+        shell: ${{ matrix.build.shell }}
+        dry-run: ${{ github.event_name == 'schedule' }}
+
+    - name: Upload Maven artifacts
+      if: >
+        github.repository == 'cvc5/cvc5' && github.event_name != 'schedule' &&
+        (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) &&
+        (matrix.build.upload-maven-doc ||
+         (matrix.build.java-bindings && matrix.build.package-name))
+      uses: ./.github/actions/upload-mvn-files
+      continue-on-error: true
+      with:
+        build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
+        upload-main: ${{ matrix.build.upload-maven-main }}
+        artifact-suffix: ${{ matrix.build.package-name || 'docs' }}
         shell: ${{ matrix.build.shell }}
 
+  publish-to-maven-central:
+    name: Publish to Maven central
+    if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) && github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    needs: [builds]
+    steps:
+    - name: Set up Maven Central
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        server-id: central
+        server-username: MAVEN_USERNAME
+        server-password: MAVEN_TOKEN
+        gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+        gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+    - name: Download Maven JAR artifacts
+      uses: actions/download-artifact@v7
+      with:
+        path: ./maven
+        pattern: mvn-*
+        merge-multiple: true
+
+    - name: Deploy to Maven Central
+      continue-on-error: true
+      run: |
+        cd ./maven
+        mkdir -p ./src/api/java ./docs/api/java
+        mv cvc5-javadoc.jar ./docs/api/java/
+        mv *.jar ./src/api/java/
+        mvn deploy --batch-mode -Prelease
+      env:
+        MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+        MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
+        MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+    - name: Delete mvn-* artifacts from this run
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "Getting artifacts for run $GITHUB_RUN_ID"
+        gh api /repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts \
+          --jq '.artifacts[] | select(.name | startswith("mvn-")) | .id' \
+          | while read id; do
+            echo "Deleting artifact id $id"
+            gh api -X DELETE /repos/${{ github.repository }}/actions/artifacts/$id
+          done
 
   cleanup-artifacts:
     name: Clean up artifacts from latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'schedule'
     runs-on: ubuntu-latest
     needs: [builds]
     concurrency:

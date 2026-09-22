@@ -3,10 +3,8 @@
 (include "../../theories/BitVectors.eo")
 
 ; note: We do not currently check whether the indices of this sort are positive.
-(declare-const FloatingPoint
-  (-> Int Int Type)
-)
-(declare-type RoundingMode ())
+(declare-const FloatingPoint (-> Int Int Type))
+(declare-const RoundingMode Type)
 
 ; A floating point constant is a term having 3 bitvector children.
 ; note: This is used for both FLOATINGPOINT_FP and CONST_FLOATINGPOINT.

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,7 +52,7 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   return false;
 }
 
-TrustNode DatatypesInference::processLemma(LemmaProperty& p)
+TrustNode DatatypesInference::processLemma(CVC5_UNUSED LemmaProperty& p)
 {
   // we don't pass lemma property p currently, as it is always default
   return d_im->processDtLemma(d_conc, d_exp, getId());

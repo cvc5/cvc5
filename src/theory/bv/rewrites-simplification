@@ -82,7 +82,7 @@
   (concat (extract en 0 x) (@bv 0 amount)))
 (define-cond-rule bv-shl-by-const-2
   ((x ?BitVec) (amount Int) (sz Int) (w Int))
-  (and (>= amount (@bvsize x)) (= w (@bvsize x)))
+  (and (>= amount (@bvsize x)) (< amount (int.pow2 (@bvsize x))) (= w (@bvsize x)))
   (bvshl x (@bv amount sz))
   (@bv 0 w))
 (define-rule bv-lshr-by-const-0
@@ -97,7 +97,7 @@
   (concat (@bv 0 amount) (extract nm1 amount x)))
 (define-cond-rule bv-lshr-by-const-2
   ((x ?BitVec) (amount Int) (sz Int))
-  (>= amount (@bvsize x))
+  (and (>= amount (@bvsize x)) (< amount (int.pow2 (@bvsize x))))
   (bvlshr x (@bv amount sz))
   (@bv 0 sz))
 (define-rule bv-ashr-by-const-0
@@ -115,7 +115,7 @@
   ))
 (define-cond-rule bv-ashr-by-const-2
   ((x ?BitVec) (amount Int) (sz Int) (nm1 Int) (rn Int))
-  (and (>= amount (@bvsize x)) (= nm1 (- (@bvsize x) 1)) (= rn (@bvsize x)))
+  (and (>= amount (@bvsize x)) (< amount (int.pow2 (@bvsize x))) (= nm1 (- (@bvsize x) 1)) (= rn (@bvsize x)))
   (bvashr x (@bv amount sz))
   (repeat rn (extract nm1 nm1 x)))
 
@@ -125,7 +125,7 @@
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (nx (@bvsize (bvand xs ws)))
+    (nx (@bvsize (concat z y ys)))
   )
   (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
   (bvand xs (concat ys z y) ws)
@@ -138,7 +138,7 @@
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (nx (@bvsize (bvor xs ws)))
+    (nx (@bvsize (concat z y ys)))
   )
   (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
   (bvor xs (concat ys z y) ws)
@@ -151,7 +151,7 @@
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (nx (@bvsize (bvxor xs ws)))
+    (nx (@bvsize (concat z y ys)))
   )
   (and (= ny (@bvsize y)) (= nxm1 (- nx 1)) (= nym1 (- (@bvsize y) 1)))
   (bvxor xs (concat ys z y) ws)
@@ -166,8 +166,8 @@
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (s (@bvsize (bvand xs ws)))
-    (sy (@bvsize (concat y ys)))
+    (s (@bvsize (concat z y ys)))
+    (sy (- s (@bvsize z)))
   )
   (and (= ny sy) (= nxm1 (- s 1)) (= nym1 (- sy 1)))
   (bvand xs (concat z y ys) ws)
@@ -180,8 +180,8 @@
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (s (@bvsize (bvor xs ws)))
-    (sy (@bvsize (concat y ys)))
+    (s (@bvsize (concat z y ys)))
+    (sy (- s (@bvsize z)))
   )
   (and (= ny sy) (= nxm1 (- s 1)) (= nym1 (- sy 1)))
   (bvor xs (concat z y ys) ws)
@@ -194,8 +194,8 @@
    (z ?BitVec) (ys ?BitVec :list)
    (nxm1 Int) (ny Int) (nym1 Int))
   (def
-    (s (@bvsize (bvxor xs ws)))
-    (sy (@bvsize (concat y ys)))
+    (s (@bvsize (concat z y ys)))
+    (sy (- s (@bvsize z)))
   )
   (and (= ny sy) (= nxm1 (- s 1)) (= nym1 (- sy 1)))
   (bvxor xs (concat z y ys) ws)
@@ -209,9 +209,9 @@
    (z ?BitVec) (u ?BitVec)
    (nxm1 Int) (nyu Int) (nyum1 Int) (nu Int) (num1 Int))
   (def
-    (s (@bvsize (bvand xs ws)))
     (su (@bvsize u))
     (sy (@bvsize y))
+    (s (+ su sy (@bvsize z)))
   )
   (and (= nxm1 (- s 1)) (= nyu (+ sy su)) (= nyum1 (- (+ sy su) 1)) (= nu su) (= num1 (- su 1)))
   (bvand xs (concat z y u) ws)
@@ -225,9 +225,9 @@
    (z ?BitVec) (u ?BitVec)
    (nxm1 Int) (nyu Int) (nyum1 Int) (nu Int) (num1 Int))
   (def
-    (s (@bvsize (bvor xs ws)))
     (su (@bvsize u))
     (sy (@bvsize y))
+    (s (+ su sy (@bvsize z)))
   )
   (and (= nxm1 (- s 1)) (= nyu (+ sy su)) (= nyum1 (- (+ sy su) 1)) (= nu su) (= num1 (- su 1)))
   (bvor xs (concat z y u) ws)
@@ -241,9 +241,9 @@
    (z ?BitVec) (u ?BitVec)
    (nxm1 Int) (nyu Int) (nyum1 Int) (nu Int) (num1 Int))
   (def
-    (s (@bvsize (bvxor xs ws)))
     (su (@bvsize u))
     (sy (@bvsize y))
+    (s (+ su sy (@bvsize z)))
   )
   (and (= nxm1 (- s 1)) (= nyu (+ sy su)) (= nyum1 (- (+ sy su) 1)) (= nu su) (= num1 (- su 1)))
   (bvxor xs (concat z y u) ws)
@@ -339,7 +339,14 @@
     (x0n (ite (= x1i 0) x1in (- x1in (+ 1 (int.log2 x1i)))))
     (y0n (ite (= y1i 0) y1in (- y1in (+ 1 (int.log2 y1i)))))
   )
-  (and (> n 64) (<= (- (* 2 n) (+ x0n y0n)) low) (= w (+ 1 (- high low))))
+  (and
+    (> n 64)
+    (>= x1i 0)
+    (< x1i (int.pow2 x1in))
+    (>= y1i 0)
+    (< y1i (int.pow2 y1in))
+    (<= (- (* 2 n) (+ x0n y0n)) low)
+    (= w (+ 1 (- high low))))
   (extract high low (bvmul
     (concat (@bv x1i x1in) x2)
     (concat (@bv y1i y1in) y2)))
@@ -407,8 +414,9 @@
     (bvugt y (@bv 0 w))
   ))
 
-(define-rule bv-ult-one
+(define-cond-rule bv-ult-one
   ((x ?BitVec) (n Int))
+  (> (@bvsize x) 0)
   (bvult x (@bv 1 n))
   (= x (@bv 0 n)))
 
