@@ -1,6 +1,7 @@
 ; Safe and stable modes disallow combining uf-lazy-ll with fmf-bound.
 ; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: unsat-core
+; CPC checking fails because the signature does not define table.project.
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: lfsc
 ; test name: testReduceConstantsDup2

@@ -1,3 +1,4 @@
+; Proof testing was disabled in #11927 because it timed out in nightly builds.
 ; DISABLE-TESTER: proof
 ; DISABLE-TESTER: lfsc
 (set-logic BV)

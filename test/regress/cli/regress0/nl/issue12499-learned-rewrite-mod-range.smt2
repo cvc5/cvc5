@@ -2,7 +2,6 @@
 ; COMMAND-LINE: --learned-rewrite
 ; EXPECT: sat
 ; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: proof
 (set-logic QF_NIA)
 (declare-fun x () Int)
 (declare-fun y () Int)

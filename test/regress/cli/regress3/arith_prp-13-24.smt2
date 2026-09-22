@@ -1,5 +1,7 @@
 ; COMMAND-LINE:
 ; EXPECT: unsat
+; --ite-simp is not supported with proofs or unsat cores because the ITE
+; simplification pass does not track its non-local reasoning.
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic QF_LIA)

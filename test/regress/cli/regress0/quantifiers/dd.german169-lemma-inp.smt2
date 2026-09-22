@@ -3,6 +3,8 @@
 ; COMMAND-LINE: --lemma-inprocess=full --lemma-inprocess-subs=all --lemma-inprocess-infer-eq-lit
 ; COMMAND-LINE: --lemma-inprocess=light
 ; EXPECT: unsat
+; Lemma inprocessing is not supported with proofs or unsat cores:
+; its dependencies on learned unit literals are not tracked.
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic ALL)
