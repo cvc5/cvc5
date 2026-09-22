@@ -32,6 +32,11 @@ ExpandDefs::ExpandDefs(Env& env) : EnvObj(env) {}
 
 ExpandDefs::~ExpandDefs() {}
 
+Node ExpandDefs::expandDefinitions(TNode n)
+{
+  return expandDefinitions(n, d_cache);
+}
+
 Node ExpandDefs::expandDefinitions(TNode n,
                                    std::unordered_map<Node, Node>& cache)
 {
