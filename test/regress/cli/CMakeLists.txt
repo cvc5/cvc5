@@ -1196,6 +1196,8 @@ set(regress_0_tests
   regress0/nl/issue12239-subtype-elim.smt2
   regress0/nl/issue12408-nl-fm.smt2
   regress0/nl/issue12607-shared-term-factor.smt2
+  regress0/nl/issue12926-nl-cov-zero-coeff.smt2
+  regress0/nl/issue12927-nl-cov-nullified.smt2
   regress0/nl/issue3003.smt2
   regress0/nl/issue3407.smt2
   regress0/nl/issue3411.smt2
@@ -1416,6 +1418,7 @@ set(regress_0_tests
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/rational-tok.smt2
   regress0/parser/real-numerals.smt2
+  regress0/parser/reserved-symbol-datatype.smt2
   regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
@@ -1544,6 +1547,7 @@ set(regress_0_tests
   regress0/proofs/dd.fastclose.smt2
   regress0/proofs/dd.fastclose2.smt2
   regress0/proofs/dd.fastclose3.smt2
+  regress0/proofs/dd.frd-seek.smt2
   regress0/proofs/dd.read6-cadical.smt2
   regress0/proofs/dd.S715-026__dic_loop__ordering_buffers.adb_11_83_range_check___00.smt2
   regress0/proofs/dd_ada_open.smt2
@@ -1593,6 +1597,7 @@ set(regress_0_tests
   regress0/proofs/issue12746-bv-invert-solve-mult.smt2
   regress0/proofs/issue12708-check-proofs-arith-cm.smt2
   regress0/proofs/issue12709-open-sat-proof.smt2
+  regress0/proofs/issue12942-cpc-alpha-eq.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
   regress0/proofs/issue9172-doublePropProof.smt2
@@ -3185,6 +3190,8 @@ set(regress_1_tests
   regress1/proofs/alpha-eq-var-shadow-name-only.smt2
   regress1/proofs/alpha-eq-var-shadow-name-only2.smt2
   regress1/proofs/base-lfsc-treesize.smt2
+  regress1/proofs/dd.sll2c_insert_unequal.i_123.smt2
+  regress1/proofs/dd.verisec_sendmail__tTflag_arr_one_loop_false-unreach-call_true-termination.i_7.smt2
   regress1/proofs/dd.SEQ035_size5.smt2
   regress1/proofs/eq-engine-corner-case-constants-disequal.smt2
   regress1/proofs/issue-dt-tester-conflict-cons-eq-clash.smt2
@@ -3293,6 +3300,8 @@ set(regress_1_tests
   regress1/quantifiers/constfunc.cvc.smt2
   regress1/quantifiers/dd.binary_trees.adb_1105_16_loop_invariant_init_1.smt2
   regress1/quantifiers/dd.bug812-ieval.smt2
+  regress1/quantifiers/dd.prob_00691_024339__38669730.smt2
+  regress1/quantifiers/dd2.prob_00691_024339__38669730.smt2
   regress1/quantifiers/dd_ghc_macro_quant_prenex.smt2
   regress1/quantifiers/dd_full_xor-rcons-open.smt2
   regress1/quantifiers/dd_RNDPRE_4_28-subtype-elim.smt2
@@ -4584,6 +4593,22 @@ foreach(tester ${testers})
     DEPENDS build-regress)
 endforeach()
 
+# The cpc-logos tester requires a safe build, since Logos only supports the
+# fragment of CPC that is used in safe mode. The target is added in any case,
+# so that invoking it in a non-safe build reports why it is not available
+# instead of checking nothing.
+if(ENABLE_SAFE_MODE)
+  add_custom_target(regress-cpc-logos
+    COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester cpc-logos'
+      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    DEPENDS build-regress)
+else()
+  add_custom_target(regress-cpc-logos
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "Error: target regress-cpc-logos requires a safe build of cvc5, configure with ./configure.sh safe-mode"
+    COMMAND ${CMAKE_COMMAND} -E false)
+endif()
+
 # We must ensure that the cvc5 binary is built before running any tests.
 # In principle, this would just be a matter of adding a dependency on the
 # 'test' target (defined by CTest). However, that built-in targets are not
@@ -4619,6 +4644,7 @@ macro(cvc5_add_regression_test level file)
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
     --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
+    --logos-binary ${PROJECT_SOURCE_DIR}/deps/bin/logos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
