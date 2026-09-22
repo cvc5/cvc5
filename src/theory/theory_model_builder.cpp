@@ -1208,6 +1208,14 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
       rep = tm->getValue(eqc);
       AlwaysAssert(rep.isConst());
     }
+    else if (rep.getKind() == Kind::LAMBDA)
+    {
+      // Function representatives are lambdas whose body may apply other model
+      // functions (e.g. (lambda (e) (r e c)) for a purified higher-order
+      // predicate). Evaluate via getValue so the body is resolved under the
+      // model, matching the form getValue(n) produces for the members below.
+      rep = tm->getValue(eqc);
+    }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
