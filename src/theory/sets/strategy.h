@@ -7,31 +7,32 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Strategy of the theory of bags.
+ * Strategy of the theory of sets.
  */
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BAGS__STRATEGY_H
-#define CVC5__THEORY__BAGS__STRATEGY_H
+#ifndef CVC5__THEORY__SETS__STRATEGY_H
+#define CVC5__THEORY__SETS__STRATEGY_H
 
 #include "theory/strategy.h"
 
 namespace cvc5::internal {
 namespace theory {
-namespace bags {
+namespace sets {
 
-class BagSolver;
-class TheoryBags;
+class TheorySetsPrivate;
 
 /**
- * The strategy of theory of bags.
+ * The strategy of theory of sets.
+ * This class supplies the sets-specific step ordering in initializeStrategy()
+ * and dispatches each step (via runStep) to the corresponding check method on
+ * the owning TheorySetsPrivate.
  */
 class Strategy : public StrategyBase
 {
  public:
-  Strategy(TheoryBags* parent = nullptr,
-           BagSolver* solver = nullptr,
+  Strategy(TheorySetsPrivate* parent = nullptr,
            TheoryState* state = nullptr,
            InferenceManagerBuffered* im = nullptr);
 
@@ -39,25 +40,29 @@ class Strategy : public StrategyBase
   /** initialize the strategy
    *
    * This makes a series of calls to addStrategyStep (inherited from
-   * StrategyBase) to build the bags strategy.
+   * StrategyBase) to build the sets strategy.
    */
   void initializeStrategy() override;
 
   /**
    * Execute a single inference step by dispatching to the matching check
-   * method on the owning TheoryBags or on its bag solver.
+   * method on the owning TheorySetsPrivate.
    */
   void runStep(Step s, Theory::Effort e, Theory::Effort effort) override;
 
+  /**
+   * Flush the facts that sets buffered before this check, then run the
+   * standard check loop of StrategyBase::postCheck.
+   */
+  void postCheck(Theory::Effort e) override;
+
  private:
-  /** The theory of bags that owns this strategy. */
-  TheoryBags* d_theory;
-  /** The bag solver that implements most of the steps. */
-  BagSolver* d_bagSolver;
+  /** The sets solver that owns this strategy and implements the steps. */
+  TheorySetsPrivate* d_setsSolver;
 }; /* class Strategy */
 
-}  // namespace bags
+}  // namespace sets
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__BAGS__STRATEGY_H */
+#endif /* CVC5__THEORY__SETS__STRATEGY_H */
