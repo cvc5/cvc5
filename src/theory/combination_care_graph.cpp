@@ -34,8 +34,8 @@ void CombinationCareGraph::combineTheories()
 {
   Trace("combineTheories") << "TheoryEngine::combineTheories()" << std::endl;
 
-  Trace("combination-cg-summary") << "CombinationCareGraph::combineTheories"
-                          << std::endl;
+  Trace("combination-cg-summary")
+      << "CombinationCareGraph::combineTheories" << std::endl;
   // Care graph we'll be building
   CareGraph careGraph;
 
@@ -92,7 +92,8 @@ void CombinationCareGraph::combineTheories()
     Node e = d_valuation.ensureLiteral(equality);
     propEngine->preferPhase(e, true);
   }
-  Trace("combination-cg-summary") << "...added " << splits << " splits" << std::endl;
+  Trace("combination-cg-summary")
+      << "...added " << splits << " splits" << std::endl;
 }
 
 }  // namespace theory

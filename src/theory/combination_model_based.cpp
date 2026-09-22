@@ -16,11 +16,11 @@
 #include "theory/combination_model_based.h"
 
 #include "expr/node_trie.h"
+#include "prop/prop_engine.h"
 #include "theory/model_manager.h"
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
-#include "prop/prop_engine.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -42,8 +42,8 @@ CombinationModelBased::~CombinationModelBased() {}
 
 void CombinationModelBased::combineTheories()
 {
-  Trace("combination-mb-summary") << "CombinationModelBased::combineTheories"
-                          << std::endl;
+  Trace("combination-mb-summary")
+      << "CombinationModelBased::combineTheories" << std::endl;
   // go ahead and build the model now
   if (!buildModel())
   {
@@ -186,7 +186,8 @@ void CombinationModelBased::combineTheories()
     }
     ++eqsi;
   }
-  Trace("combination-mb-summary") << "...added " << splits.size() << " splits" << std::endl;
+  Trace("combination-mb-summary")
+      << "...added " << splits.size() << " splits" << std::endl;
   if (splits.empty())
   {
     Assert(!hasConflict) << "Model has conflict but failed to find split";
