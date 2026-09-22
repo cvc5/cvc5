@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sort-inference
 ; EXPECT: sat
 (set-logic ALL)

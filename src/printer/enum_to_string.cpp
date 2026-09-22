@@ -54,6 +54,8 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::STRINGS_DEQ_DIFF: return "strings_deq_diff";
     case cvc5::SkolemId::STRINGS_REPLACE_ALL_RESULT:
       return "strings_replace_all_result";
+    case cvc5::SkolemId::STRINGS_REPLACE_RE_ALL_RESULT:
+      return "strings_replace_re_all_result";
     case cvc5::SkolemId::STRINGS_ITOS_RESULT: return "strings_itos_result";
     case cvc5::SkolemId::STRINGS_STOI_RESULT: return "strings_stoi_result";
     case cvc5::SkolemId::STRINGS_STOI_NON_DIGIT:

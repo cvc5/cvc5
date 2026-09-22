@@ -86,6 +86,8 @@ class EoNodeConverter : public BaseEoNodeConverter
   Node getOperatorOfTerm(Node n) override;
   /** Make generic list */
   Node mkList(const std::vector<Node>& args);
+  /** Make generic typed list */
+  Node mkTypedList(const std::vector<Node>& args);
   /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
    * has a distinguished status so that it is *not* printed as (bvar ...). The

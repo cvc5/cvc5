@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp -i --ee-mode=distributed
 ; COMMAND-LINE: --arrays-exp -i --ee-mode=central
 ; EXPECT: sat

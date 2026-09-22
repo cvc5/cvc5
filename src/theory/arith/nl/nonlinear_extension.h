@@ -91,6 +91,14 @@ class NonlinearExtension : EnvObj
   void preRegisterTerm(TNode n);
 
   /**
+   * Called once per check-sat after preregistration and preprocessing are
+   * done, before the first full-effort check. This is used to emit structural
+   * lemmas (e.g. preemptive monomial zero-sign lemmas) so they are seen by
+   * the linear solver before it computes its first candidate model.
+   */
+  void presolve();
+
+  /**
    * Performs the main checks for nonlinear arithmetic, based on the current
    * (linear) arithmetic model from `arithModel`. This method may already send
    * lemmas, but most lemmas are buffered and sent at LAST_CALL effort by
@@ -271,4 +279,4 @@ class NonlinearExtension : EnvObj
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H */

@@ -48,20 +48,6 @@ InferenceManager::InferenceManager(Env& env,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::doPending()
-{
-  doPendingFacts();
-  if (d_state.isInConflict())
-  {
-    // just clear the pending vectors, nothing else to do
-    clearPendingLemmas();
-    clearPendingPhaseRequirements();
-    return;
-  }
-  doPendingLemmas();
-  doPendingPhaseRequirements();
-}
-
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
                                              InferenceId infer)
@@ -272,11 +258,6 @@ void InferenceManager::addToExplanation(Node lit, std::vector<Node>& exp) const
     Assert(!lit.isConst());
     exp.push_back(lit);
   }
-}
-
-bool InferenceManager::hasProcessed() const
-{
-  return d_state.isInConflict() || hasPending();
 }
 
 void InferenceManager::markInactive(Node n, ExtReducedId id, bool contextDepend)

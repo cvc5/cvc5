@@ -134,6 +134,7 @@ option(USE_GLPK          "Use GLPK simplex solver")
 option(USE_KISSAT        "Use Kissat SAT solver")
 option(USE_MPFR          "Use MPFR for FP constant folding instead of SymFPU")
 option(USE_POLY          "Use LibPoly for polynomial arithmetic")
+option(USE_NORMALIZ      "Use Normaliz for liastar solver extension")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -182,6 +183,15 @@ if(WASM STREQUAL "OFF")
 elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
   message(FATAL_ERROR "Use --static, --static-binary and --auto-download flags for WebAssembly compilation. GMP will not compile with shared libraries.")
 else()
+  # Older SDKs miscompile cvc5: their getrusage() overruns the caller's
+  # buffer by 16 bytes, silently corrupting adjacent memory (a stack
+  # smash in Minisat::cpuTime and, via CoCoALib, a nulled
+  # GlobalManager pointer).
+  if(EMSCRIPTEN_VERSION VERSION_LESS "6.0.8")
+    message(FATAL_ERROR
+      "Emscripten >= 6.0.8 is required for WebAssembly builds "
+      "(found '${EMSCRIPTEN_VERSION}'). See INSTALL.rst.")
+  endif()
   set(CONFIGURE_CMD_WRAPPER emconfigure)
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
   string(TOLOWER ".${WASM}" WASM_EXTENSION)
@@ -262,12 +272,19 @@ add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
 add_check_c_cxx_flag("-Wextra")
 add_check_c_flag("-fexceptions")
+if(EMSCRIPTEN)
+  # emcc compiles C++ with -fignore-exceptions by default, which discards
+  # every catch block. Enabling catching at link time alone (the wasm
+  # linker flags carry -fexceptions) is not enough: the flag must also be
+  # present at compile time, or exceptions unwind straight past main().
+  add_check_cxx_flag("-fexceptions")
+endif()
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
 add_check_c_cxx_flag("-Wtype-limits")
-add_check_c_cxx_flag("-fno-operator-names")
+add_check_cxx_flag("-fno-operator-names")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13
@@ -289,14 +306,10 @@ if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
 endif ()
 
-# Keep the default linker on MSYS, as switching it prevents the build system from
-# using the GMP system library if available. For Linux ARM64, the default linker is
-# also required due to a bug in the gold linker specific to ARM64 architectures.
-if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
-    NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND
-    NOT USE_DEFAULT_LINKER)
+if (NOT USE_DEFAULT_LINKER)
   #-----------------------------------------------------------------------------#
-  # Use ld.mold if available, otherwise use ld.gold if available
+  # Use ld.mold if available, otherwise use ld.lld if available, otherwise
+  # use ld.gold if available (unless ASan is enabled).
 
   set(USE_EXPLICIT_LINKER_FLAG FALSE)
   execute_process(COMMAND ${CMAKE_C_COMPILER}
@@ -308,12 +321,23 @@ if (NOT ("${CMAKE_GENERATOR}" STREQUAL "MSYS Makefiles") AND
     message(STATUS "Using mold linker.")
   else ()
     execute_process(COMMAND ${CMAKE_C_COMPILER}
-                    -fuse-ld=gold
-                    -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
-    if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+                    -fuse-ld=lld
+                    -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_LLD_VERSION)
+    if ("${LD_LLD_VERSION}" MATCHES "LLD")
       set(USE_EXPLICIT_LINKER_FLAG TRUE)
-      set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
-      message(STATUS "Using GNU gold linker.")
+      set(EXPLICIT_LINKER_FLAG " -fuse-ld=lld")
+      message(STATUS "Using LLD linker.")
+    elseif (NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND NOT ENABLE_ASAN)
+      # On Linux ARM64, the gold linker has a bug that causes build failures. Additionally,
+      # using the gold linker with ASan triggers "cannot export local symbol" warnings.
+      execute_process(COMMAND ${CMAKE_C_COMPILER}
+                      -fuse-ld=gold
+                      -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
+      if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+        set(USE_EXPLICIT_LINKER_FLAG TRUE)
+        set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
+        message(STATUS "Using GNU gold linker.")
+      endif ()
     endif ()
   endif ()
   if (USE_EXPLICIT_LINKER_FLAG)
@@ -609,6 +633,11 @@ if(ENABLE_SAFE_MODE)
     message(WARNING
       "Cocoa disabled due to safe mode")
   endif()
+  if(USE_NORMALIZ)
+    set(USE_NORMALIZ OFF)
+    message(WARNING
+      "Normaliz disabled due to safe mode")
+  endif()
 endif()
 
 if(USE_POLY)
@@ -623,6 +652,12 @@ if(USE_COCOA)
   set(GPL_LIBS "${GPL_LIBS} cocoa")
   find_package(CoCoA REQUIRED 0.99711)
   add_definitions(-DCVC5_USE_COCOA)
+endif()
+
+if(USE_NORMALIZ)
+  set(GPL_LIBS "${GPL_LIBS} normaliz")
+  find_package(Normaliz REQUIRED)
+  add_definitions(-DCVC5_USE_NORMALIZ)
 endif()
 
 if(USE_EDITLINE)
@@ -807,9 +842,11 @@ message("")
 print_info("cvc5 ${CVC5_VERSION}")
 message("")
 if (ENABLE_SAFE_MODE)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (safe mode)")
+  print_config("Build profile             " "safe")
 elseif (ENABLE_STABLE_MODE)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (stable mode)")
+  print_config("Build profile             " "stable")
+elseif (CVC5_BUILD_PROFILE_STRING STREQUAL "production")
+  print_config("Build profile             " "unrestricted")
 else()
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()
@@ -840,6 +877,7 @@ print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
 print_config("LibPoly                   " ${USE_POLY} FOUND_SYSTEM ${Poly_FOUND_SYSTEM})
 print_config("CoCoALib                  " ${USE_COCOA} FOUND_SYSTEM ${CoCoA_FOUND_SYSTEM})
+print_config("Normaliz                  " ${USE_NORMALIZ} FOUND_SYSTEM ${NORMALIZ_FOUND_SYSTEM})
 
 if(CVC5_USE_CLN_IMP)
   print_config("MP library                " "cln" FOUND_SYSTEM ${CLN_FOUND_SYSTEM})
