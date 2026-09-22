@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: false
 (set-logic LRA)
 (set-option :cegqi-nested-qe true)

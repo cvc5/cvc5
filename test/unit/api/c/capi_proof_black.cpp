@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@ extern "C" {
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -39,6 +37,7 @@ class TestCApiBlackProof : public ::testing::Test
   void TearDown() override
   {
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
 
@@ -100,13 +99,12 @@ class TestCApiBlackProof : public ::testing::Test
     cvc5_set_option(d_solver, "produce-proofs", "true");
     cvc5_set_option(d_solver, "proof-granularity", "dsl-rewrite");
     Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
-    std::vector<Cvc5Term> args = {cvc5_mk_integer_int64(d_tm, 2), x};
-    Cvc5Term twox =
-        cvc5_mk_term(d_tm, CVC5_KIND_MULT, args.size(), args.data());
-    args = {x, x};
-    Cvc5Term xplusx =
-        cvc5_mk_term(d_tm, CVC5_KIND_ADD, args.size(), args.data());
-    args = {twox, xplusx};
+    Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 2);
+    std::vector<Cvc5Term> args = {x, zero};
+    Cvc5Term geq = cvc5_mk_term(d_tm, CVC5_KIND_GEQ, args.size(), args.data());
+    args = {zero, x};
+    Cvc5Term leq = cvc5_mk_term(d_tm, CVC5_KIND_LEQ, args.size(), args.data());
+    args = {geq, leq};
     cvc5_assert_formula(
         d_solver,
         cvc5_mk_term(d_tm, CVC5_KIND_DISTINCT, args.size(), args.data()));
@@ -130,17 +128,18 @@ class TestCApiBlackProof : public ::testing::Test
 
 TEST_F(TestCApiBlackProof, get_rule)
 {
-  ASSERT_DEATH(cvc5_proof_get_rule(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_rule(nullptr), "invalid proof");
   Cvc5Proof proof = create_proof();
   ASSERT_EQ(cvc5_proof_get_rule(proof), CVC5_PROOF_RULE_SCOPE);
 }
 
 TEST_F(TestCApiBlackProof, get_rewrite_rule)
 {
-  ASSERT_DEATH(cvc5_proof_get_rewrite_rule(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_rewrite_rule(nullptr), "invalid proof");
 
   Cvc5Proof proof = create_rewrite_proof();
-  ASSERT_DEATH(cvc5_proof_get_rewrite_rule(proof), "to return `DSL_REWRITE`");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_rewrite_rule(proof),
+                    "to return `DSL_REWRITE`");
   Cvc5ProofRule rule;
   std::vector<Cvc5Proof> stack = {proof};
   do
@@ -160,7 +159,7 @@ TEST_F(TestCApiBlackProof, get_rewrite_rule)
 
 TEST_F(TestCApiBlackProof, get_result)
 {
-  ASSERT_DEATH(cvc5_proof_get_result(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_result(nullptr), "invalid proof");
   Cvc5Proof proof = create_proof();
   (void)cvc5_proof_get_result(proof);
 }
@@ -171,9 +170,9 @@ TEST_F(TestCApiBlackProof, get_children)
   size_t size;
   (void)cvc5_proof_get_children(proof, &size);
   ASSERT_TRUE(size > 0);
-  ASSERT_DEATH(cvc5_proof_get_children(nullptr, &size), "invalid proof");
-  ASSERT_DEATH(cvc5_proof_get_children(proof, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_children(nullptr, &size), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_children(proof, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackProof, get_arguments)
@@ -181,9 +180,9 @@ TEST_F(TestCApiBlackProof, get_arguments)
   Cvc5Proof proof = create_proof();
   size_t size;
   (void)cvc5_proof_get_arguments(proof, &size);
-  ASSERT_DEATH(cvc5_proof_get_arguments(nullptr, &size), "invalid proof");
-  ASSERT_DEATH(cvc5_proof_get_arguments(proof, nullptr),
-               "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(nullptr, &size), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(proof, nullptr),
+                    "unexpected NULL argument");
 }
 
 TEST_F(TestCApiBlackProof, is_equal_disequal_hash)
@@ -205,13 +204,13 @@ TEST_F(TestCApiBlackProof, is_equal_disequal_hash)
 
   ASSERT_EQ(cvc5_proof_hash(x), cvc5_proof_hash(x));
   ASSERT_NE(cvc5_proof_hash(x), cvc5_proof_hash(y));
-  ASSERT_DEATH(cvc5_proof_hash(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_hash(nullptr), "invalid proof");
 }
 
 TEST_F(TestCApiBlackProof, copy_release)
 {
-  ASSERT_DEATH(cvc5_proof_copy(nullptr), "invalid proof");
-  ASSERT_DEATH(cvc5_proof_release(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_copy(nullptr), "invalid proof");
+  ASSERT_CVC5_ERROR(cvc5_proof_release(nullptr), "invalid proof");
   Cvc5Proof proof = create_proof();
   ASSERT_EQ(cvc5_proof_get_rule(proof), CVC5_PROOF_RULE_SCOPE);
   Cvc5Proof proof2 = cvc5_proof_copy(proof);

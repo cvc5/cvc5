@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,16 +47,35 @@ void AssertionPipeline::clear()
   d_substsIndices.clear();
 }
 
-void AssertionPipeline::push_back(Node n,
-                                  bool isInput,
-                                  ProofGenerator* pgen,
-                                  TrustId trustId)
+void AssertionPipeline::push_back(
+    Node n, bool isInput, ProofGenerator* pgen, TrustId trustId, bool ensureRew)
 {
   if (d_conflict)
   {
     // if we are already in conflict, we skip. This is required to handle the
     // case where "false" was already seen as an input assertion.
     return;
+  }
+  // If proof enabled, notify the preprocess proof generator.
+  // Note that if n is (and F1 ... Fn), below we instead add the assertions
+  // F1 .... Fn whose proofs are AND_ELIM steps given a proof of n. We do not
+  // add n as an assertion. However, we also remember the proof for n itself.
+  // The reason is that in rare cases we may relearn n (say via rewriting
+  // another assumption) which may lead to a cyclic proof if that rewriting
+  // depended on one of F1 ... Fn.
+  if (isProofEnabled())
+  {
+    if (!isInput)
+    {
+      // notice this is always called, regardless of whether pgen is nullptr
+      d_pppg->notifyNewAssert(n, pgen, trustId);
+    }
+    else
+    {
+      Assert(pgen == nullptr);
+      // n is an input assertion, whose proof should be ASSUME.
+      d_pppg->notifyInput(n);
+    }
   }
   if (n == d_false)
   {
@@ -92,9 +108,17 @@ void AssertionPipeline::push_back(Node n,
           NodeManager* nm = nodeManager();
           for (size_t j = 0, nchild = nc.getNumChildren(); j < nchild; j++)
           {
-            size_t jj = (nchild-1)-j;
+            size_t jj = (nchild - 1) - j;
             Node in = nm->mkConstInt(Rational(jj));
-            d_andElimEpg->addStep(nc[jj], ProofRule::AND_ELIM, {nc}, {in});
+            // Never overwrite here. This is because the assumption we would
+            // overwrite might be at a lower user context. Overwriting the
+            // assumption can lead to open proofs in incremental mode.
+            d_andElimEpg->addStep(nc[jj],
+                                  ProofRule::AND_ELIM,
+                                  {nc},
+                                  {in},
+                                  false,
+                                  CDPOverwrite::NEVER);
             toProcess.emplace_back(nc[jj]);
           }
         }
@@ -111,37 +135,33 @@ void AssertionPipeline::push_back(Node n,
     // add each conjunct
     for (const Node& nc : conjs)
     {
-      push_back(nc, false, d_andElimEpg.get());
+      push_back(nc,
+                false,
+                d_andElimEpg.get(),
+                TrustId::UNKNOWN_PREPROCESS_LEMMA,
+                ensureRew);
     }
     return;
   }
   else
   {
     d_nodes.push_back(n);
+    if (ensureRew)
+    {
+      ensureRewritten(d_nodes.size() - 1);
+    }
   }
   Trace("assert-pipeline") << "Assertions: ...new assertion " << n
                            << ", isInput=" << isInput << std::endl;
-  if (isProofEnabled())
-  {
-    if (!isInput)
-    {
-      // notice this is always called, regardless of whether pgen is nullptr
-      d_pppg->notifyNewAssert(n, pgen, trustId);
-    }
-    else
-    {
-      Assert(pgen == nullptr);
-      // n is an input assertion, whose proof should be ASSUME.
-      d_pppg->notifyInput(n);
-    }
-  }
 }
 
-void AssertionPipeline::pushBackTrusted(TrustNode trn, TrustId trustId)
+void AssertionPipeline::pushBackTrusted(TrustNode trn,
+                                        TrustId trustId,
+                                        bool ensureRew)
 {
   Assert(trn.getKind() == TrustNodeKind::LEMMA);
   // push back what was proven
-  push_back(trn.getProven(), false, trn.getGenerator(), trustId);
+  push_back(trn.getProven(), false, trn.getGenerator(), trustId, ensureRew);
 }
 
 void AssertionPipeline::replace(size_t i,
@@ -169,6 +189,22 @@ void AssertionPipeline::replace(size_t i,
   else
   {
     d_nodes[i] = n;
+  }
+}
+
+void AssertionPipeline::removeIteSkolem(TNode skolem)
+{
+  for (IteSkolemMap::iterator it = d_iteSkolemMap.begin();
+       it != d_iteSkolemMap.end();)
+  {
+    if (it->second == skolem)
+    {
+      it = d_iteSkolemMap.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
   }
 }
 
@@ -225,12 +261,11 @@ void AssertionPipeline::addSubstitutionNode(Node n,
   Assert(d_storeSubstsInAsserts);
   Assert(n.getKind() == Kind::EQUAL);
   size_t prevNodeSize = d_nodes.size();
-  push_back(n, false, pg, trustId);
+  // ensure rewritten here
+  push_back(n, false, pg, trustId, true);
   // remember this is a substitution index
   for (size_t i = prevNodeSize, newSize = d_nodes.size(); i < newSize; i++)
   {
-    // ensure rewritten
-    replace(i, rewrite(d_nodes[i]), d_rewpg.get());
     d_substsIndices.insert(i);
   }
 }

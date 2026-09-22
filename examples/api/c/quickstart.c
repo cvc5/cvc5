@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -256,7 +253,7 @@ int main()
   //! [docs-c-quickstart-18 start]
   size_t size;
   const Cvc5Term* unsat_core = cvc5_get_unsat_core(slv, &size);
-  printf("unsat core size: %lu\n", size);
+  printf("unsat core size: %zu\n", size);
   printf("unsat core: \n");
   for (size_t i = 0; i < size; i++)
   {
@@ -269,8 +266,10 @@ int main()
   cvc5_delete(slv);
   //! [docs-c-quickstart-19 end]
 
-  // Delete term manager instance.
+  // Release all objects managed by the term manager, so that deleting it
+  // below actually frees it, and delete the term manager instance.
   //! [docs-c-quickstart-20 start]
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   //! [docs-c-quickstart-20 end]
   return 0;

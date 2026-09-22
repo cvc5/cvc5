@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Matthew Sotoudeh, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -57,9 +54,7 @@ void StatisticsRegistry::storeSnapshot()
     {
       if (!d_internal && s.second->d_internal) continue;
       if (!d_all && s.second->isDefault()) continue;
-      d_lastSnapshot->emplace(
-          s.first,
-          s.second->getViewer());
+      d_lastSnapshot->emplace(s.first, s.second->getViewer());
     }
   }
 }
@@ -120,7 +115,8 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
       if (!d_all && s.second->isDefault())
       {
         auto oldit = d_lastSnapshot->find(s.first);
-        if (oldit != d_lastSnapshot->end() && oldit->second != s.second->getViewer())
+        if (oldit != d_lastSnapshot->end()
+            && oldit->second != s.second->getViewer())
         {
           // present in the snapshot, now defaulted
           os << s.first << " = " << *s.second << " (was ";
@@ -148,6 +144,10 @@ void StatisticsRegistry::printDiff(std::ostream& os) const
     }
   }
 }
+
+void StatisticsRegistry::setStatsAll(bool val) { d_all = val; }
+
+void StatisticsRegistry::setStatsInternal(bool val) { d_internal = val; }
 
 std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
 {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,12 +26,11 @@ uint32_t IsListTypeClassCallback::getTypeClass(TNode v)
   return expr::isListVar(v) ? 1 : 0;
 }
 
-RewriteDb::RewriteDb() : d_canonCb(), d_canon(&d_canonCb)
+RewriteDb::RewriteDb(NodeManager* nm) : d_canonCb(), d_canon(&d_canonCb)
 {
-  NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  rewriter::addRules(*this);
+  rewriter::addRules(nm, *this);
 
   if (TraceIsOn("rewrite-db"))
   {
@@ -50,9 +46,10 @@ void RewriteDb::addRule(ProofRewriteRule id,
                         Node a,
                         Node b,
                         Node cond,
-                        Node context)
+                        Node context,
+                        Level _level)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = a.getNodeManager();
   std::vector<Node> fvsf = fvs;
   std::vector<Node> condsn;
   Node eq = a.eqNode(b);
@@ -123,7 +120,7 @@ void RewriteDb::addRule(ProofRewriteRule id,
   std::unordered_map<Node, Node> msubs;
   if (!expr::match(eq, eqC, msubs))
   {
-    Assert(false);
+    DebugUnhandled();
   }
   std::unordered_map<Node, Node>::iterator its;
   std::vector<Node> ofvs;
@@ -151,7 +148,7 @@ void RewriteDb::addRule(ProofRewriteRule id,
   }
 
   // initialize rule
-  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context);
+  d_rewDbRule[id].init(id, ofvs, cfvs, conds, eqC, context, _level);
   d_concToRules[eqC].push_back(id);
   d_headToRules[eqC[0]].push_back(id);
 }

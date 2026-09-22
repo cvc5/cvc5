@@ -1,4 +1,4 @@
-; DISABLE-TESTER: cpc
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun x () (Nullable Int))

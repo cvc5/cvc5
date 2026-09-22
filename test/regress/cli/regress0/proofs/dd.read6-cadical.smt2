@@ -1,0 +1,17 @@
+; COMMAND-LINE: --sat-solver=cadical
+; EXPECT: unsat
+(set-logic QF_AUFLIA)
+(declare-const x Bool)
+(declare-const x3 Int)
+(declare-const x32 Int)
+(declare-const x1 Int)
+(declare-const x38 Bool)
+(declare-fun o (Int) Int)
+(declare-fun e (Int) Int)
+(declare-fun R (Int) (Array Int Int))
+(declare-fun s () Int)
+(declare-fun d (Int) (Array Int Int))
+(declare-fun f (Int) Int)
+(declare-fun b (Int) Int)
+(assert (not (ite (ite (ite (= (ite x38 (d 0) (store (R s) (e 0) (ite x (f x1) (select (d s) (o 1))))) (ite x38 (d 1) (store (R s) (e 0) (ite x (f x1) (select (d s) (o 1)))))) false true) x38 true) (ite (ite (= (R x32) (store (R x32) (o 0) (b x3))) false true) (ite (= (R x32) (store (d 0) (o 0) (b x3))) false true) true) false)))
+(check-sat)

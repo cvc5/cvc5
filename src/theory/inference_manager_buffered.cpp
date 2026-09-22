@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,8 @@
 
 #include "theory/inference_manager_buffered.h"
 
+#include "base/check.h"
+#include "base/output.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -128,6 +127,25 @@ void InferenceManagerBuffered::doPendingLemmas()
   }
   d_pendingLem.clear();
   d_processingPendingLemmas = false;
+}
+
+void InferenceManagerBuffered::doPending()
+{
+  doPendingFacts();
+  if (d_theoryState.isInConflict())
+  {
+    // just clear the pending vectors, nothing else to do
+    clearPendingLemmas();
+    clearPendingPhaseRequirements();
+    return;
+  }
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+}
+
+bool InferenceManagerBuffered::hasProcessed() const
+{
+  return d_theoryState.isInConflict() || hasPending();
 }
 
 void InferenceManagerBuffered::doPendingPhaseRequirements()

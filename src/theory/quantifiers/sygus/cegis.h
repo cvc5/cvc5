@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -243,6 +240,8 @@ class Cegis : public SygusModule
    *   f -> (lambda ((x Int) (y Int)) (DT_SYGUS_EVAL_UNFOLD d_f x y)).
    */
   Subs d_euSubs;
+  /** True if we are doing evaluation unfolding for this conjecture */
+  bool d_doEvalUnfold;
 };
 
 }  // namespace quantifiers

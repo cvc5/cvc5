@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@ extern "C" {
 #include "base/check.h"
 #include "base/output.h"
 #include "gtest/gtest.h"
+#include "test_capi.h"
 
 namespace cvc5::internal::test {
 
@@ -35,6 +33,7 @@ class TestCApiBlackSynthResult : public ::testing::Test
   void TearDown() override
   {
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
   Cvc5TermManager* d_tm;
@@ -44,13 +43,14 @@ class TestCApiBlackSynthResult : public ::testing::Test
 
 TEST_F(TestCApiBlackSynthResult, is_null)
 {
-  ASSERT_DEATH(cvc5_synth_result_is_null(nullptr), "invalid synthesis result");
+  ASSERT_CVC5_ERROR(cvc5_synth_result_is_null(nullptr),
+                    "invalid synthesis result");
 }
 
 TEST_F(TestCApiBlackSynthResult, has_solution)
 {
-  ASSERT_DEATH(cvc5_synth_result_has_solution(nullptr),
-               "invalid synthesis result");
+  ASSERT_CVC5_ERROR(cvc5_synth_result_has_solution(nullptr),
+                    "invalid synthesis result");
 
   cvc5_set_option(d_solver, "sygus", "true");
   (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
@@ -67,14 +67,14 @@ TEST_F(TestCApiBlackSynthResult, has_solution)
 
 TEST_F(TestCApiBlackSynthResult, has_no_solution)
 {
-  ASSERT_DEATH(cvc5_synth_result_has_no_solution(nullptr),
-               "invalid synthesis result");
+  ASSERT_CVC5_ERROR(cvc5_synth_result_has_no_solution(nullptr),
+                    "invalid synthesis result");
 }
 
 TEST_F(TestCApiBlackSynthResult, is_unknown)
 {
-  ASSERT_DEATH(cvc5_synth_result_is_unknown(nullptr),
-               "invalid synthesis result");
+  ASSERT_CVC5_ERROR(cvc5_synth_result_is_unknown(nullptr),
+                    "invalid synthesis result");
 
   cvc5_set_option(d_solver, "sygus", "true");
   (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
@@ -119,13 +119,16 @@ TEST_F(TestCApiBlackSynthResult, hash)
   Cvc5SynthResult res2 = cvc5_check_synth(d_solver);
   ASSERT_EQ(cvc5_synth_result_hash(res1), cvc5_synth_result_hash(res1));
   ASSERT_NE(cvc5_synth_result_hash(res1), cvc5_synth_result_hash(res2));
-  ASSERT_DEATH(cvc5_synth_result_hash(nullptr), "invalid synthesis result");
+  ASSERT_CVC5_ERROR(cvc5_synth_result_hash(nullptr),
+                    "invalid synthesis result");
 }
 
 TEST_F(TestCApiBlackSynthResult, copy_release)
 {
-  ASSERT_DEATH(cvc5_synth_result_copy(nullptr), "invalid synthesis result");
-  ASSERT_DEATH(cvc5_synth_result_release(nullptr), "invalid synthesis result");
+  ASSERT_CVC5_ERROR(cvc5_synth_result_copy(nullptr),
+                    "invalid synthesis result");
+  ASSERT_CVC5_ERROR(cvc5_synth_result_release(nullptr),
+                    "invalid synthesis result");
   cvc5_set_option(d_solver, "sygus", "true");
   (void)cvc5_synth_fun(d_solver, "f", 0, nullptr, d_bool);
   Cvc5Term ttrue = cvc5_mk_true(d_tm);

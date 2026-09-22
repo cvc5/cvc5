@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +27,12 @@ public class Grammar extends AbstractPointer
     super(pointer);
   }
 
+  /**
+   * Constructs a new {@code Grammar} instance by creating a deep copy of
+   * the specified {@code Grammar}.
+   *
+   * @param grammar The {@code Grammar} instance to copy.
+   */
   public Grammar(Grammar grammar)
   {
     super(copyGrammar(grammar.pointer));
@@ -102,7 +105,7 @@ public class Grammar extends AbstractPointer
     addRules(pointer, ntSymbol.getPointer(), pointers);
   }
 
-  public native void addRules(long pointer, long ntSymbolPointer, long[] rulePointers);
+  private native void addRules(long pointer, long ntSymbolPointer, long[] rulePointers);
 
   /**
    * Allow {@code ntSymbol} to be an arbitrary constant.
@@ -140,8 +143,8 @@ public class Grammar extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return hashCode(pointer);
+    return Long.hashCode(hashCode(pointer));
   }
 
-  private native int hashCode(long pointer);
+  private native long hashCode(long pointer);
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,6 +11,12 @@
  */
 package io.github.cvc5;
 
+/**
+ * Encapsulation of a command.
+ *
+ * Commands are constructed by the input parser and can be invoked on
+ * the solver and symbol manager.
+ */
 public class Command extends AbstractPointer
 {
   /**
@@ -61,6 +64,7 @@ public class Command extends AbstractPointer
   private native String getCommandName(long pointer);
 
   /**
+   * Determine if this command is null.
    * @return True if this command is null.
    */
   public boolean isNull()

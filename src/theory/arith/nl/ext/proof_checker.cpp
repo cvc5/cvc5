@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,34 +48,62 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
   if (id == ProofRule::ARITH_MULT_SIGN)
   {
     Assert(children.empty());
-    Assert(args.size() > 1);
-    Node mon = args.back();
+    Assert(args.size() == 2);
+    Node mon = args[1];
     std::map<Node, int> exps;
-    std::vector<Node> premise = args;
-    premise.pop_back();
+    std::vector<Node> premise;
+    if (args[0].getKind() == Kind::AND)
+    {
+      premise.insert(premise.end(), args[0].begin(), args[0].end());
+    }
+    else
+    {
+      premise.push_back(args[0]);
+    }
     Assert(mon.getKind() == Kind::MULT
            || mon.getKind() == Kind::NONLINEAR_MULT);
+    std::vector<Node> vars;
     for (const auto& v : mon)
     {
+      if (vars.empty() || v != vars.back())
+      {
+        vars.push_back(v);
+      }
       exps[v]++;
     }
-    std::map<Node, int> signs;
-    for (const auto& f : premise)
+    // unique variables must equal the number of given premises
+    if (vars.size() != premise.size())
     {
+      return Node::null();
+    }
+    std::map<Node, int> signs;
+    for (size_t i = 0, nprem = premise.size(); i < nprem; i++)
+    {
+      const Node& f = premise[i];
       if (f.getKind() == Kind::NOT)
       {
+        // variables must be in order
+        if (f[0][0] != vars[i])
+        {
+          return Node::null();
+        }
         Assert(f[0].getKind() == Kind::EQUAL);
         Assert(f[0][1].isConst() && f[0][1].getConst<Rational>().isZero());
         Assert(signs.find(f[0][0]) == signs.end());
         signs.emplace(f[0][0], 0);
         continue;
       }
+      // variables must be in order
+      if (f[0] != vars[i])
+      {
+        return Node::null();
+      }
       Assert(f.getKind() == Kind::LT || f.getKind() == Kind::GT);
       Assert(f[1].isConst() && f[1].getConst<Rational>().isZero());
       Assert(signs.find(f[0]) == signs.end());
       signs.emplace(f[0], f.getKind() == Kind::LT ? -1 : 1);
     }
-    int sign = 0;
+    int sign = 1;
     for (const auto& ve : exps)
     {
       auto sit = signs.find(ve.first);
@@ -86,22 +111,11 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
       if (ve.second % 2 == 0)
       {
         Assert(sit->second == 0);
-        if (sign == 0)
-        {
-          sign = 1;
-        }
       }
       else
       {
         Assert(sit->second != 0);
-        if (sign == 0)
-        {
-          sign = sit->second;
-        }
-        else
-        {
-          sign *= sit->second;
-        }
+        sign *= sit->second;
       }
     }
     Node zero = nm->mkConstRealOrInt(mon.getType(), Rational(0));
@@ -109,15 +123,13 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     {
       case -1:
         return nm->mkNode(
-            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, zero, mon));
-      case 0:
-        return nm->mkNode(Kind::IMPLIES,
-                          nm->mkAnd(premise),
-                          nm->mkNode(Kind::DISTINCT, mon, zero));
+            Kind::IMPLIES,
+            {nm->mkAnd(premise), nm->mkNode(Kind::LT, mon, zero)});
       case 1:
         return nm->mkNode(
-            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero));
-      default: Assert(false); return Node();
+            Kind::IMPLIES,
+            {nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero)});
+      default: DebugUnhandled(); return Node();
     }
   }
   else if (id == ProofRule::ARITH_MULT_TANGENT)
@@ -136,21 +148,22 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
     Node b = args[3];
     int sgn = args[4].getConst<bool>() ? 1 : -1;
     Node tplane = nm->mkNode(Kind::SUB,
-                             nm->mkNode(Kind::ADD,
-                                        nm->mkNode(Kind::MULT, b, x),
-                                        nm->mkNode(Kind::MULT, a, y)),
-                             nm->mkNode(Kind::MULT, a, b));
+                             {nm->mkNode(Kind::ADD,
+                                         {nm->mkNode(Kind::MULT, b, x),
+                                          nm->mkNode(Kind::MULT, a, y)}),
+                              nm->mkNode(Kind::MULT, a, b)});
     return nm->mkNode(
         Kind::EQUAL,
-        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, t, tplane),
-        nm->mkNode(
-            Kind::OR,
-            nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::LEQ, x, a),
-                       nm->mkNode(sgn == -1 ? Kind::GEQ : Kind::LEQ, y, b)),
-            nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::GEQ, x, a),
-                       nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
+        {nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, t, tplane),
+         nm->mkNode(
+             Kind::OR,
+             {nm->mkNode(Kind::AND,
+                         {nm->mkNode(Kind::LEQ, x, a),
+                          nm->mkNode(sgn == -1 ? Kind::GEQ : Kind::LEQ, y, b)}),
+              nm->mkNode(
+                  Kind::AND,
+                  {nm->mkNode(Kind::GEQ, x, a),
+                   nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b)})})});
   }
   else if (id == ProofRule::ARITH_MULT_ABS_COMPARISON)
   {
@@ -207,6 +220,10 @@ Node ExtProofRuleChecker::checkInternal(ProofRule id,
             return Node::null();
           }
         }
+      }
+      else
+      {
+        return Node::null();
       }
       Assert(ck == Kind::EQUAL || ck == Kind::GT);
       if (lit[0].getKind() != Kind::ABS || lit[1].getKind() != Kind::ABS)

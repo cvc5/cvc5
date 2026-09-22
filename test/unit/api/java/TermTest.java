@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -786,6 +783,8 @@ class TermTest
     Term s1 = d_tm.mkString("abcde");
     assertTrue(s1.isStringValue());
     assertEquals(s1.getStringValue(), "abcde");
+    Term s2 = d_tm.mkString("\\u{200cb}", true);
+    assertEquals(s2.getStringValue(), new String(Character.toChars(0x200cb)));
   }
 
   @Test
@@ -1087,7 +1086,7 @@ class TermTest
       assertTrue(ub.isRealValue());
       // cannot call with non-variable
       Term yc = d_tm.mkConst(realsort, "y");
-      assertThrows(CVC5ApiException.class, () ->vx.getRealAlgebraicNumberDefiningPolynomial(yc));
+      assertThrows(CVC5ApiException.class, () -> vx.getRealAlgebraicNumberDefiningPolynomial(yc));
     }
   }
 
@@ -1097,8 +1096,8 @@ class TermTest
     // ordinary variables are not skolems
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     assertFalse(x.isSkolem());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemId());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemIndices());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemId());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemIndices());
   }
 
   @Test

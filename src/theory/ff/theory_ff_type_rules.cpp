@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,20 +28,23 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
   return cardinality;
 }
 
-TypeNode FiniteFieldConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FiniteFieldConstantTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
-TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
-                                                  TNode n,
-                                                  bool check,
-                                                  std::ostream* errOut)
+TypeNode FiniteFieldConstantTypeRule::computeType(
+    NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->mkFiniteFieldType(
       n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
-TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -89,6 +89,61 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
   if (t.isFullyAbstract())
   {
     return nodeManager->mkAbstractType(Kind::FINITE_FIELD_TYPE);
+  }
+  return t;
+}
+
+TypeNode FiniteFieldIdealTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                  CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FiniteFieldIdealTypeRule::computeType(NodeManager* nodeManager,
+                                               TNode n,
+                                               bool check,
+                                               std::ostream* errOut)
+{
+  TypeNode t = n[0].getType(check);
+  if (check)
+  {
+    for (const Node& nc : n)
+    {
+      TypeNode tc = nc.getType(check);
+      if (!tc.isFiniteField() || tc != t)
+      {
+        if (errOut)
+        {
+          (*errOut) << "expecting generators over a common finite field";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->mkSetType(t);
+}
+
+TypeNode FiniteFieldVarietyTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                    CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FiniteFieldVarietyTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    bool check,
+    std::ostream* errOut)
+{
+  TypeNode t = n[0].getType(check);
+  if (check)
+  {
+    if (!t.isSet() || !t.getSetElementType().isFiniteField())
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting an ideal over a finite field";
+      }
+      return TypeNode::null();
+    }
   }
   return t;
 }

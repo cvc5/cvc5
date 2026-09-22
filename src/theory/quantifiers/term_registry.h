@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,14 +47,12 @@ class TermRegistry : protected EnvObj
   /** Finish init, which sets the inference manager on modules of this class */
   void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
 
-  /**
-   * Add term n, which notifies the term database that the ground term n
-   * exists in the current context.
-   *
-   * @param n the term to add
-   * @param withinQuant whether n occurs within a quantified formula body
-   */
-  void addTerm(TNode n, bool withinQuant = false);
+  /** Add quantified formula body, which may impact term registration */
+  void addQuantifierBody(TNode n);
+  /** notification when master equality engine is updated */
+  void eqNotifyNewClass(TNode t);
+  /** notification when master equality engine merges two classes*/
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   /** get term for type
    *
@@ -81,11 +76,8 @@ class TermRegistry : protected EnvObj
    *
    * @param q The quantified formula
    * @param terms The terms it was instantiated with
-   * @param success Whether the instantiation was successfully added
    */
-  void processInstantiation(Node q,
-                            const std::vector<Node>& terms,
-                            bool success);
+  void processInstantiation(Node q, const std::vector<Node>& terms);
   /**
    * Process skolemization, called when q is skolemized.
    *
@@ -128,8 +120,14 @@ class TermRegistry : protected EnvObj
   FirstOrderModel* getModel() const;
 
  private:
-  /** Whether we are using the fmc model */
-  bool d_useFmcModel;
+  /**
+   * Add term n, which notifies the term database that the ground term n
+   * exists in the current context.
+   *
+   * @param n the term to add
+   * @param withinQuant whether n occurs within a quantified formula body
+   */
+  void addTermInternal(TNode n, bool withinQuant = false);
   /** term enumeration utility */
   std::unique_ptr<TermEnumeration> d_termEnum;
   /** term enumeration utility */

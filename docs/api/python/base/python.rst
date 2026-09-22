@@ -31,10 +31,10 @@ For a higher-level, more pythonic programming experience, cvc5 provides the
     grammar
     inputparser
     kind
+    modes
     op
     plugin
     proof
-    proofrule
     result
     roundingmode
     solver
@@ -83,6 +83,7 @@ Enums
 
   - :py:obj:`BlockModelsMode <cvc5.BlockModelsMode>`
   - :py:obj:`LearnedLitType <cvc5.LearnedLitType>`
+  - :py:obj:`OptionCategory <cvc5.OptionCategory>`
   - :py:obj:`ProofComponent <cvc5.ProofComponent>`
   - :py:obj:`ProofFormat <cvc5.ProofFormat>`
 

@@ -1,5 +1,6 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
-; COMMAND-LINE: --sygus-inference=try
+; COMMAND-LINE: --sygus-inference=try --arrays-exp
 (set-info :smt-lib-version 2.6)
 (set-logic QF_ABV)
 (set-info :status sat)

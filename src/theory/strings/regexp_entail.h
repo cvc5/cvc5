@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -103,6 +100,21 @@ class RegExpEntail
    */
   static bool isConstRegExp(TNode t);
   /**
+   * Is the regular expression r nullable, i.e. does it contain the empty
+   * string? Note that r is *not* required to be a constant regular expression.
+   *
+   * If this method returns true, then res is updated to whether r contains the
+   * empty string. If this method returns false, then whether r is nullable
+   * could not be determined.
+   *
+   * The cases handled by this method are intentionally kept in sync with the
+   * $re_nullable program of the cpc signature, which is used to check
+   * applications of ProofRewriteRule::STR_IN_RE_EVAL. In particular, we fail
+   * for (str.to_re s) for non-constant s, as well as for regular expression
+   * kinds not covered by that program, e.g. re.loop.
+   */
+  static bool isNullable(TNode r, bool& res);
+  /**
    * Does the substring of s occur in constant regular expression r?
    */
   static bool testConstStringInRegExp(String& s, TNode r);
@@ -139,6 +151,16 @@ class RegExpEntail
                              std::map<std::pair<Node, Node>, bool>& cache);
   /** Same as above, without cache */
   static bool regExpIncludes(Node r1, Node r2);
+  /**
+   * Get generalized constant regular expression.
+   * Given a (possibly non-constant) string, return the most specific regular
+   * expression that is constant and contains the string. For example, given
+   * (str.++ x "A" y), this method returns (re.++ Sigma* (str.to_re "A")
+   * Sigma*). If the regular expression is equivalent to Sigma*, the null node
+   * is returned.
+   */
+  Node getGeneralizedConstRegExp(const Node& n);
+
  private:
   /**
    * Does the substring of s starting at index_start occur in constant regular

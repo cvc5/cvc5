@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +57,8 @@ class TheoryBags : public Theory
   //--------------------------------- end initialization
 
   /**
-   * initialize bag and count terms
+   * initialize bag and count terms. This is the first step of the strategy,
+   * run at the beginning of each of its passes.
    */
   void initialize();
   /**
@@ -86,10 +84,6 @@ class TheoryBags : public Theory
   void computeCareGraph() override;
   void processCarePairArgs(TNode a, TNode b) override;
   bool isCareArg(Node n, unsigned a);
-  /** run strategy for effort e */
-  void runStrategy(Theory::Effort e);
-  /** run the given inference step */
-  bool runInferStep(InferStep s, int effort);
 
  private:
   /** Functions to handle callbacks from equality engine */

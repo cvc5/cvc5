@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,7 +15,7 @@ import cvc5
 
 if __name__ == "__main__":
     tm = cvc5.TermManager()
-    slv = cvc5.Solver()
+    slv = cvc5.Solver(tm)
 
     # set that we should print success after each successful command
     slv.setOption("print-success", "true")

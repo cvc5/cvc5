@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,17 +29,18 @@ extern int optreset;
 
 // clean up
 #ifdef CVC5_IS_NOT_REALLY_BSD
-#  undef _BSD_SOURCE
+#undef _BSD_SOURCE
 #endif /* CVC5_IS_NOT_REALLY_BSD */
-
-#include "base/check.h"
-#include "base/output.h"
-#include "options/option_exception.h"
-#include "util/didyoumean.h"
 
 #include <cstring>
 #include <iostream>
 #include <limits>
+
+#include "base/check.h"
+#include "base/output.h"
+#include "options/option_exception.h"
+#include "options/options_public.h"
+#include "util/didyoumean.h"
 
 namespace cvc5::main {
 
@@ -93,6 +91,60 @@ void printUsage(const std::string& binary, std::ostream& os, bool printRegular)
   os << optionsFootnote << std::endl;
 }
 
+void printUsageCategories(cvc5::Solver& solver, std::ostream& os)
+{
+  std::stringstream ssCommon;
+  std::stringstream ssRegular;
+  std::stringstream ssRegularNoSupport;
+  std::stringstream ssExpert;
+  for (const auto& name : options::getNames())
+  {
+    auto info = solver.getOptionInfo(name);
+    if (info.category == cvc5::modes::OptionCategory::EXPERT)
+    {
+      ssExpert << "- " << name << std::endl;
+    }
+    else if (info.category == cvc5::modes::OptionCategory::REGULAR)
+    {
+      if (info.noSupports.empty())
+      {
+        ssRegular << "- " << name << std::endl;
+      }
+      else
+      {
+        ssRegularNoSupport << "- " << name << " [";
+        bool firstTime = true;
+        for (std::string ns : info.noSupports)
+        {
+          if (!firstTime)
+          {
+            ssRegularNoSupport << ", ";
+          }
+          firstTime = false;
+          ssRegularNoSupport << ns;
+        }
+        ssRegularNoSupport << "]" << std::endl;
+      }
+    }
+    else if (info.category == cvc5::modes::OptionCategory::COMMON)
+    {
+      ssCommon << "- " << name << std::endl;
+    }
+    else
+    {
+      Assert(info.category == cvc5::modes::OptionCategory::UNDOCUMENTED);
+    }
+  }
+  os << "Common options:" << std::endl;
+  os << ssCommon.str();
+  os << "Regular options:" << std::endl;
+  os << ssRegular.str();
+  os << "Regular options with a no-support restriction:" << std::endl;
+  os << ssRegularNoSupport.str();
+  os << "Expert options:" << std::endl;
+  os << ssExpert.str();
+}
+
 /**
  * This is a table of long options.  By policy, each short option
  * should have an equivalent long option (but the reverse isn't the
@@ -112,18 +164,16 @@ void printUsage(const std::string& binary, std::ostream& os, bool printRegular)
  *    value to set the 3rd entry to; see #3)
  */
 static struct option cmdlineOptions[] = {
-// clang-format off
+    // clang-format off
   ${cmdoptions_long}$
-// clang-format on
-  {nullptr, no_argument, nullptr, '\0'}
-};
+    // clang-format on
+    {nullptr, no_argument, nullptr, '\0'}};
 
 std::string suggestCommandLineOptions(const std::string& optionName)
 {
   DidYouMean didYouMean;
 
-  const char* opt;
-  for (size_t i = 0; (opt = cmdlineOptions[i].name) != nullptr; ++i)
+  for (size_t i = 0; cmdlineOptions[i].name != nullptr; ++i)
   {
     didYouMean.addWord(std::string("--") + cmdlineOptions[i].name);
   }
@@ -153,8 +203,8 @@ void parseInternal(cvc5::Solver& solver,
   // This can be = 1 in newer GNU getopt, but older (< 2007) require = 0.
   optind = 0;
 #if HAVE_DECL_OPTRESET
-  optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
-#endif /* HAVE_DECL_OPTRESET */
+  optreset = 1;  // on BSD getopt() (e.g. Mac OS), might need this
+#endif           /* HAVE_DECL_OPTRESET */
 
   // We must parse the binary name, which is manually ignored below. Setting
   // this to 1 leads to incorrect behavior on some platforms.
@@ -228,11 +278,11 @@ void parseInternal(cvc5::Solver& solver,
 
     switch (c)
     {
-// clang-format off
+      // clang-format off
     ${parseinternal_impl}$
-// clang-format on
+        // clang-format on
 
-    case ':' :
+        case ':':
       // This can be a long or short option, and the way to get at the
       // name of it is different.
       throw OptionException(std::string("option `") + option

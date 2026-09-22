@@ -1,6 +1,6 @@
 ; REQUIRES: cocoa
 ; COMMAND-LINE: --tlimit-per 500 --incremental
-; DISABLE-TESTER: dsl-proof
+
 ; EXPECT: unknown
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)

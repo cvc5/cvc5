@@ -1,4 +1,5 @@
-; COMMAND-LINE:
+; REQUIRES: no-safe-mode
+; COMMAND-LINE: --var-ent-eq-elim-quant
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun s () String)

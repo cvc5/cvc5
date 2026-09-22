@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +18,7 @@
 #include <vector>
 
 #include "expr/subs.h"
+#include "expr/term_context.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -47,6 +45,51 @@ class ArithSubs : public Subs
    * @param traverseNlMult Whether to traverse applications of NONLINEAR_MULT.
    */
   Node applyArith(const Node& n, bool traverseNlMult = true) const;
+  /**
+   * Should traverse, returns true if the above method traverses n.
+   */
+  static bool shouldTraverse(const Node& n, bool traverseNlMult = true);
+  /**
+   * Check if the node n has an arithmetic subterm t.
+   * @param n The node to search in
+   * @param t The subterm to search for
+   * @param traverseNlMult Whether to traverse applications of NONLINEAR_MULT.
+   * @return true iff t is a subterm in n
+   */
+  static bool hasArithSubterm(TNode n, TNode t, bool traverseNlMult = true);
+};
+
+/**
+ * Arithmetic substitution term context.
+ */
+class ArithSubsTermContext : public TermContext
+{
+ public:
+  ArithSubsTermContext(bool traverseMult = true) : d_traverseMult(traverseMult)
+  {
+  }
+  /** The initial value: valid. */
+  uint32_t initialValue() const override { return 0; }
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t,
+                        uint32_t tval,
+                        CVC5_UNUSED size_t index) const override
+  {
+    if (tval == 0)
+    {
+      // if we should not traverse, return 1
+      if (!ArithSubs::shouldTraverse(t, d_traverseMult))
+      {
+        return 1;
+      }
+      return 0;
+    }
+    return tval;
+  }
+
+ private:
+  /** Should we traverse (non-linear) multiplication? */
+  bool d_traverseMult;
 };
 
 }  // namespace arith

@@ -1,4 +1,5 @@
-; COMMAND-LINE: --mbqi-fast-sygus --no-cegqi
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --mbqi-enum --no-cegqi
 ; EXPECT: unsat
 (set-logic BV)
 (declare-fun t () (_ BitVec 4))

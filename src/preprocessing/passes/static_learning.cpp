@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Yoni Zohar, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +26,7 @@ namespace passes {
 
 StaticLearning::StaticLearning(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "static-learning"),
-      d_cache(userContext()){};
+      d_cache(userContext()) {};
 
 PreprocessingPassResult StaticLearning::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -60,8 +57,9 @@ PreprocessingPassResult StaticLearning::applyInternal(
     // add the lemmas to the end
     for (const TrustNode& trn : tlems)
     {
+      // ensure all learned lemmas are rewritten
       assertionsToPreprocess->pushBackTrusted(
-          trn, TrustId::PREPROCESS_STATIC_LEARNING_LEMMA);
+          trn, TrustId::PREPROCESS_STATIC_LEARNING_LEMMA, true);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;

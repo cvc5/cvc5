@@ -1,0 +1,10 @@
+; EXPECT: unsat
+(set-logic ALL)
+(declare-fun x () String)
+(declare-fun y () String)
+(declare-fun z () String)
+(declare-fun w () String)
+(declare-fun u () String)
+(assert (= (str.++ x y x w y z) (str.++ x x)))
+(assert (not (= w "")))
+(check-sat)

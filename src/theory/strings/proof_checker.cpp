@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,11 +15,10 @@
 #include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
-#include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/regexp_operation.h"
-#include "theory/strings/term_registry.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -43,8 +39,6 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::CONCAT_EQ, this);
   pc->registerChecker(ProofRule::CONCAT_UNIFY, this);
-  pc->registerChecker(ProofRule::CONCAT_CONFLICT, this);
-  pc->registerChecker(ProofRule::CONCAT_CONFLICT_DEQ, this);
   pc->registerChecker(ProofRule::CONCAT_SPLIT, this);
   pc->registerChecker(ProofRule::CONCAT_CSPLIT, this);
   pc->registerChecker(ProofRule::CONCAT_LPROP, this);
@@ -55,6 +49,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::STRING_REDUCTION, this);
   pc->registerChecker(ProofRule::STRING_EAGER_REDUCTION, this);
   pc->registerChecker(ProofRule::RE_INTER, this);
+  pc->registerChecker(ProofRule::RE_CONCAT, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_POS, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_NEG, this);
   pc->registerChecker(ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED, this);
@@ -72,10 +67,8 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   NodeManager* nm = nodeManager();
   // core rules for word equations
   if (id == ProofRule::CONCAT_EQ || id == ProofRule::CONCAT_UNIFY
-      || id == ProofRule::CONCAT_CONFLICT
-      || id == ProofRule::CONCAT_CONFLICT_DEQ || id == ProofRule::CONCAT_SPLIT
-      || id == ProofRule::CONCAT_CSPLIT || id == ProofRule::CONCAT_LPROP
-      || id == ProofRule::CONCAT_CPROP)
+      || id == ProofRule::CONCAT_SPLIT || id == ProofRule::CONCAT_CSPLIT
+      || id == ProofRule::CONCAT_LPROP || id == ProofRule::CONCAT_CPROP)
   {
     Trace("strings-pfcheck") << "Checking id " << id << std::endl;
     Assert(children.size() >= 1);
@@ -112,27 +105,6 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         Node currS = svec[isRev ? (nchilds - 1 - index) : index];
         if (currT != currS)
         {
-          if (currT.isConst() && currS.isConst())
-          {
-            size_t sindex;
-            // get the equal prefix/suffix, strip and add the remainders
-            Node currR = Word::splitConstant(currT, currS, sindex, isRev);
-            if (!currR.isNull())
-            {
-              // add the constant to remainder vec
-              std::vector<Node>& rem = sindex == 0 ? tremVec : sremVec;
-              rem.push_back(currR);
-              // ignore the current component
-              index++;
-              // In other words, if we have (currS,currT) = ("ab","abc"), then
-              // we proceed to the next component and add currR = "c" to
-              // tremVec.
-            }
-            // otherwise if we are not the same prefix, then both will be added
-            // Notice that we do not add maximal prefixes, in other words,
-            // ("abc", "abd") may be added to the remainder vectors, and not
-            // ("c", "d").
-          }
           break;
         }
         index++;
@@ -173,54 +145,9 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         {
           continue;
         }
-        // could be a spliced constant
-        bool success = false;
-        if (term.isConst() && l[0].isConst())
-        {
-          size_t lenL = Word::getLength(l[0]);
-          success = (isRev && l[0] == Word::suffix(term, lenL))
-                    || (!isRev && l[0] == Word::prefix(term, lenL));
-        }
-        if (!success)
-        {
-          return Node::null();
-        }
+        return Node::null();
       }
       return children[1][0][0].eqNode(children[1][1][0]);
-    }
-    else if (id == ProofRule::CONCAT_CONFLICT
-             || id == ProofRule::CONCAT_CONFLICT_DEQ)
-    {
-      Assert(children.size() >= 1 && children.size() <= 2);
-      if (!t0.isConst() || !s0.isConst())
-      {
-        // not constants
-        return Node::null();
-      }
-      size_t sindex;
-      Node r0 = Word::splitConstant(t0, s0, sindex, isRev);
-      if (!r0.isNull())
-      {
-        // Not a conflict due to constants, i.e. s0 is a prefix of t0 or vice
-        // versa.
-        return Node::null();
-      }
-      // if a disequality was provided, ensure that it is correct
-      if (id == ProofRule::CONCAT_CONFLICT_DEQ)
-      {
-        if (children.size() != 2 || children[1].getKind() != Kind::NOT
-            || children[1][0].getKind() != Kind::EQUAL
-            || children[1][0][0] != t0 || children[1][0][1] != s0)
-        {
-          return Node::null();
-        }
-      }
-      else if (t0.getType().isSequence())
-      {
-        // we require the CONCAT_CONFLICT_DEQ for sequences
-        return Node::null();
-      }
-      return nm->mkConst(false);
     }
     else if (id == ProofRule::CONCAT_SPLIT)
     {
@@ -247,7 +174,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       {
         return Node::null();
       }
-      if (!s0.isConst() || !s0.getType().isStringLike() || Word::isEmpty(s0))
+      // note we guard that the length must be one here, despite
+      // utils::getConcatConclusion allowing splicing below.
+      if (!s0.isConst() || !s0.getType().isStringLike()
+          || Word::getLength(s0) != 1)
       {
         return Node::null();
       }
@@ -299,33 +229,40 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         Trace("pfcheck-strings-cprop") << "...failed constant" << std::endl;
         return Node::null();
       }
-      // getConclusion expects the adjacent constant to be included
+      // getConcatConclusion expects the adjacent constant to be included
       t0 = nm->mkNode(Kind::STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }
     // use skolem cache
     SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getConclusion(
+    Node conc = utils::getConcatConclusion(
         nodeManager(), t0, s0, id, isRev, &skc, newSkolems);
     return conc;
   }
   else if (id == ProofRule::STRING_DECOMPOSE)
   {
-    Assert(children.size() == 1);
+    Assert(children.size() == 2);
     Assert(args.size() == 1);
     bool isRev;
     if (!getBool(args[0], isRev))
     {
       return Node::null();
     }
-    Node atom = children[0];
-    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH)
+    Node geq = children[0];
+    Node atom = children[1];
+    Node zero = nm->mkConstInt(Rational(0));
+    if (geq.getKind() != Kind::GEQ || geq[1] != zero)
+    {
+      return Node::null();
+    }
+    if (atom.getKind() != Kind::GEQ || atom[0].getKind() != Kind::STRING_LENGTH
+        || geq[0] != atom[1])
     {
       return Node::null();
     }
     SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getDecomposeConclusion(
+    Node conc = utils::getDecomposeConclusion(
         nodeManager(), atom[0][0], atom[1], isRev, &skc, newSkolems);
     return conc;
   }
@@ -354,12 +291,12 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(args.size() == 1);
       SkolemCache skc(nm, nullptr);
-      ret = TermRegistry::eagerReduce(t, &skc, d_alphaCard);
+      ret = utils::eagerReduce(t, &skc, d_alphaCard);
     }
     else if (id == ProofRule::STRING_LENGTH_POS)
     {
       Assert(args.size() == 1);
-      ret = TermRegistry::lengthPositive(t);
+      ret = utils::lengthPositive(t);
     }
     if (ret.isNull())
     {
@@ -387,7 +324,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::RE_INTER)
   {
-    Assert(children.size() >= 1);
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> reis;
     Node x;
@@ -395,29 +335,46 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     // memberships in the explanation
     for (const Node& c : children)
     {
-      bool polarity = c.getKind() != Kind::NOT;
-      Node catom = polarity ? c : c[0];
-      if (catom.getKind() != Kind::STRING_IN_REGEXP)
+      if (c.getKind() != Kind::STRING_IN_REGEXP)
       {
         return Node::null();
       }
       if (x.isNull())
       {
-        x = catom[0];
+        x = c[0];
       }
-      else if (x != catom[0])
+      else if (x != c[0])
       {
         // different LHS
         return Node::null();
       }
-      Node xcurr = catom[0];
-      Node rcurr =
-          polarity ? catom[1] : nm->mkNode(Kind::REGEXP_COMPLEMENT, catom[1]);
-      reis.push_back(rcurr);
+      reis.push_back(c[1]);
     }
-    Node rei =
-        reis.size() == 1 ? reis[0] : nm->mkNode(Kind::REGEXP_INTER, reis);
+    Node rei = nm->mkNode(Kind::REGEXP_INTER, reis);
     return nm->mkNode(Kind::STRING_IN_REGEXP, x, rei);
+  }
+  else if (id == ProofRule::RE_CONCAT)
+  {
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
+    Assert(args.empty());
+    std::vector<Node> ts;
+    std::vector<Node> rs;
+    // make the regular expression concatenation
+    for (const Node& c : children)
+    {
+      if (c.getKind() != Kind::STRING_IN_REGEXP)
+      {
+        return Node::null();
+      }
+      ts.push_back(c[0]);
+      rs.push_back(c[1]);
+    }
+    Node tc = nm->mkNode(Kind::STRING_CONCAT, ts);
+    Node rc = nm->mkNode(Kind::REGEXP_CONCAT, rs);
+    return nm->mkNode(Kind::STRING_IN_REGEXP, tc, rc);
   }
   else if (id == ProofRule::RE_UNFOLD_POS || id == ProofRule::RE_UNFOLD_NEG
            || id == ProofRule::RE_UNFOLD_NEG_CONCAT_FIXED)
@@ -527,7 +484,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     Trace("strings-pfcheck-debug")
         << "STRING_SEQ_UNIT_INJ: " << children[0] << " => " << t[0]
         << " == " << t[1] << std::endl;
-    AlwaysAssert(t[0].getType() == t[1].getType());
+    AlwaysAssert(CVC5_EQUAL(t[0].getType(), t[1].getType()));
     return t[0].eqNode(t[1]);
   }
   else if (id == ProofRule::STRING_EXT)
@@ -541,8 +498,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     SkolemCache skc(nm, nullptr);
-    return CoreSolver::getExtensionalityConclusion(
-        nm, deq[0][0], deq[0][1], &skc);
+    return utils::getExtensionalityConclusion(nm, deq[0][0], deq[0][1], &skc);
   }
   else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,15 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/arith_options.h"
+#include "options/arrays_options.h"
+#include "options/bags_options.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
+#include "options/ff_options.h"
+#include "options/fp_options.h"
 #include "options/main_options.h"
+#include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
@@ -83,6 +87,16 @@ void SmtSolver::finishInit()
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
   finishInitPreprocessor();
+
+  if (options().proof.proofLog)
+  {
+    smt::PfManager* pm = d_env.getProofManager();
+    if (pm != nullptr)
+    {
+      // Logs proofs on the base output stream of the solver
+      pm->startProofLogging(options().base.out, d_asserts);
+    }
+  }
 }
 
 void SmtSolver::resetAssertions()

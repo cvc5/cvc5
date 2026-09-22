@@ -2,16 +2,13 @@
 
 ; Integer specific operators of arithmetic.
 
-; Integer division and modulus.
+; Integer division, modulus, and exponentiation.
 (declare-const div (-> Int Int Int) :left-assoc)
 (declare-const mod (-> Int Int Int))
 
 ; Divisible predicate.
 (declare-const divisible (-> Int Int Bool))
 
-; The "integer-and" operator, see Zohar et al VMCAI 2022.
-; disclaimer: This function is not in SMT-LIB.
-(declare-const iand (-> Int Int Int Int))
 ; The "integer power of 2" operator.
 ; disclaimer: This function is not in SMT-LIB.
 (declare-const int.pow2 (-> Int Int))
@@ -29,5 +26,7 @@
 (declare-const mod_total (-> Int Int Int))
 
 ; Skolem terms for integer division by zero and integer modulus by zero.
+; note: equivalent to (lambda ((x Int)) (div x 0)).
 (declare-const @int_div_by_zero (-> Int Int))
+; note: equivalent to (lambda ((x Int)) (mod x 0)).
 (declare-const @mod_by_zero (-> Int Int))

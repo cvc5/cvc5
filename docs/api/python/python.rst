@@ -55,7 +55,7 @@ these steps:
 
   git clone https://github.com/cvc5/cvc5.git
   cd cvc5
-  ./configure.sh --python-bindings --auto-download
+  ./configure.sh unrestricted --python-bindings --auto-download
   cd build
   make # add -jN for parallel build using N threads
   make install
@@ -68,7 +68,9 @@ command instead of ``make install``:
 
   cmake --install . --component python-api
 
-For Windows, the steps above must be executed on a MINGW64 environment
+For Windows, the steps above must be executed in
+a CLANG64 or CLANGARM64 environment with the required
+dependencies installed
 (see the :doc:`installation instructions <../../installation/installation>`).
 
 Finally, you can make sure that it works by running:

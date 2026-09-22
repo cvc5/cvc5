@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,8 +21,8 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
-#include "theory/strings/word.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "theory/theory.h"
 
 using namespace cvc5::internal::kind;
@@ -102,6 +99,7 @@ bool ExtendedRewriter::addToChildren(Node nc,
 
 Node ExtendedRewriter::extendedRewrite(Node n) const
 {
+  Trace("q-ext-rewrite-debug") << "extendedRewrite: " << n << std::endl;
   n = d_rew.rewrite(n);
 
   // has it already been computed?
@@ -239,7 +237,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
       TypeNode tret = ret[0].getType();
       if (tret.isInteger())
       {
-        theory::strings::ArithEntail ae(&d_rew);
+        strings::ArithEntail ae(nm, &d_rew);
         new_ret = ae.rewritePredViaEntailment(ret);
         if (!new_ret.isNull())
         {
@@ -248,15 +246,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
       }
       else if (tret.isStringLike())
       {
-        Node len0 = d_nm->mkNode(Kind::STRING_LENGTH, ret[0]);
-        Node len1 = d_nm->mkNode(Kind::STRING_LENGTH, ret[1]);
-        Node len_eq = len0.eqNode(len1);
-        len_eq = d_rew.rewrite(len_eq);
-        if (len_eq.isConst() && !len_eq.getConst<bool>())
-        {
-          new_ret = len_eq;
-          debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
-        }
+        new_ret = extendedRewriteStrings(ret);
       }
     }
   }
@@ -264,7 +254,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   {
     if (ret[0].getType().isInteger())
     {
-      theory::strings::ArithEntail ae(&d_rew);
+      strings::ArithEntail ae(nm, &d_rew);
       new_ret = ae.rewritePredViaEntailment(ret);
       if (!new_ret.isNull())
       {
@@ -292,12 +282,13 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     {
       tid = Theory::theoryOf(ret);
     }
-    Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
-                                 << std::endl;
+    Trace("q-ext-rewrite-debug")
+        << "theoryOf( " << ret << " )= " << tid << std::endl;
     switch (tid)
     {
       case THEORY_STRINGS: new_ret = extendedRewriteStrings(ret); break;
       case THEORY_SETS: new_ret = extendedRewriteSets(ret); break;
+      case THEORY_ARITH: new_ret = extendedRewriteArith(ret); break;
       default: break;
     }
   }
@@ -315,8 +306,8 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   {
     ret = extendedRewrite(new_ret);
   }
-  Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret
-                               << std::endl;
+  Trace("q-ext-rewrite-debug")
+      << "...ext-rewrite : " << n << " -> " << ret << std::endl;
   if (TraceIsOn("q-ext-rewrite-nf"))
   {
     if (n == ret)
@@ -625,7 +616,7 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
     return new_ret;
   }
   // factoring
-  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, Kind::NOT, n);
+  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, n);
   if (!new_ret.isNull())
   {
     debugExtendedRewrite(n, new_ret, "Bool factoring");
@@ -710,7 +701,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
             bool pol = pullr.getConst<bool>();
             std::vector<Node> new_children;
             new_children.push_back((j == 0) == pol ? n[i][0]
-                                                    : n[i][0].negate());
+                                                   : n[i][0].negate());
             new_children.push_back(ite_c[i][1 - j]);
             new_ret = nm->mkNode(pol ? Kind::OR : Kind::AND, new_children);
             debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
@@ -868,8 +859,8 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
           // add it to the assignment
           Node val = gpol == pol ? truen : falsen;
           std::map<Node, Node>::iterator it = assign.find(cln);
-          Trace("ext-rew-bcp") << "BCP: assign " << cln << " -> " << val
-                               << std::endl;
+          Trace("ext-rew-bcp")
+              << "BCP: assign " << cln << " -> " << val << std::endl;
           if (it != assign.end())
           {
             if (val != it->second)
@@ -930,8 +921,8 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
         }
         Node ccs = nm->mkNode(ca.getKind(), ccs_children);
         ccs = cpol ? ccs : TermUtil::mkNegate(notk, ccs);
-        Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs
-                             << std::endl;
+        Trace("ext-rew-bcp")
+            << "BCP: propagated " << c << " -> " << ccs << std::endl;
         ccs = d_rew.rewrite(ccs);
         Trace("ext-rew-bcp") << "BCP: rewritten to " << ccs << std::endl;
         to_process.push_back(ccs);
@@ -973,7 +964,6 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
 
 Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
                                                 Kind ork,
-                                                Kind notk,
                                                 Node n) const
 {
   Trace("ext-rew-factoring") << "Factoring: *** INPUT: " << n << std::endl;
@@ -1062,7 +1052,7 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
 }
 
 Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
-                                            Kind ork,
+                                            CVC5_UNUSED Kind ork,
                                             Kind eqk,
                                             Kind notk,
                                             std::map<Kind, bool>& bcp_kinds,
@@ -1085,7 +1075,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
       if (gpol == isXor)
       {
         // can only turn disequality into equality if types are the same
-        if (lit[1].getType() == lit.getType())
+        if (CVC5_EQUAL(lit[1].getType(), lit.getType()))
         {
           // t != s ---> ~t = s
           if (lit[1].getKind() == notk && lit[0].getKind() != notk)
@@ -1396,8 +1386,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     Node c = cp.first;
     std::map<Node, std::map<Node, bool> >::iterator itc = atoms.find(c);
     Assert(itc != atoms.end());
-    Trace("ext-rew-eqchain") << "  - add term " << c << " with atom list "
-                             << alist[c] << "...\n";
+    Trace("ext-rew-eqchain")
+        << "  - add term " << c << " with atom list " << alist[c] << "...\n";
     std::vector<Node> subsumes;
     sst.addTerm(c, alist[c], subsumes);
     for (const Node& cc : subsumes)
@@ -1407,8 +1397,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         // subsumes a child that was already eliminated
         continue;
       }
-      Trace("ext-rew-eqchain") << "  eqchain-simplify: " << c << " subsumes "
-                               << cc << std::endl;
+      Trace("ext-rew-eqchain")
+          << "  eqchain-simplify: " << c << " subsumes " << cc << std::endl;
       // for each of the atoms in cc
       std::map<Node, std::map<Node, bool> >::iterator itcc = atoms.find(cc);
       Assert(itcc != atoms.end());
@@ -1421,9 +1411,9 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         bool polcc = ap.second;
         Assert(itc->second.find(a) != itc->second.end());
         bool polc = itc->second[a];
-        Trace("ext-rew-eqchain") << "    eqchain-simplify: atom " << a
-                                 << " has polarities : " << polc << " " << polcc
-                                 << "\n";
+        Trace("ext-rew-eqchain")
+            << "    eqchain-simplify: atom " << a
+            << " has polarities : " << polc << " " << polcc << "\n";
         Node lit = polc ? a : TermUtil::mkNegate(notk, a);
         if (polc != polcc)
         {
@@ -1663,7 +1653,7 @@ Node ExtendedRewriter::partialSubstitute(
   return partialSubstitute(n, assign, rkinds);
 }
 
-Node ExtendedRewriter::solveEquality(Node n) const
+Node ExtendedRewriter::solveEquality(CVC5_UNUSED Node n) const
 {
   // TODO (#1706) : implement
   Assert(n.getKind() == Kind::EQUAL);
@@ -1744,20 +1734,163 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   Trace("q-ext-rewrite-debug")
       << "Extended rewrite strings : " << node << std::endl;
 
+  // allow recursive approximations
+  strings::ArithEntail ae(d_nm, &d_rew, true);
+  strings::StringsEntail se(&d_rew, ae);
+  strings::SequencesRewriter sr(d_nm, ae, se, nullptr);
+
   Kind k = node.getKind();
   if (k == Kind::EQUAL)
   {
-    strings::SequencesRewriter sr(d_nm, &d_rew, nullptr);
-    return sr.rewriteEqualityExt(node);
+    // we invoke the extended equality rewriter, which does standard
+    // rewrites, which notice are only invoked at preprocessing
+    // and not during Rewriter::rewrite.
+    Node ret = sr.rewriteEqualityExt(node);
+    if (ret != node)
+    {
+      debugExtendedRewrite(node, ret, "STR_EXT_EQ_REWRITE");
+      return ret;
+    }
+
+    // ------- length entailment
+    Node len0 = d_nm->mkNode(Kind::STRING_LENGTH, node[0]);
+    Node len1 = d_nm->mkNode(Kind::STRING_LENGTH, node[1]);
+    Node len_eq = len0.eqNode(len1);
+    len_eq = d_rew.rewrite(len_eq);
+    if (len_eq == d_false)
+    {
+      debugExtendedRewrite(node, d_false, "String EQUAL len entailment");
+      return d_false;
+    }
+
+    TypeNode stype = node[0].getType();
+    std::vector<Node> c[2];
+    for (unsigned i = 0; i < 2; i++)
+    {
+      strings::utils::getConcat(node[i], c[i]);
+    }
+
+    // ------- homogeneous constants
+    for (unsigned i = 0; i < 2; i++)
+    {
+      Node cn = se.checkHomogeneousString(node[i]);
+      if (!cn.isNull() && !strings::Word::isEmpty(cn))
+      {
+        Assert(cn.isConst());
+        Assert(strings::Word::getLength(cn) == 1);
+
+        // The operands of the concat on each side of the equality without
+        // constant strings
+        std::vector<Node> trimmed[2];
+        // Counts the number of `cn`s on each side
+        size_t numCns[2] = {0, 0};
+        for (size_t j = 0; j < 2; j++)
+        {
+          // Sort the operands of the concats on both sides of the equality
+          // (since both sides may only contain one char, the order does not
+          // matter)
+          std::sort(c[j].begin(), c[j].end());
+          for (const Node& cc : c[j])
+          {
+            if (cc.isConst())
+            {
+              // Count the number of `cn`s in the string constant and make
+              // sure that all chars are `cn`s
+              std::vector<Node> veccc = strings::Word::getChars(cc);
+              for (const Node& cv : veccc)
+              {
+                if (cv != cn)
+                {
+                  // This conflict case should mostly should be taken care of by
+                  // multiset reasoning in the strings rewriter, but we
+                  // recognize this conflict just in case.
+                  debugExtendedRewrite(node, d_false, "STR_EQ_CONST_NHOMOG");
+                  return d_false;
+                }
+                numCns[j]++;
+              }
+            }
+            else
+            {
+              trimmed[j].push_back(cc);
+            }
+          }
+        }
+
+        // We have to remove the same number of `cn`s from both sides, so the
+        // side with less `cn`s determines how many we can remove
+        size_t trimmedConst = std::min(numCns[0], numCns[1]);
+        for (size_t j = 0; j < 2; j++)
+        {
+          size_t diff = numCns[j] - trimmedConst;
+          if (diff != 0)
+          {
+            // Add a constant string to the side with more `cn`s to restore
+            // the difference in number of `cn`s
+            std::vector<Node> vec(diff, cn);
+            trimmed[j].push_back(strings::Word::mkWordFlatten(vec));
+          }
+        }
+
+        Node lhs = strings::utils::mkConcat(trimmed[i], stype);
+        Node ss = strings::utils::mkConcat(trimmed[1 - i], stype);
+        if (lhs != node[i] || ss != node[1 - i])
+        {
+          // e.g.
+          //  "AA" = y ++ x ---> "AA" = x ++ y if x < y
+          //  "AAA" = y ++ "A" ++ z ---> "AA" = y ++ z
+          //
+          // We generally don't apply the extended equality rewriter if the
+          // original node was an equality but we may be able to do additional
+          // rewriting here.
+          Node new_ret = lhs.eqNode(ss);
+          debugExtendedRewrite(node, new_ret, "STR_EQ_CONST_NHOMOG");
+          return new_ret;
+        }
+      }
+    }
+  }
+  else if (k == Kind::STRING_CONCAT)
+  {
+    // Sort adjacent operands in str.++ that all result in the same string or
+    // the empty string.
+    //
+    // E.g.: (str.++ ... (str.replace "A" x "") "A" (str.substr "A" 0 z) ...)
+    // --> (str.++ ... [sort those 3 arguments] ... )
+    std::vector<Node> vec(node.begin(), node.end());
+    size_t lastIdx = 0;
+    Node lastX;
+    for (size_t i = 0, nsize = vec.size(); i < nsize; i++)
+    {
+      Node s = se.getStringOrEmpty(vec[i]);
+      bool nextX = false;
+      if (s != lastX)
+      {
+        nextX = true;
+      }
+      if (nextX)
+      {
+        std::sort(vec.begin() + lastIdx, vec.begin() + i);
+        lastX = s;
+        lastIdx = i;
+      }
+    }
+    std::sort(vec.begin() + lastIdx, vec.end());
+    TypeNode tn = node.getType();
+    Node retNode = strings::utils::mkConcat(vec, tn);
+    if (retNode != node)
+    {
+      debugExtendedRewrite(node, retNode, "CONCAT_NORM_SORT");
+      return retNode;
+    }
   }
   else if (k == Kind::STRING_SUBSTR)
   {
     NodeManager* nm = d_nm;
     Node tot_len = d_rew.rewrite(nm->mkNode(Kind::STRING_LENGTH, node[0]));
-    strings::ArithEntail aent(&d_rew);
     // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
     Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(Kind::LT, node[1], tot_len));
-    if (aent.checkWithAssumption(n1_lt_tot_len, d_intZero, node[2], false))
+    if (ae.checkWithAssumption(n1_lt_tot_len, d_intZero, node[2], false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_START_ENTAILS_ZERO_LEN");
@@ -1766,7 +1899,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
 
     // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
     Node non_zero_len = d_rew.rewrite(nm->mkNode(Kind::LT, d_intZero, node[2]));
-    if (aent.checkWithAssumption(non_zero_len, node[1], tot_len, false))
+    if (ae.checkWithAssumption(non_zero_len, node[1], tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_NON_ZERO_LEN_ENTAILS_OOB");
@@ -1775,7 +1908,7 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
     // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
     Node geq_zero_start =
         d_rew.rewrite(nm->mkNode(Kind::GEQ, node[1], d_intZero));
-    if (aent.checkWithAssumption(geq_zero_start, d_intZero, tot_len, false))
+    if (ae.checkWithAssumption(geq_zero_start, d_intZero, tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_GEQ_ZERO_START_ENTAILS_EMP_S");
@@ -1786,28 +1919,28 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   {
     if (node[0] == node[2])
     {
-      theory::strings::ArithEntail ae(&d_rew);
-      theory::strings::StringsEntail se(&d_rew, ae, nullptr);
       // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
       // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
       if (se.checkLengthOne(node[0]))
       {
         TypeNode stype = node.getType();
         Node empty = strings::Word::mkEmptyWord(stype);
-        Node rn1 = d_rew.rewrite(
-            d_rew.rewriteEqualityExt(d_nm->mkNode(Kind::EQUAL, node[1], empty)));
+        Node rn1 = d_rew.rewrite(d_rew.rewriteEqualityExt(
+            d_nm->mkNode(Kind::EQUAL, node[1], empty)));
         if (rn1 != node[1])
         {
           std::vector<Node> emptyNodes;
           bool allEmptyEqs;
-          std::tie(allEmptyEqs, emptyNodes) = strings::utils::collectEmptyEqs(rn1);
+          std::tie(allEmptyEqs, emptyNodes) =
+              strings::utils::collectEmptyEqs(rn1);
 
           if (allEmptyEqs)
           {
             Node nn1 = strings::utils::mkConcat(emptyNodes, stype);
             if (node[1] != nn1)
             {
-              Node ret = d_nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, node[2]);
+              Node ret =
+                  d_nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, node[2]);
               debugExtendedRewrite(node, ret, "RPL_X_Y_X_SIMP");
               return ret;
             }
@@ -1816,7 +1949,9 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       }
     }
     Node cmp_con = d_nm->mkNode(Kind::STRING_CONTAINS, node[0], node[1]);
-    Node cmp_conr = d_rew.rewrite(cmp_con);
+    // note we make a full recursive call to extended rewrite here, which should
+    // be fine since the term we are rewriting is simpler than the current one.
+    Node cmp_conr = extendedRewrite(cmp_con);
     if (cmp_conr.getKind() == Kind::EQUAL || cmp_conr.getKind() == Kind::AND)
     {
       TypeNode stype = node.getType();
@@ -1829,13 +1964,14 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       //
       // This can be done because str.replace changes x iff (str.++ x y) is in x
       // but that means that y must be empty in that case. Thus, we can
-      // substitute y with "" in the third argument. Note that the third argument
-      // does not matter when the str.replace does not apply.
+      // substitute y with "" in the third argument. Note that the third
+      // argument does not matter when the str.replace does not apply.
       //
       Node empty = strings::Word::mkEmptyWord(stype);
       std::vector<Node> emptyNodes;
       bool allEmptyEqs;
-      std::tie(allEmptyEqs, emptyNodes) = strings::utils::collectEmptyEqs(cmp_conr);
+      std::tie(allEmptyEqs, emptyNodes) =
+          strings::utils::collectEmptyEqs(cmp_conr);
       if (emptyNodes.size() > 0)
       {
         // Perform the substitutions
@@ -1852,7 +1988,8 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
         // if (str.contains "" y) ---> (and (= y1 "") ... (= yn ""))
         if (node[0] == empty && allEmptyEqs)
         {
-          std::vector<Node> emptyNodesList(emptyNodes.begin(), emptyNodes.end());
+          std::vector<Node> emptyNodesList(emptyNodes.begin(),
+                                           emptyNodes.end());
           Node nn1 = strings::utils::mkConcat(emptyNodesList, stype);
           if (nn1 != node[1] || nn2 != node[2])
           {
@@ -1871,7 +2008,96 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       }
     }
   }
+  else if (k == Kind::STRING_CONTAINS)
+  {
+    if (node[0].getKind() == Kind::STRING_REPLACE)
+    {
+      TypeNode stype = node[0].getType();
+      Node empty = strings::Word::mkEmptyWord(stype);
+      if (node[1].isConst() && node[0][1].isConst() && node[0][2].isConst())
+      {
+        if (node[1] != empty && node[0][1] != empty && node[0][2] != empty
+            && !strings::Word::hasBidirectionalOverlap(node[1], node[0][1])
+            && !strings::Word::hasBidirectionalOverlap(node[1], node[0][2]))
+        {
+          // (str.contains (str.replace x c1 c2) c3) ---> (str.contains x c3)
+          // if there is no overlap between c1 and c3 and none between c2 and c3
+          Node ret = d_nm->mkNode(Kind::STRING_CONTAINS, node[0][0], node[1]);
+          debugExtendedRewrite(node, ret, "CTN_REPL_CNSTS_TO_CTN");
+          return ret;
+        }
+      }
+      // (str.contains (str.replace x y z) w) --->
+      //   (str.contains (str.replace x y "") w)
+      // if (str.contains z w) ---> false and (str.len w) = 1
+      if (se.checkLengthOne(node[1]))
+      {
+        Node ctn = se.checkContains(node[0][2], node[1]);
+        if (!ctn.isNull() && !ctn.getConst<bool>())
+        {
+          Node ret = d_nm->mkNode(
+              Kind::STRING_CONTAINS,
+              d_nm->mkNode(Kind::STRING_REPLACE, node[0][0], node[0][1], empty),
+              node[1]);
+          debugExtendedRewrite(node, ret, "CTN_REPL_SIMP_REPL");
+          return ret;
+        }
+      }
+    }
+    std::vector<Node> nc1;
+    strings::utils::getConcat(node[0], nc1);
+    std::vector<Node> nc2;
+    strings::utils::getConcat(node[1], nc2);
 
+    // extended component-wise containment
+    std::vector<Node> nc1rb;
+    std::vector<Node> nc1re;
+    if (se.componentContainsExt(nc1, nc2, nc1rb, nc1re) != -1)
+    {
+      debugExtendedRewrite(node, d_true, "CTN_COMPONENT_EXT");
+      return d_true;
+    }
+
+    for (const Node& n : nc2)
+    {
+      // (str.contains x (str.++ w (str.replace x y x) z)) --->
+      //   (= x (str.++ w (str.replace x y x) z))
+      //
+      if (n.getKind() == Kind::STRING_REPLACE && node[0] == n[0]
+          && node[0] == n[2])
+      {
+        Node ret = d_nm->mkNode(Kind::EQUAL, node[0], node[1]);
+        debugExtendedRewrite(node, ret, "CTN_REPL_SELF");
+        return ret;
+      }
+    }
+  }
+  // otherwise, the use of recursive approximations and rewriting via
+  // the entailment utilities may make a standard conditional rewrite
+  // applicable.
+  RewriteResponse rr = sr.postRewrite(node);
+  if (rr.d_node != node)
+  {
+    return rr.d_node;
+  }
+
+  return Node::null();
+}
+
+Node ExtendedRewriter::extendedRewriteArith(const Node& node) const
+{
+  if (node.getKind() == Kind::EQUAL)
+  {
+    // We invoke the extended equality rewriter, which normalizes the equality.
+    // Notice this is not applied by Rewriter::rewrite, since it does not
+    // preserve the terms of the equality, see rewriter::normalizeEquality.
+    Node ret = d_rew.rewriteEqualityExt(node);
+    if (ret != node)
+    {
+      debugExtendedRewrite(node, ret, "ARITH_EXT_EQ_REWRITE");
+      return ret;
+    }
+  }
   return Node::null();
 }
 

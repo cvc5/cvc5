@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 ; DISABLE-TESTER: cpc
-; Disabled cpc due to congruence on overloaded user functions.
+; Disabled cpc due to overloaded constructors
 (set-logic ALL)
 (declare-sort i 0)
 (declare-sort s 0)

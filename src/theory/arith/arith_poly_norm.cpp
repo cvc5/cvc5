@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "theory/arith/arith_poly_norm.h"
 
 #include "expr/attribute.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/bitvector.h"
 
@@ -99,7 +97,7 @@ void PolyNorm::modCoeffs(const Rational& c)
   {
     Assert(m.second.isIntegral());
     m.second = Rational(m.second.getNumerator().euclidianDivideRemainder(ci));
-    if (m.second.sgn()==0)
+    if (m.second.sgn() == 0)
     {
       zeroes.push_back(m.first);
     }
@@ -227,7 +225,7 @@ bool PolyNorm::isEqualMod(const PolyNorm& p, Rational& c) const
 Node PolyNorm::toNode(const TypeNode& tn) const
 {
   std::vector<Node> sum;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   bool isArith = (tn.isInteger() || tn.isReal());
   bool isBv = tn.isBitVector();
   Kind multKind;
@@ -243,7 +241,7 @@ Node PolyNorm::toNode(const TypeNode& tn) const
   {
     multKind = Kind::BITVECTOR_MULT;
     addKind = Kind::BITVECTOR_ADD;
-    one = bv::utils::mkOne(tn.getBitVectorSize());
+    one = bv::utils::mkOne(nm, tn.getBitVectorSize());
   }
   else
   {
@@ -265,15 +263,22 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     if (m.first.isNull())
     {
       sum.push_back(coeff);
+      continue;
     }
-    else if (coeff == one)
+    Node t = m.first;
+    if (t.getKind() == Kind::SEXPR)
     {
-      sum.push_back(m.first);
+      std::vector<Node> vars(t.begin(), t.end());
+      t = nm->mkNode(multKind, vars);
+    }
+    if (coeff == one)
+    {
+      sum.push_back(t);
     }
     else
     {
-      Assert(m.first.getType().isComparableTo(tn));
-      sum.push_back(nm->mkNode(multKind, {coeff, m.first}));
+      Assert(t.getType().isComparableTo(tn));
+      sum.push_back(nm->mkNode(multKind, {coeff, t}));
     }
   }
   if (sum.size() == 1)
@@ -289,7 +294,7 @@ Node PolyNorm::toNode(const TypeNode& tn) const
     else
     {
       Assert(isBv);
-      return bv::utils::mkZero(tn.getBitVectorSize());
+      return bv::utils::mkZero(nm, tn.getBitVectorSize());
     }
   }
   // must sort to ensure this method is idempotent
@@ -313,7 +318,8 @@ Node PolyNorm::multMonoVar(TNode m1, TNode m2)
   }
   // use default sorting
   std::sort(vars.begin(), vars.end());
-  return NodeManager::currentNM()->mkNode(Kind::NONLINEAR_MULT, vars);
+  // we use SEXPR instead of multiplication, which is agnostic to types
+  return m2.getNodeManager()->mkNode(Kind::SEXPR, vars);
 }
 
 std::vector<TNode> PolyNorm::getMonoVars(TNode m)
@@ -324,7 +330,7 @@ std::vector<TNode> PolyNorm::getMonoVars(TNode m)
   {
     Kind k = m.getKind();
     Assert(k != Kind::CONST_RATIONAL && k != Kind::CONST_INTEGER);
-    if (k == Kind::MULT || k == Kind::NONLINEAR_MULT)
+    if (k == Kind::SEXPR)
     {
       vars.insert(vars.end(), m.begin(), m.end());
     }
@@ -416,8 +422,8 @@ PolyNorm PolyNorm::mkPolyNorm(TNode n)
           {
             it = visited.find(cur[i]);
             Assert(it != visited.end());
-            if (((k == Kind::SUB || k == Kind::BITVECTOR_SUB) && i == 1) || k == Kind::NEG
-                || k == Kind::BITVECTOR_NEG)
+            if (((k == Kind::SUB || k == Kind::BITVECTOR_SUB) && i == 1)
+                || k == Kind::NEG || k == Kind::BITVECTOR_NEG)
             {
               ret.subtract(it->second);
             }
@@ -493,6 +499,10 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
   Assert(a.getType().isBoolean());
   if (a == b)
   {
+    // must set the coefficients, since they may be used by the caller to
+    // construct the premise of ARITH_POLY_NORM_REL
+    ca = Rational(1);
+    cb = Rational(1);
     return true;
   }
   Kind k = a.getKind();
@@ -508,11 +518,23 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
     Assert(a[0].getType().isComparableTo(a[1].getType()));
     Assert(b[0].getType().isComparableTo(b[1].getType()));
     eqtn = a[0].getType().leastUpperBound(a[1].getType());
-    eqtn = eqtn.leastUpperBound(b[0].getType().leastUpperBound(b[1].getType()));
-    // could happen if we are comparing equalities of different types
-    if (eqtn.isNull())
+    TypeNode eqtn2 = b[0].getType().leastUpperBound(b[1].getType());
+    if (eqtn.isRealOrInt())
     {
-      return false;
+      // we can prove equivalence of Real vs Int equalities
+      if (!eqtn2.isRealOrInt())
+      {
+        return false;
+      }
+    }
+    else
+    {
+      eqtn = eqtn.leastUpperBound(eqtn2);
+      // could happen if we are comparing equalities of different types
+      if (!eqtn.isBitVector())
+      {
+        return false;
+      }
     }
   }
   else if (k != Kind::GEQ && k != Kind::LEQ && k != Kind::GT && k != Kind::LT)
@@ -521,6 +543,8 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
     // bitvector inequalities.
     return false;
   }
+  Trace("arith-poly-norm-rel")
+      << "Poly norm rel? " << a << " " << b << std::endl;
   // k is a handled binary relation, i.e. one that permits normalization
   // via subtracting the right side from the left.
   PolyNorm pa = PolyNorm::mkDiff(a[0], a[1]);
@@ -528,9 +552,46 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
   // if a non-arithmetic equality
   if (k == Kind::EQUAL && !eqtn.isRealOrInt())
   {
-    // pa and pb must be equal with no scaling factors.
+    Assert(eqtn.isBitVector());
     ca = Rational(1);
     cb = Rational(1);
+    Trace("arith-poly-norm-rel") << "...determine multiply factor" << std::endl;
+    for (const std::pair<const Node, Rational>& m : pa.d_polyNorm)
+    {
+      std::map<Node, Rational>::iterator itb = pb.d_polyNorm.find(m.first);
+      if (itb == pb.d_polyNorm.end())
+      {
+        // a monomial in a is not in b
+        return false;
+      }
+      // if this factor is odd
+      bool oddA = m.second.getNumerator().testBit(0);
+      bool oddB = itb->second.getNumerator().testBit(0);
+      if (oddA != oddB)
+      {
+        // an odd with an even
+        return false;
+      }
+      else if (oddA && oddB)
+      {
+        // Coefficients are both odd but not equal, multiply either side.
+        // Ensure that we take them modulo the bitwidth here.
+        Integer w = Integer(2).pow(eqtn.getBitVectorSize());
+        Integer ai = m.second.getNumerator().euclidianDivideRemainder(w);
+        Integer bi = itb->second.getNumerator().euclidianDivideRemainder(w);
+        if (ai != bi)
+        {
+          ca = Rational(bi);
+          cb = Rational(ai);
+        }
+        // else, coefficients are equal, we should just try 1 / 1
+        break;
+      }
+      // even with even is inconclusive
+    }
+    Trace("arith-poly-norm") << "...try " << ca << " / " << cb << std::endl;
+    pa.mulCoeffs(ca);
+    pb.mulCoeffs(cb);
     // Check for equality, taking modulo 2^w on coefficients.
     return areEqualPolyNormTyped(eqtn, pa, pb);
   }
@@ -556,7 +617,7 @@ Node PolyNorm::getArithPolyNormRelPremise(TNode a,
                                           const Rational& rx,
                                           const Rational& ry)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = a.getNodeManager();
   Node lhs, rhs;
   if (a[0].getType().isBitVector())
   {
@@ -622,11 +683,19 @@ Node PolyNorm::getPolyNorm(Node a)
   {
     PolyNorm pa = arith::PolyNorm::mkPolyNorm(a);
     an = pa.toNode(a.getType());
-    a.setAttribute(apna, an);
-    // as an optimization, assume idempotent
-    if (a != an)
+    if (an.isNull())
     {
-      an.setAttribute(apna, an);
+      a.setAttribute(apna, a);
+      return a;
+    }
+    else
+    {
+      a.setAttribute(apna, an);
+      if (a != an)
+      {
+        // as an optimization, assume idempotent
+        an.setAttribute(apna, an);
+      }
     }
   }
   return an;

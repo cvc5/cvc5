@@ -1,4 +1,4 @@
-; DISABLE-TESTER: dsl-proof
+; DISABLE-TESTER: proof
 ; DISABLE-TESTER: lfsc
 (set-logic BV)
 (set-info :source | 

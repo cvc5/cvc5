@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +20,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/rewriter.h"
@@ -39,16 +37,15 @@ namespace theory {
 namespace quantifiers {
 
 SygusSampler::SygusSampler(Env& env)
-    : EnvObj(env), d_tds(nullptr), d_use_sygus_type(false), d_is_valid(false)
+    : EnvObj(env), d_use_sygus_type(false), d_is_valid(false)
 {
 }
 
-void SygusSampler::initialize(TypeNode tn,
+void SygusSampler::initialize(CVC5_UNUSED TypeNode tn,
                               const std::vector<Node>& vars,
                               unsigned nsamples,
                               bool unique_type_ids)
 {
-  d_tds = nullptr;
   d_use_sygus_type = false;
   d_is_valid = true;
   d_ftn = TypeNode::null();
@@ -202,10 +199,10 @@ void SygusSampler::initializeSamples(unsigned nsamples)
         // choose a random start sygus type, if possible
         if (sts[j] != d_var_sygus_types.end())
         {
-          unsigned ntypes = sts[j]->second.size();
-          if(ntypes > 0)
+          size_t ntypes = sts[j]->second.size();
+          if (ntypes > 0)
           {
-            unsigned index = Random::getRandom().pick(0, ntypes - 1);
+            size_t index = Random::getRandom().pick<size_t>(0, ntypes - 1);
             if (index < ntypes)
             {
               // currently hard coded to 0.0, 0.5
@@ -262,7 +259,6 @@ bool SygusSampler::PtTrie::add(std::vector<Node>& pt)
     curr = &(curr->d_children[pt[i]]);
   }
   bool retVal = curr->d_children.empty();
-  curr = &(curr->d_children[Node::null()]);
   return retVal;
 }
 
@@ -544,11 +540,11 @@ Node SygusSampler::getRandomValue(TypeNode tn)
 
     std::vector<unsigned> vec;
     double ext_freq = .5;
-    unsigned base = tn.isString() ? d_rstring_alphabet.size() : 10;
+    size_t base = tn.isString() ? d_rstring_alphabet.size() : 10;
     while (Random::getRandom().pickWithProb(ext_freq))
     {
       // add a digit
-      unsigned digit = Random::getRandom().pick(0, base - 1);
+      size_t digit = Random::getRandom().pick<size_t>(0, base - 1);
       if (tn.isString())
       {
         digit = d_rstring_alphabet[digit];
@@ -591,7 +587,7 @@ Node SygusSampler::getRandomValue(TypeNode tn)
       }
       ret = d_env.getRewriter()->rewrite(ret);
       Assert(ret.isConst());
-      Assert(ret.getType()==tn);
+      Assert(ret.getType() == tn);
       return ret;
     }
   }
@@ -647,28 +643,28 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
   // we refuse to enumerate terms of 10+ depth as a hard limit
   bool terminate = Random::getRandom().pickWithProb(rchance) || depth >= 10;
   // if we terminate, only nullary constructors can be chosen
-  std::vector<unsigned>& cindices =
+  std::vector<uint32_t>& cindices =
       terminate ? d_rvalue_null_cindices[tn] : d_rvalue_cindices[tn];
-  unsigned ncons = cindices.size();
+  size_t ncons = cindices.size();
   // select a random constructor, or random value when index=ncons.
-  unsigned index = Random::getRandom().pick(0, ncons);
+  size_t index = Random::getRandom().pick<size_t>(0, ncons);
   Trace("sygus-sample-grammar")
       << "Random index 0..." << ncons << " was : " << index << std::endl;
   if (index < ncons)
   {
     Trace("sygus-sample-grammar")
         << "Recurse constructor index #" << index << std::endl;
-    unsigned cindex = cindices[index];
+    uint32_t cindex = cindices[index];
     Assert(cindex < dt.getNumConstructors());
     const DTypeConstructor& dtc = dt[cindex];
     // more likely to terminate in recursive calls
     double rchance_new = rchance + (1.0 - rchance) * rinc;
-    std::map<int, Node> pre;
     bool success = true;
     // generate random values for all arguments
-    for (unsigned i = 0, nargs = dtc.getNumArgs(); i < nargs; i++)
+    std::vector<Node> children;
+    for (size_t i = 0, nargs = dtc.getNumArgs(); i < nargs; i++)
     {
-      TypeNode tnc = d_tds->getArgType(dtc, i);
+      TypeNode tnc = dtc.getArgType(i);
       Node c = getSygusRandomValue(tnc, rchance_new, rinc, depth + 1);
       if (c.isNull())
       {
@@ -678,18 +674,18 @@ Node SygusSampler::getSygusRandomValue(TypeNode tn,
       }
       Trace("sygus-sample-grammar")
           << "  child #" << i << " : " << c << std::endl;
-      pre[i] = c;
+      children.emplace_back(c);
     }
     if (success)
     {
-      Trace("sygus-sample-grammar") << "mkGeneric" << std::endl;
-      Node ret = d_tds->mkGeneric(dt, cindex, pre);
+      Trace("sygus-sample-grammar") << "utils::mkSygusTerm" << std::endl;
+      Node ret = datatypes::utils::mkSygusTerm(dt, cindex, children);
       Trace("sygus-sample-grammar") << "...returned " << ret << std::endl;
       ret = d_env.getRewriter()->rewrite(ret);
       Trace("sygus-sample-grammar") << "...after rewrite " << ret << std::endl;
       // A rare case where we generate a non-constant value from constant
       // leaves is (/ n 0).
-      if(ret.isConst())
+      if (ret.isConst())
       {
         return ret;
       }
@@ -741,7 +737,7 @@ void SygusSampler::registerSygusType(TypeNode tn)
       // recurse on all subfields
       for (unsigned j = 0, nargs = dtc.getNumArgs(); j < nargs; j++)
       {
-        TypeNode tnc = d_tds->getArgType(dtc, j);
+        TypeNode tnc = dtc.getArgType(j);
         registerSygusType(tnc);
       }
     }

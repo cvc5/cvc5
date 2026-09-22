@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Andres Noetzli
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -13,12 +10,12 @@
 # The build system configuration.
 ##
 
-find_package(GTest REQUIRED)
+find_package(GTest 1.10.0 REQUIRED)
 
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
-include_directories(${CMAKE_BINARY_DIR}/src)
+include_directories(${PROJECT_BINARY_DIR}/src)
 
 #-----------------------------------------------------------------------------#
 # Add target 'units', builds and runs
@@ -30,7 +27,7 @@ add_dependencies(build-tests build-units)
 
 # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
 # Disabled temporarily due to problems in the nightly builds
-# add_test(build_units_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-units)
+# add_test(build_units_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-units)
 # set_tests_properties(build_units_test PROPERTIES FIXTURES_SETUP build_units_fixture)
 
 add_custom_target(units
@@ -39,6 +36,30 @@ add_custom_target(units
 
 set(CVC5_UNIT_TEST_FLAGS_BLACK
   -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST -Dcvc5_obj_EXPORTS)
+
+# Enable slow (exhaustive) unit tests with -DENABLE_SLOW_TESTS=ON.
+option(ENABLE_SLOW_TESTS "Enable slow (exhaustive) unit tests" OFF)
+if(ENABLE_SLOW_TESTS)
+  list(APPEND CVC5_UNIT_TEST_FLAGS_BLACK -DCVC5_SLOW_TESTS)
+endif()
+
+# Per-test timeout (in seconds) for unit tests. Unit tests are otherwise
+# unbounded: a test that hangs or becomes pathologically slow stalls the whole
+# ctest run until the CI job's own inactivity timeout kills it, which reports
+# no indication of which test was responsible. Regression tests already get an
+# equivalent watchdog via TIMEOUT_AFTER_MATCH in test/regress/cli/CMakeLists.txt.
+set(CVC5_UNIT_TEST_TIMEOUT "" CACHE STRING
+    "Per-test timeout in seconds for unit tests (default: 900, or 7200 with -DENABLE_SLOW_TESTS=ON)")
+if(CVC5_UNIT_TEST_TIMEOUT STREQUAL "")
+  if(ENABLE_SLOW_TESTS)
+    # Exhaustive tests iterate over all Float16 values and are ~30x slower.
+    set(unit_test_timeout 7200)
+  else()
+    set(unit_test_timeout 900)
+  endif()
+else()
+  set(unit_test_timeout ${CVC5_UNIT_TEST_TIMEOUT})
+endif()
 
 # Generate and add unit test.
 macro(cvc5_add_unit_test is_white name output_dir)
@@ -70,7 +91,7 @@ macro(cvc5_add_unit_test is_white name output_dir)
     endif()
     add_dependencies(build-units ${name})
     # Generate into bin/test/unit/<output_dir>.
-    set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/unit/${output_dir})
+    set(test_bin_dir ${PROJECT_BINARY_DIR}/bin/test/unit/${output_dir})
     set_target_properties(${name}
       PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
     # The test target is prefixed with test identifier 'unit/' and the path,
@@ -83,7 +104,9 @@ macro(cvc5_add_unit_test is_white name output_dir)
       set(test_name unit/${output_dir}/${name})
     endif()
     add_test(${test_name} ${ENV_PATH_CMD} ${test_bin_dir}/${name})
-    set_tests_properties(${test_name} PROPERTIES LABELS "unit")
+    set_tests_properties(${test_name} PROPERTIES
+      LABELS "unit"
+      TIMEOUT ${unit_test_timeout})
     # set_tests_properties(${test_name} PROPERTIES FIXTURES_REQUIRED build_units_fixture)
   endif()
 endmacro()

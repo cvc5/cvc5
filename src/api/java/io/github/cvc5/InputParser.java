@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -84,6 +81,8 @@ public class InputParser extends AbstractPointer
   }
 
   /**
+   * Get the underlying solver of this input parser.
+   *
    * @return The underlying solver of this input parser
    */
   public Solver getSolver()
@@ -94,6 +93,8 @@ public class InputParser extends AbstractPointer
   private native long getSolver(long pointer);
 
   /**
+   * Get the underlying symbol manager of this input parser.
+   *
    * @return The underlying symbol manager of this input parser.
    */
   public SymbolManager getSymbolManager()
@@ -183,7 +184,11 @@ public class InputParser extends AbstractPointer
 
   private native long nextTerm(long pointer);
 
-  /** @return True if this parser done reading input. */
+  /**
+   * Determine if this parser done reading input.
+   *
+   * @return True if this parser done reading input.
+   */
   public boolean done()
   {
     return done(pointer);

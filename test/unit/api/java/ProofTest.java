@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hans-Joerg Schurr, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,8 @@
 
 package tests;
 import static io.github.cvc5.Kind.*;
-import static io.github.cvc5.SortKind.*;
 import static io.github.cvc5.ProofRule.*;
+import static io.github.cvc5.SortKind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
@@ -84,10 +81,10 @@ class ProofTest
     d_solver.setOption("proof-granularity", "dsl-rewrite");
     Sort intSort = d_tm.getIntegerSort();
     Term x = d_tm.mkConst(intSort, "x");
-    Term twoX = d_tm.mkTerm(Kind.MULT, new Term[]{d_tm.mkInteger(2), x});
-    Term xPlusX = d_tm.mkTerm(Kind.ADD, new Term[]{x, x});
-    d_solver.assertFormula(
-        d_tm.mkTerm(Kind.DISTINCT, new Term[]{twoX, xPlusX}));
+    Term zero = d_tm.mkInteger(0);
+    Term geq = d_tm.mkTerm(Kind.GEQ, new Term[] {x, zero});
+    Term leq = d_tm.mkTerm(Kind.LEQ, new Term[] {zero, x});
+    d_solver.assertFormula(d_tm.mkTerm(Kind.DISTINCT, new Term[] {geq, leq}));
     d_solver.checkSat();
     return d_solver.getProof()[0];
   }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +21,7 @@ int main(void)
   solver.setOption("preregister-mode", "lazy");
   solver.setOption("produce-abducts", "true");
   solver.setOption("preprocess-only", "true");
+  solver.setOption("fp-exp", "true");
   Sort s0 = tm.mkFloatingPointSort(5, 11);
   Term t1 = tm.mkFloatingPointPosZero(5, 11);
   Op o2 = tm.mkOp(Kind::FLOATINGPOINT_NEG);

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --model-based-arith-bv-conv
 ; EXPECT: sat
 (set-logic ALL)
@@ -6,5 +7,5 @@
 (assert (bvule #b00100000 x))
 (assert (bvule x #b00100011))
 (assert (< 30 c 35))
-(assert (or (= (bv2nat x) c) (= (bv2nat x) (+ c 2))))
+(assert (or (= (ubv_to_int x) c) (= (ubv_to_int x) (+ c 2))))
 (check-sat)

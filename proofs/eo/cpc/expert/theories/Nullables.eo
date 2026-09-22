@@ -1,0 +1,23 @@
+
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further function
+;   symbols over this sort are also not part of the SMT-LIB standard.
+(declare-datatypes ((Nullable 1)) ((par (T) ((nullable.some (nullable.val T)) (nullable.null)))))
+
+; program: $get_type_nullable_lift
+; args:
+; - T Type: The (function) type of the function we are lifting.
+; return: >
+;   The type of the nullable.lift for the given function. This
+;   consists of lifting each argument and return type T to
+;   (Nullable T).
+(program $get_type_nullable_lift ((T Type) (U Type))
+    :signature (Type) Type
+    (
+      (($get_type_nullable_lift (-> T U)) (-> (Nullable T) ($get_type_nullable_lift U)))
+      (($get_type_nullable_lift U)        (Nullable U))
+    )
+)
+
+; disclaimer: This function is not in the SMT-LIB standard.
+(declare-parameterized-const nullable.lift ((F Type :implicit)) (-> F ($get_type_nullable_lift F)))

@@ -3,7 +3,9 @@ Building cvc5
 
 .. code:: bash
 
-    ./configure.sh
+    ./configure.sh <build type>
+        # a build type is mandatory, run ./configure.sh --help for the
+        #   list of available build types
         # use --prefix to specify an install prefix (default: /usr/local)
         # use --name=<PATH> for custom build directory
         # use --auto-download to download and build missing, required or
@@ -43,14 +45,22 @@ Compilation on Windows
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Install `MSYS2 <https://www.msys2.org/>`_ and `Python <https://www.python.org/downloads/windows/>`_ on your system.
-Launch a `MINGW64 environment <https://www.msys2.org/docs/environments/>`_ and
-install the required packages for building cvc5:
+Then, launch the appropriate `MSYS2 environment <https://www.msys2.org/docs/environments/>`_ and
+install the required dependencies:
+
+- On x86_64 machines, open a `CLANG64` shell and run:
 
 .. code:: bash
 
-  pacman -S git make mingw-w64-x86_64-cmake mingw-w64-x86_64-gcc mingw-w64-x86_64-gmp zip
+  pacman -S git make mingw-w64-clang-x86_64-cmake mingw-w64-clang-x86_64-clang mingw-w64-clang-x86_64-gmp zip
 
-Clone the cvc5 repository and follow the general build steps above.
+- On ARM64 machines, open a `CLANGARM64` shell and run:
+
+.. code:: bash
+
+  pacman -S git make mingw-w64-clang-aarch64-cmake mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-gmp zip
+
+After that, clone the cvc5 repository and follow the general build steps above.
 The built binary ``cvc5.exe`` and the DLL libraries are located in
 ``<build_dir>/bin``. The import libraries and the static libraries
 can be found in ``<build_dir>/lib``.
@@ -73,7 +83,7 @@ you can cross-compile cvc5 as follows:
 
 .. code:: bash
 
-  ./configure.sh --win64 --static <configure options...>
+  ./configure.sh unrestricted --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -86,21 +96,29 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.18 or 
-latter). Setting up emsdk can be done as follows:
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 6.0.8 or
+later). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.18' is preferable, but 
-                              # <version> = 'latest' has high chance of working
+  ./emsdk install <version>   # <version> = '6.0.8' is the version used in our Continuous Integration pipeline
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
                           # current terminal. Whenever Emscripten is going to be
                           # used this command needs to be called before because 
                           # emsdk doesn't insert the binaries paths directly in 
                           # the system PATH variable.
+
+.. note::
+
+  Versions older than 6.0.8 are not supported, and CMake rejects
+  them. Emscripten's ``getrusage()``
+  used to write past the end of the caller's ``struct rusage``, corrupting
+  adjacent memory. cvc5 calls it from its resource manager and, in GPL
+  builds, indirectly through CoCoALib, so older SDKs can produce binaries
+  that fail at run time in ways unrelated to the input.
 
 Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ 
 to ensure that all required dependencies are installed on the system.
@@ -109,7 +127,7 @@ Then, in the cvc5 directory:
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -124,11 +142,18 @@ code).
 which modifies how the wasm and glue code are built and how they behave. An ``-s``
 should precede each flag.
 
+``--wasm-web`` provides predefined configurations optimized for web deployment.
+This option takes precedence over ``--wasm`` and ``--wasm-flags`` if used together.
+Available configurations:
+
+- ``no-modular-static-page``: Optimized for static web pages with runtime methods,
+  environment settings, and memory configuration pre-configured for web deployment.
+
 For example, to generate a HTML page, use:
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=HTML --name=prod
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=HTML --name=prod
 
   cd prod
   make            # use -jN for parallel build with N threads
@@ -139,7 +164,7 @@ On the other hand, to generate a modularized glue code to be imported by custom 
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
 
   cd prod
   make            # use -jN for parallel build with N threads
@@ -155,17 +180,18 @@ installed in a non-standard location, you can use ``--dep-path`` to define an
 additional search path for all dependencies. Versions given are minimum
 versions; more recent versions should be compatible.
 
-- `GNU C and C++ (gcc and g++, >= 7) <https://gcc.gnu.org>`_
-  or `Clang (>= 5) <https://clang.llvm.org>`_
+- `GNU C and C++ (gcc and g++, >= 10) <https://gcc.gnu.org>`_
+  or `Clang (>= 12) <https://clang.llvm.org>`_
 - `CMake >= 3.16 <https://cmake.org>`_
 - `GNU Make <https://www.gnu.org/software/make/>`_
   or `Ninja <https://ninja-build.org/>`_
 - `Python >= 3.7 <https://www.python.org>`_
   + module `tomli <https://pypi.org/project/tomli/>`_ (Python < 3.11)
   + module `pyparsing <https://pypi.org/project/pyparsing/>`_
-- `GMP v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
-- `CaDiCaL >= 1.6.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
-- `SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_
+- `GMP >= v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
+- `MPFR >= v4.2.1 (GNU Multiple Precision Floating-Point Reliable Library) <https://www.mpfr.org>`_
+- `CaDiCaL >= 2.1.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
+- `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing. To install the modules globally and skip
@@ -178,7 +204,7 @@ CaDiCaL (SAT solver)
 used for the bit-vector solver. It can be downloaded and built automatically.
 
 
-GMP (GNU Multi-Precision arithmetic library)
+GMP (GNU Multi-Precision Arithmetic Library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 GMP is usually available on your distribution and should be used from there. If
@@ -186,11 +212,19 @@ it is not, or you want to cross-compile, or you want to build cvc5 statically
 but the distribution does not ship static libraries, cvc5 builds GMP
 automatically when ``--auto-download`` is given.
 
+MPFR (GNU Multi-Precision Floating-Point Reliable Library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MPFR is usually available on your distribution and should be used from there. If
+it is not, or you want to cross-compile, or you want to build cvc5 statically
+but the distribution does not ship static libraries, cvc5 builds MPFR
+automatically when ``--auto-download`` is given.
+
 
 SymFPU (Support for the Theory of Floating Point Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`SymFPU <https://github.com/martin-cs/symfpu/tree/CVC4>`_ is an implementation
+`SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_ is an implementation
 of SMT-LIB/IEEE-754 floating-point operations in terms of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and can be
 downloaded and built automatically.
@@ -200,6 +234,25 @@ Optional Dependencies
 ---------------------
 
 
+Licensing of GPL dependencies
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+cvc5 itself is distributed under the modified BSD license, and by default it is
+built without any GPL-licensed dependency. Several of the optional dependencies
+below (CoCoA, CLN, glpk-cut-log and Normaliz) are covered by the `GNU General
+Public License, version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If
+you link cvc5 against any of them, the resulting combined work is covered by
+the GPLv3 as well.
+
+Each of these dependencies therefore requires the ``--gpl`` configuration flag
+in addition to its own flag. Configuring with ``--no-gpl`` (the default)
+guarantees that no GPL-licensed library is linked in, so that cvc5 can be used
+under the terms of the modified BSD license.
+
+See the section "OPTIONAL GPLv3 libraries" of the file ``COPYING`` in the cvc5
+source distribution for the full statement.
+
+
 CryptoMiniSat (Optional SAT solver)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -207,7 +260,7 @@ CryptoMiniSat (Optional SAT solver)
 can be used for solving bit-vector problems with eager bit-blasting. This
 dependency may improve performance. It can be downloaded and built
 automatically. Configure cvc5 with ``configure.sh --cryptominisat`` to build
-with this dependency.
+with this dependency. Minimum version required is ``5.11.2``.
 
 
 Kissat (Optional SAT solver)
@@ -219,7 +272,7 @@ may improve performance. It can be downloaded and built automatically. Configure
 cvc5 with ``configure.sh --kissat`` to build with this dependency.
 
 
-LibPoly >= v0.1.13 (Optional polynomial library)
+LibPoly >= v0.2.1 (Optional polynomial library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `LibPoly <https://github.com/SRI-CSL/libpoly>`_ is required for CAD-based
@@ -235,7 +288,8 @@ recommend downloading it using the ``--auto-download`` configuration flag,
 which applies our patch automatically. It is included in the build through the
 ``--cocoa --gpl`` configuration flag.
 
-CoCoA is covered by the GPLv3 license. See below for the ramifications of this.
+CoCoA is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 CLN >= v1.3 (Class Library for Numbers)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -244,40 +298,51 @@ CLN >= v1.3 (Class Library for Numbers)
 package that may offer better performance and memory footprint than GMP.
 Configure cvc5 with ``configure.sh --cln --gpl`` to build with this dependency.
 
-Note that CLN is covered by the `GNU General Public License, version 3
-<https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use cvc5 with
-CLN support, you are licensing cvc5 under that same license. (Usually cvc5's
-license is more permissive than GPL, see the file `COPYING` in the cvc5 source
-distribution for details.)
+CLN is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
-glpk-cut-log (A fork of the GNU Linear Programming Kit)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+GLPK with cut-log support (The GNU Linear Programming Kit)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-`glpk-cut-log <https://github.com/timothy-king/glpk-cut-log/>`_ is a fork of
-`GLPK <http://www.gnu.org/software/glpk/>`_ (the GNU Linear Programming Kit).
-This can be used to speed up certain classes of problems for the arithmetic
+`GLPK <https://www.gnu.org/software/glpk/>`_ (the GNU Linear Programming Kit)
+can be used to speed up certain classes of problems for the arithmetic
 implementation in cvc5. (This is not recommended for most users.)
 
-cvc5 is not compatible with the official version of the GLPK library.
-To use the patched version of it, we recommend downloading it using
-the ``--auto-download`` configuration flag, which applies
-the patch automatically.
+cvc5 cannot use a stock GLPK library: it requires the cut logging interface
+added by ``cmake/deps-utils/glpk-cut-log.patch``, and the build fails if the
+GLPK it finds does not provide it. We therefore recommend obtaining this
+dependency with the ``--auto-download`` configuration flag, which downloads the
+GLPK release from `ftp.gnu.org <https://ftp.gnu.org/gnu/glpk/>`_ and applies
+the patch automatically. The patch itself is taken from `glpk-cut-log
+<https://github.com/timothy-king/glpk-cut-log/>`_.
 Configure cvc5 with ``configure.sh --glpk --gpl`` to build with this dependency.
 
-Note that GLPK and glpk-cut-log are covered by the `GNU General Public License,
-version 3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_. If you choose to use
-cvc5 with GLPK support, you are licensing cvc5 under that same license. (Usually
-cvc5's license is more permissive; see above discussion.)
+GLPK and glpk-cut-log are covered by the GPLv3 license; see `Licensing of GPL
+dependencies <#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
 Editline library (Improved Interactive Experience)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The `Editline Library <https://thrysoee.dk/editline/>`_ library is optionally
+The `Editline Library <https://thrysoee.dk/editline/>`_ is optionally
 used to provide command editing, tab completion, and history functionality at
 the cvc5 prompt (when running in interactive mode).  Check your distribution for
-a package named "libedit-dev" or "libedit-devel" or similar.
+a package named `libedit-dev`, `libedit-devel`, or similar.  Configure cvc5 with
+``configure.sh --editline`` to build with this dependency.  Additionally,
+to run tests related to interactive mode with this dependency, you will need
+the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
+
+Normaliz (Optional rational cones library)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`Normaliz <https://www.normaliz.uni-osnabrueck.de/>`_ is required for 
+liastar solver extension. We recommend downloading it using the ``--auto-download`` 
+configuration flag. It is included in the build through the
+``--normaliz --gpl`` configuration flag.
+
+Normaliz is covered by the GPLv3 license; see `Licensing of GPL dependencies
+<#licensing-of-gpl-dependencies>`__ for the ramifications of this.
 
 
 Google Test Unit Testing Framework (Unit Tests)
@@ -312,7 +377,7 @@ Dependencies for Language Bindings
   - `Cython <https://cython.org/>`_ >= 3.0.0
   - `pip <https://pip.pypa.io/>`_ >= 23.0
   - `pytest <https://docs.pytest.org/en/6.2.x/>`_
-  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.3.1
+  - `repairwheel <https://github.com/jvolkman/repairwheel>`_ >= 0.3.2
   - `setuptools <https://setuptools.pypa.io/>`_ >= 66.1.0
   - The source for the `pythonic API <https://github.com/cvc5/cvc5_pythonic_api>`_
 
@@ -343,6 +408,10 @@ Building the API documentation of cvc5 requires the following dependencies:
   `sphinxcontrib-bibtex <https://sphinxcontrib-bibtex.readthedocs.io>`_,
   `sphinxcontrib-programoutput <https://sphinxcontrib-programoutput.readthedocs.io>`_
 - `Breathe <https://breathe.readthedocs.io>`_
+
+If ``--auto-download`` is given, Sphinx, the Sphinx extensions, and Breathe will be installed
+automatically in a virtual Python environment if they are missing. To install the modules globally and skip
+the creation of the virtual environment, configure cvc5 with ``./configure.sh --no-pyvenv``.
 
 To build the documentation, configure cvc5 with ``./configure.sh --docs`` and
 run ``make docs`` from within the build directory.
@@ -380,40 +449,45 @@ see ``ctest -h``. Some useful options are:
     ctest -jN                  # run all tests in parallel with N threads
     ctest --output-on-failure  # run all tests and print output of failed tests
 
-We have 4 categories of tests:
+We have 3 categories of tests:
 
-- **examples** in directory ``examples`` (label: **example**)
+- **api tests** in directory ``test/api`` (label: **api**)
 - **regression tests** (5 levels) in directory ``test/regress`` (label: 
   **regressN** with N the regression level)
-- **api tests** in directory ``test/api`` (label: **api**)
 - **unit tests** in directory ``test/unit`` (label: **unit**)
 
 
-Testing System Tests
-^^^^^^^^^^^^^^^^^^^^
+Testing API Tests
+^^^^^^^^^^^^^^^^^
 
-The system tests are not built by default.
+The API tests are not built by default.
 
 .. code::
 
-    make apitests                         # build and run all system tests
-    make <api_test>                       # build test/system/<system_test>.<ext>
-    ctest api/<api_test>                  # run test/system/<system_test>.<ext>
+    make apitests                         # build and run all API tests
+    make capitests                        # build and run all API C tests
+    make cppapitests                      # build and run all API C++ tests
+    make <api_test>                       # build test/api/cpp/<api_test>.cpp
+    make capi_<api_test>                  # build test/api/c/<api_test>.c
+    ctest api/cpp/<api_test>              # run test/api/cpp/<api_test><.ext>
+    ctest api/c/capi_<api_test>           # run test/api/cpp/capi_<api_test><.ext>
 
-All system test binaries are built into ``<build_dir>/bin/test/system``.
+All API test binaries are built into ``<build_dir>/bin/test/api``.
 
-We use prefix ``api/`` + ``<api_test>`` (for ``<api_test>`` in ``test/api``)
+We use prefix ``api/cpp/`` + ``<api_test>`` (for ``<api_test>`` in ``test/api/cpp``)
+and ``api/c/`` + ``capi_<api_test>`` (for ``<api_test>`` in ``test/api/c``)
 as test target name.
 
 .. code::
 
-    make ouroborous                       # build test/api/ouroborous.cpp
+    make ouroborous                       # build test/api/cpp/ouroborous.cpp
+    make capi_ouroborous                  # build test/api/c/ouroborous.c
     ctest -R ouroborous                   # run all tests that match '*ouroborous*'
-                                          # > runs api/ouroborous
+                                          # > runs api/cpp/ouroborous, api/c/capi_ouroborous
     ctest -R ouroborous$                  # run all tests that match '*ouroborous'
-                                          # > runs api/ouroborous
-    ctest -R api/ouroborous$              # run all tests that match '*api/ouroborous'
-                                          # > runs api/ouroborous
+                                          # > runs api/cpp/ouroborous, api/c/capi_ouroborous
+    ctest -R api/cpp/ouroborous$          # run all tests that match '*api/cpp/ouroborous'
+                                          # > runs api/cpp/ouroborous
 
 
 Testing Unit Tests
@@ -422,7 +496,7 @@ Testing Unit Tests
 The unit tests are not built by default.
 
 Note that cvc5 can only be configured with unit tests in non-static builds with
-assertions enabled.
+assertions enabled (e.g. ``./configure.sh unrestricted --unit-testing --assertions``).
 
 .. code::
 
@@ -474,8 +548,8 @@ All custom test targets build and run a preconfigured set of tests.
   The default build-and-test target for cvc5, builds and runs all examples,
   all system and unit tests, and regression tests from levels 0 to 2.
 
-- ``make systemtests [-jN] [ARGS=-jN]``
-  Build and run all system tests.
+- ``make apitests [-jN] [ARGS=-jN]``
+  Build and run all API tests.
 
 - ``make units [-jN] [ARGS=-jN]``
   Build and run all unit tests.
@@ -483,12 +557,7 @@ All custom test targets build and run a preconfigured set of tests.
 - ``make regress [-jN] [ARGS=-jN]``
   Build and run regression tests from levels 0 to 2.
 
-- ``make runexamples [-jN] [ARGS=-jN]``
-  Build and run all examples.
-
-- ``make coverage-test [-jN] [ARGS=-jN]``
-  Build and run all tests (system and unit tests, regression tests level 0-4)
-  with gcov to determine code coverage.
+To build the tests without executing them, run `make build-tests`.
 
 We use ``ctest`` as test infrastructure, and by default all test targets
 are configured to **run** in parallel with the maximum number of threads
@@ -535,6 +604,6 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  ./configure.sh --static <options>
+  ./configure.sh unrestricted --static <options>
 
 7. Follow remaining steps from `build instructions <#building-cvc5>`_

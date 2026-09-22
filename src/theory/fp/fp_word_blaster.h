@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Martin Brain, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,7 +83,35 @@ class traits
 typedef traits::bwt bwt;
 
 /**
- * Wrap the cvc5::internal::Node types so that we can debug issues with this back-end
+ * Utility class to work around the fact that SymFPU does not maintain state
+ * but needs access to the current NodeManager
+ */
+class SymFpuNM
+{
+ public:
+  static thread_local NodeManager* s_nm;
+
+  SymFpuNM(NodeManager* nm)
+  {
+    d_prev_nm = s_nm;
+    s_nm = nm;
+  }
+
+  ~SymFpuNM() { s_nm = d_prev_nm; }
+
+  static NodeManager* get()
+  {
+    assert(s_nm != nullptr);
+    return s_nm;
+  }
+
+ private:
+  NodeManager* d_prev_nm = nullptr;
+};
+
+/**
+ * Wrap the cvc5::internal::Node types so that we can debug issues with this
+ * back-end
  */
 class nodeWrapper : public Node
 {
@@ -104,7 +129,6 @@ class symbolicProposition : public nodeWrapper
  public:
   symbolicProposition(const Node n);
   symbolicProposition(bool v);
-  symbolicProposition(const symbolicProposition& old);
 
   symbolicProposition operator!(void) const;
   symbolicProposition operator&&(const symbolicProposition& op) const;
@@ -123,7 +147,6 @@ class symbolicRoundingMode : public nodeWrapper
  public:
   symbolicRoundingMode(const Node n);
   symbolicRoundingMode(const unsigned v);
-  symbolicRoundingMode(const symbolicRoundingMode& old);
 
   symbolicProposition valid(void) const;
   symbolicProposition operator==(const symbolicRoundingMode& op) const;
@@ -165,7 +188,6 @@ class symbolicBitVector : public nodeWrapper
   symbolicBitVector(const Node n);
   symbolicBitVector(const bwt w, const unsigned v);
   symbolicBitVector(const symbolicProposition& p);
-  symbolicBitVector(const symbolicBitVector<isSigned>& old);
   symbolicBitVector(const BitVector& old);
 
   bwt getWidth(void) const;
@@ -218,6 +240,8 @@ class symbolicBitVector : public nodeWrapper
   symbolicBitVector<isSigned> modularDecrement() const;
   symbolicBitVector<isSigned> modularAdd(
       const symbolicBitVector<isSigned>& op) const;
+  symbolicBitVector<isSigned> modularSubtract(
+      const symbolicBitVector<isSigned>& op) const;
   symbolicBitVector<isSigned> modularNegate() const;
 
   /*** Comparisons ***/
@@ -255,7 +279,7 @@ class floatingPointTypeInfo : public FloatingPointSize
   floatingPointTypeInfo(unsigned exp, unsigned sig);
   floatingPointTypeInfo(const floatingPointTypeInfo& old);
 
-  TypeNode getTypeNode(void) const;
+  TypeNode getTypeNode(NodeManager* nm) const;
 };
 }  // namespace symfpuSymbolic
 
@@ -274,7 +298,7 @@ class FpWordBlaster
 {
  public:
   /** Constructor. */
-  FpWordBlaster(context::UserContext*);
+  FpWordBlaster(NodeManager* nm, context::UserContext*);
   /** Destructor. */
   ~FpWordBlaster();
 
@@ -285,7 +309,7 @@ class FpWordBlaster
    * Gives the node representing the value of a word-blasted variable.
    * Returns a null node if it has not been word-blasted.
    */
-  Node getValue(Valuation&, TNode);
+  Node getValue(TNode);
 
   context::CDList<Node> d_additionalAssertions;
 
@@ -304,6 +328,7 @@ class FpWordBlaster
   typedef context::CDHashMap<Node, ubv> ubvMap;
   typedef context::CDHashMap<Node, sbv> sbvMap;
 
+  NodeManager* d_nm;
   fpMap d_fpMap;
   rmMap d_rmMap;
   boolMap d_boolMap;

@@ -1,5 +1,8 @@
-; DISABLE-TESTER: alethe
-; EXPECT: unsat
+; DISABLE-TESTER: dump
+; REQUIRES: no-competition
+; SCRUBBER: grep -o "All formal arguments to defined functions must be unique"
+; EXPECT: All formal arguments to defined functions must be unique
+; EXIT: 1
 (set-logic ALL)
 (declare-const x2 Bool)
 (define-fun s ((a Int) (b Int) (z Int) (z Int)) Bool (= 0 0))

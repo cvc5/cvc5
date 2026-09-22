@@ -1,4 +1,4 @@
-; DISABLE-TESTER: alethe
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :miniscope-quant agg)

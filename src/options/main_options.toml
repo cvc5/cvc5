@@ -33,6 +33,15 @@ name   = "Driver"
   help       = "regular command line reference"
 
 [[option]]
+  name       = "helpOptionCategories"
+  category   = "common"
+  long       = "help-option-categories"
+  type       = "bool"
+  default    = "false"
+  alternate  = false
+  help       = "Print summary of options for each category"
+
+[[option]]
   name       = "showConfiguration"
   category   = "common"
   long       = "show-config"
@@ -74,7 +83,7 @@ name   = "Driver"
 
 [[option]]
   name       = "earlyExit"
-  category   = "expert"
+  category   = "common"
   long       = "early-exit"
   type       = "bool"
   default    = "true"
@@ -106,7 +115,7 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpModels"
-  category   = "regular"
+  category   = "common"
   long       = "dump-models"
   type       = "bool"
   default    = "false"
@@ -114,15 +123,31 @@ name   = "Driver"
 
 [[option]]
   name       = "dumpProofs"
-  category   = "regular"
+  category   = "common"
   long       = "dump-proofs"
   type       = "bool"
   default    = "false"
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
+  name       = "tptpModels"
+  category   = "expert"
+  long       = "tptp-models"
+  type       = "bool"
+  default    = "false"
+  help       = "print finite models in TPTP format"
+
+[[option]]
+  name       = "tptpModelVerification"
+  category   = "expert"
+  long       = "tptp-model-verification"
+  type       = "bool"
+  default    = "false"
+  help       = "when printing TPTP models for verification, preserve the input TPTP dialect when it is provided explicitly"
+
+[[option]]
   name       = "dumpInstantiations"
-  category   = "regular"
+  category   = "common"
   long       = "dump-instantiations"
   type       = "bool"
   default    = "false"
@@ -175,6 +200,14 @@ name   = "Driver"
   type       = "bool"
   default    = "false"
   help       = "Use internal portfolio mode based on the logic"
+
+[[option]]
+  name       = "portfolioDryRun"
+  category   = "expert"
+  long       = "portfolio-dry-run"
+  type       = "bool"
+  default    = "false"
+  help       = "Print the strategies that would be run with --use-portfolio, without executing them"
 
 [[option]]
   name       = "portfolioJobs"

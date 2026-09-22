@@ -1,4 +1,5 @@
-; EXPECT: (error "Error in option parsing: global negate not supported in sygus.")
+; REQUIRES: unrestricted-mode
+; EXPECT: (error "Fatal error in option parsing: global negate not supported in sygus.")
 ; EXIT: 1
 (set-logic ALL)
 (set-option :global-negate true)

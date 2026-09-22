@@ -1,3 +1,15 @@
+###############################################################################
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# Sphinx extension, implements directive 'api-examples'.
+##
+
 import os
 import re
 
@@ -24,8 +36,8 @@ class APIExamples(SphinxDirective):
         examples_types:
             '<regex>': {
                 'title': '<tab title>',
-                'lang': '<language identifier for synatax highlighting>',
-                'group': '<group identifier to detext missing examples>',
+                'lang': '<language identifier for syntax highlighting>',
+                'group': '<group identifier to detect missing examples>',
             }
 
         examples_file_patterns:
@@ -38,6 +50,9 @@ class APIExamples(SphinxDirective):
 
     # The "arguments" are actually the content of the directive
     has_content = True
+    option_spec = {
+        'skip': lambda x: [s.strip() for s in x.split(',')],
+    }
 
     logger = logging.getLogger(__name__)
 
@@ -50,6 +65,10 @@ class APIExamples(SphinxDirective):
 
         remaining = set([t['group'] for t in self.env.config.examples_types.values()])
         location = '{}:{}'.format(*self.get_source_info())
+
+        # remove skipped groups
+        skipped = set(self.options.get('skip', []))
+        remaining.difference_update(skipped)
 
         for file in self.content:
             # detect file extension

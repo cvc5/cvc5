@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,6 +26,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::NONE: return "NONE";
     case IncompleteId::ARITH_NL_DISABLED: return "ARITH_NL_DISABLED";
     case IncompleteId::ARITH_NL: return "ARITH_NL";
+    case IncompleteId::FP_ABSTRACTION_REFINEMENT:
+      return "FP_ABSTRACTION_REFINEMENT";
     case IncompleteId::QUANTIFIERS: return "QUANTIFIERS";
     case IncompleteId::QUANTIFIERS_SYGUS_NO_VERIFY:
       return "QUANTIFIERS_SYGUS_NO_VERIFY";
@@ -42,6 +41,8 @@ const char* toString(IncompleteId i)
       return "QUANTIFIERS_MAX_INST_ROUNDS";
     case IncompleteId::QUANTIFIERS_SYGUS_SOLVED:
       return "QUANTIFIERS_SYGUS_SOLVED";
+    case IncompleteId::QUANTIFIERS_SYGUS_NO_WF_GRAMMAR:
+      return "QUANTIFIERS_SYGUS_NO_WF_GRAMMAR";
     case IncompleteId::SEP: return "SEP";
     case IncompleteId::SETS_HO_CARD: return "SETS_HO_CARD";
     case IncompleteId::SETS_RELS_CARD: return "SETS_RELS_CARD";
@@ -60,7 +61,8 @@ const char* toString(IncompleteId i)
     case IncompleteId::PREPROCESSING: return "PREPROCESSING";
     case IncompleteId::UNKNOWN: return "UNKNOWN";
     default:
-      Assert(false) << "No print for incomplete id " << static_cast<size_t>(i);
+      DebugUnhandled() << "No print for incomplete id "
+                       << static_cast<size_t>(i);
       return "?IncompleteId?";
   }
 }

@@ -1,0 +1,17 @@
+; EXPECT: sat
+; EXPECT: ((b true))
+(set-option :produce-models true)
+(set-logic UFLIA)
+(declare-sort F 2)
+(declare-fun _select_1 ((F Int Int) Int) Int)
+(declare-fun A () (F Int Int))
+(declare-fun b () Bool)
+; requires check model subsolver
+(assert (and (= 1 (_select_1 A 1))
+             (= 0 (_select_1 A 0))
+             (= b (forall ((X1 Int))
+                     (or (not (and (<= 0 X1) (< X1 4)))
+                         (and (<= 0 (_select_1 A X1))
+                              (<= (_select_1 A X1) 3)))))))
+(check-sat)
+(get-value (b))

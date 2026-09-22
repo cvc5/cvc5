@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -159,7 +156,7 @@ void LfscPrintChannelOut::cleanSymbols(std::string& s)
 LfscPrintChannelPre::LfscPrintChannelPre(LetBinding& lbind) : d_lbind(lbind) {}
 
 void LfscPrintChannelPre::printNode(TNode n) { d_lbind.process(n); }
-void LfscPrintChannelPre::printTrust(TNode res, ProofRule src)
+void LfscPrintChannelPre::printTrust(TNode res, CVC5_UNUSED ProofRule src)
 {
   d_lbind.process(res);
 }

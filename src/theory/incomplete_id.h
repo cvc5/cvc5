@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2024 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,6 +35,9 @@ enum class IncompleteId
   ARITH_NL_DISABLED,
   // the non-linear arithmetic solver was incomplete
   ARITH_NL,
+  // the floating-point solver could not refine a conversion abstraction,
+  // e.g. because model values for its arguments were unavailable
+  FP_ABSTRACTION_REFINEMENT,
   // incomplete due to lack of a complete quantifiers strategy
   QUANTIFIERS,
   // (refutation unsound) we failed to verify the correctness of a candidate
@@ -57,6 +57,8 @@ enum class IncompleteId
   // we solved a negated synthesis conjecture and will terminate as a subsolver
   // with unknown
   QUANTIFIERS_SYGUS_SOLVED,
+  // we failed to construct a grammar for a function-to-synthesize
+  QUANTIFIERS_SYGUS_NO_WF_GRAMMAR,
   // incomplete due to separation logic
   SEP,
   // Higher order operators like sets.map were used in combination with set

@@ -1,25 +1,394 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.2.1 prerelease
-=====================
+cvc5 1.4.0
+==========
 
 ## New Features
+
+- Added new **abstraction refinement strategy** for abstracting **bit-vector
+  arithmetic** operators (`bvmul`, `bvudiv`, `bvurem`), see [Aina Niemetz,
+  Mathias Preiner and Yoni Zohar. Scalable Bit-Blasting with Abstractions.
+  CAV 2024, Springer, 2024](
+  https://doi.org/10.1007/978-3-031-65627-9_9).
+  Enable with option `--bv-abstraction`. The minimum bit-width of relevant terms
+  to abstract can be configured via option `--bv-abstraction-size`, and the
+  per-term budget of value-instantiation refinement lemmas before falling back
+  to bit-blasting via option `--bv-abstraction-value-limiter`.
+  Right now, this is *not* supported in combination with option
+  `--bv-solver=bitblast-internal` (enabling option `--bv-abstraction` has no
+  effect).
+
+- **MPFR >= 4.2.1** is now the default **floating-point constant-folding** back
+  end (instead of SymFPU). If no suitable system version of MPFR is found, MPFR
+  is downloaded and built as part of the cvc5 build. To use SymFPU as the
+  back-end, configure the build with `./configure.sh --no-mpfr`.
+
+- Added option `--nl-ext-initial-sign-lemmas` (disabled by default), which
+  preemptively adds monomial zero-sign lemmas (`v = 0 => a = 0` for each factor
+  `v` of a monomial `a`) before model-based refinement, when the incremental
+  linearization solver for non-linear arithmetic is active. This significantly
+  reduces run-to-run instability on non-linear integer arithmetic.
+
+- Added **proof support** for `int.pow2`.
+
+- Added support for checking CPC proofs with **Logos**, a proof checker written
+  in Lean whose CPC rules are generated from the Eunoia definition in this
+  repository. Logos can be installed with `./contrib/get-logos-checker`. Its
+  current scope is the CPC fragment used by safe builds of cvc5; expert CPC
+  rules and some SMT-LIB input features, including parametric datatypes and
+  `define-fun`, are not yet supported. The CPC definition is corroborated by
+  Logos only when Logos's own CI passes for the Logos commit pinned by
+  `contrib/get-logos-checker`. Note that Logos is a fully functional proof
+  checker for CPC proofs, but is not yet optimized for performance. Ethos
+  (`./contrib/get-ethos-checker`) remains the recommended proof checker for CPC
+  proofs.
+
+## Changes
+
+- **CaDiCaL** is now the **default CDCL(T) SAT solver** for all logics
+  (`--sat-solver=cadical`). MiniSat is still selected by default in incremental
+  mode, and can always be selected explicitly via `--sat-solver=minisat`.
+  Option `--sat-solver` is now listed among the most commonly-used options in
+  `--help`.
+
+- Option `--cegqi-midpoint` is now **enabled by default**, and is now an expert
+  option. Counterexample-based quantifier instantiation now chooses
+  substitutions based on midpoints of lower and upper bounds instead of using
+  virtual term substitution (VTS). VTS has no proof support and had soundness
+  issues in the presence of nested quantified formulas, and can no longer be
+  enabled in safe and stable mode. Note that this may lead to slightly worse
+  performance on purely arithmetic quantified logics, e.g. `LIA` and `LRA`.
+
+- Arithmetic equalities are **no longer fully normalized** by the rewriter. An
+  equality `a = b` now rewrites to one of `true`, `false`, `a = b` or `b = a`
+  for rewritten `a` and `b`, i.e., the rewriter no longer changes the terms an
+  equality ranges over. This matches the behavior of all other theories and
+  fixes issues related to theory combination.
+
+- We now eagerly expand applications of `distinct` having at most 10 children.
+  A further option `--distinct-elim-threshold=N` is added to eliminate
+  `distinct` constraints having up to `N` children (where `0` indicates no
+  limit). Note that since the rewriter already eliminates applications of
+  `distinct` with at most 10 children, values `1` to `10` have no effect.
+
+- Removed the expert option `--uf-ss-fair-monotone`.
+
+- Options `--approx-branch-depth` and `--replay-early-close-depth` are now
+  range checked.
+
+- Node identifiers are now assigned deterministically, which makes the behavior
+  and output of cvc5 reproducible across runs.
+
+- With `--use-portfolio`, leftover workers and their timeout processes are now
+  terminated once a job has solved the problem, and the parent ends of their
+  pipes are closed. Previously, a caller that pipes the output of cvc5 could
+  block for the remainder of the time limit after `sat`/`unsat` was printed.
+
+- Fixes a **refutation soundness** issue in the abstraction refinement for
+  conversions between floating-point numbers and reals. Where refinement can no
+  longer make progress, cvc5 now answers `unknown` instead of returning an
+  unsound result.
+
+- Fixes a **model soundness** issue when using `--finite-model-find` together
+  with `--sort-inference`, where monotonicity was computed on inferred subsorts
+  instead of on the original sorts.
+
+- Fixes issues where regular expression inclusion was not in sync with regular
+  expression membership checks.
+
+- Fixes issues related to the theory of sets with cardinality in the presence of
+  the universe set.
+
+- Further bug fixes, including: missing side conditions for four bit-vector RARE
+  rewrite rules; normalization of negative right-hand sides in the bit-vector
+  Gaussian elimination preprocessing pass; unbounded expansion of
+  associative-commutative bit-vector operators; elimination of subtypes in input
+  function definitions; function definitions that depend on the user context;
+  stale skolem information from ITE removal; handling of the `reset` command;
+  detection of resource limits in the propositional engine; and a crash of the
+  interactive shell when the environment variable `HOME` is unset.
+
+- **API**
+  * Objects created via the C++, Java and Python APIs (sorts, terms, proofs,
+    ...) now keep the term manager that created them alive, and remain valid
+    even after that term manager has gone out of scope. As a consequence, one
+    public signature changed, the constructor of `cvc5::Term::const_iterator`.
+  * The documented arity of `Kind::INST_NO_PATTERN` is corrected to `1`. This
+    kind specifies a single term that should not be used as a pattern for
+    quantifier instantiation (it never accepted a list of terms).
+  * Added `SkolemId::STRINGS_REPLACE_RE_ALL_RESULT` for intermediate results of
+    `str.replace_re_all` applications, which were previously represented by
+    `SkolemId::STRINGS_REPLACE_ALL_RESULT`. The latter now has three skolem
+    indices (the string or sequence to process, the string or sequence to
+    replace, and the replacement) instead of one. Corrected the documented
+    definitions of `SkolemId::STRINGS_ITOS_RESULT` and
+    `SkolemId::STRINGS_STOI_RESULT`.
+  * Added `ProofRule::ARITH_POW2_INIT`, `ProofRule::ARITH_POW2_MONOTONE`,
+    `ProofRule::ARITH_POW2_DIV0` and `ProofRule::ARITH_POW2_LOWER_BOUND`.
+  * The proof rules for finite fields were reworked. Added
+    `ProofRule::FF_POLY_NORM`, `ProofRule::FF_POLY_NORM_EQ`,
+    `ProofRule::FF_POLY_COMBINATION`, `ProofRule::MACRO_FF_POLY_COMBINATION` and
+    `ProofRule::FF_DISEQ`; removed `ProofRule::FF_IDEAL_ZERO`,
+    `ProofRule::FF_IDEAL_REDUCE_DOWN`, `ProofRule::FF_IDEAL_REDUCE_UP`,
+    `ProofRule::FF_IDEAL_SPOLY` and `ProofRule::FF_IDEAL_MONIC`.
+  * Added `ProofRewriteRule::RE_LOOP_STAR`. Renamed
+    `ProofRewriteRule::RE_CONCAT_STAR_SUBSUME1` and
+    `ProofRewriteRule::RE_CONCAT_STAR_SUBSUME2` to
+    `ProofRewriteRule::RE_CONCAT_STAR_NULLABLE1` and
+    `ProofRewriteRule::RE_CONCAT_STAR_NULLABLE2`.
+  * **C API**
+      + Objects created via the C API (sorts, terms, proofs, statistics, ...)
+        now keep their term manager alive and remain valid after
+        `cvc5_term_manager_delete()` and `cvc5_delete()` have been called,
+        until they are released via the corresponding `cvc5_*_release()`
+        function. Results and synthesis results, proofs and grammars are still
+        released together with the solver that created them, but now outlive it
+        if a reference to them is kept via the corresponding `cvc5_*_copy()`
+        function. This matches the lifetime guarantees of the C++ API. As a
+        consequence, deleting a term manager no longer frees objects that have
+        not been released. To free all managed objects at once, call
+        `cvc5_term_manager_release()` before `cvc5_term_manager_delete()`.
+      + Analogously, commands created via `cvc5_parser_next_command()` now keep
+        their parser alive and remain valid after `cvc5_parser_delete()`, until
+        they are released via the new function `cvc5_cmd_release()`. To free
+        all commands at once, call `cvc5_parser_release()` before
+        `cvc5_parser_delete()`.
+      + Added functions `cvc5_stat_copy()`, `cvc5_stat_release()`,
+        `cvc5_stats_copy()`, `cvc5_stats_release()`, `cvc5_cmd_copy()` and
+        `cvc5_cmd_release()`. Statistics and command objects are now reference
+        counted like all other objects of the C API.
+      + The C API no longer terminates the process when an error occurs.
+        Instead of printing to stderr and calling `exit()`, C API functions now
+        record the error in thread-local state and return a default value
+        (e.g., `NULL`, `false`, or `0`). Callers can query the error via the
+        new functions `cvc5_has_error()` and `cvc5_get_error_message()`, and
+        clear it via `cvc5_reset_error()`. The error state is reset at the
+        start of the next C API call that can raise an error.
+        **Note**: this is a breaking change. Code that relied on cvc5 aborting
+        on error will now silently continue with a default value.
+  * **Java API**
+      + Classes `Pair`, `Triplet`, `Solver`, `SymbolManager` and `TermManager`
+        now override `hashCode()` consistently with `equals()`. Previously,
+        equal instances had distinct identity hash codes, so that, e.g., equal
+        `Pair` objects (as returned by `Solver.getTimeoutCore()`) could not be
+        looked up in a `HashMap` or deduplicated by a `HashSet`. Further, the
+        JNI implementations of `hashCode()` no longer truncate the 64-bit hash
+        of the underlying C++ object to a 32-bit `int`.
+
+- **Proofs**
+  * CPC proofs now always end with a `step` command. Previously, when `false`
+    was directly an input assertion, the proof would instead end with an
+    `assume` command.
+  * CPC proofs no longer use mixed arithmetic for `to_real`.
+  * Numerous updates and fixes to the CPC proof signature, including making the
+    definitions of bit-blasting, bit-vector overflow operators, arithmetic
+    bit-vector conversions and string flat forms structurally recursive, marking
+    index arguments as `:opaque`, and changing `set.insert` to take a typed list
+    instead of a list.
+  * Fixes cases of open SAT proofs, and fixes CaDiCaL proofs for resolution
+    steps with a single premise.
+  * Fixes a possible cyclic proof and several incomplete proofs for the theory
+    of datatypes.
+  * The current CPC proofs are checkable by Ethos 0.2.4
+    (see `./contrib/get-ethos-checker`).
+
+- **Build**
+  * The `configure.sh` script now **requires a build type** to be given as its
+    first argument. The build types `production`, `safe-mode` and `stable-mode`
+    are renamed to `unrestricted`, `safe` and `stable`, respectively. Note that
+    the previous names are rejected with an error rather than silently mapped to
+    the new ones, and that at most one build type may be given.
+  * Added `configure.sh` options `--ccache` (use ccache to speed up rebuilds)
+    and `--slow-tests` (enable slow, exhaustive unit tests).
+  * Updated SymFPU to version 1.2.0, which is now tracked from the upstream
+    `main` branch (related issues: #7858, #9697).
+  * Updated CoCoALib to version 0.99850. CoCoALib now also builds with non-GNU
+    coreutils.
+  * The minimum required version of GTest is now checked, and a downloaded GTest
+    is installed into `CMAKE_INSTALL_LIBDIR`. The install directory of dependent
+    projects is now set explicitly, which fixes builds with install prefixes
+    such as `--prefix=/`.
+  * LibPoly is now linked statically on Windows, and build triplet detection is
+    fixed for Windows on ARM.
+
+- Fixes two bugs in the coverings solver:
+  + Zero coefficients were being used to break the loop that collects relevant
+    coefficients for the projections, when they should have been ignored. (#12926)
+  + Nullified polynomials were being ignored, even though they invalidate the
+    guarantees expected by the algorithm. We now detect nullified polynomials and,
+    in such cases, restart the coverings solver with the variables in reverse
+    order, in an attempt to avoid nullification. If there is still some nullified
+    polynomial, we give up. (#12927)
+
+cvc5 1.3.4
+==========
+
+## Changes
+
+- We now require GCC >= 10 and Clang >= 12.
+- Update SymFPU. Issue with divider encoding now fixed in SymFPU (related
+  issues: #9505, #11139, #12335).
+- Fixes parsing issues related to unchecked overflowing of indexed
+  bit-vector operators. This impacts bit-vector operators having width
+  that is greater than or equal to `2^32`.
+- Fixes a bug where the character code point `\u{30000}` was incorrectly
+  treated as a valid code point.
+- Fixes a parsing bug with option `--parse-skolem-definitions`.
+- Fixes a soundness bug in the `--learned-rewrite` preprocessing pass.
+- We now allow using option `--solve-bv-as-int` with quantifiers, even if the
+  quantified variables occur under UFs.
+- Fixes an issue where the parser would abort prematurely when `get-value` was
+  called after an unsat response when uninterpreted sorts are present.
+- Fixes issues related to theory combination with arrays and non-linear
+  arithmetic.
+- Added full proof support in CaDiCaL, meaning `--sat-solver=cadical` can now be
+  used in combination with proofs `--produce-proofs`.
+- Improved proof support for Alethe: full translation for CPC fragment for
+  logics in AUFNIRA.
+- Minor updates and fixes to the CPC proof signature. The current CPC proofs are
+  checkable by Ethos 0.2.3 (`./contrib/get-ethos-checker`).
+
+cvc5 1.3.3
+==========
+
+## Changes
+
+- Fixes a bug with `get-assertions` which cleared the previous solving state.
+- We now use a lazy approach for handling `distinct` constraints.
+- Minor improvement to the strategy used for non-linear arithmetic when both
+  incremental linearization and cylindrical algebraic coverings are used in
+  combination.
+- Fixes the SyGuS solver for corner cases of unconstrained queries.
+
+
+cvc5 1.3.2
+==========
+
+## Changes
+
+- Fixes a bug related to variable elimination for quantified formulas that have
+  variable shadowing.
+- We now use a more efficient version of resolution by default in CPC proofs
+  (proof rule `CHAIN_M_RESOLUTION`) for representing SAT proofs from Minisat.
+- CPC proofs now have no mixed arithmetic by default.
+- Updates to the linear and non-linear arithmetic solver, including a new
+  lemma schema for multiplication (`--nl-ext-flatten-mon`), as well as
+  minor improvements to the Diophantine Equation solver.
+- Minor updates and fixes to the CPC proof signature. The current CPC proofs are
+  checkable by Ethos 0.2.2 (`./contrib/get-ethos-checker`).
+
+cvc5 1.3.1
+==========
+
+## Changes
+
+- **API**
+  * The C++ methods `Term TermManager::mkString(const std::wstring& s)` and
+    `std::wstring Term::getStringValue()` are now deprecated in favor of
+    the new methods `Term TermManager::mkString(const std::u32string& s)` and
+    `std::u32string Term::getU32StringValue()` which use `std::u32string`
+    to represent Unicode strings instead of `std::wstring`.
+    Unlike `std::wstring`, whose character type `wchar_t` is 16 bits on
+    Windows and 32 bits on Linux and macOS, the character type of
+    `std::u32string`, `char32_t`, is guaranteed to be at least 32 bits on
+    all platforms.
+    Similarly, the C API functions `cvc5_mk_string_from_wchar` and
+    `cvc5_term_get_string_value` are now deprecated in favor of
+    the new functions `cvc5_mk_string_from_char32` and
+    `cvc5_term_get_u32string_value`.
+- A build configuration `stable-mode` is available via our configure script.
+  Similar to the build configuration `safe-mode`, this configuration guards
+  against all cvc5 features that are not robust, but in constrast it does not
+  guarantee full proof and model support.
+- Minor updates to the CPC proof signature. The current CPC proofs are checkable
+  by Ethos 0.2.1 (`./contrib/get-ethos-checker`).
+
+cvc5 1.3.0
+==========
+
+## New Features
+
+- A build configuration `safe-mode` is available via our configure script
+  which guards all cvc5 features that are either not robust or do not have
+  full proof and model support. It is also possible to guard against these
+  features using the command line option `--safe-mode=safe`. The definition
+  of what is allowable in safe mode coincides with our fuzzing guidelines,
+  see https://github.com/cvc5/cvc5/wiki/Fuzzing-cvc5.
+- We have significantly increased coverage of proofs in the Cooperating Proof
+  Calculus (CPC) proof format. In particular, we expect that CPC proofs are
+  complete for *all* theories and features allowed in safe mode. These proofs
+  may be obtained by the `(get-proof)` SMT-LIB command, or via the API using
+  the method `Solver::getProof`, and are checkable by Ethos 0.2.0
+  (`./contrib/get-ethos-checker`).
+- We now support the SMT-LIB version 2.7 standard syntax for arithmetic
+  bit-vector conversion functions whose smt2 syntax is `int_to_bv`, `ubv_to_int`
+  and `sbv_to_int`. The first maps to the existing kind `Kind::INT_TO_BITVECTOR`.
+  The kinds `Kind::BITVECTOR_UBV_TO_INT` and `Kind::BITVECTOR_SBV_TO_INT`
+  are added to the API for the latter two. Note the syntax `int2bv` and `bv2nat`
+  as well as the kind `Kind::BITVECTOR_TO_NAT` are now deprecated.
+
+## Changes
+
+- Bumped CaDiCaL to version 2.1.3.
+- The proof granularity is now `dsl-rewrite` by default. The regression test
+  `make regress-dsl-proof` is deleted and is now equivalent to
+  `make regress-proof`.
+- Following the SMT-LIB standard, we now print parentheses around all proof
+  outputs.
+- The option `--safe-options` is renamed to `--safe-mode=safe`. We additionally
+  support the option `--safe-mode=stable`, which disables experimental
+  features but does not insist on complete proofs or models.
+- The quantifier instatiation strategy `--mbqi-fast-sygus` has been renamed to
+  `--mbqi-enum`.
+- **API**
+  + Added support for multiple `TermManager` instances within the same thread and
+    across threads. Previously, all `TermManager` objects in a thread shared
+    a single memory reference and could not be shared across threads.
+    Instances can now be shared across threads, but they are not thread-safe and
+    must be protected from concurrent access.
+
+
+cvc5 1.2.1
+==========
+
+## New Features
+
+- Updates to the `cpc` proof signature. The 0.1.1 release of Ethos can check
+  proofs generated by this version of cvc5 (`./contrib/get-ethos-checker`).
+
+- Increased coverage for proofs, in particular for theories allowed by
+  `--safe-options`.
 
 - Added support for `SymbolManager::getNamedTerms()` to retrieve the set of
   terms that have been given names by the SMT-LIB attribute `:named`.
 
+- Added option `--parsing-mode` to allow configuration of both more strict but
+  also more lenient parsing than default. Already existing option
+  `--strict-parsing` is an alias `--parsing-mode=strict`.
+  Parsing symbols that start with `.` or `@` (used for internally freshly
+  introduced symbols) in lenient parsing mode (`--parsing-mode=lenient`).
+
 ## Changes
-- The option `--safe-options` now disables experimental theories and their
+
+- The option `--safe-options` now **disables experimental** theories and their
   extensions in cvc5. This includes the theory of bags, the theory of finite
   fields, the theory of separation logic, higher-order extensions to the theory
   of equality, as well as extensions of the theory of arithmetic for
-  transcendental functions, integer-and, and power functions. These theories
-  are still enabled by default and further more can be used in combination
-  with safe options by the options e.g. `--arith-exp` **prior** to setting
-  `--safe-options`.
+  transcendental functions, integer-and, and power functions, and the theory of
+  arrays for constant arrays. These theories are still enabled by default and
+  further more can be used in combination with safe options by the options e.g.
+  `--arith-exp` **prior** to setting `--safe-options`.
 
 - Renamed the flag `--sets-ext` to `--sets-exp`, which enables non-standard
   extensions of the sets theory.
+
+- Fixed a soundness bug in the solver for `set.filter`.
+
+- When printing with tags `-o pre-asserts` or `-o post-asserts`, by default we
+  now ensure that declarations are printed in a deterministic order.
+
+- Bumped CaDiCaL to version 2.0.0.
+
 
 cvc5 1.2.0
 ==========
