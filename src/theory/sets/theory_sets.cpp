@@ -85,7 +85,11 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_IDEN);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_GROUP);
   d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
+  // higher-order operators that are not eliminated during rewriting
+  d_equalityEngine->addFunctionKind(Kind::SET_MAP);
+  d_equalityEngine->addFunctionKind(Kind::SET_FILTER);
   // we do congruence over cardinality
   d_equalityEngine->addFunctionKind(Kind::SET_CARD);
 

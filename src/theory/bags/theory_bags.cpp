@@ -90,6 +90,9 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(Kind::TABLE_AGGREGATE);
   d_equalityEngine->addFunctionKind(Kind::TABLE_JOIN);
   d_equalityEngine->addFunctionKind(Kind::TABLE_GROUP);
+  // higher-order operators that are not eliminated during rewriting
+  d_equalityEngine->addFunctionKind(Kind::BAG_MAP);
+  d_equalityEngine->addFunctionKind(Kind::BAG_FILTER);
 }
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
