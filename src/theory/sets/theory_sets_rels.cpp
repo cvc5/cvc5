@@ -717,9 +717,9 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
 
   // record the asserted closure membership as an edge of the graph of tc_rel
   Node fst_element_rep =
-      getRepresentative(TupleUtils::nthElementOfTuple(members[i], 0));
+      getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0));
   Node snd_element_rep =
-      getRepresentative(TupleUtils::nthElementOfTuple(members[i], 1));
+      getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1));
   addTCEdge(tc_rel, fst_element_rep, snd_element_rep, exp);
 
   Node fst_element = TupleUtils::nthElementOfTuple(exp[0], 0);
