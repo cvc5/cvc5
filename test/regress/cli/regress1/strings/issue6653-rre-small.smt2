@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --strings-fmf --re-elim=agg
 ; EXPECT: sat
 (set-logic ALL)

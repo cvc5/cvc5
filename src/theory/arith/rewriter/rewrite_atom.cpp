@@ -257,10 +257,39 @@ Node buildRelation(Kind kind, Node left, Node right, bool negate)
   return NodeManager::mkNode(kind, left, right);
 }
 
-Node buildIntegerEquality(NodeManager* nm, Sum&& sum)
+namespace {
+
+/**
+ * Build an integer equality from the given sum. The result is equivalent to the
+ * sum being equal to zero. We first normalize the non-constant coefficients to
+ * integers (using GCD and LCM). If the coefficient is non-integral after that,
+ * the result is false. We then put the term with minimal absolute coefficient
+ * to the left side of the equality and make its coefficient positive.
+ * The sum is taken as rvalue as it is modified in the process.
+ *
+ * If isReal is true, the sides of the returned equality are cast to real
+ * (via TO_REAL). This is used when the equality we are normalizing is an
+ * equality between real terms, since the normal form of an equality must have
+ * the same type as the equality we are normalizing.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the given sum, and false
+ * if it is a positive one.
+ */
+Node buildIntegerEquality(NodeManager* nm,
+                          Sum&& sum,
+                          bool isReal,
+                          bool* negated)
 {
   Trace("arith-rewriter") << "building integer equality from " << sum
                           << std::endl;
+  if (sum.empty())
+  {
+    // The difference of the sides of the equality is zero, hence it is true.
+    // Note this is possible if the sides of the equality are not in rewritten
+    // form, e.g. for (= (+ x y) (+ y x)).
+    return mkConst(nm, true);
+  }
   normalizeGCDLCM(sum);
 
   Trace("arith-rewriter::debug") << "\tnormalized to " << sum << std::endl;
@@ -280,6 +309,14 @@ Node buildIntegerEquality(NodeManager* nm, Sum&& sum)
   auto minabscoeff = removeMinAbsCoeff(nm, sum);
   Trace("arith-rewriter::debug") << "\tremoved min abs coeff " << minabscoeff
                                  << ", left with " << sum << std::endl;
+  if (negated != nullptr)
+  {
+    // If the coefficient of the removed monomial is negative, the equality we
+    // build below is (-c*m = R) for the sum c*m + R, whose difference is the
+    // negation of the sum. Otherwise it is (c*m = -R), whose difference is the
+    // sum itself.
+    *negated = (minabscoeff.second.sgn() < 0);
+  }
   if (minabscoeff.second.sgn() < 0)
   {
     // move minabscoeff goes to the right and switch lhs and rhs
@@ -298,13 +335,45 @@ Node buildIntegerEquality(NodeManager* nm, Sum&& sum)
   Node rhs = collectSum(nm, sum);
   Assert(left.getType().isInteger());
   Assert(rhs.getType().isInteger());
+  if (isReal)
+  {
+    // Use lhsr and rhsr to ensure deterministic node ID assignments
+    Node lhsr = ensureReal(left);
+    Node rhsr = ensureReal(rhs);
+    // The equality we are rewriting was between real terms. We must not
+    // change the type of the equality, hence we cast both sides back to real.
+    return buildRelation(Kind::EQUAL, lhsr, rhsr);
+  }
   return buildRelation(Kind::EQUAL, left, rhs);
 }
 
-Node buildRealEquality(NodeManager* nm, Sum&& sum)
+/**
+ * Build a real equality from the given sum. The result is equivalent to the sum
+ * being equal to zero. We first extract the leading term and normalize its
+ * coefficient to be plus or minus one. The result is the (normalized) leading
+ * term being equal to the rest of the sum.
+ * The sum is taken as rvalue as it is modified in the process.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the given sum, and false
+ * if it is a positive one.
+ */
+Node buildRealEquality(NodeManager* nm, Sum&& sum, bool* negated)
 {
   Trace("arith-rewriter") << "building real equality from " << sum << std::endl;
   auto lterm = removeLTerm(nm, sum);
+  if (negated != nullptr)
+  {
+    // If the coefficient c of the leading term t is negative, the difference of
+    // the equality we build below is the sum scaled by 1/c, hence negative.
+    // Note the coefficient is never zero here: it is zero only if the sum has
+    // no leading term, i.e. it is empty or contains only a constant, in which
+    // case it is integral and thus normalizeEquality used buildIntegerEquality
+    // instead. This matters since marking both orientations of an equality as
+    // negated would make the rewriter non-terminating.
+    Assert(!lterm.second.isZero());
+    *negated = (lterm.second.sgn() < 0);
+  }
   if (lterm.second.isZero())
   {
     // Use zero to ensure deterministic node ID assignments
@@ -321,18 +390,15 @@ Node buildRealEquality(NodeManager* nm, Sum&& sum)
   Node rhs = collectSum(nm, sum);
   Node lhsr = ensureReal(lhs);
   Node rhsr = ensureReal(rhs);
-  if (lhsr != lhs && rhsr != rhs)
-  {
-    // if both were changed, then this implies we could make an integer equality
-    // instead.
-    Assert(lhs.getType().isInteger());
-    Assert(rhs.getType().isInteger());
-    return buildRelation(Kind::EQUAL, lhs, rhs);
-  }
+  // Note that even if both sides are integer, we keep the equality between
+  // real terms here, since the rewritten form of an equality must have the
+  // same type as the equality we are rewriting.
   Assert(lhsr.getType().isReal() || lhsr.getType().isFullyAbstract());
   Assert(rhsr.getType().isReal() || rhsr.getType().isFullyAbstract());
   return buildRelation(Kind::EQUAL, lhsr, rhsr);
 }
+
+}  // namespace
 
 Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k)
 {
@@ -371,16 +437,6 @@ Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k)
   return buildRelation(k, collectSum(nm, sum), rhs);
 }
 
-Node normalizeEquality(CVC5_UNUSED NodeManager* nm, TNode atom)
-{
-  Assert(atom.getKind() == Kind::EQUAL);
-  Assert(atom[0].getType().isRealOrInt());
-  // TODO: normalize the equality, which requires that the rewriter no longer
-  // normalizes equalities itself. Until then, the rewritten form of an
-  // equality is already its normal form, hence this is a no-op.
-  return atom;
-}
-
 std::pair<Node, Node> decomposeSum(NodeManager* nm,
                                    Sum&& sum,
                                    bool& negated,
@@ -398,6 +454,40 @@ std::pair<Node, Node> decomposeSum(NodeManager* nm, Sum&& sum)
 {
   bool negated = false;
   return decomposeSum(nm, std::move(sum), negated, false);
+}
+
+Node normalizeEquality(NodeManager* nm, TNode atom, bool* negated)
+{
+  Assert(atom.getKind() == Kind::EQUAL);
+  Assert(atom[0].getType().isRealOrInt());
+  if (negated != nullptr)
+  {
+    *negated = false;
+  }
+  Node left = removeToReal(atom[0]);
+  Node right = removeToReal(atom[1]);
+  if (auto response = tryEvaluateRelationReflexive(Kind::EQUAL, left, right);
+      response)
+  {
+    return mkConst(nm, *response);
+  }
+  if (auto response = tryEvaluateRelation(Kind::EQUAL, left, right); response)
+  {
+    return mkConst(nm, *response);
+  }
+  Sum sum;
+  addToSum(sum, left, false);
+  addToSum(sum, right, true);
+  if (isIntegral(sum))
+  {
+    // Note that we may be normalizing an equality between real terms, e.g.
+    // (= (to_real x) 1.0) for integer x. In this case, we ensure the
+    // normalized form is an equality between real terms as well, since the
+    // normalized form of an equality must have the same type.
+    bool isReal = atom[0].getType().isReal();
+    return buildIntegerEquality(nm, std::move(sum), isReal, negated);
+  }
+  return buildRealEquality(nm, std::move(sum), negated);
 }
 
 std::pair<Node, Node> decomposeRelation(NodeManager* nm,

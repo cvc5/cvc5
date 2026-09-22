@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction --bv-abstraction-size=3
 ; EXPECT: sat
 ; Satisfiable variant of the QF_ABV abstraction tests: the abstracted bvmul

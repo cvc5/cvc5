@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic QF_NRAT)
 (set-info :status unsat)
 (declare-fun lat1 () Real)

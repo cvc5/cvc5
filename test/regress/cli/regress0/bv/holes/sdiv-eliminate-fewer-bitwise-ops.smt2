@@ -1,3 +1,5 @@
+; Logos proof checking exceeds the 600-second timeout.
+; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 ; DISABLE-TESTER: lfsc
 (set-info :smt-lib-version 2.6)

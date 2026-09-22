@@ -22,6 +22,7 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "proof/trust_id.h"
 #include "smt/logic_exception.h"
 #include "theory/builtin/proof_checker.h"
@@ -246,7 +247,13 @@ void TheorySep::postProcessModel(TheoryModel* m)
       {
         Trace("sep-model") << d_pto_model[l];
         Node vpto = m->getValue(d_pto_model[l]);
-        Assert(vpto.isConst());
+        // The value is not necessarily a constant: with
+        // --default-function-value-mode=hole, the value of an application of
+        // an uninterpreted function may be a distinguished (non-constant)
+        // skolem.
+        Assert(vpto.isConst()
+               || options().theory.defaultFunctionValueMode
+                      == options::DefaultFunctionValueMode::HOLE);
         pto_children.push_back(vpto);
       }
       Trace("sep-model") << std::endl;
