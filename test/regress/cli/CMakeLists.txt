@@ -2044,6 +2044,7 @@ set(regress_0_tests
   regress0/seq/seq-types.smt2
   regress0/seq/seq-unify-pf.smt2
   regress0/seq/shared-term-registration.smt2
+  regress0/seq/update-concat-fit0.smt2
   regress0/seq/update-concat-non-atomic.smt2
   regress0/seq/update-concat-non-atomic2.smt2
   regress0/seq/update-eq.smt2
@@ -2214,6 +2215,7 @@ set(regress_0_tests
   regress0/strings/foreign-theory-rew-simple.smt2
   regress0/strings/from_code.smt2
   regress0/strings/indexof-len-oob.smt2
+  regress0/strings/indexof-len-oob2.smt2
   regress0/strings/indexof-prefix-concat.smt2
   regress0/strings/out-of-bound-code-point.smt2
   regress0/strings/from-int-eval.smt2
@@ -2314,6 +2316,7 @@ set(regress_0_tests
   regress0/strings/quad-028-2-2-unsat.smt2
   regress0/strings/quad-138-4-2-unsat.smt2
   regress0/strings/replace-all-const-find.smt2
+  regress0/strings/replace-all-find-pre.smt2
   regress0/strings/replace-find-base.smt2
   regress0/strings/re-const-elim-rewrite-test.smt2
   regress0/strings/re-consume-bi-dir.smt2
@@ -2390,8 +2393,11 @@ set(regress_0_tests
   regress0/strings/unicode-esc.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
+  regress0/strings/update-concat-fit.smt2
+  regress0/strings/update-concat-fit2.smt2
   regress0/strings/update-empty.smt2
   regress0/strings/update-exact-first-concat.smt2
+  regress0/strings/update-fit.smt2
   regress0/strings/update-index-neg.smt2
   regress0/strings/update-index-oob.smt2
   regress0/strings/update-rev.smt2
