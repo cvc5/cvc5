@@ -650,16 +650,17 @@ bool ArithCongruenceManager::propagate(TNode x)
     }
 
     c->setEqualityEngineProof();
+    // Note that c is explained in terms of its literal, which may be distinct
+    // from rewritten. This is the case when several atoms correspond to c, in
+    // which case the first one that was set up is its literal, see
+    // Constraint::setLiteral. We thus ensure that the literal of c can be
+    // explained by this class as well, since otherwise we would explain it
+    // (trivially) by itself, see Constraint::externalExplain. This is required
+    // both when c is propagated below and when c is used in the explanation
+    // of a conflict or propagation.
+    pushBackAlias(c->getLiteral());
     if (c->canBePropagated() && !c->assertedToTheTheory())
     {
-      // Note that the propagation of c below is stated in terms of its
-      // literal, which may be distinct from rewritten. This is the case when
-      // several atoms correspond to c, in which case the first one that was
-      // set up is its literal, see Constraint::setLiteral. We thus ensure that
-      // the literal of c can be explained by this class as well, since
-      // otherwise we would explain it (trivially) by itself below, see
-      // Constraint::externalExplain.
-      pushBackAlias(c->getLiteral());
       ++(d_statistics.d_propagateConstraints);
       c->propagate();
     }
@@ -675,6 +676,8 @@ bool ArithCongruenceManager::propagate(TNode x)
       pushBack(x);
     }
     c->setEqualityEngineProof();
+    // As above, the literal of c may be distinct from x.
+    pushBackAlias(c->getLiteral());
   }
   else if (c->hasProof() && x != rewritten)
   {
