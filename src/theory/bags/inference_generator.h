@@ -17,7 +17,7 @@
 
 #include "expr/node.h"
 #include "infer_info.h"
-#include "theory/rewriter.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -30,13 +30,10 @@ class SolverState;
  * An inference generator class. This class is used by the core solver to
  * generate lemmas
  */
-class InferenceGenerator
+class InferenceGenerator : protected EnvObj
 {
  public:
-  InferenceGenerator(NodeManager* nm,
-                     SolverState* state,
-                     InferenceManager* im,
-                     Rewriter* r);
+  InferenceGenerator(Env& env, SolverState* state, InferenceManager* im);
 
   /**
    * @param n a node of the form (bag.count e A)
@@ -560,13 +557,24 @@ class InferenceGenerator
    * generate skolem variable for node n and add pending lemma for the equality
    */
   Node registerAndAssertSkolemLemma(Node& n);
+  /**
+   * @param f a function of type (-> E T)
+   * @param x a term of type E
+   * @return the application of f to x, beta-reduced if f is defined by a
+   * lambda.
+   *
+   * The terms this class builds are asserted as internal facts and so never go
+   * through preprocessing. We therefore have to perform the beta reduction
+   * that HoExtension::ppRewrite would otherwise have performed, see
+   * FunctionConst::getDefinition.
+   */
+  Node mkApplyFunction(const Node& f, const Node& x);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;
   SolverState* d_state;
   /** Pointer to the inference manager */
   InferenceManager* d_im;
-  Rewriter* d_rewriter;
   /** Commonly used constants */
   Node d_true;
   Node d_zero;

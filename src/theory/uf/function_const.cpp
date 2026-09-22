@@ -16,6 +16,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/function_array_const.h"
+#include "expr/skolem_manager.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
@@ -69,6 +70,11 @@ Node FunctionConst::toLambda(TNode n)
     return lam;
   }
   return Node::null();
+}
+
+Node FunctionConst::getDefinition(TNode f)
+{
+  return toLambda(SkolemManager::getUnpurifiedForm(f));
 }
 
 TypeNode FunctionConst::getFunctionTypeForArrayType(TypeNode atn, Node bvl)

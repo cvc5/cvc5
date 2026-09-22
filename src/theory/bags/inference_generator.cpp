@@ -24,6 +24,7 @@
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -33,15 +34,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-InferenceGenerator::InferenceGenerator(NodeManager* nm,
+InferenceGenerator::InferenceGenerator(Env& env,
                                        SolverState* state,
-                                       InferenceManager* im,
-                                       Rewriter* r)
-    : d_nm(nm),
+                                       InferenceManager* im)
+    : EnvObj(env),
+      d_nm(env.getNodeManager()),
       d_sm(d_nm->getSkolemManager()),
       d_state(state),
-      d_im(im),
-      d_rewriter(r)
+      d_im(im)
 {
   d_true = d_nm->mkConst(true);
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -471,6 +471,16 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   return std::tuple(inferInfo, uf, size);
 }
 
+Node InferenceGenerator::mkApplyFunction(const Node& f, const Node& x)
+{
+  Node lambda = uf::FunctionConst::getDefinition(f);
+  if (lambda.isNull())
+  {
+    return d_nm->mkNode(Kind::APPLY_UF, f, x);
+  }
+  return rewrite(d_nm->mkNode(Kind::APPLY_UF, lambda, x));
+}
+
 InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
 {
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
@@ -482,15 +492,19 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
 
   Node f = n[0];
   Node A = n[1];
-  // check if y is already an image of an element x in A
+  // Skip y if some element x of A is already known to map to y.
+  //
+  // Since f is injective, x is then the only preimage of y, so the skolem
+  // below would be equal to x and the inference it is used in would restate
+  // a constraint mapUpInjective already generates for x. This is sound only
+  // because f is injective: for an arbitrary f the multiplicity of y in
+  // (bag.map f A) is the sum of the multiplicities of its whole preimage, so
+  // a single witness does not discharge it.
   bool preimageFound = false;
   const std::set<Node>& aElements = d_state->getElements(A);
   for (const Node& x : aElements)
   {
-    Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
-    f_x = d_nm->getSkolemManager()->getOriginalForm(f_x);
-    f_x = d_rewriter->rewrite(f_x);
-    if (d_state->getRepresentative(f_x) == d_state->getRepresentative(y))
+    if (d_state->areEqual(mkApplyFunction(f, x), y))
     {
       preimageFound = true;
       break;
@@ -498,7 +512,6 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   }
   if (preimageFound)
   {
-    // skip, we already have a preimage for y
     inferInfo.d_conclusion = d_true;
     return inferInfo;
   }
@@ -511,7 +524,7 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   Node countY = getMultiplicityTerm(y, mapSkolem);
   Node countX = getMultiplicityTerm(x, A);
 
-  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node f_x = mkApplyFunction(f, x);
   Node y_equals_f_x = y.eqNode(f_x);
 
   // Since f is injective, x is the only candidate preimage of y. So the
@@ -539,7 +552,7 @@ InferInfo InferenceGenerator::mapUpInjective(Node n, Node x)
 
   Node countA = getMultiplicityTerm(x, A);
   registerCountTerm(countA);
-  Node f_x = d_nm->mkNode(Kind::APPLY_UF, f, x);
+  Node f_x = mkApplyFunction(f, x);
   Node mapSkolem = registerAndAssertSkolemLemma(n);
   Node countN = getMultiplicityTerm(f_x, mapSkolem);
   registerCountTerm(countN);
