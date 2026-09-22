@@ -741,5 +741,8 @@
 
 (define-rule seq-len-unit ((x ?)) (str.len (seq.unit x)) 1)
 (define-rule seq-nth-unit ((x ?)) (seq.nth (seq.unit x) 0) x)
+(define-rule seq-nth-concat-unit ((x ?) (ys ?Seq :list))
+  (seq.nth (str.++ (seq.unit x) ys) 0)
+  x)
 (define-rule seq-rev-unit ((x ?)) (str.rev (seq.unit x)) (seq.unit x))
 
