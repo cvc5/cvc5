@@ -1,5 +1,12 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.4.1 prerelease
+=====================
+
+- Removed support for LFSC proof output, including the
+  `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
+  `ProofRule::LFSC_RULE` API enum values.
+
 cvc5 1.4.0
 ==========
 
@@ -70,10 +77,6 @@ cvc5 1.4.0
   `distinct` constraints having up to `N` children (where `0` indicates no
   limit). Note that since the rewriter already eliminates applications of
   `distinct` with at most 10 children, values `1` to `10` have no effect.
-
-- Removed support for LFSC proof output, including the
-  `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
-  `ProofRule::LFSC_RULE` API enum values.
 
 - Removed the expert option `--uf-ss-fair-monotone`.
 
