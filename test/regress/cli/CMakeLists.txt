@@ -798,6 +798,8 @@ set(regress_0_tests
   regress0/datatypes/issue9042-rel-irrel-cons-model.smt2
   regress0/datatypes/issue12794-inst-dropped-lemma.smt2
   regress0/datatypes/issue12930-as-quoted-cons.smt2
+  regress0/datatypes/issue12930-tester-quoted-cons.smt2
+  regress0/datatypes/issue12930-update-quoted-sel.smt2
   regress0/datatypes/issue12572-nullable-lift-no-arguments.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
