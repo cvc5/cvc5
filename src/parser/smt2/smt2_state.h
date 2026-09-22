@@ -273,7 +273,16 @@ class Smt2State : public ParserState
    */
   void checkLogicAllowsFunctions();
 
-  void checkUserSymbol(const std::string& name)
+  /**
+   * Checks that name is not reserved for solver use in SMT-LIB, i.e. that it
+   * does not start with `.` or `@`. Triggers a parse error if it does, unless
+   * we are parsing leniently.
+   *
+   * This is the part of checkUserSymbol that applies to every user symbol,
+   * including the ones that are permitted to shadow a theory function symbol,
+   * such as datatype constructors and selectors.
+   */
+  void checkReservedSymbol(const std::string& name)
   {
     if (!lenientModeEnabled() && name.length() > 0
         && (name[0] == '.' || name[0] == '@'))
@@ -283,7 +292,11 @@ class Smt2State : public ParserState
          << "'; symbols starting with . and @ are reserved in SMT-LIB";
       parseError(ss.str());
     }
-    else if (isOperatorEnabled(name))
+  }
+  void checkUserSymbol(const std::string& name)
+  {
+    checkReservedSymbol(name);
+    if (isOperatorEnabled(name))
     {
       std::stringstream ss;
       ss << "Symbol `" << name << "' is shadowing a theory function symbol";

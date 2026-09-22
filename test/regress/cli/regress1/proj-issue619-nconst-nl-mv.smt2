@@ -1,3 +1,5 @@
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sat-solver=minisat
 ; EXPECT: unknown
 (set-logic ALL)
 (set-option :sets-exp true)

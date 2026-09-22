@@ -1,3 +1,5 @@
+; Logos proof checking exceeds the 600-second timeout.
+; DISABLE-TESTER: cpc-logos
 ;; slow conversion
 ; DISABLE-TESTER: alethe
 (set-logic QF_AUFBVLIA)
