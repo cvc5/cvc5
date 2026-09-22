@@ -96,21 +96,29 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.70 or 
-latter). Setting up emsdk can be done as follows:
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 6.0.8 or
+later). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.70' is preferable, but 
-                              # <version> = 'latest' has high chance of working
+  ./emsdk install <version>   # <version> = '6.0.8' is the version used in our Continuous Integration pipeline
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
                           # current terminal. Whenever Emscripten is going to be
                           # used this command needs to be called before because 
                           # emsdk doesn't insert the binaries paths directly in 
                           # the system PATH variable.
+
+.. note::
+
+  Versions older than 6.0.8 are not supported, and CMake rejects
+  them. Emscripten's ``getrusage()``
+  used to write past the end of the caller's ``struct rusage``, corrupting
+  adjacent memory. cvc5 calls it from its resource manager and, in GPL
+  builds, indirectly through CoCoALib, so older SDKs can produce binaries
+  that fail at run time in ways unrelated to the input.
 
 Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ 
 to ensure that all required dependencies are installed on the system.

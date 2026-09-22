@@ -34,9 +34,12 @@ namespace {
  * std::string&); should be the last resort for type conversions: it may not
  * only yield bad performance, but is also dependent on compatible string
  * representations. Use with care!
+ *
+ * Only instantiated by the CLN branches below; GMP builds never use it,
+ * which newer clang reports under -Wunused-template.
  */
 template <typename To, typename From>
-To cast_by_string(const From& f)
+[[maybe_unused]] To cast_by_string(const From& f)
 {
   std::stringstream s;
   s << f;
