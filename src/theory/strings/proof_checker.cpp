@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,11 +15,10 @@
 #include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
-#include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/regexp_operation.h"
-#include "theory/strings/term_registry.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -179,7 +175,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         return Node::null();
       }
       // note we guard that the length must be one here, despite
-      // CoreSolver::getConclusion allow splicing below.
+      // utils::getConcatConclusion allowing splicing below.
       if (!s0.isConst() || !s0.getType().isStringLike()
           || Word::getLength(s0) != 1)
       {
@@ -233,13 +229,13 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
         Trace("pfcheck-strings-cprop") << "...failed constant" << std::endl;
         return Node::null();
       }
-      // getConclusion expects the adjacent constant to be included
+      // getConcatConclusion expects the adjacent constant to be included
       t0 = nm->mkNode(Kind::STRING_CONCAT, isRev ? w1 : t0, isRev ? t0 : w1);
     }
     // use skolem cache
     SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getConclusion(
+    Node conc = utils::getConcatConclusion(
         nodeManager(), t0, s0, id, isRev, &skc, newSkolems);
     return conc;
   }
@@ -266,7 +262,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     }
     SkolemCache skc(nm, nullptr);
     std::vector<Node> newSkolems;
-    Node conc = CoreSolver::getDecomposeConclusion(
+    Node conc = utils::getDecomposeConclusion(
         nodeManager(), atom[0][0], atom[1], isRev, &skc, newSkolems);
     return conc;
   }
@@ -295,12 +291,12 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     {
       Assert(args.size() == 1);
       SkolemCache skc(nm, nullptr);
-      ret = TermRegistry::eagerReduce(t, &skc, d_alphaCard);
+      ret = utils::eagerReduce(t, &skc, d_alphaCard);
     }
     else if (id == ProofRule::STRING_LENGTH_POS)
     {
       Assert(args.size() == 1);
-      ret = TermRegistry::lengthPositive(t);
+      ret = utils::lengthPositive(t);
     }
     if (ret.isNull())
     {
@@ -328,7 +324,10 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
   }
   else if (id == ProofRule::RE_INTER)
   {
-    Assert(children.size() >= 1);
+    if (children.size() < 2)
+    {
+      return Node::null();
+    }
     Assert(args.empty());
     std::vector<Node> reis;
     Node x;
@@ -351,8 +350,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       }
       reis.push_back(c[1]);
     }
-    Node rei =
-        reis.size() == 1 ? reis[0] : nm->mkNode(Kind::REGEXP_INTER, reis);
+    Node rei = nm->mkNode(Kind::REGEXP_INTER, reis);
     return nm->mkNode(Kind::STRING_IN_REGEXP, x, rei);
   }
   else if (id == ProofRule::RE_CONCAT)
@@ -486,7 +484,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
     Trace("strings-pfcheck-debug")
         << "STRING_SEQ_UNIT_INJ: " << children[0] << " => " << t[0]
         << " == " << t[1] << std::endl;
-    AlwaysAssert(t[0].getType() == t[1].getType());
+    AlwaysAssert(CVC5_EQUAL(t[0].getType(), t[1].getType()));
     return t[0].eqNode(t[1]);
   }
   else if (id == ProofRule::STRING_EXT)
@@ -500,8 +498,7 @@ Node StringProofRuleChecker::checkInternal(ProofRule id,
       return Node::null();
     }
     SkolemCache skc(nm, nullptr);
-    return CoreSolver::getExtensionalityConclusion(
-        nm, deq[0][0], deq[0][1], &skc);
+    return utils::getExtensionalityConclusion(nm, deq[0][0], deq[0][1], &skc);
   }
   else if (id == ProofRule::MACRO_STRING_INFERENCE)
   {

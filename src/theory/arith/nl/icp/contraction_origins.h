@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,8 +31,8 @@ namespace icp {
  * (like x>0) yields an origin for this variable. For every contraction, we then
  * add a new origin that recursively holds the old origins, usually those of all
  * variables involved in the contraction. When generating a conflict or a lemma,
- * a recursive walk through this structure allows one to retrieve all input theory
- * atoms that contributed to the new fact or the conflict.
+ * a recursive walk through this structure allows one to retrieve all input
+ * theory atoms that contributed to the new fact or the conflict.
  */
 class ContractionOriginManager
 {

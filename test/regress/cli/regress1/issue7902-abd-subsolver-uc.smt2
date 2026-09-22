@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-abducts --sygus-core-connective
 ; EXPECT: sat
 (set-logic ALL)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,6 +47,8 @@ enum class InternalSkolemId
   HO_TYPE_MATCH_PRED,
   /** Input variables for MBQI */
   MBQI_INPUT,
+  /** Choice functions for mbqi-enum */
+  MBQI_CHOICE_FUN,
   /** abstract value for a term t */
   ABSTRACT_VALUE,
   /** Input variables for quantifier elimination of closed formulas */

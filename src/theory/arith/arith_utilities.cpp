@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -155,7 +152,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
 {
   if (!c.isConst())
   {
-    Assert(false) << "getApproximateConstant: non-constant input " << c;
+    DebugUnhandled() << "getApproximateConstant: non-constant input " << c;
     return Node::null();
   }
   Rational cr = c.getConst<Rational>();
@@ -227,11 +224,11 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   return cret;
 }
 
-void printRationalApprox(const char* c, Node cr, unsigned prec)
+void printRationalApprox(CVC5_UNUSED const char* c, Node cr, unsigned prec)
 {
   if (!cr.isConst())
   {
-    Assert(false) << "printRationalApprox: non-constant input " << cr;
+    DebugUnhandled() << "printRationalApprox: non-constant input " << cr;
     Trace(c) << cr;
     return;
   }
@@ -250,8 +247,8 @@ void printRationalApprox(const char* c, Node cr, unsigned prec)
 Node mkBounded(Node l, Node a, Node u)
 {
   return NodeManager::mkNode(Kind::AND,
-                             NodeManager::mkNode(Kind::GEQ, a, l),
-                             NodeManager::mkNode(Kind::LEQ, a, u));
+                             {NodeManager::mkNode(Kind::GEQ, a, l),
+                              NodeManager::mkNode(Kind::LEQ, a, u)});
 }
 
 Rational leastIntGreaterThan(const Rational& q) { return q.floor() + 1; }
@@ -308,7 +305,7 @@ Node mkEquality(const Node& a, const Node& b)
   Assert(a.getType().isRealOrInt());
   Assert(b.getType().isRealOrInt());
   // if they have the same type, just make them equal
-  if (a.getType() == b.getType())
+  if (CVC5_EQUAL(a.getType(), b.getType()))
   {
     return NodeManager::mkNode(Kind::EQUAL, a, b);
   }
@@ -323,7 +320,7 @@ Node castToReal(NodeManager* nm, const Node& n)
                      : nm->mkNode(Kind::TO_REAL, n);
 }
 
-std::pair<Node,Node> mkSameType(const Node& a, const Node& b)
+std::pair<Node, Node> mkSameType(const Node& a, const Node& b)
 {
   TypeNode at = a.getType();
   TypeNode bt = b.getType();
@@ -376,9 +373,9 @@ Node eliminateInt2Bv(TNode node)
   {
     Node cond = nm->mkNode(
         Kind::GEQ,
-        nm->mkNode(
-            Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
-        nm->mkConstInt(Rational(i, 2)));
+        {nm->mkNode(
+             Kind::INTS_MODULUS_TOTAL, node[0], nm->mkConstInt(Rational(i))),
+         nm->mkConstInt(Rational(i, 2))});
     v.push_back(nm->mkNode(Kind::ITE, cond, bvone, bvzero));
     i *= 2;
   }

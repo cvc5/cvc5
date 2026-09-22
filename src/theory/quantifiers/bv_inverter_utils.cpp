@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,6 +11,7 @@
  */
 
 #include "theory/quantifiers/bv_inverter_utils.h"
+
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace cvc5::internal::kind;
@@ -181,7 +179,8 @@ Node getICBvMult(
        * (or (distinct t z) (distinct s z))
        * where
        * z = 0 with getSize(z) = w  */
-      scl = nm->mkNode(Kind::OR, t.eqNode(z).notNode(), s.eqNode(z).notNode());
+      scl =
+          nm->mkNode(Kind::OR, {t.eqNode(z).notNode(), s.eqNode(z).notNode()});
     }
   }
   else if (litk == Kind::BITVECTOR_ULT)
@@ -261,8 +260,8 @@ Node getICBvMult(
        * with invertibility condition (synthesized):
        * (bvslt t (bvsub t (bvor (bvor s t) (bvneg s))))  */
       Node o = nm->mkNode(Kind::BITVECTOR_OR,
-                          nm->mkNode(Kind::BITVECTOR_OR, s, t),
-                          nm->mkNode(Kind::BITVECTOR_NEG, s));
+                          {nm->mkNode(Kind::BITVECTOR_OR, s, t),
+                           nm->mkNode(Kind::BITVECTOR_NEG, s)});
       Node sub = nm->mkNode(Kind::BITVECTOR_SUB, t, o);
       scl = nm->mkNode(Kind::BITVECTOR_SLT, t, sub);
     }
@@ -274,8 +273,8 @@ Node getICBvMult(
        * where
        * z = 0 with getSize(z) = w  */
       Node z = bv::utils::mkZero(nm, w);
-      scl = nm->mkNode(
-          Kind::AND, s.eqNode(z), nm->mkNode(Kind::BITVECTOR_SLT, t, s));
+      scl = nm->mkNode(Kind::AND,
+                       {s.eqNode(z), nm->mkNode(Kind::BITVECTOR_SLT, t, s)});
       scl = scl.notNode();
     }
   }
@@ -322,8 +321,8 @@ Node getICBvUrem(
          * z = 0 with getSize(z) = w  */
         Node z = bv::utils::mkZero(nm, w);
         scl = nm->mkNode(Kind::OR,
-                         s.eqNode(bv::utils::mkOne(nm, w)).notNode(),
-                         t.eqNode(z).notNode());
+                         {s.eqNode(bv::utils::mkOne(nm, w)).notNode(),
+                          t.eqNode(z).notNode()});
       }
     }
     else
@@ -354,8 +353,8 @@ Node getICBvUrem(
          * where
          * z = 0 with getSize(z) = w  */
         Node z = bv::utils::mkZero(nm, w);
-        scl =
-            nm->mkNode(Kind::OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
+        scl = nm->mkNode(Kind::OR,
+                         {s.eqNode(z).notNode(), t.eqNode(z).notNode()});
       }
     }
   }
@@ -501,15 +500,16 @@ Node getICBvUrem(
          * where
          * z = 0 with getSize(z) = w  */
         Node i1 = nm->mkNode(Kind::IMPLIES,
-                             nm->mkNode(Kind::BITVECTOR_SGE, s, z),
-                             nm->mkNode(Kind::BITVECTOR_SGE, s, t));
-        Node i2 = nm->mkNode(
-            Kind::IMPLIES,
-            nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::BITVECTOR_SLT, s, z),
-                       nm->mkNode(Kind::BITVECTOR_SGE, t, z)),
-            nm->mkNode(
-                Kind::BITVECTOR_UGT, nm->mkNode(Kind::BITVECTOR_SUB, s, t), t));
+                             {nm->mkNode(Kind::BITVECTOR_SGE, s, z),
+                              nm->mkNode(Kind::BITVECTOR_SGE, s, t)});
+        Node i2 =
+            nm->mkNode(Kind::IMPLIES,
+                       {nm->mkNode(Kind::AND,
+                                   {nm->mkNode(Kind::BITVECTOR_SLT, s, z),
+                                    nm->mkNode(Kind::BITVECTOR_SGE, t, z)}),
+                        nm->mkNode(Kind::BITVECTOR_UGT,
+                                   nm->mkNode(Kind::BITVECTOR_SUB, s, t),
+                                   t)});
         scl = nm->mkNode(Kind::AND, i1, i2);
       }
     }
@@ -538,15 +538,15 @@ Node getICBvUrem(
         Node nt =
             nm->mkNode(Kind::BITVECTOR_NOT, nm->mkNode(Kind::BITVECTOR_NEG, s));
         Node i1 = nm->mkNode(Kind::IMPLIES,
-                             nm->mkNode(Kind::BITVECTOR_SGT, s, z),
-                             nm->mkNode(Kind::BITVECTOR_SLT, t, nt));
-        Node i2 = nm->mkNode(Kind::IMPLIES,
-                             nm->mkNode(Kind::BITVECTOR_SLE, s, z),
-                             t.eqNode(max).notNode());
+                             {nm->mkNode(Kind::BITVECTOR_SGT, s, z),
+                              nm->mkNode(Kind::BITVECTOR_SLT, t, nt)});
+        Node i2 = nm->mkNode(
+            Kind::IMPLIES,
+            {nm->mkNode(Kind::BITVECTOR_SLE, s, z), t.eqNode(max).notNode()});
         Node a1 = nm->mkNode(Kind::AND, i1, i2);
         Node a2 = nm->mkNode(Kind::OR,
-                             t.eqNode(z).notNode(),
-                             s.eqNode(bv::utils::mkOne(nm, w)).notNode());
+                             {t.eqNode(z).notNode(),
+                              s.eqNode(bv::utils::mkOne(nm, w)).notNode()});
         scl = nm->mkNode(Kind::AND, a1, a2);
       }
       else
@@ -576,13 +576,13 @@ Node getICBvUrem(
          * z = 0 with getSize(z) = w  */
         Node z = bv::utils::mkZero(nm, w);
         Node i1 = nm->mkNode(Kind::IMPLIES,
-                             nm->mkNode(Kind::BITVECTOR_SGE, s, z),
-                             nm->mkNode(Kind::BITVECTOR_SGT, s, t));
-        Node shr = nm->mkNode(
-            Kind::BITVECTOR_LSHR, bv::utils::mkDec(s), bv::utils::mkOne(nm, w));
+                             {nm->mkNode(Kind::BITVECTOR_SGE, s, z),
+                              nm->mkNode(Kind::BITVECTOR_SGT, s, t)});
+        Node shr = nm->mkNode(Kind::BITVECTOR_LSHR,
+                              {bv::utils::mkDec(s), bv::utils::mkOne(nm, w)});
         Node i2 = nm->mkNode(Kind::IMPLIES,
-                             nm->mkNode(Kind::BITVECTOR_SLT, s, z),
-                             nm->mkNode(Kind::BITVECTOR_SGT, shr, t));
+                             {nm->mkNode(Kind::BITVECTOR_SLT, s, z),
+                              nm->mkNode(Kind::BITVECTOR_SGT, shr, t)});
         scl = nm->mkNode(Kind::AND, i1, i2);
       }
       else
@@ -655,8 +655,8 @@ Node getICBvUdiv(
          * z = 0 with getSize(z) = w
          * and ones = ~0 with getSize(ones) = w  */
         Node ones = bv::utils::mkOnes(nm, w);
-        scl = nm->mkNode(
-            Kind::OR, s.eqNode(z).notNode(), t.eqNode(ones).notNode());
+        scl = nm->mkNode(Kind::OR,
+                         {s.eqNode(z).notNode(), t.eqNode(ones).notNode()});
       }
     }
     else
@@ -879,11 +879,11 @@ Node getICBvUdiv(
           Node div =
               nm->mkNode(Kind::BITVECTOR_LSHR, s, bv::utils::mkConst(nm, w, 1));
           Node i1 = nm->mkNode(Kind::IMPLIES,
-                               nm->mkNode(Kind::BITVECTOR_SGE, s, z),
-                               nm->mkNode(Kind::BITVECTOR_SGE, s, t));
+                               {nm->mkNode(Kind::BITVECTOR_SGE, s, z),
+                                nm->mkNode(Kind::BITVECTOR_SGE, s, t)});
           Node i2 = nm->mkNode(Kind::IMPLIES,
-                               nm->mkNode(Kind::BITVECTOR_SLT, s, z),
-                               nm->mkNode(Kind::BITVECTOR_SGE, div, t));
+                               {nm->mkNode(Kind::BITVECTOR_SLT, s, z),
+                                nm->mkNode(Kind::BITVECTOR_SGE, div, t)});
           scl = nm->mkNode(Kind::AND, i1, i2);
         }
         else
@@ -957,11 +957,11 @@ Node getICBvUdiv(
           Node div =
               nm->mkNode(Kind::BITVECTOR_LSHR, s, bv::utils::mkConst(nm, w, 1));
           Node i1 = nm->mkNode(Kind::IMPLIES,
-                               nm->mkNode(Kind::BITVECTOR_SGE, s, z),
-                               nm->mkNode(Kind::BITVECTOR_SGT, s, t));
+                               {nm->mkNode(Kind::BITVECTOR_SGE, s, z),
+                                nm->mkNode(Kind::BITVECTOR_SGT, s, t)});
           Node i2 = nm->mkNode(Kind::IMPLIES,
-                               nm->mkNode(Kind::BITVECTOR_SLT, s, z),
-                               nm->mkNode(Kind::BITVECTOR_SGT, div, t));
+                               {nm->mkNode(Kind::BITVECTOR_SLT, s, z),
+                                nm->mkNode(Kind::BITVECTOR_SGT, div, t)});
           scl = nm->mkNode(Kind::AND, i1, i2);
         }
         else
@@ -993,8 +993,13 @@ Node getICBvUdiv(
   return ic;
 }
 
-Node getICBvAndOr(
-    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
+Node getICBvAndOr(bool pol,
+                  Kind litk,
+                  Kind k,
+                  CVC5_UNUSED unsigned idx,
+                  Node x,
+                  Node s,
+                  Node t)
 {
   Assert(k == Kind::BITVECTOR_AND || k == Kind::BITVECTOR_OR);
   Assert(litk == Kind::EQUAL || litk == Kind::BITVECTOR_ULT
@@ -1027,8 +1032,8 @@ Node getICBvAndOr(
          * where
          * z = 0 with getSize(z) = w  */
         Node z = bv::utils::mkZero(nm, w);
-        scl =
-            nm->mkNode(Kind::OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
+        scl = nm->mkNode(Kind::OR,
+                         {s.eqNode(z).notNode(), t.eqNode(z).notNode()});
       }
       else
       {
@@ -1038,8 +1043,8 @@ Node getICBvAndOr(
          * where
          * ones = ~0 with getSize(ones) = w  */
         Node n = bv::utils::mkOnes(nm, w);
-        scl =
-            nm->mkNode(Kind::OR, s.eqNode(n).notNode(), t.eqNode(n).notNode());
+        scl = nm->mkNode(Kind::OR,
+                         {s.eqNode(n).notNode(), t.eqNode(n).notNode()});
       }
     }
   }
@@ -1279,9 +1284,9 @@ Node getICBvLshr(
          * where
          * z = 0 with getSize(z) = w
          * and w = getSize(s) = getSize(t)  */
-        scl = nm->mkNode(Kind::OR,
-                         t.eqNode(z).notNode(),
-                         nm->mkNode(Kind::BITVECTOR_ULT, s, ww));
+        scl = nm->mkNode(
+            Kind::OR,
+            {t.eqNode(z).notNode(), nm->mkNode(Kind::BITVECTOR_ULT, s, ww)});
       }
     }
     else
@@ -1301,8 +1306,8 @@ Node getICBvLshr(
          * (or (distinct s z) (distinct t z))
          * where
          * z = 0 with getSize(z) = w  */
-        scl =
-            nm->mkNode(Kind::OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
+        scl = nm->mkNode(Kind::OR,
+                         {s.eqNode(z).notNode(), t.eqNode(z).notNode()});
       }
     }
   }
@@ -1581,8 +1586,10 @@ Node getICBvAshr(
          * and ones = ~0 with getSize(ones) = w  */
         scl = nm->mkNode(
             Kind::AND,
-            nm->mkNode(Kind::OR, t.eqNode(z).notNode(), s.eqNode(z).notNode()),
-            nm->mkNode(Kind::OR, t.eqNode(n).notNode(), s.eqNode(n).notNode()));
+            {nm->mkNode(Kind::OR,
+                        {t.eqNode(z).notNode(), s.eqNode(z).notNode()}),
+             nm->mkNode(Kind::OR,
+                        {t.eqNode(n).notNode(), s.eqNode(n).notNode()})});
       }
     }
   }
@@ -1832,9 +1839,9 @@ Node getICBvShl(
          * with
          * w = getSize(s) = getSize(t)
          * and z = 0 with getSize(z) = w  */
-        scl = nm->mkNode(Kind::OR,
-                         t.eqNode(z).notNode(),
-                         nm->mkNode(Kind::BITVECTOR_ULT, s, ww));
+        scl = nm->mkNode(
+            Kind::OR,
+            {t.eqNode(z).notNode(), nm->mkNode(Kind::BITVECTOR_ULT, s, ww)});
       }
     }
     else
@@ -1854,8 +1861,8 @@ Node getICBvShl(
          * (or (distinct s z) (distinct t z))
          * where
          * z = 0 with getSize(z) = w  */
-        scl =
-            nm->mkNode(Kind::OR, s.eqNode(z).notNode(), t.eqNode(z).notNode());
+        scl = nm->mkNode(Kind::OR,
+                         {s.eqNode(z).notNode(), t.eqNode(z).notNode()});
       }
     }
   }
@@ -2156,7 +2163,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
         /* s1 o x o s2 = t  (interpret t as t1 o tx o t2)
          * with invertibility condition:
          * (and (= s1 t1) (= s2 t2)) */
-        scl = nm->mkNode(Kind::AND, s1.eqNode(t1), s2.eqNode(t2));
+        scl = nm->mkNode(Kind::AND, {s1.eqNode(t1), s2.eqNode(t2)});
       }
       else
       {
@@ -2204,7 +2211,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
         Node z = bv::utils::mkZero(nm, wx);
         Node ule = nm->mkNode(Kind::BITVECTOR_ULE, s1, t1);
         Node imp =
-            nm->mkNode(Kind::IMPLIES, s1.eqNode(t1), tx.eqNode(z).notNode());
+            nm->mkNode(Kind::IMPLIES, {s1.eqNode(t1), tx.eqNode(z).notNode()});
         scl = nm->mkNode(Kind::AND, ule, imp);
       }
       else
@@ -2228,7 +2235,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(nm, wx);
         Node ule = nm->mkNode(Kind::BITVECTOR_ULE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(z));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(z)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_ULT, s2, t2));
         scl = nm->mkNode(Kind::AND, ule, imp);
@@ -2244,7 +2251,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(nm, wx);
         Node uge = nm->mkNode(Kind::BITVECTOR_UGE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(n));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(n)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_UGE, s2, t2));
         scl = nm->mkNode(Kind::AND, uge, imp);
@@ -2290,7 +2297,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
         Node n = bv::utils::mkOnes(nm, wx);
         Node uge = nm->mkNode(Kind::BITVECTOR_UGE, s1, t1);
         Node imp =
-            nm->mkNode(Kind::IMPLIES, s1.eqNode(t1), tx.eqNode(n).notNode());
+            nm->mkNode(Kind::IMPLIES, {s1.eqNode(t1), tx.eqNode(n).notNode()});
         scl = nm->mkNode(Kind::AND, uge, imp);
       }
       else
@@ -2314,7 +2321,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(nm, wx);
         Node uge = nm->mkNode(Kind::BITVECTOR_UGE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(n));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(n)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_UGT, s2, t2));
         scl = nm->mkNode(Kind::AND, uge, imp);
@@ -2330,7 +2337,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(nm, wx);
         Node ule = nm->mkNode(Kind::BITVECTOR_ULE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(z));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(z)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_ULE, s2, t2));
         scl = nm->mkNode(Kind::AND, ule, imp);
@@ -2375,7 +2382,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
         Node z = bv::utils::mkZero(nm, wx);
         Node sle = nm->mkNode(Kind::BITVECTOR_SLE, s1, t1);
         Node imp =
-            nm->mkNode(Kind::IMPLIES, s1.eqNode(t1), tx.eqNode(z).notNode());
+            nm->mkNode(Kind::IMPLIES, {s1.eqNode(t1), tx.eqNode(z).notNode()});
         scl = nm->mkNode(Kind::AND, sle, imp);
       }
       else
@@ -2399,7 +2406,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(nm, wx);
         Node sle = nm->mkNode(Kind::BITVECTOR_SLE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(z));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(z)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_ULT, s2, t2));
         scl = nm->mkNode(Kind::AND, sle, imp);
@@ -2415,7 +2422,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(nm, wx);
         Node sge = nm->mkNode(Kind::BITVECTOR_SGE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(n));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(n)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_UGE, s2, t2));
         scl = nm->mkNode(Kind::AND, sge, imp);
@@ -2462,7 +2469,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
         Node n = bv::utils::mkOnes(nm, wx);
         Node sge = nm->mkNode(Kind::BITVECTOR_SGE, s1, t1);
         Node imp =
-            nm->mkNode(Kind::IMPLIES, s1.eqNode(t1), tx.eqNode(n).notNode());
+            nm->mkNode(Kind::IMPLIES, {s1.eqNode(t1), tx.eqNode(n).notNode()});
         scl = nm->mkNode(Kind::AND, sge, imp);
       }
       else
@@ -2486,7 +2493,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * ones = ~0 with getSize(ones) = wx  */
         Node n = bv::utils::mkOnes(nm, wx);
         Node sge = nm->mkNode(Kind::BITVECTOR_SGE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(n));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(n)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_UGT, s2, t2));
         scl = nm->mkNode(Kind::AND, sge, imp);
@@ -2502,7 +2509,7 @@ Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
          * z = 0 with getSize(z) = wx  */
         Node z = bv::utils::mkZero(nm, wx);
         Node sle = nm->mkNode(Kind::BITVECTOR_SLE, s1, t1);
-        Node a = nm->mkNode(Kind::AND, s1.eqNode(t1), tx.eqNode(z));
+        Node a = nm->mkNode(Kind::AND, {s1.eqNode(t1), tx.eqNode(z)});
         Node imp = nm->mkNode(
             Kind::IMPLIES, a, nm->mkNode(Kind::BITVECTOR_ULE, s2, t2));
         scl = nm->mkNode(Kind::AND, sle, imp);
@@ -2546,7 +2553,7 @@ Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
       Node ext = bv::utils::mkExtract(t, w - 1, w - 1 - ws);
       Node z = bv::utils::mkZero(nm, ws + 1);
       Node n = bv::utils::mkOnes(nm, ws + 1);
-      scl = nm->mkNode(Kind::OR, ext.eqNode(z), ext.eqNode(n));
+      scl = nm->mkNode(Kind::OR, {ext.eqNode(z), ext.eqNode(n)});
     }
     else
     {
@@ -2624,7 +2631,7 @@ Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
       Node ext1 = bv::utils::mkExtract(t, w - 1, w - 1 - ws);
       Node z = bv::utils::mkZero(nm, ws + 1);
       Node n = bv::utils::mkOnes(nm, ws + 1);
-      Node o1 = nm->mkNode(Kind::OR, ext1.eqNode(z), ext1.eqNode(n));
+      Node o1 = nm->mkNode(Kind::OR, {ext1.eqNode(z), ext1.eqNode(n)});
       Node max = bv::utils::mkMaxSigned(nm, w - ws);
       Node ext2 = bv::utils::mkConcat(bv::utils::mkZero(nm, ws), max);
       Node o2 = nm->mkNode(Kind::BITVECTOR_SLT, t, ext2);

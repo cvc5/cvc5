@@ -37,7 +37,7 @@
    :signature (Bool Bool) Bool
    (
    (($extract_antec_rec C C)          true)
-   (($extract_antec_rec (=> F1 F2) C) (eo::cons and F1 ($extract_antec_rec F2 C)))
+   (($extract_antec_rec (=> F1 F2) C) (_ and F1 ($extract_antec_rec F2 C)))
    )
 )
 

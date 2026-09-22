@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -152,31 +149,62 @@ void CadicalPropagator::notify_backtrack(size_t level)
     d_decisions.pop_back();
   }
 
-  // Backtrack assignments, resend fixed theory literals that got backtracked
+  // Backtrack assignments. Genuine decision-level assignments are undone,
+  // but fixed assignments are permanent (decision level 0): we keep them
+  // assigned and retain them in d_assignments so that the user_pop()
+  // renotification machinery still sees them (it relies on d_assignments
+  // holding exactly the fixed literals once we are back at decision level 0).
+  // The corresponding theory literals are re-enqueued below, after notifying
+  // the theory proxy about the backtrack.
   Assert(!d_assignment_control.empty());
   size_t pop_to = d_assignment_control[level];
   d_assignment_control.resize(level);
 
-  while (pop_to < d_assignments.size())
+  size_t keep = pop_to;
+  std::vector<SatLiteral> renotify;
+  for (size_t i = pop_to, n = d_assignments.size(); i < n; ++i)
   {
-    SatLiteral lit = d_assignments.back();
-    d_assignments.pop_back();
+    SatLiteral lit = d_assignments[i];
     SatVariable var = lit.getSatVariable();
     auto& info = d_var_info[var];
-    Trace("cadical::propagator") << "unassign: " << var << std::endl;
-    info.assignment = 0;
+    if (info.is_fixed)
+    {
+      // Permanent assignment: keep it and retain it in d_assignments.
+      Trace("cadical::propagator") << "keep fixed: " << var << std::endl;
+      d_assignments[keep++] = lit;
+      if (info.is_theory_atom)
+      {
+        renotify.push_back(lit);
+      }
+    }
+    else
+    {
+      Trace("cadical::propagator") << "unassign: " << var << std::endl;
+      info.assignment = 0;
+    }
   }
+  d_assignments.resize(keep);
 
   // Notify theory proxy about backtrack
   d_proxy->notifyBacktrack();
-  // Clear the propgations since they are not valid anymore.
+  // Re-enqueue fixed theory literals that got backtracked at the theory level
+  // but remain assigned at the SAT level. This must happen after
+  // notifyBacktrack(), otherwise the theory backtrack would discard them.
+  for (const SatLiteral& lit : renotify)
+  {
+    Trace("cadical::propagator")
+        << "re-enqueue (backtrack): " << lit << std::endl;
+    d_proxy->enqueueTheoryLiteral(lit);
+  }
+  // Clear the propagations since they are not valid anymore.
   d_propagations.clear();
   ++d_stats.notifyBacktrack;
 
   Trace("cadical::propagator") << "notif::backtrack end" << std::endl;
 }
 
-bool CadicalPropagator::cb_check_found_model(const std::vector<int>& model)
+bool CadicalPropagator::cb_check_found_model(
+    CVC5_UNUSED const std::vector<int>& model)
 {
   Trace("cadical::propagator") << "cb::check_found_model" << std::endl;
   bool recheck = false;
@@ -206,6 +234,7 @@ bool CadicalPropagator::cb_check_found_model(const std::vector<int>& model)
     d_new_clauses.push_back(1);
     d_new_clauses.push_back(-1);
     d_new_clauses.push_back(0);
+    d_new_clauses_forgettable.push_back(true);
     return false;
   }
 
@@ -243,7 +272,8 @@ bool CadicalPropagator::cb_check_found_model(const std::vector<int>& model)
           << "add propagation reason: " << p << std::endl;
       SatClause clause;
       d_proxy->explainPropagation(p, clause);
-      add_clause(clause);
+      // We explicitly mark propagation reason as not removable.
+      add_clause(clause, false);
     }
     d_propagations.clear();
 
@@ -269,6 +299,7 @@ bool CadicalPropagator::cb_check_found_model(const std::vector<int>& model)
     d_new_clauses.push_back(1);
     d_new_clauses.push_back(-1);
     d_new_clauses.push_back(0);
+    d_new_clauses_forgettable.push_back(true);
     return false;
   }
   bool res = done();
@@ -288,27 +319,44 @@ int CadicalPropagator::cb_decide()
   bool stopSearch = false;
   bool requirePhase = false;
   SatLiteral lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
-  // We found a partial model, let's check it.
-  if (stopSearch)
+  // Decision requests are not filtered by assignment status, i.e., the theory
+  // engine may request a decision on a literal that is already assigned.
+  // We skip assigned literals and ask for the next request until we find an
+  // unassigned one, as done in Minisat (see Solver::pickBranchLit()).
+  //
+  // Note: Requesting the next decision may also signal that we found a partial
+  //       model, which is why the model check is part of this loop.
+  bool model_checked = false;
+  while (stopSearch || lit != undefSatLiteral)
   {
-    d_found_solution = cb_check_found_model({});
-    if (d_found_solution)
+    // We found a partial model, let's check it.
+    if (stopSearch)
     {
-      Trace("cadical::propagator") << "Found solution" << std::endl;
-      d_found_solution = d_proxy->isDecisionEngineDone();
+      // Check the model at most once per callback. Otherwise, if the decision
+      // engine keeps signaling a partial model that is not done yet, we would
+      // perform full effort checks indefinitely.
+      if (model_checked)
+      {
+        break;
+      }
+      model_checked = true;
+      d_found_solution = cb_check_found_model({});
       if (!d_found_solution)
       {
-        Trace("cadical::propagator") << "Decision engine not done" << std::endl;
-        lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+        Trace("cadical::propagator") << "No solution found yet" << std::endl;
+        break;
       }
+      Trace("cadical::propagator") << "Found solution" << std::endl;
+      d_found_solution = d_proxy->isDecisionEngineDone();
+      if (d_found_solution)
+      {
+        break;
+      }
+      Trace("cadical::propagator") << "Decision engine not done" << std::endl;
+      stopSearch = false;
+      lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+      continue;
     }
-    else
-    {
-      Trace("cadical::propagator") << "No solution found yet" << std::endl;
-    }
-  }
-  if (!stopSearch && lit != undefSatLiteral)
-  {
     if (!requirePhase)
     {
       int8_t phase = d_var_info[lit.getSatVariable()].phase;
@@ -321,8 +369,15 @@ int CadicalPropagator::cb_decide()
         }
       }
     }
-    Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
-    return toCadicalLit(lit);
+    if (value(lit) == SAT_VALUE_UNKNOWN)
+    {
+      Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
+      return toCadicalLit(lit);
+    }
+    Trace("cadical::propagator")
+        << "cb::decide: skip already assigned " << lit << std::endl;
+    ++d_stats.cbDecideSkipped;
+    lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
   }
   Trace("cadical::propagator") << "cb::decide: 0" << std::endl;
   return 0;
@@ -340,7 +395,7 @@ int CadicalPropagator::cb_propagate()
   {
     // Only propagate if all activation literals are processed. Activation
     // literals are always assumed first. If we don't do this, explanations
-    // for theory propgations may force activation literals to different
+    // for theory propagations may force activation literals to different
     // values before they can get decided on.
     if (d_decisions.size() < current_user_level())
     {
@@ -362,8 +417,12 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     SatLiteral slit = toSatLiteral(propagated_lit);
     SatClause clause;
     d_proxy->explainPropagation(slit, clause);
-    // Add activation literal to reason
-    SatLiteral alit = current_activation_lit();
+    // CaDiCaL may ask for external propagation reasons from paths
+    // outside the main solve() call, e.g., while processing assumptions between
+    // incremental checks. The reason is still a theory explanation and needs
+    // the same user-level activation guard as reasons requested during search.
+    // Add activation literal of the clause's user level to the reason.
+    SatLiteral alit = activation_lit(clause_user_level(clause));
     if (alit != undefSatLiteral)
     {
       d_reason.push_back(alit);
@@ -389,10 +448,15 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
   return lit;
 }
 
-bool CadicalPropagator::cb_has_external_clause(bool& is_forgettable)
+bool CadicalPropagator::cb_has_external_clause(bool& forgettable)
 {
   ++d_stats.cbHasExternalClause;
-  is_forgettable = false;
+  forgettable = false;
+  if (!d_new_clauses_forgettable.empty())
+  {
+    Assert(!d_new_clauses.empty());
+    forgettable = d_new_clauses_forgettable.front();
+  }
   return !d_new_clauses.empty();
 }
 
@@ -401,6 +465,12 @@ int CadicalPropagator::cb_add_external_clause_lit()
   ++d_stats.cbAddExternalClauseLit;
   Assert(!d_new_clauses.empty());
   CadicalLit lit = d_new_clauses.front();
+  Assert(!d_new_clauses_forgettable.empty() || !d_in_search);
+  if (lit == 0)
+  {
+    Assert(!d_new_clauses_forgettable.empty());
+    d_new_clauses_forgettable.pop_front();
+  }
   d_new_clauses.pop_front();
   Trace("cadical::propagator")
       << "external_clause: " << toSatLiteral(lit) << std::endl;
@@ -420,9 +490,16 @@ SatValue CadicalPropagator::value(SatLiteral lit) const
   return val;
 }
 
-void CadicalPropagator::add_clause(const SatClause& clause)
+void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
 {
   std::vector<CadicalLit> lits;
+  // Note: Removable clauses can be added to lower user levels to avoid
+  //       deleting them too eagerly. For example, conflicts may be learned
+  //       at a user level N even though it only has literals of at most user
+  //       level N - 2. In this case we can add the clause at N - 2 instead
+  //       of deleting the clause when popping user level N, which would
+  //       require us to relearn the clause again.
+  uint32_t max_user_level = d_in_search ? 0 : current_user_level();
   for (const SatLiteral& lit : clause)
   {
     SatVariable var = lit.getSatVariable();
@@ -439,12 +516,23 @@ void CadicalPropagator::add_clause(const SatClause& clause)
         return;
       }
     }
+    max_user_level = std::max(max_user_level, info.level_intro);
     lits.push_back(toCadicalLit(lit));
   }
   if (!lits.empty())
   {
-    // Add activation literal to clause if we are in user level > 0
-    SatLiteral alit = current_activation_lit();
+    if (TraceIsOn("cadical::propagator"))
+    {
+      Trace("cadical::propagator") << "addClause (forgettable: " << forgettable
+                                   << ", in search: " << d_in_search << "):";
+      for (const SatLiteral& lit : clause)
+      {
+        Trace("cadical::propagator") << " " << lit;
+      }
+      Trace("cadical::propagator") << " 0" << std::endl;
+    }
+    // Determine activation literal based on max user level of clause.
+    SatLiteral alit = activation_lit(max_user_level);
     if (alit != undefSatLiteral)
     {
       lits.insert(lits.begin(), toCadicalLit(alit));
@@ -455,6 +543,7 @@ void CadicalPropagator::add_clause(const SatClause& clause)
     {
       d_new_clauses.insert(d_new_clauses.end(), lits.begin(), lits.end());
       d_new_clauses.push_back(0);
+      d_new_clauses_forgettable.push_back(forgettable);
     }
     else
     {
@@ -463,6 +552,7 @@ void CadicalPropagator::add_clause(const SatClause& clause)
         d_solver.add(lit);
       }
       d_solver.add(0);
+      Assert(!forgettable);
     }
   }
   // // Add empty clause
@@ -528,9 +618,9 @@ void CadicalPropagator::user_push()
       << " -> " << d_active_vars_control.size() << std::endl;
 }
 
-void CadicalPropagator::set_activation_lit(SatVariable& alit)
+void CadicalPropagator::set_activation_lit(SatVariable alit)
 {
-  d_activation_literals.push_back(alit);
+  d_activation_literals.push_back(SatLiteral(alit));
   Trace("cadical::propagator")
       << "enable activation lit: " << alit << std::endl;
 }
@@ -544,8 +634,8 @@ void CadicalPropagator::user_pop()
       << " -> " << d_active_vars_control.size() << std::endl;
 
   // Disable activation literal for popped user level. The activation literal
-  // is added as unit clause, which will satisfy all clauses added in this
-  // user level and get garbage collected in the SAT solver.
+  // will be set inactive below and is added as unit clause, which will satisfy
+  // all clauses added in this user level and get garbage collected in CaDiCal.
   SatLiteral alit = current_activation_lit();
   Trace("cadical::propagator")
       << "disable activation lit: " << alit << std::endl;
@@ -579,7 +669,7 @@ void CadicalPropagator::user_pop()
       // Fix value of inactive variables in order to avoid CaDiCaL from
       // deciding on them again. This make a huge difference in performance
       // for incremental problems with many check-sat calls.
-      d_solver.add(toCadicalLit(var));
+      d_solver.add(toCadicalVar(var));
       d_solver.add(0);
     }
   }
@@ -628,13 +718,36 @@ void CadicalPropagator::phase(SatLiteral lit)
   d_var_info[lit.getSatVariable()].phase = lit.isNegated() ? -1 : 1;
 }
 
-const SatLiteral& CadicalPropagator::current_activation_lit()
+const SatLiteral& CadicalPropagator::current_activation_lit() const
 {
   if (d_activation_literals.empty())
   {
     return undefSatLiteral;
   }
   return d_activation_literals.back();
+}
+
+const SatLiteral& CadicalPropagator::activation_lit(size_t user_level) const
+{
+  // User level 0 has no activation literal.
+  if (user_level == 0)
+  {
+    return undefSatLiteral;
+  }
+  Assert(user_level <= d_activation_literals.size());
+  return d_activation_literals[user_level - 1];
+}
+
+uint32_t CadicalPropagator::clause_user_level(const SatClause& clause) const
+{
+  uint32_t max_user_level = 0;
+  for (const SatLiteral& lit : clause)
+  {
+    SatVariable var = lit.getSatVariable();
+    Assert(var < d_var_info.size());
+    max_user_level = std::max(max_user_level, d_var_info[var].level_intro);
+  }
+  return max_user_level;
 }
 
 void CadicalPropagator::renotify_fixed()

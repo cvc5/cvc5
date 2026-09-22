@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,12 +32,17 @@ namespace cvc5::main {
 class ExecutionContext
 {
  public:
+  ExecutionContext(CommandExecutor* executor)
+      : d_executor(executor), d_hasReadCheckSat(false)
+  {
+  }
+
   /** The command executor used for solving */
   CommandExecutor* d_executor;
+  /* Whether a check-sat command has been read */
+  bool d_hasReadCheckSat;
   /** The logic, if it has been set by a command */
   std::optional<std::string> d_logic;
-  /* Whether a check-sat command has been read */
-  bool d_hasReadCheckSat = false;
   /** The last stored declarations and named terms **/
   std::vector<cvc5::Sort> d_sorts;
   std::vector<cvc5::Term> d_terms;
@@ -100,7 +102,6 @@ class ExecutionContext
 
   /** Parse the remaining input from d_parser into a vector of commands */
   std::vector<cvc5::parser::Command> parseCommands(parser::InputParser* parser);
-
 };
 
 /**

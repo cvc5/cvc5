@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Ying Sheng, Yoni Zohar
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -1311,12 +1308,12 @@ def test_get_logic(solver):
     assert solver.getLogic() == "QF_BV"
 
 def test_set_option(tm, solver):
-    solver.setOption("bv-sat-solver", "minisat")
+    solver.setOption("bv-sat-solver", "cadical")
     with pytest.raises(RuntimeError):
         solver.setOption("bv-sat-solver", "1")
     solver.assertFormula(tm.mkTrue())
     with pytest.raises(RuntimeError):
-        solver.setOption("bv-sat-solver", "minisat")
+        solver.setOption("bv-sat-solver", "cadical")
 
 
 def test_reset_assertions(tm, solver):
@@ -2334,6 +2331,7 @@ class PluginUnsat(Plugin):
         return "PluginUnsat"
 
 def test_plugin_unsat(tm, solver):
+    solver.setOption("sat-solver", "minisat")
     p = PluginUnsat(tm)
     solver.addPlugin(p)
     assert solver.checkSat().isUnsat()
@@ -2363,7 +2361,8 @@ class PluginListen(Plugin):
         return "PluginListen"
 
 def test_plugin_listen(tm, solver):
-    # NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    solver.setOption("sat-solver", "minisat")
+    # Allow notifications for unit clauses added before the main solve.
     solver.setOption("plugin-notify-sat-clause-in-solve", "false")
     pl = PluginListen(tm)
     solver.addPlugin(pl)

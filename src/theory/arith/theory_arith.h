@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +40,8 @@ class EqualitySolver;
  * The linear arithmetic solver is based upon:
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
-class TheoryArith : public Theory {
+class TheoryArith : public Theory
+{
  public:
   TheoryArith(Env& env, OutputChannel& out, Valuation valuation);
   virtual ~TheoryArith();
@@ -118,10 +116,7 @@ class TheoryArith : public Theory {
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
   /** Return a reference to the arith::InferenceManager. */
-  InferenceManager& getInferenceManager()
-  {
-    return d_im;
-  }
+  InferenceManager& getInferenceManager() { return d_im; }
 
  private:
   /**
@@ -196,7 +191,7 @@ class TheoryArith : public Theory {
   /** Checks the proof rules of this theory. */
   ArithProofRuleChecker d_checker;
 
-};/* class TheoryArith */
+}; /* class TheoryArith */
 
 }  // namespace arith
 }  // namespace theory

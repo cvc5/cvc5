@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Makai Mann, Yoni Zohar, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -128,7 +125,8 @@ Node BoolToBV::lowerAssertion(const TNode& assertion, bool allowIteIntroduction)
     lowerNode(c, allowIteIntroduction);
   }
 
-  // now try lowering the assertion, but don't force it with an ITE (even in mode all)
+  // now try lowering the assertion, but don't force it with an ITE (even in
+  // mode all)
   lowerNode(assertion, false);
   Node newAssertion = fromCache(assertion);
   TypeNode newAssertionType = newAssertion.getType();
@@ -235,7 +233,8 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   for (const Node& nn : n)
   {
     safe_to_lower = safe_to_lower && fromCache(nn).getType().isBitVector();
-    safe_to_rebuild = safe_to_rebuild && (fromCache(nn).getType() == nn.getType());
+    safe_to_rebuild =
+        safe_to_rebuild && (CVC5_EQUAL(fromCache(nn).getType(), nn.getType()));
 
     // if it's already not safe to do either, stop checking
     if (!safe_to_lower && !safe_to_rebuild)
@@ -252,7 +251,8 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     rebuildNode(n, new_kind);
     return;
   }
-  else if (new_kind != k && allowIteIntroduction && fromCache(n).getType().isBoolean())
+  else if (new_kind != k && allowIteIntroduction
+           && fromCache(n).getType().isBoolean())
   {
     // lower to BV using an ITE
 
@@ -262,13 +262,12 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
       rebuildNode(n, k);
     }
 
-    updateCache(n,
-                nm->mkNode(Kind::ITE,
-                           fromCache(n),
-                           bv::utils::mkOne(nm, 1),
-                           bv::utils::mkZero(nm, 1)));
-    Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
-                        << " =>\n"
+    updateCache(
+        n,
+        nm->mkNode(
+            Kind::ITE,
+            {fromCache(n), bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)}));
+    Trace("bool-to-bv") << "BoolToBV::visit forcing " << n << " =>\n"
                         << fromCache(n) << std::endl;
     if (d_boolToBVMode == options::BoolToBVMode::ALL)
     {
@@ -290,10 +289,9 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
     // with ITE introductions
     updateCache(
         n,
-        nm->mkNode(
-            Kind::ITE, n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)));
-    Trace("bool-to-bv") << "BoolToBV::visit forcing " << n
-                        << " =>\n"
+        nm->mkNode(Kind::ITE,
+                   {n, bv::utils::mkOne(nm, 1), bv::utils::mkZero(nm, 1)}));
+    Trace("bool-to-bv") << "BoolToBV::visit forcing " << n << " =>\n"
                         << fromCache(n) << std::endl;
     if (d_boolToBVMode == options::BoolToBVMode::ALL)
     {
@@ -304,8 +302,7 @@ void BoolToBV::visit(const TNode& n, bool allowIteIntroduction)
   else
   {
     // do nothing
-    Trace("bool-to-bv") << "BoolToBV::visit skipping: " << n
-                        << std::endl;
+    Trace("bool-to-bv") << "BoolToBV::visit skipping: " << n << std::endl;
   }
 }
 
@@ -407,7 +404,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
 
 BoolToBV::Statistics::Statistics(StatisticsRegistry& reg)
     : d_numIteToBvite(
-        reg.registerInt("preprocessing::passes::BoolToBV::NumIteToBvite")),
+          reg.registerInt("preprocessing::passes::BoolToBV::NumIteToBvite")),
       // the following two statistics are not correct in the ITE mode, because
       // we might discard rebuilt nodes if we fails to convert a bool to
       // width-one bit-vector (never forces)

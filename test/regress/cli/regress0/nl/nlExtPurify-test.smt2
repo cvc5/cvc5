@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-ext-purify
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,12 +106,11 @@ bool ArithSubs::shouldTraverse(const Node& n, bool traverseNlMult)
 {
   Kind k = n.getKind();
   TheoryId ctid = theory::kindToTheoryId(k);
-  // We always treat transcendental kinds as a black box.
-  // On the other hand, other extended operators e.g. IAND are treated similarly
-  // to multiplication.
+  // We always treat transcendental kinds and extended nonlinear kinds
+  // as black boxes.
   if ((ctid != THEORY_ARITH && ctid != THEORY_BOOL && ctid != THEORY_BUILTIN)
-      || isTranscendentalKind(k)
-      || (!traverseNlMult && (k == Kind::NONLINEAR_MULT || isExtendedNonLinearKind(k))))
+      || isTranscendentalKind(k) || isExtendedNonLinearKind(k)
+      || (!traverseNlMult && k == Kind::NONLINEAR_MULT))
   {
     return false;
   }

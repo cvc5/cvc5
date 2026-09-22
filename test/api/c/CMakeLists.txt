@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -22,7 +19,7 @@ add_dependencies(build-apitests build-capitests)
 
 # Disabled temporarily due to problems in the nightly builds
 # # See the comment about 'make test' in test/regress/cli/CMakeLists.txt
-# add_test(build_capitests_test "${CMAKE_COMMAND}" --build "${CMAKE_BINARY_DIR}" --config "$<CONFIG>" --target build-capitests)
+# add_test(build_capitests_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-capitests)
 # set_tests_properties(build_capitests_test PROPERTIES FIXTURES_SETUP build_capitests_fixture)
 
 add_custom_target(capitests
@@ -32,7 +29,7 @@ add_custom_target(capitests
 set(CVC5_API_TEST_FLAGS -D__BUILDING_CVC5_API_TEST -Dcvc5_obj_EXPORTS)
 
 macro(cvc5_add_capi_test name dir)
-  set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/c/${dir})
+  set(test_bin_dir ${PROJECT_BINARY_DIR}/bin/test/api/c/${dir})
   set(cname capi_${name})
   add_executable(${cname} ${name}.c)
   target_link_libraries(${cname} PUBLIC main-test)

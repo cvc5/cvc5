@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Fabian Wolff
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -297,11 +294,11 @@ class SygusSampler : protected EnvObj, public LazyTrieEvaluator
                            double rinc,
                            unsigned depth = 0);
   /** map from sygus types to non-variable constructors */
-  std::map<TypeNode, std::vector<unsigned> > d_rvalue_cindices;
+  std::map<TypeNode, std::vector<uint32_t> > d_rvalue_cindices;
   /** map from sygus types to non-variable nullary constructors */
-  std::map<TypeNode, std::vector<unsigned> > d_rvalue_null_cindices;
+  std::map<TypeNode, std::vector<uint32_t> > d_rvalue_null_cindices;
   /** the random string alphabet */
-  std::vector<unsigned> d_rstring_alphabet;
+  std::vector<uint32_t> d_rstring_alphabet;
   /** map from variables to sygus types that include them */
   std::map<Node, std::vector<TypeNode> > d_var_sygus_types;
   /** map from constants to sygus types that include them */

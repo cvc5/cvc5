@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,27 +72,32 @@ class CVC5_EXPORT IllegalArgumentException : public Exception
  protected:
   IllegalArgumentException() : Exception() {}
 
-  void construct(const char* header, const char* extra,
-                 const char* function, const char* tail);
+  void construct(const char* header,
+                 const char* extra,
+                 const char* function,
+                 const char* tail);
 
-  void construct(const char* header, const char* extra,
-                 const char* function);
+  void construct(const char* header, const char* extra, const char* function);
 
   static std::string format_extra(const char* condStr, const char* argDesc);
 
   static const char* s_header;
 
-public:
-
-  IllegalArgumentException(const char* condStr, const char* argDesc,
-                           const char* function, const char* tail) :
-    Exception() {
+ public:
+  IllegalArgumentException(const char* condStr,
+                           const char* argDesc,
+                           const char* function,
+                           const char* tail)
+      : Exception()
+  {
     construct(s_header, format_extra(condStr, argDesc).c_str(), function, tail);
   }
 
-  IllegalArgumentException(const char* condStr, const char* argDesc,
-                           const char* function) :
-    Exception() {
+  IllegalArgumentException(const char* condStr,
+                           const char* argDesc,
+                           const char* function)
+      : Exception()
+  {
     construct(s_header, format_extra(condStr, argDesc).c_str(), function);
   }
 
@@ -123,7 +125,8 @@ inline void CheckArgument(bool cond,
                           const T& arg CVC5_UNUSED,
                           const char* tail CVC5_UNUSED)
 {
-  if(__builtin_expect( ( !cond ), false )) {
+  if (__builtin_expect((!cond), false))
+  {
     throw cvc5::internal::IllegalArgumentException("", "", tail);
   }
 }
@@ -132,7 +135,8 @@ inline void CheckArgument(bool cond, const T& arg);
 template <class T>
 inline void CheckArgument(bool cond, const T& arg CVC5_UNUSED)
 {
-  if(__builtin_expect( ( !cond ), false )) {
+  if (__builtin_expect((!cond), false))
+  {
     throw cvc5::internal::IllegalArgumentException("", "", "");
   }
 }
@@ -147,13 +151,17 @@ class LastExceptionBuffer
   const char* getContents() const { return d_contents; }
 
   static LastExceptionBuffer* getCurrent() { return s_currentBuffer; }
-  static void setCurrent(LastExceptionBuffer* buffer) { s_currentBuffer = buffer; }
+  static void setCurrent(LastExceptionBuffer* buffer)
+  {
+    s_currentBuffer = buffer;
+  }
 
-  static const char* currentContents() {
+  static const char* currentContents()
+  {
     return (getCurrent() == nullptr) ? nullptr : getCurrent()->getContents();
   }
 
-private:
+ private:
   /* Disallow copies */
   LastExceptionBuffer(const LastExceptionBuffer&) = delete;
   LastExceptionBuffer& operator=(const LastExceptionBuffer&) = delete;

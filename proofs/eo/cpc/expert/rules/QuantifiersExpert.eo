@@ -4,7 +4,7 @@
 
 ; witness for invertibility condition
 (declare-parameterized-const @witness_inv_condition ((F Bool :opaque))
-  ($assoc_nil_nth_type @list ($get_var_list F) 0))
+  ($get_nth_var_type F 0))
 
 ;;;;; ProofRule::EXISTS_INV_CONDITION
 
@@ -19,8 +19,8 @@
 (program $mk_inv_cond_op_disj ((n Int) (f (-> (BitVec n) (BitVec n))) (w Int) (t (BitVec n)))
   :signature ((-> (BitVec n) (BitVec n)) (BitVec n) Int Int) Bool
   (
-  (($mk_inv_cond_op_disj f t w w)  (eo::cons or (= (f (eo::to_bin w w)) t) false))
-  (($mk_inv_cond_op_disj f t w n)  (eo::cons or (= (f (eo::to_bin w n)) t) ($mk_inv_cond_op_disj f t w (eo::add n 1))))
+  (($mk_inv_cond_op_disj f t w w)  (_ or (= (f (eo::to_bin w w)) t) false))
+  (($mk_inv_cond_op_disj f t w n)  (_ or (= (f (eo::to_bin w n)) t) ($mk_inv_cond_op_disj f t w (eo::add n 1))))
   )
 )
 
@@ -49,13 +49,13 @@
                                                               (and (=> u (= (bvashr (bvshl t s) s) t))
                                                                    (=> (not u) (or (= t (eo::not (eo::to_bin w 0))) (= t (eo::to_bin w 0)))))))))
   (($mk_invertibility_condition x (= (bvashr s x) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
-                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvashr s) t w 1))))
+                                                              (_ or (= s t) ($mk_inv_cond_op_disj (bvashr s) t w 1))))
   (($mk_invertibility_condition x (= (bvshl x s) t))        (= (bvshl (bvlshr t s) s) t))
   (($mk_invertibility_condition x (= (bvshl s x) t))        (eo::define ((w ($bv_bitwidth (eo::typeof x))))
-                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvshl s) t w 1))))
+                                                              (_ or (= s t) ($mk_inv_cond_op_disj (bvshl s) t w 1))))
   (($mk_invertibility_condition x (= (bvlshr x s) t))       (= (bvlshr (bvshl t s) s) t))
   (($mk_invertibility_condition x (= (bvlshr s x) t))       (eo::define ((w ($bv_bitwidth (eo::typeof x))))
-                                                              (eo::cons or (= s t) ($mk_inv_cond_op_disj (bvlshr s) t w 1))))
+                                                              (_ or (= s t) ($mk_inv_cond_op_disj (bvlshr s) t w 1))))
   (($mk_invertibility_condition x (= (sign_extend m x) tk)) (eo::define ((hi (eo::add ($bv_bitwidth (eo::typeof tk)) -1)))
                                                             (eo::define ((lo (eo::add hi (eo::neg m))))
                                                             (eo::define ((ex (extract hi lo tk)))

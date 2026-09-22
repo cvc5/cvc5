@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,9 +68,11 @@ std::vector<Node> UnsatCoreManager::getUnsatCoreLemmas(bool isInternal)
       smt::PrintBenchmark pb(nodeManager(), Printer::getPrinter(ss));
       pb.printBenchmark(
           ss, logicInfo().getLogicString(), coreDefs, coreAsserts);
-      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; unsat core + lemmas" << std::endl;
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK)
+          << ";; unsat core + lemmas" << std::endl;
       output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ss.str();
-      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK) << ";; end unsat core + lemmas" << std::endl;
+      output(OutputTag::UNSAT_CORE_LEMMAS_BENCHMARK)
+          << ";; end unsat core + lemmas" << std::endl;
     }
   }
   return coreLemmas;

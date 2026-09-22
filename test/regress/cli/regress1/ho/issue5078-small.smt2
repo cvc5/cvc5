@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic HO_QF_UFLIA)
 (set-info :status sat)
 (declare-fun a (Int Int) Int)

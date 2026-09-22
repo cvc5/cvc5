@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -342,7 +339,7 @@ theory::TrustSubstitutionMap& ZeroLevelLearner::getSimplifications()
 
 void ZeroLevelLearner::addSimplification(const Node& t, const Node& s)
 {
-  // in rare cases we may already have a substitution for v, e.g. 
+  // in rare cases we may already have a substitution for v, e.g.
   // if x -> 0, (f y) ---> a, and we learn (f (+ x y)) = b, we
   // would substitute+rewrite to get (f y) --> b despite already
   // having a substitution for (f y). We could avoid this by applying

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,9 +34,12 @@ namespace {
  * std::string&); should be the last resort for type conversions: it may not
  * only yield bad performance, but is also dependent on compatible string
  * representations. Use with care!
+ *
+ * Only instantiated by the CLN branches below; GMP builds never use it,
+ * which newer clang reports under -Wunused-template.
  */
 template <typename To, typename From>
-To cast_by_string(const From& f)
+[[maybe_unused]] To cast_by_string(const From& f)
 {
   std::stringstream s;
   s << f;
@@ -97,7 +97,7 @@ Rational toRationalAbove(const poly::Value& v)
   {
     return toRational(as_rational(v));
   }
-  Assert(false) << "Can not convert " << v << " to rational.";
+  DebugUnhandled() << "Can not convert " << v << " to rational.";
   return Rational();
 }
 Rational toRationalBelow(const poly::Value& v)
@@ -118,7 +118,7 @@ Rational toRationalBelow(const poly::Value& v)
   {
     return toRational(as_rational(v));
   }
-  Assert(false) << "Can not convert " << v << " to rational.";
+  DebugUnhandled() << "Can not convert " << v << " to rational.";
   return Rational();
 }
 
@@ -251,7 +251,7 @@ std::size_t totalDegree(const poly::Polynomial& p)
   std::size_t tdeg = 0;
 
   lp_polynomial_traverse_f f =
-      [](const lp_polynomial_context_t* ctx, lp_monomial_t* m, void* data) {
+      [](const lp_polynomial_context_t*, lp_monomial_t* m, void* data) {
         std::size_t sum = 0;
         for (std::size_t i = 0; i < m->n; ++i)
         {
@@ -304,7 +304,7 @@ void getVariableInformation(VariableInformation& vi,
   GetVarInfo varinfo;
   varinfo.info = &vi;
   lp_polynomial_traverse_f f =
-      [](const lp_polynomial_context_t* ctx, lp_monomial_t* m, void* data) {
+      [](const lp_polynomial_context_t*, lp_monomial_t* m, void* data) {
         GetVarInfo* gvi = static_cast<GetVarInfo*>(data);
         VariableInformation* info = gvi->info;
         // Total degree of this term

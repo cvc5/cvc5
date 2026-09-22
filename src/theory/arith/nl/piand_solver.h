@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Zvika Berger
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,14 +47,10 @@ class PIAndSolver : protected EnvObj
   /** init last call
    *
    * This is called at the beginning of last call effort check, where
-   * assertions are the set of assertions belonging to arithmetic,
-   * false_asserts is the subset of assertions that are false in the current
-   * model, and xts is the set of extended function terms that are active in
+   * xts is the set of extended function terms that are active in
    * the current context.
    */
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  void initLastCall(const std::vector<Node>& xts);
 
   //-------------------------------------------- lemma schemas
   /** check initial refine

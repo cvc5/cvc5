@@ -11,6 +11,8 @@ inputs:
   shell:
     description: shell to use for commands
     default: bash
+  dry-run:
+    default: false
 runs:
   using: composite
   steps:
@@ -27,14 +29,14 @@ runs:
         echo "::endgroup::"
 
     - name: Store WASM package to latest
-      if: github.ref == 'refs/heads/main'
+      if: ${{ github.ref == 'refs/heads/main' && inputs.dry-run != 'true' }}
       uses: ./.github/actions/store-to-latest
       with:
         asset-filename: ${{ inputs.wasm-name }}.zip
         shell: ${{ inputs.shell }}
 
     - name: Store WASM package to release
-      if: startsWith(github.ref, 'refs/tags/')
+      if: ${{ startsWith(github.ref, 'refs/tags/') && inputs.dry-run != 'true' }}
       shell: ${{ inputs.shell }}
       env:
         GH_TOKEN: ${{ github.token }}

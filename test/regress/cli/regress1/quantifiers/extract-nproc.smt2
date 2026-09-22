@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-bv --cegqi-bv-rm-extract
 ; EXPECT: sat
 (set-logic BV)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -138,7 +135,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
       // get the grammar type for the abduct
       Node agdtbv =
           theory::quantifiers::SygusUtils::getOrMkSygusArgumentList(d_sssf);
-      if(!agdtbv.isNull())
+      if (!agdtbv.isNull())
       {
         Assert(agdtbv.getKind() == Kind::BOUND_VAR_LIST);
         // convert back to original
@@ -152,7 +149,8 @@ bool AbductionSolver::getAbductInternal(Node& abd)
           vars.push_back(bv);
           syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
         }
-        abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
+        abd =
+            abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
       }
 
       // if check abducts option is set, we check the correctness

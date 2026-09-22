@@ -371,7 +371,7 @@
   (- 1))
 
 (define-cond-rule str-indexof-re-emp-re ((t String) (r RegLan) (n Int))
-  (and (str.in_re "" r) (>= (str.len t) n))
+  (and (str.in_re "" r) (>= (str.len t) n) (>= n (- 1)))
   (str.indexof_re t r n)
   n)
 
@@ -410,7 +410,7 @@
   (str.from_int n))
 
 (define-cond-rule str-to-int-concat-neg-one ((s1 String :list) (s2 String) (s3 String :list))
-  (= (str.to_int s2) (- 1))
+  (and (= (str.to_int s2) (- 1)) (not (= (str.len s2) 0)))
   (str.to_int (str.++ s1 s2 s3))
   (- 1))
 
@@ -576,16 +576,26 @@
 
 (define-rule re-repeat-elim ((n Int) (x RegLan)) (re.^ n x) (re.loop n n x))
 
-(define-rule re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
+; Applied to a fixed point, this moves (re.* r) to the right past any number of
+; adjacent occurrences of r, e.g. (re.* r) ++ r ++ r ---> r ++ r ++ (re.* r).
+; This matches the normal form computed by the theory rewriter and avoids the
+; reconstruction recursion limit when many copies of r are present (e.g. from
+; re.loop expansion).
+(define-rule* re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
 
 (define-rule re-concat-star-repeat ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) (re.* r) ys) (re.++ xs (re.* r) ys))
 
-(define-rule re-concat-star-subsume1 ((xs RegLan :list) (r RegLan) (ys RegLan :list))
-  (re.++ xs (re.* r) (re.* re.allchar) ys)
+; Any nullable regular expression adjacent to (re.* re.allchar) can be dropped,
+; since (re.* re.allchar) already matches all strings and r accepts the empty
+; string.
+(define-cond-rule re-concat-star-nullable1 ((xs RegLan :list) (r RegLan) (ys RegLan :list))
+  (str.in_re "" r)
+  (re.++ xs (re.* re.allchar) r ys)
   (re.++ xs (re.* re.allchar) ys))
 
-(define-rule re-concat-star-subsume2 ((xs RegLan :list) (r RegLan) (ys RegLan :list))
-  (re.++ xs (re.* re.allchar) (re.* r) ys)
+(define-cond-rule re-concat-star-nullable2 ((xs RegLan :list) (r RegLan) (ys RegLan :list))
+  (str.in_re "" r)
+  (re.++ xs r (re.* re.allchar) ys)
   (re.++ xs (re.* re.allchar) ys))
 
 (define-rule* re-concat-merge ((xs RegLan :list) (s String) (t String) (ys RegLan :list)) 
@@ -609,6 +619,16 @@
 
 (define-rule re-star-star ((x RegLan)) (re.* (re.* x)) (re.* x))
 
+(define-cond-rule re-range-refl ((s String))
+  (= (str.len s) 1)
+  (re.range s s)
+  (str.to_re s))
+  
+(define-cond-rule re-range-emp ((s String) (t String))
+  (and (= (str.len s) 1) (= (str.len t) 1) (< (str.to_code t) (str.to_code s)))
+  (re.range s t)
+  re.none)
+
 (define-cond-rule re-range-non-singleton-1 ((s String) (t String))
   (not (= (str.len s) 1))
   (re.range s t)
@@ -619,6 +639,10 @@
   (re.range s t)
   re.none)
 
+(define-rule re-star-union-char ((x RegLan :list) (y RegLan :list))
+  (re.* (re.union x re.allchar y))
+  (re.* re.allchar))
+
 (define-rule re-star-union-drop-emp ((x RegLan :list) (y RegLan :list))
   (re.* (re.union x (str.to_re "") y))
   (re.* (re.union x y)))
@@ -627,6 +651,14 @@
   (> n m)
   (re.loop n m r)
   re.none)
+
+; Looping a starred regex collapses to the star itself: (re.* r) is idempotent
+; under concatenation and contains the empty string, so any number of copies
+; (with m >= 1 and m >= n) is equivalent to (re.* r).
+(define-cond-rule re-loop-star ((n Int) (m Int) (r RegLan))
+  (and (>= m n) (>= m 1))
+  (re.loop n m (re.* r))
+  (re.* r))
 
 (define-cond-rule re-inter-cstring ((x RegLan) (ys RegLan :list) (s String))
   (str.in_re s (re.inter (str.to_re s) x ys))

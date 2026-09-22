@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,8 +77,9 @@ class SetDefaults : protected EnvObj
    * the options to ensure that we are compatible with incremental mode.
    *
    * If this method returns true, then the reason why we were incompatible with
-   * incremental mode is written on the reason output stream. Suggestions for how to
-   * resolve the incompatibility exception are written on the suggest stream.
+   * incremental mode is written on the reason output stream. Suggestions for
+   * how to resolve the incompatibility exception are written on the suggest
+   * stream.
    */
   bool incompatibleWithIncremental(const LogicInfo& logic,
                                    Options& opts,
@@ -130,8 +128,7 @@ class SetDefaults : protected EnvObj
    * modify the options to ensure that we are compatible with separation logic.
    * The output stream reason is similar to above.
    */
-  bool incompatibleWithSeparationLogic(Options& opts,
-                                       std::ostream& reason) const;
+  bool incompatibleWithSeparationLogic(Options& opts) const;
   //------------------------- options setting, prior finalization of logic
   /**
    * Set defaults pre, which sets all options prior to finalizing the logic.

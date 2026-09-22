@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,7 +43,7 @@ class PrintBenchmark
    * @param sorted True if declarations should be sorted wrt node id.
    * @param c      The associated node converter.
    */
-  PrintBenchmark(NodeManager * nm,
+  PrintBenchmark(NodeManager* nm,
                  const Printer* p,
                  bool sorted = true,
                  NodeConverter* c = nullptr)
@@ -156,7 +153,7 @@ class PrintBenchmark
    */
   bool decomposeDefinition(Node a, bool& isRecDef, Node& sym, Node& body);
   /** Pointer to the node manager */
-  NodeManager * d_nm;
+  NodeManager* d_nm;
   /**
    * Pointer to the printer we are using, which is responsible for printing
    * individual commands.

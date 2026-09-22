@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,14 +166,14 @@ class ArithMSum
   static Node solveEqualityFor(Node lit, Node v);
 
   /** decompose real-valued term n
-  *
-  * If this function returns true, then
-  *   ([coeff]*v + rem) is equivalent to n
-  * where coeff is non-zero m-constant.
-  *
-  * This function will return false if n is not a monomial sum containing
-  * a monomial with factor v.
-  */
+   *
+   * If this function returns true, then
+   *   ([coeff]*v + rem) is equivalent to n
+   * where coeff is non-zero m-constant.
+   *
+   * This function will return false if n is not a monomial sum containing
+   * a monomial with factor v.
+   */
   static bool decompose(Node n, Node v, Node& coeff, Node& rem);
 
   /** debug print for a monmoial sum, prints to Trace(c) */

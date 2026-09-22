@@ -19,7 +19,7 @@ name   = "Base"
   type       = "ManagedIn"
   default    = '{}'
   includes   = ["<iostream>", "options/managed_streams.h"]
-  help       = "Set the error (or diagnostic) output channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
+  help       = "Set the input channel. Reads from stdin for \"stdin\" or \"--\" and the given filename otherwise."
 
 [[option]]
   name       = "out"
@@ -29,7 +29,7 @@ name   = "Base"
   default    = '{}'
   alias      = ["regular-output-channel"]
   includes   = ["<iostream>", "options/managed_streams.h"]
-  help       = "Set the error (or diagnostic) output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
+  help       = "Set the regular output channel. Writes to stdout for \"stdout\" or \"--\", stderr for \"stderr\" or the given filename otherwise."
 
 [[option]]
   name       = "inputLanguage"

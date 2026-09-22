@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +37,7 @@ namespace quantifiers {
 class ExampleInfer
 {
  public:
-  ExampleInfer(NodeManager* nm, TermDbSygus* tds);
+  ExampleInfer(NodeManager* nm);
   ~ExampleInfer();
   /** initialize
    *
@@ -112,8 +109,6 @@ class ExampleInfer
       bool pol);
   /** Pointer to the node manager */
   NodeManager* d_nm;
-  /** Pointer to the sygus term database */
-  TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
   /**

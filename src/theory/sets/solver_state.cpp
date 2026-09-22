@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,7 +93,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       }
       else
       {
-        Assert(false);
+        DebugUnhandled();
       }
     }
   }
@@ -237,13 +234,13 @@ Node SolverState::getSingletonEqClass(Node r) const
 
 Node SolverState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
 {
-  std::map<Kind, std::map<Node, std::map<Node, Node> > >::const_iterator itk =
+  std::map<Kind, std::map<Node, std::map<Node, Node>>>::const_iterator itk =
       d_bop_index.find(k);
   if (itk == d_bop_index.end())
   {
     return Node::null();
   }
-  std::map<Node, std::map<Node, Node> >::const_iterator it1 =
+  std::map<Node, std::map<Node, Node>>::const_iterator it1 =
       itk->second.find(r1);
   if (it1 == itk->second.end())
   {
@@ -330,7 +327,7 @@ bool SolverState::isSetDisequalityEntailedInternal(Node a,
                                                    Node re) const
 {
   // if there are members in a
-  std::map<Node, std::map<Node, Node> >::const_iterator itpma =
+  std::map<Node, std::map<Node, Node>>::const_iterator itpma =
       d_pol_mems[0].find(a);
   if (itpma == d_pol_mems[0].end())
   {
@@ -354,7 +351,7 @@ bool SolverState::isSetDisequalityEntailedInternal(Node a,
     return false;
   }
   std::map<Node, Node>::const_iterator itsb = d_eqc_singleton.find(b);
-  std::map<Node, std::map<Node, Node> >::const_iterator itpmb =
+  std::map<Node, std::map<Node, Node>>::const_iterator itpmb =
       d_pol_mems[1].find(b);
   std::vector<Node> prev;
   for (const std::pair<const Node, Node>& itm : itpma->second)
@@ -415,7 +412,7 @@ bool SolverState::isCongruent(Node n) const
 }
 const std::vector<Node>& SolverState::getNonVariableSets(Node r) const
 {
-  std::map<Node, std::vector<Node> >::const_iterator it = d_nvar_sets.find(r);
+  std::map<Node, std::vector<Node>>::const_iterator it = d_nvar_sets.find(r);
   if (it == d_nvar_sets.end())
   {
     return d_emptyVec;
@@ -435,7 +432,7 @@ Node SolverState::getVariableSet(Node r) const
 
 const std::vector<Node>& SolverState::getComprehensionSets(Node r) const
 {
-  std::map<Node, std::vector<Node> >::const_iterator it = d_compSets.find(r);
+  std::map<Node, std::vector<Node>>::const_iterator it = d_compSets.find(r);
   if (it == d_compSets.end())
   {
     return d_emptyVec;
@@ -456,7 +453,7 @@ const std::map<Node, Node>& SolverState::getNegativeMembers(Node r) const
 const std::map<Node, Node>& SolverState::getMembersInternal(Node r,
                                                             unsigned i) const
 {
-  std::map<Node, std::map<Node, Node> >::const_iterator itp =
+  std::map<Node, std::map<Node, Node>>::const_iterator itp =
       d_pol_mems[i].find(r);
   if (itp == d_pol_mems[i].end())
   {
@@ -467,7 +464,7 @@ const std::map<Node, Node>& SolverState::getMembersInternal(Node r,
 
 bool SolverState::hasMembers(Node r) const
 {
-  std::map<Node, std::map<Node, Node> >::const_iterator it =
+  std::map<Node, std::map<Node, Node>>::const_iterator it =
       d_pol_mems[0].find(r);
   if (it == d_pol_mems[0].end())
   {
@@ -475,7 +472,7 @@ bool SolverState::hasMembers(Node r) const
   }
   return !it->second.empty();
 }
-const std::map<Kind, std::map<Node, std::map<Node, Node> > >&
+const std::map<Kind, std::map<Node, std::map<Node, Node>>>&
 SolverState::getBinaryOpIndex() const
 {
   return d_bop_index;
@@ -487,14 +484,20 @@ const std::map<Node, std::map<Node, Node>>& SolverState::getBinaryOpIndex(
   return d_bop_index[k];
 }
 
-const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
+const std::map<Kind, std::vector<Node>>& SolverState::getOperatorList() const
 {
   return d_op_list;
 }
 
-const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTerms; }
+const std::vector<Node>& SolverState::getFilterTerms() const
+{
+  return d_filterTerms;
+}
 
-const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
+const context::CDHashSet<Node>& SolverState::getMapTerms() const
+{
+  return d_mapTerms;
+}
 
 const context::CDHashSet<Node>& SolverState::getGroupTerms() const
 {
@@ -531,7 +534,7 @@ bool SolverState::isMember(TNode x, TNode s) const
   NodeIntMap::const_iterator mem_i = d_members.find(s);
   if (mem_i != d_members.end())
   {
-    std::map<Node, std::vector<Node> >::const_iterator itd =
+    std::map<Node, std::vector<Node>>::const_iterator itd =
         d_members_data.find(s);
     Assert(itd != d_members_data.end());
     const std::vector<Node>& members = itd->second;
@@ -648,14 +651,14 @@ void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
 {
   Assert(n.getKind() == Kind::SET_MAP);
   Assert(element.getKind() == Kind::SKOLEM
-         && element.getType() == n[1].getType().getSetElementType());
+         && CVC5_EQUAL(element.getType(), n[1].getType().getSetElementType()));
   d_mapSkolemElements[n].get()->insert(element);
 }
 
 void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 {
   Assert(group.getKind() == Kind::RELATION_GROUP);
-  Assert(skolemElement.getType() == group[0].getType().getSetElementType());
+  AssertEqual(skolemElement.getType(), group[0].getType().getSetElementType());
   d_partElementSkolems[group].get()->insert(skolemElement);
 }
 

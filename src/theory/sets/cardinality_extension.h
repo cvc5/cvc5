@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -144,7 +141,7 @@ class CardinalityExtension : protected EnvObj
    * called by TheorySetsPrivate::collectModelInfo to ask the TheoryModel to
    * exclude these slack elements from the members in all sets of that type.
    */
-  const std::map<TypeNode, std::vector<TNode> >& getFiniteTypeSlackElements()
+  const std::map<TypeNode, std::vector<TNode>>& getFiniteTypeSlackElements()
       const
   {
     return d_finite_type_slack_elements;
@@ -369,9 +366,9 @@ class CardinalityExtension : protected EnvObj
    * Maps equivalence classes + "base" terms of set terms in that equivalence
    * class to their "flat form" (see checkNormalForms).
    */
-  std::map<Node, std::map<Node, std::vector<Node> > > d_ff;
+  std::map<Node, std::map<Node, std::vector<Node>>> d_ff;
   /** Maps equivalence classes to their "normal form" (see checkNormalForms). */
-  std::map<Node, std::vector<Node> > d_nf;
+  std::map<Node, std::vector<Node>> d_nf;
   /** The local base node map
    *
    * This maps set terms to the "local base node" of its cardinality graph.
@@ -397,11 +394,11 @@ class CardinalityExtension : protected EnvObj
    * a map to store the non-slack elements encountered so far in all finite
    * types
    */
-  std::map<TypeNode, std::vector<Node> > d_finite_type_elements;
+  std::map<TypeNode, std::vector<Node>> d_finite_type_elements;
   /**
    * a map to store slack elements in all finite types
    */
-  std::map<TypeNode, std::vector<TNode> > d_finite_type_slack_elements;
+  std::map<TypeNode, std::vector<TNode>> d_finite_type_slack_elements;
   /** This boolean determines whether we already collected finite type constants
    *  present in the current model.
    *  Default value is false

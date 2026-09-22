@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@
 
 #include <cadical/tracer.hpp>
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
 #include "proof/proof_node.h"
@@ -31,27 +29,28 @@ namespace cvc5::internal::prop::cadical {
 class CadicalPropagator;
 
 /**
- * Proof tracer implementation for computing unsat cores from CaDiCaL.
+ * Proof tracer implementation for tracing CaDiCaL LRUP proofs.
  *
  * This tracer keeps track of the original clauses sent to CaDiCaL (input
- * clauses and theory lemmas) as well as the antecedents of each derived clause.
- * Derived clauses are not stored since they are not needed for unsat cores.
+ * clauses and theory lemmas) as well as derived clauses and their
+ * antecedents. All input clauses added during solving are considered theory
+ * lemmas.
  *
  * When the empty clause (ProofTracer::conclude_unsat) is derived we store
  * the final clause ids that were used to derive the empty clause in
- * d_final_clauses. The original clauses that are reachable from the
- * final clause ids through the stored antecedents correspond to the unsat core,
- * which is computed in ProofTracer::compute_unsat_core.
+ * d_final_clauses. The input clauses that are reachable from the
+ * final clause ids through the stored antecedents correspond to the unsat core.
  */
 
 class ProofTracer : public CaDiCaL::Tracer
 {
  public:
-  enum class ClauseType
+  enum class ClauseType : uint8_t
   {
     ASSUMPTION,  // assumption clause
     INPUT,       // input clause
-    THEORY,      // theory lemmas
+    THEORY,      // theory lemma
+    DERIVED,     // derived clause
   };
 
   struct ClauseInfo
@@ -90,17 +89,67 @@ class ProofTracer : public CaDiCaL::Tracer
   void conclude_unsat(CaDiCaL::ConclusionType type,
                       const std::vector<uint64_t>& clause_ids) override;
 
-  void compute_unsat_core(std::vector<SatClause>& unsat_core,
-                          bool include_theory_lemmas = true) const;
+  /**
+   * Backwards traversal of clausal proof starting from the empty clause.
+   * @param core Proof core containing visited clause ids.
+   */
+  void compute_proof_core(std::vector<uint64_t>& core) const;
+
+  /**
+   * Generates the chain resolution proof from CaDiCaL's LRUP proof.
+   */
+  std::shared_ptr<ProofNode> get_chain_resolution_proof(ProofNodeManager* pnm,
+                                                        NodeManager* nm,
+                                                        TheoryProxy* proxy);
 
  private:
+  /**
+   * Helper to find pivot literals.
+   * @param marked_vars Cache of already marked variables.
+   * @param lit Current literal to mark.
+   * @return Whether other polarity of given literal has been already marked.
+   */
+  bool mark_var(std::unordered_map<int32_t, uint8_t>& marked_vars, int32_t lit);
+
+  /**
+   * Helper to produce chain resolution proof step for a derived clause.
+   *
+   * Produces a chain resolution proof step for the given derived clause cid.
+   * From the extracted SAT proof core we get that a clause C was derived by
+   * resolving antecedents A0,...,An. For each resolution step in the chain we
+   * compute the pivot literal and its polarity, starting by resolving An and
+   * An-1 (backwards resolution). The children of this chain resolution step are
+   * the proof steps of each antecedent, i.e., steps[A0],...,steps[An]. The
+   * arguments are the pivot literals and their polarities and the derived
+   * clause C as a node.
+   *
+   *              steps[A0],...,steps[An] | C,(polarities...),(pivots...)
+   * CHAIN_M_RES --------------------------------------------------------
+   *                                   steps[cid]
+   *
+   * @param cid Clause id of derived clause to produce proof step for.
+   * @param proxy Theory proxy to get node mapping.
+   * @param pnm Proof node manager instance.
+   * @param nm Node manager instance.
+   * @param steps Maps derived clauses to chain resolution proof step that
+   *              derived that clause.
+   * @param activation_literals Set of current activation literals, used to
+   *                            filter out from clauses as they are only
+   *                            relevant for push/pop.
+   * @return A chain resolution step for producing clause cid.
+   */
+  std::shared_ptr<ProofNode> chain_resolution_step(
+      uint64_t cid,
+      TheoryProxy* proxy,
+      ProofNodeManager* pnm,
+      NodeManager* nm,
+      const std::unordered_map<uint64_t, std::shared_ptr<ProofNode>>& steps,
+      const std::unordered_set<int64_t>& activation_literals);
+
   const CadicalPropagator& d_propagator;
-  // Maps clause id to its antecedents.
-  std::vector<std::vector<uint64_t>> d_antecedents;
-  // Maps original clause ids to their literals and clause type.
-  std::unordered_map<uint64_t, std::pair<std::vector<int>, ClauseType>>
-      d_orig_clauses;
-  // Stores the final clause ids used to conclude unsat.
+  /** Maps clause ids to clause info. */
+  std::unordered_map<uint64_t, ClauseInfo> d_clauses;
+  /** Stores the final clause ids used to conclude unsat. */
   std::vector<uint64_t> d_final_clauses;
 };
 

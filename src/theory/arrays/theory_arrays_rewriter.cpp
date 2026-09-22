@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Clark Barrett, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -183,7 +180,6 @@ Node TheoryArraysRewriter::computeNormalizeOp(const Node& n,
       break;
     }
     // success if we can move past
-    success = false;
     if (iconst)
     {
       success = arr[1].isConst();
@@ -521,11 +517,11 @@ Node TheoryArraysRewriter::expandEqRange(NodeManager* nm, TNode node)
                     << node.getKind();
   }
 
-  range = nm->mkNode(Kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
+  range = nm->mkNode(Kind::AND, {nm->mkNode(kle, i, k), nm->mkNode(kle, k, j)});
 
-  Node eq = nm->mkNode(Kind::EQUAL,
-                       nm->mkNode(Kind::SELECT, a, k),
-                       nm->mkNode(Kind::SELECT, b, k));
+  Node eq = nm->mkNode(
+      Kind::EQUAL,
+      {nm->mkNode(Kind::SELECT, a, k), nm->mkNode(Kind::SELECT, b, k)});
   Node implies = nm->mkNode(Kind::IMPLIES, range, eq);
   return nm->mkNode(Kind::FORALL, bvl, implies);
 }
@@ -873,7 +869,7 @@ Node TheoryArraysRewriter::mkEqNode(const Node& a, const Node& b) const
   Node eq = a.eqNode(b);
   return d_rewriter->rewrite(eq);
 }
-  
+
 }  // namespace arrays
 }  // namespace theory
 }  // namespace cvc5::internal

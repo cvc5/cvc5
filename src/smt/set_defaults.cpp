@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -163,8 +160,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(arith, nlCov, false, "safe options");
       // never use symmetry breaker, which does not have proofs
       SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
-      // always use cegqi midpoint, which avoids virtual term substitution
-      SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
       // class of rewrites in quantifiers we don't have proof support for but is
@@ -357,18 +352,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
   }
   if (opts.smt.produceProofs)
   {
-    // determine the prop proof mode, based on which SAT solver we are using
-    if (!opts.proof.propProofModeWasSetByUser)
-    {
-      if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-      {
-        // use SAT_EXTERNAL_PROVE for cadical by default
-        SET_AND_NOTIFY(proof,
-                       propProofMode,
-                       options::PropProofMode::SAT_EXTERNAL_PROVE,
-                       "cadical");
-      }
-    }
     // upgrade to full strict if safe options
     if (options().base.safeMode == options::SafeMode::SAFE
         && opts.smt.proofMode == options::ProofMode::FULL)
@@ -422,6 +405,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
 
 void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
+  if (opts.base.incrementalSolving && !opts.prop.satSolverWasSetByUser)
+  {
+    // use minisat by default if incremental is enabled, due to performance
+    SET_AND_NOTIFY_VAL_SYM(
+        prop, satSolver, options::SatSolverMode::MINISAT, "incremental");
+  }
   if (opts.quantifiers.sygusInstWasSetByUser)
   {
     if (opts.quantifiers.sygusInst && isSygus(opts))
@@ -596,7 +585,7 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
   if (d_env.hasSepHeap())
   {
     std::stringstream reasonNoSepLogic;
-    if (incompatibleWithSeparationLogic(opts, reasonNoSepLogic))
+    if (incompatibleWithSeparationLogic(opts))
     {
       std::stringstream ss;
       ss << reasonNoSepLogic.str()
@@ -862,7 +851,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   // DIO solver typically makes things worse for quantifier-free logics with
   // non-linear arithmetic.
   if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
-      && !logic.isLinear())
+      && !logic.isLinear() && !opts.arith.arithDioSolverWasSetByUser)
   {
     SET_AND_NOTIFY(
         arith, arithDioSolver, false, "quantifier-free non-linear logic");
@@ -1042,6 +1031,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   {
     SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
   }
+  if (logic.isQuantified())
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        arith,
+        nlExtInitialSignLemmas,
+        false,
+        "Preemptive lemmas for incremental linearization are disabled "
+        "when the logic has quantifiers");
+  }
 }
 
 bool SetDefaults::isSygus(const Options& opts) const
@@ -1153,20 +1151,7 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     return true;
   }
   // specific to SAT solver
-  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
-  {
-    if (opts.proof.propProofMode == options::PropProofMode::PROOF)
-    {
-      reason << "(resolution) proofs in CaDiCaL";
-      return true;
-    }
-    if (opts.smt.proofMode != options::ProofMode::PP_ONLY)
-    {
-      reason << "CaDiCaL";
-      return true;
-    }
-  }
-  else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
+  if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
     // TODO (wishue #154): throw logic exception for modes e.g. DRAT or LRAT
     // not supported by Minisat.
@@ -1303,7 +1288,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
 
   // disable modes not supported by incremental
   SET_AND_NOTIFY(smt, sortInference, false, "incremental solving");
-  SET_AND_NOTIFY(uf, ufssFairnessMonotone, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, globalNegate, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, cegqiNestedQE, false, "incremental solving");
   SET_AND_NOTIFY(arith, arithMLTrick, false, "incremental solving");
@@ -1416,8 +1400,7 @@ bool SetDefaults::incompatibleWithQuantifiers(const Options& opts,
   return false;
 }
 
-bool SetDefaults::incompatibleWithSeparationLogic(Options& opts,
-                                                  std::ostream& reason) const
+bool SetDefaults::incompatibleWithSeparationLogic(Options& opts) const
 {
   // Spatial formulas in separation logic have a semantics that depends on
   // their position in the AST (e.g. their nesting beneath separation
@@ -1544,6 +1527,11 @@ void SetDefaults::setDefaultsQuantifiers(const LogicInfo& logic,
   if (opts.quantifiers.instMaxLevel != -1)
   {
     SET_AND_NOTIFY(quantifiers, cegqi, false, "instMaxLevel");
+  }
+  if (opts.quantifiers.mbqiEnumChoiceGrammar)
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        quantifiers, mbqiEnum, true, "mbqiEnumChoiceGrammar");
   }
   // enable MBQI if --mbqi-enum is provided
   if (opts.quantifiers.mbqiEnum)

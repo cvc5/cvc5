@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -421,6 +418,68 @@ bool RegExpEntail::isConstRegExp(TNode t)
   return true;
 }
 
+bool RegExpEntail::isNullable(TNode r, bool& res)
+{
+  // Note the cases below are intentionally in sync with the $re_nullable
+  // program of the cpc signature.
+  Kind k = r.getKind();
+  switch (k)
+  {
+    case Kind::REGEXP_ALL:
+    case Kind::REGEXP_STAR: res = true; break;
+    case Kind::REGEXP_NONE:
+    case Kind::REGEXP_ALLCHAR:
+    case Kind::REGEXP_RANGE:
+      // note a range never contains the empty string, regardless of whether
+      // its arguments are characters
+      res = false;
+      break;
+    case Kind::STRING_TO_REGEXP:
+      if (!r[0].isConst())
+      {
+        // cannot determine whether the argument is the empty string
+        return false;
+      }
+      res = Word::isEmpty(r[0]);
+      break;
+    case Kind::REGEXP_COMPLEMENT:
+      if (!isNullable(r[0], res))
+      {
+        return false;
+      }
+      res = !res;
+      break;
+    case Kind::REGEXP_UNION:
+    case Kind::REGEXP_INTER:
+    case Kind::REGEXP_CONCAT:
+    {
+      // (re.union r1 ... rn) is nullable if some ri is nullable,
+      // (re.inter r1 ... rn) and (re.++ r1 ... rn) if all ri are nullable.
+      bool isUnion = (k == Kind::REGEXP_UNION);
+      res = !isUnion;
+      for (const Node& rc : r)
+      {
+        bool cres;
+        if (!isNullable(rc, cres))
+        {
+          // note we require determining this for all children, even if the
+          // result is already known, to remain in sync with the signature
+          return false;
+        }
+        if (cres == isUnion)
+        {
+          res = isUnion;
+        }
+      }
+    }
+    break;
+    default:
+      // e.g. re.loop, or a variable of regular expression type
+      return false;
+  }
+  return true;
+}
+
 bool RegExpEntail::testConstStringInRegExp(String& s, TNode r)
 {
   Kind k = r.getKind();
@@ -457,7 +516,7 @@ bool RegExpEntail::testConstStringInRegExpInternal(String& s,
       {
         return (s2 == r[0].getConst<String>());
       }
-      Assert(false) << "RegExp contains variables";
+      DebugUnhandled() << "RegExp contains variables";
       return false;
     }
     case Kind::REGEXP_CONCAT:
@@ -486,7 +545,8 @@ bool RegExpEntail::testConstStringInRegExpInternal(String& s,
           {
             for (vec_k[i] = vec_k[i] + 1; vec_k[i] <= left; ++vec_k[i])
             {
-              cvc5::internal::String t = s.substr(index_start + start, vec_k[i]);
+              cvc5::internal::String t =
+                  s.substr(index_start + start, vec_k[i]);
               if (testConstStringInRegExpInternal(t, 0, r[i]))
               {
                 start += vec_k[i];
@@ -1036,9 +1096,9 @@ Node RegExpEntail::getGeneralizedConstRegExp(const Node& n)
     else if (nc.getKind() == Kind::STRING_ITOS)
     {
       nonTrivial = true;
-      Node digRange = nm->mkNode(Kind::REGEXP_RANGE,
-                                 nm->mkConst(String("0")),
-                                 nm->mkConst(String("9")));
+      Node digRange =
+          nm->mkNode(Kind::REGEXP_RANGE,
+                     {nm->mkConst(String("0")), nm->mkConst(String("9"))});
       re = nm->mkNode(Kind::REGEXP_STAR, digRange);
       // maybe non-empty digit range?
       // relies on RARE rule str-in-re-from-int-dig-range to prove

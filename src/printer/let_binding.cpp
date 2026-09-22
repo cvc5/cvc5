@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -165,8 +162,9 @@ void LetBinding::updateCounts(Node n)
     it = d_count.find(cur);
     bool isSkolem = (d_traverseSkolems && cur.getKind() == Kind::SKOLEM);
     // do not traverse beneath quantifiers if d_traverseBinders is false.
-    if ((!isSkolem && cur.getNumChildren() == 0) || cur.getKind() == Kind::BOUND_VAR_LIST
-             || (!d_traverseBinders && cur.isClosure()))
+    if ((!isSkolem && cur.getNumChildren() == 0)
+        || cur.getKind() == Kind::BOUND_VAR_LIST
+        || (!d_traverseBinders && cur.isClosure()))
     {
       visit.pop_back();
       continue;
@@ -178,7 +176,8 @@ void LetBinding::updateCounts(Node n)
       {
         SkolemId skid;
         Node cacheVal;
-        if (SkolemManager::isSkolemFunction(cur, skid, cacheVal) && !cacheVal.isNull())
+        if (SkolemManager::isSkolemFunction(cur, skid, cacheVal)
+            && !cacheVal.isNull())
         {
           if (cacheVal.getKind() == Kind::SEXPR)
           {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +18,7 @@
 #include <map>
 #include <string>
 #include <vector>
+
 #include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -156,7 +154,7 @@ class DTypeConstructor
    * Return the cardinality of this constructor (the product of the
    * cardinalities of its arguments).
    */
-  Cardinality getCardinality(TypeNode t) const;
+  Cardinality getCardinality() const;
 
   /**
    * Return the cardinality class, which indicates if the type has cardinality

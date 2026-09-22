@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,7 +13,7 @@
 import io.github.cvc5.*;
 import java.util.Iterator;
 
-public class Uf 
+public class Uf
 {
   public static void main(String[] args) throws CVC5ApiException
   {
@@ -55,7 +52,7 @@ public class Uf
 
       System.out.println("Call checkSat to show that the assertions are satisfiable. \n"
           + "cvc5: " + slv.checkSat() + ".\n");
-    
+
       Context.deletePointers();
     }
   }

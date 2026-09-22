@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +38,18 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   Node expandDefinition(Node node) override;
+  /**
+   * Return the normal form of the arithmetic equality node, which is computed
+   * by moving all terms to the left hand side and normalizing the resulting
+   * sum, e.g. this returns (= x 1) for the input (= (+ x 1) 2). The returned
+   * node is either an equality or a Boolean constant.
+   *
+   * Note this normalization is not applied by postRewrite, since it does not
+   * preserve the terms of the equality, which is incompatible with theory
+   * combination, see rewriter::normalizeEquality. It is applied to equalities
+   * in the input via ppStaticRewrite, and by the extended rewriter.
+   */
+  Node rewriteEqualityExt(Node node) override;
   /**
    * Rewrite inequality to bv. If ineq contains a single bv2nat term, then
    * if possible, return an equivalent formula involving a bitvector inequality.
@@ -96,7 +105,7 @@ class ArithRewriter : public TheoryRewriter
   /** rewrite absolute */
   RewriteResponse rewriteAbs(TNode t);
   /** rewrite integer division and modulus */
-  RewriteResponse rewriteIntsDivMod(TNode t, bool pre);
+  RewriteResponse rewriteIntsDivMod(TNode t);
   /** rewrite integer total division and total modulus */
   RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
   /** rewrite to_int and is_int */
@@ -104,6 +113,8 @@ class ArithRewriter : public TheoryRewriter
 
   /** postRewrite IAND */
   RewriteResponse postRewriteIAnd(TNode t);
+  /** postRewrite PIAND */
+  RewriteResponse postRewritePIAnd(TNode t);
   /** postRewrite POW2 */
   RewriteResponse postRewritePow2(TNode t);
   /** postRewrite INTS_IS_POW2 */

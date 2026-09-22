@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,7 +67,8 @@ Env::Env(NodeManager* nm, const Options* opts)
   d_eval.reset(
       new theory::Evaluator(nullptr, d_options.strings.stringsAlphaCard));
   d_statisticsRegistry->registerTimer("global::totalTime").start();
-  d_resourceManager = std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
+  d_resourceManager =
+      std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options);
   d_rewriter->d_resourceManager = d_resourceManager.get();
 }
 
@@ -195,10 +193,7 @@ std::ostream& Env::verbose(int64_t level) const
   return cvc5::internal::null_os;
 }
 
-std::ostream& Env::warning() const
-{
-  return verbose(0);
-}
+std::ostream& Env::warning() const { return verbose(0); }
 
 Node Env::evaluate(TNode n,
                    const std::vector<Node>& args,
@@ -250,8 +245,7 @@ Node Env::rewriteViaMethod(TNode n, MethodId idr)
     return n;
   }
   // unknown rewriter
-  Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr
-              << std::endl;
+  Unhandled() << "Env::rewriteViaMethod: no rewriter for " << idr << std::endl;
   return n;
 }
 
@@ -292,11 +286,10 @@ theory::TheoryId Env::theoryOf(TypeNode typeNode) const
 
 theory::TheoryId Env::theoryOf(TNode node) const
 {
-  theory::TheoryId tid = theory::Theory::theoryOf(node,
-                                  d_options.theory.theoryOfMode,
-                                  d_uninterpretedSortOwner);
+  theory::TheoryId tid = theory::Theory::theoryOf(
+      node, d_options.theory.theoryOfMode, d_uninterpretedSortOwner);
   // Special case: Boolean term skolems belong to THEORY_UF.
-  if (tid==theory::TheoryId::THEORY_BOOL && isBooleanTermSkolem(node))
+  if (tid == theory::TheoryId::THEORY_BOOL && isBooleanTermSkolem(node))
   {
     return theory::TheoryId::THEORY_UF;
   }
@@ -350,7 +343,7 @@ Node Env::getSharableFormula(const Node& n) const
     // note we only remove purify skolems if the above option is disabled
     on = SkolemManager::getOriginalForm(n);
   }
-  SkolemManager * skm = d_nm->getSkolemManager();
+  SkolemManager* skm = d_nm->getSkolemManager();
   std::vector<Node> toProcess;
   toProcess.push_back(on);
   // The set of kinds that we never want to share. Any kind that can appear
@@ -389,7 +382,7 @@ Node Env::getSharableFormula(const Node& n) const
         if (!skm->isSkolemFunction(s, id, cacheVal))
         {
           // kind SKOLEM should imply that it is a skolem function
-          Assert(false);
+          DebugUnhandled();
           return Node::null();
         }
         if (!cacheVal.isNull()

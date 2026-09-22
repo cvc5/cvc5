@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -165,6 +162,10 @@ Node ArithEntail::rewriteLengthIntro(const Node& n,
       Kind k = cur.getKind();
       bool childChanged = false;
       std::vector<Node> children;
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
       for (const Node& cn : cur)
       {
         it = visited.find(cn);
@@ -561,7 +562,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
       msumAar.clear();
       if (!ArithMSum::getMonomialSum(aar, msumAar))
       {
-        Assert(false);
+        DebugUnhandled();
         Trace("strings-ent-approx")
             << "...failed to get monomial sum!" << std::endl;
         return Node::null();
@@ -576,7 +577,7 @@ Node ArithEntail::findApproxInternal(Node ar, bool isSimple)
     Trace("strings-ent-approx-debug")
         << "...approximation had no effect" << std::endl;
     // this should never happen, but we avoid the infinite loop for sanity here
-    Assert(false);
+    DebugUnhandled();
     return Node::null();
   }
   // Check entailment on the approximation of ar.

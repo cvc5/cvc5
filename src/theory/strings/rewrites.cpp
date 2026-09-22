@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -235,7 +232,7 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
     case Rewrite::UNKNOWN: return "?";
     default:
-      Assert(false) << "No print for rewrite " << static_cast<size_t>(r);
+      DebugUnhandled() << "No print for rewrite " << static_cast<size_t>(r);
       return "?Unhandled";
   }
 }

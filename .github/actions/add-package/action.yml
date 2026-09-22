@@ -7,6 +7,8 @@ inputs:
     description: target name of the package
   shell:
     default: bash
+  dry-run:
+    default: false
 outputs:
   install-path:
     description: path to the installation directory
@@ -62,14 +64,14 @@ runs:
         echo "::endgroup::"
 
     - name: Store to latest
-      if: github.ref == 'refs/heads/main'
+      if: ${{ github.ref == 'refs/heads/main' && inputs.dry-run != 'true' }}
       uses: ./.github/actions/store-to-latest
       with:
         asset-filename: ${{ inputs.package-name }}.zip
         shell: ${{ inputs.shell }}
 
     - name: Store to release
-      if: startsWith(github.ref, 'refs/tags/')
+      if: ${{ startsWith(github.ref, 'refs/tags/') && inputs.dry-run != 'true' }}
       shell: ${{ inputs.shell }}
       env:
         GH_TOKEN: ${{ github.token }}

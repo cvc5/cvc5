@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Andres Noetzli, Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,8 +15,20 @@
 
 include(deps-helper)
 
+# On Windows we always link LibPoly statically, even into a shared libcvc5.
+# A LibPoly DLL auto-exports the GMP symbols it statically embeds (MinGW
+# auto-export), and those re-exported symbols (e.g. __gmp_default_allocate)
+# then collide with cvc5's own static GMP when linking libcvc5.dll, which lld
+# rejects with "<sym> was replaced". A static (PIC) LibPoly has no export
+# table, so there is nothing to collide.
+if(BUILD_SHARED_LIBS AND NOT WIN32)
+  set(POLY_BUILD_SHARED ON)
+else()
+  set(POLY_BUILD_SHARED OFF)
+endif()
+
 find_path(Poly_INCLUDE_DIR NAMES poly/poly.h)
-if(BUILD_SHARED_LIBS)
+if(POLY_BUILD_SHARED)
   find_library(Poly_LIBRARIES NAMES poly)
   find_library(PolyXX_LIBRARIES NAMES polyxx)
 else()
@@ -70,7 +79,7 @@ if(NOT Poly_FOUND_SYSTEM)
   if(CCWIN)
     set(POLY_PATCH_CMD
       ${POLY_PATCH_KWD}
-        ${CMAKE_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
+        ${PROJECT_SOURCE_DIR}/cmake/deps-utils/Poly-windows-patch.sh <SOURCE_DIR>
     )
     set(POLY_PATCH_KWD COMMAND)
   endif()
@@ -89,7 +98,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
 
-  if(BUILD_SHARED_LIBS)
+  if(POLY_BUILD_SHARED)
     set(POLY_BUILD_STATIC OFF)
     set(POLY_TARGETS poly polyxx)
     set(POLY_INSTALL_CMD
@@ -169,12 +178,25 @@ if(NOT Poly_FOUND_SYSTEM)
       "${DEPS_BASE}/lib/libpicpolyxx${CMAKE_STATIC_LIBRARY_SUFFIX}")
   endif()
 
-  # Disable a warning triggered by the Emscripten compiler due to code in
-  # a GMP header used by LibPoly.
+  # Disable a warning triggered by compilers (Emscripten, Apple Clang, etc.)
+  # due to deprecated literal operator syntax in a GMP header used by LibPoly.
   set(POLY_CXX_FLAGS "")
-  if(NOT(WASM STREQUAL "OFF"))
-    set(POLY_CXX_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-literal-operator)
+  set(_poly_cxx_flags "")
+  check_cxx_compiler_flag(-Wno-error=deprecated-literal-operator HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
+  if(HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
+    string(APPEND _poly_cxx_flags " -Wno-error=deprecated-literal-operator")
   endif()
+  # See FindCaDiCaL.cmake: emcc's default -fignore-exceptions emits no
+  # landing pads, so destructors in LibPoly frames an exception unwinds
+  # through would be skipped.
+  if(EMSCRIPTEN)
+    string(APPEND _poly_cxx_flags " -fexceptions")
+  endif()
+  if(_poly_cxx_flags)
+    string(STRIP "${_poly_cxx_flags}" _poly_cxx_flags)
+    set(POLY_CXX_FLAGS "-DCMAKE_CXX_FLAGS=${_poly_cxx_flags}")
+  endif()
+  
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
   # able to find the correct version of GMP if we built it locally. This is
   # primarily important for cross-compiling cvc5, because LibPoly's search
@@ -211,7 +233,7 @@ endif()
 set(Poly_FOUND TRUE)
 
 
-if(BUILD_SHARED_LIBS)
+if(POLY_BUILD_SHARED)
   add_library(Poly SHARED IMPORTED GLOBAL)
   add_library(Polyxx SHARED IMPORTED GLOBAL)
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,8 +53,11 @@ void EqualitySolver::finishInit()
   d_ee->addFunctionKind(Kind::POW2);
 }
 
-bool EqualitySolver::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool EqualitySolver::preNotifyFact(TNode atom,
+                                   CVC5_UNUSED bool pol,
+                                   TNode fact,
+                                   CVC5_UNUSED bool isPrereg,
+                                   CVC5_UNUSED bool isInternal)
 {
   if (atom.getKind() != Kind::EQUAL)
   {
@@ -143,7 +143,7 @@ bool EqualitySolver::EqualitySolverNotify::eqNotifyTriggerPredicate(
 }
 
 bool EqualitySolver::EqualitySolverNotify::eqNotifyTriggerTermEquality(
-    TheoryId tag, TNode t1, TNode t2, bool value)
+    CVC5_UNUSED TheoryId tag, TNode t1, TNode t2, bool value)
 {
   Trace("arith-eq-solver") << "...propagate (term eq) " << t1.eqNode(t2)
                            << " -> " << value << std::endl;

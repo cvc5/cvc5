@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,12 +29,9 @@ namespace utils {
 
 /* ------------------------------------------------------------------------- */
 
-unsigned getSize(TNode node)
-{
-  return node.getType().getBitVectorSize();
-}
+unsigned getSize(TNode node) { return node.getType().getBitVectorSize(); }
 
-const bool getBit(TNode node, unsigned i)
+bool getBit(TNode node, unsigned i)
 {
   Assert(i < getSize(node) && node.getKind() == Kind::CONST_BITVECTOR);
   return node.getConst<BitVector>().extract(i, i).getValue() == 1u;
@@ -116,7 +110,10 @@ bool isBvConstTerm(TNode node)
 
   for (const TNode& n : node)
   {
-    if (!n.isConst()) { return false; }
+    if (!n.isConst())
+    {
+      return false;
+    }
   }
   return true;
 }
@@ -272,10 +269,7 @@ Node mkConst(NodeManager* nm, const BitVector& value)
 
 Node mkVar(NodeManager* nm, unsigned size)
 {
-  return NodeManager::mkDummySkolem(
-      "BVSKOLEM$$",
-      nm->mkBitVectorType(size),
-      "is a variable created by the theory of bitvectors");
+  return NodeManager::mkDummySkolem("BVSKOLEM$$", nm->mkBitVectorType(size));
 }
 
 /* ------------------------------------------------------------------------- */
@@ -425,7 +419,10 @@ Node flattenAnd(std::vector<TNode>& queue)
     {
       for (const TNode& n : current)
       {
-        if (nodes.count(n) == 0) { queue.push_back(n); }
+        if (nodes.count(n) == 0)
+        {
+          queue.push_back(n);
+        }
       }
     }
     else

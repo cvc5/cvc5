@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -74,7 +71,9 @@ class ArithSubsTermContext : public TermContext
   /** The initial value: valid. */
   uint32_t initialValue() const override { return 0; }
   /** Compute the value of the index^th child of t whose hash is tval */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override
+  uint32_t computeValue(TNode t,
+                        uint32_t tval,
+                        CVC5_UNUSED size_t index) const override
   {
     if (tval == 0)
     {

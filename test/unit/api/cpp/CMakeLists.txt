@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Andrew Reynolds, Hans-Joerg Schurr
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -17,9 +14,11 @@ cvc5_add_unit_test_black(api_datatype_black api/cpp)
 cvc5_add_unit_test_black(api_grammar_black api/cpp)
 cvc5_add_unit_test_black(api_input_parser_black api/cpp)
 cvc5_add_unit_test_black(api_kind_black api/cpp)
+cvc5_add_unit_test_black(api_lifetime_black api/cpp)
 cvc5_add_unit_test_black(api_op_black api/cpp)
 cvc5_add_unit_test_white(api_op_white api/cpp)
 cvc5_add_unit_test_black(api_parametric_datatype_black api/cpp)
+cvc5_add_unit_test_black(api_parser_lifetime_black api/cpp)
 cvc5_add_unit_test_black(api_proof_black api/cpp)
 cvc5_add_unit_test_black(api_proof_rule_black api/cpp)
 cvc5_add_unit_test_black(api_result_black api/cpp)

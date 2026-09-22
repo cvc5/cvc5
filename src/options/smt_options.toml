@@ -209,7 +209,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "unsatAssumptions"
-  category   = "regular"
+  category   = "common"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
@@ -365,6 +365,14 @@ name   = "SMT Layer"
   help       = "Cross-theory rewrites"
 
 [[option]]
+  name       = "distinctElimThreshold"
+  category   = "expert"
+  long       = "distinct-elim-threshold=N"
+  type       = "uint64_t"
+  default    = "0"
+  help       = "if this option is set, run a preprocessing pass that eagerly eliminates (blasts) distinct terms with at most N children into pairwise disequalities; 0 means no limit, i.e. all distinct terms are eliminated. Note the rewriter already eliminates distinct terms with at most 10 children, so values 1 to 10 have no effect; use 0 or a value greater than 10"
+
+[[option]]
   name       = "solveBVAsInt"
   category   = "regular"
   long       = "solve-bv-as-int=MODE"
@@ -395,7 +403,7 @@ name   = "SMT Layer"
   long       = "bv-to-int-use-pow2"
   type       = "bool"
   default    = "false"
-  help       = "use internal pow2 operator when translating shift notes"
+  help       = "use internal pow2 operator when translating shift nodes"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
@@ -534,7 +542,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "toCoreTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "timeout-core-timeout=N"
   type       = "uint64_t"
   default    = "10000"
