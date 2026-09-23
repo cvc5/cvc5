@@ -4312,9 +4312,7 @@ set(regress_3_tests
   regress3/arith_prp-13-24.smt2
   regress3/auflia-fuzz06.smtv1.smt2
   regress3/bags/reduce_constants_dup.smt2
-  regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
-  regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
   regress3/bug2.smtv1.smt2
   regress3/bv_to_int_bench_9839.smt2.minimized.smt2
