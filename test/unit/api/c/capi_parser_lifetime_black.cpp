@@ -368,6 +368,45 @@ TEST_F(TestCApiBlackParserLifetime, parserWithOwnSymbolManagerOutlivesSolver)
   cvc5_parser_delete(parser);
 }
 
+TEST_F(TestCApiBlackParserLifetime, internalSymbolManagerOutlivesParser)
+{
+  // Based on https://github.com/cvc5/cvc5/issues/12983
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv = cvc5_new(tm);
+  // This parser creates its own symbol manager.
+  Cvc5InputParser* p1 = cvc5_parser_new(slv, nullptr);
+  Cvc5SymbolManager* sm = cvc5_parser_get_sm(p1);
+  cvc5_parser_set_str_input(p1,
+                            CVC5_INPUT_LANGUAGE_SMT_LIB_2_6,
+                            "(set-logic QF_LIA)(declare-const x Int)",
+                            "parser_lifetime");
+  const char* error_msg;
+  Cvc5Command cmd = cvc5_parser_next_command(p1, &error_msg);
+  while (cmd)
+  {
+    (void)cvc5_cmd_invoke(cmd, slv, sm);
+    cvc5_cmd_release(cmd);
+    cmd = cvc5_parser_next_command(p1, &error_msg);
+  }
+  // A second parser sharing the symbol manager keeps it alive.
+  Cvc5InputParser* p2 = cvc5_parser_new(slv, sm);
+  cvc5_parser_delete(p1);
+  // p1 is deleted here; the symbol manager must still be usable.
+  ASSERT_TRUE(cvc5_sm_is_logic_set(sm));
+  ASSERT_EQ(std::string(cvc5_sm_get_logic(sm)), "QF_LIA");
+  ASSERT_EQ(cvc5_parser_get_sm(p2), sm);
+  cvc5_parser_set_str_input(
+      p2, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "(+ x 1)", "parser_lifetime");
+  Cvc5Term t = cvc5_parser_next_term(p2, &error_msg);
+  ASSERT_NE(t, nullptr);
+  ASSERT_EQ(std::string(cvc5_term_to_string(t)), "(+ x 1)");
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_term_release(t);
+  cvc5_parser_delete(p2);
+  cvc5_delete(slv);
+  cvc5_term_manager_delete(tm);
+}
+
 TEST_F(TestCApiBlackParserLifetime, commandOutlivesParserAndSolver)
 {
   // A command keeps its parser alive, which in turn keeps the solver and
