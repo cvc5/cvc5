@@ -110,11 +110,14 @@ class BagSolver : protected EnvObj
    *
    * The converse is not claimed, in two ways:
    * - the star can be weaker than the bags it stands for. A bag whose kind
-   *   has no pointwise translation is a slot with no definition, and the body
-   *   cannot state that two constructed bags on distinct elements are
-   *   disjoint, since it never names an element. With this option the
-   *   cardinality terms are not reduced either, so a cardinality is
-   *   constrained by the star alone, and a sat answer can be spurious;
+   *   has no pointwise translation is a slot with no definition, e.g.
+   *   (bag.map f A), whose count at an element is a sum over a preimage.
+   *   With this option the cardinality terms are not reduced either, so a
+   *   cardinality is constrained by the star alone, and a sat answer can be
+   *   spurious: the cardinality of a bag.map term is essentially free, and
+   *   e.g. (= (bag.card (bag.setof A)) 1) together with
+   *   (> (bag.card (bag.setof (bag.map f A))) 1) is reported sat although it
+   *   is unsatisfiable;
    * - nothing reads back the decomposition the star witnesses, so the bag
    *   values of a model do not necessarily satisfy the cardinality
    *   constraints of the input.

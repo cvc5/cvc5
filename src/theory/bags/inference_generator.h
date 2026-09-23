@@ -32,7 +32,18 @@ class SolverState;
 class InferenceGenerator
 {
  public:
-  InferenceGenerator(NodeManager* nm, SolverState* state, InferenceManager* im);
+  /**
+   * @param nm the node manager
+   * @param state the solver state
+   * @param im the inference manager
+   * @param useCardinality whether the size of the distinct elements of a bag
+   * is named by the term (bag.card (bag.setof A)) instead of a skolem the
+   * solver has to guess. See mapDown.
+   */
+  InferenceGenerator(NodeManager* nm,
+                     SolverState* state,
+                     InferenceManager* im,
+                     bool useCardinality);
 
   /**
    * @param n a node of the form (bag.count e A)
@@ -550,6 +561,11 @@ class InferenceGenerator
   SolverState* d_state;
   /** Pointer to the inference manager */
   InferenceManager* d_im;
+  /**
+   * Whether the size of the distinct elements of a bag is named by the term
+   * (bag.card (bag.setof A)). See the constructor and mapDown.
+   */
+  bool d_useCardinality;
   /** Commonly used constants */
   Node d_true;
   Node d_zero;

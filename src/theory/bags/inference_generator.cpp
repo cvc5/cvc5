@@ -35,8 +35,13 @@ namespace bags {
 
 InferenceGenerator::InferenceGenerator(NodeManager* nm,
                                        SolverState* state,
-                                       InferenceManager* im)
-    : d_nm(nm), d_sm(d_nm->getSkolemManager()), d_state(state), d_im(im)
+                                       InferenceManager* im,
+                                       bool useCardinality)
+    : d_nm(nm),
+      d_sm(d_nm->getSkolemManager()),
+      d_state(state),
+      d_im(im),
+      d_useCardinality(useCardinality)
 {
   d_true = d_nm->mkConst(true);
   d_zero = d_nm->mkConstInt(Rational(0));
@@ -457,8 +462,22 @@ std::tuple<InferInfo, Node, Node> InferenceGenerator::mapDown(Node n, Node e)
   Node forAll_i =
       quantifiers::BoundedIntegers::mkBoundedForall(d_nm, iList, body_i);
   Node sizeGTE_zero = d_nm->mkNode(Kind::GEQ, size, d_zero);
-  Node conclusion = d_nm->mkNode(
-      Kind::AND, {baseCase, totalSumEqualCountE, forAll_i, sizeGTE_zero});
+  std::vector<Node> conjuncts = {
+      baseCase, totalSumEqualCountE, forAll_i, sizeGTE_zero};
+  if (d_useCardinality)
+  {
+    // uf enumerates the distinct elements of A without repetition, so size is
+    // the cardinality of (bag.setof A). Naming that value lets whatever
+    // reasons about cardinalities propagate the bound of the quantifier above
+    // instead of leaving it to be guessed. Note size remains the bound of the
+    // quantifier: replacing it by the term would leave the bounded integers
+    // module without a bound it can use, and the quantifier would then never
+    // be instantiated.
+    Node setof = d_nm->mkNode(Kind::BAG_SETOF, A);
+    Node card = d_nm->mkNode(Kind::BAG_CARD, setof);
+    conjuncts.push_back(size.eqNode(card));
+  }
+  Node conclusion = d_nm->mkNode(Kind::AND, conjuncts);
   inferInfo.d_conclusion = conclusion;
 
   Trace("bags::InferenceGenerator::mapDown")

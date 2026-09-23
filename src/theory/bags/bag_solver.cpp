@@ -35,7 +35,7 @@ namespace bags {
 BagSolver::BagSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env),
       d_state(s),
-      d_ig(env.getNodeManager(), &s, &im),
+      d_ig(env.getNodeManager(), &s, &im, options().bags.bagsToLiastar),
       d_im(im),
       d_mapCache(userContext())
 {

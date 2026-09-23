@@ -2810,6 +2810,8 @@ set(regress_1_tests
   regress1/bags/liastar/card_setof_unsat.smt2
   regress1/bags/liastar/card_union_disjoint.smt2
   regress1/bags/liastar/disequality.smt2
+  regress1/bags/liastar/fold_card_sat.smt2
+  regress1/bags/liastar/fold_card_unsat.smt2
   regress1/bags/liastar/guarded_star.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
