@@ -798,6 +798,9 @@ set(regress_0_tests
   regress0/datatypes/issue8883-sort-inf.smt2
   regress0/datatypes/issue9042-rel-irrel-cons-model.smt2
   regress0/datatypes/issue12794-inst-dropped-lemma.smt2
+  regress0/datatypes/issue12930-as-quoted-cons.smt2
+  regress0/datatypes/issue12930-tester-quoted-cons.smt2
+  regress0/datatypes/issue12930-update-quoted-sel.smt2
   regress0/datatypes/issue12572-nullable-lift-no-arguments.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
@@ -2237,6 +2240,7 @@ set(regress_0_tests
   regress0/strings/issue12322-pf-eager-len-re.smt2
   regress0/strings/issue12756-str-inc-model.smt2
   regress0/strings/issue12863-re-inc-neg.smt2
+  regress0/strings/issue12905-arith-cm-alias.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -4581,7 +4585,6 @@ set(testers
   base
   unsat-core
   proof
-  lfsc
   model
   synth
   abduct
@@ -4642,8 +4645,6 @@ macro(cvc5_add_regression_test level file)
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
-    --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
     --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
