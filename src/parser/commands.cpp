@@ -828,6 +828,10 @@ void ResetCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     sm->reset();
     resetSolver(solver);
+    // reset restores the solver's original options, which may differ from
+    // options set in the input. Keep macro expansion in sync with the solver.
+    sm->setParseDefineFunMacros(
+        solver->getOptionInfo("parse-define-fun-macros").boolValue());
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1208,7 +1212,7 @@ void DefineFunctionCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   try
   {
     cvc5::Term fun;
-    if (solver->getOptionInfo("parse-define-fun-macros").boolValue())
+    if (sm->getParseDefineFunMacros())
     {
       // Like define-sort, this is an alias in the symbol table. Do not
       // introduce a solver symbol or a defining equality (and hence a proof

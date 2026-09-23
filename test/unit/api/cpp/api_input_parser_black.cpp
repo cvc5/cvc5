@@ -84,9 +84,9 @@ TEST_F(TestApiBlackInputParser, defineFunMacros)
 
 TEST_F(TestApiBlackInputParser, defineFunMacrosCapture)
 {
-  d_solver->setOption("parse-define-fun-macros", "true");
   InputParser p(d_solver.get(), d_symman.get());
   parseCommands(p,
+                "(set-option :parse-define-fun-macros true)"
                 "(set-logic LIA)"
                 "(define-fun p ((x Int)) Bool (forall ((y Int)) (= x y)))"
                 "(define-fun q ((x Int)) Bool (forall ((x Int)) (= x 0)))");
@@ -146,6 +146,11 @@ TEST_F(TestApiBlackInputParser, defineFunMacrosGlobalScopes)
   ASSERT_EQ(parseTerm(p, "(global 0)"), parseTerm(p, "(+ 0 2)"));
   parseCommands(p, "(reset-assertions)");
   ASSERT_EQ(parseTerm(p, "(global 0)"), parseTerm(p, "(+ 0 2)"));
+  parseCommands(p,
+                "(reset)(set-logic ALL)"
+                "(define-fun after-reset ((x Int)) Int (+ x 2))");
+  ASSERT_EQ(d_solver->getOption("parse-define-fun-macros"), "false");
+  ASSERT_EQ(parseTerm(p, "after-reset").getKind(), Kind::CONSTANT);
 }
 
 TEST_F(TestApiBlackInputParser, defineFunMacrosTypeChecking)

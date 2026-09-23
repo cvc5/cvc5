@@ -499,8 +499,7 @@ Term ParserState::mkApply(Kind kind, const std::vector<Term>& args)
   // Construct the application first, so that even unused parameters are
   // checked for the correct sort and arity.
   Term ret = d_tm.mkTerm(kind, args);
-  if (args[0].getKind() != Kind::LAMBDA
-      || !d_solver->getOptionInfo("parse-define-fun-macros").boolValue())
+  if (args[0].getKind() != Kind::LAMBDA || !d_symman->getParseDefineFunMacros())
   {
     return ret;
   }
@@ -780,7 +779,7 @@ void ParserState::popScope() { d_symman->popScope(); }
 
 void ParserState::reset() {}
 
-SymManager* ParserState::getSymbolManager() { return d_symman; }
+SymManager* ParserState::getSymbolManager() const { return d_symman; }
 
 std::string ParserState::stripQuotes(const std::string& s)
 {

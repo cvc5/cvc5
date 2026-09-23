@@ -518,7 +518,7 @@ class CVC5_EXPORT ParserState
   virtual void reset();
 
   /** Return the symbol manager used by this parser. */
-  SymManager* getSymbolManager();
+  SymManager* getSymbolManager() const;
 
   //------------------------ operator overloading
   /** is this function overloaded? */

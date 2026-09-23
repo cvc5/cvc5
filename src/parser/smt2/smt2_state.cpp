@@ -1058,8 +1058,7 @@ bool Smt2State::usingFreshBinders() const
 {
   // Substitution of macro arguments must not capture variables in the body,
   // including binders with the same name and sort in different definitions.
-  return d_freshBinders
-         || d_solver->getOptionInfo("parse-define-fun-macros").boolValue();
+  return d_freshBinders || getSymbolManager()->getParseDefineFunMacros();
 }
 
 void Smt2State::checkThatLogicIsSet()

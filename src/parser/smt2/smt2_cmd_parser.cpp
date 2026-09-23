@@ -922,6 +922,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
       }
+      else if (key == "parse-define-fun-macros")
+      {
+        d_state.getSymbolManager()->setParseDefineFunMacros(ss == "true");
+      }
       else if (key == "term-sort-overload")
       {
         d_state.getSymbolManager()->setTermSortOverload(ss == "true");
