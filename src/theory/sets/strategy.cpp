@@ -97,6 +97,15 @@ void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
                         << std::endl;
 }
 
+void Strategy::postCheck(Theory::Effort e)
+{
+  // Flush any facts that were buffered before this check so that the strategy
+  // runs on an up-to-date equality engine. Note this is currently a no-op:
+  // sets asserts its internal facts eagerly and never buffers pending facts.
+  d_im->doPendingFacts();
+  StrategyBase::postCheck(e);
+}
+
 }  // namespace sets
 }  // namespace theory
 }  // namespace cvc5::internal
