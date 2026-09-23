@@ -3849,6 +3849,10 @@ CVC5_EXPORT Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
  * @return The premise proofs.
  * @note The returned Cvc5Proof array pointer is only valid until the next call
  *       to this function.
+ * @note The returned proofs are released together with the solver that
+ *       created `proof`, or, if that solver has already been deleted, together
+ *       with `proof`. To use them afterwards, keep a reference to them via
+ *       `cvc5_proof_copy()`.
  */
 CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
                                                      size_t* size);
@@ -3901,8 +3905,10 @@ CVC5_EXPORT Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
 /**
  * Release copy of proof, decrements reference counter of `proof`.
  *
- * @note A proof is released together with the solver that created it. To use
- *       it afterwards, keep a reference to it via `cvc5_proof_copy()`.
+ * @note A proof is released together with the solver that created it (or,
+ *       for a proof obtained via `cvc5_proof_get_children()` after that
+ *       solver has been deleted, together with its parent proof). To use it
+ *       afterwards, keep a reference to it via `cvc5_proof_copy()`.
  *
  * @param proof The proof to release.
  *
