@@ -26,11 +26,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-TypeNode UfTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                    CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
                                  TNode n,
                                  bool check,
@@ -99,11 +94,6 @@ TypeNode UfTypeRule::computeType(NodeManager* nodeManager,
   return ret;
 }
 
-TypeNode CardinalityConstraintOpTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
                                                       TNode n,
                                                       bool check,
@@ -132,11 +122,6 @@ TypeNode CardinalityConstraintOpTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->builtinOperatorType();
 }
 
-TypeNode CombinedCardinalityConstraintOpTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -154,12 +139,6 @@ TypeNode CombinedCardinalityConstraintOpTypeRule::computeType(
     }
   }
   return nodeManager->builtinOperatorType();
-}
-
-TypeNode HoApplyTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                         CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
 }
 
 TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
@@ -214,11 +193,6 @@ TypeNode HoApplyTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-TypeNode LambdaTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      CVC5_UNUSED bool check,
@@ -242,11 +216,6 @@ TypeNode LambdaTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkFunctionType(argTypes, rangeType);
 }
 
-TypeNode FunctionArrayConstTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                    CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode FunctionArrayConstTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -296,11 +265,6 @@ Node FunctionProperties::mkGroundTerm(TypeNode type)
   return NodeManager::mkNode(Kind::LAMBDA, bvl, ret);
 }
 
-TypeNode IntToBitVectorOpTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                  CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                CVC5_UNUSED bool check,
@@ -319,15 +283,6 @@ TypeNode IntToBitVectorOpTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->builtinOperatorType();
 }
 
-TypeNode BitVectorConversionTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  if (n.getKind() == Kind::INT_TO_BITVECTOR)
-  {
-    size_t bvSize = n.getOperator().getConst<IntToBitVector>();
-    return nm->mkBitVectorType(bvSize);
-  }
-  return nm->integerType();
-}
 TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
@@ -358,11 +313,6 @@ TypeNode BitVectorConversionTypeRule::computeType(NodeManager* nodeManager,
     return TypeNode::null();
   }
   return nodeManager->integerType();
-}
-
-TypeNode DistinctTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
 }
 
 TypeNode DistinctTypeRule::computeType(NodeManager* nodeManager,

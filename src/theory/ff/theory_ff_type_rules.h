@@ -34,7 +34,6 @@ struct FiniteFieldProperties
 class FiniteFieldConstantTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -46,7 +45,6 @@ class FiniteFieldConstantTypeRule
 class FiniteFieldFixedFieldTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -62,7 +60,6 @@ class FiniteFieldFixedFieldTypeRule
 class FiniteFieldIdealTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -75,7 +72,6 @@ class FiniteFieldIdealTypeRule
 class FiniteFieldVarietyTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

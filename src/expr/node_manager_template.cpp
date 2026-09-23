@@ -532,21 +532,6 @@ TypeNode NodeManager::getType(TNode n, bool check, std::ostream* errOut)
     // we have yet to visit children
     if (it == visited.end())
     {
-      // See if it has a type inferrable at pre traversal. We only do this
-      // if we are not checking, since preComputeType by design does not
-      // check the children types.
-      if (!check)
-      {
-        typeNode = TypeChecker::preComputeType(nm, cur);
-        if (!typeNode.isNull())
-        {
-          visited[cur] = true;
-          nm->setAttribute(cur, ta, typeNode);
-          // note that the result of preComputeType is not cached
-          continue;
-        }
-      }
-      // we are checking, or pre-compute type is not available
       visited[cur] = false;
       visit.push_back(cur);
       visit.insert(visit.end(), cur.begin(), cur.end());

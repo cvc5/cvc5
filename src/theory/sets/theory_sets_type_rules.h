@@ -28,7 +28,6 @@ namespace sets {
  */
 struct SetsBinaryOperatorTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -43,7 +42,6 @@ struct SetsBinaryOperatorTypeRule
  */
 struct SubsetTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -57,7 +55,6 @@ struct SubsetTypeRule
  */
 struct MemberTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -71,7 +68,6 @@ struct MemberTypeRule
  */
 struct SingletonTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -86,7 +82,6 @@ struct SingletonTypeRule
  */
 struct EmptySetTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -99,7 +94,6 @@ struct EmptySetTypeRule
  */
 struct CardTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -112,7 +106,6 @@ struct CardTypeRule
  */
 struct ComplementTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -125,7 +118,6 @@ struct ComplementTypeRule
  */
 struct UniverseSetTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -140,7 +132,6 @@ struct UniverseSetTypeRule
  */
 struct ComprehensionTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -153,7 +144,6 @@ struct ComprehensionTypeRule
  */
 struct ChooseTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -167,7 +157,6 @@ struct ChooseTypeRule
  */
 struct IsSetTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -181,7 +170,6 @@ struct IsSetTypeRule
  */
 struct InsertTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -195,7 +183,6 @@ struct InsertTypeRule
  */
 struct SetMapTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -209,7 +196,6 @@ struct SetMapTypeRule
  */
 struct SetFilterTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -224,7 +210,6 @@ struct SetFilterTypeRule
  */
 struct SetAllSomeTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -238,7 +223,6 @@ struct SetAllSomeTypeRule
  */
 struct SetFoldTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -257,7 +241,6 @@ struct SetFoldTypeRule
  */
 struct RelBinaryOperatorTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -276,7 +259,6 @@ struct RelBinaryOperatorTypeRule
  */
 struct RelationTableJoinTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -290,7 +272,6 @@ struct RelationTableJoinTypeRule
  */
 struct RelTransposeTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -304,7 +285,6 @@ struct RelTransposeTypeRule
  */
 struct RelTransClosureTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -320,7 +300,6 @@ struct RelTransClosureTypeRule
  */
 struct JoinImageTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -335,7 +314,6 @@ struct JoinImageTypeRule
  */
 struct RelIdenTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -351,7 +329,6 @@ struct RelIdenTypeRule
  */
 struct RelationGroupTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -367,7 +344,6 @@ struct RelationGroupTypeRule
  */
 struct RelationProjectTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -385,7 +361,6 @@ struct RelationProjectTypeRule
  */
 struct RelationAggregateTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -398,7 +373,6 @@ struct RelationAggregateTypeRule
  */
 struct SetEmptyOfTypeTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,

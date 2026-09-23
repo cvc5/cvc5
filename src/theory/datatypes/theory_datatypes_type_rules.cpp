@@ -28,21 +28,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace datatypes {
 
-TypeNode DatatypeConstructorTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, TNode n)
-{
-  TypeNode consType = n.getOperator().getTypeOrNull();
-  if (consType.isDatatypeConstructor())
-  {
-    TypeNode t = consType.getDatatypeConstructorRangeType();
-    // if not parametric, the return type can be obtained from constructor op
-    if (!t.isParametricDatatype())
-    {
-      return t;
-    }
-  }
-  return TypeNode::null();
-}
 TypeNode DatatypeConstructorTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -143,11 +128,6 @@ bool DatatypeConstructorTypeRule::computeIsConst(
   return true;
 }
 
-TypeNode DatatypeSelectorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                  CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode DatatypeSelectorTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -231,11 +211,6 @@ TypeNode DatatypeSelectorTypeRule::computeType(
   }
 }
 
-TypeNode DatatypeTesterTypeRule::preComputeType(NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -288,11 +263,6 @@ TypeNode DatatypeTesterTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode DatatypeUpdateTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode DatatypeUpdateTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -338,11 +308,6 @@ TypeNode DatatypeUpdateTypeRule::computeType(
   return n[0].getTypeOrNull();
 }
 
-TypeNode DatatypeAscriptionTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                    TNode n)
-{
-  return n.getOperator().getConst<AscriptionType>().getType();
-}
 TypeNode DatatypeAscriptionTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -392,10 +357,6 @@ Cardinality ConstructorProperties::computeCardinality(TypeNode type)
   return c;
 }
 
-TypeNode DtSizeTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -416,10 +377,6 @@ TypeNode DtSizeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode DtBoundTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -456,11 +413,6 @@ TypeNode DtBoundTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode DtSygusEvalTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                             CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode DtSygusEvalTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -515,11 +467,6 @@ TypeNode DtSygusEvalTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return dt.getSygusType();
 }
 
-TypeNode MatchTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                       CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode MatchTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                     TNode n,
                                     CVC5_UNUSED bool check,
@@ -645,11 +592,6 @@ TypeNode MatchTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return retType;
 }
 
-TypeNode MatchCaseTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                           CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode MatchCaseTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
@@ -671,11 +613,6 @@ TypeNode MatchCaseTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return n[1].getTypeOrNull();
 }
 
-TypeNode MatchBindCaseTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode MatchBindCaseTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -704,12 +641,6 @@ TypeNode MatchBindCaseTypeRule::computeType(
     }
   }
   return n[2].getTypeOrNull();
-}
-
-TypeNode TupleProjectTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
 }
 
 TypeNode TupleProjectTypeRule::computeType(CVC5_UNUSED NodeManager* nm,
@@ -769,11 +700,6 @@ TypeNode TupleProjectTypeRule::computeType(CVC5_UNUSED NodeManager* nm,
   return TupleUtils::getTupleProjectionType(indices, tupleType);
 }
 
-TypeNode CodatatypeBoundVariableTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode CodatatypeBoundVariableTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -781,12 +707,6 @@ TypeNode CodatatypeBoundVariableTypeRule::computeType(
     CVC5_UNUSED std::ostream* errOut)
 {
   return n.getConst<CodatatypeBoundVariable>().getType();
-}
-
-TypeNode NullableLiftTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
 }
 
 TypeNode NullableLiftTypeRule::computeType(NodeManager* nodeManager,

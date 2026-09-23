@@ -30,11 +30,6 @@ namespace bags {
 
 using namespace datatypes;
 
-TypeNode BinaryOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BinaryOperatorTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -81,10 +76,6 @@ bool BinaryOperatorTypeRule::computeIsConst(
   return BagsUtils::isConstant(n);
 }
 
-TypeNode SubBagTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -115,10 +106,6 @@ TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode CountTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
                                     bool check,
@@ -154,10 +141,6 @@ TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode MemberTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -193,11 +176,6 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SetofTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                       CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SetofTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                     TNode n,
                                     bool check,
@@ -219,11 +197,6 @@ TypeNode SetofTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return bagType;
 }
 
-TypeNode BagMakeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                         CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BagMakeTypeRule::computeType(NodeManager* nm,
                                       TNode n,
                                       bool check,
@@ -267,11 +240,6 @@ bool BagMakeTypeRule::computeIsConst(CVC5_UNUSED NodeManager* nodeManager,
          && n[1].getConst<Rational>().sgn() == 1;
 }
 
-TypeNode EmptyBagTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                          CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode EmptyBagTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                        TNode n,
                                        CVC5_UNUSED bool check,
@@ -282,10 +250,6 @@ TypeNode EmptyBagTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return emptyBag.getType();
 }
 
-TypeNode CardTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
@@ -307,11 +271,6 @@ TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode ChooseTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ChooseTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -333,11 +292,6 @@ TypeNode ChooseTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return bagType.getBagElementType();
 }
 
-TypeNode BagMapTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BagMapTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -389,11 +343,6 @@ TypeNode BagMapTypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
-TypeNode BagFilterTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                           CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BagFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
@@ -442,12 +391,6 @@ TypeNode BagFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
     }
   }
   return bagType;
-}
-
-TypeNode BagAllSomeTypeRule::preComputeType(NodeManager* nm,
-                                            CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
 }
 
 bool checkFunctionTypeFor(const Node& n,
@@ -538,11 +481,6 @@ TypeNode BagAllSomeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode BagFoldTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                         CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BagFoldTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -606,11 +544,6 @@ TypeNode BagFoldTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return retType;
 }
 
-TypeNode BagPartitionTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -664,11 +597,6 @@ TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
-TypeNode TableProductTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -712,11 +640,6 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
-TypeNode TableProjectTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode TableProjectTypeRule::computeType(NodeManager* nm,
                                            TNode n,
                                            bool check,
@@ -784,11 +707,6 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm,
   return nm->mkBagType(retTupleType);
 }
 
-TypeNode TableAggregateTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
                                              TNode n,
                                              bool check,
@@ -877,11 +795,6 @@ TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
   return nm->mkBagType(functionType.getRangeType());
 }
 
-TypeNode TableJoinTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                           CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
                                         TNode n,
                                         bool check,
@@ -977,11 +890,6 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
   return nm->mkBagType(retTupleType);
 }
 
-TypeNode TableGroupTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                            CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode TableGroupTypeRule::computeType(NodeManager* nm,
                                          TNode n,
                                          bool check,

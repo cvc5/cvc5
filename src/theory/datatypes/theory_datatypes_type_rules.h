@@ -31,7 +31,6 @@ namespace datatypes {
  */
 struct DatatypeConstructorTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -51,7 +50,6 @@ struct DatatypeConstructorTypeRule
  */
 struct DatatypeSelectorTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -65,7 +63,6 @@ struct DatatypeSelectorTypeRule
  */
 struct DatatypeTesterTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -79,7 +76,6 @@ struct DatatypeTesterTypeRule
  */
 struct DatatypeUpdateTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -93,7 +89,6 @@ struct DatatypeUpdateTypeRule
  */
 struct DatatypeAscriptionTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -111,7 +106,6 @@ struct ConstructorProperties
 class DtSizeTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -125,7 +119,6 @@ class DtSizeTypeRule
 class DtBoundTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -141,7 +134,6 @@ class DtBoundTypeRule
 class DtSygusEvalTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -168,7 +160,6 @@ class DtSygusEvalTypeRule
 class MatchTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -182,7 +173,6 @@ class MatchTypeRule
 class MatchCaseTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -197,7 +187,6 @@ class MatchCaseTypeRule
 class MatchBindCaseTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -213,7 +202,6 @@ class MatchBindCaseTypeRule
 class TupleProjectTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nm,
                               TNode n,
                               bool check,
@@ -227,7 +215,6 @@ class TupleProjectTypeRule
 class CodatatypeBoundVariableTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -242,7 +229,6 @@ class CodatatypeBoundVariableTypeRule
  */
 struct NullableLiftTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

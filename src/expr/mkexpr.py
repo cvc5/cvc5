@@ -28,7 +28,6 @@ class CodeGenerator:
     def __init__(self, type_checker_template, type_checker_template_output,
                  input_command):
         self.typerules = ""
-        self.pre_typerules = ""
         self.const_rules = ""
         self.type_checker_includes = ""
         self.template_data = ""
@@ -41,7 +40,6 @@ class CodeGenerator:
         self.generation_command_replacement_pattern = b'${generation_command}'
         self.template_file_path_replacement_pattern = b'${template_file_path}'
         self.typerules_replacement_pattern = b'${typerules}'
-        self.pre_typerules_replacement_pattern = b'${pretyperules}'
         self.const_rules_replacement_pattern = b'${construles}'
         self.typechecker_header_replacement_pattern = b'${typechecker_includes}'
 
@@ -106,12 +104,6 @@ class CodeGenerator:
         break;
             """
 
-            self.pre_typerules = f"""{self.pre_typerules}
-    case Kind::{input_typerule_name}:
-        typeNode = {input_typerule_type_checker_class}::preComputeType(nodeManager, n);
-        break;
-            """
-
     def generate_code_for_type_checker_includes(self, type_checker_include):
         self.type_checker_includes = f"{self.type_checker_includes}\n#include \"{type_checker_include}\""
 
@@ -137,8 +129,6 @@ class CodeGenerator:
 
     def fill_typerules_template_data(self):
         self.fill_template(self.typerules_replacement_pattern, self.typerules)
-        self.fill_template(self.pre_typerules_replacement_pattern,
-                           self.pre_typerules)
 
     def fill_const_rules_template_data(self):
         self.fill_template(self.const_rules_replacement_pattern,

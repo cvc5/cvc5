@@ -23,12 +23,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arrays {
 
-TypeNode ArraySelectTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                             CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
-
 TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -65,11 +59,6 @@ TypeNode ArraySelectTypeRule::computeType(NodeManager* nodeManager,
   return arrayType.getArrayConstituentType();
 }
 
-TypeNode ArrayStoreTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                            CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ArrayStoreTypeRule::computeType(NodeManager* nodeManager,
                                          TNode n,
                                          bool check,
@@ -217,11 +206,6 @@ bool ArrayStoreTypeRule::computeIsConst(CVC5_UNUSED NodeManager* nodeManager,
   return true;
 }
 
-TypeNode ArrayLambdaTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                             CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ArrayLambdaTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -286,12 +270,6 @@ Node ArraysProperties::mkGroundTerm(TypeNode type)
   // Thus, we must simply return a fresh Skolem here, using the same utility
   // as that of uninterpreted sorts.
   return builtin::SortProperties::mkGroundTerm(type);
-}
-
-TypeNode ArrayEqRangeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
 }
 
 TypeNode ArrayEqRangeTypeRule::computeType(NodeManager* nodeManager,

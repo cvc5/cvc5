@@ -91,11 +91,6 @@ Cardinality CardinalityComputer::computeCardinality(TypeNode type)
   return Integer(2).pow(size);
 }
 
-TypeNode BitVectorConstantTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                   CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorConstantTypeRule::computeType(NodeManager* nodeManager,
                                                 TNode n,
                                                 bool check,
@@ -115,11 +110,6 @@ TypeNode BitVectorConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(n.getConst<BitVector>().getSize());
 }
 
-TypeNode BitVectorConstantSymbolicTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorConstantSymbolicTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -147,11 +137,6 @@ TypeNode BitVectorConstantSymbolicTypeRule::computeType(
   return nodeManager->mkAbstractType(Kind::BITVECTOR_TYPE);
 }
 
-TypeNode BitVectorFixedWidthTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorFixedWidthTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   bool check,
@@ -189,11 +174,6 @@ TypeNode BitVectorFixedWidthTypeRule::computeType(NodeManager* nodeManager,
   return ensureBv(nodeManager, t);
 }
 
-TypeNode BitVectorPredicateTypeRule::preComputeType(NodeManager* nm,
-                                                    CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check,
@@ -222,11 +202,6 @@ TypeNode BitVectorPredicateTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode BitVectorRedTypeRule::preComputeType(NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return nm->mkBitVectorType(1);
-}
 TypeNode BitVectorRedTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -243,11 +218,6 @@ TypeNode BitVectorRedTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(1);
 }
 
-TypeNode BitVectorBVPredTypeRule::preComputeType(NodeManager* nm,
-                                                 CVC5_UNUSED TNode n)
-{
-  return nm->mkBitVectorType(1);
-}
 TypeNode BitVectorBVPredTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               bool check,
@@ -270,11 +240,6 @@ TypeNode BitVectorBVPredTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(1);
 }
 
-TypeNode BitVectorSizeTypeRule::preComputeType(NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode BitVectorSizeTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -288,11 +253,6 @@ TypeNode BitVectorSizeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode BitVectorConcatTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                 CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorConcatTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               CVC5_UNUSED bool check,
@@ -334,11 +294,6 @@ TypeNode BitVectorConcatTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(size);
 }
 
-TypeNode BitVectorToBVTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  return nm->mkBitVectorType(n.getNumChildren());
-}
-
 TypeNode BitVectorToBVTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             CVC5_UNUSED bool check,
@@ -359,11 +314,6 @@ TypeNode BitVectorToBVTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(n.getNumChildren());
 }
 
-TypeNode BitVectorITETypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -394,11 +344,6 @@ TypeNode BitVectorITETypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
-TypeNode BitVectorBitTypeRule::preComputeType(NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode BitVectorBitTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -425,21 +370,6 @@ TypeNode BitVectorBitTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode BitVectorExtractTypeRule::preComputeType(NodeManager* nm, TNode n)
-{
-  BitVectorExtract extractInfo = n.getOperator().getConst<BitVectorExtract>();
-  if (extractInfo.d_high < extractInfo.d_low)
-  {
-    return TypeNode::null();
-  }
-  uint64_t size =
-      static_cast<uint64_t>(extractInfo.d_high) - extractInfo.d_low + 1;
-  if (!checkBvResultSize(size, nullptr))
-  {
-    return TypeNode::null();
-  }
-  return nm->mkBitVectorType(static_cast<uint32_t>(size));
-}
 TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check,
@@ -488,11 +418,6 @@ TypeNode BitVectorExtractTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(static_cast<uint32_t>(size));
 }
 
-TypeNode BitVectorRepeatTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                 CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorRepeatTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               CVC5_UNUSED bool check,
@@ -530,11 +455,6 @@ TypeNode BitVectorRepeatTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(static_cast<uint32_t>(size));
 }
 
-TypeNode BitVectorExtendTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                 CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorExtendTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               CVC5_UNUSED bool check,
@@ -564,11 +484,6 @@ TypeNode BitVectorExtendTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkBitVectorType(static_cast<uint32_t>(size));
 }
 
-TypeNode BitVectorEagerAtomTypeRule::preComputeType(NodeManager* nm,
-                                                    CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode BitVectorEagerAtomTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check,
@@ -590,11 +505,6 @@ TypeNode BitVectorEagerAtomTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode BitVectorAckermanizationUdivTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorAckermanizationUdivTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {
@@ -609,11 +519,6 @@ TypeNode BitVectorAckermanizationUdivTypeRule::computeType(
   return ensureBv(nodeManager, lhsType);
 }
 
-TypeNode BitVectorAckermanizationUremTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode BitVectorAckermanizationUremTypeRule::computeType(
     NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
 {

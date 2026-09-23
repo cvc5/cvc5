@@ -28,11 +28,6 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
   return cardinality;
 }
 
-TypeNode FiniteFieldConstantTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode FiniteFieldConstantTypeRule::computeType(
     NodeManager* nodeManager,
     TNode n,
@@ -43,11 +38,6 @@ TypeNode FiniteFieldConstantTypeRule::computeType(
       n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
-TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
                                                     bool check,
@@ -93,11 +83,6 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode FiniteFieldIdealTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                  CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode FiniteFieldIdealTypeRule::computeType(NodeManager* nodeManager,
                                                TNode n,
                                                bool check,
@@ -122,11 +107,6 @@ TypeNode FiniteFieldIdealTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(t);
 }
 
-TypeNode FiniteFieldVarietyTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                    CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode FiniteFieldVarietyTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,

@@ -13,7 +13,6 @@
 #include <sstream>
 
 #include "expr/node_manager.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/type_checker.h"
 #include "expr/type_checker_util.h"
 
@@ -23,36 +22,6 @@ ${typechecker_includes}
 
 namespace cvc5::internal {
 namespace expr {
-
-TypeNode TypeChecker::preComputeType(NodeManager* nodeManager, TNode n)
-{
-  TypeNode typeNode;
-
-  // Infer the type
-  switch (n.getKind())
-  {
-    case Kind::VARIABLE:
-    case Kind::SKOLEM:
-    case Kind::BOUND_VARIABLE:
-    case Kind::INST_CONSTANT:
-    case Kind::RAW_SYMBOL:
-      // variable kinds have their type marked as an attribute upon construction
-      typeNode = nodeManager->getAttribute(n, TypeAttr());
-      break;
-    case Kind::BUILTIN:
-      typeNode = nodeManager->builtinOperatorType();
-      break;
-
-      // clang-format off
-${pretyperules}
-      // clang-format on
-
-    default:
-      // not handled
-      break;
-  }
-  return typeNode;
-}
 
 TypeNode TypeChecker::computeType(NodeManager* nodeManager,
                                   TNode n,

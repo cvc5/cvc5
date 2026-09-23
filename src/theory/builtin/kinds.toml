@@ -353,6 +353,7 @@ cpp_type  = "Kind"
 hasher    = "::cvc5::internal::kind::KindHashFunction"
 header    = "expr/kind.h"
 comment   = "the kind of expressions representing built-in operators"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
 
 [[kinds]]
 type    = "operator"

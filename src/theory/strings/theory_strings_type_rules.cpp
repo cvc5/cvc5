@@ -36,11 +36,6 @@ bool isMaybeInteger(const TypeNode& tn)
   return tn.isInteger() || tn.isFullyAbstract();
 }
 
-TypeNode StringConcatTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode StringConcatTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -81,11 +76,6 @@ TypeNode StringConcatTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return tret;
 }
 
-TypeNode StringSubstrTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode StringSubstrTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -125,11 +115,6 @@ TypeNode StringSubstrTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringUpdateTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode StringUpdateTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -170,11 +155,6 @@ TypeNode StringUpdateTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return tret;
 }
 
-TypeNode StringAtTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                          CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode StringAtTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -204,11 +184,6 @@ TypeNode StringAtTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return t;
 }
 
-TypeNode StringIndexOfTypeRule::preComputeType(NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -248,11 +223,6 @@ TypeNode StringIndexOfTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode StringReplaceTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode StringReplaceTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -293,11 +263,6 @@ TypeNode StringReplaceTypeRule::computeType(
   return t;
 }
 
-TypeNode StringStrToBoolTypeRule::preComputeType(NodeManager* nm,
-                                                 CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               bool check,
@@ -336,11 +301,6 @@ TypeNode StringStrToBoolTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode StringStrToIntTypeRule::preComputeType(NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -362,11 +322,6 @@ TypeNode StringStrToIntTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode StringStrToStrTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode StringStrToStrTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -388,11 +343,6 @@ TypeNode StringStrToStrTypeRule::computeType(
   return t;
 }
 
-TypeNode StringRelationTypeRule::preComputeType(NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -423,11 +373,6 @@ TypeNode StringRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode RegExpRangeTypeRule::preComputeType(NodeManager* nm,
-                                             CVC5_UNUSED TNode n)
-{
-  return nm->regExpType();
-}
 TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -453,11 +398,6 @@ TypeNode RegExpRangeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->regExpType();
 }
 
-TypeNode StringToRegExpTypeRule::preComputeType(NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return nm->regExpType();
-}
 TypeNode StringToRegExpTypeRule::computeType(NodeManager* nodeManager,
                                              TNode n,
                                              bool check,
@@ -485,11 +425,6 @@ bool StringToRegExpTypeRule::computeIsConst(
   return n[0].isConst();
 }
 
-TypeNode ConstSequenceTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             CVC5_UNUSED bool check,
@@ -499,11 +434,6 @@ TypeNode ConstSequenceTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
 }
 
-TypeNode SeqUnitTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                         CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       CVC5_UNUSED bool check,
@@ -514,11 +444,6 @@ TypeNode SeqUnitTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSequenceType(argType);
 }
 
-TypeNode SeqNthTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -561,12 +486,6 @@ TypeNode SeqNthTypeRule::computeType(NodeManager* nodeManager,
     return TypeNode::null();
   }
   return t.getSequenceElementType();
-}
-
-TypeNode SeqEmptyOfTypeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
 }
 
 TypeNode SeqEmptyOfTypeTypeRule::computeType(NodeManager* nm,

@@ -25,7 +25,6 @@ namespace boolean {
 class BooleanTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -35,7 +34,6 @@ class BooleanTypeRule
 class IteTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

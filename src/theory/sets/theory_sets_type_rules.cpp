@@ -89,11 +89,6 @@ bool checkFunctionTypeFor(const Node& n,
   return true;
 }
 
-TypeNode SetsBinaryOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                    CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SetsBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                  TNode n,
                                                  bool check,
@@ -144,10 +139,6 @@ bool SetsBinaryOperatorTypeRule::computeIsConst(
   return NormalForm::checkNormalConstant(n);
 }
 
-TypeNode SubsetTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -179,10 +170,6 @@ TypeNode SubsetTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode MemberTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -216,11 +203,6 @@ TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SingletonTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                           CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SingletonTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
                                         CVC5_UNUSED bool check,
@@ -238,11 +220,6 @@ bool SingletonTypeRule::computeIsConst(CVC5_UNUSED NodeManager* nodeManager,
   return n[0].isConst();
 }
 
-TypeNode EmptySetTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                          CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode EmptySetTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                        TNode n,
                                        CVC5_UNUSED bool check,
@@ -253,10 +230,6 @@ TypeNode EmptySetTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return emptySet.getType();
 }
 
-TypeNode CardTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
@@ -278,11 +251,6 @@ TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode ComplementTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                            CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ComplementTypeRule::computeType(NodeManager* nodeManager,
                                          TNode n,
                                          bool check,
@@ -309,11 +277,6 @@ TypeNode ComplementTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode UniverseSetTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                             CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode UniverseSetTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                           TNode n,
                                           bool check,
@@ -338,11 +301,6 @@ TypeNode UniverseSetTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode ComprehensionTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ComprehensionTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -373,11 +331,6 @@ TypeNode ComprehensionTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(n[2].getTypeOrNull());
 }
 
-TypeNode ChooseTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -404,10 +357,6 @@ TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
   return setType.getSetElementType();
 }
 
-TypeNode IsSetTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode IsSetTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
                                     bool check,
@@ -431,11 +380,6 @@ TypeNode IsSetTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode InsertTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -483,11 +427,6 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(retElementType);
 }
 
-TypeNode SetMapTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
@@ -525,11 +464,6 @@ TypeNode SetMapTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(rangeType);
 }
 
-TypeNode SetFilterTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                           CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SetFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
@@ -567,12 +501,6 @@ TypeNode SetFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
     }
   }
   return setType;
-}
-
-TypeNode SetAllSomeTypeRule::preComputeType(NodeManager* nm,
-                                            CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
 }
 
 TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
@@ -617,11 +545,6 @@ TypeNode SetAllSomeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SetFoldTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                         CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -689,11 +612,6 @@ TypeNode SetFoldTypeRule::computeType(NodeManager* nodeManager,
   return functionType.getRangeType();
 }
 
-TypeNode RelBinaryOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                   CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                 TNode n,
                                                 bool check,
@@ -778,11 +696,6 @@ TypeNode RelBinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return resultType;
 }
 
-TypeNode RelationTableJoinTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                   CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelationTableJoinTypeRule::computeType(NodeManager* nm,
                                                 TNode n,
                                                 bool check,
@@ -870,11 +783,6 @@ TypeNode RelationTableJoinTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(retTupleType);
 }
 
-TypeNode RelTransposeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                              CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelTransposeTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
@@ -902,11 +810,6 @@ TypeNode RelTransposeTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
 }
 
-TypeNode RelTransClosureTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                 CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelTransClosureTypeRule::computeType(NodeManager* nodeManager,
                                               TNode n,
                                               bool check,
@@ -955,11 +858,6 @@ TypeNode RelTransClosureTypeRule::computeType(NodeManager* nodeManager,
   return setType;
 }
 
-TypeNode JoinImageTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                           CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
@@ -1019,11 +917,6 @@ TypeNode JoinImageTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(nodeManager->mkTupleType(newTupleTypes));
 }
 
-TypeNode RelIdenTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                         CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -1064,11 +957,6 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
 }
 
-TypeNode RelationGroupTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelationGroupTypeRule::computeType(NodeManager* nm,
                                             TNode n,
                                             bool check,
@@ -1115,11 +1003,6 @@ TypeNode RelationGroupTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(setType);
 }
 
-TypeNode RelationAggregateTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                   CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
                                                 TNode n,
                                                 bool check,
@@ -1214,11 +1097,6 @@ TypeNode RelationAggregateTypeRule::computeType(NodeManager* nm,
   return nm->mkSetType(functionType.getRangeType());
 }
 
-TypeNode RelationProjectTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                 CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
                                               TNode n,
                                               bool check,
@@ -1271,12 +1149,6 @@ TypeNode RelationProjectTypeRule::computeType(NodeManager* nm,
   TypeNode retTupleType =
       TupleUtils::getTupleProjectionType(indices, tupleType);
   return nm->mkSetType(retTupleType);
-}
-
-TypeNode SetEmptyOfTypeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                                CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
 }
 
 TypeNode SetEmptyOfTypeTypeRule::computeType(NodeManager* nm,

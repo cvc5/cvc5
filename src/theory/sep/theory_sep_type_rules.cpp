@@ -21,10 +21,6 @@ bool isMaybeBoolean(const TypeNode& tn)
   return tn.isBoolean() || tn.isFullyAbstract();
 }
 
-TypeNode SepEmpTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
                                      CVC5_UNUSED TNode n,
                                      CVC5_UNUSED bool check,
@@ -34,10 +30,6 @@ TypeNode SepEmpTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SepPtoTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
                                      CVC5_UNUSED TNode n,
                                      CVC5_UNUSED bool check,
@@ -47,10 +39,6 @@ TypeNode SepPtoTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SepStarTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -76,10 +64,6 @@ TypeNode SepStarTypeRule::computeType(NodeManager* nodeManager,
   return btype;
 }
 
-TypeNode SepWandTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -105,10 +89,6 @@ TypeNode SepWandTypeRule::computeType(NodeManager* nodeManager,
   return btype;
 }
 
-TypeNode SepLabelTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -140,11 +120,6 @@ TypeNode SepLabelTypeRule::computeType(NodeManager* nodeManager,
   return btype;
 }
 
-TypeNode SepNilTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode SepNilTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                      TNode n,
                                      CVC5_UNUSED bool check,

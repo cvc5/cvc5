@@ -22,10 +22,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace builtin {
 
-TypeNode EqualityTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
                                        TNode n,
                                        bool check,
@@ -50,10 +46,6 @@ TypeNode EqualityTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode SExprTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->sExprType();
-}
 TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
                                     CVC5_UNUSED TNode n,
                                     CVC5_UNUSED bool check,
@@ -62,11 +54,6 @@ TypeNode SExprTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->sExprType();
 }
 
-TypeNode UninterpretedSortValueTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode UninterpretedSortValueTypeRule::computeType(
     CVC5_UNUSED NodeManager* nodeManager,
     TNode n,
@@ -76,11 +63,6 @@ TypeNode UninterpretedSortValueTypeRule::computeType(
   return n.getConst<UninterpretedSortValue>().getType();
 }
 
-TypeNode WitnessTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                         CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
@@ -133,11 +115,6 @@ TypeNode WitnessTypeRule::computeType(NodeManager* nodeManager,
   return n[0][0].getType();
 }
 
-TypeNode ApplyIndexedSymbolicTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ApplyIndexedSymbolicTypeRule::computeType(
     NodeManager* nodeManager,
     TNode n,
@@ -153,12 +130,6 @@ TypeNode ApplyIndexedSymbolicTypeRule::computeType(
   }
   // if we can make concrete, return its type
   return cn.getType();
-}
-
-TypeNode TypeOfTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                        CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
 }
 
 TypeNode TypeOfTypeRule::computeType(NodeManager* nodeManager,

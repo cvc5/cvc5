@@ -29,11 +29,6 @@ bool isMaybeInteger(const TypeNode& tn)
   return tn.isInteger() || tn.isFullyAbstract();
 }
 
-TypeNode ArithConstantTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -59,11 +54,6 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode ArithRealAlgebraicNumberOpTypeRule::preComputeType(NodeManager* nm,
-                                                            CVC5_UNUSED TNode n)
-{
-  return nm->realType();
-}
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
     NodeManager* nodeManager,
     CVC5_UNUSED TNode n,
@@ -71,11 +61,6 @@ TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
     CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->realType();
-}
-TypeNode ArithRealAlgebraicNumberTypeRule::preComputeType(NodeManager* nm,
-                                                          CVC5_UNUSED TNode n)
-{
-  return nm->realType();
 }
 TypeNode ArithRealAlgebraicNumberTypeRule::computeType(
     NodeManager* nodeManager,
@@ -86,11 +71,6 @@ TypeNode ArithRealAlgebraicNumberTypeRule::computeType(
   return nodeManager->realType();
 }
 
-TypeNode ArithOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -157,11 +137,6 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-TypeNode ArithRelationTypeRule::preComputeType(NodeManager* nm,
-                                               CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
@@ -183,11 +158,6 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode RealNullaryOperatorTypeRule::preComputeType(
-    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
                                                   CVC5_UNUSED bool check,
@@ -207,10 +177,6 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
-TypeNode IAndTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
-{
-  return nm->integerType();
-}
 TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
@@ -245,12 +211,6 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode PowTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
-                                     CVC5_UNUSED TNode n)
-{
-  return TypeNode::null();
-}
-
 TypeNode PowTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                   TNode n,
                                   CVC5_UNUSED bool check,
@@ -271,11 +231,6 @@ TypeNode PowTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
   return t;
 }
 
-TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm,
-                                                      CVC5_UNUSED TNode n)
-{
-  return nm->booleanType();
-}
 TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
                                                    TNode n,
                                                    bool check,

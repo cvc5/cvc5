@@ -29,7 +29,6 @@ namespace sep {
 class SepEmpTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -44,7 +43,6 @@ class SepEmpTypeRule
  */
 struct SepPtoTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -58,7 +56,6 @@ struct SepPtoTypeRule
  */
 struct SepStarTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -72,7 +69,6 @@ struct SepStarTypeRule
  */
 struct SepWandTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -87,7 +83,6 @@ struct SepWandTypeRule
  */
 struct SepLabelTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -101,7 +96,6 @@ struct SepLabelTypeRule
  */
 struct SepNilTypeRule
 {
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,

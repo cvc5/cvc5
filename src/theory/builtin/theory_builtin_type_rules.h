@@ -27,7 +27,6 @@ namespace builtin {
 class EqualityTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -37,7 +36,6 @@ class EqualityTypeRule
 class SExprTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -47,7 +45,6 @@ class SExprTypeRule
 class UninterpretedSortValueTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -57,7 +54,6 @@ class UninterpretedSortValueTypeRule
 class WitnessTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -67,7 +63,6 @@ class WitnessTypeRule
 class ApplyIndexedSymbolicTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -81,7 +76,6 @@ class ApplyIndexedSymbolicTypeRule
 class TypeOfTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

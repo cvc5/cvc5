@@ -322,15 +322,9 @@ class NodeManager
   /**
    * Get the type for the given node and optionally do type checking.
    *
-   * Initial type computation will be near-constant time if
-   * type checking is not requested. Results are memoized, so that
-   * subsequent calls to getType() without type checking will be
-   * constant time.
-   *
-   * Initial type checking is linear in the size of the expression.
-   * Again, the results are memoized, so that subsequent calls to
-   * getType(), with or without type checking, will be constant
-   * time.
+   * Initial type computation and checking traverse the expression bottom-up.
+   * Results are memoized, so subsequent calls to getType() are constant time
+   * unless type checking is requested for a type that was only computed.
    *
    * NOTE: A TypeCheckingException can be thrown even when type
    * checking is not requested. getType() will always return a

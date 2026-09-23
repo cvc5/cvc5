@@ -59,5 +59,42 @@ TEST_F(TestNodeTestRules, gradual_types)
   ASSERT_TRUE(t4.isNull());
 }
 
+TEST_F(TestNodeTestRules, builtin_operator)
+{
+  Node op = d_nodeManager->operatorOf(Kind::ADD);
+  ASSERT_EQ(op.getType(), d_nodeManager->builtinOperatorType());
+  ASSERT_EQ(op.getType(true), d_nodeManager->builtinOperatorType());
+}
+
+TEST_F(TestNodeTestRules, type_computation_child_failure)
+{
+  Node b = d_nodeManager->mkVar("b", *d_boolTypeNode);
+  Node x = d_nodeManager->mkVar("x", *d_intTypeNode);
+  // These branches have no common type, even without full type checking.
+  Node ite = d_nodeManager->mkNode(Kind::ITE, b, b, x);
+  Node equality = d_nodeManager->mkNode(Kind::EQUAL, ite, ite);
+  Node negation = d_nodeManager->mkNode(Kind::NOT, equality);
+  ASSERT_TRUE(negation.getTypeOrNull().isNull());
+  ASSERT_TRUE(negation.getTypeOrNull(true).isNull());
+}
+
+TEST_F(TestNodeTestRules, type_check_after_computation)
+{
+  Node x = d_nodeManager->mkVar("x", *d_intTypeNode);
+  Node b = d_nodeManager->mkVar("b", *d_boolTypeNode);
+  Node equality = d_nodeManager->mkNode(Kind::EQUAL, x, b);
+  Node negation = d_nodeManager->mkNode(Kind::NOT, equality);
+  // Computing a type must not mark it as checked: checking the cached Boolean
+  // type still needs to detect the incompatible equality operands.
+  ASSERT_EQ(negation.getType(), *d_boolTypeNode);
+  ASSERT_TRUE(negation.getTypeOrNull(true).isNull());
+
+  Node sum = d_nodeManager->mkNode(Kind::ADD, x, x);
+  Node valid = d_nodeManager->mkNode(Kind::EQUAL, sum, x);
+  ASSERT_EQ(valid.getType(), *d_boolTypeNode);
+  ASSERT_EQ(valid.getType(true), *d_boolTypeNode);
+  ASSERT_EQ(valid.getType(), *d_boolTypeNode);
+}
+
 }  // namespace test
 }  // namespace cvc5::internal

@@ -29,7 +29,6 @@ namespace arith {
 class ArithConstantTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -43,7 +42,6 @@ class ArithConstantTypeRule
 class ArithRealAlgebraicNumberOpTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -57,7 +55,6 @@ class ArithRealAlgebraicNumberOpTypeRule
 class ArithRealAlgebraicNumberTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -71,7 +68,6 @@ class ArithRealAlgebraicNumberTypeRule
 class ArithRelationTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -85,7 +81,6 @@ class ArithRelationTypeRule
 class ArithOperatorTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -96,7 +91,6 @@ class ArithOperatorTypeRule
 class RealNullaryOperatorTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -110,7 +104,6 @@ class RealNullaryOperatorTypeRule
 class IAndTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -123,7 +116,6 @@ class IAndTypeRule
 class PowTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -138,7 +130,6 @@ class PowTypeRule
 class IndexedRootPredicateTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

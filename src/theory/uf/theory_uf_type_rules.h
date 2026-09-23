@@ -30,7 +30,6 @@ namespace uf {
 class UfTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -46,7 +45,6 @@ class UfTypeRule
 class CardinalityConstraintOpTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -62,7 +60,6 @@ class CardinalityConstraintOpTypeRule
 class CombinedCardinalityConstraintOpTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -80,7 +77,6 @@ class HoApplyTypeRule
  public:
   // the typing rule for HO_APPLY terms
 
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -96,7 +92,6 @@ class HoApplyTypeRule
 class LambdaTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -111,7 +106,6 @@ class LambdaTypeRule
 class FunctionArrayConstTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -138,7 +132,6 @@ class FunctionProperties
 class IntToBitVectorOpTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -155,7 +148,6 @@ class IntToBitVectorOpTypeRule
 class BitVectorConversionTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
 
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -170,7 +162,6 @@ class BitVectorConversionTypeRule
 class DistinctTypeRule
 {
  public:
-  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
