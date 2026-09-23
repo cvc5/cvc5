@@ -77,6 +77,11 @@ class TestCApiBlackSolver : public ::testing::Test
   Cvc5Sort d_uninterpreted;
 };
 
+TEST_F(TestCApiBlackSolver, new)
+{
+  ASSERT_CVC5_ERROR(cvc5_new(nullptr), "unexpected NULL argument");
+}
+
 TEST_F(TestCApiBlackSolver, pow2_large1)
 {
   // Based on https://github.com/cvc5/cvc5-projects/issues/371
@@ -1778,6 +1783,30 @@ TEST_F(TestCApiBlackSolver, proof_to_string_assertion_names)
   ASSERT_FALSE(proof_str.empty());
   ASSERT_LT(proof_str.find("as1"), std::string::npos);
   ASSERT_LT(proof_str.find("as2"), std::string::npos);
+
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         assertions,
+                                         nullptr),
+                    "unexpected NULL argument");
+  const Cvc5Term null_assertions[2] = {x_eq_y, nullptr};
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         null_assertions,
+                                         names),
+                    "invalid term at index 1");
+  const char* null_names[2] = {"as1", nullptr};
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         assertions,
+                                         null_names),
+                    "unexpected NULL argument at index 1");
 }
 
 TEST_F(TestCApiBlackSolver, get_learned_literals)
@@ -1917,6 +1946,10 @@ TEST_F(TestCApiBlackSolver, get_value3)
   ASSERT_CVC5_ERROR(
       cvc5_get_values(d_solver, terms.size(), terms.data(), nullptr),
       "unexpected NULL argument");
+  terms = {x, nullptr};
+  ASSERT_CVC5_ERROR(
+      cvc5_get_values(d_solver, terms.size(), terms.data(), &size),
+      "invalid term at index 1");
 
   Cvc5* slv = cvc5_new(d_tm);
   ASSERT_CVC5_ERROR(cvc5_get_value(slv, x), "cannot get value");
@@ -2515,29 +2548,34 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
           d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
       "unexpected NULL argument");
 
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), nullptr, symbols.size(), symbols.data()),
+      "unexpected NULL argument");
+
   symbols = {nullptr};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "invalid term at index 0");
   bvars = {nullptr};
   symbols = {iv};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "invalid term at index 0");
   bvars = {};
   symbols = {bt};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a bound variable");
   bvars = {bt};
   symbols = {iv};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a bound variable");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
@@ -2573,6 +2611,14 @@ TEST_F(TestCApiBlackSolver, synth_fun)
 
   (void)cvc5_synth_fun(d_solver, "", 0, nullptr, d_bool);
   (void)cvc5_synth_fun(d_solver, "f1", bvars.size(), bvars.data(), d_bool);
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun(d_solver, "f3", bvars.size(), nullptr, d_bool),
+      "unexpected NULL argument");
+  std::vector<Cvc5Term> null_bvars{nullptr};
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun(
+          d_solver, "f4", null_bvars.size(), null_bvars.data(), d_bool),
+      "invalid term at index 0");
   ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
                         d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1),
                     "invalid grammar");
@@ -2597,6 +2643,13 @@ TEST_F(TestCApiBlackSolver, synth_fun)
       cvc5_synth_fun_with_grammar(
           d_solver, "f2", bvars.size(), bvars.data(), d_bool, nullptr),
       "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
+                        d_solver, "f2", bvars.size(), nullptr, d_bool, g1),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun_with_grammar(
+          d_solver, "f2", null_bvars.size(), null_bvars.data(), d_bool, g1),
+      "invalid term at index 0");
 
   ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
                         d_solver, "f6", bvars.size(), bvars.data(), d_bool, g2),

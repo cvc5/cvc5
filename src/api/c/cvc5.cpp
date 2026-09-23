@@ -4469,6 +4469,7 @@ Cvc5* cvc5_new(Cvc5TermManager* tm)
 {
   Cvc5* res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
   res = new Cvc5(tm);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
@@ -5283,6 +5284,7 @@ const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
   std::vector<cvc5::Term> cterms;
   for (size_t i = 0; i < size; ++i)
   {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i);
     cterms.push_back(terms[i]->d_term);
   }
   auto values = cvc5->d_solver.getValue(cterms);
@@ -5646,8 +5648,11 @@ const char* cvc5_proof_to_string(Cvc5* cvc5,
   std::map<cvc5::Term, std::string> cassertion_names;
   if (assertions)
   {
+    CVC5_CAPI_CHECK_NOT_NULL(names);
     for (size_t i = 0; i < size; ++i)
     {
+      CVC5_CAPI_CHECK_TERM_AT_IDX(assertions, i);
+      CVC5_CAPI_CHECK_NOT_NULL_AT_IDX(names, i);
       cassertion_names.emplace(assertions[i]->d_term, names[i]);
     }
   }
@@ -5682,17 +5687,18 @@ Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(symbols);
+  CVC5_API_CHECK(bound_vars || nbound_vars == 0)
+      << "unexpected NULL argument for 'bound_vars'";
   std::vector<cvc5::Term> cbound_vars;
-  if (nbound_vars)
+  for (size_t i = 0; i < nbound_vars; ++i)
   {
-    for (size_t i = 0; i < nbound_vars; ++i)
-    {
-      cbound_vars.push_back(bound_vars[i]->d_term);
-    }
+    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
+    cbound_vars.push_back(bound_vars[i]->d_term);
   }
   std::vector<cvc5::Term> csymbols;
   for (size_t i = 0; i < nsymbols; ++i)
   {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(symbols, i);
     csymbols.push_back(symbols[i]->d_term);
   }
   res = cvc5->export_grammar(cvc5->d_solver.mkGrammar(cbound_vars, csymbols));
@@ -5711,13 +5717,13 @@ Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(symbol);
   CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_API_CHECK(bound_vars || size == 0)
+      << "unexpected NULL argument for 'bound_vars'";
   std::vector<cvc5::Term> cbound_vars;
-  if (size)
+  for (size_t i = 0; i < size; ++i)
   {
-    for (size_t i = 0; i < size; ++i)
-    {
-      cbound_vars.push_back(bound_vars[i]->d_term);
-    }
+    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
+    cbound_vars.push_back(bound_vars[i]->d_term);
   }
   res = cvc5->d_tm->export_term(
       cvc5->d_solver.synthFun(symbol, cbound_vars, sort->d_sort));
@@ -5738,13 +5744,13 @@ Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
   CVC5_CAPI_CHECK_NOT_NULL(symbol);
   CVC5_CAPI_CHECK_SORT(sort);
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_API_CHECK(bound_vars || size == 0)
+      << "unexpected NULL argument for 'bound_vars'";
   std::vector<cvc5::Term> cbound_vars;
-  if (size)
+  for (size_t i = 0; i < size; ++i)
   {
-    for (size_t i = 0; i < size; ++i)
-    {
-      cbound_vars.push_back(bound_vars[i]->d_term);
-    }
+    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
+    cbound_vars.push_back(bound_vars[i]->d_term);
   }
   res = cvc5->d_tm->export_term(cvc5->d_solver.synthFun(
       symbol, cbound_vars, sort->d_sort, grammar->d_grammar));
