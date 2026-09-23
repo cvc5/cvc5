@@ -253,8 +253,8 @@ TEST_F(TestCApiBlackParserLifetime, parserOutlivesSolver)
                             "parser_lifetime");
   cvc5_delete(slv);
   // slv is deleted here; the parser keeps it alive and must still be usable.
-  // The solver handle the parser holds is still valid and can be retrieved
-  // via cvc5_parser_get_solver().
+  // The solver the parser holds a reference to is still valid and can be
+  // retrieved via cvc5_parser_get_solver().
   Cvc5* pslv = cvc5_parser_get_solver(parser);
   const char* error_msg;
   Cvc5Command cmd = cvc5_parser_next_command(parser, &error_msg);
@@ -389,8 +389,8 @@ TEST_F(TestCApiBlackParserLifetime, commandOutlivesParserAndSolver)
   cvc5_term_manager_delete(tm);
   // Everything is deleted here; the command keeps the parser (and thus the
   // solver and symbol manager) alive and must still be usable. Releasing it
-  // frees the parser, which then drops its handles on solver and symbol
-  // manager.
+  // frees the parser, which then drops its references to the solver and
+  // symbol manager.
   ASSERT_EQ(std::string(cvc5_cmd_get_name(cmd)), "set-logic");
   ASSERT_FALSE(std::string(cvc5_cmd_to_string(cmd)).empty());
   ASSERT_FALSE(cvc5_has_error());

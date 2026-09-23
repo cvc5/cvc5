@@ -73,17 +73,17 @@ struct Cvc5SymbolManager
   }
 
   /**
-   * Increment the number of external handles to this symbol manager.
+   * Increment the reference count of this symbol manager.
    *
-   * A handle is held by the user (returned by `cvc5_symbol_manager_new()` and
-   * dropped via `cvc5_symbol_manager_delete()`) and by each
+   * A reference is held by the user (returned by `cvc5_symbol_manager_new()`
+   * and dropped via `cvc5_symbol_manager_delete()`) and by each
    * `Cvc5InputParser` instance created with this symbol manager.
    */
   void inc_ref();
   /**
-   * Decrement the number of external handles to this symbol manager.
+   * Decrement the reference count of this symbol manager.
    *
-   * The symbol manager is freed once it has no external handles left. Input
+   * The symbol manager is freed once its reference count drops to zero. Input
    * parsers thus keep their symbol manager alive until they are freed, and
    * remain usable after `cvc5_symbol_manager_delete()`.
    */
@@ -106,10 +106,10 @@ struct Cvc5SymbolManager
  private:
   /** Destructor. */
   ~Cvc5SymbolManager() { d_tm->dec_ref(); }
-  /** Free this symbol manager if it has no external handles. */
+  /** Free this symbol manager if its reference count is zero. */
   void free_if_unused();
 
-  /** The number of external handles to this symbol manager. */
+  /** The reference count of this symbol manager. */
   uint32_t d_refs = 1;
 };
 
@@ -126,8 +126,8 @@ struct Cvc5InputParser
     // The parser keeps the solver alive, it holds a reference to the wrapped
     // C++ solver instance.
     d_cvc5->inc_ref();
-    // The parser created its own symbol manager, we hold the only handle to
-    // the wrapper for it.
+    // The parser created its own symbol manager, we hold the only reference
+    // to the wrapper for it.
     d_sm = new Cvc5SymbolManager(*d_parser->getSymbolManager(),
                                  cvc5_get_tm(d_cvc5));
   }
@@ -178,17 +178,18 @@ struct Cvc5InputParser
   void release();
 
   /**
-   * Increment the number of external handles to this parser.
+   * Increment the reference count of this parser.
    *
-   * A handle is held by the user (returned by `cvc5_parser_new()` and dropped
-   * via `cvc5_parser_delete()`) and by each command allocated by this parser.
+   * A reference is held by the user (returned by `cvc5_parser_new()` and
+   * dropped via `cvc5_parser_delete()`) and by each command allocated by this
+   * parser.
    */
   void inc_ref();
   /**
-   * Decrement the number of external handles to this parser.
+   * Decrement the reference count of this parser.
    *
-   * The parser is freed once it has no external handles and no managed
-   * command objects left. Commands thus keep their parser alive until they
+   * The parser is freed once its reference count is zero and no managed
+   * command objects are left. Commands thus keep their parser alive until they
    * are released, and remain valid after `cvc5_parser_delete()`.
    */
   void dec_ref();
@@ -206,10 +207,10 @@ struct Cvc5InputParser
   Cvc5SymbolManager* d_sm = nullptr;
 
  private:
-  /** Free this parser if it has no external handles and no commands. */
+  /** Free this parser if its reference count is zero and it has no commands. */
   void free_if_unused();
 
-  /** The number of external handles to this parser. */
+  /** The reference count of this parser. */
   uint32_t d_refs = 1;
   /**
    * The allocated command objects.
@@ -259,7 +260,7 @@ void Cvc5InputParser::release()
 {
   size_t ncmds = d_alloc_cmds.size();
   d_alloc_cmds.clear();
-  // drop the handles held by the released commands
+  // drop the references held by the released commands
   Assert(d_refs >= ncmds);
   d_refs -= ncmds;
   free_if_unused();
@@ -318,10 +319,10 @@ void cvc5_symbol_manager_delete(Cvc5SymbolManager* sm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(sm);
-  // This only drops the handle held by the user. Input parser instances keep
-  // the symbol manager alive, so if any of them are still alive here, the
-  // symbol manager is not freed yet, but only once the last of them is freed
-  // (see `cvc5_parser_delete()`).
+  // This only decrements the reference count of the symbol manager. Input
+  // parser instances also hold a reference to the symbol manager, so if any of
+  // them are still alive here, the symbol manager is not freed yet, but only
+  // once the last of them is freed (see `cvc5_parser_delete()`).
   sm->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }

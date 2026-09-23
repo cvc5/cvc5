@@ -478,7 +478,7 @@ Cvc5::~Cvc5()
     Assert(d_output_tag_streambuf);
     d_output_tag_stream->rdbuf(d_output_tag_streambuf);
   }
-  // Drop our handle to the term manager. Note that this may free the term
+  // Drop our reference to the term manager. Note that this may free the term
   // manager wrapper (if it was already deleted by the user and no managed
   // objects are left). This is safe, the C++ solver instance holds its own
   // copy of the C++ term manager.

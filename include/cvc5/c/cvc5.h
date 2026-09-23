@@ -2604,8 +2604,8 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
  * `cvc5_term_manager_release()`.
  *
  * @note Consequently, if managed objects are still alive when this function is
- *       called, it does not free the term manager: it only drops the handle
- *       held by the user, and the term manager is freed later, when the last
+ *       called, it does not free the term manager: it only decrements its
+ *       reference count, and the term manager is freed later, when the last
  *       of its managed objects is released. To free everything right away,
  *       call `cvc5_term_manager_release()` before this function.
  *

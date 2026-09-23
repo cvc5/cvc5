@@ -48,9 +48,9 @@ a symbol manager (:cpp:type:`Cvc5SymbolManager`) keep their term manager alive,
 and an input parser keeps its solver and symbol manager alive. Each of them
 thus remains usable after the objects it was created from have been deleted,
 and term manager, solver, symbol manager and input parser instances may be
-**deleted in any order**. As above, ``cvc5_*_delete()`` only drops the handle
-held by the user; the memory of an object is freed once it has been deleted
-**and** nothing keeps it alive anymore.
+**deleted in any order**. As above, ``cvc5_*_delete()`` only decrements the
+reference count of an object; the memory of an object is freed once it has been
+deleted **and** nothing keeps it alive anymore.
 
 The C API offers **two modes** of memory management:
 
