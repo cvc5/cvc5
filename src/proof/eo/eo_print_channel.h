@@ -70,10 +70,7 @@ class EoPrintChannel
 class EoPrintChannelOut : public EoPrintChannel
 {
  public:
-  EoPrintChannelOut(std::ostream& out,
-                    const LetBinding* lbind,
-                    const std::string& tprefix,
-                    bool trackWarn);
+  EoPrintChannelOut(std::ostream& out, const LetBinding* lbind, bool trackWarn);
   void printNode(TNode n) override;
   void printTypeNode(TypeNode tn) override;
   void printAssume(TNode n, size_t i, bool isPush) override;
@@ -89,6 +86,19 @@ class EoPrintChannelOut : public EoPrintChannel
                       const std::vector<size_t>& premises,
                       const std::vector<Node>& args,
                       TNode conc) override;
+
+  /**
+   * Whether the declarations and definitions of the symbols occurring in the
+   * proof should be printed prior to the proof. This is false for channels
+   * whose output is not in the Eunoia language.
+   */
+  virtual bool printsDeclarations() const { return true; }
+  /**
+   * Print the definition of the term letification variable that lbind
+   * introduced for n. Note the variable itself is named by the prefix of
+   * lbind and the identifier lbind assigns to n.
+   */
+  virtual void printTermLet(const LetBinding& lbind, TNode n);
 
   /**
    * Print node to stream in the expected Eunoia format.
@@ -116,8 +126,6 @@ class EoPrintChannelOut : public EoPrintChannel
   std::ostream& d_out;
   /** The let binding */
   const LetBinding* d_lbind;
-  /** term prefix */
-  std::string d_termLetPrefix;
   /**
    * The set of ProofRule that we have output a warning about, i.e. the rules
    * associated with trusted steps.

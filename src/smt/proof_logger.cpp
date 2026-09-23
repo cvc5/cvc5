@@ -30,7 +30,7 @@ ProofLoggerCpc::ProofLoggerCpc(Env& env,
       // we use thresh 1 since terms may come incrementally and would benefit
       // from previous eager letification
       d_eop(env, d_atp, pm->getRewriteDatabase(), 1),
-      d_eout(out, d_eop.getLetBinding(), "@t", false)
+      d_eout(out, d_eop.getLetBinding(), false)
 {
   Trace("pf-log-debug") << "Make proof logger" << std::endl;
   // global options on out
