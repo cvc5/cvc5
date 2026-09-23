@@ -364,172 +364,115 @@
 
 ;;;;; ProofRewriteRule::QUANT_VAR_ELIM_INEQ
 
-; program: $arith_linear_coeff
+; program: $arith_linear_dir
 ; args:
 ; - x T: The variable we are considering.
 ; - p @Polynomial: The polynomial we are considering.
 ; return: >
-;   The coefficient of x in p. This method does not evaluate if x occurs in any
-;   monomial of p other than the one consisting of x alone, i.e. if p is not
-;   linear in x.
-(program $arith_linear_coeff ((T Type) (x T) (c Real) (a eo::List) (p @Polynomial :list))
-  :signature (T @Polynomial) Real
+;   1 (resp. -1) if the coefficient of x in p is positive (resp. negative).
+;   This method does not evaluate if x does not occur in p, or if x occurs in
+;   a monomial of p other than the one consisting of x alone.
+(program $arith_linear_dir ((T Type) (x T) (c Real) (a eo::List) (p @Polynomial :list))
+  :signature (T @Polynomial) Int
   (
-  (($arith_linear_coeff x (@poly (@mon (eo::List::cons x) c) p))  (eo::requires ($contains_atomic_term_free p x) false c))
-  (($arith_linear_coeff x (@poly (@mon a c) p))                   (eo::requires ($contains_atomic_term_free a x) false
-                                                                    ($arith_linear_coeff x p)))
-  (($arith_linear_coeff x @poly.zero)                             0/1)
+  (($arith_linear_dir x (@poly (@mon (eo::List::cons x) c) p))  (eo::requires ($contains_atomic_term_free p x) false
+                                                                  (eo::ite (eo::is_neg c) -1 1)))
+  (($arith_linear_dir x (@poly (@mon a c) p))                   (eo::requires ($contains_atomic_term_free a x) false
+                                                                  ($arith_linear_dir x p)))
   )
 )
 
-; define: $arith_linear_coeff_nonzero
+; define: $arith_diff_dir
 ; args:
 ; - x T: The variable we are considering.
-; - a U: The left hand side of an arithmetic relation.
-; - b V: The right hand side of an arithmetic relation.
-; return: >
-;   The coefficient of x in the polynomial normalization of (- a b). This
-;   method does not evaluate if this polynomial is not linear in x, or if the
-;   coefficient of x is zero.
-(define $arith_linear_coeff_nonzero ((T Type :implicit) (U Type :implicit) (V Type :implicit) (x T) (a U) (b V))
-  (eo::define ((c ($arith_linear_coeff x
-                    ($poly_add ($get_arith_poly_norm a) ($poly_neg ($get_arith_poly_norm b))))))
-  (eo::requires (eo::eq c 0/1) false c)))
-
-; define: $arith_coeff_dir
-; args:
-; - c Real: A non-zero rational coefficient.
-; return: 1 if c is positive, -1 otherwise.
-(define $arith_coeff_dir ((c Real))
-  (eo::ite (eo::is_neg c) -1 1))
+; - a U: An arithmetic term.
+; - b V: An arithmetic term.
+; return: The result of $arith_linear_dir for x in the polynomial of (- a b).
+(define $arith_diff_dir ((T Type :implicit) (U Type :implicit) (V Type :implicit) (x T) (a U) (b V))
+  ($arith_linear_dir x ($poly_add ($get_arith_poly_norm a) ($poly_neg ($get_arith_poly_norm b)))))
 
 ; program: $get_quant_var_elim_ineq_dir
 ; args:
 ; - x T: The variable we are eliminating.
 ; - l Bool: A disjunct of the body of the quantified formula that contains x.
 ; return: >
-;   1 (resp. -1) if l is an arithmetic literal that is falsified when x is
-;   made arbitrarily large (resp. small), or 0 if l is an arithmetic equality,
-;   which is falsified when x is made either arbitrarily large or small.
-;   This method does not evaluate if l is not a literal that is linear in x
-;   with a non-zero coefficient, or if l is a disequality.
+;   1 (resp. -1) if l is falsified when x is made arbitrarily large (resp.
+;   small), or 0 if l is an equality, which is falsified in either case. This
+;   method does not evaluate if l is not an arithmetic literal that is linear
+;   in x, or if l is a disequality.
 (program $get_quant_var_elim_ineq_dir ((T Type) (U Type) (V Type) (x T) (a U) (b V))
   :signature (T Bool) Int
   (
-  (($get_quant_var_elim_ineq_dir x (= a b))         (eo::requires ($is_arith_type (eo::typeof a)) true
-                                                      (eo::requires (eo::is_q ($arith_linear_coeff_nonzero x a b)) true 0)))
-  (($get_quant_var_elim_ineq_dir x (>= a b))        (eo::neg ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b))))
-  (($get_quant_var_elim_ineq_dir x (> a b))         (eo::neg ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b))))
-  (($get_quant_var_elim_ineq_dir x (<= a b))        ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b)))
-  (($get_quant_var_elim_ineq_dir x (< a b))         ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b)))
-  (($get_quant_var_elim_ineq_dir x (not (>= a b)))  ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b)))
-  (($get_quant_var_elim_ineq_dir x (not (> a b)))   ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b)))
-  (($get_quant_var_elim_ineq_dir x (not (<= a b)))  (eo::neg ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b))))
-  (($get_quant_var_elim_ineq_dir x (not (< a b)))   (eo::neg ($arith_coeff_dir ($arith_linear_coeff_nonzero x a b))))
-  )
-)
-
-; define: $quant_var_elim_ineq_dir_combine
-; args:
-; - d Int: The direction we have computed so far (1, -1, or 0 if none).
-; - e Int: The direction of the current literal (1, -1, or 0 if either).
-; return: >
-;   The combination of the two directions. This method does not evaluate if
-;   the two directions are incompatible.
-(define $quant_var_elim_ineq_dir_combine ((d Int) (e Int))
-  (eo::ite (eo::eq d 0) e
-  (eo::ite (eo::eq e 0) d
-    (eo::requires d e d))))
-
-; program: $mk_quant_var_elim_ineq_rec
-; args:
-; - x T: The variable we are eliminating.
-; - F Bool: The disjunction we have yet to process.
-; - d Int: The direction of literals containing x we have processed so far.
-; return: >
-;   The disjunction of literals of F that do not contain x. This method does
-;   not evaluate if the literals in F that contain x are not all falsified
-;   when x is made arbitrarily large (resp. small).
-(program $mk_quant_var_elim_ineq_rec ((T Type) (x T) (f Bool) (fs Bool :list) (d Int))
-  :signature (T Bool Int) Bool
-  (
-  (($mk_quant_var_elim_ineq_rec x (or f fs) d)  (eo::ite ($contains_atomic_term_free f x)
-                                                  ($mk_quant_var_elim_ineq_rec x fs
-                                                    ($quant_var_elim_ineq_dir_combine d ($get_quant_var_elim_ineq_dir x f)))
-                                                  (_ or f ($mk_quant_var_elim_ineq_rec x fs d))))
-  (($mk_quant_var_elim_ineq_rec x false d)      (eo::requires (eo::is_z d) true false))
+  (($get_quant_var_elim_ineq_dir x (= a b))         (eo::mul 0 ($arith_diff_dir x a b)))
+  (($get_quant_var_elim_ineq_dir x (>= a b))        ($arith_diff_dir x b a))
+  (($get_quant_var_elim_ineq_dir x (> a b))         ($arith_diff_dir x b a))
+  (($get_quant_var_elim_ineq_dir x (<= a b))        ($arith_diff_dir x a b))
+  (($get_quant_var_elim_ineq_dir x (< a b))         ($arith_diff_dir x a b))
+  (($get_quant_var_elim_ineq_dir x (not (>= a b)))  ($arith_diff_dir x a b))
+  (($get_quant_var_elim_ineq_dir x (not (> a b)))   ($arith_diff_dir x a b))
+  (($get_quant_var_elim_ineq_dir x (not (<= a b)))  ($arith_diff_dir x b a))
+  (($get_quant_var_elim_ineq_dir x (not (< a b)))   ($arith_diff_dir x b a))
   )
 )
 
 ; program: $mk_quant_var_elim_ineq
 ; args:
 ; - x T: The variable we are eliminating.
-; - F Bool: The body of the quantified formula.
+; - F Bool: The disjunction we have yet to process.
+; - d Int: The direction required by the literals containing x processed so far, or 0 if none.
 ; return: >
-;   The result of dropping all literals of F that contain x, which is justified
-;   since all such literals can be falsified by making x arbitrarily large
-;   (resp. small). If F is not a disjunction, it is treated as a disjunction
-;   with a single literal.
-(program $mk_quant_var_elim_ineq ((T Type) (x T) (f Bool) (fs Bool :list))
-  :signature (T Bool) Bool
+;   The disjunction of literals of F that do not contain x. This method does
+;   not evaluate if the literals in F that contain x cannot all be falsified
+;   by making x arbitrarily large (resp. small).
+(program $mk_quant_var_elim_ineq ((T Type) (x T) (f Bool) (fs Bool :list) (d Int))
+  :signature (T Bool Int) Bool
   (
-  (($mk_quant_var_elim_ineq x (or f fs))  (eo::requires ($is_arith_type (eo::typeof x)) true
-                                            (eo::list_singleton_elim or ($mk_quant_var_elim_ineq_rec x (or f fs) 0))))
-  (($mk_quant_var_elim_ineq x f)          (eo::requires ($is_arith_type (eo::typeof x)) true
-                                            (eo::list_singleton_elim or ($mk_quant_var_elim_ineq_rec x (or f) 0))))
+  (($mk_quant_var_elim_ineq x (or f fs) d)  (eo::ite ($contains_atomic_term_free f x)
+                                              (eo::define ((e ($get_quant_var_elim_ineq_dir x f)))
+                                              ; fails if d and e are opposite directions
+                                              (eo::requires (eo::eq (eo::mul d e) -1) false
+                                                ($mk_quant_var_elim_ineq x fs (eo::ite (eo::eq e 0) d e))))
+                                              (_ or f ($mk_quant_var_elim_ineq x fs d))))
+  (($mk_quant_var_elim_ineq x false d)      false)
   )
 )
 
-; program: $is_quant_var_elim_ineq_rec
-; args:
-; - xs @List: The bound variables of the left hand side we have yet to process.
-; - F Bool: The body of the left hand side.
-; - G Bool: The right hand side, which is a quantified formula whose bound
-;   variables are those we have yet to process.
-; return: >
-;   True if G is the result of eliminating the first variable that is in xs
-;   but not in the bound variable list of G.
-(program $is_quant_var_elim_ineq_rec ((T Type) (x T) (xs @List :list) (ys @List :list) (F Bool) (G Bool))
-  :signature (@List Bool Bool) Bool
-  (
-  (($is_quant_var_elim_ineq_rec (@list x xs) F (forall (@list x ys) G)) ($is_quant_var_elim_ineq_rec xs F (forall ys G)))
-  (($is_quant_var_elim_ineq_rec (@list x xs) F (forall ys G))           (eo::requires xs ys
-                                                                          (eo::requires (eo::list_find @list ys x) -1
-                                                                            (eo::eq ($mk_quant_var_elim_ineq x F) G))))
-  )
-)
-
-; define: $is_quant_var_elim_ineq
+; program: $is_quant_var_elim_ineq
 ; args:
 ; - xs @List: The bound variables of the left hand side.
 ; - F Bool: The body of the left hand side.
 ; - G Bool: The right hand side.
 ; return: >
-;   True if G is the result of eliminating a variable x from (forall xs F)
-;   based on inequality reasoning. If xs has more than one variable, G must be
-;   a quantified formula whose variables are xs with x removed.
-(define $is_quant_var_elim_ineq ((xs @List) (F Bool) (G Bool))
-  (eo::ite (eo::eq (eo::list_len @list xs) 1)
-    ($is_quant_var_elim_ineq_rec xs F (forall @list.nil G))
-    ($is_quant_var_elim_ineq_rec xs F G)))
+;   True if G is the result of eliminating a variable x from (forall xs F),
+;   where G is (forall ys H) if xs has more than one variable, where ys is xs
+;   with x removed.
+(program $is_quant_var_elim_ineq ((T Type) (x T) (xs @List) (ys @List) (F Bool) (G Bool))
+  :signature (@List Bool Bool) Bool
+  (
+  (($is_quant_var_elim_ineq (@list x) F G)      (eo::requires ($is_arith_type (eo::typeof x)) true
+                                                  (eo::eq (eo::list_singleton_elim or
+                                                    ($mk_quant_var_elim_ineq x (eo::list_singleton_intro or F) 0)) G)))
+  (($is_quant_var_elim_ineq xs F (forall ys G)) (eo::define ((y (eo::list_nth @list (eo::list_diff @list xs ys) 0)))
+                                                (eo::requires (eo::list_erase @list xs y) ys
+                                                  ($is_quant_var_elim_ineq (@list y) F G))))
+  )
+)
 
 ; rule: quant-var-elim-ineq
 ; implements: ProofRewriteRule::QUANT_VAR_ELIM_INEQ
 ; args:
 ; - eq Bool: The equality whose left hand side is a quantified formula.
 ; requires: >
-;   The right hand side of the equality is the result of eliminating a variable
-;   x whose occurrences in the body of the left hand side are all in arithmetic
-;   literals that are either lower bounds, upper bounds, or equalities for x,
-;   where all bounds are in the same direction. Such literals can be dropped
-;   since they can all be falsified by making x arbitrarily large (resp. small).
+;   The right hand side of the equality is the result of eliminating an
+;   arithmetic variable x whose occurrences in the body of the left hand side
+;   are all in literals that can be falsified by making x arbitrarily large
+;   (resp. small). Such literals are dropped from the body.
 ; conclusion: The given equality.
 (declare-rule quant-var-elim-ineq ((xs @List) (F Bool) (G Bool))
   :args ((= (forall xs F) G))
   :requires ((($is_quant_var_elim_ineq xs F G) true))
   :conclusion (= (forall xs F) G)
 )
-
 
 ;;;;; ProofRewriteRule::QUANT_DT_SPLIT
 
