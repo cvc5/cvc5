@@ -3877,6 +3877,34 @@ TEST_F(TestCApiBlackSolver, plugin_multiple)
 }
 
 namespace {
+const Cvc5Term* plugin_null_check(size_t*, void* state)
+{
+  // neither set the size nor return an array
+  ++*static_cast<size_t*>(state);
+  return nullptr;
+}
+const char* plugin_null_get_name() { return "PluginNull"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_null)
+{
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  size_t num_checks = 0;
+  Cvc5Plugin plugin{&plugin_null_check,
+                    nullptr,
+                    nullptr,
+                    &plugin_null_get_name,
+                    &num_checks,
+                    nullptr,
+                    nullptr};
+  cvc5_add_plugin(d_solver, &plugin);
+  Cvc5Term x = cvc5_mk_const(d_tm, cvc5_get_boolean_sort(d_tm), "x");
+  cvc5_assert_formula(d_solver, x);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  ASSERT_GT(num_checks, 0);
+}
+
+namespace {
 void plugin_listen_notify_sat_clause(const Cvc5Term, void* state)
 {
   *static_cast<bool*>(state) = true;
