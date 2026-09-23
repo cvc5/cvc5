@@ -201,7 +201,7 @@ void BagSolver::evictNegatedAtom(const Node& equality)
   getBagBoundVar(B);
   getBagBoundVar(AminusB);
   getBagBoundVar(BminusA);
-  
+
   Node xA = getCardinalityVar(A);
   Node xB = getCardinalityVar(B);
   Node xAminusB = getCardinalityVar(AminusB);
