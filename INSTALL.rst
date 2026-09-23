@@ -3,7 +3,9 @@ Building cvc5
 
 .. code:: bash
 
-    ./configure.sh
+    ./configure.sh <build type>
+        # a build type is mandatory, run ./configure.sh --help for the
+        #   list of available build types
         # use --prefix to specify an install prefix (default: /usr/local)
         # use --name=<PATH> for custom build directory
         # use --auto-download to download and build missing, required or
@@ -81,7 +83,7 @@ you can cross-compile cvc5 as follows:
 
 .. code:: bash
 
-  ./configure.sh --win64 --static <configure options...>
+  ./configure.sh unrestricted --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -94,21 +96,29 @@ can be found in ``<build_dir>/lib``.
 WebAssembly Compilation
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 3.1.70 or 
-latter). Setting up emsdk can be done as follows:
+Compiling cvc5 to WebAssembly needs the Emscripten SDK (version 6.0.8 or
+later). Setting up emsdk can be done as follows:
 
 .. code:: bash
 
   git clone https://github.com/emscripten-core/emsdk.git
   cd emsdk
-  ./emsdk install <version>   # <version> = '3.1.70' is preferable, but 
-                              # <version> = 'latest' has high chance of working
+  ./emsdk install <version>   # <version> = '6.0.8' is the version used in our Continuous Integration pipeline
   ./emsdk activate <version>
   source ./emsdk_env.sh   # Activate PATH and other environment variables in the
                           # current terminal. Whenever Emscripten is going to be
                           # used this command needs to be called before because 
                           # emsdk doesn't insert the binaries paths directly in 
                           # the system PATH variable.
+
+.. note::
+
+  Versions older than 6.0.8 are not supported, and CMake rejects
+  them. Emscripten's ``getrusage()``
+  used to write past the end of the caller's ``struct rusage``, corrupting
+  adjacent memory. cvc5 calls it from its resource manager and, in GPL
+  builds, indirectly through CoCoALib, so older SDKs can produce binaries
+  that fail at run time in ways unrelated to the input.
 
 Refer to the `emscripten dependencies list <https://emscripten.org/docs/getting_started/downloads.html#platform-specific-notes>`_ 
 to ensure that all required dependencies are installed on the system.
@@ -117,7 +127,7 @@ Then, in the cvc5 directory:
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=<value> --wasm-flags='<emscripten flags>' <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -143,7 +153,7 @@ For example, to generate a HTML page, use:
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=HTML --name=prod
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=HTML --name=prod
 
   cd prod
   make            # use -jN for parallel build with N threads
@@ -154,7 +164,7 @@ On the other hand, to generate a modularized glue code to be imported by custom 
 
 .. code:: bash
 
-  ./configure.sh --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
+  ./configure.sh unrestricted --static --static-binary --auto-download --wasm=JS --wasm-flags='-s MODULARIZE' --name=prod
 
   cd prod
   make            # use -jN for parallel build with N threads
@@ -181,7 +191,7 @@ versions; more recent versions should be compatible.
 - `GMP >= v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `MPFR >= v4.2.1 (GNU Multiple Precision Floating-Point Reliable Library) <https://www.mpfr.org>`_
 - `CaDiCaL >= 2.1.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
-- `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_
+- `SymFPU >= v1.2.0 <https://github.com/martin-cs/symfpu/tree/main>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing. To install the modules globally and skip
@@ -217,7 +227,9 @@ SymFPU (Support for the Theory of Floating Point Numbers)
 `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_ is an implementation
 of SMT-LIB/IEEE-754 floating-point operations in terms of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and can be
-downloaded and built automatically.
+downloaded and built automatically. Note that SymFPU does not expose its
+version, cvc5 therefore determines whether a system installation is recent
+enough by probing for an API change introduced in SymFPU 1.2.0.
 
 
 Optional Dependencies
@@ -486,7 +498,7 @@ Testing Unit Tests
 The unit tests are not built by default.
 
 Note that cvc5 can only be configured with unit tests in non-static builds with
-assertions enabled (e.g. ``./configure.sh --unit-testing --assertions``).
+assertions enabled (e.g. ``./configure.sh unrestricted --unit-testing --assertions``).
 
 .. code::
 
@@ -594,6 +606,6 @@ linked LGPL libraries perform the following steps:
 
 .. code::
   
-  ./configure.sh --static <options>
+  ./configure.sh unrestricted --static <options>
 
 7. Follow remaining steps from `build instructions <#building-cvc5>`_

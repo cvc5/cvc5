@@ -88,6 +88,7 @@ int main()
   printf("Thus the maximum value of (y - x) is 2/3.\n");
 
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return 0;
 }

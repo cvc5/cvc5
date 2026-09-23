@@ -40,7 +40,7 @@
 ; - s (Seq T): The sequence term.
 ; return: true if s is a (non standalone seq.unit) sequence constant.
 (program $is_seq_const_rec ((T Type) (e T) (ss (Seq T) :list))
-  :signature ((Seq T)) Int
+  :signature ((Seq T)) Bool
   (
   (($is_seq_const_rec (seq.++ (seq.unit e) ss))   ($is_seq_const_rec ss))
   (($is_seq_const_rec (as seq.empty (Seq T)))     true)
@@ -53,7 +53,7 @@
 ; - s (Seq T): The sequence term.
 ; return: true if s is a sequence constant.
 (program $is_seq_const ((T Type) (e T) (ss (Seq T)))
-  :signature ((Seq T)) Int
+  :signature ((Seq T)) Bool
   (
   (($is_seq_const (seq.unit e)) true)
   (($is_seq_const ss)           ($is_seq_const_rec ss))
@@ -202,10 +202,8 @@
 ; program: $re_ac_merge
 ; args:
 ; - f (-> RegLan RegLan RegLan): The constructor for the associative and commutative operator (re.union, re.inter).
-; - r1 RegLan: A regular language term.
-; - rr1 RegLan :list: A list of regular language terms for the first argument.
-; - r2 RegLan: Another regular language term.
-; - rr2 RegLan :list: A list of regular language terms for the second argument.
+; - r1 RegLan: The first regular language term, possibly a list under f.
+; - r2 RegLan: The second regular language term, possibly a list under f.
 ; returns: RegLan
 ;   A function to flatten the construction of an AC list regular expression operator.
 (program $re_ac_merge ((f (-> RegLan RegLan RegLan)) (r1 RegLan) (rr1 RegLan :list) (r2 RegLan) (rr2 RegLan :list))
@@ -223,10 +221,8 @@
 
 ; program: $re_concat_merge
 ; args:
-; - r1 RegLan: The first term of the concatenation.
-; - rr1 RegLan :list: The list of remaining terms in the first concatenation.
-; - r2 RegLan: The second term of the concatenation.
-; - rr2 RegLan :list: The list of remaining terms in the second concatenation.
+; - r1 RegLan: The first regular expression, possibly a re.++ list.
+; - r2 RegLan: The second regular expression, possibly a re.++ list.
 ; returns: RegLan
 ;   A function to flatten the concatenation (re.++) of two regular expressions.
 (program $re_concat_merge ((r1 RegLan) (rr1 RegLan :list) (r2 RegLan) (rr2 RegLan :list))
@@ -244,10 +240,7 @@
 ; program: $derivative
 ; args:
 ; - c String: The single character to take the derivative with respect to.
-; - s1 String: A string argument, used for str.to_re or re.range.
-; - s2 String: A string argument, used for re.range.
 ; - r RegLan: The regular language expression.
-; - rr RegLan :list: A list of regular language terms (for re.union/re.inter).
 ; returns: RegLan
 ;   Computes the Brzozowski derivative of a regular language with respect to a character c.
 (program $derivative ((c String) (s1 String) (s2 String) (r RegLan) (rr RegLan :list))
@@ -1226,18 +1219,18 @@
 )
 
 ; note: >
-;   Forward declaration of $re_rev_comp, used by $re_rev_map below to recursively
+;   Forward declaration of $re_rev_comp, used by $re_rev_map_rev below to recursively
 ;   reverse the content of a single component.
 (program $re_rev_comp () :signature (RegLan) RegLan)
 
 ; program: $re_rev_map_rev
 ; args:
 ; - r RegLan: A re.++ list (in flat form).
+; - acc RegLan: The re.++ list to append after the reversed components.
 ; return: >
-;   The result of recursively reversing the content of every component of r, with
-;   the list order of r itself preserved. Used by $re_rev_rec (which reverses the
-;   list order) and by $re_rev_comp (for re.* bodies and re.inter / re.union
-;   children).
+;   The result of reversing the list order of r and recursively reversing the
+;   content of every component, followed by acc. Used by $re_rev_rec and by
+;   $re_rev_comp (for re.* bodies and re.inter / re.union children).
 (program $re_rev_map_rev
   ((a RegLan) (b RegLan :list) (acc RegLan :list))
   :signature (RegLan RegLan) RegLan

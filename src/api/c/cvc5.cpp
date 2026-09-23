@@ -2682,7 +2682,12 @@ void cvc5_term_manager_delete(Cvc5TermManager* tm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  delete tm;
+  // This only decrements the reference count of the term manager. Managed
+  // objects (and solver instances) keep the term manager alive, so if any of
+  // them are still alive here, the term manager is not freed yet, but only
+  // once the last of them is released. `cvc5_term_manager_release()` releases
+  // them all at once.
+  tm->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -3743,7 +3748,7 @@ Cvc5Result cvc5_result_copy(Cvc5Result result)
   Cvc5Result res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_RESULT(result);
-  res = result->d_cvc5->copy(result);
+  res = result->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3752,7 +3757,7 @@ void cvc5_result_release(Cvc5Result result)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_RESULT(result);
-  result->d_cvc5->release(result);
+  result->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -3869,7 +3874,7 @@ Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result)
   Cvc5SynthResult res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_SYNTH_RESULT(result);
-  res = result->d_cvc5->copy(result);
+  res = result->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3878,7 +3883,7 @@ void cvc5_synth_result_release(Cvc5SynthResult result)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_SYNTH_RESULT(result);
-  result->d_cvc5->release(result);
+  result->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4005,7 +4010,7 @@ Cvc5Term cvc5_proof_get_result(Cvc5Proof proof)
   Cvc5Term res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  res = proof->d_cvc5->d_tm->export_term(proof->d_proof.getResult());
+  res = proof->d_tm->export_term(proof->d_proof.getResult());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4020,7 +4025,7 @@ const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size)
   auto children = proof->d_proof.getChildren();
   for (auto& p : children)
   {
-    res.push_back(proof->d_cvc5->export_proof(p));
+    res.push_back(proof->export_proof(p));
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
@@ -4037,7 +4042,7 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
   auto args = proof->d_proof.getArguments();
   for (auto& t : args)
   {
-    res.push_back(proof->d_cvc5->d_tm->export_term(t));
+    res.push_back(proof->d_tm->export_term(t));
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
@@ -4091,7 +4096,7 @@ Cvc5Proof cvc5_proof_copy(Cvc5Proof proof)
   Cvc5Proof res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  res = proof->d_cvc5->copy(proof);
+  res = proof->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4100,7 +4105,7 @@ void cvc5_proof_release(Cvc5Proof proof)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  proof->d_cvc5->release(proof);
+  proof->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4212,7 +4217,7 @@ Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar)
   Cvc5Grammar res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  res = grammar->d_cvc5->copy(grammar);
+  res = grammar->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4221,7 +4226,7 @@ void cvc5_grammar_release(Cvc5Grammar grammar)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  grammar->d_cvc5->release(grammar);
+  grammar->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4356,6 +4361,24 @@ const char* cvc5_stat_to_string(Cvc5Stat stat)
   return str.c_str();
 }
 
+Cvc5Stat cvc5_stat_copy(Cvc5Stat stat)
+{
+  Cvc5Stat res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_tm->copy(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_stat_release(Cvc5Stat stat)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  stat->d_tm->release(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Statistics                                                             */
 /* -------------------------------------------------------------------------- */
@@ -4420,6 +4443,24 @@ const char* cvc5_stats_to_string(Cvc5Statistics stat)
   return str.c_str();
 }
 
+Cvc5Statistics cvc5_stats_copy(Cvc5Statistics stat)
+{
+  Cvc5Statistics res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  res = stat->d_tm->copy(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_stats_release(Cvc5Statistics stat)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  stat->d_tm->release(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -4436,7 +4477,12 @@ Cvc5* cvc5_new(Cvc5TermManager* tm)
 void cvc5_delete(Cvc5* cvc5)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
-  delete cvc5;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  // This only decrements the reference count of the solver. Input parser
+  // instances also hold a reference to the solver, so if any of them are still
+  // alive here, the solver is not freed yet, but only once the last of them is
+  // freed (see `cvc5_parser_delete()`).
+  cvc5->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -5605,7 +5651,7 @@ const char* cvc5_proof_to_string(Cvc5* cvc5,
       cassertion_names.emplace(assertions[i]->d_term, names[i]);
     }
   }
-  str = proof->d_cvc5->d_solver.proofToString(
+  str = cvc5->d_solver.proofToString(
       proof->d_proof,
       static_cast<cvc5::modes::ProofFormat>(format),
       cassertion_names);

@@ -23,8 +23,6 @@
 #include "proof/eo/eo_printer.h"
 #include "proof/eo/logos_node_converter.h"
 #include "proof/eo/logos_print_channel.h"
-#include "proof/lfsc/lfsc_post_processor.h"
-#include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
@@ -132,15 +130,17 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    // Alethe does not require chain multiset resolution to be expanded,
-    // LFSC requires it to be expanded.
-    if ((options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
-         && !options().proof.proofChainMRes)
-        || options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
+    // Alethe does not require chain multiset resolution to be expanded.
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+        && !options().proof.proofChainMRes)
     {
       d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
-    d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
+    // The Alethe translation handles this macro directly via la_generic
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    {
+      d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
+    }
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
@@ -369,15 +369,6 @@ void PfManager::printProof(std::ostream& out,
       out << "(error " << vpfpp.getError() << ")";
     }
     d_pnm->getChecker()->setProofCheckMode(oldMode);
-  }
-  else if (mode == options::ProofFormatMode::LFSC)
-  {
-    Assert(fp->getRule() == ProofRule::SCOPE);
-    proof::LfscNodeConverter ltp(nodeManager());
-    proof::LfscProofPostprocess lpp(d_env, ltp);
-    lpp.process(fp);
-    proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
-    lp.print(out, fp.get());
   }
   else
   {

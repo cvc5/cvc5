@@ -195,5 +195,6 @@ int main()
          cvc5_term_to_string(cvc5_get_value(slv, ancestor)));
 
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }

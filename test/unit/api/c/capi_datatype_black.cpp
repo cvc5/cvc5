@@ -32,7 +32,11 @@ class TestCApiBlackDatatype : public ::testing::Test
     d_uninterpreted = cvc5_mk_uninterpreted_sort(d_tm, "u");
   }
 
-  void TearDown() override { cvc5_term_manager_delete(d_tm); }
+  void TearDown() override
+  {
+    cvc5_term_manager_release(d_tm);
+    cvc5_term_manager_delete(d_tm);
+  }
 
   Cvc5DatatypeDecl create_datatype_decl()
   {

@@ -433,14 +433,14 @@ std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::rem(
 /* -------------------------------------------------------------------------- */
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::maxTotal(
-    const FloatingPointLiteral& arg, bool zeroCaseLeft) const
+    const FloatingPointLiteral& arg, bool zeroCaseRight) const
 {
   const auto& a = asSymFPU(arg);
   Assert(d_fp_size == a.d_fp_size);
   return std::unique_ptr<FloatingPointLiteral>(new FloatingPointLiteralSymFPU(
       d_fp_size,
       symfpu::max<symfpuLiteral::traits>(
-          d_fp_size, *d_symuf, *a.d_symuf, zeroCaseLeft)));
+          d_fp_size, *d_symuf, *a.d_symuf, zeroCaseRight)));
 }
 
 std::unique_ptr<FloatingPointLiteral> FloatingPointLiteralSymFPU::minTotal(

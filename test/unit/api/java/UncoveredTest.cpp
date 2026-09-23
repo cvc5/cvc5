@@ -233,8 +233,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::OptionCategory::REGULAR);
   ss << cvc5::modes::InputLanguage::SMT_LIB_2_6
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
-  ss << cvc5::modes::ProofFormat::LFSC
-     << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::modes::ProofFormat::CPC
+     << std::to_string(cvc5::modes::ProofFormat::CPC);
   ss << cvc5::ProofRewriteRule::NONE
      << std::to_string(cvc5::ProofRewriteRule::NONE);
   ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);

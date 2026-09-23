@@ -35,6 +35,7 @@ class TestCApiBlackStatistics : public ::testing::Test
   void TearDown() override
   {
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
   Cvc5TermManager* d_tm;
@@ -200,6 +201,28 @@ TEST_F(TestCApiBlackStatistics, stats_to_string)
   ASSERT_CVC5_ERROR(cvc5_stats_to_string(nullptr), "invalid statistics");
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);
   (void)cvc5_stats_to_string(stats);
+}
+
+TEST_F(TestCApiBlackStatistics, stat_handles_remain_valid)
+{
+  // Handles to statistic objects must remain valid while further statistic
+  // objects are created.
+  Cvc5Statistics stats = cvc5_get_statistics(d_solver);
+  std::vector<Cvc5Stat> handles;
+  std::vector<std::string> strs;
+  cvc5_stats_iter_init(stats, true, true);
+  while (cvc5_stats_iter_has_next(stats))
+  {
+    Cvc5Stat stat = cvc5_stats_iter_next(stats, nullptr);
+    handles.push_back(stat);
+    strs.push_back(cvc5_stat_to_string(stat));
+  }
+  ASSERT_GT(handles.size(), 1);
+  for (size_t i = 0; i < handles.size(); ++i)
+  {
+    ASSERT_EQ(cvc5_stat_to_string(handles[i]), strs[i]);
+  }
+  ASSERT_FALSE(cvc5_has_error());
 }
 
 }  // namespace cvc5::internal::test

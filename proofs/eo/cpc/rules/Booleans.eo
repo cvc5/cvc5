@@ -362,7 +362,7 @@
 
 ; rule: not_implies_elim2
 ; implements: ProofRule::NOT_IMPLIES_ELIM2
-; args:
+; premises:
 ; - F Bool: The formula to process.
 ; conclusion: A clause corresponding to one of the cases of converting t to CNF.
 (declare-rule not_implies_elim2 ((F1 Bool) (F2 Bool))
@@ -462,7 +462,7 @@
 
 ; rule: ite_elim2
 ; implements: ProofRule::ITE_ELIM2
-; args:
+; premises:
 ; - F Bool: The formula to process.
 ; conclusion: A clause corresponding to one of the cases of converting t to CNF.
 (declare-rule ite_elim2 ((C Bool) (F1 Bool) (F2 Bool))

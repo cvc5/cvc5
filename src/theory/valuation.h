@@ -209,6 +209,12 @@ class Valuation
   bool needCheck() const;
 
   /**
+   * Has some theory determined that the model cannot be trusted, i.e., called
+   * TheoryInferenceManager::setModelUnsound() in the current SAT context?
+   */
+  bool isModelUnsound() const;
+
+  /**
    * Is the literal lit (possibly) critical for satisfying the input formula in
    * the current context? This call is applicable only during collectModelInfo
    * or during LAST_CALL effort.
