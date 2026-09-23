@@ -18,6 +18,7 @@
 #include "proof/eo/eo_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
+#include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_proof_rule.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
@@ -81,6 +82,10 @@ void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
   ProofRule r = pn->getRule();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   Assert(pnm != nullptr);
+  // APPLY_INDEXED_SYMBOLIC should only be used internally during RARE
+  // reconstruction
+  Assert(!rewriter::IndexedOpFoldNodeConverter::hasIndexedSymbolic(
+      pn->getResult()));
   // if not doing eager pedantic checking, fail if below threshold
   if (options().proof.proofCheck != options::ProofCheckMode::EAGER)
   {
