@@ -134,15 +134,22 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n)
-   *   \circ \cdots \circ \sigma_{ids}(F_1)}
+   *   \inferrule{F_1 \dots F_n \mid t, ids?, ida?}{t =
+   *   \texttt{apply}_{ida}(t, \sigma_{ids}(F_1), \dots, \sigma_{ids}(F_n))}
    *
-   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
-   * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
-   * determines how to convert the formulas :math:`F_1 \dots F_n` into
-   * substitutions. It is an optional argument, where by default the premises
-   * are equalities of the form `(= x y)` and converted into substitutions
-   * :math:`x\mapsto y`.
+   * where :math:`\sigma_{ids}(F_i)` are substitutions. The optional MethodId
+   * identifier :math:`ids` determines how to convert the formulas
+   * :math:`F_1 \dots F_n` into substitutions. It defaults to ``SB_DEFAULT``,
+   * where the premises are equalities of the form `(= x y)` and converted into
+   * substitutions :math:`x\mapsto y`.
+   *
+   * The optional MethodId identifier :math:`ida` determines how
+   * :math:`\texttt{apply}_{ida}` applies these substitutions to :math:`t`.
+   * It defaults to ``SBA_SEQUENTIAL``, which applies them in reverse order,
+   * yielding :math:`t \circ \sigma_{ids}(F_n) \circ \cdots \circ \sigma_{ids}(F_1)`.
+   * Alternatively, ``SBA_SIMUL`` applies the substitutions simultaneously, and
+   * ``SBA_FIXPOINT`` applies them to a fixpoint. For ``SBA_FIXPOINT``, the
+   * substitutions must form a terminating rewrite system.
    * \endverbatim
    */
   EVALUE(SUBS),
@@ -2701,21 +2708,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(FF_ONE_UNSAT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- LFSC**
-   *
-   * Place holder for LFSC rules.
-   *
-   * .. math::
-   *
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
-   * \endverbatim
-   */
-  EVALUE(LFSC_RULE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **External -- Alethe**

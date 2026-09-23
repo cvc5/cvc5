@@ -118,8 +118,6 @@ enum class InferenceId
   // for theory combination when NL has a multiplication term with factors that
   // are not preregistered.
   ARITH_NL_SHARED_TERM_FACTOR_SPLIT,
-  // checkModel found a conflict with a quadratic equality
-  ARITH_NL_CM_QUADRATIC_EQ,
   //-------------------- nonlinear incremental linearization solver
   // splitting on zero (NlSolver::checkSplitZero)
   ARITH_NL_SPLIT_ZERO,
@@ -127,9 +125,8 @@ enum class InferenceId
   ARITH_NL_SIGN,
   // based on comparing (abs) model values (NlSolver::checkMonomialMagnitude)
   ARITH_NL_COMPARISON,
-  // based on inferring bounds (NlSolver::checkMonomialInferBounds)
-  ARITH_NL_INFER_BOUNDS,
-  // same as above, for inferences that introduce new terms
+  // based on inferring bounds (NlSolver::checkMonomialInferBounds), for
+  // inferences that introduce new terms
   ARITH_NL_INFER_BOUNDS_NT,
   // factoring (NlSolver::checkFactoring)
   ARITH_NL_FACTOR,
@@ -233,7 +230,6 @@ enum class InferenceId
   BAGS_BAG_MAKE,
   BAGS_BAG_MAKE_SPLIT,
   BAGS_SKOLEM,
-  BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_CG_SPLIT,
   BAGS_EMPTY,
@@ -255,7 +251,6 @@ enum class InferenceId
   BAGS_LIASTAR,
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
-  TABLES_JOIN_UP,
   TABLES_JOIN_DOWN,
   TABLES_GROUP_NOT_EMPTY,
   TABLES_GROUP_UP1,
@@ -270,10 +265,6 @@ enum class InferenceId
   BV_BITBLAST_CONFLICT,
   BV_BITBLAST_INTERNAL_EAGER_LEMMA,
   BV_BITBLAST_INTERNAL_BITBLAST_LEMMA,
-  BV_LAYERED_CONFLICT,
-  BV_LAYERED_LEMMA,
-  BV_EXTF_LEMMA,
-  BV_EXTF_COLLAPSE,
   // ---------------------------------- end bitvector theory
 
   // ---------------------------------- datatypes theory
@@ -305,9 +296,7 @@ enum class InferenceId
   DATATYPES_REC_SINGLETON_FORCE_DEQ,
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
-  //-------------------- datatypes size/height
-  // (>= (dt.size t) 0)
-  DATATYPES_SIZE_POS,
+  //-------------------- datatypes height
   // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
   DATATYPES_HEIGHT_ZERO,
   //-------------------- sygus extension
@@ -331,8 +320,6 @@ enum class InferenceId
   DATATYPES_SYGUS_FAIR_SIZE_CONFLICT,
   // used for implementing variable agnostic enumeration
   DATATYPES_SYGUS_VAR_AGNOSTIC,
-  // handles case the model value for a sygus term violates the size bound
-  DATATYPES_SYGUS_SIZE_CORRECTION,
   // handles case the model value for a sygus term does not exist
   DATATYPES_SYGUS_VALUE_CORRECTION,
   // s <= (dt.size t), where s is a term that must be less than the current
@@ -819,9 +806,6 @@ enum class InferenceId
   //             ( seq.nth(x, d) != seq.nth(y, d) ^ 0 <= d < seq.len(x) ) )
   STRINGS_DEQ_EXTENSIONALITY,
   //-------------------- codes solver
-  // str.to_code( v ) = rewrite( str.to_code(c) )
-  // where v is the proxy variable for c.
-  STRINGS_CODE_PROXY,
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
   //-------------------- sequence update solver
@@ -845,8 +829,6 @@ enum class InferenceId
   STRINGS_ARRAY_UPDATE_BOUND,
   // splitting about equality of sequences
   STRINGS_ARRAY_EQ_SPLIT,
-  // nth over update when updated with an unit term
-  STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
   // nth over reverse
   STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
@@ -973,12 +955,6 @@ enum class InferenceId
   UF_CARD_COMBINED,
   // (not (card_T n)) => (distinct t1 ... tn)
   UF_CARD_ENFORCE_NEGATIVE,
-  // used to make the index terms in cardinality constraints equal
-  UF_CARD_EQUIV,
-  // conflict of the form (not (card_T1 n)) ^ (card_T2 m) where the cardinality
-  // of T2 can be assumed to be without loss of generality larger than T1 due to
-  // monotonicity reasoning (Claessen et al 2011).
-  UF_CARD_MONOTONE_COMBINED,
   // conflict of the form (not (card_T n)) ^ (card_T m) where n>m
   UF_CARD_SIMPLE_CONFLICT,
   // equality split requested by cardinality solver

@@ -263,6 +263,16 @@ jobs:
             shell: 'msys2 {0}'
             gpl-tag: -gpl
 
+          - name: wasm:unrestricted-gpl
+            os: ubuntu-22.04
+            config: unrestricted --static --static-binary --auto-download --wasm-web=no-modular-static-page --cocoa --gpl
+            cache-key: unrestricted-wasm-gpl
+            wasm-build: true
+            wasm-pkg-name: cvc5-Wasm
+            build-shared: false
+            build-static: true
+            gpl-tag: -gpl
+
         exclude:
           - gpl-build: false
             build:
@@ -282,6 +292,9 @@ jobs:
           - gpl-build: false
             build:
               name: win64:unrestricted-arm64-gpl
+          - gpl-build: false
+            build:
+              name: wasm:unrestricted-gpl
 
     name: ${{ matrix.build.name }}
     runs-on: ${{ matrix.build.os }}

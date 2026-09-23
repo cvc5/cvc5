@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --sygus-inst
 ; EXPECT: unsat
-; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: proof
 (set-logic ALL)
 (declare-const x (Array Bool (Array Bool Bool)))
