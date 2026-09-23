@@ -171,6 +171,6 @@ Multiple testers can be disabled using multiple `DISABLE-TESTER` directives. In
 general, each `DISABLE-TESTER` directive disables only the specified tester. The
 exceptions are the `proof` and `cpc` testers. Disabling `proof`, which directs
 cvc5 to check generated proofs internally, also disables testers that check the
-printed versions of those proofs (e.g., `lfsc`, `cpc`, and `cpc-logos`). Disabling
+printed versions of those proofs (e.g., `cpc` and `cpc-logos`). Disabling
 `cpc` also disables `cpc-logos`, since both check the CPC proof format. Disabling
 `cpc-logos` alone leaves `cpc` enabled.
