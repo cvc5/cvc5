@@ -103,7 +103,7 @@ EqualityEngine::EqualityEngine(Env& env,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(c),
+    : ContextDynamicNotifyObj(c),
       EnvObj(env),
       d_masterEqualityEngine(nullptr),
       d_context(c),
@@ -134,7 +134,7 @@ EqualityEngine::EqualityEngine(Env& env,
                                std::string name,
                                bool constantsAreTriggers,
                                bool anyTermTriggers)
-    : ContextNotifyObj(c),
+    : ContextDynamicNotifyObj(c),
       EnvObj(env),
       d_masterEqualityEngine(nullptr),
       d_proofEqualityEngine(nullptr),
@@ -460,6 +460,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator)
   // If this is not an internal node, add it to the master
   if (d_masterEqualityEngine && !d_isInternal[result])
   {
+    d_masterEqualityEngine->markNeedsRestore();
     d_masterEqualityEngine->addTermInternal(t);
   }
 
@@ -535,6 +536,7 @@ bool EqualityEngine::assertPredicate(TNode t,
                                      TNode reason,
                                      unsigned pid)
 {
+  markNeedsRestore();
   Trace("equality") << d_name << "::eq::addPredicate(" << t << ","
                     << (polarity ? "true" : "false") << ")" << std::endl;
   Assert(t.getKind() != Kind::EQUAL) << "Use assertEquality instead";
@@ -553,6 +555,7 @@ bool EqualityEngine::assertEquality(TNode eq,
                                     TNode reason,
                                     unsigned pid)
 {
+  markNeedsRestore();
   Trace("equality") << d_name << "::eq::addEquality(" << eq << ","
                     << (polarity ? "true" : "false") << ")" << std::endl;
   if (polarity)
@@ -1007,7 +1010,7 @@ void EqualityEngine::undoMerge(EqualityNode& class1,
   } while (currentId != class2Id);
 }
 
-void EqualityEngine::backtrack()
+void EqualityEngine::notifyRestore()
 {
   Trace("equality::backtrack") << "backtracking" << std::endl;
 
@@ -1996,6 +1999,8 @@ void EqualityEngine::addTriggerEquality(TNode eq)
     return;
   }
 
+  markNeedsRestore();
+
   // Add the terms
   addTermInternal(eq[0]);
   addTermInternal(eq[1]);
@@ -2044,6 +2049,8 @@ void EqualityEngine::addTriggerPredicate(TNode predicate)
   {
     return;
   }
+
+  markNeedsRestore();
 
   // Add the term
   addTermInternal(predicate);
@@ -2332,6 +2339,7 @@ void EqualityEngine::propagate()
     if (d_masterEqualityEngine && !d_isInternal[t1classId]
         && !d_isInternal[t2classId])
     {
+      d_masterEqualityEngine->markNeedsRestore();
       d_masterEqualityEngine->assertEqualityInternal(
           d_nodes[t1classId], d_nodes[t2classId], TNode::null());
       d_masterEqualityEngine->propagate();
@@ -2482,7 +2490,12 @@ bool EqualityEngine::areDisequal(TNode t1, TNode t2, bool ensureProof) const
   EqualityNodeId t2ClassId = getEqualityNode(t2Id).getFind();
 
   // We are semantically const, for remembering stuff
-  EqualityEngine* nonConst = const_cast<EqualityEngine*>(this);
+  EqualityEngine* nonConst = nullptr;
+  if (ensureProof)
+  {
+    nonConst = const_cast<EqualityEngine*>(this);
+    nonConst->markNeedsRestore();
+  }
 
   // Check for constants
   if (d_isConstant[t1ClassId] && d_isConstant[t2ClassId]
@@ -2576,6 +2589,8 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
   {
     return;
   }
+
+  markNeedsRestore();
 
   // Add the term if it's not already there
   addTermInternal(t);
