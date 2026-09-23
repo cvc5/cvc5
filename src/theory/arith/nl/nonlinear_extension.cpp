@@ -379,6 +379,14 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     std::unordered_set<Node> factorsSplit;
     for (TNode st : sts)
     {
+      if (!st.getType().isRealOrInt())
+      {
+        // Same filter as the loop that computes revSharedTermsPre above. Note
+        // it cannot be a check for Kind::STAR_CONTAINS: what is shared is the
+        // function child of the atom, which lambda lifting has purified into
+        // a skolem, so its kind is SKOLEM and only its type identifies it.
+        continue;
+      }
       Node stv = d_model.computeAbstractModelValue(st);
       Trace("nl-model-final")
           << "- shared term value (post) " << st << " = " << stv << std::endl;

@@ -103,6 +103,13 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     case Kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
     case Kind::BAG_CARD:
     {
+      if (options().bags.bagsToLiastar)
+      {
+        // the cardinality terms are needed by the translation to liastar,
+        // which is the only thing that constrains them, so do not reduce them
+        // here. See BagSolver::checkLiastarConstraints.
+        return TrustNode::null();
+      }
       std::vector<Node> asserts;
       Node ret = BagReduction::reduceCardOperator(atom, asserts);
       Node andNode = nm->mkNode(Kind::AND, asserts);

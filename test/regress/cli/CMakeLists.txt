@@ -2788,6 +2788,14 @@ set(regress_1_tests
   regress1/bags/filter4.smt2
   regress1/bags/filter5.smt2
   regress1/bags/fold1.smt2
+  regress1/bags/liastar/card_difference_remove.smt2
+  regress1/bags/liastar/card_inter_min.smt2
+  regress1/bags/liastar/card_min_max.smt2
+  regress1/bags/liastar/card_setof_sat.smt2
+  regress1/bags/liastar/card_setof_unsat.smt2
+  regress1/bags/liastar/card_union_disjoint.smt2
+  regress1/bags/liastar/disequality.smt2
+  regress1/bags/liastar/guarded_star.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
   regress1/bags/fuzzy1.smt2
