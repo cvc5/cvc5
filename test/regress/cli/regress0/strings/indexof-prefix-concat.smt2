@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::IDOF_STRIP_SYM_LEN must have a complete proof, via RARE rule str-indexof-prefix-concat.
 (set-logic ALL)

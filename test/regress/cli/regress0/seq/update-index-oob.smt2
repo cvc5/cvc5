@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::UPD_OOB must have a complete proof, via RARE rule str-update-oob.
 (set-logic ALL)

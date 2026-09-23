@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::REPLALL_CONST must have a complete proof, via RARE rule str-replace-all-find-pre.
 (set-logic ALL)

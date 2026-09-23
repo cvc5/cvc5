@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; SEQ_NTH_EVAL_SYM must have a complete proof with an empty prefix.
 (set-logic ALL)

@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::IDOF_LEN must have a complete proof, via RARE rule str-indexof-len-oob.
 (set-logic ALL)

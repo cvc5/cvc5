@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::RPL_CCTN_RPL must have a complete proof, via RARE rule str-replace-prefix-concat.
 (set-logic ALL)

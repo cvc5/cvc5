@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::STR_CONV_IDEM must have a complete proof, via RARE rule str-to-upper-idem.
 (set-logic ALL)

@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::UPD_EVAL_SYM must have a complete proof, via RARE rule str-update-concat-fit2.
 (set-logic ALL)

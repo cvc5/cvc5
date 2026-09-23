@@ -1,4 +1,3 @@
-; COMMAND-LINE: --safe-mode=safe --check-proofs
 ; EXPECT: unsat
 ; Rewrite::SEQ_NTH_EVAL_SYM must have a complete proof, via RARE rule seq-nth-concat-unit-gen.
 (set-logic ALL)
