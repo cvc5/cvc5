@@ -201,10 +201,14 @@ void BagSolver::evictNegatedAtom(const Node& equality)
   getBagBoundVar(B);
   getBagBoundVar(AminusB);
   getBagBoundVar(BminusA);
-  Node cards = nm->mkNode(Kind::AND,
-                          getCardinalityVar(A).eqNode(getCardinalityVar(B)),
-                          getCardinalityVar(AminusB).eqNode(d_zero),
-                          getCardinalityVar(BminusA).eqNode(d_zero));
+  
+  Node xA = getCardinalityVar(A);
+  Node xB = getCardinalityVar(B);
+  Node xAminusB = getCardinalityVar(AminusB);
+  Node xBminusA = getCardinalityVar(BminusA);
+  Node cards = nm->mkNode(
+      Kind::AND,
+      {xA.eqNode(xB), xAminusB.eqNode(d_zero), xBminusA.eqNode(d_zero)});
   // (or (= A B) (not (and (= x_A x_B) (= x_{A - B} 0) (= x_{B - A} 0))))
   // Note this lemma is valid, and not merely a consequence of the current
   // context: the cardinality variables are exactly the cardinalities of their

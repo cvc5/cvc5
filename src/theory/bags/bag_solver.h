@@ -45,12 +45,12 @@ class BagSolver : protected EnvObj
   void checkBasicOperations();
 
   /**
-   * Translate the bag constraints of the current context into one liastar
-   * star-contains atom, following algorithm MapaToLiaStar of the paper
-   * "Deciding Boolean Algebra with Presburger Arithmetic", extended to
-   * multisets.
+   * BagsToLiastar: translate the bag constraints of the current context into
+   * one liastar star-contains atom. This is the four step translation of
+   * Figure 4 from [LBPS20], whose steps are referred to below by the numbers
+   * they have there.
    *
-   * Steps 1 and 2 of that algorithm are taken care of by cvc5:
+   * Steps 1 and 2 are taken care of by cvc5:
    * - Flattening (step 2) is not needed, since cvc5 terms are hash consed.
    *   Every bag term is the name of itself, so the defining equation
    *   (= M_0 (op M_1 M_2)) that step 2 would introduce is the term
@@ -69,6 +69,9 @@ class BagSolver : protected EnvObj
    * their values, and nothing reads back the decomposition it witnesses. So
    * the translation is refutation oriented: the bag values of a model do not
    * necessarily satisfy the cardinality constraints of the input.
+   *
+   * [LBPS20]: Solving LIA* Using Approximations, Levatich, Bjorner, Piskac
+   * and Shoham, VMCAI 2020. https://doi.org/10.1007/978-3-030-39322-9_17
    */
   void checkLiastarConstraints();
   /**
@@ -91,7 +94,7 @@ class BagSolver : protected EnvObj
 
  private:
   /**
-   * Step 1 of MapaToLiaStar for a negated bag atom, which cannot be expressed
+   * Step 1 of BagsToLiastar for a negated bag atom, which cannot be expressed
    * by the star since it asserts the existence of an element where the two
    * bags differ. It is moved out of the star, into arithmetic over the
    * cardinalities of the difference bags, using the equivalence
@@ -105,13 +108,13 @@ class BagSolver : protected EnvObj
    */
   void evictNegatedAtom(const Node& equality);
   /**
-   * Step 3 of MapaToLiaStar: give every bag term collected so far a slot in
+   * Step 3 of BagsToLiastar: give every bag term collected so far a slot in
    * the outer vector of the star, i.e. an integer variable that denotes its
    * cardinality. See getCardinalityVar.
    */
   void addCardinalityVars();
   /**
-   * Step 4 of MapaToLiaStar: build the single star atom
+   * Step 4 of BagsToLiastar: build the single star atom
    *   (int.star-contains (lambda ((c_1 Int) ... (c_n Int)) F) x_1 ... x_n)
    * where M_1, ..., M_n are the registered bag terms, x_i is the cardinality
    * variable of M_i, c_i is its bound variable, and F is the conjunction of
@@ -169,7 +172,7 @@ class BagSolver : protected EnvObj
    * @param k a kind
    * @return whether the count of a term of kind k at an element is a function
    * of the counts of its arguments at that element, which is the case for the
-   * bag operators of the lookup table of MapaToLiaStar. Terms of any other
+   * bag operators of the lookup table of BagsToLiastar. Terms of any other
    * kind (bag variables, but also e.g. (bag x c), (bag.map f A) or
    * (table.group A)) are slots of the star that carry no definition, which
    * only weakens the star.
@@ -244,7 +247,7 @@ class BagSolver : protected EnvObj
 
   /**
    * A map from bag terms to the integer variables that denote their
-   * cardinalities, i.e. the map card of MapaToLiaStar. These variables are the
+   * cardinalities, i.e. the map card of BagsToLiastar. These variables are the
    * elements of the outer vector of the star atom. This map is cleared and
    * recomputed at the start of each call to checkLiastarConstraints.
    */
