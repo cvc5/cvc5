@@ -1,6 +1,5 @@
 ; Logos proof checking exceeds the 600-second timeout.
 ; DISABLE-TESTER: cpc-logos
-; DISABLE-TESTER: lfsc
 (set-logic QF_AUFLIA)
 (set-info :source |
 Translated from old SVC processor verification benchmarks.  Contact Clark

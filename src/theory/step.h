@@ -33,6 +33,14 @@ enum class Step : uint32_t
 
   // indicates that the strategy should break if lemmas or facts are added
   BREAK,
+  // collect the bag and count terms of the current equality engine
+  BAGS_CHECK_INIT,
+  // check the bag.bag operator
+  BAGS_CHECK_BAG_MAKE,
+  // check basic bag operations without quantifiers
+  BAGS_CHECK_BASIC_OPERATIONS,
+  // check bag operations with quantifiers
+  BAGS_CHECK_QUANTIFIED_OPERATIONS,
   // reset the per-pass full-effort state
   SETS_CHECK_RESET,
   // check basic sets operations
