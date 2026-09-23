@@ -170,19 +170,21 @@ void BagSolver::checkLiastarConstraints()
   }
   // step 3
   addCardinalityVars();
+  // the constraints of the constructed bags, which Figure 4 does not cover
+  addBagMakeCardinalities();
   // step 4
-  Node star = buildStar(equalities);
-  // The body of the star translates the positive atoms, so the star only
-  // holds in contexts where these atoms do, and it must be guarded by them: a
-  // lemma is asserted at the assertion level, not at the current decision
-  // level, so an unguarded star would keep forcing (= c_A c_B) at every
-  // element in the branches where A and B are not equal, which would refute
-  // satisfiable inputs. The negated atoms need no guard here since they
-  // contribute nothing to the body; each of them is asserted by its own
-  // guarded lemma in evictNegatedAtom above.
-  Node lemma = equalities.empty()
-                   ? star
-                   : nodeManager()->mkAnd(equalities).impNode(star);
+  std::vector<Node> premises;
+  Node star = buildStar(equalities, premises);
+  // Part of the body only holds in the contexts the conjuncts were read from,
+  // and buildStar collected those contexts in premises. The star must be
+  // guarded by them: a lemma is asserted at the assertion level, not at the
+  // current decision level, so an unguarded star would keep forcing
+  // (= c_A c_B) at every element in the branches where A and B are not equal,
+  // which would refute satisfiable inputs. The negated atoms need no guard
+  // here since they contribute nothing to the body; each of them is asserted
+  // by its own guarded lemma in evictNegatedAtom above.
+  Node lemma =
+      premises.empty() ? star : nodeManager()->mkAnd(premises).impNode(star);
   Trace("bags-liastar") << "lemma: " << lemma << std::endl;
   d_im.addPendingLemma(lemma, InferenceId::BAGS_LIASTAR);
 }
@@ -226,7 +228,8 @@ void BagSolver::addCardinalityVars()
   }
 }
 
-Node BagSolver::buildStar(const std::vector<Node>& equalities)
+Node BagSolver::buildStar(const std::vector<Node>& equalities,
+                          std::vector<Node>& premises)
 {
   NodeManager* nm = nodeManager();
   // one fixed order for both vectors
@@ -257,13 +260,19 @@ Node BagSolver::buildStar(const std::vector<Node>& equalities)
     {
       constraints.push_back(getPointwiseConstraint(bag));
     }
+    else if (bag.getKind() == Kind::BAG_MAKE)
+    {
+      addBagMakeConstraints(bag, constraints);
+    }
   }
   // the positive atoms hold at every element
   for (const Node& equality : equalities)
   {
     constraints.push_back(
         d_bagBoundVars[equality[0]].eqNode(d_bagBoundVars[equality[1]]));
+    premises.push_back(equality);
   }
+  addBagMakeOverlaps(constraints, premises);
   // no bag term was discovered while building the body, so the two vectors
   // cover all the bound variables that occur in it
   Assert(d_bagBoundVars.size() == bags.size());
@@ -352,7 +361,134 @@ Node BagSolver::getBagBoundVar(const Node& bag)
       getBagBoundVar(child);
     }
   }
+  else if (bag.getKind() == Kind::BAG_MAKE)
+  {
+    // the constraints of a constructed bag are stated over the slots of its
+    // singleton and of their difference. See addBagMakeConstraints.
+    Node singleton = getBagMakeSingleton(bag);
+    if (singleton != bag)
+    {
+      getBagBoundVar(singleton);
+      getBagBoundVar(getBagMakeDifference(bag));
+    }
+  }
   return c;
+}
+
+void BagSolver::addBagMakeConstraints(const Node& bag,
+                                      std::vector<Node>& constraints)
+{
+  Assert(bag.getKind() == Kind::BAG_MAKE);
+  Node singleton = getBagMakeSingleton(bag);
+  if (singleton == bag)
+  {
+    // bag is its own singleton, and its cardinality, which
+    // addBagMakeCardinalities asserts to be 1, already concentrates its count
+    // on one summand of the star
+    return;
+  }
+  NodeManager* nm = nodeManager();
+  Node c = d_bagBoundVars[bag];
+  Node cSingleton = d_bagBoundVars[singleton];
+  Node cDifference = d_bagBoundVars[getBagMakeDifference(bag)];
+  // (bag e n) has no element besides the one of (bag e 1), since their
+  // difference_remove is the empty bag
+  constraints.push_back(cDifference.eqNode(d_zero));
+  if (bag[1].isConst() && bag[1].getConst<Rational>().sgn() > 0)
+  {
+    // (bag e 1) is a subbag of (bag e n) for a positive n. This conjunct is
+    // implied by the constraint above and the cardinalities, and is kept as a
+    // redundant constraint for the solver.
+    constraints.push_back(nm->mkNode(Kind::LEQ, cSingleton, c));
+  }
+}
+
+void BagSolver::addBagMakeCardinalities()
+{
+  NodeManager* nm = nodeManager();
+  for (const std::pair<const Node, Node>& pair : d_bagBoundVars)
+  {
+    Node bag = pair.first;
+    if (bag.getKind() != Kind::BAG_MAKE)
+    {
+      continue;
+    }
+    // the cardinality of (bag e n) is n for a positive n, and 0 otherwise
+    Node n = bag[1];
+    Node isPositive = nm->mkNode(Kind::GEQ, n, d_one);
+    Node card = nm->mkNode(Kind::ITE, isPositive, n, d_zero);
+    Node x = getCardinalityVar(bag);
+    Node lemma = x.eqNode(card);
+    Trace("bags-liastar") << "cardinality of " << bag << ": " << lemma
+                          << std::endl;
+    d_im.addPendingLemma(lemma, InferenceId::BAGS_LIASTAR);
+  }
+}
+
+void BagSolver::addBagMakeOverlaps(std::vector<Node>& constraints,
+                                   std::vector<Node>& premises)
+{
+  NodeManager* nm = nodeManager();
+  // the distinct singletons of the constructed bags of the star, in the order
+  // of d_bagBoundVars, which is fixed
+  std::vector<Node> singletons;
+  for (const std::pair<const Node, Node>& pair : d_bagBoundVars)
+  {
+    if (pair.first.getKind() != Kind::BAG_MAKE)
+    {
+      continue;
+    }
+    Node singleton = getBagMakeSingleton(pair.first);
+    if (std::find(singletons.begin(), singletons.end(), singleton)
+        == singletons.end())
+    {
+      singletons.push_back(singleton);
+    }
+  }
+  for (size_t i = 0, size = singletons.size(); i < size; i++)
+  {
+    for (size_t j = i + 1; j < size; j++)
+    {
+      Node x = singletons[i][0];
+      Node y = singletons[j][0];
+      Node cx = d_bagBoundVars[singletons[i]];
+      Node cy = d_bagBoundVars[singletons[j]];
+      if (d_state.areDisequal(x, y))
+      {
+        // the two singletons have no element in common, and each count is 0
+        // or 1, so they cannot both be 1 at the same element
+        Node sum = nm->mkNode(Kind::ADD, cx, cy);
+        constraints.push_back(nm->mkNode(Kind::LEQ, sum, d_one));
+        premises.push_back(x.eqNode(y).notNode());
+      }
+      else if (d_state.areEqual(x, y))
+      {
+        // the two singletons are the same bag
+        constraints.push_back(cx.eqNode(cy));
+        premises.push_back(x.eqNode(y));
+      }
+    }
+  }
+}
+
+Node BagSolver::getBagMakeSingleton(const Node& bag)
+{
+  Assert(bag.getKind() == Kind::BAG_MAKE);
+  // note this is bag itself when its multiplicity is the constant 1
+  return nodeManager()->mkNode(Kind::BAG_MAKE, bag[0], d_one);
+}
+
+Node BagSolver::getBagMakeDifference(const Node& bag)
+{
+  Assert(bag.getKind() == Kind::BAG_MAKE);
+  Node singleton = getBagMakeSingleton(bag);
+  Assert(singleton != bag);
+  // The term is deliberately not rewritten. The rewriter only knows that a
+  // difference_remove is empty when its arguments are syntactically equal, so
+  // it leaves this term alone, but were it to recognize that this one is empty
+  // too, the pointwise definition of the rewritten term would no longer relate
+  // the counts of bag and of its singleton, which is the point of the term.
+  return nodeManager()->mkNode(Kind::BAG_DIFFERENCE_REMOVE, bag, singleton);
 }
 
 Node BagSolver::getPointwiseConstraint(const Node& bag)

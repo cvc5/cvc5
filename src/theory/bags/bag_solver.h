@@ -65,10 +65,59 @@ class BagSolver : protected EnvObj
    *
    * This is a no op unless the bags-to-liastar option is enabled.
    *
-   * Note the star atom constrains the cardinality variables of the bags, not
-   * their values, and nothing reads back the decomposition it witnesses. So
-   * the translation is refutation oriented: the bag values of a model do not
-   * necessarily satisfy the cardinality constraints of the input.
+   * Soundness. A lemma must not remove models, so what has to hold is: if the
+   * input is satisfiable, then the input together with every lemma sent from
+   * here is satisfiable. Take any model of the input. It gives every bag term
+   * M a finite multiset [M], whose count [M](e) at an element e is a non
+   * negative integer, and it is extended to the variables of the translation
+   * as follows:
+   * - a cardinality variable x_M denotes the cardinality |[M]|. When x_M is
+   *   the skolem the context registered for the term (bag.card M) this is
+   *   already its value, since that skolem is a purified form of
+   *   (bag.card M). Otherwise x_M is the fresh skolem
+   *   BAGS_LIASTAR_BAG_INTEGER(M), which occurs nowhere else in the problem,
+   *   so it is free to be given that value. It is keyed by M alone, so the
+   *   same value serves in every branch and in every check;
+   * - the bound variable c_M of the body denotes [M](e), for whichever
+   *   element e the summand at hand stands for.
+   *
+   * Every lemma sent from here holds under that one interpretation:
+   * 1. the star atom. Let e_1, ..., e_m enumerate the elements that occur in
+   *    any of the bags M_1, ..., M_n of the star, a finite set, and let the
+   *    j-th summand be the vector ([M_1](e_j), ..., [M_n](e_j)). Summing the
+   *    counts of a bag over its elements is its cardinality, so the summands
+   *    add up to (|[M_1]|, ..., |[M_n]|), which is the outer vector. Each
+   *    summand satisfies the body, since every conjunct of the body is a
+   *    statement about a single element that holds at every element: a count
+   *    is non negative; a pointwise definition is the semantics of a bag
+   *    operator at an element; the conjuncts of a constructed bag hold as
+   *    described in addBagMakeConstraints; and (= c_j c_k) holds because the
+   *    atom (= M_j M_k) it translates is a premise of the lemma, and equal
+   *    bags have equal counts at every element. So the outer vector is in the
+   *    star. If there is no element at all the outer vector is zero, which
+   *    every star contains.
+   * 2. the lemmas of evictNegatedAtom. If [A] and [B] differ then they differ
+   *    at some element e, say [A](e) > [B](e). Then [A \ B](e) > 0, so
+   *    |[A \ B]| is not zero and the conjunction that the lemma negates is
+   *    false.
+   * 3. the cardinalities of the constructed bags. [(bag e n)] is n copies of
+   *    e when n is positive and the empty bag otherwise, so its cardinality
+   *    is the ite that the lemma asserts.
+   * These hold under one and the same interpretation, which is what makes the
+   * lemmas sound together and not only one at a time: a slot denotes the
+   * cardinality of its bag, and that does not depend on the branch or on the
+   * check the lemma was sent from.
+   *
+   * The converse is not claimed, in two ways:
+   * - the star can be weaker than the bags it stands for. A bag whose kind
+   *   has no pointwise translation is a slot with no definition, and the body
+   *   cannot state that two constructed bags on distinct elements are
+   *   disjoint, since it never names an element. With this option the
+   *   cardinality terms are not reduced either, so a cardinality is
+   *   constrained by the star alone, and a sat answer can be spurious;
+   * - nothing reads back the decomposition the star witnesses, so the bag
+   *   values of a model do not necessarily satisfy the cardinality
+   *   constraints of the input.
    *
    * [LBPS20]: Solving LIA* Using Approximations, Levatich, Bjorner, Piskac
    * and Shoham, VMCAI 2020. https://doi.org/10.1007/978-3-030-39322-9_17
@@ -131,9 +180,12 @@ class BagSolver : protected EnvObj
    * translates hold, so the caller asserts it guarded by them.
    *
    * @param equalities the positive top level bag atoms
+   * @param premises the literals of the current context that the body relies
+   * on, appended to. The caller asserts the star guarded by them.
    * @return the star atom
    */
-  Node buildStar(const std::vector<Node>& equalities);
+  Node buildStar(const std::vector<Node>& equalities,
+                 std::vector<Node>& premises);
   /**
    * @param bag a bag term
    * @return the integer variable that denotes the cardinality of bag, i.e. its
@@ -161,6 +213,77 @@ class BagSolver : protected EnvObj
    */
   Node getBagBoundVar(const Node& bag);
   /**
+   * Figure 4 of [LBPS20] has no rule for a constructed bag (bag e n): its
+   * count at an element is not a function of the counts of its arguments, it
+   * is n at e and 0 everywhere else, and e is an element and not a bag, so it
+   * has no slot in the star. The constraints below pin (bag e n) down without
+   * naming e. Writing S for the singleton (bag e 1) and D for
+   * (bag.difference_remove (bag e n) S), both of which are slots of the star:
+   * - the cardinality of (bag e m) is m when m is positive and 0 otherwise,
+   *   which addBagMakeCardinalities asserts outside the star. Applied to S it
+   *   gives (= x_S 1), so, the counts being non negative, exactly one summand
+   *   of the star has (= c_S 1) and every other summand has (= c_S 0);
+   * - D is the empty bag, whatever e and n are, so (= c_D 0) holds at every
+   *   element. Together with the pointwise definition of D this says that
+   *   (bag e n) has no element outside the one of S, i.e. that its count is
+   *   concentrated on the one summand where (= c_S 1);
+   * - S is a subbag of (bag e n) when n is positive, hence (<= c_S c_bag).
+   *   This conjunct is implied by the two items above, which force the count
+   *   of (bag e n) at that summand to be its cardinality n. It is kept as a
+   *   redundant constraint, but only when n is a positive constant, since for
+   *   a symbolic n it holds only under the side condition (>= n 1), and the
+   *   body of the star has no room for a side condition on a term that is not
+   *   one of its slots.
+   *
+   * @param bag a term of kind BAG_MAKE
+   * @param constraints the conjuncts of the body of the star, appended to
+   */
+  void addBagMakeConstraints(const Node& bag, std::vector<Node>& constraints);
+  /**
+   * State, for every two constructed bags (bag x m) and (bag y n) of the
+   * star, whether they sit on the same element. Writing S_x and S_y for their
+   * singletons, whose counts are 0 or 1 and sum to 1 over the summands:
+   * - when the current context has x and y disequal, S_x and S_y have no
+   *   element in common, so (<= (+ c_S_x c_S_y) 1) holds at every element and
+   *   the summand carrying S_x is not the one carrying S_y;
+   * - when the context has them equal, S_x and S_y are the same bag, so
+   *   (= c_S_x c_S_y) holds at every element, which puts the two constructed
+   *   bags on the same summand.
+   * This is what the body cannot say by itself, since it never names an
+   * element. Both conjuncts hold only in the contexts they were read from, so
+   * the element literal is added to the premises of the star.
+   *
+   * A pair whose elements the context has neither equal nor disequal
+   * contributes nothing, which only weakens the star. Splitting on the
+   * equality of every such pair would decide them all, at the price of a
+   * quadratic number of splits; the conjuncts here are deliberately linear
+   * and free of ite, since the cone computation of the liastar extension is
+   * sensitive to both the dimension and the case split count of the body.
+   *
+   * @param constraints the conjuncts of the body of the star, appended to
+   * @param premises the premises of the star, appended to
+   */
+  void addBagMakeOverlaps(std::vector<Node>& constraints,
+                          std::vector<Node>& premises);
+  /**
+   * Assert the cardinality of every constructed bag of the star:
+   * (= x_(bag e n) (ite (>= n 1) n 0)). This is a fact about the term, so it
+   * is asserted as a lemma of its own, outside the star and with no guard.
+   * See addBagMakeConstraints.
+   */
+  void addBagMakeCardinalities();
+  /**
+   * @param bag a term of kind BAG_MAKE
+   * @return the singleton bag (bag e 1) of bag = (bag e n), which is bag
+   * itself when n is the constant 1
+   */
+  Node getBagMakeSingleton(const Node& bag);
+  /**
+   * @param bag a term of kind BAG_MAKE
+   * @return (bag.difference_remove bag (getBagMakeSingleton bag))
+   */
+  Node getBagMakeDifference(const Node& bag);
+  /**
    * @param bag a bag term whose kind has a pointwise translation
    * @return the definition of the bound variable of bag in terms of the bound
    * variables of its arguments, e.g. for (bag.inter_min A B) this is
@@ -172,10 +295,11 @@ class BagSolver : protected EnvObj
    * @param k a kind
    * @return whether the count of a term of kind k at an element is a function
    * of the counts of its arguments at that element, which is the case for the
-   * bag operators of the lookup table of BagsToLiastar. Terms of any other
-   * kind (bag variables, but also e.g. (bag x c), (bag.map f A) or
-   * (table.group A)) are slots of the star that carry no definition, which
-   * only weakens the star.
+   * bag operators of the lookup table of BagsToLiastar. A constructed bag
+   * (bag x c) is not one of them, and is handled by addBagMakeConstraints
+   * instead. Terms of any other kind (bag variables, but also e.g.
+   * (bag.map f A) or (table.group A)) are slots of the star that carry no
+   * definition, which only weakens the star.
    */
   static bool hasPointwiseTranslation(Kind k);
   /** apply inference rules for empty bags */

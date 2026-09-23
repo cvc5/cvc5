@@ -2795,6 +2795,14 @@ set(regress_1_tests
   regress1/bags/filter4.smt2
   regress1/bags/filter5.smt2
   regress1/bags/fold1.smt2
+  regress1/bags/liastar/bag_make_distinct_sat.smt2
+  regress1/bags/liastar/bag_make_distinct_unsat.smt2
+  regress1/bags/liastar/bag_make_equal_unsat.smt2
+  regress1/bags/liastar/bag_make_inter_min_unsat.smt2
+  regress1/bags/liastar/bag_make_setof_sat.smt2
+  regress1/bags/liastar/bag_make_setof_unsat.smt2
+  regress1/bags/liastar/bag_make_union_max_sat.smt2
+  regress1/bags/liastar/bag_make_union_max_unsat.smt2
   regress1/bags/liastar/card_difference_remove.smt2
   regress1/bags/liastar/card_inter_min.smt2
   regress1/bags/liastar/card_min_max.smt2
