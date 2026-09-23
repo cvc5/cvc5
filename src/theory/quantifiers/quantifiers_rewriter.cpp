@@ -95,7 +95,7 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
   // manual proof generation thus not registered here.
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ,
                            TheoryRewriteCtx::PRE_DSL);
-  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ,
+  registerProofRewriteRule(ProofRewriteRule::QUANT_VAR_ELIM_INEQ,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_DT_VAR_EXPAND,
                            TheoryRewriteCtx::PRE_DSL);
@@ -354,7 +354,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     break;
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
-    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
+    case ProofRewriteRule::QUANT_VAR_ELIM_INEQ:
     {
       if (n.getKind() != Kind::FORALL || n.getNumChildren() != 2)
       {
@@ -404,7 +404,7 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       }
       else
       {
-        Assert(id == ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ);
+        Assert(id == ProofRewriteRule::QUANT_VAR_ELIM_INEQ);
         // assume empty attribute
         QAttributes qa;
         Node ret = getVarElimIneq(n[1], args, qa);

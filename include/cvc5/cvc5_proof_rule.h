@@ -3320,21 +3320,25 @@ enum ENUM(ProofRewriteRule)
   EVALUE(QUANT_VAR_ELIM_EQ),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Quantifiers -- Macro variable elimination inequality**
+   * **Quantifiers -- Variable elimination inequality**
    *
    * .. math::
    *
-   *   \forall x Y.\> F = \forall Y.\> G
+   *   \forall X_1 x X_2.\> F = \forall X_1 X_2.\> G
    *
    * where :math:`F` is a disjunction and where :math:`G` is the
    * result of dropping all literals containing :math:`x`. This is
-   * applied only when all such literals are lower (resp. upper) bounds
-   * for integer or real variable :math:`x`. Note that :math:`G` may
-   * be false, and :math:`Y` may be empty in which case it is omitted.
+   * applied only when all such literals are linear in integer or real
+   * variable :math:`x` with a non-zero coefficient, and are either
+   * equalities or lower (resp. upper) bounds for :math:`x`, where all bounds
+   * are in the same direction. This is justified since all such literals can
+   * be falsified by making :math:`x` arbitrarily small (resp. large). Note
+   * that :math:`G` may be false, and :math:`X_1 X_2` may be empty in which
+   * case the quantifier is omitted.
    *
    * \endverbatim
    */
-  EVALUE(MACRO_QUANT_VAR_ELIM_INEQ),
+  EVALUE(QUANT_VAR_ELIM_INEQ),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro quantifiers rewrite body**
