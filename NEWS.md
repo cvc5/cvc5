@@ -3,6 +3,10 @@ This file contains a summary of important user-visible changes.
 cvc5 1.4.1 prerelease
 =====================
 
+- Eliminate quantified aliases before recursive-function finite model finding
+  when `--fmf-fun --macros-quant` is enabled, while preserving the recursive
+  definitions and their models.
+
 - Removed support for LFSC proof output, including the
   `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
   `ProofRule::LFSC_RULE` API enum values.
@@ -51,10 +55,6 @@ cvc5 1.4.0
   proofs.
 
 ## Changes
-
-- Eliminate quantified aliases before recursive-function finite model finding
-  when `--fmf-fun --macros-quant` is enabled, while preserving the recursive
-  definitions and their models.
 
 - **CaDiCaL** is now the **default CDCL(T) SAT solver** for all logics
   (`--sat-solver=cadical`). MiniSat is still selected by default in incremental
