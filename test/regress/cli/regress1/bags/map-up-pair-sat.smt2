@@ -1,0 +1,8 @@
+(set-logic HO_ALL)
+(set-info :status sat)
+(set-option :bags-map-up-pair true)
+(declare-fun T () (Table Int Int))
+(assert (> (bag.count (tuple 1 10) T) 0))
+(assert (> (bag.count (tuple 2 20) T) 0))
+(assert (= (bag.setof ((_ table.project 0) T)) ((_ table.project 0) T)))
+(check-sat)
