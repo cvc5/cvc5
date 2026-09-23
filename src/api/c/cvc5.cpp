@@ -2282,7 +2282,7 @@ const Cvc5Term* cvc5_term_get_tuple_value(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_term_is_rm_value(Cvc5Term term)
@@ -2405,7 +2405,7 @@ const Cvc5Term* cvc5_term_get_set_value(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_term_is_sequence_value(Cvc5Term term)
@@ -2432,7 +2432,7 @@ const Cvc5Term* cvc5_term_get_sequence_value(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_term_is_cardinality_constraint(Cvc5Term term)
@@ -2538,7 +2538,7 @@ const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 size_t cvc5_term_hash(Cvc5Term term)
@@ -2854,7 +2854,7 @@ const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
     res.push_back(tm->export_sort(s));
   }
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
@@ -4029,7 +4029,7 @@ const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
@@ -4046,7 +4046,7 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b)
@@ -4892,7 +4892,7 @@ const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const char* cvc5_get_info(Cvc5* cvc5, const char* flag)
@@ -4932,7 +4932,7 @@ const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 static thread_local std::vector<const char*> c_modes;
@@ -5106,7 +5106,7 @@ const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size)
@@ -5123,7 +5123,7 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size)
@@ -5140,7 +5140,7 @@ const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 void cvc5_get_difficulty(Cvc5* cvc5,
@@ -5187,7 +5187,7 @@ const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
   }
   *size = ccore.second.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
@@ -5217,7 +5217,7 @@ const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
   }
   *rsize = ccore.second.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size)
@@ -5235,7 +5235,7 @@ const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size)
   }
   *size = proofs.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
@@ -5255,7 +5255,7 @@ const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term)
@@ -5292,7 +5292,7 @@ const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
   }
   *rsize = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
@@ -5312,7 +5312,7 @@ const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v)
@@ -5874,7 +5874,7 @@ const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
     res.push_back(cvc5->d_tm->export_term(t));
   }
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget target)
