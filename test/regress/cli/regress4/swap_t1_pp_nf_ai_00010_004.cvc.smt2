@@ -1,3 +1,5 @@
+; Logos proof checking exceeds the 600-second timeout.
+; DISABLE-TESTER: cpc-logos
 (set-logic QF_AUFLIA)
 (set-info :status unsat)
 (declare-fun a1 () (Array Int Int))

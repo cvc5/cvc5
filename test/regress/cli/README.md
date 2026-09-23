@@ -169,6 +169,8 @@ The following example disables the abduct tester for a regression:
 
 Multiple testers can be disabled using multiple `DISABLE-TESTER` directives. In
 general, each `DISABLE-TESTER` directive disables only the specified tester. The
-only exception to this rule is the proof tester. Disabling the proof tester,
-which directs cvc5 to check generated proofs internally, also disables testers
-that check the printed versions of those proofs (e.g., the lfsc tester).
+exceptions are the `proof` and `cpc` testers. Disabling `proof`, which directs
+cvc5 to check generated proofs internally, also disables testers that check the
+printed versions of those proofs (e.g., `cpc` and `cpc-logos`). Disabling
+`cpc` also disables `cpc-logos`, since both check the CPC proof format. Disabling
+`cpc-logos` alone leaves `cpc` enabled.

@@ -38,14 +38,10 @@ const char* toString(TrustId id)
     case TrustId::PP_STATIC_REWRITE: return "PP_STATIC_REWRITE";
     case TrustId::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
-    case TrustId::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     // preprocess passes
     case TrustId::PREPROCESS_BV_GUASS: return "PREPROCESS_BV_GUASS";
     case TrustId::PREPROCESS_BV_GUASS_LEMMA: return "PREPROCESS_BV_GUASS_LEMMA";
     case TrustId::PREPROCESS_BV_TO_BOOL: return "PREPROCESS_BV_TO_BOOL";
-    case TrustId::PREPROCESS_BV_TO_INT: return "PREPROCESS_BV_TO_INT";
-    case TrustId::PREPROCESS_BV_TO_INT_LEMMA:
-      return "PREPROCESS_BV_TO_INT_LEMMA";
     case TrustId::PREPROCESS_BOOL_TO_BV: return "PREPROCESS_BOOL_TO_BV";
     case TrustId::PREPROCESS_ACKERMANN: return "PREPROCESS_ACKERMANN";
     case TrustId::PREPROCESS_ACKERMANN_LEMMA:
@@ -54,8 +50,6 @@ const char* toString(TrustId id)
       return "PREPROCESS_STATIC_LEARNING_LEMMA";
     case TrustId::PREPROCESS_HO_ELIM: return "PREPROCESS_HO_ELIM";
     case TrustId::PREPROCESS_HO_ELIM_LEMMA: return "PREPROCESS_HO_ELIM_LEMMA";
-    case TrustId::PREPROCESS_BITVECTOR_EAGER_ATOMS:
-      return "PREPROCESS_BITVECTOR_EAGER_ATOMS";
     case TrustId::PREPROCESS_FF_BITSUM: return "PREPROCESS_FF_BITSUM";
     case TrustId::PREPROCESS_FF_DISJUNCTIVE_BIT:
       return "PREPROCESS_FF_DISJUNCTIVE_BIT";

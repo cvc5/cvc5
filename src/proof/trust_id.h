@@ -51,17 +51,12 @@ enum class TrustId : uint32_t
   THEORY_PREPROCESS,
   /** A lemma added during theory-preprocessing without a proof */
   THEORY_PREPROCESS_LEMMA,
-  /** A expanding of definitions of the input formula made without a proof */
-  THEORY_EXPAND_DEF,
   /** Specific preprocessing passes */
   /** BvGauss */
   PREPROCESS_BV_GUASS,
   PREPROCESS_BV_GUASS_LEMMA,
   /** BvToBool preprocessing pass */
   PREPROCESS_BV_TO_BOOL,
-  /** BvToInt preprocessing pass */
-  PREPROCESS_BV_TO_INT,
-  PREPROCESS_BV_TO_INT_LEMMA,
   /** BoolToBv preprocessing pass */
   PREPROCESS_BOOL_TO_BV,
   /** Ackermann preprocessing pass */
@@ -72,8 +67,6 @@ enum class TrustId : uint32_t
   /** HoElim preprocessing pass */
   PREPROCESS_HO_ELIM,
   PREPROCESS_HO_ELIM_LEMMA,
-  /** BitvectorEagerAtoms preprocessing pass */
-  PREPROCESS_BITVECTOR_EAGER_ATOMS,
   /** FfBitsum preprocessing pass */
   PREPROCESS_FF_BITSUM,
   /** FfDisjunctiveBit preprocessing pass */

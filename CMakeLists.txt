@@ -183,6 +183,15 @@ if(WASM STREQUAL "OFF")
 elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
   message(FATAL_ERROR "Use --static, --static-binary and --auto-download flags for WebAssembly compilation. GMP will not compile with shared libraries.")
 else()
+  # Older SDKs miscompile cvc5: their getrusage() overruns the caller's
+  # buffer by 16 bytes, silently corrupting adjacent memory (a stack
+  # smash in Minisat::cpuTime and, via CoCoALib, a nulled
+  # GlobalManager pointer).
+  if(EMSCRIPTEN_VERSION VERSION_LESS "6.0.8")
+    message(FATAL_ERROR
+      "Emscripten >= 6.0.8 is required for WebAssembly builds "
+      "(found '${EMSCRIPTEN_VERSION}'). See INSTALL.rst.")
+  endif()
   set(CONFIGURE_CMD_WRAPPER emconfigure)
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
   string(TOLOWER ".${WASM}" WASM_EXTENSION)
@@ -263,6 +272,13 @@ add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
 add_check_c_cxx_flag("-Wextra")
 add_check_c_flag("-fexceptions")
+if(EMSCRIPTEN)
+  # emcc compiles C++ with -fignore-exceptions by default, which discards
+  # every catch block. Enabling catching at link time alone (the wasm
+  # linker flags carry -fexceptions) is not enough: the flag must also be
+  # present at compile time, or exceptions unwind straight past main().
+  add_check_cxx_flag("-fexceptions")
+endif()
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")

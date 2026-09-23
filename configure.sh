@@ -373,7 +373,7 @@ do
         case $wasm_web_config in
           no-modular-static-page)
             wasm=HTML
-            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\"]' -s ASSERTIONS=1 -s NO_DISABLE_EXCEPTION_CATCHING=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
+            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\", \"instantiateWasm\"]' -s ASSERTIONS=1 -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
             wasm_web=ON
             ;;
           *)
