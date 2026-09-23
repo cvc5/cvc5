@@ -104,10 +104,10 @@ class AletheProofPostprocessCallback : protected EnvObj,
   Node d_rareList;
   /** Adds an Alethe step to the CDProof argument
    *
-   * The added step to `cdp` uses ProofRule::ALETHE_RULE with `rule` as the
-   * first argument, the original conclusion `res` as the second and
-   * `conclusion`, the result to be printed (which may or may not differ from
-   * `res`), as the third.
+   * The added step to `cdp` uses ProofRule::TRUST with trust id
+   * TrustId::ALETHE_RULE as the first argument, the original conclusion `res`
+   * as the second, `rule` as the third and `conclusion`, the result to be
+   * printed (which may or may not differ from `res`), as the fourth.
    *
    * @param rule The id of the Alethe rule
    * @param res The original conclusion
