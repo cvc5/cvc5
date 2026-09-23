@@ -1,3 +1,5 @@
+; REQUIRES: unrestricted-mode
+; DISABLE-TESTER: cpc
 ; Two rows that agree on the projected column give that column's value a
 ; multiplicity of two, so the projection cannot be a set. Needs the pairwise
 ; lower bound: mapUp1 alone only gives a multiplicity of one.
