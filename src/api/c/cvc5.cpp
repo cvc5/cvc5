@@ -4410,6 +4410,8 @@ Cvc5Stat cvc5_stats_iter_next(Cvc5Statistics stat, const char** name)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_STATS(stat);
   CVC5_API_CHECK(stat->d_iter != nullptr) << "iterator not initialized";
+  CVC5_API_CHECK(*stat->d_iter != stat->d_stat.end())
+      << "iterator has no next statistic";
   cvc5::Stat rstat;
   std::tie(str, rstat) = **stat->d_iter;
   if (name)
