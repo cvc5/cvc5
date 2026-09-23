@@ -70,6 +70,11 @@
 ; Discrepancies between cvc5's Proof API and the formal Eunoia definition are
 ; also noted when applicable by disclaimer:.
 ;
+; In program documentation, args lists the call arguments in :signature order,
+; not the variables used to match and destructure those arguments in cases.
+; In rule documentation, args and premises describe :args and :premises
+; (or :premise-list), respectively.
+;
 ; This signature does *not* contain definitions for expert theories and rules.
 ; An additional set of theory definitions and rules can be found at
 ; ./expert/CpcExpert.eo. This contains all definitions of theories and rules

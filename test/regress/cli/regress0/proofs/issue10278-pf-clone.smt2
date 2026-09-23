@@ -2,7 +2,6 @@
 ; DISABLE-TESTER: dump
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: cpc
-; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: alethe
 ; REQUIRES: no-competition
 ; SCRUBBER: grep -o "unsat"

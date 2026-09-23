@@ -509,10 +509,9 @@
 ; rule: arith_poly_norm
 ; implements: ProofRule::ARITH_POLY_NORM
 ; args:
-; - a U: The left-hand side of the equality.
-; - b U: The right-hand side of the equality.
+; - eq Bool: The equality to prove between arithmetic terms a and b.
 ; requires: >
-;   That the arithmetic terms a and b are equal up polynomial normalization.
+;   That the arithmetic terms a and b are equal up to polynomial normalization.
 ; conclusion: The given equality.
 (declare-rule arith_poly_norm ((U Type) (a U) (b U))
   :args ((= a b))

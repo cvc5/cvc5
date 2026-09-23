@@ -1,7 +1,14 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.4.0 prerelease
+cvc5 1.4.1 prerelease
 =====================
+
+- Removed support for LFSC proof output, including the
+  `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
+  `ProofRule::LFSC_RULE` API enum values.
+
+cvc5 1.4.0
+==========
 
 ## New Features
 

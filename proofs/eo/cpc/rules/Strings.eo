@@ -191,7 +191,8 @@
 ; rule: string_decompose
 ; implements: ProofRule::STRING_DECOMPOSE
 ; premises:
-; - a: An inequality between the length of some string term s and integer n.
+; - nonneg Bool: The inequality (>= n 0).
+; - len Bool: The inequality (>= (str.len s) n) for a string term s.
 ; args:
 ; - b Bool: Whether we are the reverse variant of this inference.
 ; conclusion: >

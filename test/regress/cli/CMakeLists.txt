@@ -797,6 +797,9 @@ set(regress_0_tests
   regress0/datatypes/issue8883-sort-inf.smt2
   regress0/datatypes/issue9042-rel-irrel-cons-model.smt2
   regress0/datatypes/issue12794-inst-dropped-lemma.smt2
+  regress0/datatypes/issue12930-as-quoted-cons.smt2
+  regress0/datatypes/issue12930-tester-quoted-cons.smt2
+  regress0/datatypes/issue12930-update-quoted-sel.smt2
   regress0/datatypes/issue12572-nullable-lift-no-arguments.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
@@ -1421,6 +1424,7 @@ set(regress_0_tests
   regress0/parser/quoted-define-fun.smt2
   regress0/parser/rational-tok.smt2
   regress0/parser/real-numerals.smt2
+  regress0/parser/reserved-symbol-datatype.smt2
   regress0/parser/set-bag-left-associative.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
@@ -1954,6 +1958,7 @@ set(regress_0_tests
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2
+  regress0/sep/issue12918-hole-pto-data.smt2
   regress0/sep/issue3720-check-model.smt2
   regress0/sep/issue5343-err.smt2
   regress0/sep/issue8659-wand-diff-heaps.smt2
@@ -2236,6 +2241,7 @@ set(regress_0_tests
   regress0/strings/issue12322-pf-eager-len-re.smt2
   regress0/strings/issue12756-str-inc-model.smt2
   regress0/strings/issue12863-re-inc-neg.smt2
+  regress0/strings/issue12905-arith-cm-alias.smt2
   regress0/strings/issue1189.smt2
   regress0/strings/issue2958.smt2
   regress0/strings/issue3440.smt2
@@ -2747,6 +2753,7 @@ set(regress_1_tests
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
   regress1/bags/all1.smt2
+  regress1/bags/all2.smt2
   regress1/bags/all3.smt2
   regress1/bags/bag_member.smt2
   regress1/bags/bag_partition1.smt2
@@ -4417,7 +4424,6 @@ set(regression_disabled_tests
   # demonstrates instance where RE inference in necessary, times out
   regress1/strings/re-uf.smt2
   ###
-  regress1/bags/all2.smt2
   regress1/bags/card3.smt2
   regress1/bags/fol_0000119.smt2
   regress1/bags/murxla6.smt2
@@ -4579,7 +4585,6 @@ set(testers
   base
   unsat-core
   proof
-  lfsc
   model
   synth
   abduct
@@ -4593,6 +4598,22 @@ foreach(tester ${testers})
       ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
     DEPENDS build-regress)
 endforeach()
+
+# The cpc-logos tester requires a safe build, since Logos only supports the
+# fragment of CPC that is used in safe mode. The target is added in any case,
+# so that invoking it in a non-safe build reports why it is not available
+# instead of checking nothing.
+if(ENABLE_SAFE_MODE)
+  add_custom_target(regress-cpc-logos
+    COMMAND ${CMAKE_COMMAND} -E env RUN_REGRESSION_ARGS='--tester cpc-logos'
+      ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $$ARGS
+    DEPENDS build-regress)
+else()
+  add_custom_target(regress-cpc-logos
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "Error: target regress-cpc-logos requires a safe build of cvc5, configure with ./configure.sh safe-mode"
+    COMMAND ${CMAKE_COMMAND} -E false)
+endif()
 
 # We must ensure that the cvc5 binary is built before running any tests.
 # In principle, this would just be a matter of adding a dependency on the
@@ -4624,11 +4645,10 @@ macro(cvc5_add_regression_test level file)
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
-    --lfsc-binary ${PROJECT_SOURCE_DIR}/deps/bin/lfscc
-    --lfsc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/lfsc/signatures
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
     --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
+    --logos-binary ${PROJECT_SOURCE_DIR}/deps/bin/logos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
