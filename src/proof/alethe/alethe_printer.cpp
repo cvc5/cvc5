@@ -249,9 +249,9 @@ void AletheProofPrinter::printInternal(std::ostream& out,
       d_pfMap.find(pfn.get());
   if (pfIt != d_pfMap.end())
   {
-    Trace("alethe-printer") << "... step is already printed t" << pfIt->second
-                            << " " << pfn->getResult() << " "
-                            << getAletheRule(pfn.get()) << "\n";
+    Trace("alethe-printer")
+        << "... step is already printed t" << pfIt->second << " "
+        << pfn->getResult() << " " << getAletheRule(pfn.get()) << "\n";
     return;
   }
   const std::vector<Node>& args = pfn->getArguments();

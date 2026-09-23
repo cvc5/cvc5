@@ -3239,8 +3239,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   Trace("alethe-proof") << "\n";
   AletheRule premiseProofRule = getAletheRule(premisePf.get());
   if (premiseProofRule == AletheRule::CONTRACTION
-      && getAletheRule(premisePf->getChildren()[0].get())
-             == AletheRule::OR)
+      && getAletheRule(premisePf->getChildren()[0].get()) == AletheRule::OR)
   {
     // get great grand child
     std::shared_ptr<ProofNode> premiseChildPf =
