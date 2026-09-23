@@ -14,7 +14,9 @@ extern "C" {
 #include <cvc5/c/cvc5_parser.h>
 }
 
+#include <set>
 #include <sstream>
+#include <string>
 
 #include "gtest/gtest.h"
 #include "test_capi.h"
@@ -110,6 +112,16 @@ TEST_F(TestCApiBlackSymbolManager, getNamedTerms)
   parse_command("(assert (! false :named a0))");
   (void)cvc5_sm_get_named_terms(d_sm, &size, &terms, &names);
   ASSERT_EQ(size, 1);
+  ASSERT_STREQ(names[0], "a0");
+  // a name long enough to not be stored inline in std::string (no SSO)
+  parse_command(
+      "(assert (! true :named a_name_long_enough_to_be_heap_allocated))");
+  (void)cvc5_sm_get_named_terms(d_sm, &size, &terms, &names);
+  ASSERT_EQ(size, 2);
+  std::set<std::string> snames(names, names + size);
+  ASSERT_EQ(
+      snames,
+      std::set<std::string>({"a0", "a_name_long_enough_to_be_heap_allocated"}));
 }
 
 }  // namespace cvc5::internal::test
