@@ -30,7 +30,6 @@ namespace uf {
 class UfTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -45,7 +44,6 @@ class UfTypeRule
 class CardinalityConstraintOpTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -60,7 +58,6 @@ class CardinalityConstraintOpTypeRule
 class CombinedCardinalityConstraintOpTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -77,7 +74,6 @@ class HoApplyTypeRule
  public:
   // the typing rule for HO_APPLY terms
 
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -92,7 +88,6 @@ class HoApplyTypeRule
 class LambdaTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -106,7 +101,6 @@ class LambdaTypeRule
 class FunctionArrayConstTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -132,7 +126,6 @@ class FunctionProperties
 class IntToBitVectorOpTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -148,7 +141,6 @@ class IntToBitVectorOpTypeRule
 class BitVectorConversionTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

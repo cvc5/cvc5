@@ -24,7 +24,6 @@ namespace arrays {
 
 struct ArraySelectTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -33,7 +32,6 @@ struct ArraySelectTypeRule
 
 struct ArrayStoreTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -44,7 +42,6 @@ struct ArrayStoreTypeRule
 
 struct ArrayLambdaTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -62,7 +59,6 @@ struct ArraysProperties
 
 struct ArrayEqRangeTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

@@ -163,7 +163,6 @@ struct BagFilterTypeRule
  */
 struct BagAllSomeTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

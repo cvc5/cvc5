@@ -28,7 +28,6 @@ namespace strings {
 class StringConcatTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -38,7 +37,6 @@ class StringConcatTypeRule
 class StringSubstrTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -48,7 +46,6 @@ class StringSubstrTypeRule
 class StringUpdateTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -58,7 +55,6 @@ class StringUpdateTypeRule
 class StringAtTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -68,7 +64,6 @@ class StringAtTypeRule
 class StringIndexOfTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -78,7 +73,6 @@ class StringIndexOfTypeRule
 class StringReplaceTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -88,7 +82,6 @@ class StringReplaceTypeRule
 class StringStrToBoolTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -98,7 +91,6 @@ class StringStrToBoolTypeRule
 class StringStrToIntTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -108,7 +100,6 @@ class StringStrToIntTypeRule
 class StringStrToStrTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -118,7 +109,6 @@ class StringStrToStrTypeRule
 class StringRelationTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -128,7 +118,6 @@ class StringRelationTypeRule
 class RegExpRangeTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -138,7 +127,6 @@ class RegExpRangeTypeRule
 class StringToRegExpTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -161,7 +149,6 @@ class StringToRegExpTypeRule
 class ConstSequenceTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -171,7 +158,6 @@ class ConstSequenceTypeRule
 class SeqUnitTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -181,7 +167,6 @@ class SeqUnitTypeRule
 class SeqNthTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -193,7 +178,6 @@ class SeqNthTypeRule
 class SeqEmptyOfTypeTypeRule
 {
  public:
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

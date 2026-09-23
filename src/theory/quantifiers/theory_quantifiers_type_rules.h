@@ -35,7 +35,6 @@ namespace quantifiers {
  */
 struct QuantifierTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -48,7 +47,6 @@ struct QuantifierTypeRule
  */
 struct QuantifierBoundVarListTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -62,7 +60,6 @@ struct QuantifierBoundVarListTypeRule
  */
 struct QuantifierInstPatternTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -78,7 +75,6 @@ struct QuantifierInstPatternTypeRule
  */
 struct QuantifierAnnotationTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -92,7 +88,6 @@ struct QuantifierAnnotationTypeRule
  */
 struct QuantifierInstPatternListTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -106,7 +101,6 @@ struct QuantifierInstPatternListTypeRule
  */
 struct QuantifierOracleFormulaGenTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,

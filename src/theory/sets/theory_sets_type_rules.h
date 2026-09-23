@@ -28,7 +28,6 @@ namespace sets {
  */
 struct SetsBinaryOperatorTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -42,7 +41,6 @@ struct SetsBinaryOperatorTypeRule
  */
 struct SubsetTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -55,7 +53,6 @@ struct SubsetTypeRule
  */
 struct MemberTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -68,7 +65,6 @@ struct MemberTypeRule
  */
 struct SingletonTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -82,7 +78,6 @@ struct SingletonTypeRule
  */
 struct EmptySetTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -94,7 +89,6 @@ struct EmptySetTypeRule
  */
 struct CardTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -106,7 +100,6 @@ struct CardTypeRule
  */
 struct ComplementTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -118,7 +111,6 @@ struct ComplementTypeRule
  */
 struct UniverseSetTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -132,7 +124,6 @@ struct UniverseSetTypeRule
  */
 struct ComprehensionTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -144,7 +135,6 @@ struct ComprehensionTypeRule
  */
 struct ChooseTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -157,7 +147,6 @@ struct ChooseTypeRule
  */
 struct IsSetTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -170,7 +159,6 @@ struct IsSetTypeRule
  */
 struct InsertTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -183,7 +171,6 @@ struct InsertTypeRule
  */
 struct SetMapTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -196,7 +183,6 @@ struct SetMapTypeRule
  */
 struct SetFilterTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -210,7 +196,6 @@ struct SetFilterTypeRule
  */
 struct SetAllSomeTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -223,7 +208,6 @@ struct SetAllSomeTypeRule
  */
 struct SetFoldTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -241,7 +225,6 @@ struct SetFoldTypeRule
  */
 struct RelBinaryOperatorTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -272,7 +255,6 @@ struct RelationTableJoinTypeRule
  */
 struct RelTransposeTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -285,7 +267,6 @@ struct RelTransposeTypeRule
  */
 struct RelTransClosureTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -300,7 +281,6 @@ struct RelTransClosureTypeRule
  */
 struct JoinImageTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -314,7 +294,6 @@ struct JoinImageTypeRule
  */
 struct RelIdenTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -329,7 +308,6 @@ struct RelIdenTypeRule
  */
 struct RelationGroupTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -344,7 +322,6 @@ struct RelationGroupTypeRule
  */
 struct RelationProjectTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -361,7 +338,6 @@ struct RelationProjectTypeRule
  */
 struct RelationAggregateTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -373,7 +349,6 @@ struct RelationAggregateTypeRule
  */
 struct SetEmptyOfTypeTypeRule
 {
-
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
