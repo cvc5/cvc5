@@ -2604,8 +2604,8 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
  * `cvc5_term_manager_release()`.
  *
  * @note Consequently, if managed objects are still alive when this function is
- *       called, it does not free the term manager: it only drops the handle
- *       held by the user, and the term manager is freed later, when the last
+ *       called, it does not free the term manager: it only decrements its
+ *       reference count, and the term manager is freed later, when the last
  *       of its managed objects is released. To free everything right away,
  *       call `cvc5_term_manager_release()` before this function.
  *
@@ -4150,6 +4150,14 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  * solver, as in the C++ API, and is freed by its final release. Proofs
  * additionally keep the term manager alive, since querying them creates new
  * terms and proofs.
+ *
+ * Input parser instances (`Cvc5InputParser`) created via the solver keep it
+ * alive and thus remain usable after the solver has been deleted, until they
+ * are deleted themselves (see `cvc5_parser_delete()`). The memory of the
+ * solver is only freed once it has been deleted and all of its input parsers
+ * have been freed. Consequently, dropping the reference the solver holds on
+ * each of its results, synthesis results, proofs and grammars is deferred
+ * until then as well.
  *
  * @note A solver instance keeps its associated term manager alive. Solver and
  *       term manager instances may thus be deleted in any order.
