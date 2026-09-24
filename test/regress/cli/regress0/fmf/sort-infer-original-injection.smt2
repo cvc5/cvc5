@@ -1,7 +1,6 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --sort-inference
 ; EXPECT: unsat
-; DISABLE-TESTER: lfsc
 (set-logic UFC)
 (declare-sort U 0)
 (declare-const a U)

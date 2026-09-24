@@ -378,18 +378,18 @@ struct CVC5_EXPORT Cvc5TermManager
   /* Lifetime management of the term manager itself. ---- */
 
   /**
-   * Increment the number of external handles to this term manager.
+   * Increment the reference count of this term manager.
    *
-   * A handle is held by the user (returned by `cvc5_term_manager_new()` and
+   * A reference is held by the user (returned by `cvc5_term_manager_new()` and
    * dropped via `cvc5_term_manager_delete()`) and by each `Cvc5` solver and
    * `Cvc5SymbolManager` instance created from this term manager.
    */
   void inc_ref();
   /**
-   * Decrement the number of external handles to this term manager.
+   * Decrement the reference count of this term manager.
    *
-   * The term manager is freed once it has no external handles and no managed
-   * objects left. Managed objects thus keep their term manager alive until
+   * The term manager is freed once its reference count is zero and no managed
+   * objects are left. Managed objects thus keep their term manager alive until
    * they are released, and remain valid after `cvc5_term_manager_delete()`.
    */
   void dec_ref();
@@ -402,10 +402,13 @@ struct CVC5_EXPORT Cvc5TermManager
  private:
   /** Determine if there are any managed objects that are still alive. */
   bool has_objects() const;
-  /** Free this term manager if it has no external handles and no objects. */
+  /**
+   * Free this term manager if its reference count is zero and it has no
+   * objects.
+   */
   void free_if_unused();
 
-  /** The number of external handles to this term manager. */
+  /** The reference count of this term manager. */
   uint32_t d_refs = 1;
   /** Cache of allocated sorts. */
   std::unordered_map<cvc5::Sort, cvc5_sort_t> d_alloc_sorts;
@@ -528,7 +531,7 @@ struct cvc5_synth_result_t
  *       deleting that solver drops one reference to it. A proof the user
  *       kept a reference to outlives the solver. Unlike a result, a proof
  *       needs a term manager (to export the terms and child proofs it is
- *       queried for), and holds a counted handle on it, mirroring the C++
+ *       queried for), and holds a reference to it, mirroring the C++
  *       API where `cvc5::Proof` holds a `NodeManagerSharedPtr`.
  */
 struct cvc5_proof_t
@@ -618,8 +621,11 @@ struct cvc5_grammar_t
  * itself: it holds one reference to each of them and drops it on deletion,
  * but they may outlive the solver if the user still holds a reference (see
  * `cvc5_result_t`).
+ *
+ * @note Visibility of this struct is set to export for linkage of the parser
+ *       library (it needs to be able to use member functions of the struct).
  */
-struct Cvc5
+struct CVC5_EXPORT Cvc5
 {
   /**
    * Constructor.
@@ -627,8 +633,24 @@ struct Cvc5
    */
   Cvc5(Cvc5TermManager* tm);
 
-  /** Destructor. */
-  ~Cvc5();
+  /* Lifetime management of the solver itself. ---------- */
+
+  /**
+   * Increment the reference count of this solver.
+   *
+   * A reference is held by the user (returned by `cvc5_new()` and dropped via
+   * `cvc5_delete()`) and by each `Cvc5InputParser` instance created from this
+   * solver.
+   */
+  void inc_ref();
+  /**
+   * Decrement the reference count of this solver.
+   *
+   * The solver is freed once its reference count drops to zero. Input parsers
+   * thus keep their solver alive until they are freed, and remain usable
+   * after `cvc5_delete()`.
+   */
+  void dec_ref();
 
   /**
    * Export C++ result to C API.
@@ -671,6 +693,15 @@ struct Cvc5
    */
   void deregister(cvc5_grammar_t* grammar);
 
+  class PluginCpp;
+  /**
+   * The plugins added to this solver.
+   * @note The solver only keeps raw pointers to its plugins and never removes
+   *       them, so all plugins must be kept alive for as long as the solver.
+   *       This member must thus be declared before `d_solver` so that it is
+   *       destroyed after it.
+   */
+  std::vector<std::unique_ptr<PluginCpp>> d_plugins;
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
@@ -730,7 +761,15 @@ struct Cvc5
     Cvc5* d_cvc5;
     Cvc5Plugin* d_plugin;
   };
-  std::unique_ptr<PluginCpp> d_plugin = nullptr;
+
+ private:
+  /** Destructor. */
+  ~Cvc5();
+  /** Free this solver if its reference count is zero. */
+  void free_if_unused();
+
+  /** The reference count of this solver. */
+  uint32_t d_refs = 1;
 };
 
 /** Wrapper for cvc5 C++ statistic. */

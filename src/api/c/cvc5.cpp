@@ -2682,10 +2682,11 @@ void cvc5_term_manager_delete(Cvc5TermManager* tm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  // This only drops the handle held by the user. Managed objects (and solver
-  // instances) keep the term manager alive, so if any of them are still alive
-  // here, the term manager is not freed yet, but only once the last of them is
-  // released. `cvc5_term_manager_release()` releases them all at once.
+  // This only decrements the reference count of the term manager. Managed
+  // objects (and solver instances) keep the term manager alive, so if any of
+  // them are still alive here, the term manager is not freed yet, but only
+  // once the last of them is released. `cvc5_term_manager_release()` releases
+  // them all at once.
   tm->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
@@ -4476,7 +4477,12 @@ Cvc5* cvc5_new(Cvc5TermManager* tm)
 void cvc5_delete(Cvc5* cvc5)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
-  delete cvc5;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  // This only decrements the reference count of the solver. Input parser
+  // instances also hold a reference to the solver, so if any of them are still
+  // alive here, the solver is not freed yet, but only once the last of them is
+  // freed (see `cvc5_parser_delete()`).
+  cvc5->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -5486,8 +5492,9 @@ void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(plugin);
-  cvc5->d_plugin.reset(new Cvc5::PluginCpp(cvc5->d_tm->d_tm, cvc5, plugin));
-  cvc5->d_solver.addPlugin(*cvc5->d_plugin);
+  cvc5->d_plugins.push_back(
+      std::make_unique<Cvc5::PluginCpp>(cvc5->d_tm->d_tm, cvc5, plugin));
+  cvc5->d_solver.addPlugin(*cvc5->d_plugins.back());
   CVC5_CAPI_TRY_CATCH_END;
 }
 
