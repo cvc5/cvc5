@@ -405,8 +405,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       Node kd = NodeManager::mkDummySkolem("data", d_type_data);
       Node econc = nm->mkNode(
           Kind::SEP_LABEL,
-          nm->mkNode(
-              Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, kl, kd), d_true),
+          nm->mkNode(Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, kl, kd), d_true),
           slbl);
       lem = nm->mkNode(Kind::OR, fact.negate(), econc);
     }
