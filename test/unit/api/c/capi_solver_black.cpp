@@ -3877,10 +3877,11 @@ TEST_F(TestCApiBlackSolver, plugin_multiple)
 }
 
 namespace {
-const Cvc5Term* plugin_null_check(size_t*, void* state)
+const Cvc5Term* plugin_null_check(size_t* size, void* state)
 {
-  // neither set the size nor return an array
+  // no lemmas, return NULL instead of an array
   ++*static_cast<size_t*>(state);
+  *size = 0;
   return nullptr;
 }
 const char* plugin_null_get_name() { return "PluginNull"; }

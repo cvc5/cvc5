@@ -691,12 +691,9 @@ std::vector<cvc5::Term> Cvc5::PluginCpp::check()
   {
     size_t size = 0;
     const Cvc5Term* terms = d_plugin->check(&size, d_plugin->d_check_state);
-    if (terms != nullptr)
+    for (size_t i = 0; i < size; ++i)
     {
-      for (size_t i = 0; i < size; ++i)
-      {
-        res.push_back(terms[i]->d_term);
-      }
+      res.push_back(terms[i]->d_term);
     }
   }
   return res;
