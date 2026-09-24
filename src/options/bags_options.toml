@@ -8,3 +8,11 @@ name   = "Bags Theory"
   type       = "bool"
   default    = "true"
   help       = "enables the bags solver in applicable logics"
+
+[[option]]
+  name       = "bagsToLiastar"
+  category   = "expert"
+  long       = "bags-to-liastar"
+  type       = "bool"
+  default    = "false"
+  help       = "translate the bag constraints of each check into one liastar star-contains constraint. This requires a higher order logic, e.g. HO_ALL, since the star-contains predicate takes a lambda as a first argument"

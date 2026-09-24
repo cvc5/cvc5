@@ -34,7 +34,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BAGS, env, out, valuation),
       d_state(env, valuation),
       d_im(env, *this, d_state),
-      d_ig(env.getNodeManager(), &d_state, &d_im),
+      d_ig(env.getNodeManager(), &d_state, &d_im, options().bags.bagsToLiastar),
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
       d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
@@ -103,6 +103,13 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     case Kind::BAG_CHOOSE: return expandChooseOperator(atom, lems);
     case Kind::BAG_CARD:
     {
+      if (options().bags.bagsToLiastar)
+      {
+        // the cardinality terms are needed by the translation to liastar,
+        // which is the only thing that constrains them, so do not reduce them
+        // here. See BagSolver::checkLiastarConstraints.
+        return TrustNode::null();
+      }
       std::vector<Node> asserts;
       Node ret = BagReduction::reduceCardOperator(atom, asserts);
       Node andNode = nm->mkNode(Kind::AND, asserts);
@@ -115,7 +122,8 @@ TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
     case Kind::BAG_FOLD:
     {
       std::vector<Node> asserts;
-      Node ret = BagReduction::reduceFoldOperator(atom, asserts);
+      Node ret = BagReduction::reduceFoldOperator(
+          atom, asserts, options().bags.bagsToLiastar);
       Node andNode = nm->mkNode(Kind::AND, asserts);
       d_im.lemma(andNode, InferenceId::BAGS_FOLD);
       Trace("bags::ppr") << "reduce(" << atom << ") = " << ret

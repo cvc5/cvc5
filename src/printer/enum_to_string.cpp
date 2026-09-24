@@ -80,6 +80,8 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::BAGS_MAP_INDEX: return "bags_map_index";
     case cvc5::SkolemId::BAGS_MAP_SUM: return "bags_map_sum";
     case cvc5::SkolemId::BAGS_DEQ_DIFF: return "bags_deq_diff";
+    case cvc5::SkolemId::BAGS_LIASTAR_BAG_INTEGER:
+      return "bags_liastar_bag_integer";
     case cvc5::SkolemId::TABLES_GROUP_PART: return "tables_group_part";
     case cvc5::SkolemId::TABLES_GROUP_PART_ELEMENT:
       return "tables_group_part_element";

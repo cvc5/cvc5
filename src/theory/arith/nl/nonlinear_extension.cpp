@@ -220,6 +220,11 @@ std::vector<Node> NonlinearExtension::getUnsatisfiedAssertions(
   std::vector<Node> false_asserts;
   for (const auto& lit : assertions)
   {
+    if (lit.getKind() == Kind::STAR_CONTAINS)
+    {
+      // skip int.star-contains nodes when nonlinear operators are used
+      continue;
+    }
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
     if (litv != d_true)
@@ -320,6 +325,11 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   std::unordered_map<TNode, Node> revSharedTermsPre;
   for (TNode st : sts)
   {
+    if (!st.getType().isRealOrInt())
+    {
+      // e.g. the function child of int.star-contains
+      continue;
+    }
     Node stv = d_model.computeAbstractModelValue(st);
     Trace("nl-model-final")
         << "- shared term value " << st << " = " << stv << std::endl;
@@ -369,6 +379,14 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     std::unordered_set<Node> factorsSplit;
     for (TNode st : sts)
     {
+      if (!st.getType().isRealOrInt())
+      {
+        // Same filter as the loop that computes revSharedTermsPre above. Note
+        // it cannot be a check for Kind::STAR_CONTAINS: what is shared is the
+        // function child of the atom, which lambda lifting has purified into
+        // a skolem, so its kind is SKOLEM and only its type identifies it.
+        continue;
+      }
       Node stv = d_model.computeAbstractModelValue(st);
       Trace("nl-model-final")
           << "- shared term value (post) " << st << " = " << stv << std::endl;

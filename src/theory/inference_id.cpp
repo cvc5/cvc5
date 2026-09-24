@@ -130,6 +130,10 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ARITH_NL_ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION:
       return "ARITH_NL_ICP_PROPAGATION";
+    case InferenceId::ARITH_LIA_STAR_EXISTS: return "ARITH_LIA_STAR_EXISTS";
+    case InferenceId::ARITH_LIA_STAR_NONNEGATIVE:
+      return "ARITH_LIA_STAR_NONNEGATIVE";
+    case InferenceId::ARITH_LIA_STAR_SPLIT: return "ARITH_LIA_STAR_SPLIT";
     case InferenceId::FF_LEMMA: return "FF_LEMMA";
 
     case InferenceId::ARRAYS_EXT: return "ARRAYS_EXT";
@@ -165,6 +169,8 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_FOLD: return "BAGS_FOLD";
     case InferenceId::BAGS_CARD: return "BAGS_CARD";
     case InferenceId::BAGS_CARD_EMPTY: return "BAGS_CARD_EMPTY";
+    case InferenceId::BAGS_LIASTAR: return "BAGS_LIASTAR";
+    case InferenceId::BAGS_MAP_CARD: return "BAGS_MAP_CARD";
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";

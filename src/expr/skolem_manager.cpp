@@ -420,6 +420,7 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     case SkolemId::STRINGS_NUM_OCCUR_RE:
     case SkolemId::STRINGS_DEQ_DIFF:
     case SkolemId::STRINGS_STOI_NON_DIGIT:
+    case SkolemId::BAGS_LIASTAR_BAG_INTEGER:
     case SkolemId::BAGS_FOLD_CARD:
     case SkolemId::SETS_FOLD_CARD:
     case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
@@ -644,6 +645,7 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::STRINGS_STOI_NON_DIGIT:
     case SkolemId::BAGS_CARD_COMBINE:
     case SkolemId::BAGS_DISTINCT_ELEMENTS_UNION_DISJOINT:
+    case SkolemId::BAGS_LIASTAR_BAG_INTEGER:
     case SkolemId::BAGS_FOLD_CARD:
     case SkolemId::BAGS_FOLD_ELEMENTS:
     case SkolemId::BAGS_FOLD_UNION_DISJOINT:

@@ -2691,6 +2691,26 @@ set(regress_1_tests
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/uf-abduct.smt2
   regress1/abduction/yoni-true-sol.smt2
+  regress1/arith/liastar/assume_not_nonnegative.smt2
+  regress1/arith/liastar/assume_nonnegative.smt2
+  regress1/arith/liastar/constant_lambda.smt2
+  regress1/arith/liastar/disjoint_union.smt2
+  regress1/arith/liastar/f2_sat.smt2
+  regress1/arith/liastar/f2_unsat.smt2
+  regress1/arith/liastar/lineality_line_sat.smt2
+  regress1/arith/liastar/lineality_line_unsat.smt2
+  regress1/arith/liastar/neg_line.smt2
+  regress1/arith/liastar/neg_mixed_sat.smt2
+  regress1/arith/liastar/neg_parity_unsat.smt2
+  regress1/arith/liastar/neg_sum_sat.smt2
+  regress1/arith/liastar/neg_sum_unsat.smt2
+  regress1/arith/liastar/paper2008.smt2
+  regress1/arith/liastar/paper2020.smt2
+  regress1/arith/liastar/query026.smt2
+  regress1/arith/liastar/sat1.smt2
+  regress1/arith/liastar/sat2.smt2
+  regress1/arith/liastar/simple.smt2
+  regress1/arith/liastar/two-star-predicates.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
@@ -2776,6 +2796,28 @@ set(regress_1_tests
   regress1/bags/filter4.smt2
   regress1/bags/filter5.smt2
   regress1/bags/fold1.smt2
+  regress1/bags/liastar/bag_make_distinct_sat.smt2
+  regress1/bags/liastar/bag_make_distinct_unsat.smt2
+  regress1/bags/liastar/bag_make_equal_unsat.smt2
+  regress1/bags/liastar/bag_make_inter_min_unsat.smt2
+  regress1/bags/liastar/bag_make_setof_sat.smt2
+  regress1/bags/liastar/bag_make_setof_unsat.smt2
+  regress1/bags/liastar/bag_make_union_max_sat.smt2
+  regress1/bags/liastar/bag_make_union_max_unsat.smt2
+  regress1/bags/liastar/card_difference_remove.smt2
+  regress1/bags/liastar/dedup_vs_events_sat.smt2
+  regress1/bags/liastar/card_inter_min.smt2
+  regress1/bags/liastar/card_min_max.smt2
+  regress1/bags/liastar/card_setof_sat.smt2
+  regress1/bags/liastar/card_setof_unsat.smt2
+  regress1/bags/liastar/card_union_disjoint.smt2
+  regress1/bags/liastar/disequality.smt2
+  regress1/bags/liastar/fold_card_sat.smt2
+  regress1/bags/liastar/fold_card_unsat.smt2
+  regress1/bags/liastar/guarded_star.smt2
+  regress1/bags/liastar/map_card_sat.smt2
+  regress1/bags/liastar/map_card_unsat.smt2
+  regress1/bags/liastar/setof_fold_sat.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
   regress1/bags/fuzzy1.smt2
