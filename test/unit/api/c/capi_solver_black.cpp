@@ -3840,6 +3840,43 @@ TEST_F(TestCApiBlackSolver, plugin_unsat)
 }
 
 namespace {
+const Cvc5Term* plugin_count_check(size_t* size, void* state)
+{
+  static thread_local std::vector<Cvc5Term> lemmas;
+  ++*static_cast<size_t*>(state);
+  *size = lemmas.size();
+  return lemmas.data();
+}
+const char* plugin_count_get_name() { return "PluginCount"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_multiple)
+{
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  size_t num_checks = 0;
+  Cvc5Plugin plugin_unsat{&plugin_unsat_check,
+                          nullptr,
+                          nullptr,
+                          &plugin_unsat_get_name,
+                          d_tm,
+                          nullptr,
+                          nullptr};
+  Cvc5Plugin plugin_count{&plugin_count_check,
+                          nullptr,
+                          nullptr,
+                          &plugin_count_get_name,
+                          &num_checks,
+                          nullptr,
+                          nullptr};
+  // adding a second plugin must not invalidate the first one
+  cvc5_add_plugin(d_solver, &plugin_unsat);
+  cvc5_add_plugin(d_solver, &plugin_count);
+  // should be unsat since the first plugin asserts "false" as a lemma
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  ASSERT_GT(num_checks, 0);
+}
+
+namespace {
 void plugin_listen_notify_sat_clause(const Cvc5Term, void* state)
 {
   *static_cast<bool*>(state) = true;

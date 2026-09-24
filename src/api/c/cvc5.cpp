@@ -5492,8 +5492,9 @@ void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(plugin);
-  cvc5->d_plugin.reset(new Cvc5::PluginCpp(cvc5->d_tm->d_tm, cvc5, plugin));
-  cvc5->d_solver.addPlugin(*cvc5->d_plugin);
+  cvc5->d_plugins.push_back(
+      std::make_unique<Cvc5::PluginCpp>(cvc5->d_tm->d_tm, cvc5, plugin));
+  cvc5->d_solver.addPlugin(*cvc5->d_plugins.back());
   CVC5_CAPI_TRY_CATCH_END;
 }
 
