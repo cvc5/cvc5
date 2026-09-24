@@ -222,5 +222,7 @@ fi
 # generates the report. This installs a handler instead of ignoring the signal,
 # an ignored disposition would be inherited by Murxla.
 trap 'echo' INT
-"$MURXLA_BINARY" "${args[@]}" || true
+murxla_status=0
+"$MURXLA_BINARY" "${args[@]}" || murxla_status=$?
 generate_coverage_report
+exit "$murxla_status"
