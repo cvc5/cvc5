@@ -21,6 +21,7 @@
 #include "context/cdo.h"
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_manager.h"
+#include "prop/opt_clauses_manager.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/proof_post_processor.h"
 #include "smt/env_obj.h"
@@ -170,6 +171,24 @@ class PropPfManager : protected EnvObj
    */
   void notifyExplainedPropagation(TrustNode ttn);
   /**
+   * Notify that a clause was attached in the SAT solver at an assertion level
+   * below the current one.
+   *
+   * Such a clause outlives the level it was derived in, but its proof lives in
+   * the user-context-dependent d_proof and would be discarded with that level,
+   * leaving the clause an unjustified assumption of a later refutation. The
+   * proof is therefore materialized eagerly and saved, so that
+   * d_optClausesManager can reinsert it into d_proof on popping.
+   *
+   * Must be called after the corresponding normalizeAndRegister call.
+   *
+   * @param clauseNode The clause, in its normalized node form.
+   * @param assertionLevel The SAT solver assertion level the clause was
+   * attached at. The corresponding user-context level is assertionLevel + 1.
+   */
+  void notifyClauseInsertedAtLevel(const Node& clauseNode,
+                                   uint32_t assertionLevel);
+  /**
    * Get the last explained propagation by the above method. This is required
    * only for Minisat.
    */
@@ -234,6 +253,21 @@ class PropPfManager : protected EnvObj
   context::CDHashSet<Node> d_inputClauses;
   /** Asserted clauses derived from lemmas */
   context::CDHashSet<Node> d_lemmaClauses;
+  /**
+   * Proofs of clauses attached in the SAT solver below the current user level,
+   * mapped from the user-context level in which they must be available.
+   *
+   * Entries are discarded only when the level they are stored in is popped, so
+   * level-1 entries live until reset-assertions. This matches how long the SAT
+   * solver keeps the corresponding clauses. Note we also retain proofs of
+   * forgettable clauses, which CaDiCaL may delete, since we cannot tell in
+   * advance whether such a clause is used in a later refutation first.
+   */
+  std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optClausesPfs;
+  /** As above, but for the clauses themselves, to restore d_lemmaClauses. */
+  std::map<int, std::vector<Node>> d_optLemmaClauseLevels;
+  /** Reinserts the above into d_proof / d_lemmaClauses when popping. */
+  OptimizedClausesManager d_optClausesManager;
   /** Are we tracking inference identifiers? */
   bool d_trackLemmaClauseIds;
   /** Mapping lemma clauses to inference identifiers */

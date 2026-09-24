@@ -13,7 +13,12 @@
 #define CVC5__PROP__CADICAL__UTIL_H
 
 #include "base/check.h"
+#include "expr/node.h"
 #include "prop/sat_solver_types.h"
+
+namespace cvc5::internal::prop {
+class TheoryProxy;
+}
 
 namespace cvc5::internal::prop::cadical {
 
@@ -52,6 +57,24 @@ CadicalVar toCadicalVar(SatVariable var);
  */
 SatClause toSatClause(const std::unordered_set<int64_t>& activation_literals,
                       const std::vector<int32_t>& cl);
+
+/**
+ * Convert a SatClause to its node representation.
+ *
+ * The literals are sorted by node id and duplicates are factored out, which
+ * matches the normalization PropPfManager::normalizeAndRegister applies when
+ * registering the proof of a clause. This is what makes the node returned here
+ * the key under which the clause's proof can be looked up, both when the proof
+ * tracer turns an original clause into an assumption of the SAT refutation and
+ * when the propagator preserves the proof of a clause attached below the
+ * current user level.
+ *
+ * @param nm The node manager.
+ * @param proxy The theory proxy, used to map literals to nodes.
+ * @param clause The clause to convert.
+ * @return The corresponding clause node.
+ */
+Node toClauseNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause);
 
 }  // namespace cvc5::internal::prop::cadical
 
