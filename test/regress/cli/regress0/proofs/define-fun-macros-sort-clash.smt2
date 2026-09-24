@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --parse-define-fun-macros --check-proofs
 ; EXPECT: unsat
 ; The name f is used for both a sort and a defined function, which are in

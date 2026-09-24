@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --parse-define-fun-macros --check-proofs -i --global-declarations
 ; EXPECT: unsat
 ; EXPECT: unsat

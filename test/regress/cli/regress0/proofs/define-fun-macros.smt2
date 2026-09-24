@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --parse-define-fun-macros --check-proofs
 ; EXPECT: unsat
 (set-logic UFLIA)

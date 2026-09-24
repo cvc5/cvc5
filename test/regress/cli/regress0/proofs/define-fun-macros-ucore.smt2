@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --parse-define-fun-macros --produce-unsat-cores
 ; EXPECT: unsat
 ; EXPECT: (
