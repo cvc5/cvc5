@@ -170,6 +170,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_CARD: return "BAGS_CARD";
     case InferenceId::BAGS_CARD_EMPTY: return "BAGS_CARD_EMPTY";
     case InferenceId::BAGS_LIASTAR: return "BAGS_LIASTAR";
+    case InferenceId::BAGS_MAP_CARD: return "BAGS_MAP_CARD";
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";

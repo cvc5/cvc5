@@ -745,6 +745,15 @@ void BagSolver::checkDisequalBagTerms()
 void BagSolver::checkMap(Node n)
 {
   Assert(n.getKind() == Kind::BAG_MAP);
+  if (options().bags.bagsToLiastar)
+  {
+    // the cardinality of a map is the cardinality of its argument. This is
+    // only sent with the translation to liastar, where the cardinality terms
+    // are not reduced, since otherwise it introduces two cardinality terms
+    // that are each reduced to a bounded quantifier.
+    InferInfo card = d_ig.mapCard(n);
+    d_im.lemmaTheoryInference(&card);
+  }
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
   for (const Node& x : upwards)

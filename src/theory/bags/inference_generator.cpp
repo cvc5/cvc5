@@ -520,6 +520,24 @@ InferInfo InferenceGenerator::mapDownInjective(Node n, Node y)
   return inferInfo;
 }
 
+InferInfo InferenceGenerator::mapCard(Node n)
+{
+  Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
+
+  InferInfo inferInfo(d_im, InferenceId::BAGS_MAP_CARD);
+  Node A = n[1];
+  // Every occurrence of an element x of A is an occurrence of (f x) in the
+  // map, and no other occurrence is, so the two bags have the same number of
+  // occurrences. This says nothing about the counts at a given element, which
+  // is what the translation to liastar would need to relate the two bags, but
+  // it does relate their cardinalities.
+  Node mapSkolem = registerAndAssertSkolemLemma(n);
+  Node cardMap = d_nm->mkNode(Kind::BAG_CARD, mapSkolem);
+  Node cardA = d_nm->mkNode(Kind::BAG_CARD, A);
+  inferInfo.d_conclusion = cardMap.eqNode(cardA);
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::mapUp1(Node n, Node x)
 {
   Assert(n.getKind() == Kind::BAG_MAP && n[1].getType().isBag());
