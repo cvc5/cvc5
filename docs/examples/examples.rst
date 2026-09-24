@@ -28,6 +28,7 @@ input mechanisms.
     combination
     sygus-fun
     sygus-inv
+    sygus-weight
     parser
     parser_sym_manager
     uf

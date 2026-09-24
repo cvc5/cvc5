@@ -182,7 +182,13 @@ class GrammarTest
     {
       g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
       g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
-      assertNotEquals(g1.hashCode(), g2.hashCode());
+      // g1 and g2 differ only by the identity of their (identically named and
+      // sorted) non-terminal, so they are not equal. The assertion below is
+      // commented out: Java's hashCode() is the C++ 64-bit hash truncated to
+      // 32 bits, and whether these two distinct grammars collide in 32 bits
+      // depends on the (nondeterministic) node ids of start1/start2 -- with
+      // some ids the truncated hashes collide.
+      // assertNotEquals(g1.hashCode(), g2.hashCode());
       assertTrue(g1.equals(g1));
       assertFalse(g1.equals(g2));
     }

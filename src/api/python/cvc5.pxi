@@ -1044,7 +1044,7 @@ cdef class Grammar:
         """
         self.cgrammar.addAnyVariable(ntSymbol.cterm)
 
-    def addRules(self, Term ntSymbol not None, rules):
+    def addRules(self, Term ntSymbol not None, list rules):
         """
             Add ``ntSymbol`` to the set of rules corresponding to ``ntSymbol``.
 
@@ -3379,7 +3379,7 @@ cdef class Solver:
         r.cr = self.csolver.checkSat()
         return r
 
-    def mkGrammar(self, boundVars, ntSymbols):
+    def mkGrammar(self, list boundVars, list ntSymbols):
         """
             Create a SyGuS grammar. The first non-terminal is treated as the
             starting non-terminal, so the order of non-terminals matters.
@@ -3485,7 +3485,7 @@ cdef class Solver:
         self.csolver.addSygusInvConstraint(
                 inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
 
-    def synthFun(self, str symbol, bound_vars, Sort sort not None, Grammar grammar=None):
+    def synthFun(self, str symbol, list bound_vars, Sort sort not None, Grammar grammar=None):
         """
             Synthesize n-ary function following specified syntactic constraints.
 

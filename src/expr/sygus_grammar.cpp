@@ -30,7 +30,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
 {
   for (const Node& ntSym : ntSyms)
   {
-    d_rules.emplace(ntSym, std::vector<Node>{});
+    d_rules.emplace(ntSym, std::vector<std::pair<Node, NodeMap>>{});
   }
 }
 
@@ -53,7 +53,7 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
     Node v = NodeManager::mkBoundVar(ss.str(), dt.getSygusType());
     ntsyms[tn] = v;
     d_ntSyms.push_back(v);
-    d_rules.emplace(v, std::vector<Node>{});
+    d_rules.emplace(v, std::vector<std::pair<Node, NodeMap>>{});
     // process the subfield types
     std::unordered_set<TypeNode> tns = dt.getSubfieldTypes();
     for (const TypeNode& tnsc : tns)
@@ -92,42 +92,60 @@ SygusGrammar::SygusGrammar(const std::vector<Node>& sygusVars,
         args.push_back(itn->second);
       }
       Node rule = theory::datatypes::utils::mkSygusTerm(op, args, true);
-      addRule(nts, rule);
+      addRule(nts, rule, cons.getWeights());
     }
   }
 }
 
-void SygusGrammar::addRule(const Node& ntSym, const Node& rule)
+void SygusGrammar::addRule(const Node& ntSym,
+                           const Node& rule,
+                           const NodeMap& weights)
 {
   Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(rule.getType().isInstanceOf(ntSym.getType()));
   // avoid duplication
-  std::vector<Node>& rs = d_rules[ntSym];
-  if (std::find(rs.begin(), rs.end(), rule) == rs.end())
+  std::vector<std::pair<Node, NodeMap>>& rs = d_rules[ntSym];
+  auto it = std::find_if(
+      rs.begin(), rs.end(), [&](const std::pair<Node, NodeMap>& p) {
+        return p.first == rule && p.second == weights;
+      });
+  if (it == rs.end())
   {
-    rs.push_back(rule);
+    rs.push_back({rule, weights});
   }
 }
 
-void SygusGrammar::addRules(const Node& ntSym, const std::vector<Node>& rules)
+void SygusGrammar::addRules(const Node& ntSym,
+                            const std::vector<Node>& rules,
+                            const std::vector<NodeMap>& weights)
 {
-  for (const Node& rule : rules)
+  Assert(weights.empty() || weights.size() == rules.size());
+  for (size_t i = 0, n = rules.size(); i < n; ++i)
   {
-    addRule(ntSym, rule);
+    if (weights.empty())
+    {
+      addRule(ntSym, rules[i]);
+    }
+    else
+    {
+      addRule(ntSym, rules[i], weights[i]);
+    }
   }
 }
 
-void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
+void SygusGrammar::addAnyConstant(const Node& ntSym,
+                                  const TypeNode& tn,
+                                  const NodeMap& weights)
 {
   Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
   SkolemManager* sm = tn.getNodeManager()->getSkolemManager();
   Node anyConst =
       sm->mkInternalSkolemFunction(InternalSkolemId::SYGUS_ANY_CONSTANT, tn);
-  addRule(ntSym, anyConst);
+  addRule(ntSym, anyConst, weights);
 }
 
-void SygusGrammar::addAnyVariable(const Node& ntSym)
+void SygusGrammar::addAnyVariable(const Node& ntSym, const NodeMap& weights)
 {
   Assert(d_rules.find(ntSym) != d_rules.cend());
   // each variable of appropriate type becomes a rule.
@@ -135,18 +153,22 @@ void SygusGrammar::addAnyVariable(const Node& ntSym)
   {
     if (v.getType().isInstanceOf(ntSym.getType()))
     {
-      addRule(ntSym, v);
+      addRule(ntSym, v, weights);
     }
   }
 }
 
 void SygusGrammar::removeRule(const Node& ntSym, const Node& rule)
 {
-  std::unordered_map<Node, std::vector<Node>>::iterator itr =
-      d_rules.find(ntSym);
+  std::unordered_map<Node, std::vector<std::pair<Node, NodeMap>>>::iterator
+      itr = d_rules.find(ntSym);
   Assert(itr != d_rules.end());
-  std::vector<Node>::iterator it =
-      std::find(itr->second.begin(), itr->second.end(), rule);
+  std::vector<std::pair<Node, NodeMap>>::const_iterator it =
+      std::find_if(itr->second.cbegin(),
+                   itr->second.cend(),
+                   [&rule](const std::pair<Node, NodeMap>& pair) {
+                     return pair.first == rule;
+                   });
   Assert(it != itr->second.end());
   itr->second.erase(it);
 }
@@ -228,7 +250,8 @@ bool isId(const Node& n)
 void addSygusConstructor(DType& dt,
                          const Node& rule,
                          const std::vector<Node>& nts,
-                         const std::unordered_map<Node, TypeNode>& ntsToUnres)
+                         const std::unordered_map<Node, TypeNode>& ntsToUnres,
+                         const NodeMap& weights)
 {
   NodeManager* nm = rule.getNodeManager();
   std::stringstream ss;
@@ -260,7 +283,7 @@ void addSygusConstructor(DType& dt,
       op = nm->mkNode(Kind::LAMBDA, lbvl, op);
     }
     // assign identity rules a weight of 0.
-    dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1);
+    dt.addSygusConstructor(op, ss.str(), cargs, isId(op) ? 0 : -1, weights);
   }
 }
 
@@ -315,16 +338,15 @@ TypeNode SygusGrammar::resolve(bool allowAny)
     {
       // make the datatype, which encodes terms generated by this non-terminal
       DType dt(ntSym.getName());
-
-      for (const Node& rule : d_rules[ntSym])
+      for (const std::pair<Node, NodeMap>& rule : d_rules[ntSym])
       {
-        if (rule.getKind() == Kind::SKOLEM
-            && rule.getInternalSkolemId()
+        if (rule.first.getKind() == Kind::SKOLEM
+            && rule.first.getInternalSkolemId()
                    == InternalSkolemId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);
         }
-        addSygusConstructor(dt, rule, d_ntSyms, ntsToUnres);
+        addSygusConstructor(dt, rule.first, d_ntSyms, ntsToUnres, rule.second);
       }
       bool allowConst = allowConsts.find(ntSym) != allowConsts.end();
       dt.setSygus(ntSym.getType(), bvl, allowConst || allowAny, allowAny);
@@ -350,12 +372,18 @@ const std::vector<Node>& SygusGrammar::getSygusVars() const
 
 const std::vector<Node>& SygusGrammar::getNtSyms() const { return d_ntSyms; }
 
-const std::vector<Node>& SygusGrammar::getRulesFor(const Node& ntSym) const
+std::vector<Node> SygusGrammar::getRulesFor(const Node& ntSym) const
 {
-  std::unordered_map<Node, std::vector<Node>>::const_iterator itr =
-      d_rules.find(ntSym);
+  std::unordered_map<Node,
+                     std::vector<std::pair<Node, NodeMap>>>::const_iterator
+      itr = d_rules.find(ntSym);
   Assert(itr != d_rules.end());
-  return itr->second;
+  std::vector<Node> rules;
+  for (const std::pair<Node, NodeMap>& rule : itr->second)
+  {
+    rules.push_back(rule.first);
+  }
+  return rules;
 }
 
 std::string SygusGrammar::toString() const
@@ -389,7 +417,14 @@ size_t hash<cvc5::internal::SygusGrammar>::operator()(
     for (const auto& n : r.second)
     {
       rhash = cvc5::internal::fnv1a::fnv1a_64(
-          rhash, std::hash<cvc5::internal::Node>{}(n));
+          rhash, std::hash<cvc5::internal::Node>{}(n.first));
+      for (const auto& w : n.second)
+      {
+        rhash = cvc5::internal::fnv1a::fnv1a_64(
+            rhash, std::hash<cvc5::internal::Node>{}(w.first));
+        rhash = cvc5::internal::fnv1a::fnv1a_64(
+            rhash, std::hash<cvc5::internal::Node>{}(w.second));
+      }
     }
     rhash = cvc5::internal::fnv1a::fnv1a_64(
         rhash, std::hash<cvc5::internal::Node>{}(r.first));

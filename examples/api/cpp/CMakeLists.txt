@@ -46,6 +46,7 @@ endif()
 set(SYGUS_EXAMPLES_API_CPP
   sygus-fun
   sygus-inv
+  sygus-weight
 )
 
 foreach(example ${SYGUS_EXAMPLES_API_CPP})
