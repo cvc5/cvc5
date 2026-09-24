@@ -153,6 +153,15 @@ void BagSolver::checkLiastarConstraints()
   // is the cardinality of
   for (const Node& equality : equalities)
   {
+    Node a;
+    Node b;
+    if (isInclusionAtom(equality, a, b))
+    {
+      // the difference term needs no slot, see isInclusionAtom
+      getBagBoundVar(a);
+      getBagBoundVar(b);
+      continue;
+    }
     getBagBoundVar(equality[0]);
     getBagBoundVar(equality[1]);
   }
@@ -268,8 +277,19 @@ Node BagSolver::buildStar(const std::vector<Node>& equalities,
   // the positive atoms hold at every element
   for (const Node& equality : equalities)
   {
-    constraints.push_back(
-        d_bagBoundVars[equality[0]].eqNode(d_bagBoundVars[equality[1]]));
+    Node a;
+    Node b;
+    if (isInclusionAtom(equality, a, b))
+    {
+      // (<= c_A c_B), the inclusion rule of the table
+      constraints.push_back(
+          nm->mkNode(Kind::LEQ, d_bagBoundVars[a], d_bagBoundVars[b]));
+    }
+    else
+    {
+      constraints.push_back(
+          d_bagBoundVars[equality[0]].eqNode(d_bagBoundVars[equality[1]]));
+    }
     premises.push_back(equality);
   }
   addBagMakeOverlaps(constraints, premises);
@@ -534,6 +554,22 @@ Node BagSolver::getPointwiseConstraint(const Node& bag)
     default: Unreachable() << "no pointwise translation for " << bag;
   }
   return Node::null();
+}
+
+bool BagSolver::isInclusionAtom(const Node& equality, Node& a, Node& b)
+{
+  Assert(equality.getKind() == Kind::EQUAL && equality[0].getType().isBag());
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (equality[i].getKind() == Kind::BAG_EMPTY
+        && equality[1 - i].getKind() == Kind::BAG_DIFFERENCE_SUBTRACT)
+    {
+      a = equality[1 - i][0];
+      b = equality[1 - i][1];
+      return true;
+    }
+  }
+  return false;
 }
 
 bool BagSolver::hasPointwiseTranslation(Kind k)

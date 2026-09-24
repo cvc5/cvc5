@@ -295,6 +295,22 @@ class BagSolver : protected EnvObj
    */
   Node getPointwiseConstraint(const Node& bag);
   /**
+   * cvc5 rewrites (bag.subbag A B) into
+   * (= (bag.difference_subtract A B) (as bag.empty (Bag T))), so the inclusion
+   * rule of the table of BagsToLiastar, which is the linear conjunct
+   * (<= c_A c_B), arrives in that form. Recognizing it avoids a slot for the
+   * difference and the ite of its pointwise definition, which matters: the
+   * cone computation of the liastar extension is exponential in the number of
+   * case splits of the body, and a query with five inclusions pays 2^5 times
+   * more for nothing.
+   *
+   * @param equality an equality between two bag terms
+   * @param a set to A when the result is true
+   * @param b set to B when the result is true
+   * @return whether equality is an inclusion atom
+   */
+  static bool isInclusionAtom(const Node& equality, Node& a, Node& b);
+  /**
    * @param k a kind
    * @return whether the count of a term of kind k at an element is a function
    * of the counts of its arguments at that element, which is the case for the
