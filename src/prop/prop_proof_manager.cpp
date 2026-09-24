@@ -376,7 +376,7 @@ Node PropPfManager::getClauseNode(const SatClause& clause) const
 }
 
 void PropPfManager::notifyClauseInsertedAtLevel(const SatClause& clause,
-                                               uint32_t clLevel)
+                                                uint32_t clLevel)
 {
   // SAT user level zero corresponds to user context level one.
   uint32_t contextLevel = clLevel + 1;

@@ -499,8 +499,7 @@ SatValue CadicalPropagator::value(SatLiteral lit) const
 void CadicalPropagator::notify_clause_level(const SatClause& clause,
                                             uint32_t user_level)
 {
-  if (d_ppm == nullptr || clause.empty()
-      || user_level >= current_user_level())
+  if (d_ppm == nullptr || clause.empty() || user_level >= current_user_level())
   {
     return;
   }
