@@ -1611,7 +1611,13 @@ endif()
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 
-# GMP has to be included at the end because of linker ordering issues when 
+if(CVC5_USE_MPFR)
+  add_dependencies(cvc5-obj MPFR)
+  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
+endif()
+
+# GMP has to be included at the end because of linker ordering issues when
 # generating a static library.
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
@@ -1619,12 +1625,6 @@ if(BUILD_SHARED_LIBS)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 else()
   target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
-endif()
-
-if(CVC5_USE_MPFR)
-  add_dependencies(cvc5-obj MPFR)
-  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
 endif()
 
 #-----------------------------------------------------------------------------#
