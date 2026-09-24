@@ -50,11 +50,11 @@ class TaylorGenerator
   /**
    * Get Taylor series of degree n for function fa centered around zero.
    *
-   * Return value is ( P_{n,f(0)}( x ), R_{n+1,f(0)}( x ) ) where
+   * Return value is ( P_{n-1,f(0)}( x ), R_{n,f(0)}( x ) ) where
    * the first part of the pair is the Taylor series expansion :
-   *    P_{n,f(0)}( x ) = sum_{i=0}^n (f^i(0)/i!)*x^i
+   *    P_{n-1,f(0)}( x ) = sum_{i=0}^{n-1} (f^i(0)/i!)*x^i
    * and the second part of the pair is the Taylor series remainder :
-   *    R_{n+1,f(0)}( x ) = x^{n+1}/(n+1)!
+   *    R_{n,f(0)}( x ) = x^n/n!
    *
    * The above values are cached for each (f,n).
    */
@@ -85,12 +85,31 @@ class TaylorGenerator
    * that are sound (lower, upper) bounds for <k>( c ). Notice that these
    * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ) where
    * c>0, we return the P_u+[x] from the function above for the minimum degree
-   * d' >= d such that (1-c^{2*d'+1}/(2*d'+1)!) is positive.
+   * d' >= d such that (1-c^{2*d'}/(2*d')!) is positive.
    * @return the actual degree of the polynomial approximations (which may be
    * larger than d).
    */
   std::uint64_t getPolynomialApproximationBoundForArg(
       Kind k, Node c, std::uint64_t d, ApproximationBounds& pbounds);
+
+  /**
+   * Is the upper bound on exponential for positive arguments of degree d, i.e.
+   * ApproximationBounds::d_upperPos as computed by
+   * getPolynomialApproximationBounds above, a sound upper bound for exp( c )?
+   *
+   * That approximation is P(x)/(1-x^n/n!) for n = 2*d, which is an upper bound
+   * for exp(x) for x >= 0 only if its denominator is positive, that is if the
+   * Taylor remainder x^n/n! is less than one at x.
+   *
+   * Note that getPolynomialApproximationBoundForArg guarantees this for the
+   * argument c it is called with, but *not* for other points the resulting
+   * approximation may be evaluated at, e.g. the end points of a secant plane.
+   *
+   * @param c A non-negative constant.
+   * @param d The degree of the approximation.
+   * @return true if d_upperPos of degree d is an upper bound for exp( c ).
+   */
+  bool isExpUpperPosSound(TNode c, std::uint64_t d);
 
   /** get transcendental function model bounds
    *
