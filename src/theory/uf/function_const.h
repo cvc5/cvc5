@@ -59,6 +59,20 @@ class FunctionConst
    */
   static Node toLambda(TNode n);
   /**
+   * Returns the lambda that defines f, or the null node if f has no such
+   * definition.
+   *
+   * This is toLambda applied to f after undoing a single purification step.
+   * It is intended for callers that construct applications of f internally.
+   * Lambda lifting replaces a lambda occurring in the input by a purification
+   * skolem k, and HoExtension::ppRewrite maintains the invariant that k is
+   * never applied in preprocessed constraints, by beta-reducing every (k t)
+   * it encounters. Terms that a theory solver builds during solving and
+   * asserts as internal facts never reach ppRewrite, so the solver has to
+   * beta-reduce them itself. This method returns the lambda it should apply.
+   */
+  static Node getDefinition(TNode f);
+  /**
    * Extracts the array constant from the payload of a a function array constant
    *
    *
