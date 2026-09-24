@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-cbqi --no-e-matching
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core
