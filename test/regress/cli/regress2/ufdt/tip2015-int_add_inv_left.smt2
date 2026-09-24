@@ -4,7 +4,6 @@
 ; CPC checking fails because the proof contains the untranslated
 ; MATCH_BIND_CASE operator.
 ; DISABLE-TESTER: cpc
-; DISABLE-TESTER: lfsc
 ; EXPECT: unsat
 (set-logic UFDT)
 (declare-datatype Nat ((zero) (succ (p Nat))))

@@ -4,7 +4,6 @@
 ; EXPECT: unsat
 ; External proof checking is disabled because this test prints separate
 ; proof components with --proof-format=none, rather than a single proof.
-; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: alethe
 (set-logic QF_UFLIA)

@@ -4,7 +4,6 @@
 ; External proof checking does not support overloading a term and a sort
 ; with the same name (U).
 ; DISABLE-TESTER: cpc
-; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (declare-sort U 0)
 (declare-fun U () U)

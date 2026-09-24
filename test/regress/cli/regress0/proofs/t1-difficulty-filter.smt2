@@ -3,7 +3,6 @@
 ; EXPECT: unsat
 ; External proof checking is disabled because --dump-difficulty adds
 ; difficulty output to the proof stream.
-; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: alethe
 (set-logic UFLIA)
