@@ -19,6 +19,8 @@ extern "C" {
 
 #include <fstream>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "api/c/cvc5_c_structs.h"
 #include "api/c/cvc5_checks.h"
@@ -394,6 +396,8 @@ void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
 {
   static thread_local std::vector<Cvc5Term> rterms;
   static thread_local std::vector<const char*> rnames;
+  // Owns the strings `rnames` points to, which must outlive this call.
+  static thread_local std::vector<std::string> snames;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(sm);
   CVC5_CAPI_CHECK_NOT_NULL(size);
@@ -401,12 +405,19 @@ void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
   CVC5_CAPI_CHECK_NOT_NULL(names);
   rterms.clear();
   rnames.clear();
+  snames.clear();
   auto res = sm->d_sm.getNamedTerms();
   auto tm = sm->d_tm;
   for (auto& t : res)
   {
     rterms.push_back(tm->export_term(t.first));
-    rnames.push_back(t.second.c_str());
+    snames.push_back(t.second);
+  }
+  // Collect the pointers only after `snames` is complete, since growing the
+  // vector may move its strings.
+  for (const auto& n : snames)
+  {
+    rnames.push_back(n.c_str());
   }
   *size = rterms.size();
   *terms = rterms.data();
