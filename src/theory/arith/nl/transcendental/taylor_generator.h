@@ -50,11 +50,11 @@ class TaylorGenerator
   /**
    * Get Taylor series of degree n for function fa centered around zero.
    *
-   * Return value is ( P_{n,f(0)}( x ), R_{n+1,f(0)}( x ) ) where
+   * Return value is ( P_{n-1,f(0)}( x ), R_{n,f(0)}( x ) ) where
    * the first part of the pair is the Taylor series expansion :
-   *    P_{n,f(0)}( x ) = sum_{i=0}^n (f^i(0)/i!)*x^i
+   *    P_{n-1,f(0)}( x ) = sum_{i=0}^{n-1} (f^i(0)/i!)*x^i
    * and the second part of the pair is the Taylor series remainder :
-   *    R_{n+1,f(0)}( x ) = x^{n+1}/(n+1)!
+   *    R_{n,f(0)}( x ) = x^n/n!
    *
    * The above values are cached for each (f,n).
    */

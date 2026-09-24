@@ -2316,7 +2316,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */
@@ -2336,11 +2336,11 @@ enum ENUM(ProofRule)
    * :math:`0 \leq l \leq u`. Let :math:`p^*` be a modification of the
    * :math:`d`'th taylor polynomial at zero (also called the Maclaurin series)
    * of the exponential function as follows where :math:`p(d-1)` is the regular
-   * Maclaurin series of degree :math:`d-1`:
+   * Maclaurin series of degree :math:`d-1` and :math:`n = d`:
    *
    * .. math::
    *
-   *   p^* := p(d-1) \cdot (\frac{1 - t^n}{n!})^{-1}
+   *   p^* := p(d-1) \cdot (1 - \frac{t^n}{n!})^{-1}
    *
    * Note that :math:`p^*` is an upper bound for :math:`\exp` on
    * :math:`[l,u]` only if its denominator is positive there, hence this rule
@@ -2355,7 +2355,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */

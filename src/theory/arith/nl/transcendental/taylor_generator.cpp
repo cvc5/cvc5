@@ -96,7 +96,7 @@ void TaylorGenerator::getPolynomialApproximationBounds(
     // n must be even
     std::pair<Node, Node> taylor = getTaylor(k, n);
     Node taylor_sum = taylor.first;
-    // ru is x^{n+1}/(n+1)!
+    // ru is x^n/n!
     Node ru = taylor.second;
     Trace("nl-trans") << "Taylor for " << k << " is : " << taylor.first
                       << std::endl;

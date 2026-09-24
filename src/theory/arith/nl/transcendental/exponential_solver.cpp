@@ -338,8 +338,13 @@ Node ExponentialSolver::getValidSecantPoint(TNode p,
       ret = nm->mkConstReal(pr);
     }
   }
-  // Return the center itself if we ended up there, so that the caller
-  // recognizes that no secant lemma should be constructed on this side.
+  // We do not expect to end up at the center here: for a negative center the
+  // clamp above cannot produce it since the center is non-zero, and for a
+  // positive center the bisection approaches it without ever reaching it. We
+  // guard against it nevertheless, since a secant plane whose end points
+  // coincide is degenerate. Returning the center makes the caller skip this
+  // side.
+  Assert(pr != cr);
   return pr == cr ? Node(center) : ret;
 }
 
