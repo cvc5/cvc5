@@ -1338,6 +1338,9 @@ set(regress_0_tests
   regress0/options/help.smt2
   regress0/options/interactive-mode.smt2
   regress0/options/named_muted.smt2
+  regress0/options/safe-declare-pool.smt2
+  regress0/options/safe-define-fun-rec.smt2
+  regress0/options/safe-define-funs-rec.smt2
   regress0/options/safe-options1.smt2
   regress0/options/safe-options2.smt2
   regress0/options/safe-options3.smt2
@@ -1345,6 +1348,7 @@ set(regress_0_tests
   regress0/options/safe-options-fatal.smt2
   regress0/options/set-after-init.smt2
   regress0/options/set-and-get-options.smt2
+  regress0/options/stable-declare-pool.smt2
   regress0/options/stable-options1.smt2
   regress0/options/statistics.smt2
   regress0/options/stream-printing.smt2
