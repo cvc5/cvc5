@@ -186,6 +186,25 @@ void SatProofManager::endResChain(Node conclusion,
     d_redundantLits.clear();
     return;
   }
+  // We do not justify clauses that have been given to the SAT solver, since
+  // they are justified by the CNF proof. Moreover it is *necessary* to skip
+  // them to avoid cycles at the node level: a clause C given to the SAT solver
+  // may be node-equivalent to a literal l (i.e. C is a subformula occurring as
+  // a SAT literal), in which case a resolution chain concluding l may depend on
+  // premises whose own justification depends on C. Justifying C here, e.g. from
+  // the unit clause of l, would then close a cycle and lead to the proof of C
+  // being dropped, resulting in an open proof. See also the analogous checks in
+  // explainLit and finalizeProof.
+  if (d_assumptions.contains(conclusion))
+  {
+    Trace("sat-proof")
+        << "SatProofManager::endResChain: input assumption, skip proof of "
+        << conclusion << "\n";
+    // clearing
+    d_resLinks.clear();
+    d_redundantLits.clear();
+    return;
+  }
   // first process redundant literals
   std::set<SatLiteral> visited;
   unsigned pos = d_resLinks.size();
