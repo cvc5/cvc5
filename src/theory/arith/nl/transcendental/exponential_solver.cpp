@@ -263,7 +263,7 @@ void ExponentialSolver::doSecantLemmas(TNode e,
                                        unsigned d,
                                        unsigned actual_d)
 {
-  d_data->doSecantLemmas(getSecantBounds(e, center, d),
+  d_data->doSecantLemmas(getSecantBounds(e, center, d, actual_d),
                          poly_approx,
                          center,
                          cval,
@@ -275,37 +275,72 @@ void ExponentialSolver::doSecantLemmas(TNode e,
 
 std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
                                                          TNode center,
-                                                         unsigned d)
+                                                         unsigned d,
+                                                         unsigned actual_d)
 {
   std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, center, d);
 
-  int csign = center.getConst<Rational>().sgn();
+  NodeManager* nm = nodeManager();
+  Node one = nm->mkConstInt(Rational(1));
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
-    NodeManager* nm = nodeManager();
-    Node one = nm->mkConstInt(Rational(1));
     // pick c-1
     bounds.first = rewrite(nm->mkNode(Kind::SUB, center, one));
-    // ensure we don't cross zero
-    if (bounds.first.getConst<Rational>().sgn() != csign)
-    {
-      bounds.first = nm->mkConstReal(Rational(0));
-    }
   }
   if (bounds.second.isNull())
   {
-    NodeManager* nm = nodeManager();
-    Node one = nm->mkConstInt(Rational(1));
     // pick c+1
     bounds.second = rewrite(nm->mkNode(Kind::ADD, center, one));
-    // ensure we don't cross zero
-    if (bounds.second.getConst<Rational>().sgn() != csign)
+  }
+  // Ensure the polynomial approximation we use for the secant plane is a
+  // sound upper bound for exp at both end points. Note this is required for
+  // the end points that were taken from the previous secant points as well,
+  // since these were validated for their own (possibly higher) degree only.
+  bounds.first = getValidSecantPoint(bounds.first, center, actual_d);
+  bounds.second = getValidSecantPoint(bounds.second, center, actual_d);
+  return bounds;
+}
+
+Node ExponentialSolver::getValidSecantPoint(TNode p,
+                                            TNode center,
+                                            unsigned actual_d)
+{
+  Assert(p.isConst() && center.isConst());
+  NodeManager* nm = nodeManager();
+  const Rational& cr = center.getConst<Rational>();
+  int csign = cr.sgn();
+  Assert(csign != 0);
+  Rational pr = p.getConst<Rational>();
+  // The upper bound for exp is chosen based on the sign of the center and is
+  // only sound for arguments of that sign, hence ensure we don't cross zero.
+  if (pr.sgn() != csign)
+  {
+    pr = Rational(0);
+  }
+  Node ret = nm->mkConstReal(pr);
+  if (csign == 1)
+  {
+    // For positive arguments the upper bound is P(x)/(1-x^n/n!), which is only
+    // sound where 1-x^n/n! is positive. This holds for the center by
+    // construction (see
+    // TaylorGenerator::getPolynomialApproximationBoundForArg), but not
+    // necessarily for p. Since x^n/n! is increasing for non-negative
+    // arguments, we move p towards the center until the bound is sound.
+    for (size_t i = 0; !d_data->d_taylor.isExpUpperPosSound(ret, actual_d); i++)
     {
-      bounds.second = nm->mkConstReal(Rational(0));
+      if (i == s_maxSecantPointShrink)
+      {
+        // Give up, which means no secant lemma is constructed on this side.
+        return center;
+      }
+      pr = (pr + cr) / Rational(2);
+      ret = nm->mkConstReal(pr);
     }
   }
-  return bounds;
+  // Return the center itself if we ended up there, so that the caller
+  // recognizes that no secant lemma should be constructed on this side.
+  return pr == cr ? Node(center) : ret;
 }
 
 }  // namespace transcendental

@@ -2332,14 +2332,19 @@ enum ENUM(ProofRule)
    *   \leq \texttt{secant-pos}(\exp, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term
-   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p^*` be
-   * a modification of the :math:`d`'th taylor polynomial at zero (also called
-   * the Maclaurin series) of the exponential function as follows where
-   * :math:`p(d-1)` is the regular Maclaurin series of degree :math:`d-1`:
+   * and :math:`l,u` are lower and upper bounds on :math:`t` with
+   * :math:`0 \leq l \leq u`. Let :math:`p^*` be a modification of the
+   * :math:`d`'th taylor polynomial at zero (also called the Maclaurin series)
+   * of the exponential function as follows where :math:`p(d-1)` is the regular
+   * Maclaurin series of degree :math:`d-1`:
    *
    * .. math::
    *
    *   p^* := p(d-1) \cdot (\frac{1 - t^n}{n!})^{-1}
+   *
+   * Note that :math:`p^*` is an upper bound for :math:`\exp` on
+   * :math:`[l,u]` only if its denominator is positive there, hence this rule
+   * additionally requires that :math:`\frac{u^n}{n!} < 1`.
    *
    * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
    * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
