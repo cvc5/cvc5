@@ -41,6 +41,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
+#include "theory/sep/sep_model_checker.h"
 #include "theory/shared_solver.h"
 #include "theory/theory.h"
 #include "theory/theory_engine_proof_generator.h"
@@ -2218,7 +2219,35 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure)
           // not relevant, skip
           continue;
         }
-        Node val = d_tc->getModel()->getValue(assertion);
+        TheoryModel* tmodel = d_tc->getModel();
+        Node val = tmodel->getValue(assertion);
+        // Whether this fact's truth depends on the heap, which is what the
+        // generic model evaluator cannot decide and what the separation logic
+        // evaluator can only decide some of the time. A THEORY_SEP fact
+        // without one -- an equality between location terms, say -- is an
+        // ordinary fact and is treated as such throughout.
+        bool sepBestEffort =
+            theoryId == THEORY_SEP
+            && sep::SepModelChecker::hasSpatialSubterm(assertion);
+        if (val != d_true && sepBestEffort)
+        {
+          // The generic model evaluator leaves spatial atoms unchanged. Try to
+          // confirm the fact by evaluating it against the concrete heap model
+          // instead. Only a positive confirmation is trusted: the evaluator
+          // does not faithfully capture the internal semantics of labeled and
+          // wand facts, so a negative result is discarded and the fact is
+          // reported as one the model *may* not satisfy.
+          Node sepHeap, sepNeq;
+          if (tmodel->getHeapModel(sepHeap, sepNeq))
+          {
+            Node sval =
+                sep::SepModelChecker::evaluate(tmodel, sepHeap, assertion);
+            if (sval == d_true)
+            {
+              val = d_true;
+            }
+          }
+        }
         if (val != d_true)
         {
           std::stringstream ss;
@@ -2240,7 +2269,10 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure)
              << "Model value: " << val << std::endl;
           if (hardFailure)
           {
-            if (val == d_false)
+            // A best-effort fact is only ever a warning: the evaluator
+            // cannot decide all of the internal labeled and wand facts, so a
+            // negative verdict on one is not evidence of a bad model.
+            if (val == d_false && !sepBestEffort)
             {
               // Always an error if it is false
               hasFailure = true;
