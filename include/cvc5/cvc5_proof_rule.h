@@ -4716,6 +4716,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEN_REPLACE_ALL_INV),
   /** Auto-generated from RARE rule str-len-update-inv */
   EVALUE(STR_LEN_UPDATE_INV),
+  /** Auto-generated from RARE rule str-update-oob */
+  EVALUE(STR_UPDATE_OOB),
+  /** Auto-generated from RARE rule str-update-rev */
+  EVALUE(STR_UPDATE_REV),
+  /** Auto-generated from RARE rule str-update-fit */
+  EVALUE(STR_UPDATE_FIT),
+  /** Auto-generated from RARE rule str-update-concat-fit0 */
+  EVALUE(STR_UPDATE_CONCAT_FIT0),
+  /** Auto-generated from RARE rule str-update-concat-fit */
+  EVALUE(STR_UPDATE_CONCAT_FIT),
   /** Auto-generated from RARE rule str-update-in-first-concat */
   EVALUE(STR_UPDATE_IN_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-len-substr-in-range */
@@ -4788,6 +4798,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_ID),
   /** Auto-generated from RARE rule str-replace-prefix */
   EVALUE(STR_REPLACE_PREFIX),
+  /** Auto-generated from RARE rule str-replace-prefix-concat */
+  EVALUE(STR_REPLACE_PREFIX_CONCAT),
   /** Auto-generated from RARE rule str-replace-no-contains */
   EVALUE(STR_REPLACE_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-find-base */
@@ -4802,6 +4814,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_FIND_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-all-find-pre */
+  EVALUE(STR_REPLACE_ALL_FIND_PRE),
+  /** Auto-generated from RARE rule str-replace-all-find */
+  EVALUE(STR_REPLACE_ALL_FIND),
   /** Auto-generated from RARE rule str-replace-all-empty */
   EVALUE(STR_REPLACE_ALL_EMPTY),
   /** Auto-generated from RARE rule str-replace-all-id */
@@ -4830,6 +4846,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
   EVALUE(STR_INDEXOF_CONTAINS_CONCAT_PRE),
+  /** Auto-generated from RARE rule str-indexof-prefix-concat */
+  EVALUE(STR_INDEXOF_PREFIX_CONCAT),
+  /** Auto-generated from RARE rule str-indexof-len-oob */
+  EVALUE(STR_INDEXOF_LEN_OOB),
+  /** Auto-generated from RARE rule str-indexof-len-oob2 */
+  EVALUE(STR_INDEXOF_LEN_OOB2),
   /** Auto-generated from RARE rule str-indexof-find-emp */
   EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-eq-irr */
@@ -4844,8 +4866,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_UPPER_CONCAT),
   /** Auto-generated from RARE rule str-to-lower-upper */
   EVALUE(STR_TO_LOWER_UPPER),
+  /** Auto-generated from RARE rule str-to-lower-idem */
+  EVALUE(STR_TO_LOWER_IDEM),
   /** Auto-generated from RARE rule str-to-upper-lower */
   EVALUE(STR_TO_UPPER_LOWER),
+  /** Auto-generated from RARE rule str-to-upper-idem */
+  EVALUE(STR_TO_UPPER_IDEM),
   /** Auto-generated from RARE rule str-to-lower-len */
   EVALUE(STR_TO_LOWER_LEN),
   /** Auto-generated from RARE rule str-to-upper-len */
@@ -5002,6 +5028,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_LEN_UNIT),
   /** Auto-generated from RARE rule seq-nth-unit */
   EVALUE(SEQ_NTH_UNIT),
+  /** Auto-generated from RARE rule seq-nth-concat-unit */
+  EVALUE(SEQ_NTH_CONCAT_UNIT),
+  /** Auto-generated from RARE rule seq-nth-concat-unit-gen */
+  EVALUE(SEQ_NTH_CONCAT_UNIT_GEN),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
   /** Auto-generated from RARE rule re-in-empty */
