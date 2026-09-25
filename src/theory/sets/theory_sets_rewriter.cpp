@@ -16,8 +16,10 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/elim_shadow_converter.h"
+#include "expr/emptyset.h"
 #include "options/sets_options.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"
@@ -1112,6 +1114,53 @@ RewriteResponse TheorySetsRewriter::postRewriteProject(TNode n)
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
   }
+  NodeManager* nm = nodeManager();
+  // ((_ rel.project i_1 ... i_n) (as set.empty T1)) = (as set.empty T2)
+  if (n[0].getKind() == Kind::SET_EMPTY)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(n.getType())));
+  }
+
+  const std::vector<uint32_t>& indices =
+      n.getOperator().getConst<ProjectOp>().getIndices();
+
+  // ((_ rel.project 0 1 ... n-1) A) = A
+  TypeNode elementType = n[0].getType().getSetElementType();
+  if (indices.size() == elementType.getTupleLength())
+  {
+    bool isIdentity = true;
+    for (size_t i = 0, size = indices.size(); i < size; i++)
+    {
+      if (indices[i] != i)
+      {
+        isIdentity = false;
+        break;
+      }
+    }
+    if (isIdentity)
+    {
+      return RewriteResponse(REWRITE_DONE, n[0]);
+    }
+  }
+
+  // ((_ rel.project j_1 ... j_m) ((_ rel.project i_1 ... i_n) A)) =
+  //   ((_ rel.project i_{j_1} ... i_{j_m}) A)
+  if (n[0].getKind() == Kind::RELATION_PROJECT)
+  {
+    const std::vector<uint32_t>& innerIndices =
+        n[0].getOperator().getConst<ProjectOp>().getIndices();
+    std::vector<uint32_t> composed;
+    composed.reserve(indices.size());
+    for (uint32_t index : indices)
+    {
+      Assert(index < innerIndices.size());
+      composed.push_back(innerIndices[index]);
+    }
+    Node op = nm->mkConst(Kind::RELATION_PROJECT_OP, ProjectOp(composed));
+    Node ret = nm->mkNode(Kind::RELATION_PROJECT, op, n[0][0]);
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+  }
+
   return RewriteResponse(REWRITE_DONE, n);
 }
 

@@ -60,9 +60,13 @@ const char* toString(Rewrite r)
     case Rewrite::MAP_CONST: return "MAP_CONST";
     case Rewrite::MAP_BAG_MAKE: return "MAP_BAG_MAKE";
     case Rewrite::MAP_UNION_DISJOINT: return "MAP_UNION_DISJOINT";
+    case Rewrite::MAP_MAP: return "MAP_MAP";
     case Rewrite::MEMBER: return "MEMBER";
     case Rewrite::PARTITION_CONST: return "PARTITION_CONST";
     case Rewrite::PRODUCT_EMPTY: return "PRODUCT_EMPTY";
+    case Rewrite::PROJECT_EMPTY: return "PROJECT_EMPTY";
+    case Rewrite::PROJECT_IDENTITY: return "PROJECT_IDENTITY";
+    case Rewrite::PROJECT_PROJECT: return "PROJECT_PROJECT";
     case Rewrite::REMOVE_FROM_UNION: return "REMOVE_FROM_UNION";
     case Rewrite::REMOVE_MIN: return "REMOVE_MIN";
     case Rewrite::REMOVE_RETURN_LEFT: return "REMOVE_RETURN_LEFT";
