@@ -1,4 +1,6 @@
 ; COMMAND-LINE: -i --sat-solver=cadical
+; Proof checking fails after pop: the subsequent unsat proof contains
+; a free assumption (ProofNodeManager::mkScope).
 ; DISABLE-TESTER: proof
 (set-logic QF_BV)
 (declare-const x Bool)

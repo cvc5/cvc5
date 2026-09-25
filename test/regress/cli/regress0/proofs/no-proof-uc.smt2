@@ -1,3 +1,5 @@
+; Proof testing is disabled because it enables SAT proofs, suppressing
+; the expected error from (get-proof :sat).
 ; DISABLE-TESTER: dump
 ; DISABLE-TESTER: proof
 ; COMMAND-LINE: --check-unsat-cores

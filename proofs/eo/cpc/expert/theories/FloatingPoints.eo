@@ -82,7 +82,11 @@
   (-> RoundingMode (FloatingPoint e s) (BitVec m) (BitVec m)))
 
 (declare-parameterized-const fp.to_real ((e Int :implicit) (s Int :implicit))
-  (-> RoundingMode (FloatingPoint e s) Real))
+  (-> (FloatingPoint e s) Real))
+
+; Internal total conversion: the second argument is the result for NaN or infinity.
+(declare-parameterized-const fp.to_real_total ((e Int :implicit) (s Int :implicit))
+  (-> (FloatingPoint e s) Real Real))
 
 (declare-parameterized-const to_fp ((T Type :implicit) (e Int) (s Int))
   (-> RoundingMode T (FloatingPoint e s)))

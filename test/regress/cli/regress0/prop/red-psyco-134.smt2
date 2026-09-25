@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --sat-solver=cadical
-; DISABLE-TESTER: proof
 ; EXPECT: sat
 (set-logic LIA)
 (declare-const x Bool)
