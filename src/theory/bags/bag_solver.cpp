@@ -16,11 +16,15 @@
 #include "expr/emptybag.h"
 #include "expr/skolem_manager.h"
 #include "options/bags_options.h"
+#include "options/smt_options.h"
 #include "theory/bags/bags_utils.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/term_registry.h"
+#include "theory/incomplete_id.h"
+#include "theory/smt_engine_subsolver.h"
+#include "theory/theory_model.h"
 #include "theory/uf/equality_engine_iterator.h"
 #include "util/rational.h"
 
@@ -37,7 +41,8 @@ BagSolver::BagSolver(Env& env, SolverState& s, InferenceManager& im)
       d_state(s),
       d_ig(env.getNodeManager(), &s, &im, options().bags.bagsToLiastar),
       d_im(im),
-      d_mapCache(userContext())
+      d_mapCache(userContext()),
+      d_liastarElements(userContext(), 0)
 {
   d_zero = nodeManager()->mkConstInt(Rational(0));
   d_one = nodeManager()->mkConstInt(Rational(1));
@@ -109,6 +114,10 @@ void BagSolver::checkLiastarConstraints()
   // under the representatives of the current context.
   d_cardinalityVars.clear();
   d_bagBoundVars.clear();
+  d_lastSlots.clear();
+  d_lastBody = Node::null();
+  d_lastPremises.clear();
+  d_lastSums.clear();
 
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
 
@@ -181,6 +190,20 @@ void BagSolver::checkLiastarConstraints()
   addCardinalityVars();
   // the constraints of the constructed bags, which Figure 4 does not cover
   addBagMakeCardinalities();
+  if (options().bags.bagsLiastarModel
+      == options::BagsLiastarModelMode::SUBSOLVER)
+  {
+    // the star assumes an element for every row it needs, which a finite
+    // element type may not have, see the documentation of this method
+    for (const std::pair<const Node, Node>& pair : d_bagBoundVars)
+    {
+      if (d_env.isFiniteType(pair.first.getType().getBagElementType()))
+      {
+        d_im.setModelUnsound(IncompleteId::BAGS_LIASTAR_FINITE_ELEMENTS);
+        break;
+      }
+    }
+  }
   // step 4
   std::vector<Node> premises;
   Node star = buildStar(equalities, premises);
@@ -196,6 +219,415 @@ void BagSolver::checkLiastarConstraints()
       premises.empty() ? star : nodeManager()->mkAnd(premises).impNode(star);
   Trace("bags-liastar") << "lemma: " << lemma << std::endl;
   d_im.addPendingLemma(lemma, InferenceId::BAGS_LIASTAR);
+}
+
+void BagSolver::collectLiastarModelValues(TheoryModel* m,
+                                          std::map<Node, Node>& processedBags)
+{
+  if (d_lastSlots.empty())
+  {
+    // the last check translated nothing
+    return;
+  }
+  if (options().bags.bagsLiastarModel
+      == options::BagsLiastarModelMode::ELEMENTS)
+  {
+    // checkLiastarCandidateModel made the known elements add up to the
+    // cardinalities during the search, or marked the model unsound
+    return;
+  }
+  NodeManager* nm = nodeManager();
+  size_t n = d_lastSlots.size();
+  Trace("bags-liastar-model")
+      << "rebuild the bags of " << n << " slots" << std::endl;
+
+  // ---- the leaves are the bags the theory assigns a value to, and a slot
+  // without a pointwise translation is where a fresh row cannot be read back
+  std::vector<size_t> leaves;
+  std::vector<bool> readable(n, true);
+  for (size_t i = 0; i < n; i++)
+  {
+    const Node& bag = d_lastSlots[i];
+    Kind k = bag.getKind();
+    if (bag.isConst())
+    {
+      continue;
+    }
+    if (Theory::isLeafOf(bag, TheoryId::THEORY_BAGS))
+    {
+      leaves.push_back(i);
+    }
+    else if (!hasPointwiseTranslation(k) && k != Kind::BAG_MAKE)
+    {
+      readable[i] = false;
+    }
+  }
+  if (leaves.empty())
+  {
+    return;
+  }
+
+  // ---- what the model assigns: the cardinality of every slot, and the count
+  // of every known element in every slot. The known elements are the rows of
+  // the lemma, one per representative.
+  std::vector<Node> cards(n);
+  for (size_t i = 0; i < n; i++)
+  {
+    Node x = d_cardinalityVars[d_lastSlots[i]];
+    if (m->hasTerm(x))
+    {
+      Node v = m->getRepresentative(x);
+      if (v.isConst())
+      {
+        cards[i] = v;
+      }
+    }
+    Trace("bags-liastar-model")
+        << "  slot " << d_lastSlots[i] << ": cardinality "
+        << (cards[i].isNull() ? std::string("free") : cards[i].toString())
+        << std::endl;
+  }
+  std::vector<Node> known;
+  std::vector<std::map<size_t, Node>> knownCounts;
+  for (size_t i = 0; i < n; i++)
+  {
+    Node r = d_state.getRepresentative(d_lastSlots[i]);
+    for (const std::pair<Node, Node>& pair : d_state.getElementCountPairs(r))
+    {
+      Node e = d_state.getRepresentative(pair.first);
+      Node c = m->hasTerm(pair.second) ? m->getRepresentative(pair.second)
+                                       : Node::null();
+      if (c.isNull() || !c.isConst())
+      {
+        Trace("bags-liastar-model")
+            << "  give up: no value for the count of " << e << " in "
+            << d_lastSlots[i] << std::endl;
+        d_im.setModelUnsound(IncompleteId::BAGS_LIASTAR_MODEL);
+        return;
+      }
+      size_t j = std::find(known.begin(), known.end(), e) - known.begin();
+      if (j == known.size())
+      {
+        known.push_back(e);
+        knownCounts.emplace_back();
+      }
+      knownCounts[j][i] = c;
+    }
+  }
+
+  // a known element has count 0 in the slots of another element type, which
+  // no count term states
+  for (size_t j = 0, numKnown = known.size(); j < numKnown; j++)
+  {
+    TypeNode type = known[j].getType();
+    for (size_t i = 0; i < n; i++)
+    {
+      if (d_lastSlots[i].getType().getBagElementType() != type)
+      {
+        knownCounts[j][i] = d_zero;
+      }
+    }
+  }
+
+  // ---- nothing to do when the known elements add up to the cardinalities:
+  // the generic construction from them is exact
+  bool exact = true;
+  for (size_t i = 0; i < n && exact; i++)
+  {
+    if (cards[i].isNull())
+    {
+      continue;
+    }
+    Rational sum(0);
+    for (size_t j = 0, numKnown = known.size(); j < numKnown && exact; j++)
+    {
+      std::map<size_t, Node>::iterator it = knownCounts[j].find(i);
+      if (it == knownCounts[j].end())
+      {
+        // no count term, so whether the row adds up is for the subsolver
+        exact = false;
+      }
+      else
+      {
+        sum += it->second.getConst<Rational>();
+      }
+    }
+    exact = exact && sum == cards[i].getConst<Rational>();
+  }
+  if (exact)
+  {
+    Trace("bags-liastar-model")
+        << "  the " << known.size() << " known elements add up" << std::endl;
+    return;
+  }
+
+  // ---- the rows: those of the known elements, whose counts are fixed where
+  // the model assigns them, and fresh ones, until the columns add up to the
+  // cardinalities. A row of zeros satisfies the body, so a query with more
+  // fresh rows subsumes one with fewer, and the number is doubled.
+  std::vector<Node> boundVars;
+  for (const Node& bag : d_lastSlots)
+  {
+    boundVars.push_back(d_bagBoundVars[bag]);
+  }
+  Options subOptions;
+  subOptions.copyValues(d_env.getOptions());
+  subOptions.write_bags().bagsToLiastar = false;
+  subOptions.write_smt().produceModels = true;
+  SubsolverSetupInfo ssi(d_env, subOptions);
+  const size_t maxFresh = 32;
+  std::vector<std::vector<Node>> rows;  // rows[j][i]: variable of row j, slot i
+  std::vector<Node> rowValues;
+  size_t fresh = 0;
+  bool found = false;
+  while (!found)
+  {
+    size_t numRows = known.size() + fresh;
+    rows.assign(numRows, std::vector<Node>(n));
+    std::vector<Node> conjuncts;
+    std::vector<Node> vars;
+    for (size_t j = 0; j < numRows; j++)
+    {
+      for (size_t i = 0; i < n; i++)
+      {
+        rows[j][i] = NodeManager::mkDummySkolem("row", nm->integerType());
+        vars.push_back(rows[j][i]);
+      }
+      conjuncts.push_back(d_lastBody.substitute(
+          boundVars.begin(), boundVars.end(), rows[j].begin(), rows[j].end()));
+      if (j < known.size())
+      {
+        for (const std::pair<const size_t, Node>& ic : knownCounts[j])
+        {
+          conjuncts.push_back(rows[j][ic.first].eqNode(ic.second));
+        }
+      }
+    }
+    for (size_t i = 0; i < n; i++)
+    {
+      if (cards[i].isNull())
+      {
+        continue;
+      }
+      std::vector<Node> column;
+      for (size_t j = 0; j < numRows; j++)
+      {
+        column.push_back(rows[j][i]);
+      }
+      Node sum = column.empty()       ? d_zero
+                 : column.size() == 1 ? column[0]
+                                      : nm->mkNode(Kind::ADD, column);
+      conjuncts.push_back(sum.eqNode(cards[i]));
+    }
+    Node query = nm->mkAnd(conjuncts);
+    rowValues.clear();
+    Result r = checkWithSubsolver(query, vars, rowValues, ssi);
+    Trace("bags-liastar-model") << "  " << known.size() << " known + " << fresh
+                                << " fresh rows: " << r << std::endl;
+    found = r.getStatus() == Result::SAT;
+    if (!found)
+    {
+      if (fresh >= maxFresh)
+      {
+        d_im.setModelUnsound(IncompleteId::BAGS_LIASTAR_MODEL);
+        return;
+      }
+      fresh = fresh == 0 ? 1 : 2 * fresh;
+    }
+  }
+  size_t numRows = rows.size();
+  if (fresh == 0)
+  {
+    // the known elements account for the cardinalities after all, e.g. with
+    // the counts the model does not assign, and the generic construction from
+    // them is exact
+    return;
+  }
+  // ---- a fresh element cannot be read back into a bag without a pointwise
+  // translation: its count there is not a function of its counts in the
+  // leaves, and a count of 0 constrains it as much as a positive one, e.g.
+  // (p e) has to be false for a filter. So give up when a fresh row occurs in
+  // such a bag, or when a fresh element has the element type of such a bag or
+  // of one of its arguments.
+  std::set<TypeNode> freshTypes;
+  for (size_t j = known.size(); j < numRows; j++)
+  {
+    for (size_t i : leaves)
+    {
+      if (rowValues[j * n + i].getConst<Rational>().sgn() > 0)
+      {
+        freshTypes.insert(d_lastSlots[i].getType().getBagElementType());
+      }
+    }
+  }
+  for (size_t i = 0; i < n; i++)
+  {
+    if (readable[i])
+    {
+      continue;
+    }
+    const Node& bag = d_lastSlots[i];
+    bool occurs = freshTypes.count(bag.getType().getBagElementType()) > 0;
+    for (const Node& child : bag)
+    {
+      if (child.getType().isBag()
+          && freshTypes.count(child.getType().getBagElementType()) > 0)
+      {
+        occurs = true;
+      }
+    }
+    for (size_t j = known.size(); j < numRows && !occurs; j++)
+    {
+      occurs = rowValues[j * n + i].getConst<Rational>().sgn() > 0;
+    }
+    if (occurs)
+    {
+      Trace("bags-liastar-model")
+          << "  give up: a fresh element may occur in " << bag
+          << ", which has no pointwise translation" << std::endl;
+      d_im.setModelUnsound(IncompleteId::BAGS_LIASTAR_MODEL);
+      return;
+    }
+  }
+
+  // ---- one fresh element per fresh row and element type, and the leaves
+  std::map<std::pair<size_t, TypeNode>, Node> freshElements;
+  for (size_t i : leaves)
+  {
+    const Node& bag = d_lastSlots[i];
+    Node r = d_state.getRepresentative(bag);
+    if (processedBags.find(r) != processedBags.end())
+    {
+      continue;
+    }
+    TypeNode elementType = bag.getType().getBagElementType();
+    std::map<Node, Node> elementCounts;
+    for (size_t j = 0; j < numRows; j++)
+    {
+      Node c = rowValues[j * n + i];
+      if (c.getConst<Rational>().sgn() <= 0)
+      {
+        continue;
+      }
+      Node e;
+      if (j < known.size())
+      {
+        // a positive count only in a slot of its type, see knownCounts
+        Assert(known[j].getType() == elementType);
+        e = known[j];
+      }
+      else
+      {
+        std::pair<size_t, TypeNode> key(j, elementType);
+        std::map<std::pair<size_t, TypeNode>, Node>::iterator it =
+            freshElements.find(key);
+        if (it == freshElements.end())
+        {
+          e = NodeManager::mkDummySkolem("bags_liastar_element", elementType);
+          freshElements[key] = e;
+        }
+        else
+        {
+          e = it->second;
+        }
+      }
+      elementCounts[e] = c;
+    }
+    Node value =
+        BagsUtils::constructBagFromElements(bag.getType(), elementCounts);
+    value = rewrite(value);
+    Trace("bags-liastar-model") << "  " << bag << " := " << value << std::endl;
+    m->assertEquality(value, bag, true);
+    m->assertSkeleton(value);
+    processedBags[r] = value;
+  }
+}
+
+void BagSolver::checkLiastarCandidateModel()
+{
+  if (d_lastSlots.empty())
+  {
+    return;
+  }
+  NodeManager* nm = nodeManager();
+  TheoryModel* m = d_state.getModel();
+  size_t n = d_lastSlots.size();
+  // the element types whose slots the known elements do not add up to
+  std::set<TypeNode> types;
+  for (size_t i = 0; i < n; i++)
+  {
+    Node x = m->getValue(d_cardinalityVars[d_lastSlots[i]]);
+    Node sum = d_lastSums[i].isNull() ? d_zero : m->getValue(d_lastSums[i]);
+    Trace("bags-liastar-model")
+        << "candidate slot " << d_lastSlots[i] << ": cardinality " << x
+        << ", known elements " << sum << std::endl;
+    if (x != sum)
+    {
+      types.insert(d_lastSlots[i].getType().getBagElementType());
+    }
+  }
+  if (types.empty())
+  {
+    return;
+  }
+  const size_t maxElements = 64;
+  if (d_liastarElements.get() >= maxElements)
+  {
+    Trace("bags-liastar-model")
+        << "give up: " << maxElements << " fresh elements" << std::endl;
+    d_im.setModelUnsound(IncompleteId::BAGS_LIASTAR_MODEL);
+    return;
+  }
+  // the known elements of a type
+  std::map<TypeNode, std::vector<Node>> known;
+  for (const Node& bag : d_lastSlots)
+  {
+    Node r = d_state.getRepresentative(bag);
+    for (const std::pair<Node, Node>& pair : d_state.getElementCountPairs(r))
+    {
+      Node e = d_state.getRepresentative(pair.first);
+      std::vector<Node>& elements = known[e.getType()];
+      if (std::find(elements.begin(), elements.end(), e) == elements.end())
+      {
+        elements.push_back(e);
+      }
+    }
+  }
+  for (const TypeNode& type : types)
+  {
+    Node e = NodeManager::mkDummySkolem("bags_liastar_element", type);
+    d_liastarElements = d_liastarElements.get() + 1;
+    // either the known elements add up, or e is another element
+    std::vector<Node> addUp;
+    std::vector<Node> counts;
+    for (size_t i = 0; i < n; i++)
+    {
+      const Node& bag = d_lastSlots[i];
+      if (bag.getType().getBagElementType() != type)
+      {
+        continue;
+      }
+      Node x = d_cardinalityVars[bag];
+      addUp.push_back(
+          x.eqNode(d_lastSums[i].isNull() ? d_zero : d_lastSums[i]));
+      counts.push_back(nm->mkNode(Kind::BAG_COUNT, e, bag));
+    }
+    std::vector<Node> isNew;
+    for (const Node& k : known[type])
+    {
+      isNew.push_back(k.eqNode(e).notNode());
+    }
+    Node total = counts.size() == 1 ? counts[0] : nm->mkNode(Kind::ADD, counts);
+    isNew.push_back(nm->mkNode(Kind::GEQ, total, d_one));
+    Node lemma = nm->mkAnd(addUp).orNode(nm->mkAnd(isNew));
+    if (!d_lastPremises.empty())
+    {
+      lemma = nm->mkAnd(d_lastPremises).impNode(lemma);
+    }
+    Trace("bags-liastar-model")
+        << "fresh element " << e << ": " << lemma << std::endl;
+    d_im.addPendingLemma(lemma, InferenceId::BAGS_LIASTAR_ELEMENT);
+  }
 }
 
 void BagSolver::evictNegatedAtom(const Node& equality)
@@ -273,6 +705,14 @@ Node BagSolver::buildStar(const std::vector<Node>& equalities,
     {
       addBagMakeConstraints(bag, constraints);
     }
+    else if (bag.getKind() == Kind::BAG_FILTER)
+    {
+      // (bag.filter p A)(e) is A(e) or 0, depending on (p e), which the star
+      // has no slot for. What is left is the inclusion (<= c c_A), which is
+      // still worth having: without it a filter could have elements its bag
+      // does not.
+      constraints.push_back(nm->mkNode(Kind::LEQ, c, d_bagBoundVars[bag[1]]));
+    }
   }
   // the positive atoms hold at every element
   for (const Node& equality : equalities)
@@ -298,11 +738,118 @@ Node BagSolver::buildStar(const std::vector<Node>& equalities,
   Assert(d_bagBoundVars.size() == bags.size());
 
   Node boundVarList = nm->mkNode(Kind::BOUND_VAR_LIST, boundVars);
-  Node lambda = nm->mkNode(Kind::LAMBDA, boundVarList, nm->mkAnd(constraints));
+  Node body = nm->mkAnd(constraints);
+  // kept for collectLiastarModelValues
+  d_lastSlots = bags;
+  d_lastBody = body;
+  // the rows of the known elements are summands of the star that the context
+  // already names, so they are taken out of it
+  std::vector<Node> rows;
+  std::vector<Node> sums;
+  addElementRows(bags, boundVars, body, premises, rows, sums);
+  d_lastSums = sums;
+  d_lastPremises = premises;
+  Node lambda = nm->mkNode(Kind::LAMBDA, boundVarList, body);
   std::vector<Node> children;
   children.push_back(lambda);
-  children.insert(children.end(), cardinalities.begin(), cardinalities.end());
-  return nm->mkNode(Kind::STAR_CONTAINS, children);
+  for (size_t i = 0, n = bags.size(); i < n; i++)
+  {
+    children.push_back(sums[i].isNull()
+                           ? cardinalities[i]
+                           : nm->mkNode(Kind::SUB, cardinalities[i], sums[i]));
+  }
+  Node star = nm->mkNode(Kind::STAR_CONTAINS, children);
+  if (rows.empty())
+  {
+    return star;
+  }
+  rows.push_back(star);
+  return nm->mkAnd(rows);
+}
+
+void BagSolver::addElementRows(const std::vector<Node>& bags,
+                               const std::vector<Node>& boundVars,
+                               const Node& body,
+                               std::vector<Node>& premises,
+                               std::vector<Node>& rows,
+                               std::vector<Node>& sums)
+{
+  NodeManager* nm = nodeManager();
+  size_t n = bags.size();
+  // the known elements, by their representatives, in one fixed order
+  std::vector<Node> elements;
+  for (const Node& bag : bags)
+  {
+    Node r = d_state.getRepresentative(bag);
+    for (const std::pair<Node, Node>& pair : d_state.getElementCountPairs(r))
+    {
+      Node e = d_state.getRepresentative(pair.first);
+      if (std::find(elements.begin(), elements.end(), e) == elements.end())
+      {
+        elements.push_back(e);
+      }
+    }
+  }
+  sums.assign(n, Node::null());
+  std::vector<std::vector<Node>> summands(n);
+  for (size_t j = 0, m = elements.size(); j < m; j++)
+  {
+    const Node& e = elements[j];
+    TypeNode type = e.getType();
+    // the row of e: its count terms in the slots of its type
+    std::vector<Node> row(n);
+    for (size_t i = 0; i < n; i++)
+    {
+      row[i] = bags[i].getType().getBagElementType() == type
+                   ? nm->mkNode(Kind::BAG_COUNT, e, bags[i])
+                   : d_zero;
+    }
+    rows.push_back(body.substitute(
+        boundVars.begin(), boundVars.end(), row.begin(), row.end()));
+    // the row of e is summed when e is equal to none of the earlier elements
+    // of its type
+    std::vector<Node> conditions;
+    for (size_t l = 0; l < j; l++)
+    {
+      const Node& earlier = elements[l];
+      if (earlier.getType() != type)
+      {
+        continue;
+      }
+      Node disequal = earlier.eqNode(e).notNode();
+      if (d_state.areDisequal(earlier, e))
+      {
+        premises.push_back(disequal);
+      }
+      else
+      {
+        conditions.push_back(disequal);
+      }
+    }
+    Node isNew = conditions.empty() ? Node::null() : nm->mkAnd(conditions);
+    Trace("bags-liastar") << "row of " << e << ": " << row
+                          << (isNew.isNull() ? "" : " if ") << isNew
+                          << std::endl;
+    for (size_t i = 0; i < n; i++)
+    {
+      if (row[i] == d_zero)
+      {
+        continue;
+      }
+      summands[i].push_back(isNew.isNull()
+                                ? row[i]
+                                : nm->mkNode(Kind::ITE, isNew, row[i], d_zero));
+    }
+  }
+  for (size_t i = 0; i < n; i++)
+  {
+    if (summands[i].empty())
+    {
+      continue;
+    }
+    sums[i] = summands[i].size() == 1 ? summands[i][0]
+                                      : nm->mkNode(Kind::ADD, summands[i]);
+  }
 }
 
 Node BagSolver::getCardinalityVar(const Node& bag)
@@ -391,6 +938,11 @@ Node BagSolver::getBagBoundVar(const Node& bag)
       getBagBoundVar(singleton);
       getBagBoundVar(getBagMakeDifference(bag));
     }
+  }
+  else if (bag.getKind() == Kind::BAG_FILTER)
+  {
+    // the inclusion of a filter in its bag needs the slot of the bag
+    getBagBoundVar(bag[1]);
   }
   return c;
 }

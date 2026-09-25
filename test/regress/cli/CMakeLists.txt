@@ -2810,13 +2810,21 @@ set(regress_1_tests
   regress1/bags/liastar/card_setof_sat.smt2
   regress1/bags/liastar/card_setof_unsat.smt2
   regress1/bags/liastar/card_union_disjoint.smt2
+  regress1/bags/liastar/count_card_unsat.smt2
   regress1/bags/liastar/disequality.smt2
+  regress1/bags/liastar/filter_fresh_sat.smt2
+  regress1/bags/liastar/filter_fresh_unknown.smt2
+  regress1/bags/liastar/finite_elements_unknown.smt2
+  regress1/bags/liastar/finite_elements_unsat.smt2
   regress1/bags/liastar/fold_card_sat.smt2
   regress1/bags/liastar/fold_card_unsat.smt2
   regress1/bags/liastar/guarded_star.smt2
   regress1/bags/liastar/map_card_sat.smt2
   regress1/bags/liastar/map_card_unsat.smt2
+  regress1/bags/liastar/member_card_sat.smt2
+  regress1/bags/liastar/member_card_unsat.smt2
   regress1/bags/liastar/setof_fold_sat.smt2
+  regress1/bags/liastar/two_types_sat.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
   regress1/bags/fuzzy1.smt2

@@ -1,7 +1,5 @@
 ; REQUIRES: normaliz
 ; DISABLE-TESTER: proof
-; the star constrains the cardinalities, not the bag values
-; DISABLE-TESTER: model
 ; COMMAND-LINE: --bags-to-liastar
 (set-logic HO_ALL)
 (set-info :status sat)

@@ -1,9 +1,10 @@
 ; REQUIRES: normaliz
 ; DISABLE-TESTER: proof
-; the model checker cannot evaluate a star atom, so it cannot validate the
-; model of a problem that has one
-; DISABLE-TESTER: model
+; the fresh elements the star needs cannot be read back into a bag.map or
+; bag.filter term, see BagSolver::collectLiastarModelValues, so the model is
+; marked unsound and the answer is unknown, although the problem is sat
 ; COMMAND-LINE: --bags-to-liastar
+; EXPECT: unknown
 (set-logic HO_ALL)
 (set-info :status sat)
 (set-option :fmf-bound true)

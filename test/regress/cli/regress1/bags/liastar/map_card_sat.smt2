@@ -1,8 +1,10 @@
 ; REQUIRES: normaliz
 ; DISABLE-TESTER: proof
-; the star constrains the cardinalities, not the bag values
-; DISABLE-TESTER: model
+; the fresh elements the star needs cannot be read back into a bag.map or
+; bag.filter term, see BagSolver::collectLiastarModelValues, so the model is
+; marked unsound and the answer is unknown, although the problem is sat
 ; COMMAND-LINE: --bags-to-liastar
+; EXPECT: unknown
 (set-logic HO_ALL)
 (set-info :status sat)
 (declare-fun A () (Bag Int))

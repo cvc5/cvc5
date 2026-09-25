@@ -1,6 +1,8 @@
 ; REQUIRES: normaliz
 ; DISABLE-TESTER: proof
-; the star constrains the cardinalities, not the bag values
+; a guarded star (=> premises star) leaves the star literal free when the
+; premises are false, and --debug-check-models cannot evaluate a star atom
+; the SAT solver assigned false, so it reports it as possibly violated
 ; DISABLE-TESTER: model
 ; COMMAND-LINE: --bags-to-liastar
 (set-logic HO_ALL)

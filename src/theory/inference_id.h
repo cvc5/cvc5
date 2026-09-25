@@ -249,6 +249,8 @@ enum class InferenceId
   BAGS_CARD,
   BAGS_CARD_EMPTY,
   BAGS_LIASTAR,
+  // a fresh element for the model, see BagSolver::checkLiastarCandidateModel
+  BAGS_LIASTAR_ELEMENT,
   BAGS_MAP_CARD,
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,

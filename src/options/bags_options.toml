@@ -16,3 +16,18 @@ name   = "Bags Theory"
   type       = "bool"
   default    = "false"
   help       = "translate the bag constraints of each check into one liastar star-contains constraint. This requires a higher order logic, e.g. HO_ALL, since the star-contains predicate takes a lambda as a first argument"
+
+[[option]]
+  name       = "bagsLiastarModel"
+  category   = "expert"
+  long       = "bags-liastar-model=MODE"
+  type       = "BagsLiastarModelMode"
+  default    = "SUBSOLVER"
+  help       = "how the bags of the star get their model values with --bags-to-liastar (default is 'subsolver', see --bags-liastar-model=help)"
+  help_mode  = "The star of --bags-to-liastar constrains the cardinalities of the bags, and a model needs elements that add up to them. These modes decide where those elements come from."
+[[option.mode.SUBSOLVER]]
+  name = "subsolver"
+  help = "After the search, a subsolver decomposes the cardinalities of the model into rows of the star, and each fresh row is a fresh element."
+[[option.mode.ELEMENTS]]
+  name = "elements"
+  help = "During the search, at last call effort, a fresh element is introduced by a lemma whenever the known elements do not add up to the cardinalities of the candidate model."

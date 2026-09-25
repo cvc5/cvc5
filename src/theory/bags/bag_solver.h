@@ -12,6 +12,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdo.h"
 #include "cvc5_private.h"
 #include "smt/env_obj.h"
 
@@ -22,6 +23,9 @@
 
 namespace cvc5::internal {
 namespace theory {
+
+class TheoryModel;
+
 namespace bags {
 
 class InferenceManager;
@@ -82,20 +86,34 @@ class BagSolver : protected EnvObj
    *   element e the summand at hand stands for.
    *
    * Every lemma sent from here holds under that one interpretation:
-   * 1. the star atom. Let e_1, ..., e_m enumerate the elements that occur in
-   *    any of the bags M_1, ..., M_n of the star, a finite set, and let the
-   *    j-th summand be the vector ([M_1](e_j), ..., [M_n](e_j)). Summing the
-   *    counts of a bag over its elements is its cardinality, so the summands
-   *    add up to (|[M_1]|, ..., |[M_n]|), which is the outer vector. Each
-   *    summand satisfies the body, since every conjunct of the body is a
+   * 1. the star atom with the rows of the known elements (addElementRows).
+   *    Call the vector ([M_1](e), ..., [M_n](e)) the row of the element e.
+   *    Every row satisfies the body F, since every conjunct of the body is a
    *    statement about a single element that holds at every element: a count
    *    is non negative; a pointwise definition is the semantics of a bag
    *    operator at an element; the conjuncts of a constructed bag hold as
    *    described in addBagMakeConstraints; and (= c_j c_k) holds because the
    *    atom (= M_j M_k) it translates is a premise of the lemma, and equal
-   *    bags have equal counts at every element. So the outer vector is in the
-   *    star. If there is no element at all the outer vector is zero, which
-   *    every star contains.
+   *    bags have equal counts at every element. The known elements are the
+   *    e_1, ..., e_m that have a count term in some bag of the star, and the
+   *    row of e_j is written with its count terms, (bag.count e_j M_i) in a
+   *    slot of its element type and 0 elsewhere, so the lemma asserts F at
+   *    the row of every known element, which holds as just said. Two known
+   *    elements can denote the same element, so the lemma sums the rows of
+   *    those e_j that are equal to no earlier e_l (a disequality the context
+   *    knows is a premise, and an unknown one is left to the literal itself,
+   *    see addElementRows), which are the rows of pairwise distinct elements.
+   *    Let u_1, ..., u_p enumerate the remaining elements that occur in any
+   *    of the bags, a finite set. Summing the counts of a bag over all its
+   *    elements is its cardinality, so the rows of the u's add up to the
+   *    outer vector (|[M_1]|, ..., |[M_n]|) minus the summed rows of the
+   *    known elements, and each of them satisfies F. So that difference is in
+   *    the star, which is what the star atom says. If there is no remaining
+   *    element the difference is zero, which every star contains.
+   *    Without the rows the count terms would be unrelated to the
+   *    cardinalities, and (= (bag.count e A) 2) with (= (bag.card A) 1) would
+   *    be reported sat: the star alone says that the cardinalities are the
+   *    sums of some rows, and nothing says that the row of e is one of them.
    * 2. the lemmas of evictNegatedAtom. If [A] and [B] differ then they differ
    *    at some element e, say [A](e) > [B](e). Then [A \ B](e) > 0, so
    *    |[A \ B]| is not zero and the conjunction that the lemma negates is
@@ -118,14 +136,96 @@ class BagSolver : protected EnvObj
    *   e.g. (= (bag.card (bag.setof A)) 1) together with
    *   (> (bag.card (bag.setof (bag.map f A))) 1) is reported sat although it
    *   is unsatisfiable;
-   * - nothing reads back the decomposition the star witnesses, so the bag
-   *   values of a model do not necessarily satisfy the cardinality
-   *   constraints of the input.
+   * - the decomposition the star witnesses is read back into the bags by
+   *   collectLiastarModelValues, which can fail for the same bags whose
+   *   kinds have no pointwise translation, in which case the model is marked
+   *   unsound rather than reported wrong;
+   * - the star assumes an element for every row it needs, so it is only
+   *   complete for infinite element types. Over (Bag Bool), (bag.count true A)
+   *   and (bag.count false A) both 1 with (bag.card A) 3 has a third row and
+   *   no third element. In the subsolver mode of bags-liastar-model the model
+   *   is marked unsound as soon as a slot has a finite element type, so that
+   *   such a sat answer becomes unknown; the elements mode needs no such
+   *   guard, since its fresh elements are terms that are asserted distinct
+   *   from the known ones, which a finite type refutes by itself.
    *
    * [LBPS20]: Solving LIA* Using Approximations, Levatich, Bjorner, Piskac
    * and Shoham, VMCAI 2020. https://doi.org/10.1007/978-3-030-39322-9_17
    */
   void checkLiastarConstraints();
+  /**
+   * Build the model values of the bags of the star of the last check, so that
+   * they agree with the cardinalities the model assigns.
+   *
+   * The generic model construction of the theory of bags builds a bag from the
+   * elements the solver has seen for it, which are none when a bag is
+   * constrained only through its cardinality, and the model then evaluates
+   * (bag.card A) bottom up to 0 whatever the arithmetic value of the slot was.
+   * With the translation to liastar the cardinality reasoning lives in the
+   * star, so its decomposition is what has to be read back into the bags. The
+   * liastar extension does not keep that decomposition, so it is recomputed
+   * here. The known elements are rows of the lemma (see addElementRows), so
+   * the model already assigns their counts, and what is left is the outer
+   * vector minus those rows: find fresh rows (c_1, ..., c_n), each satisfying
+   * the body of the star, that add up to it. Every fresh row is one fresh
+   * element per element type it has a count in (a row may have counts in bags
+   * of different element types, which are then different elements). A bag
+   * that is a leaf for the theory then gets the value
+   *   (bag.union_disjoint (bag e_1 c_1) ... (bag e_m c_m))
+   * over the known and the fresh elements, and every other bag of the star,
+   * being an application of an operator with a pointwise definition,
+   * evaluates to the right value by itself since its column is defined row by
+   * row from the columns of its arguments.
+   *
+   * The rows are found by a subsolver on a linear integer problem, with the
+   * number of fresh rows doubled from 0 until it is satisfiable, up to a fixed
+   * bound. In the rows of the known elements the counts the model assigns are
+   * fixed, and so are the counts in the slots of another element type, which
+   * are 0. Nothing is done when the known elements already add up to the
+   * cardinalities, since the generic construction is then exact. The model is
+   * marked unsound instead of being wrong when
+   * - the model assigns no value to the count of a known element,
+   * - no decomposition is found within the bound,
+   * - a fresh row occurs in a bag without a pointwise translation, or a fresh
+   *   element has the element type of such a bag or of one of its arguments:
+   *   the count of a fresh element in e.g. (bag.filter p A) is not a function
+   *   of its counts in the leaves, and a count of 0 there constrains the
+   *   element as much as a positive one ((p e) has to be false), so a value
+   *   that makes that bag evaluate right cannot be read off the rows.
+   * A finite element type is dealt with by checkLiastarConstraints, since the
+   * star itself assumes an element for every row it needs.
+   *
+   * @param m the model
+   * @param processedBags bag representatives whose value has been set, so
+   * that the generic construction skips them; appended to
+   */
+  void collectLiastarModelValues(TheoryModel* m,
+                                 std::map<Node, Node>& processedBags);
+  /**
+   * The elements mode of bags-liastar-model, run at last call effort: read
+   * the candidate model, and when the rows of the known elements do not add
+   * up to the cardinalities of the slots of some element type, introduce a
+   * fresh element of that type by the lemma
+   *   (=> premises
+   *       (or (and (= x_1 s_1) ... (= x_n s_n))
+   *           (and (distinct e e_1 ... e_m) (>= (+ (bag.count e M_1) ...) 1))))
+   * over the slots M_i of that type, where s_i is the sum of the rows of the
+   * known elements e_1, ..., e_m at M_i (see addElementRows) and e is the
+   * fresh element. The lemma is valid: either the known elements account for
+   * the cardinalities, or some other element occurs in one of the bags, and e
+   * names it. Its count terms make e a known element of the next check, so
+   * the search goes on until the known elements account for the
+   * cardinalities, when the generic model construction is exact, or until the
+   * bound on the number of fresh elements is reached, when the model is marked
+   * unsound.
+   *
+   * Compared to the subsolver mode this needs no decomposition after the
+   * search, but every fresh element costs a round of the search, and the
+   * arithmetic solver is free to give it a count of 1 where one row with a
+   * larger count would do, so the rounds are bounded by the cardinalities and
+   * not by the number of rows.
+   */
+  void checkLiastarCandidateModel();
   /**
    * apply inference rules for operators with quantifiers:
    * BAG_MAP
@@ -166,29 +266,67 @@ class BagSolver : protected EnvObj
    */
   void addCardinalityVars();
   /**
-   * Step 4 of BagsToLiastar: build the single star atom
+   * Step 4 of BagsToLiastar: build the single star atom, together with the
+   * rows of the known elements it leaves out,
    *   (int.star-contains (lambda ((c_1 Int) ... (c_n Int)) F) x_1 ... x_n)
    * where M_1, ..., M_n are the registered bag terms, x_i is the cardinality
    * variable of M_i, c_i is its bound variable, and F is the conjunction of
    * the sign constraints (>= c_i 0), the pointwise definitions of the M_i
-   * (see getPointwiseConstraint) and the pointwise translation (= c_j c_k) of
-   * each positive atom (= M_j M_k).
+   * (see getPointwiseConstraint, and the inclusion of a (bag.filter p A) in
+   * A, which is all of its definition the star can state) and the pointwise
+   * translation (= c_j c_k) of each positive atom (= M_j M_k).
    *
    * Note all the bag atoms are translated into one single star: the body of a
    * star describes one element of the universe, so splitting the atoms into
    * several stars would let each star choose its own universe and lose the
    * correlation between the bags.
    *
-   * The star atom holds only in the contexts where the positive atoms it
+   * The rows of the known elements are taken out of the star, see
+   * addElementRows: the outer vector is x_i minus the sum of their counts in
+   * M_i, and the body instantiated by each row is conjoined to the star.
+   *
+   * The result holds only in the contexts where the positive atoms it
    * translates hold, so the caller asserts it guarded by them.
    *
    * @param equalities the positive top level bag atoms
    * @param premises the literals of the current context that the body relies
-   * on, appended to. The caller asserts the star guarded by them.
-   * @return the star atom
+   * on, appended to. The caller asserts the result guarded by them.
+   * @return the conjunction of the rows of the known elements and the star
+   * atom
    */
   Node buildStar(const std::vector<Node>& equalities,
                  std::vector<Node>& premises);
+  /**
+   * The rows of the known elements, see checkLiastarConstraints. An element is
+   * known when it has a count term in some bag of the star, and its row is
+   * the vector of its count terms in the slots, (bag.count e M_i), with 0 in
+   * the slots of another element type. The count terms that do not exist yet
+   * are created here, so that the theory registers them and relates the
+   * element to the other bags as it does for any count term.
+   *
+   * Two known elements can denote the same element, and then their rows are
+   * one row, so the sum of the rows is over the distinct elements: the row of
+   * e_j counts when e_j is equal to none of the earlier e_l of its type. When
+   * the context knows (not (= e_l e_j)) it is added to premises, otherwise the
+   * literal is left in the lemma and the row of e_j is
+   * (ite (and (not (= e_l e_j)) ...) k_j 0), so that the lemma holds however
+   * the literal is decided.
+   *
+   * @param bags the slots of the star, in order
+   * @param boundVars their bound variables, in the same order
+   * @param body the body of the star
+   * @param premises the premises of the lemma, appended to
+   * @param rows the body instantiated by the row of each known element,
+   * appended to
+   * @param sums for each slot, the sum of the rows at that slot, or null when
+   * no known element has the element type of the slot
+   */
+  void addElementRows(const std::vector<Node>& bags,
+                      const std::vector<Node>& boundVars,
+                      const Node& body,
+                      std::vector<Node>& premises,
+                      std::vector<Node>& rows,
+                      std::vector<Node>& sums);
   /**
    * @param bag a bag term
    * @return the integer variable that denotes the cardinality of bag, i.e. its
@@ -403,6 +541,26 @@ class BagSolver : protected EnvObj
    * checkLiastarConstraints.
    */
   std::map<Node, Node> d_bagBoundVars;
+  /**
+   * The slots of the star of the last check, in the order of both its vectors,
+   * and the body of that star over the bound variables of d_bagBoundVars. They
+   * survive the check so that collectLiastarModelValues can rebuild the bags.
+   */
+  std::vector<Node> d_lastSlots;
+  Node d_lastBody;
+  /**
+   * The premises of the lemma of the last check, and for each slot the sum of
+   * the rows of the known elements (see addElementRows), for
+   * checkLiastarCandidateModel.
+   */
+  std::vector<Node> d_lastPremises;
+  std::vector<Node> d_lastSums;
+  /**
+   * The number of fresh elements checkLiastarCandidateModel has introduced,
+   * which it bounds. It lives in the user context so that the elements of a
+   * popped check are not counted against a later one.
+   */
+  context::CDO<size_t> d_liastarElements;
 
   /** Commonly used constants */
   Node d_true;

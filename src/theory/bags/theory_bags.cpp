@@ -242,9 +242,23 @@ void TheoryBags::collectBagsAndCountTerms()
 
 void TheoryBags::postCheck(Effort effort)
 {
+  if (effort == EFFORT_LAST_CALL)
+  {
+    // the model has just been built, see TheoryEngine::check
+    d_solver.checkLiastarCandidateModel();
+    d_im.doPendingLemmas();
+    return;
+  }
   // run the standard strategy check loop, which repeatedly runs the bags
   // strategy and sends the resulting facts and lemmas
   d_strat.postCheck(effort);
+}
+
+bool TheoryBags::needsCheckLastEffort()
+{
+  return options().bags.bagsToLiastar
+         && options().bags.bagsLiastarModel
+                == options::BagsLiastarModelMode::ELEMENTS;
 }
 
 void TheoryBags::notifyFact(CVC5_UNUSED TNode atom,
@@ -263,6 +277,12 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
   // a map from bag representatives to their constructed values
   std::map<Node, Node> processedBags;
+  if (options().bags.bagsToLiastar)
+  {
+    // the bags of the star are rebuilt from the cardinalities of the model
+    // first, the construction below only sees the elements of the solver
+    d_solver.collectLiastarModelValues(m, processedBags);
+  }
 
   Trace("bags-model") << "d_state equality engine:" << std::endl;
   Trace("bags-model") << d_state.getEqualityEngine()->debugPrintEqc()

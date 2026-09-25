@@ -68,6 +68,12 @@ enum class IncompleteId
   SETS_RELS_CARD,
   // finite model finding used in combination with set cardinality constraints
   SETS_FMF_BOUND_CARD,
+  // the translation of bags to liastar could not rebuild bag values that match
+  // the cardinalities of the model
+  BAGS_LIASTAR_MODEL,
+  // the translation of bag constraints to liastar assumes an element for
+  // every row the star needs, which a finite element type may not have
+  BAGS_LIASTAR_FINITE_ELEMENTS,
   // we skipped processing a looping word equation
   STRINGS_LOOP_SKIP,
   // we could not simplify a regular expression membership
