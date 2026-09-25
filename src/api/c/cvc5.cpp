@@ -4954,10 +4954,12 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   CVC5_CAPI_CHECK_NOT_NULL(option);
   CVC5_CAPI_CHECK_NOT_NULL(info);
 
+  // Zero the struct before the call that may throw, so that it has defined
+  // values even on failure.
+  std::memset(info, 0, sizeof(*info));
+
   static thread_local cvc5::OptionInfo cpp_info;
   cpp_info = cvc5->d_solver.getOptionInfo(option);
-
-  std::memset(info, 0, sizeof(*info));
 
   info->name = cpp_info.name.c_str();
 
