@@ -139,9 +139,10 @@ class TheoryFp : public Theory
    *   (normal/subnormal float for fp.to_real, non-NaN values for to_fp),
    *   refinement lemmas anchored at the current model values are sent: for
    *   fp.to_real, order equivalences around the argument and result values;
-   *   for to_fp, monotonicity implications plus exact rounding-cell boundary
-   *   equivalences (see utils::roundingCellLowerBound) that exclude the
-   *   entire spurious rounding cell under the model's rounding mode.
+   *   for to_fp, exact rounding-cell boundary equivalences (see
+   *   utils::roundingCellLowerBound) that exclude the entire spurious
+   *   rounding cell under the model's rounding mode, degenerating to the
+   *   overflow resp. saturation lemmas at the extremes of the format.
    * - If no progress is possible -- the model values are non-constant (model
    *   construction in another theory failed), they contradict the
    *   registration lemmas (NaN/infinity/zero cases), or every refinement
