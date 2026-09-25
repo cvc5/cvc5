@@ -3672,6 +3672,8 @@ class CVC5_EXPORT Plugin
  * A termination request only applies to the query during which it was
  * issued: after terminate() returned true, it is not called again during
  * that query, and the solver can be used for further queries afterwards.
+ * Function terminate() is called at the beginning of each query, i.e., if it
+ * keeps returning true, subsequent queries are terminated immediately.
  *
  * Function terminate() is called frequently from the thread that executes the
  * query, and must thus be cheap to evaluate and must not throw. To terminate

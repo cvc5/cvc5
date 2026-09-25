@@ -157,6 +157,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats,
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
       d_thisCallResourceBudget(0),
+      d_terminatorChecks(0),
       d_parent(nullptr),
       d_terminationRequested(false),
       d_statistics(new ResourceManager::Statistics(stats))
@@ -277,6 +278,7 @@ void ResourceManager::refresh()
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
   d_thisCallResourceUsed = 0;
+  d_terminatorChecks = 0;
   d_terminationRequested = false;
 }
 
@@ -330,8 +332,10 @@ bool ResourceManager::terminationRequested() const
   }
   if (!d_terminationRequested)
   {
-    d_terminationRequested = (d_terminator && d_terminator())
-                             || (d_parent && d_parent->terminationRequested());
+    d_terminationRequested =
+        (d_terminator && d_terminatorChecks++ % TERMINATOR_POLL_INTERVAL == 0
+         && d_terminator())
+        || (d_parent && d_parent->terminationRequested());
   }
   return d_terminationRequested;
 }
