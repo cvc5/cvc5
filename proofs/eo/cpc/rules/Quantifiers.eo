@@ -364,6 +364,23 @@
 
 ;;;;; ProofRewriteRule::QUANT_VAR_ELIM_INEQ
 
+; program: $poly_contains_atomic_term_free
+; args:
+; - p @Polynomial: The polynomial to process.
+; - x T: The variable to find.
+; return: true if x occurs free in any factor of a monomial of p.
+; note: >
+;   Check the factor lists explicitly: $contains_atomic_term_free would treat
+;   a monomial (@mon a c) as a binder and skip its factor list a.
+(program $poly_contains_atomic_term_free ((T Type) (x T) (c Real) (a eo::List) (p @Polynomial :list))
+  :signature (@Polynomial T) Bool
+  (
+  (($poly_contains_atomic_term_free (@poly (@mon a c) p) x)
+    (eo::ite ($contains_atomic_term_free a x) true ($poly_contains_atomic_term_free p x)))
+  (($poly_contains_atomic_term_free @poly.zero x) false)
+  )
+)
+
 ; program: $arith_linear_dir
 ; args:
 ; - x T: The variable we are considering.
@@ -375,7 +392,7 @@
 (program $arith_linear_dir ((T Type) (x T) (c Real) (a eo::List) (p @Polynomial :list))
   :signature (T @Polynomial) Int
   (
-  (($arith_linear_dir x (@poly (@mon (eo::List::cons x) c) p))  (eo::requires ($contains_atomic_term_free p x) false
+  (($arith_linear_dir x (@poly (@mon (eo::List::cons x) c) p))  (eo::requires ($poly_contains_atomic_term_free p x) false
                                                                   (eo::ite (eo::is_neg c) -1 1)))
   (($arith_linear_dir x (@poly (@mon a c) p))                   (eo::requires ($contains_atomic_term_free a x) false
                                                                   ($arith_linear_dir x p)))
