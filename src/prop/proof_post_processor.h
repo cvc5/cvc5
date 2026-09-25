@@ -19,7 +19,7 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
-#include "proof/proof_generator.h"
+#include "proof/lazy_proof.h"
 #include "proof/proof_node_updater.h"
 #include "smt/env_obj.h"
 
@@ -36,7 +36,7 @@ class ProofPostprocessCallback : protected EnvObj,
                                  public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(Env& env, ProofGenerator* pg);
+  ProofPostprocessCallback(Env& env, LazyCDProof* pg);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -82,8 +82,14 @@ class ProofPostprocessCallback : protected EnvObj,
    * blocked proof node is one integrated into this class via an external proof
    * generator. */
   bool isBlocked(std::shared_ptr<ProofNode> pfn);
-  /** The cnf stream proof generator */
-  ProofGenerator* d_pg;
+  /** The cnf stream proof generator.
+   *
+   * Note this is the concrete LazyCDProof rather than a ProofGenerator: the
+   * base ProofGenerator::hasProofFor unconditionally returns true, and
+   * LazyCDProof::getProofFor falls back to an assumption when it has no step
+   * for a fact, so going through the generator interface would silently turn a
+   * missing proof into an unjustified assumption. */
+  LazyCDProof* d_pg;
   /** Blocked proofs.
    *
    * These are proof nodes added to this class by external generators. */
@@ -103,7 +109,7 @@ class ProofPostprocessCallback : protected EnvObj,
 class ProofPostprocess : protected EnvObj
 {
  public:
-  ProofPostprocess(Env& env, ProofGenerator* pg);
+  ProofPostprocess(Env& env, LazyCDProof* pg);
   ~ProofPostprocess();
   /** post-process
    *

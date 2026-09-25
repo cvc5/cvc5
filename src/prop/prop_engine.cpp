@@ -372,6 +372,15 @@ void PropEngine::notifyExplainedPropagation(TrustNode texp)
   }
 }
 
+void PropEngine::notifyClauseInsertedAtLevel(const Node& clauseNode,
+                                             uint32_t assertionLevel)
+{
+  if (d_ppm != nullptr)
+  {
+    d_ppm->notifyClauseInsertedAtLevel(clauseNode, assertionLevel);
+  }
+}
+
 void PropEngine::preferPhase(TNode n, bool phase)
 {
   Trace("prop") << "preferPhase(" << n << ", " << phase << ")" << std::endl;

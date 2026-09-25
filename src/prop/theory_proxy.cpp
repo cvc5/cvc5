@@ -324,6 +324,12 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation)
   }
 }
 
+void TheoryProxy::notifyClauseInsertedAtLevel(const Node& clauseNode,
+                                              uint32_t assertionLevel)
+{
+  d_propEngine->notifyClauseInsertedAtLevel(clauseNode, assertionLevel);
+}
+
 void TheoryProxy::notifySatClause(const SatClause& clause)
 {
   const std::vector<Plugin*>& plugins = d_env.getPlugins();
