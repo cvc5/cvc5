@@ -28,6 +28,7 @@
 #endif /* CVC5_CLN_IMP */
 
 #include "base/check.h"
+#include "util/integer_parse.h"
 #include "util/random.h"
 
 using namespace std;
@@ -379,37 +380,67 @@ bool Integer::isNegativeOne() const { return d_value == -1; }
 
 void Integer::parseInt(const std::string& s, unsigned base)
 {
+  if (!isValidIntegerLiteral(s, base))
+  {
+    // Reject here rather than relying on CLN, which reads "" and "-" as zero
+    // and accepts a leading '+', so that both Integer implementations accept
+    // exactly the same strings.
+    std::stringstream ss;
+    ss << "Integer() failed to parse value \"" << s << "\" in base " << base;
+    throw std::invalid_argument(ss.str());
+  }
   cln::cl_read_flags flags;
   flags.syntax = cln::syntax_integer;
   flags.lsyntax = cln::lsyntax_standard;
   flags.rational_base = base;
   if (base == 0)
   {
-    // infer base in a manner consistent with GMP
-    // A lone "0" is decimal zero. Rewriting it to "#o" is not a valid integer.
-    if (s[0] == '0' && s.size() > 1)
+    // Infer the base in a manner consistent with GMP: an optional leading '-'
+    // comes before the base prefix, "0x"/"0X" denotes hexadecimal, "0b"/"0B"
+    // denotes binary, a remaining leading '0' denotes octal, and anything else
+    // is decimal. A lone "0", signed or not, is decimal zero.
+    size_t signLen = (s[0] == '-') ? 1 : 0;
+    // The Common Lisp radix prefix for the inferred base, null if the string
+    // carries no base prefix at all, and the length of that prefix in s.
+    const char* prefix = nullptr;
+    size_t prefixLen = 0;
+    if (s.size() > signLen + 1 && s[signLen] == '0')
     {
-      flags.lsyntax = cln::lsyntax_commonlisp;
-      std::string st = s;
-      if (s[1] == 'X' || s[1] == 'x')
+      char c = s[signLen + 1];
+      if (c == 'x' || c == 'X')
       {
-        st.replace(0, 2, "#x");
+        prefix = "#x";
+        prefixLen = 2;
       }
-      else if (s[1] == 'B' || s[1] == 'b')
+      else if (c == 'b' || c == 'B')
       {
-        st.replace(0, 2, "#b");
+        prefix = "#b";
+        prefixLen = 2;
       }
       else
       {
-        st.replace(0, 1, "#o");
+        prefix = "#o";
+        prefixLen = 1;
       }
+    }
+    // A prefix with no digits after it ("0x", "-0b") is not an integer, so let
+    // it fall through to the decimal read below and be reported as a parse
+    // error rather than silently reading as zero.
+    if (prefix != nullptr && s.size() > signLen + prefixLen)
+    {
+      // CLN's Common Lisp syntax expects the sign after the radix prefix,
+      // i.e. "#x-10" rather than "-#x10".
+      std::string st = prefix;
+      if (signLen == 1)
+      {
+        st.push_back('-');
+      }
+      st.append(s, signLen + prefixLen, std::string::npos);
+      flags.lsyntax = cln::lsyntax_commonlisp;
       readInt(flags, st, base);
       return;
     }
-    else
-    {
-      flags.rational_base = 10;
-    }
+    flags.rational_base = 10;
   }
   readInt(flags, s, base);
 }
