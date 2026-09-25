@@ -328,6 +328,7 @@ bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
     case ProofRewriteRule::QUANT_MINISCOPE_OR:
     case ProofRewriteRule::QUANT_MINISCOPE_ITE:
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ:
+    case ProofRewriteRule::QUANT_VAR_ELIM_INEQ:
     case ProofRewriteRule::QUANT_DT_SPLIT:
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::RE_EQ_ELIM:

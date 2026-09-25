@@ -292,8 +292,7 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-quant-partition-connected-fv";
     case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_EQ:
       return "macro-quant-var-elim-eq";
-    case ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ:
-      return "macro-quant-var-elim-ineq";
+    case ProofRewriteRule::QUANT_VAR_ELIM_INEQ: return "quant-var-elim-ineq";
     case ProofRewriteRule::QUANT_VAR_ELIM_EQ: return "quant-var-elim-eq";
     case ProofRewriteRule::MACRO_QUANT_REWRITE_BODY:
       return "macro-quant-rewrite-body";
