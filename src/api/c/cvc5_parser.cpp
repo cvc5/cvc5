@@ -609,6 +609,13 @@ Cvc5Command cvc5_parser_next_command(Cvc5InputParser* parser,
     *error_msg = error.c_str();
   }
   CVC5_CAPI_TRY_CATCH_END;
+  // Also report non-parse errors via the output parameter, so that it alone
+  // suffices to distinguish errors from reaching the end of the input.
+  if (error_msg != nullptr && cvc5::cvc5_capi_has_error())
+  {
+    error = cvc5::cvc5_capi_get_error_message();
+    *error_msg = error.c_str();
+  }
   return res;
 }
 
@@ -632,6 +639,13 @@ Cvc5Term cvc5_parser_next_term(Cvc5InputParser* parser, const char** error_msg)
     *error_msg = error.c_str();
   }
   CVC5_CAPI_TRY_CATCH_END;
+  // Also report non-parse errors via the output parameter, so that it alone
+  // suffices to distinguish errors from reaching the end of the input.
+  if (error_msg != nullptr && cvc5::cvc5_capi_has_error())
+  {
+    error = cvc5::cvc5_capi_get_error_message();
+    *error_msg = error.c_str();
+  }
   return res;
 }
 

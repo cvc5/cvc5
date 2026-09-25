@@ -354,8 +354,9 @@ CVC5_EXPORT void cvc5_parser_append_inc_str_input(Cvc5InputParser* parser,
  * is read that requires initializing the logic.
  *
  * @param parser     The input parser instance.
- * @param error_msg  Output parameter for the error message in case of a parse
- *                   error, NULL if no error occurred.
+ * @param error_msg  Output parameter for the error message in case of an
+ *                   error (parse error or otherwise), NULL if no error
+ *                   occurred.
  * @return The parsed command. NULL if no command was read.
  */
 CVC5_EXPORT Cvc5Command cvc5_parser_next_command(Cvc5InputParser* parser,
@@ -365,8 +366,9 @@ CVC5_EXPORT Cvc5Command cvc5_parser_next_command(Cvc5InputParser* parser,
  * Parse and return the next term. Requires setting the logic prior
  * to this point.
  * @param parser     The input parser instance.
- * @param error_msg  Output parameter for the error message in case of a parse
- *                   error, NULL if no error occurred.
+ * @param error_msg  Output parameter for the error message in case of an
+ *                   error (parse error or otherwise), NULL if no error
+ *                   occurred.
  * @return           The parsed term. NULL if no term was read.
  */
 CVC5_EXPORT Cvc5Term cvc5_parser_next_term(Cvc5InputParser* parser,
