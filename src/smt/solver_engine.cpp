@@ -20,9 +20,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
-#include "expr/non_closed_node_converter.h"
 #include "expr/plugin.h"
-#include "expr/skolem_manager.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "expr/sygus_term_enumerator.h"
 #include "options/base_options.h"
@@ -46,8 +44,8 @@
 #include "smt/check_models.h"
 #include "smt/context_manager.h"
 #include "smt/env.h"
-#include "smt/expand_definitions.h"
 #include "smt/find_synth_solver.h"
+#include "smt/get_value.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
@@ -107,7 +105,7 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
       d_smtSolver(nullptr),
       d_smtDriver(nullptr),
       d_checkModels(nullptr),
-      d_expDef(nullptr),
+      d_getValue(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
       d_sygusSolver(nullptr),
@@ -126,8 +124,8 @@ SolverEngine::SolverEngine(NodeManager* nm, const Options* optr)
   d_stats.reset(new SolverEngineStatistics(d_env->getStatisticsRegistry()));
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*d_env, *d_stats));
-  // make the expand definitions utility, used for getting model values
-  d_expDef.reset(new ExpandDefs(*d_env.get()));
+  // make the get-value utility
+  d_getValue.reset(new GetValue(*d_env, *this));
   // make the context manager
   d_ctxManager.reset(new ContextManager(*d_env.get(), *d_state));
   // make the SyGuS solver
@@ -278,6 +276,7 @@ SolverEngine::~SolverEngine()
     d_interpolSolver.reset(nullptr);
     d_quantElimSolver.reset(nullptr);
     d_sygusSolver.reset(nullptr);
+    d_getValue.reset(nullptr);
     d_smtDriver.reset(nullptr);
     d_smtSolver.reset(nullptr);
 
@@ -1249,173 +1248,7 @@ Node SolverEngine::getValue(const Node& t, bool fromUser)
   }
   ensureWellFormedTerm(t, "get value");
   Trace("smt") << "SMT getValue(" << t << ")" << endl;
-  TypeNode expectedType = t.getType();
-
-  // We must expand definitions here, which replaces certain subterms of t
-  // by the form that is used internally. This is necessary for some corner
-  // cases of get-value to be accurate, e.g., when getting the value of
-  // a division-by-zero term, we require getting the appropriate skolem
-  // function corresponding to division-by-zero which may have been used during
-  // the previous satisfiability check.
-  //
-  // Note that each of the three steps below (substitution, expand definitions,
-  // rewriting) is cached by the utility that implements it, where each such
-  // cache is invalidated when the state it depends on changes. In particular,
-  // d_expDef maintains its cache for the lifetime of this solver engine, since
-  // expanded forms do not depend on the current assertions. This makes
-  // repeated calls to get-value on the same term (e.g. when enumerating
-  // models) constant time in the size of that term.
-  //
-  // Must apply substitutions first to ensure we expand definitions in the
-  // solved form of t as well.
-  Node n = d_smtSolver->getPreprocessor()->applySubstitutions(t);
-  n = d_expDef->expandDefinitions(n);
-
-  Trace("smt") << "--- getting value of " << n << endl;
-  // There are two ways model values for terms are computed (for historical
-  // reasons).  One way is that used in check-model; the other is that
-  // used by the Model classes.  It's not clear to me exactly how these
-  // two are different, but they need to be unified.  This ugly hack here
-  // is to fix bug 554 until we can revamp boolean-terms and models [MGD]
-
-  // AJR : necessary?
-  if (!n.getType().isFunction())
-  {
-    n = d_env->getRewriter()->rewrite(n);
-  }
-
-  // Fast path: if n is a Boolean term that the prop engine already has a SAT
-  // literal for, and that literal has a value on the current SAT trail, then
-  // that value is its value in the model. This is since the model is
-  // constructed to satisfy the literals that were asserted to the theories,
-  // which are those of the trail, and since the values of Boolean variables in
-  // the model are read directly from the SAT solver, see
-  // ModelManager::collectModelBooleanVariables.
-  //
-  // Taking this path means we do not build the theory model at all, which is
-  // the main motivation for it: a caller that repeatedly checks satisfiability
-  // and reads the values of literals of the input (e.g. to compute an
-  // implicant or to add a blocking clause) never pays for model construction.
-  //
-  // We are conservative in the conditions under which we do this:
-  // (1) We require SAT mode. In SAT_UNKNOWN mode the available model may have
-  // been generated for a last call check, after which the SAT solver may have
-  // backtracked, in which case the trail does not correspond to the model.
-  // (2) We require that model cores are not being computed, since these are
-  // computed as a side effect of getting the model in getAvailableModel.
-  // (3) We do not call PropEngine::ensureLiteral, that is, we only take this
-  // path for terms that already have a SAT literal. Getting a value should not
-  // add literals or clauses to the SAT solver.
-  // Note that we still check that a model is available, so that the exceptions
-  // thrown by this method do not depend on which path is taken.
-  bool bvalue;
-  prop::PropEngine* pe = d_smtSolver->getPropEngine();
-  if (expectedType.isBoolean() && d_state->getMode() == SmtMode::SAT
-      && d_env->getOptions().smt.modelCoresMode == options::ModelCoresMode::NONE
-      && pe->isSatLiteral(n) && pe->hasValue(n, bvalue))
-  {
-    checkModelAvailable("get-value");
-    Node bret = d_env->getNodeManager()->mkConst(bvalue);
-    Trace("smt") << "--- got value " << n << " = " << bret
-                 << " (from SAT trail)" << endl;
-    // Check that this agrees with the value the model would give. Note this
-    // builds the model, hence we only do this when assertions are enabled.
-    Assert(bret == getAvailableModel("get-value")->getValue(n))
-        << "Value of " << n << " on the SAT trail is " << bret
-        << ", but its value in the model is "
-        << getAvailableModel("get-value")->getValue(n);
-    return bret;
-  }
-
-  Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = getAvailableModel("get-value");
-  Assert(m != nullptr);
-  Node resultNode = m->getValue(n);
-  Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
-  Trace("smt") << "--- type " << resultNode.getType() << endl;
-  Trace("smt") << "--- expected type " << expectedType << endl;
-
-  // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType() == expectedType)
-      << "Run with -t smt for details.";
-
-  // Ensure it's a value (constant or const-ish like real algebraic
-  // numbers), or a lambda (for uninterpreted functions). This assertion only
-  // holds for models that do not have approximate values.
-  if (!m->isValue(resultNode))
-  {
-    bool subSuccess = false;
-    if (fromUser && d_env->getOptions().smt.checkModelSubsolver)
-    {
-      // invoke satisfiability check
-      // ensure symbols have been substituted
-      resultNode = m->simplify(resultNode);
-      // Note that we must be a "closed" term, i.e. one that can be
-      // given in an assertion.
-      if (NonClosedNodeConverter::isClosed(*d_env.get(), resultNode))
-      {
-        // set up a resource limit
-        ResourceManager* rm = getResourceManager();
-        rm->beginCall();
-        TypeNode rtn = resultNode.getType();
-        SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
-        Node k = skm->mkInternalSkolemFunction(
-            InternalSkolemId::GET_VALUE_PURIFY, rtn, {resultNode});
-        // the query is (k = resultNode)
-        Node checkQuery = resultNode.eqNode(k);
-        Options subOptions;
-        subOptions.copyValues(d_env->getOptions());
-        smt::SetDefaults::disableChecking(subOptions);
-        // ensure no infinite loop
-        subOptions.write_smt().checkModelSubsolver = false;
-        subOptions.write_smt().modelVarElimUneval = false;
-        subOptions.write_smt().simplificationMode =
-            options::SimplificationMode::NONE;
-        // initialize the subsolver
-        SubsolverSetupInfo ssi(*d_env.get(), subOptions);
-        std::unique_ptr<SolverEngine> getValueChecker;
-        initializeSubsolver(d_env->getNodeManager(), getValueChecker, ssi);
-        // disable all checking options
-        SetDefaults::disableChecking(getValueChecker->getOptions());
-        getValueChecker->assertFormula(checkQuery);
-        Result r = getValueChecker->checkSat();
-        if (r == Result::SAT)
-        {
-          // value is the result of getting the value of k
-          resultNode = getValueChecker->getValue(k);
-          subSuccess = m->isValue(resultNode);
-        }
-        // end resource limit
-        rm->refresh();
-      }
-    }
-    if (!subSuccess)
-    {
-      d_env->warning() << "Could not evaluate " << resultNode << " in getValue."
-                       << std::endl;
-    }
-  }
-
-  if (d_env->getOptions().smt.abstractValues)
-  {
-    TypeNode rtn = resultNode.getType();
-    if (rtn.isArray())
-    {
-      // construct the skolem function
-      SkolemManager* skm = d_env->getNodeManager()->getSkolemManager();
-      Node a = skm->mkInternalSkolemFunction(
-          InternalSkolemId::ABSTRACT_VALUE, rtn, {resultNode});
-      // add to top-level substitutions if applicable
-      theory::TrustSubstitutionMap& tsm = d_env->getTopLevelSubstitutions();
-      if (!tsm.get().hasSubstitution(resultNode))
-      {
-        tsm.addSubstitution(resultNode, a);
-      }
-      resultNode = a;
-      Trace("smt") << "--- abstract value >> " << resultNode << endl;
-    }
-  }
-  return resultNode;
+  return d_getValue->getValue(t, fromUser);
 }
 
 std::vector<Node> SolverEngine::getValues(const std::vector<Node>& exprs,

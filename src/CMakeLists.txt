@@ -319,6 +319,8 @@ libcvc5_add_sources(
   smt/expand_definitions.h
   smt/find_synth_solver.cpp
   smt/find_synth_solver.h
+  smt/get_value.cpp
+  smt/get_value.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
