@@ -38,6 +38,8 @@ class UnsatCoreManager : protected EnvObj
  public:
   UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm);
   ~UnsatCoreManager() {};
+  /** Set the duration of the latest check-sat call, in milliseconds. */
+  void setCheckSatTime(uint64_t millis);
   /**
    * Convert preprocessed assertions to the input formulas that imply them. In
    * detail, this converts a set of preprocessed assertions to a set of input
@@ -106,7 +108,10 @@ class UnsatCoreManager : protected EnvObj
                             std::vector<Node>& core,
                             bool isInternal);
   /**
-   * Reduce an unsatisfiable core to make it minimal.
+   * Reduce an unsatisfiable core towards a minimal core. Each subsolver call
+   * is limited to the original solve time (at least one millisecond).
+   * Assertions are retained if the subsolver returns unknown, including on
+   * timeout.
    */
   std::vector<Node> reduceUnsatCore(const Assertions& as,
                                     const std::vector<Node>& core);
@@ -121,6 +126,8 @@ class UnsatCoreManager : protected EnvObj
   SmtSolver& d_slv;
   /** Reference to the proof manager */
   PfManager& d_pfm;
+  /** Duration of the latest check-sat call, in milliseconds. */
+  uint64_t d_checkSatTime;
 };
 
 }  // namespace smt

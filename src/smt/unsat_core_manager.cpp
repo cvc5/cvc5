@@ -12,6 +12,7 @@
 
 #include "unsat_core_manager.h"
 
+#include <algorithm>
 #include <sstream>
 
 #include "expr/skolem_manager.h"
@@ -32,8 +33,13 @@ namespace cvc5::internal {
 namespace smt {
 
 UnsatCoreManager::UnsatCoreManager(Env& env, SmtSolver& slv, PfManager& pfm)
-    : EnvObj(env), d_slv(slv), d_pfm(pfm)
+    : EnvObj(env), d_slv(slv), d_pfm(pfm), d_checkSatTime(0)
 {
+}
+
+void UnsatCoreManager::setCheckSatTime(uint64_t millis)
+{
+  d_checkSatTime = millis;
 }
 
 std::vector<Node> UnsatCoreManager::getUnsatCore(bool isInternal)
@@ -229,12 +235,21 @@ std::vector<Node> UnsatCoreManager::reduceUnsatCore(
 
   d_env.verbose(1) << "SolverEngine::reduceUnsatCore(): reducing unsat core"
                    << std::endl;
+  // Use the original solve time for every subcall, independently of time spent
+  // minimizing the core. A zero timeout would disable the time limit.
+  uint64_t timeout = std::max(uint64_t{1}, d_checkSatTime);
+  if (options().base.perCallMillisecondLimit > 0)
+  {
+    timeout = std::min(timeout, options().base.perCallMillisecondLimit);
+  }
+  Trace("unsat-core") << "UCManager::reduceUnsatCore: subcall timeout "
+                      << timeout << "ms\n";
   std::unordered_set<Node> removed;
   std::unordered_set<Node> adefs = as.getCurrentAssertionListDefitions();
   for (const Node& skip : core)
   {
     std::unique_ptr<SolverEngine> coreChecker;
-    theory::initializeSubsolver(coreChecker, d_env);
+    theory::initializeSubsolver(coreChecker, d_env, true, timeout);
     coreChecker->setLogic(logicInfo());
     // disable all proof options
     SetDefaults::disableChecking(coreChecker->getOptions());

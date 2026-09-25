@@ -1,5 +1,5 @@
 ; REQUIRES: unrestricted-mode
-; COMMAND-LINE: --minimal-unsat-cores
+; COMMAND-LINE: --minimal-unsat-cores --quiet
 (set-logic QF_NIA)
 (set-info :status unsat)
 (declare-fun n () Int)

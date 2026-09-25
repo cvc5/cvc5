@@ -189,7 +189,7 @@ name   = "SMT Layer"
   long       = "minimal-unsat-cores"
   type       = "bool"
   default    = "false"
-  help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
+  help       = "if an unsat core is produced, try to reduce it to a minimal unsat core, with each check limited to the original solve time (at least 1 ms)"
 
 [[option]]
   name       = "printCoresFull"
