@@ -1054,7 +1054,12 @@ bool Smt2State::hasGrammars() const
          || d_solver->getOption("produce-interpolants") == "true";
 }
 
-bool Smt2State::usingFreshBinders() const { return d_freshBinders; }
+bool Smt2State::usingFreshBinders() const
+{
+  // Substitution of macro arguments must not capture variables in the body,
+  // including binders with the same name and sort in different definitions.
+  return d_freshBinders || getSymbolManager()->getParseDefineFunMacros();
+}
 
 void Smt2State::checkThatLogicIsSet()
 {
@@ -1703,7 +1708,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       Trace("parser") << "applyParseOp: return skolem " << ret << std::endl;
       return ret;
     }
-    Term ret = d_tm.mkTerm(kind, args);
+    Term ret =
+        kind == Kind::HO_APPLY ? mkApply(kind, args) : d_tm.mkTerm(kind, args);
     Trace("parser") << "applyParseOp: return default builtin " << ret
                     << std::endl;
     return ret;
@@ -1727,7 +1733,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         Trace("parser") << "Partial application of " << args[0];
         Trace("parser") << " : #argTypes = " << arity;
         Trace("parser") << ", #args = " << args.size() - 1 << std::endl;
-        Term ret = d_tm.mkTerm(Kind::HO_APPLY, args);
+        Term ret = mkApply(Kind::HO_APPLY, args);
         Trace("parser") << "applyParseOp: return curry higher order " << ret
                         << std::endl;
         // must curry the partial application
@@ -1742,7 +1748,9 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
   }
   Trace("parser") << "Try default term construction for kind " << kind
                   << " #args = " << args.size() << "..." << std::endl;
-  Term ret = d_tm.mkTerm(kind, args);
+  Term ret = (kind == Kind::APPLY_UF || kind == Kind::HO_APPLY)
+                 ? mkApply(kind, args)
+                 : d_tm.mkTerm(kind, args);
   Trace("parser") << "applyParseOp: return : " << ret << std::endl;
   return ret;
 }

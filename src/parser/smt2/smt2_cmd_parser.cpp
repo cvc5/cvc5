@@ -12,6 +12,8 @@
 
 #include "parser/smt2/smt2_cmd_parser.h"
 
+#include <unordered_set>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "parser/commands.h"
@@ -410,6 +412,20 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         d_state.pushScope();
       }
       bool freshBinders = d_state.usingFreshBinders();
+      if (freshBinders)
+      {
+        // With fresh binders, duplicate names would yield distinct Terms,
+        // bypassing the API check for duplicate formal arguments.
+        std::unordered_set<std::string> names;
+        for (const auto& v : sortedVarNames)
+        {
+          if (!names.insert(v.first).second)
+          {
+            d_state.parseError(
+                "All formal arguments to defined functions must be unique");
+          }
+        }
+      }
       // If freshBinders is false, we use fresh=false here to ensure that
       // variables introduced by define-fun are accurate with respect to proofs,
       // i.e. variables of the same name and type are indeed the same variable.
@@ -905,6 +921,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       else if (key == "fresh-declarations")
       {
         d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
+      }
+      else if (key == "parse-define-fun-macros")
+      {
+        d_state.getSymbolManager()->setParseDefineFunMacros(ss == "true");
       }
       else if (key == "term-sort-overload")
       {

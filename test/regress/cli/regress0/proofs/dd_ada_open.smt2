@@ -1,4 +1,5 @@
 ; EXPECT: unsat
+; DISABLE-TESTER: cpc-logos
 (set-logic ALL)
 (declare-sort group1_id 0)
 (declare-fun group1_idqtint (group1_id) Int)

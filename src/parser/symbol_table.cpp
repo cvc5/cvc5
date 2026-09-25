@@ -24,6 +24,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
+#include "util/hash.h"
 
 namespace cvc5::internal::parser {
 
@@ -90,14 +91,16 @@ class OverloadedTypeTrie
 {
  public:
   OverloadedTypeTrie(Context* c, bool allowFunVariants = false)
-      : d_overloaded_symbols(new (true) CDHashSet<Term, std::hash<Term>>(c)),
+      : d_overloaded_symbols(
+            new (true) CDHashSet<std::pair<std::string, Term>,
+                                 PairHashFunction<std::string, Term>>(c)),
         d_allowFunctionVariants(allowFunVariants)
   {
   }
   ~OverloadedTypeTrie() { d_overloaded_symbols->deleteSelf(); }
 
   /** is this function overloaded? */
-  bool isOverloadedFunction(Term fun) const;
+  bool isOverloadedFunction(const std::string& name, Term fun) const;
 
   /** Get overloaded constant for type.
    * If possible, it returns a defined symbol with name
@@ -151,8 +154,12 @@ class OverloadedTypeTrie
   /** for each string with operator overloading, this stores the data structure
    * above. */
   std::unordered_map<std::string, TypeArgTrie> d_overload_type_arg_trie;
-  /** The set of overloaded symbols. */
-  CDHashSet<Term, std::hash<Term>>* d_overloaded_symbols;
+  /**
+   * Active overloaded bindings. Include the name since aliases may bind
+   * different names to the same term.
+   */
+  CDHashSet<std::pair<std::string, Term>, PairHashFunction<std::string, Term>>*
+      d_overloaded_symbols;
   /** allow function variants
    * This is true if we allow overloading (non-constant) functions that expect
    * the same argument types.
@@ -164,13 +171,15 @@ class OverloadedTypeTrie
    * if reqUnique=true.
    * Otherwise, it returns the null expression.
    */
-  Term getOverloadedFunctionAt(const TypeArgTrie* tat,
+  Term getOverloadedFunctionAt(const std::string& name,
+                               const TypeArgTrie* tat,
                                bool reqUnique = true) const;
 };
 
-bool OverloadedTypeTrie::isOverloadedFunction(Term fun) const
+bool OverloadedTypeTrie::isOverloadedFunction(const std::string& name,
+                                              Term fun) const
 {
-  return d_overloaded_symbols->find(fun) != d_overloaded_symbols->end();
+  return d_overloaded_symbols->find({name, fun}) != d_overloaded_symbols->end();
 }
 
 Term OverloadedTypeTrie::getOverloadedConstantForType(const std::string& name,
@@ -185,7 +194,7 @@ Term OverloadedTypeTrie::getOverloadedConstantForType(const std::string& name,
     {
       Term expr = its->second;
       // must be an active symbol
-      if (isOverloadedFunction(expr))
+      if (isOverloadedFunction(name, expr))
       {
         return expr;
       }
@@ -220,7 +229,7 @@ Term OverloadedTypeTrie::getOverloadedFunctionForTypes(
       }
     }
     // we ensure that there is *only* one active symbol at this node
-    return getOverloadedFunctionAt(tat);
+    return getOverloadedFunctionAt(name, tat);
   }
   return d_nullTerm;
 }
@@ -229,7 +238,7 @@ bool OverloadedTypeTrie::bind(const string& name, Term prev_bound_obj, Term obj)
 {
   Assert(prev_bound_obj != obj);
   bool retprev = true;
-  if (!isOverloadedFunction(prev_bound_obj))
+  if (!isOverloadedFunction(name, prev_bound_obj))
   {
     // mark previous as overloaded
     retprev = markOverloaded(name, prev_bound_obj);
@@ -281,7 +290,7 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Term obj)
       // if there is already an active function with the same name and expects
       // the same argument types and has the same return type, we reject the
       // re-declaration here.
-      if (isOverloadedFunction(prev_obj))
+      if (isOverloadedFunction(name, prev_obj))
       {
         Trace("parser-overloading") << "...existing overload" << std::endl;
         return false;
@@ -291,7 +300,7 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Term obj)
   else
   {
     // they are not allowed, we cannot have any function defined here.
-    Term existingFun = getOverloadedFunctionAt(tat, false);
+    Term existingFun = getOverloadedFunctionAt(name, tat, false);
     if (!existingFun.isNull())
     {
       Trace("parser-overloading")
@@ -302,13 +311,15 @@ bool OverloadedTypeTrie::markOverloaded(const string& name, Term obj)
   Trace("parser-overloading") << "...update symbols" << std::endl;
 
   // otherwise, update the symbols
-  d_overloaded_symbols->insert(obj);
+  d_overloaded_symbols->insert({name, obj});
   tat->d_symbols[rangeType] = obj;
   return true;
 }
 
 Term OverloadedTypeTrie::getOverloadedFunctionAt(
-    const OverloadedTypeTrie::TypeArgTrie* tat, bool reqUnique) const
+    const std::string& name,
+    const OverloadedTypeTrie::TypeArgTrie* tat,
+    bool reqUnique) const
 {
   Term retExpr;
   for (std::map<Sort, Term>::const_iterator its = tat->d_symbols.begin();
@@ -316,7 +327,7 @@ Term OverloadedTypeTrie::getOverloadedFunctionAt(
        ++its)
   {
     Term expr = its->second;
-    if (isOverloadedFunction(expr))
+    if (isOverloadedFunction(name, expr))
     {
       if (retExpr.isNull())
       {
@@ -370,7 +381,7 @@ class SymbolTable::Implementation
   void resetAssertions();
   //------------------------ operator overloading
   /** implementation of function from header */
-  bool isOverloadedFunction(Term fun) const;
+  bool isOverloadedFunction(const std::string& name, Term fun) const;
 
   /** implementation of function from header */
   Term getOverloadedConstantForType(const std::string& name, Sort t) const;
@@ -452,7 +463,7 @@ Term SymbolTable::Implementation::lookup(const string& name) const
     return d_nullTerm;
   }
   Term expr = it->second;
-  if (isOverloadedFunction(expr))
+  if (isOverloadedFunction(name, expr))
   {
     return d_nullTerm;
   }
@@ -603,9 +614,10 @@ void SymbolTable::Implementation::resetAssertions()
   d_context.push();
 }
 
-bool SymbolTable::Implementation::isOverloadedFunction(Term fun) const
+bool SymbolTable::Implementation::isOverloadedFunction(const std::string& name,
+                                                       Term fun) const
 {
-  return d_overload_trie.isOverloadedFunction(fun);
+  return d_overload_trie.isOverloadedFunction(name, fun);
 }
 
 Term SymbolTable::Implementation::getOverloadedConstantForType(
@@ -647,9 +659,9 @@ bool SymbolTable::Implementation::bindWithOverloading(const string& name,
   return true;
 }
 
-bool SymbolTable::isOverloadedFunction(Term fun) const
+bool SymbolTable::isOverloadedFunction(const std::string& name, Term fun) const
 {
-  return d_implementation->isOverloadedFunction(fun);
+  return d_implementation->isOverloadedFunction(name, fun);
 }
 
 Term SymbolTable::getOverloadedConstantForType(const std::string& name,

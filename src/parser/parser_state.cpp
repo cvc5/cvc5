@@ -494,11 +494,44 @@ Sort ParserState::mkFlatFunctionType(std::vector<Sort>& sorts, Sort range)
   return newRange;
 }
 
+Term ParserState::mkApply(Kind kind, const std::vector<Term>& args)
+{
+  // Construct the application first, so that even unused parameters are
+  // checked for the correct sort and arity.
+  Term ret = d_tm.mkTerm(kind, args);
+  if (args[0].getKind() != Kind::LAMBDA || !d_symman->getParseDefineFunMacros())
+  {
+    return ret;
+  }
+  Term lambda = args[0];
+  std::vector<Term> vars;
+  std::vector<Term> subs(args.begin() + 1, args.end());
+  std::vector<Term> remaining;
+  for (size_t i = 0, n = lambda[0].getNumChildren(); i < n; ++i)
+  {
+    if (i < subs.size())
+    {
+      vars.push_back(lambda[0][i]);
+    }
+    else
+    {
+      remaining.push_back(lambda[0][i]);
+    }
+  }
+  ret = lambda[1].substitute(vars, subs);
+  if (!remaining.empty())
+  {
+    ret = d_tm.mkTerm(Kind::LAMBDA,
+                      {d_tm.mkTerm(Kind::VARIABLE_LIST, remaining), ret});
+  }
+  return ret;
+}
+
 Term ParserState::mkHoApply(Term expr, const std::vector<Term>& args)
 {
   for (size_t i = 0; i < args.size(); i++)
   {
-    expr = d_tm.mkTerm(Kind::HO_APPLY, {expr, args[i]});
+    expr = mkApply(Kind::HO_APPLY, {expr, args[i]});
   }
   return expr;
 }
@@ -746,7 +779,7 @@ void ParserState::popScope() { d_symman->popScope(); }
 
 void ParserState::reset() {}
 
-SymManager* ParserState::getSymbolManager() { return d_symman; }
+SymManager* ParserState::getSymbolManager() const { return d_symman; }
 
 std::string ParserState::stripQuotes(const std::string& s)
 {

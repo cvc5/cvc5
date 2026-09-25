@@ -103,3 +103,11 @@ name   = "Parser"
   type       = "bool"
   default    = "false"
   help       = "allows the parsing of skolems in the input file"
+
+[[option]]
+  name       = "parseDefineFunMacros"
+  category   = "common"
+  long       = "parse-define-fun-macros"
+  type       = "bool"
+  default    = "false"
+  help       = "expand non-recursive definitions in the parser, using fresh binders and beta-reducing applications before passing terms to the solver"

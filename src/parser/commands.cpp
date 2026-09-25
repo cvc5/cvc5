@@ -828,6 +828,10 @@ void ResetCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     sm->reset();
     resetSolver(solver);
+    // reset restores the solver's original options, which may differ from
+    // options set in the input. Keep macro expansion in sync with the solver.
+    sm->setParseDefineFunMacros(
+        solver->getOptionInfo("parse-define-fun-macros").boolValue());
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1207,9 +1211,33 @@ void DefineFunctionCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   try
   {
-    bool global = sm->getGlobalDeclarations();
-    cvc5::Term fun =
-        solver->defineFun(d_symbol, d_formals, d_sort, d_formula, global);
+    cvc5::Term fun;
+    if (sm->getParseDefineFunMacros())
+    {
+      // Like define-sort, this is an alias in the symbol table. Do not
+      // introduce a solver symbol or a defining equality (and hence a proof
+      // assumption) for it.
+      if (d_formula.getSort() != d_sort)
+      {
+        std::stringstream ss;
+        ss << "invalid sort of function body '" << d_formula << "', expected '"
+           << d_sort << "', found '" << d_formula.getSort() << "'";
+        d_commandStatus = new CommandFailure(ss.str());
+        return;
+      }
+      fun = d_formula;
+      if (!d_formals.empty())
+      {
+        cvc5::TermManager& tm = solver->getTermManager();
+        fun = tm.mkTerm(cvc5::Kind::LAMBDA,
+                        {tm.mkTerm(cvc5::Kind::VARIABLE_LIST, d_formals), fun});
+      }
+    }
+    else
+    {
+      fun = solver->defineFun(
+          d_symbol, d_formals, d_sort, d_formula, sm->getGlobalDeclarations());
+    }
     if (!bindToTerm(sm, fun, true))
     {
       return;
