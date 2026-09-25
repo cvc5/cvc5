@@ -2789,23 +2789,23 @@ TEST_F(TestApiBlackSolver, terminatorReuse)
   {
     cvc5::Solver solver(d_tm);
     solver.setOption("sat-solver", sat);
-    TerminatorAt t(100);
+    TerminatorAt t(10);
     solver.setTerminator(&t);
     assertPigeonHole(d_tm, solver, 5);
     cvc5::Result r = solver.checkSat();
     ASSERT_TRUE(r.isUnknown());
     ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
-    ASSERT_EQ(t.d_calls, 100);
+    ASSERT_EQ(t.d_calls, 10);
     // the terminator still requests termination, the next query is
     // terminated immediately
     r = solver.checkSat();
     ASSERT_TRUE(r.isUnknown());
     ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
-    ASSERT_EQ(t.d_calls, 101);
+    ASSERT_EQ(t.d_calls, 11);
     // disconnected, the query is solved
     solver.setTerminator(nullptr);
     ASSERT_TRUE(solver.checkSat().isUnsat());
-    ASSERT_EQ(t.d_calls, 101);
+    ASSERT_EQ(t.d_calls, 11);
     // further queries on the same solver
     Term x = d_tm.mkConst(d_bool, "x");
     solver.push();

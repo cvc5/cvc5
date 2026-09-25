@@ -138,8 +138,10 @@ class ResourceManager
   /**
    * Checks whether termination of the current call has been requested, either
    * by the terminator of this resource manager or by the parent resource
-   * manager. Polls the terminator until it requests termination, the request
-   * is then remembered until the end of the current call.
+   * manager. The terminator is polled on the first check of each call, and
+   * then on every TERMINATOR_POLL_INTERVAL-th check, until it requests
+   * termination. The request is then remembered until the end of the current
+   * call.
    */
   bool terminationRequested() const;
   /**
@@ -234,8 +236,16 @@ class ResourceManager
   /** Receives a notification on reaching a limit. */
   std::vector<Listener*> d_listeners;
 
+  /**
+   * The number of checks per poll of the terminator, which keeps the overhead
+   * of calling potentially expensive terminators (e.g., of the language
+   * bindings) low.
+   */
+  static constexpr uint64_t TERMINATOR_POLL_INTERVAL = 100;
   /** The terminator, empty if not set. */
   std::function<bool()> d_terminator;
+  /** The number of checks of the terminator during the current call. */
+  mutable uint64_t d_terminatorChecks;
   /** The resource manager of the parent solver, if any. */
   const ResourceManager* d_parent;
   /** Whether termination has been requested during the current call. */
