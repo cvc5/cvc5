@@ -21,6 +21,7 @@
 
 #include <array>
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -103,9 +104,10 @@ constexpr std::size_t ResourceMax = static_cast<std::size_t>(Resource::Unknown);
 };  // namespace resman_detail
 
 /**
- * This class manages resource limits (cumulative or per call) and (per call)
- * time limits. The available resources are listed in Resource and their
- * individual costs are configured via command line options.
+ * This class manages resource limits (cumulative or per call), (per call)
+ * time limits, and termination requests via a user-provided terminator. The
+ * available resources are listed in Resource and their individual costs are
+ * configured via command line options.
  */
 class ResourceManager
 {
@@ -133,8 +135,21 @@ class ResourceManager
   bool outOfResources() const;
   /** Checks whether time has been exhausted. */
   bool outOfTime() const;
-  /** Checks whether any limit has been exhausted. */
-  bool out() const { return outOfResources() || outOfTime(); }
+  /**
+   * Checks whether termination of the current call has been requested, either
+   * by the terminator of this resource manager or by the parent resource
+   * manager. Polls the terminator until it requests termination, the request
+   * is then remembered until the end of the current call.
+   */
+  bool terminationRequested() const;
+  /**
+   * Checks whether any limit has been exhausted or termination has been
+   * requested.
+   */
+  bool out() const
+  {
+    return outOfResources() || outOfTime() || terminationRequested();
+  }
 
   /** Retrieves amount of resources used overall. */
   uint64_t getResourceUsage() const;
@@ -173,10 +188,22 @@ class ResourceManager
   void refresh();
 
   /**
-   * Registers a listener that is notified on a resource out or (per-call)
-   * timeout.
+   * Registers a listener that is notified on a resource out, (per-call)
+   * timeout, or termination request.
    */
   void registerListener(Listener* listener);
+
+  /**
+   * Set the terminator, which is polled periodically to determine whether the
+   * current call should be terminated. An empty function disconnects the
+   * current terminator.
+   */
+  void setTerminator(std::function<bool()> terminator);
+  /**
+   * Set the resource manager of the parent solver. Termination requests of
+   * the parent also apply to this resource manager (used for subsolvers).
+   */
+  void setParent(const ResourceManager* parent);
 
  private:
   const Options& d_options;
@@ -206,6 +233,13 @@ class ResourceManager
 
   /** Receives a notification on reaching a limit. */
   std::vector<Listener*> d_listeners;
+
+  /** The terminator, empty if not set. */
+  std::function<bool()> d_terminator;
+  /** The resource manager of the parent solver, if any. */
+  const ResourceManager* d_parent;
+  /** Whether termination has been requested during the current call. */
+  mutable bool d_terminationRequested;
 
   void spendResource(uint64_t amount);
 

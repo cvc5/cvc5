@@ -157,6 +157,8 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats,
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
       d_thisCallResourceBudget(0),
+      d_parent(nullptr),
+      d_terminationRequested(false),
       d_statistics(new ResourceManager::Statistics(stats))
 {
   d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
@@ -275,6 +277,7 @@ void ResourceManager::refresh()
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
   d_thisCallResourceUsed = 0;
+  d_terminationRequested = false;
 }
 
 bool ResourceManager::limitOn() const
@@ -319,9 +322,33 @@ bool ResourceManager::outOfTime() const
   return d_perCallTimer.expired();
 }
 
+bool ResourceManager::terminationRequested() const
+{
+  if (!d_enabled)
+  {
+    return false;
+  }
+  if (!d_terminationRequested)
+  {
+    d_terminationRequested = (d_terminator && d_terminator())
+                             || (d_parent && d_parent->terminationRequested());
+  }
+  return d_terminationRequested;
+}
+
 void ResourceManager::registerListener(Listener* listener)
 {
   return d_listeners.push_back(listener);
+}
+
+void ResourceManager::setTerminator(std::function<bool()> terminator)
+{
+  d_terminator = std::move(terminator);
+}
+
+void ResourceManager::setParent(const ResourceManager* parent)
+{
+  d_parent = parent;
 }
 
 }  // namespace cvc5::internal

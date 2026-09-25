@@ -275,6 +275,13 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
     // will terminate with unknown (timeout)
     return result;
   }
+  // if termination was requested, we are done
+  if (result.getStatus() == Result::UNKNOWN
+      && result.getUnknownExplanation() == UnknownExplanation::INTERRUPTED)
+  {
+    Trace("smt-to-core") << "...return, INTERRUPTED" << std::endl;
+    return result;
+  }
   // if UNSAT, we are done
   if (result.getStatus() == Result::UNSAT)
   {
