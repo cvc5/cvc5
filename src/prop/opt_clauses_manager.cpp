@@ -10,7 +10,7 @@
  * Implementation of lazy proof utility.
  */
 
-#include "prop/minisat/opt_clauses_manager.h"
+#include "prop/opt_clauses_manager.h"
 
 #include "proof/proof_node.h"
 

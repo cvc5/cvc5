@@ -12,8 +12,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROP__MINISAT__OPT_CLAUSES_MANAGER_H
-#define CVC5__PROP__MINISAT__OPT_CLAUSES_MANAGER_H
+#ifndef CVC5__PROP__OPT_CLAUSES_MANAGER_H
+#define CVC5__PROP__OPT_CLAUSES_MANAGER_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -33,8 +33,6 @@ namespace prop {
  * given context, storing a proof in a given level and, when the the respective
  * context pops, proofs of level no greater than the new one are reinserted in
  * the proof marked to be notified.
- *
- * This class is specific to Minisat.
  */
 class OptimizedClausesManager : context::ContextNotifyObj
 {

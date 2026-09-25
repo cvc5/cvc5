@@ -11,6 +11,8 @@
  */
 #include "prop/cadical/cdclt_propagator.h"
 
+#include "prop/prop_proof_manager.h"
+
 namespace cvc5::internal::prop::cadical {
 
 CadicalPropagator::CadicalPropagator(prop::TheoryProxy* proxy,
@@ -422,11 +424,15 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     // incremental checks. The reason is still a theory explanation and needs
     // the same user-level activation guard as reasons requested during search.
     // Add activation literal of the clause's user level to the reason.
-    SatLiteral alit = activation_lit(clause_user_level(clause));
+    uint32_t reason_user_level = clause_user_level(clause);
+    SatLiteral alit = activation_lit(reason_user_level);
     if (alit != undefSatLiteral)
     {
       d_reason.push_back(alit);
     }
+    // As in add_clause(), the reason is kept by the SAT solver at the user
+    // level its literals depend on, so its proof must be kept as well.
+    notify_clause_level(clause, reason_user_level);
     d_reason.insert(d_reason.end(), clause.begin(), clause.end());
     d_processing_reason = true;
     Trace("cadical::propagator")
@@ -490,6 +496,16 @@ SatValue CadicalPropagator::value(SatLiteral lit) const
   return val;
 }
 
+void CadicalPropagator::notify_clause_level(const SatClause& clause,
+                                            uint32_t user_level)
+{
+  if (d_ppm == nullptr || clause.empty() || user_level >= current_user_level())
+  {
+    return;
+  }
+  d_ppm->notifyClauseInsertedAtLevel(clause, user_level);
+}
+
 void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
 {
   std::vector<CadicalLit> lits;
@@ -537,6 +553,9 @@ void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
     {
       lits.insert(lits.begin(), toCadicalLit(alit));
     }
+    // The clause survives popping back to max_user_level, so its proof has to
+    // survive as well.
+    notify_clause_level(clause, max_user_level);
     // Do not immediately add clauses added during search. We have to buffer
     // them and add them during the cb_add_reason_clause_lit callback.
     if (d_in_search)

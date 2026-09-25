@@ -18,6 +18,10 @@
 #include "prop/sat_solver_types.h"
 #include "prop/theory_proxy.h"
 
+namespace cvc5::internal::prop {
+class PropPfManager;
+}
+
 namespace cvc5::internal::prop::cadical {
 
 class CadicalPropagator : public CaDiCaL::ExternalPropagator,
@@ -190,6 +194,14 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   void user_pop();
 
+  /**
+   * Set the proof manager to notify when a clause is attached to a user level
+   * below the current one, see PropPfManager::notifyClauseInsertedAtLevel.
+   *
+   * @param ppm The proof manager, or nullptr if we are not producing proofs.
+   */
+  void set_proof_manager(prop::PropPfManager* ppm) { d_ppm = ppm; }
+
   bool is_fixed(const SatVariable var) const
   {
     Assert(var < d_var_info.size());
@@ -259,12 +271,23 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    */
   int next_propagation();
 
+  /**
+   * Notify the proof manager, if any, that the SAT solver keeps the given
+   * clause at the given user level. This is a no-op if the level is the
+   * current one, in which case the proof of the clause has the same lifetime
+   * as the clause itself.
+   */
+  void notify_clause_level(const SatClause& clause, uint32_t user_level);
+
   /** The associated theory proxy. */
   prop::TheoryProxy* d_proxy = nullptr;
 
   /** The SAT context. */
   context::Context& d_context;
   CaDiCaL::Solver& d_solver;
+
+  /** The proof manager to notify about clause levels, null if no proofs. */
+  prop::PropPfManager* d_ppm = nullptr;
 
   /** Struct to store information on variables. */
   struct VarInfo

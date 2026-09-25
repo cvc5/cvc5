@@ -69,12 +69,14 @@ PropPfManager::PropPfManager(Env& env,
       d_lemmaClauseIds(userContext()),
       d_lemmaClauseTimestamp(userContext()),
       d_currLemmaId(theory::InferenceId::NONE),
+      d_optClausesManager(userContext(), &d_proof, d_optClausesPfs),
       d_satPm(nullptr),
       d_uclIds(statisticsRegistry().registerHistogram<theory::InferenceId>(
           "ppm::unsatCoreLemmaIds")),
       d_uclSize(statisticsRegistry().registerInt("ppm::unsatCoreLemmaSize")),
       d_numUcl(statisticsRegistry().registerInt("ppm::unsatCoreLemmaCalls"))
 {
+  d_optClausesManager.trackNodeHashSet(&d_lemmaClauses, &d_optClauseLevels);
   // Add trivial assumption. This is so that we can check that the prop engine's
   // proof is closed, as the SAT solver's refutation proof may use True as an
   // assumption even when True is not given as an assumption. An example is when
@@ -357,6 +359,44 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
     }
   }
   return normClauseNode;
+}
+
+Node PropPfManager::getClauseNode(const SatClause& clause) const
+{
+  std::vector<Node> clauseNodes;
+  for (const SatLiteral& lit : clause)
+  {
+    clauseNodes.push_back(d_cnfStream.getNode(lit));
+  }
+  // Match the normalization performed by normalizeAndRegister.
+  std::sort(clauseNodes.begin(), clauseNodes.end());
+  clauseNodes.erase(std::unique(clauseNodes.begin(), clauseNodes.end()),
+                    clauseNodes.end());
+  return nodeManager()->mkOr(clauseNodes);
+}
+
+void PropPfManager::notifyClauseInsertedAtLevel(const SatClause& clause,
+                                                uint32_t clLevel)
+{
+  // SAT user level zero corresponds to user context level one.
+  uint32_t contextLevel = clLevel + 1;
+  Assert(contextLevel < userContext()->getLevel());
+  Node clauseNode = getClauseNode(clause);
+  // Only lemma clauses need to be saved: input clauses are not added at an
+  // optimized user level, and their proofs may be assumptions.
+  if (!d_lemmaClauses.contains(clauseNode))
+  {
+    return;
+  }
+  Trace("cnf") << "Need to save clause " << clauseNode << " in level "
+               << contextLevel << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  // Justify eagerly, while the theory generators are still valid, and clone
+  // the proof to keep subsequent updates from changing the saved proof.
+  std::shared_ptr<ProofNode> pf = d_proof.getProofFor(clauseNode)->clone();
+  Assert(pf->getRule() != ProofRule::ASSUME);
+  d_optClausesPfs[contextLevel].push_back(pf);
+  d_optClauseLevels[contextLevel].push_back(clauseNode);
 }
 
 void PropPfManager::presolve()
