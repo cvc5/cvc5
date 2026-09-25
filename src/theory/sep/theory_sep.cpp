@@ -381,6 +381,38 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     d_im.lemma(lem, InferenceId::SEP_LABEL_INTRO);
     return;
   }
+  if (satom.getKind() == Kind::SEP_EMP)
+  {
+    // SEP_EMP is not a participant in the d_red_conc[slbl][satom] cache
+    // below: unlike SEP_STAR/SEP_WAND/SEP_PTO, its reduction is polarity-
+    // dependent and it emits its lemma directly rather than producing a
+    // polarity-independent `conc` for the shared use_polarity wrap-up.
+    // Deduplication for SEP_EMP is already handled correctly above via
+    // d_reduce, which is keyed on `fact` (so positive and negative
+    // occurrences of the same labelled sep.emp are distinct entries).
+    // Sharing d_red_conc with the other kinds would (and did) let one
+    // polarity's cache entry suppress the other polarity's lemma.
+    Node lem;
+    Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
+    if (polarity)
+    {
+      lem = nm->mkNode(Kind::OR, {fact.negate(), slbl.eqNode(emp_s)});
+    }
+    else
+    {
+      Assert(!d_type_ref.isNull());
+      Node kl = NodeManager::mkDummySkolem("loc", d_type_ref);
+      Node kd = NodeManager::mkDummySkolem("data", d_type_data);
+      Node econc = nm->mkNode(
+          Kind::SEP_LABEL,
+          nm->mkNode(Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, kl, kd), d_true),
+          slbl);
+      lem = nm->mkNode(Kind::OR, fact.negate(), econc);
+    }
+    Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
+    d_im.lemma(lem, InferenceId::SEP_EMP);
+    return;
+  }
   Trace("sep-lemma-debug") << "Reducing assertion " << fact << std::endl;
   Node conc;
   if (Node* in_map = FindOrNull(d_red_conc[slbl], satom))
@@ -451,33 +483,10 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       }
       // note semantics of sep.nil is enforced globally
     }
-    else if (satom.getKind() == Kind::SEP_EMP)
-    {
-      Node lem;
-      Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
-      if (polarity)
-      {
-        lem = nm->mkNode(Kind::OR, {fact.negate(), slbl.eqNode(emp_s)});
-      }
-      else
-      {
-        Assert(!d_type_ref.isNull());
-        Node kl = NodeManager::mkDummySkolem("loc", d_type_ref);
-        Node kd = NodeManager::mkDummySkolem("data", d_type_data);
-        Node econc = nm->mkNode(
-            Kind::SEP_LABEL,
-            nm->mkNode(
-                Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, kl, kd), d_true),
-            slbl);
-        // Node econc = nm->mkNode( AND, slbl.eqNode( emp_s ).negate(),
-        lem = nm->mkNode(Kind::OR, fact.negate(), econc);
-      }
-      Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
-      d_im.lemma(lem, InferenceId::SEP_EMP);
-    }
     else
     {
-      // labeled emp should be rewritten
+      // SEP_EMP is handled earlier in this function, before the
+      // d_red_conc cache is consulted; no other spatial kind reaches here.
       Unreachable();
     }
     d_red_conc[slbl][satom] = conc;
