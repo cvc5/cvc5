@@ -689,7 +689,7 @@ std::vector<cvc5::Term> Cvc5::PluginCpp::check()
   std::vector<cvc5::Term> res;
   if (d_plugin->check)
   {
-    size_t size;
+    size_t size = 0;
     const Cvc5Term* terms = d_plugin->check(&size, d_plugin->d_check_state);
     for (size_t i = 0; i < size; ++i)
     {

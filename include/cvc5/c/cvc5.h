@@ -3772,9 +3772,11 @@ struct Cvc5Plugin
   /**
    * Call to check, return list of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
-   * @param size  The size of the returned array of lemmas.
+   * @param size  The size of the returned array of lemmas, must always be
+   *              set.
    * @param state The state data for the function, may be NULL.
-   * @return The vector of lemmas to add to the SAT solver.
+   * @return The vector of lemmas to add to the SAT solver, may be NULL if
+   *         `size` is set to 0.
    * @note This function pointer may be NULL to use the default implementation.
    */
   const Cvc5Term* (*check)(size_t* size, void* state);
