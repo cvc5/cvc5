@@ -11,9 +11,12 @@
 import pytest
 import cvc5
 import sys
+import threading
+import time
 from math import isnan
 
 from cvc5 import Kind, OptionCategory, SortKind, TermManager, Solver, Plugin
+from cvc5 import Terminator, UnknownExplanation
 from cvc5 import RoundingMode
 from cvc5 import BlockModelsMode, LearnedLitType, FindSynthTarget
 from cvc5 import ProofComponent, ProofFormat
@@ -2380,3 +2383,140 @@ def test_plugin_listen(tm, solver):
     # above input formulas should induce a theory lemma and SAT clause learning
     assert pl.hasSeenTheoryLemma()
     assert pl.hasSeenSatClause()
+
+
+class TerminatorFlag(Terminator):
+    """Terminator that requests termination if flag is set."""
+
+    def __init__(self, flag=False):
+        self.flag = flag
+        self.calls = 0
+
+    def terminate(self):
+        self.calls += 1
+        return self.flag
+
+
+class TerminatorRaise(Terminator):
+    """Terminator that raises the given exception."""
+
+    def __init__(self, exception):
+        self.exception = exception
+
+    def terminate(self):
+        raise self.exception
+
+
+def add_pigeon_hole(tm, solver, n):
+    """Assert that n + 1 pigeons can be placed into n holes (unsat)."""
+    one = tm.mkInteger(1)
+    nholes = tm.mkInteger(n)
+    pigeons = [tm.mkConst(tm.getIntegerSort()) for _ in range(n + 1)]
+    for p in pigeons:
+        solver.assertFormula(tm.mkTerm(Kind.LEQ, one, p))
+        solver.assertFormula(tm.mkTerm(Kind.LEQ, p, nholes))
+    solver.assertFormula(tm.mkTerm(Kind.DISTINCT, *pigeons))
+
+
+def is_interrupted(r):
+    return (r.isUnknown()
+            and r.getUnknownExplanation() == UnknownExplanation.INTERRUPTED)
+
+
+def test_terminator_immediate(tm, solver):
+    t = TerminatorFlag(True)
+    solver.setTerminator(t)
+    x = tm.mkConst(tm.getBooleanSort(), "x")
+    solver.assertFormula(x)
+    assert is_interrupted(solver.checkSat())
+    assert t.calls == 1
+    assert is_interrupted(solver.checkSatAssuming(x.notTerm()))
+    assert t.calls == 2
+
+
+def test_terminator_never(tm, solver):
+    t = TerminatorFlag()
+    solver.setTerminator(t)
+    add_pigeon_hole(tm, solver, 4)
+    assert solver.checkSat().isUnsat()
+    assert t.calls > 0
+
+
+def test_terminator_reuse(tm, solver):
+    t = TerminatorFlag(True)
+    solver.setTerminator(t)
+    add_pigeon_hole(tm, solver, 4)
+    assert is_interrupted(solver.checkSat())
+    t.flag = False
+    assert solver.checkSat().isUnsat()
+    t.flag = True
+    assert is_interrupted(solver.checkSat())
+    solver.setTerminator(None)
+    assert solver.checkSat().isUnsat()
+
+
+def test_terminator_lifetime(tm, solver):
+    # the solver keeps the terminator alive while connected
+    solver.setTerminator(TerminatorFlag(True))
+    assert is_interrupted(solver.checkSat())
+
+
+def test_terminator_not_implemented(tm, solver):
+    solver.setTerminator(Terminator())
+    with pytest.raises(NotImplementedError):
+        solver.checkSat()
+
+
+def test_terminator_exception(tm, solver):
+    solver.setOption("produce-unsat-cores", "true")
+    solver.setTerminator(TerminatorRaise(ValueError("terminate")))
+    add_pigeon_hole(tm, solver, 4)
+    with pytest.raises(ValueError, match="terminate"):
+        solver.checkSat()
+    with pytest.raises(ValueError, match="terminate"):
+        solver.getTimeoutCore()
+    # the solver can be used after the exception was raised
+    solver.setTerminator(None)
+    assert solver.checkSat().isUnsat()
+
+
+def test_terminator_keyboard_interrupt(tm, solver):
+    solver.setTerminator(TerminatorRaise(KeyboardInterrupt()))
+    add_pigeon_hole(tm, solver, 4)
+    with pytest.raises(KeyboardInterrupt):
+        solver.checkSat()
+
+
+def test_terminator_thread(tm, solver):
+    class TerminatorEvent(Terminator):
+        def __init__(self):
+            self.event = threading.Event()
+            # fallback to not run forever if the event is never observed
+            self.deadline = time.monotonic() + 60
+
+        def terminate(self):
+            return self.event.is_set() or time.monotonic() > self.deadline
+
+    t = TerminatorEvent()
+    solver.setTerminator(t)
+    # hard enough to not be solved before termination is requested
+    add_pigeon_hole(tm, solver, 12)
+    thread = threading.Thread(target=lambda: (time.sleep(0.1), t.event.set()))
+    thread.start()
+    r = solver.checkSat()
+    thread.join()
+    assert is_interrupted(r)
+    assert time.monotonic() < t.deadline
+
+
+def test_terminator_subsolver(tm, solver):
+    solver.setLogic("QF_LIA")
+    solver.setOption("produce-abducts", "true")
+    solver.setOption("incremental", "false")
+    zero = tm.mkInteger(0)
+    x = tm.mkConst(tm.getIntegerSort(), "x")
+    y = tm.mkConst(tm.getIntegerSort(), "y")
+    solver.assertFormula(tm.mkTerm(Kind.GT, x, zero))
+    # abduction is performed by a subsolver, which is terminated
+    solver.setTerminator(TerminatorFlag(True))
+    assert solver.getAbduct(tm.mkTerm(Kind.GT, y, zero)).isNull()
