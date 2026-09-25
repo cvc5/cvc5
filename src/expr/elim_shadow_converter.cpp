@@ -82,37 +82,49 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   ElimShadowNodeConverter esnc(nm, q);
   // eliminate shadowing in all children
   std::vector<Node> children;
-  // drop duplicate variables
-  std::vector<Node> vars;
   bool childChanged = false;
-  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  if (q.getKind() == Kind::LAMBDA)
   {
-    const Node& v = q[0][i];
-    if (std::find(vars.begin(), vars.end(), v) == vars.end())
-    {
-      vars.push_back(v);
-    }
-    else
-    {
-      // should not eliminate shadowing from lambda, since order of variables
-      // matters.
-      Assert(q.getKind() != Kind::LAMBDA);
-      Node vn = getElimShadowVar(q, q, i);
-      vars.push_back(vn);
-      childChanged = true;
-    }
-  }
-  if (childChanged)
-  {
-    children.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, vars));
+    // Do not rename duplicate lambda arguments, since the argument order is
+    // part of the lambda's semantics.
+    children.push_back(q[0]);
   }
   else
   {
-    children.push_back(q[0]);
+    // drop duplicate variables
+    std::vector<Node> vars;
+    for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+    {
+      const Node& v = q[0][i];
+      if (std::find(vars.begin(), vars.end(), v) == vars.end())
+      {
+        vars.push_back(v);
+      }
+      else
+      {
+        Node vn = getElimShadowVar(q, q, i);
+        vars.push_back(vn);
+        childChanged = true;
+      }
+    }
+    if (childChanged)
+    {
+      children.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, vars));
+    }
+    else
+    {
+      children.push_back(q[0]);
+    }
   }
   for (size_t i = 1, nchild = q.getNumChildren(); i < nchild; i++)
   {
-    children.push_back(esnc.convert(q[i]));
+    Node c = esnc.convert(q[i]);
+    childChanged = childChanged || c != q[i];
+    children.push_back(c);
+  }
+  if (!childChanged)
+  {
+    return q;
   }
   return nm->mkNode(q.getKind(), children);
 }
