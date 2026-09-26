@@ -24,6 +24,7 @@
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/env.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/trust_substitutions.h"
 #include "util/result.h"
 
@@ -188,6 +189,15 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
           n[0], defRew, d_defFunRewPf.get());
       return;
     }
+  }
+
+  Node head = quantifiers::QuantAttributes::getFunDefHead(n);
+  if (!head.isNull())
+  {
+    // Core-checking subsolvers replay annotated recursive definitions as
+    // assertions, so registration must not depend on isFunDef. Global
+    // definitions are registered when refresh() restores their assertions.
+    d_env.registerRecursiveFunction(head.getOperator());
   }
 
   // Ensure that it does not contain free variables

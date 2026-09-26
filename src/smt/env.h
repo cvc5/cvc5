@@ -302,6 +302,12 @@ class Env
   /** get oracle checker */
   theory::quantifiers::OracleChecker* getOracleChecker() const;
 
+  /** Register a recursive function whose definition is active in this context.
+   */
+  void registerRecursiveFunction(const Node& f);
+  /** Whether f has a recursive definition in this solver's user context. */
+  bool isRecursiveFunction(const Node& f) const;
+
   /**
    * Register Boolean term skolem. This registers that k is a Boolean variable
    * that should be treated as a theory atom. This impacts theoryOf, where
@@ -424,6 +430,8 @@ class Env
    * Boolean type.
    */
   context::CDHashSet<Node> d_boolTermSkolems;
+  /** Active recursive definitions, scoped like the assertions defining them. */
+  context::CDHashSet<Node> d_recursiveFunctions;
 }; /* class Env */
 
 }  // namespace cvc5::internal

@@ -937,6 +937,9 @@ set(regress_0_tests
   regress0/ff/xor_unsound_missing.smt2
   regress0/flet.smtv1.smt2
   regress0/flet2.smtv1.smt2
+  regress0/fmf/rec-alias-preprocess.smt2
+  regress0/fmf/rec-alias-scoped.smt2
+  regress0/fmf/rec-alias-mutual.smt2
   regress0/fmf/array_card.smt2
   regress0/fmf/Arrow_Order-smtlib.778341.smtv1.smt2
   regress0/fmf/bounded_sets.smt2
