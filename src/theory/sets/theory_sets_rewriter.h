@@ -169,8 +169,11 @@ class TheorySetsRewriter : public TheoryRewriter
    */
   RewriteResponse postRewriteAggregate(TNode n);
   /**
-   * If A has type (Set T), then rewrite ((rel.project n1 ... nk) A) as
-   * (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
+   *  rewrites for n include:
+   *  - ((_ rel.project i_1 ... i_n) (as set.empty T1)) = (as set.empty T2)
+   *  - ((_ rel.project 0 1 ... n-1) A) = A
+   *  - ((_ rel.project j_1 ... j_m) ((_ rel.project i_1 ... i_n) A)) =
+   *      ((_ rel.project i_{j_1} ... i_{j_m}) A)
    */
   RewriteResponse postRewriteProject(TNode n);
   /** Is sets+cardinality enabled? */
