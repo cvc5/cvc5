@@ -722,6 +722,14 @@ struct CVC5_EXPORT Cvc5
    *       destroyed after it.
    */
   std::vector<std::unique_ptr<PluginCpp>> d_plugins;
+  class TerminatorCpp;
+  /**
+   * The configured terminator.
+   * @note The solver only keeps a raw pointer to its terminator. This member
+   *       must thus be declared before `d_solver` so that it is destroyed
+   *       after it.
+   */
+  std::unique_ptr<TerminatorCpp> d_terminator;
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
@@ -775,6 +783,23 @@ struct CVC5_EXPORT Cvc5
    private:
     Cvc5* d_cvc5;
     Cvc5Plugin* d_plugin;
+  };
+
+  /** The configured terminator, see `d_terminator`. */
+  class TerminatorCpp : public cvc5::Terminator
+  {
+   public:
+    TerminatorCpp(void* state, bool (*fun)(void*))
+        : d_state(state), d_terminate(fun)
+    {
+    }
+    bool terminate() override;
+
+   private:
+    /** The state data passed to the terminator. */
+    void* d_state;
+    /** The terminator. */
+    bool (*d_terminate)(void*);
   };
 
  private:
