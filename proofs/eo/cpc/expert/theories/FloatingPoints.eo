@@ -22,7 +22,7 @@
 (declare-parameterized-const fp.fma ((e Int :implicit) (s Int :implicit))
   (-> RoundingMode (FloatingPoint e s) (FloatingPoint e s) (FloatingPoint e s) (FloatingPoint e s)))
 (declare-parameterized-const fp.sqrt ((e Int :implicit) (s Int :implicit))
-  (-> (FloatingPoint e s) (FloatingPoint e s) (FloatingPoint e s)))
+  (-> RoundingMode (FloatingPoint e s) (FloatingPoint e s)))
 (declare-parameterized-const fp.rem ((e Int :implicit) (s Int :implicit))
   (-> (FloatingPoint e s) (FloatingPoint e s) (FloatingPoint e s)))
 (declare-parameterized-const fp.roundToIntegral ((e Int :implicit) (s Int :implicit))

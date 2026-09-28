@@ -1,5 +1,5 @@
 ; COMMAND-LINE: -i --sat-solver=cadical
-; Proof checking fails after pop: the subsequent unsat proof contains
+; Proof checking fails after check-sat-assuming: the subsequent unsat proof contains
 ; a free assumption (ProofNodeManager::mkScope).
 ; DISABLE-TESTER: proof
 (set-logic ALL)
