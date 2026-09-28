@@ -6144,11 +6144,6 @@ Op TermManager::mkOp(Kind kind, const std::string& arg)
   CVC5_API_KIND_CHECK_EXPECTED((kind == Kind::DIVISIBLE), kind) << "DIVISIBLE";
   //////// all checks before this line
   Op res;
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
-      << "a string representing an integer, real or rational value.";
   res = mkOpHelper(kind, internal::Divisible(internal::Integer(arg)));
   return res;
   ////////
@@ -6224,11 +6219,6 @@ Term TermManager::mkInteger(int64_t val)
 Term TermManager::mkReal(const std::string& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC5_API_ARG_CHECK_EXPECTED(s != ".", s)
-      << "a string representing a real or rational value.";
   //////// all checks before this line
   return mkRealOrIntegerFromStrHelper(s, false);
   ////////
