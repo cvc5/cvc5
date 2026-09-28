@@ -103,6 +103,24 @@ class TheorySetsPrivate : protected EnvObj
    *   where x is a fresh skolem
    */
   void checkMapDown();
+  /**
+   * @param f a function of type (-> E T)
+   * @param x a term of type E
+   * @return the application of f to x, beta-reduced if f is defined by a
+   * lambda.
+   *
+   * The terms this solver builds for the map rules are asserted as internal
+   * facts and so never go through preprocessing. We therefore have to perform
+   * the beta reduction that HoExtension::ppRewrite would otherwise have
+   * performed, see FunctionConst::getDefinition.
+   *
+   * Note the filter rules build applications of their predicate in the same
+   * way and have the same problem, but their conclusions are reconstructed by
+   * the SETS_FILTER_UP and SETS_FILTER_DOWN proof rules, which are stated over
+   * the unreduced application. Beta-reducing there requires updating those
+   * rules in lockstep, so it is left alone here.
+   */
+  Node mkApplyFunction(const Node& f, const Node& x);
   void checkGroup(Node n);
   /**
    * @param n has form ((_ rel.group n1 ... nk) A) where A has type T
@@ -333,16 +351,23 @@ class TheorySetsPrivate : protected EnvObj
   void checkCardinality();
   /** Run the relations subsolver, if relational constraints are present. */
   void checkRelations();
-  /** Run the acyclicity subsolver, if not-acyclicity constraints are present.
+  /**
+   * Run the acyclicity subsolver, if not-acyclicity constraints are present.
+   * See TheorySetsRels::checkAcyclicity.
    */
   void checkAcyclicity();
   /**
-   * Run transitive-closure reasoning (TheorySetsRels::checkTransitiveClosure):
-   * the down rule, which introduces fresh skolem elements, together with the up
-   * rule. One sweep over the current TC members is done per call, so only
+   * Run the transitive-closure down rule, which introduces fresh skolem
+   * elements. One sweep over the current TC members is done per call, so only
    * finitely many fresh elements are introduced per strategy pass.
    */
-  void checkTransitiveClosure();
+  void checkTransitiveClosureDown();
+  /**
+   * Run the transitive-closure up rule, which chains the closure graph built by
+   * checkTransitiveClosureDown. It must run in the same strategy pass as the
+   * down rule, since the two share that graph.
+   */
+  void checkTransitiveClosureUp();
   /**
    * Last-call check: give open relation-acyclicity cycle obligations one
    * more chance to catch up to a now-fixed cycle length before the model is

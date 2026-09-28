@@ -1900,8 +1900,7 @@ void EqualityEngine::getExplanation(
                   }
                   else
                   {
-                    // The LFSC translator prefers (not (= a b)) over (= (= a b)
-                    // false)
+                    // Prefer (not (= a b)) over (= (= a b) false).
 
                     if (a == nodeManager()->mkConst(false))
                     {

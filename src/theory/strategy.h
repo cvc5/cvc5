@@ -41,11 +41,11 @@ class InferenceManagerBuffered;
  *   3. implementing initializeStrategy() to build the list using the protected
  *      helpers below (markStartEffort / addStrategyStep / markEndEffort /
  *      finishInit).
- * The theory's own check loop (typically runStrategy / runStep) is
- * intentionally NOT part of this class: those dispatch to theory-specific
- * sub-solvers.
- * This class owns only the *recipe* (the ordered list and its per-effort
- * slices); the theory owns how the recipe is executed.
+ * This class owns the *recipe* (the ordered list and its per-effort slices),
+ * the single-pass driver runStrategy(), and the standard fixpoint check loop
+ * postCheck() that repeatedly runs the strategy and flushes pending
+ * inferences. The per-step dispatch (runStep) is implemented by each theory,
+ * since steps map to theory-specific sub-solvers.
  *
  * The step list is stored flat. For an effort e, the steps to run are the
  * half-open iterator range [stepBegin(e), stepEnd(e)).
@@ -56,8 +56,7 @@ class StrategyBase
  public:
   StrategyBase(TheoryId id,
                TheoryState* state = nullptr,
-               InferenceManagerBuffered* im = nullptr,
-               Valuation* valuation = nullptr);
+               InferenceManagerBuffered* im = nullptr);
 
   /** a destructor */
   virtual ~StrategyBase();
@@ -69,10 +68,12 @@ class StrategyBase
   bool hasStrategyEffort(Theory::Effort e) const;
 
   /** Begin iterator over the steps to run at effort e. */
-  std::vector<std::pair<Step, unsigned>>::iterator stepBegin(Theory::Effort e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator stepBegin(
+      Theory::Effort e);
 
   /** End iterator over the steps to run at effort e. */
-  std::vector<std::pair<Step, unsigned>>::iterator stepEnd(Theory::Effort e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator stepEnd(
+      Theory::Effort e);
 
   /**
    * Build the strategy. Implemented by each theory's derived class. A typical
@@ -92,31 +93,40 @@ class StrategyBase
   virtual void initializeStrategy() = 0;
 
   /**
-   * The standard full/last-call effort check loop.
-   * It repeatedly runs the strategy and sends pending
-   * facts/lemmas until a conflict or lemma is produced or nothing is pending.
+   * Run the steps registered for effort e in order, dispatching each via
+   * runStep() and yielding at BREAK markers once something has been
+   * processed or a conflict is found. This is a single pass; the standard
+   * check loop around it is postCheck().
+   */
+  void runStrategy(Theory::Effort e);
+
+  /**
+   * The standard full/last-call effort check loop for a theory whose
+   * inference steps are organized as a strategy. It repeatedly runs the
+   * strategy for effort e and sends the resulting pending facts/lemmas via
+   * the inference manager until a conflict or lemma is produced or nothing
+   * is pending. It is a no-op if we are already in conflict, a new SAT
+   * decision is pending, or the strategy has no steps registered for effort
+   * e. A derived class may override this to do theory-specific work around
+   * the loop (e.g. flushing facts buffered during notifyFact) and call
+   * StrategyBase::postCheck to run the loop itself.
    */
   virtual void postCheck(Theory::Effort e);
 
  protected:
   /**
-   * Run the steps registered for effort e in order, dispatching each via
-   * runStep() and yielding at BREAK markers once something has been
-   * processed or a conflict is found.
-   */
-  void runStrategy(Theory::Effort e);
-
-  /**
    * Execute a single inference step.
    */
-  virtual void runStep(Step s, Theory::Effort e, unsigned effort) = 0;
+  virtual void runStep(Step s, Theory::Effort e, Theory::Effort effort) = 0;
 
   /**
-   * Append step s (running at the given effort index) to the strategy. If
+   * Append step s (running at the given effort) to the strategy. If
    * addBreak is true (default), a BREAK marker is appended after it, which the
    * theory's runStrategy uses as a yield point.
    */
-  void addStrategyStep(Step s, int effort = 0, bool addBreak = true);
+  void addStrategyStep(Step s,
+                       Theory::Effort effort = Theory::EFFORT_FULL,
+                       bool addBreak = true);
 
   /**
    * Mark that the steps for effort e begin at the current end of the list.
@@ -143,17 +153,16 @@ class StrategyBase
   TheoryId d_theoryId;
   TheoryState* d_state;
   InferenceManagerBuffered* d_im;
-  Valuation* d_valuation;
   /** Whether the strategy has been initialized. */
   bool d_strategyInit;
   /** The flat ordered list of steps, with BREAK markers interleaved. */
-  std::vector<std::pair<Step, unsigned>> d_steps;
+  std::vector<std::pair<Step, Theory::Effort>> d_steps;
   /** For each effort, the [begin,end] index range into d_inferSteps. */
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>> d_stratSteps;
+  std::map<Theory::Effort, std::pair<size_t, size_t>> d_stratSteps;
   /** Scratch: per-effort begin indices recorded by markStartEffort. */
-  std::map<Theory::Effort, unsigned> d_stepBegin;
+  std::map<Theory::Effort, size_t> d_stepBegin;
   /** Scratch: per-effort end indices recorded by markEndEffort. */
-  std::map<Theory::Effort, unsigned> d_stepEnd;
+  std::map<Theory::Effort, size_t> d_stepEnd;
 }; /* class StrategyBase */
 
 }  // namespace theory

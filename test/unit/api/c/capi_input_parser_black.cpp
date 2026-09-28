@@ -35,6 +35,7 @@ class TestCApiBlackInputParser : public ::testing::Test
   {
     cvc5_symbol_manager_delete(d_sm);
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
 
@@ -57,6 +58,7 @@ TEST_F(TestCApiBlackInputParser, get_solver)
 {
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
   ASSERT_EQ(cvc5_parser_get_solver(parser), d_solver);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -83,6 +85,7 @@ TEST_F(TestCApiBlackInputParser, set_file_input)
   ASSERT_CVC5_ERROR(cvc5_parser_set_file_input(
                         parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parse.smt2"),
                     "Couldn't open file");
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -129,6 +132,7 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input)
   ASSERT_EQ(cmd, nullptr);
   ASSERT_TRUE(cvc5_parser_done(parser));
 
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -156,6 +160,7 @@ TEST_F(TestCApiBlackInputParser, set_and_append_inc_str_input_interleave)
   ASSERT_EQ(cmd, nullptr);
   ASSERT_TRUE(cvc5_parser_done(parser));
 
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -164,6 +169,7 @@ TEST_F(TestCApiBlackInputParser, append_inc_str_no_set)
   Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
   ASSERT_CVC5_ERROR(cvc5_parser_append_inc_str_input(parser, "(set-logic ALL)"),
                     "parser not initialized");
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -198,6 +204,7 @@ TEST_F(TestCApiBlackInputParser, set_str_input)
   cmd = cvc5_parser_next_command(parser, &error_msg);
   ASSERT_EQ(cmd, nullptr);
   ASSERT_EQ(error_msg, nullptr);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -215,6 +222,7 @@ TEST_F(TestCApiBlackInputParser, next_command)
                     "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_parser_next_command(parser, nullptr),
                     "unexpected NULL argument");
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -229,6 +237,7 @@ TEST_F(TestCApiBlackInputParser, next_command_no_input)
   Cvc5Term t = cvc5_parser_next_term(parser, &error_msg);
   ASSERT_EQ(t, nullptr);
   ASSERT_EQ(error_msg, nullptr);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -247,6 +256,7 @@ TEST_F(TestCApiBlackInputParser, next_term)
                     "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_parser_next_term(parser, nullptr),
                     "unexpected NULL argument");
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -278,6 +288,7 @@ TEST_F(TestCApiBlackInputParser, next_term2)
   term = cvc5_parser_next_term(parser, &error_msg);
   ASSERT_EQ(term, nullptr);
   ASSERT_NE(error_msg, nullptr);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -324,10 +335,15 @@ TEST_F(TestCApiBlackInputParser, multiple_parsers)
       cvc5_parser_set_inc_str_input(
           parser5, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parser_black"),
       "Logic mismatch");
+  cvc5_parser_release(parser5);
   cvc5_parser_delete(parser5);
+  cvc5_parser_release(parser4);
   cvc5_parser_delete(parser4);
+  cvc5_parser_release(parser3);
   cvc5_parser_delete(parser3);
+  cvc5_parser_release(parser2);
   cvc5_parser_delete(parser2);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_delete(solver4);
   cvc5_delete(solver3);
@@ -356,6 +372,7 @@ TEST_F(TestCApiBlackInputParser, inc_set_Str)
     out << cvc5_cmd_invoke(cmd, d_solver, d_sm);
   }
   ASSERT_EQ(out.str().empty(), true);
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 
@@ -383,6 +400,7 @@ TEST_F(TestCApiBlackInputParser, get_declared_terms_and_sorts)
   ASSERT_EQ(size, 1);
   ASSERT_TRUE(cvc5_sort_is_equal(cvc5_term_get_sort(terms[0]), sorts[0]));
 
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }
 }  // namespace cvc5::internal::test

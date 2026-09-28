@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-unif-pi=complete --sygus-inference=try
 ; EXPECT: sat
 (set-logic UFLIA)

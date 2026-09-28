@@ -23,13 +23,24 @@ std::ostream& operator<<(std::ostream& out, Step s)
   {
     case Step::NONE: out << "NONE"; break;
     case Step::BREAK: out << "BREAK"; break;
+    case Step::BAGS_CHECK_INIT: out << "BAGS_CHECK_INIT"; break;
+    case Step::BAGS_CHECK_BAG_MAKE: out << "BAGS_CHECK_BAG_MAKE"; break;
+    case Step::BAGS_CHECK_BASIC_OPERATIONS:
+      out << "BAGS_CHECK_BASIC_OPERATIONS";
+      break;
+    case Step::BAGS_CHECK_QUANTIFIED_OPERATIONS:
+      out << "BAGS_CHECK_QUANTIFIED_OPERATIONS";
+      break;
     case Step::SETS_CHECK_RESET: out << "SETS_CHECK_RESET"; break;
     case Step::SETS_CHECK_BASIC: out << "SETS_CHECK_BASIC"; break;
     case Step::SETS_CHECK_CARDINALITY: out << "SETS_CHECK_CARDINALITY"; break;
     case Step::SETS_CHECK_RELATIONS: out << "SETS_CHECK_RELATIONS"; break;
     case Step::SETS_CHECK_ACYCLICITY: out << "SETS_CHECK_ACYCLICITY"; break;
-    case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
-      out << "SETS_CHECK_TRANSITIVE_CLOSURE";
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN:
+      out << "SETS_CHECK_TRANSITIVE_CLOSURE_DOWN";
+      break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_UP:
+      out << "SETS_CHECK_TRANSITIVE_CLOSURE_UP";
       break;
     case Step::SETS_CHECK_FILTER: out << "SETS_CHECK_FILTER"; break;
     case Step::SETS_CHECK_MAP: out << "SETS_CHECK_MAP"; break;

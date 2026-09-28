@@ -288,6 +288,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     {
       case THEORY_STRINGS: new_ret = extendedRewriteStrings(ret); break;
       case THEORY_SETS: new_ret = extendedRewriteSets(ret); break;
+      case THEORY_ARITH: new_ret = extendedRewriteArith(ret); break;
       default: break;
     }
   }
@@ -2080,6 +2081,23 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
     return rr.d_node;
   }
 
+  return Node::null();
+}
+
+Node ExtendedRewriter::extendedRewriteArith(const Node& node) const
+{
+  if (node.getKind() == Kind::EQUAL)
+  {
+    // We invoke the extended equality rewriter, which normalizes the equality.
+    // Notice this is not applied by Rewriter::rewrite, since it does not
+    // preserve the terms of the equality, see rewriter::normalizeEquality.
+    Node ret = d_rew.rewriteEqualityExt(node);
+    if (ret != node)
+    {
+      debugExtendedRewrite(node, ret, "ARITH_EXT_EQ_REWRITE");
+      return ret;
+    }
+  }
   return Node::null();
 }
 

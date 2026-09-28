@@ -10,12 +10,12 @@
 
 GPL="$1"
 
-COMMON_CMD="./configure.sh production --auto-download --python-bindings --python-only-src --prefix=./install -DBUILD_GMP=1"
+COMMON_CMD="./configure.sh unrestricted --auto-download --python-bindings --python-only-src --prefix=./install -DBUILD_GMP=1"
 
 if [ "$GPL" = "true" ]; then
   # Install build dependencies for GPL libraries
   brew install autoconf automake libtool
-  GPL_FLAGS="--gpl --cln --glpk --cocoa"
+  GPL_FLAGS="--gpl --cln --glpk --cocoa --normaliz"
 else
   GPL_FLAGS=""
 fi

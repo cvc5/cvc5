@@ -26,13 +26,21 @@ namespace theory {
  * This enums contains steps for all theory solvers that implement a
  * strategy.
  */
-enum Step : uint32_t
+enum class Step : uint32_t
 {
   // placeholder specfying no inference step
   NONE,
 
   // indicates that the strategy should break if lemmas or facts are added
   BREAK,
+  // collect the bag and count terms of the current equality engine
+  BAGS_CHECK_INIT,
+  // check the bag.bag operator
+  BAGS_CHECK_BAG_MAKE,
+  // check basic bag operations without quantifiers
+  BAGS_CHECK_BASIC_OPERATIONS,
+  // check bag operations with quantifiers
+  BAGS_CHECK_QUANTIFIED_OPERATIONS,
   // reset the per-pass full-effort state
   SETS_CHECK_RESET,
   // check basic sets operations
@@ -41,10 +49,14 @@ enum Step : uint32_t
   SETS_CHECK_CARDINALITY,
   // check basic relational operators
   SETS_CHECK_RELATIONS,
-  // check acyclicity
+  // check relation acyclicity: unroll the cycle witnesses of asserted
+  // (not (rel.acyclic R)) constraints
   SETS_CHECK_ACYCLICITY,
-  // check transitive closure
-  SETS_CHECK_TRANSITIVE_CLOSURE,
+  // check the transitive closure down rule, which introduces fresh elements
+  SETS_CHECK_TRANSITIVE_CLOSURE_DOWN,
+  // check the transitive closure up rule, which chains the closure graph built
+  // by the down rule
+  SETS_CHECK_TRANSITIVE_CLOSURE_UP,
   // check filter
   SETS_CHECK_FILTER,
   // check map

@@ -134,15 +134,22 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n)
-   *   \circ \cdots \circ \sigma_{ids}(F_1)}
+   *   \inferrule{F_1 \dots F_n \mid t, ids?, ida?}{t =
+   *   \texttt{apply}_{ida}(t, \sigma_{ids}(F_1), \dots, \sigma_{ids}(F_n))}
    *
-   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
-   * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
-   * determines how to convert the formulas :math:`F_1 \dots F_n` into
-   * substitutions. It is an optional argument, where by default the premises
-   * are equalities of the form `(= x y)` and converted into substitutions
-   * :math:`x\mapsto y`.
+   * where :math:`\sigma_{ids}(F_i)` are substitutions. The optional MethodId
+   * identifier :math:`ids` determines how to convert the formulas
+   * :math:`F_1 \dots F_n` into substitutions. It defaults to ``SB_DEFAULT``,
+   * where the premises are equalities of the form `(= x y)` and converted into
+   * substitutions :math:`x\mapsto y`.
+   *
+   * The optional MethodId identifier :math:`ida` determines how
+   * :math:`\texttt{apply}_{ida}` applies these substitutions to :math:`t`.
+   * It defaults to ``SBA_SEQUENTIAL``, which applies them in reverse order,
+   * yielding :math:`t \circ \sigma_{ids}(F_n) \circ \cdots \circ \sigma_{ids}(F_1)`.
+   * Alternatively, ``SBA_SIMUL`` applies the substitutions simultaneously, and
+   * ``SBA_FIXPOINT`` applies them to a fixpoint. For ``SBA_FIXPOINT``, the
+   * substitutions must form a terminating rewrite system.
    * \endverbatim
    */
   EVALUE(SUBS),
@@ -2309,7 +2316,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */
@@ -2325,14 +2332,19 @@ enum ENUM(ProofRule)
    *   \leq \texttt{secant-pos}(\exp, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term
-   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p^*` be
-   * a modification of the :math:`d`'th taylor polynomial at zero (also called
-   * the Maclaurin series) of the exponential function as follows where
-   * :math:`p(d-1)` is the regular Maclaurin series of degree :math:`d-1`:
+   * and :math:`l,u` are lower and upper bounds on :math:`t` with
+   * :math:`0 \leq l \leq u`. Let :math:`p^*` be a modification of the
+   * :math:`d`'th taylor polynomial at zero (also called the Maclaurin series)
+   * of the exponential function as follows where :math:`p(d-1)` is the regular
+   * Maclaurin series of degree :math:`d-1` and :math:`n = d`:
    *
    * .. math::
    *
-   *   p^* := p(d-1) \cdot (\frac{1 - t^n}{n!})^{-1}
+   *   p^* := p(d-1) \cdot (1 - \frac{t^n}{n!})^{-1}
+   *
+   * Note that :math:`p^*` is an upper bound for :math:`\exp` on
+   * :math:`[l,u]` only if its denominator is positive there, hence this rule
+   * additionally requires that :math:`\frac{u^n}{n!} < 1`.
    *
    * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
    * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
@@ -2343,7 +2355,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */
@@ -2701,21 +2713,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(FF_ONE_UNSAT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- LFSC**
-   *
-   * Place holder for LFSC rules.
-   *
-   * .. math::
-   *
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
-   * \endverbatim
-   */
-  EVALUE(LFSC_RULE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **External -- Alethe**

@@ -216,7 +216,7 @@
   (
   (($bv_bitblast_ult (@from_bools b1 a1) (@from_bools b2 a2) orEqual)  (eo::define ((res (and (not b1) b2)))
                                                                        (eo::define ((res2 (eo::ite orEqual (or res (= b1 b2)) res)))
-                                                                          ($bv_bitblast_ult_rec a1 a2 res))))
+                                                                          ($bv_bitblast_ult_rec a1 a2 res2))))
   )
 )
 
@@ -282,12 +282,17 @@
 ; - a (BitVec n): The term we are bitblasting, expected to be an application of bf to list of bits.
 ; - ac (BitVec n): The accumulated return value.
 ; return: the bitblasted version of a.
-(program $bv_mk_bitblast_step_bitwise ((T Type) (n Int) (m Int) (bf (-> (BitVec n) (BitVec n) (BitVec n))) 
+; note: >
+;   The base case guards that the terminal operand is the identity (nil) of bf.
+;   This excludes an ill-formed plain binary application (e.g. (bvand x y) whose
+;   right operand y is not the operator's identity), which would otherwise
+;   silently drop the terminal operand and produce an unsound bitblasting.
+(program $bv_mk_bitblast_step_bitwise ((T Type) (n Int) (m Int) (bf (-> (BitVec n) (BitVec n) (BitVec n)))
                                        (f (-> T T Bool)) (a1 (BitVec m)) (a2 (BitVec m) :list) (ac (BitVec m)))
   :signature ((-> (BitVec n) (BitVec n) (BitVec n)) (-> T T Bool) (BitVec m) (BitVec m)) (BitVec m)
   (
   (($bv_mk_bitblast_step_bitwise bf f (bf a1 a2) ac)    ($bv_mk_bitblast_step_bitwise bf f a2 ($bv_bitblast_apply_binary f ac a1)))
-  (($bv_mk_bitblast_step_bitwise bf f a2 ac)            ac)
+  (($bv_mk_bitblast_step_bitwise bf f a2 ac)            (eo::requires a2 (eo::nil bf (eo::typeof a2)) ac))
   )
 )
 
@@ -328,7 +333,9 @@
   :signature ((BitVec n) (BitVec n)) (BitVec n)
   (
   (($bv_mk_bitblast_step_add (bvadd a1 a2) ac) ($bv_mk_bitblast_step_add a2 ($bv_ripple_carry_adder ac a1 false)))
-  (($bv_mk_bitblast_step_add a2 ac)            ac)
+  ; the terminal operand must be bvadd's identity (zero); otherwise (e.g. a
+  ; plain binary application) this would silently drop it and be unsound.
+  (($bv_mk_bitblast_step_add a2 ac)            (eo::requires (eo::to_z a2) 0 ac))
   )
 )
 
@@ -397,7 +404,9 @@
   :signature ((BitVec n) (BitVec n)) (BitVec n)
   (
   (($bv_mk_bitblast_step_mul (bvmul a1 a2) ac) ($bv_mk_bitblast_step_mul a2 ($bv_shift_add_multiplier ac a1)))
-  (($bv_mk_bitblast_step_mul a2 ac)            ac)
+  ; the terminal operand must be bvmul's identity (one); otherwise (e.g. a
+  ; plain binary application) this would silently drop it and be unsound.
+  (($bv_mk_bitblast_step_mul a2 ac)            (eo::requires (eo::to_z a2) 1 ac))
   )
 )
 

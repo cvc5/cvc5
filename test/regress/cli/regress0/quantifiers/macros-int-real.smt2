@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --macros-quant
 ; EXPECT: unknown
 (set-logic AUFLIRA)

@@ -181,7 +181,7 @@ void ExtfSolver::doReduction(Node n, int pol)
     Node s = n[1];
     // positive contains reduces to a equality
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node eq = d_termReg.eagerReduce(n, skc, d_termReg.getAlphabetCardinality());
+    Node eq = utils::eagerReduce(n, skc, d_termReg.getAlphabetCardinality());
     Assert(!eq.isNull());
     Assert(eq.getKind() == Kind::ITE && eq[0] == n);
     eq = eq[1];

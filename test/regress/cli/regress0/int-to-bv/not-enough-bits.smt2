@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=3
 ; SCRUBBER: sed -n "s/.*\(Not enough bits\).*: 4.*/\1/p"
 ; EXPECT: Not enough bits

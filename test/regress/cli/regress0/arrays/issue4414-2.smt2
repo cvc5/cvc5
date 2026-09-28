@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp
 ; EXPECT: sat
 (set-option :check-models true)

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
 ; EXPECT: (error "Error in option parsing: strings-model-max-len = 8684616718623666369 is not a legal setting, value should be at most 2147483647.")
 ; EXPECT: sat

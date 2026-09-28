@@ -80,6 +80,27 @@ if(NOT CoCoA_FOUND_SYSTEM)
     set(CoCoA_CXXFLAGS "${CMAKE_CXX_SYSROOT_FLAG} ${CMAKE_OSX_SYSROOT}")
   endif()
 
+  set(CoCoA_CXX_COMPILER "${CMAKE_CXX_COMPILER}")
+  if(EMSCRIPTEN)
+    # CoCoALib needs exception catching as well. emcc defaults to
+    # -fignore-exceptions, which drops CoCoALib's own catch blocks and,
+    # because no landing pads are emitted, also skips destructors in
+    # CoCoALib frames that an exception caught by cvc5 unwinds through
+    if(CoCoA_CXXFLAGS)
+      set(CoCoA_CXXFLAGS "${CoCoA_CXXFLAGS} -fexceptions")
+    else()
+      set(CoCoA_CXXFLAGS "-fexceptions")
+    endif()
+    set(CoCoA_EM_WRAPPER "${DEPS_BASE}/em++-cocoa-wrapper")
+    configure_file(
+      "${CMAKE_CURRENT_LIST_DIR}/deps-utils/em++-cocoa-wrapper.sh.in"
+      "${CoCoA_EM_WRAPPER}"
+      @ONLY
+    )
+    execute_process(COMMAND chmod +x "${CoCoA_EM_WRAPPER}")
+    set(CoCoA_CXX_COMPILER "${CoCoA_EM_WRAPPER}")
+  endif()
+
   ExternalProject_Add(
     CoCoA-EP
     ${COMMON_EP_CONFIG}
@@ -93,7 +114,7 @@ if(NOT CoCoA_FOUND_SYSTEM)
     # We only need CoCoALib itself, not CoCoA-5; --only-cocoalib avoids the
     # otherwise mandatory configure-time dependency on BOOST.
     CONFIGURE_COMMAND ${SHELL} ./configure --prefix=<INSTALL_DIR> --with-libgmp=${GMP_LIBRARY}
-        --with-cxx=${CMAKE_CXX_COMPILER} --with-cxxflags=${CoCoA_CXXFLAGS} --only-cocoalib
+        --with-cxx=${CoCoA_CXX_COMPILER} --with-cxxflags=${CoCoA_CXXFLAGS} --only-cocoalib
     BUILD_COMMAND ${make_cmd} library
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcocoa.a
   )

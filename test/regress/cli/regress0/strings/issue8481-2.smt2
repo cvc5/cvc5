@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --strings-eager-len-re
 ; EXPECT: sat
 (set-logic QF_S)

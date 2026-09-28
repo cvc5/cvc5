@@ -197,18 +197,28 @@ class FloatingPointLiteral
 
   /**
    * Floating-point max (total version).
-   * @param arg      The floating-point to compare this with.
-   * @param zeroCase True to return the left (rather than the right operand) in
-   *                 case of max(-0,+0) or max(+0,-0).
+   *
+   * @note The result of max(-0,+0) and max(+0,-0) is unspecified in SMT-LIB
+   *       and resolved by `zeroCaseRight`, which *must* be interpreted exactly
+   *       as SymFPU's `max` interprets it, since that is what the word blaster
+   *       word-blasts FLOATINGPOINT_MAX_TOTAL to (see fp_word_blaster.cpp).
+   *       Note that the polarity is the opposite of `minTotal`.
+   *
+   * @param arg           The floating-point to compare this with.
+   * @param zeroCaseRight True to return the **right** (rather than the left)
+   *                      operand in case of max(-0,+0) or max(+0,-0).
    * @return The floating-point max of this and `arg`.
    */
   virtual std::unique_ptr<FloatingPointLiteral> maxTotal(
-      const FloatingPointLiteral& arg, bool zeroCaseLeft) const = 0;
+      const FloatingPointLiteral& arg, bool zeroCaseRight) const = 0;
   /**
    * Floating-point min (total version).
-   * @param arg      The floating-point to compare this with.
-   * @param zeroCase True to return the left (rather than the right operand) in
-   *                 case of min(-0,+0) or min(+0,-0).
+   *
+   * @note See `maxTotal` on how `zeroCaseLeft` must be interpreted.
+   *
+   * @param arg          The floating-point to compare this with.
+   * @param zeroCaseLeft True to return the left (rather than the right) operand
+   *                     in case of min(-0,+0) or min(+0,-0).
    * @return The floating-point min of this and `arg`.
    */
   virtual std::unique_ptr<FloatingPointLiteral> minTotal(

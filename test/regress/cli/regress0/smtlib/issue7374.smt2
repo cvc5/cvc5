@@ -1,3 +1,5 @@
+; REQUIRES: no-competition
+
 ; EXPECT: unsupported
 ; EXPECT: unsupported
 ; EXPECT: unsupported
