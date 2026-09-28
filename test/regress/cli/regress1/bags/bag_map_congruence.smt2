@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; This is solved by congruence over bag.map in the equality engine.
 (set-logic HO_ALL)

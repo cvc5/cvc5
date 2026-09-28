@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; This is solved by congruence over rel.group in the equality engine.
 (set-logic HO_ALL)
