@@ -690,7 +690,6 @@ endif()
 # Provide targets to inspect iwyu suggestions
 
 include(IWYU)
-include(fuzzing-murxla)
 
 #-----------------------------------------------------------------------------#
 

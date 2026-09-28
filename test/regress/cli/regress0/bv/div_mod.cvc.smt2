@@ -1,6 +1,5 @@
 ; The cpc-logos tester takes more than 60 seconds.
 ; DISABLE-TESTER: cpc-logos
-; DISABLE-TESTER: lfsc
 ; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental false)

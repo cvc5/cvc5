@@ -1,5 +1,31 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.4.1
+==========
+
+- Removed support for LFSC proof output, including the
+  `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
+  `ProofRule::LFSC_RULE` API enum values.
+
+- Updated the classification of options and commands with respect to
+  `--safe-mode`. Options that only set timeouts for internal subsolver calls
+  (`--mbqi-check-timeout`, `--sub-cbqi-timeout`, `--sygus-verify-timeout`,
+  `--sygus-repair-const-timeout`, `--sygus-expr-miner-check-timeout` and
+  `--timeout-core-timeout`) are now common options. Recursive function definitions
+  (`define-fun-rec`, `define-funs-rec`) are no longer available in safe mode,
+  and pool declarations (`declare-pool`) are now only available in
+  unrestricted mode.
+
+- **C API**: Fixed several memory management issues, including dangling
+  pointers to names returned by `cvc5_sm_get_named_terms`, input parsers and
+  plugins not keeping their solver and symbol manager alive, detached proofs
+  not owning the child proofs they export, a missing check for exhausted
+  iterators in `cvc5_stats_iter_next`, and plugin checks that return `NULL` or
+  do not set the size of the returned array.
+
+- The current CPC proofs are checkable by Ethos 0.2.5
+  (see `./contrib/get-ethos-checker`).
+
 cvc5 1.4.0
 ==========
 
@@ -153,6 +179,19 @@ cvc5 1.4.0
         they are released via the new function `cvc5_cmd_release()`. To free
         all commands at once, call `cvc5_parser_release()` before
         `cvc5_parser_delete()`.
+      + Input parsers created via `cvc5_parser_new()` now keep their solver and
+        symbol manager alive and remain usable after `cvc5_delete()` and
+        `cvc5_symbol_manager_delete()` have been called. Previously, deleting
+        the solver or symbol manager while a parser was still held left the
+        parser with dangling pointers, and the next parse call crashed. Parser,
+        solver, symbol manager and term manager can now be deleted in any
+        order. As a consequence, `cvc5_delete()` no longer frees the solver
+        while any of its input parsers is still alive, and passing `NULL` to
+        `cvc5_delete()` now records an error instead of being a no-op, as for
+        all other `cvc5_*_delete()` functions.
+      + `cvc5_parser_get_solver()` is now exported. It was missing the
+        `CVC5_EXPORT` marker and was thus not callable from outside the
+        library in builds with hidden symbol visibility.
       + Added functions `cvc5_stat_copy()`, `cvc5_stat_release()`,
         `cvc5_stats_copy()`, `cvc5_stats_release()`, `cvc5_cmd_copy()` and
         `cvc5_cmd_release()`. Statistics and command objects are now reference
