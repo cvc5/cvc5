@@ -300,9 +300,9 @@ CVC5_EXPORT Cvc5* cvc5_parser_get_solver(Cvc5InputParser* parser);
  * Get the associated symbol manager of a given parser.
  *
  * @note If no symbol manager was given to `cvc5_parser_new()`, the returned
- *       symbol manager is the one the parser created and owns. It is freed
- *       with the parser and must not be deleted via
- *       `cvc5_symbol_manager_delete()`.
+ *       symbol manager is the one the parser created. It is freed with the
+ *       parser (unless it is kept alive by another parser created with it)
+ *       and must not be deleted via `cvc5_symbol_manager_delete()`.
  *
  * @param parser The parser instance.
  * @return The symbol manager.

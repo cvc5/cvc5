@@ -64,17 +64,6 @@ struct Cvc5SymbolManager
     d_tm->inc_ref();
   }
   /**
-   * Constructor.
-   * @param sm The wrapped symbol manager instance.
-   * @param tm The associated term manager.
-   */
-  Cvc5SymbolManager(cvc5::parser::SymbolManager& sm, Cvc5TermManager* tm)
-      : d_sm(sm), d_tm(tm)
-  {
-    d_tm->inc_ref();
-  }
-
-  /**
    * Increment the reference count of this symbol manager.
    *
    * A reference is held by the user (returned by `cvc5_symbol_manager_new()`
@@ -92,12 +81,12 @@ struct Cvc5SymbolManager
   void dec_ref();
 
   /**
-   * The created symbol manager instance.
+   * The created symbol manager instance, owned by this wrapper.
    *
-   * This will be a newly created symbol manager when created via
-   * cvc5_symbol_manager_new(). However, if we create a parsere via
-   * cvc5_parser_new() while passing NULL as a symbol manager, this will be
-   * NULL and `d_sm` will point to the symbol manager created by the parser.
+   * @note The wrapper always owns the wrapped symbol manager, even when it
+   *       is created by `cvc5_parser_new()` (when no symbol manager is given).
+   *       It must never refer to a symbol manager owned by someone else
+   *       since it may outlive its owner.
    */
   std::unique_ptr<cvc5::parser::SymbolManager> d_sm_wrapped;
   /** The associated symbol manager instance. */
@@ -123,15 +112,15 @@ struct Cvc5InputParser
    * @param cvc5 The associated solver instance.
    */
   Cvc5InputParser(Cvc5* cvc5)
-      : d_parser(new cvc5::parser::InputParser(&cvc5->d_solver)), d_cvc5(cvc5)
+      : Cvc5InputParser(cvc5, new Cvc5SymbolManager(cvc5_get_tm(cvc5)))
   {
-    // The parser keeps the solver alive, it holds a reference to the wrapped
-    // C++ solver instance.
-    d_cvc5->inc_ref();
-    // The parser created its own symbol manager, we hold the only reference
-    // to the wrapper for it.
-    d_sm = new Cvc5SymbolManager(*d_parser->getSymbolManager(),
-                                 cvc5_get_tm(d_cvc5));
+    // The symbol manager is created by (and for) this parser. The delegated
+    // constructor acquired a reference to it for this parser, drop the one
+    // acquired on creation. The parser thus holds the only reference, but
+    // the symbol manager remains a regular, reference counted wrapper that
+    // owns the wrapped C++ symbol manager. It is thus kept alive by any other
+    // parser created with it (via `cvc5_parser_get_sm()`).
+    d_sm->dec_ref();
   }
   /**
    * Constructor.
@@ -203,8 +192,7 @@ struct Cvc5InputParser
   /**
    * The associated symbol manager instance, kept alive by this parser. This
    * is the symbol manager given via the constructor, or, if none was given, a
-   * wrapper for the symbol manager created by `d_parser`, owned by this
-   * parser.
+   * symbol manager created by this parser.
    */
   Cvc5SymbolManager* d_sm = nullptr;
 
