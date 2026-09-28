@@ -1,5 +1,4 @@
 ; REQUIRES: no-safe-mode
-; DISABLE-TESTER: lfsc
 ; COMMAND-LINE: --cegqi-bv
 ; EXPECT: unsat
 (set-logic BV)

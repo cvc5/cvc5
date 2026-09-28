@@ -2348,6 +2348,50 @@ bool AletheProofPostprocessCallback::update(Node res,
                            d_resPivots ? resArgs : std::vector<Node>(),
                            *cdp);
     }
+    // ======== Adding Scaled Inequalities
+    //
+    // -------------------------------------- LA_GENERIC
+    // (cl (not P1) ... (not Pn) (>< t1 t2))              P1 ... Pn
+    // ------------------------------------------------------------- RESOLUTION
+    //  (cl (>< t1 t2))
+    //
+    // The coefficients given to LA_GENERIC are derived from the scaling
+    // factors k1 ... kn of this rule: inequality premises are given |ki|,
+    // since LA_GENERIC accounts for the direction of the inequality itself,
+    // while equality premises are given (- ki). The conclusion is given
+    // coefficient 1.
+    case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
+    {
+      // the conclusion of this rule is always an inequality
+      Assert(res.getKind() != Kind::EQUAL);
+      std::vector<Node> resArgs;
+      std::vector<Node> lits{d_cl};
+      for (size_t i = 0, size = children.size(); i < size; i++)
+      {
+        const Node& child = children[i];
+        lits.push_back(child.notNode());
+        Rational coeff = args[i].getConst<Rational>();
+        // equalities are multiplied by minus its coefficient since LA_GENERIC
+        // does not infer the sign for the scaling for equalities, only for
+        // inequalities (which is why for them the absulote value is taken)
+        coeff = child.getKind() == Kind::EQUAL ? -coeff : coeff.abs();
+        new_args.push_back(nm->mkConstRealOrInt(args[i].getType(), coeff));
+        resArgs.push_back(child);
+        resArgs.push_back(d_false);
+      }
+      lits.push_back(res);
+      new_args.push_back(nm->mkConstReal(Rational(1)));
+      Node laGen = nm->mkNode(Kind::SEXPR, lits);
+      addAletheStep(AletheRule::LA_GENERIC, laGen, laGen, {}, new_args, *cdp);
+      std::vector<Node> resChildren{laGen};
+      resChildren.insert(resChildren.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           resChildren,
+                           d_resPivots ? resArgs : std::vector<Node>(),
+                           *cdp);
+    }
     // Direct translation
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:

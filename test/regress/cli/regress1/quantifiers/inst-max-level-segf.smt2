@@ -1,5 +1,4 @@
 ; REQUIRES: unrestricted-mode
-; DISABLE-TESTER: lfsc
 
 ; COMMAND-LINE: --inst-max-level=0 --simplification=none
 ; EXPECT: unsat

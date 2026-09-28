@@ -155,6 +155,13 @@ Node TranscendentalProofRuleChecker::checkInternal(
       return Node::null();
     }
     TaylorGenerator tg(nm);
+    // The approximation is only an upper bound for exp where its denominator
+    // is positive. Since the Taylor remainder is increasing for non-negative
+    // arguments, it suffices to check this for the upper bound u.
+    if (!tg.isExpUpperPosSound(u, d / 2))
+    {
+      return Node::null();
+    }
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
     Evaluator eval(nullptr);

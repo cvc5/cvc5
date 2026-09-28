@@ -359,8 +359,9 @@
 
 ; program: $mk_dt_updater_elim_rhs
 ; args:
-; - s D: The update term.
-; - ss eo::List: The list of selectors for the type of s.
+; - u D: The update term for a term t.
+; - c U: The constructor whose selector is being updated, or tuple.
+; - ss eo::List: The list of selectors for constructor c.
 ; return: >
 ;   The right hand side is obtained by updating the proper argument of t.
 (program $mk_dt_updater_elim_rhs

@@ -25,6 +25,7 @@
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 #include "util/result.h"
 
@@ -58,7 +59,8 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_hasEnabledCard(false),
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
-      d_cpacb(cpacb)
+      d_cpacb(cpacb),
+      d_strategy(this, &state, &im)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -77,6 +79,8 @@ void TheorySetsPrivate::finishInit()
 {
   d_equalityEngine = d_external.getEqualityEngine();
   Assert(d_equalityEngine != nullptr);
+  // build the full-effort strategy (step ordering)
+  d_strategy.initializeStrategy();
 }
 
 void TheorySetsPrivate::eqNotifyNewClass(TNode t)
@@ -251,240 +255,222 @@ void TheorySetsPrivate::fullEffortReset()
   d_cardSolver->reset();
 }
 
-void TheorySetsPrivate::fullEffortCheck()
+void TheorySetsPrivate::checkBasic()
 {
-  Trace("sets") << "----- Full effort check ------" << std::endl;
-  // get the asserted terms
-  std::set<Kind> irrKinds;
-  std::set<Node> rlvTerms;
-  d_external.collectAssertedTerms(rlvTerms, true, irrKinds);
-  d_external.computeRelevantTerms(rlvTerms);
-  do
+  Trace("sets") << "...iterate full effort check..." << std::endl;
+
+  if (TraceIsOn("sets-eqc"))
   {
-    Assert(!d_im.hasPendingLemma() || d_im.hasSent());
-
-    Trace("sets") << "...iterate full effort check..." << std::endl;
-    fullEffortReset();
-
-    if (TraceIsOn("sets-eqc"))
+    Trace("sets-eqc") << "Equality Engine:" << std::endl;
+    Trace("sets-eqc") << d_equalityEngine->debugPrintEqc() << std::endl;
+  }
+  std::map<TypeNode, unsigned> eqcTypeCount;
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
+  while (!eqcs_i.isFinished())
+  {
+    Node eqc = (*eqcs_i);
+    TypeNode tn = eqc.getType();
+    d_state.registerEqc(tn, eqc);
+    eqcTypeCount[tn]++;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
+    while (!eqc_i.isFinished())
     {
-      Trace("sets-eqc") << "Equality Engine:" << std::endl;
-      Trace("sets-eqc") << d_equalityEngine->debugPrintEqc() << std::endl;
-    }
-    std::map<TypeNode, unsigned> eqcTypeCount;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
-    while (!eqcs_i.isFinished())
-    {
-      Node eqc = (*eqcs_i);
-      TypeNode tn = eqc.getType();
-      d_state.registerEqc(tn, eqc);
-      eqcTypeCount[tn]++;
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
-      while (!eqc_i.isFinished())
-      {
-        Node n = (*eqc_i);
-        ++eqc_i;
-        // if it is not relevant, don't register it
-        if (rlvTerms.find(n) == rlvTerms.end())
-        {
-          continue;
-        }
-        TypeNode tnn = n.getType();
-        // register it with the state
-        d_state.registerTerm(eqc, tnn, n);
-        Kind nk = n.getKind();
-        if (nk == Kind::SET_SINGLETON)
-        {
-          // ensure the proxy has been introduced
-          d_treg.getProxy(n);
-        }
-        else if (nk == Kind::SET_CARD)
-        {
-          ensureCardinalityEnabled();
-          // register it with the cardinality solver
-          d_cardSolver->registerTerm(n);
-          if (d_im.hasSent())
-          {
-            break;
-          }
-          // if we do not handle the kind, set incomplete
-          Kind nk0 = n[0].getKind();
-          // some kinds of cardinality we cannot handle
-          if (d_rels->isRelationKind(nk0))
-          {
-            d_fullCheckIncomplete = true;
-            d_fullCheckIncompleteId = IncompleteId::SETS_RELS_CARD;
-            Trace("sets-incomplete")
-                << "Sets : incomplete because of " << n << "." << std::endl;
-            // TODO (#1124):  The issue can be divided into 4 parts
-            // 1- Supporting the universe cardinality for finite types with
-            // finite cardinality (done)
-            // 2- Supporting the universe cardinality for uninterpreted sorts
-            // with finite-model-find (pending) See the implementation of
-            //    CardinalityExtension::checkCardinalityExtended
-            // 3- Supporting the universe cardinality for non-finite types
-            // (done)
-            // 4- Supporting cardinality for relations (hard)
-          }
-        }
-        else if (d_rels->isRelationKind(nk))
-        {
-          ensureRelationsEnabled();
-        }
-        else if (isHigherOrderKind(nk))
-        {
-          d_higher_order_kinds_enabled = true;
-        }
-      }
-      ++eqcs_i;
-    }
-
-    if (TraceIsOn("sets-state"))
-    {
-      Trace("sets-state") << "Equivalence class counters:" << std::endl;
-      for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
-      {
-        Trace("sets-state")
-            << "  " << ec.first << " -> " << ec.second << std::endl;
-      }
-    }
-
-    // sources of incompleteness
-    if (d_card_enabled)
-    {
-      if (d_higher_order_kinds_enabled)
-      {
-        d_fullCheckIncomplete = true;
-        d_fullCheckIncompleteId = IncompleteId::SETS_HO_CARD;
-      }
-      if (options().quantifiers.fmfBound)
-      {
-        // fmfBound is incomplete since cardinality may introduce slack
-        // elements.
-        d_fullCheckIncomplete = true;
-        d_fullCheckIncompleteId = IncompleteId::SETS_FMF_BOUND_CARD;
-      }
-    }
-
-    // We may have sent lemmas while registering the terms in the loop above,
-    // e.g. the cardinality solver.
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    if (TraceIsOn("sets-mem"))
-    {
-      const std::vector<Node>& sec = d_state.getSetsEqClasses();
-      for (const Node& s : sec)
-      {
-        Trace("sets-mem") << "Eqc " << s << " : ";
-        const std::map<Node, Node>& smem = d_state.getMembers(s);
-        if (!smem.empty())
-        {
-          Trace("sets-mem") << "Memberships : ";
-          for (const std::pair<const Node, Node>& it2 : smem)
-          {
-            Trace("sets-mem") << it2.first << " ";
-          }
-        }
-        Node ss = d_state.getSingletonEqClass(s);
-        if (!ss.isNull())
-        {
-          Trace("sets-mem") << " : Singleton : " << ss;
-        }
-        Trace("sets-mem") << std::endl;
-      }
-    }
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check downwards closure
-    checkDownwardsClosure();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check upwards closure
-    checkUpwardsClosure();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check filter up rule
-    checkFilterUp();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check filter down rules
-    checkFilterDown();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-
-    // check map up rules
-    checkMapUp();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check map down rules
-    checkMapDown();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check group up
-    checkGroups();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check disequalities
-    checkDisequalities();
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    // check reduce comprehensions
-    checkReduceComprehensions();
-
-    d_im.doPendingLemmas();
-    if (d_im.hasSent())
-    {
-      continue;
-    }
-    if (d_card_enabled)
-    {
-      // call the check method of the cardinality solver
-      d_cardSolver->check();
-      if (d_im.hasSent())
+      Node n = (*eqc_i);
+      ++eqc_i;
+      // if it is not relevant, don't register it
+      if (d_relevantTerms.find(n) == d_relevantTerms.end())
       {
         continue;
       }
+      TypeNode tnn = n.getType();
+      // register it with the state
+      d_state.registerTerm(eqc, tnn, n);
+      Kind nk = n.getKind();
+      if (nk == Kind::SET_SINGLETON)
+      {
+        // ensure the proxy has been introduced
+        d_treg.getProxy(n);
+      }
+      else if (nk == Kind::SET_CARD)
+      {
+        ensureCardinalityEnabled();
+        // register it with the cardinality solver
+        d_cardSolver->registerTerm(n);
+        if (d_im.hasSent())
+        {
+          break;
+        }
+        // if we do not handle the kind, set incomplete
+        Kind nk0 = n[0].getKind();
+        // some kinds of cardinality we cannot handle
+        if (d_rels->isRelationKind(nk0))
+        {
+          d_fullCheckIncomplete = true;
+          d_fullCheckIncompleteId = IncompleteId::SETS_RELS_CARD;
+          Trace("sets-incomplete")
+              << "Sets : incomplete because of " << n << "." << std::endl;
+          // TODO (#1124):  The issue can be divided into 4 parts
+          // 1- Supporting the universe cardinality for finite types with
+          // finite cardinality (done)
+          // 2- Supporting the universe cardinality for uninterpreted sorts
+          // with finite-model-find (pending) See the implementation of
+          //    CardinalityExtension::checkCardinalityExtended
+          // 3- Supporting the universe cardinality for non-finite types
+          // (done)
+          // 4- Supporting cardinality for relations (hard)
+        }
+      }
+      else if (d_rels->isRelationKind(nk))
+      {
+        ensureRelationsEnabled();
+      }
+      else if (isHigherOrderKind(nk))
+      {
+        d_higher_order_kinds_enabled = true;
+      }
     }
-    if (d_rels_enabled)
+    ++eqcs_i;
+  }
+
+  if (TraceIsOn("sets-state"))
+  {
+    Trace("sets-state") << "Equivalence class counters:" << std::endl;
+    for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
     {
-      // call the check method of the relations solver
-      d_rels->check(Theory::EFFORT_FULL);
+      Trace("sets-state") << "  " << ec.first << " -> " << ec.second
+                          << std::endl;
     }
-  } while (!d_im.hasSentLemma() && !d_state.isInConflict()
-           && d_im.hasSentFact());
-  Assert(!d_im.hasPendingLemma() || d_im.hasSent());
-  Trace("sets") << "----- End full effort check, conflict="
-                << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
-                << std::endl;
+  }
+
+  // sources of incompleteness
+  if (d_card_enabled)
+  {
+    if (d_higher_order_kinds_enabled)
+    {
+      d_fullCheckIncomplete = true;
+      d_fullCheckIncompleteId = IncompleteId::SETS_HO_CARD;
+    }
+    if (options().quantifiers.fmfBound)
+    {
+      // fmfBound is incomplete since cardinality may introduce slack
+      // elements.
+      d_fullCheckIncomplete = true;
+      d_fullCheckIncompleteId = IncompleteId::SETS_FMF_BOUND_CARD;
+    }
+  }
+
+  // We may have sent lemmas while registering the terms in the loop above,
+  // e.g. the cardinality solver.
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  if (TraceIsOn("sets-mem"))
+  {
+    const std::vector<Node>& sec = d_state.getSetsEqClasses();
+    for (const Node& s : sec)
+    {
+      Trace("sets-mem") << "Eqc " << s << " : ";
+      const std::map<Node, Node>& smem = d_state.getMembers(s);
+      if (!smem.empty())
+      {
+        Trace("sets-mem") << "Memberships : ";
+        for (const std::pair<const Node, Node>& it2 : smem)
+        {
+          Trace("sets-mem") << it2.first << " ";
+        }
+      }
+      Node ss = d_state.getSingletonEqClass(s);
+      if (!ss.isNull())
+      {
+        Trace("sets-mem") << " : Singleton : " << ss;
+      }
+      Trace("sets-mem") << std::endl;
+    }
+  }
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  // check downwards closure
+  checkDownwardsClosure();
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  // check upwards closure
+  checkUpwardsClosure();
+  d_im.doPendingLemmas();
+}
+
+void TheorySetsPrivate::checkCardinality()
+{
+  if (d_card_enabled)
+  {
+    // call the check method of the cardinality solver
+    d_cardSolver->check();
+  }
+}
+
+void TheorySetsPrivate::checkRelations()
+{
+  if (d_rels_enabled)
+  {
+    // call the check method of the relations solver
+    d_rels->check(Theory::EFFORT_FULL);
+  }
+}
+
+void TheorySetsPrivate::checkTransitiveClosureDown()
+{
+  // The transitive-closure down rule introduces fresh skolem elements. It does
+  // one sweep over the current TC members per call (it does not loop to a
+  // fixpoint), so it generates at most finitely many fresh elements per
+  // strategy pass; further elements are introduced on subsequent passes.
+  if (d_rels_enabled)
+  {
+    d_rels->checkTransitiveClosureDown();
+  }
+}
+
+void TheorySetsPrivate::checkTransitiveClosureUp()
+{
+  // The up rule chains the closure graph the down rule contributed to, so it
+  // must run in the same strategy pass as checkTransitiveClosureDown.
+  if (d_rels_enabled)
+  {
+    d_rels->checkTransitiveClosureUp();
+  }
+}
+
+void TheorySetsPrivate::checkFilters()
+{
+  // check filter up rule
+  checkFilterUp();
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  // check filter down rules
+  checkFilterDown();
+  d_im.doPendingLemmas();
+}
+
+void TheorySetsPrivate::checkMaps()
+{
+  // check map up rules
+  checkMapUp();
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
+  {
+    return;
+  }
+  // check map down rules
+  checkMapDown();
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkDownwardsClosure()
@@ -810,6 +796,17 @@ void TheorySetsPrivate::checkFilterDown()
   }
 }
 
+Node TheorySetsPrivate::mkApplyFunction(const Node& f, const Node& x)
+{
+  NodeManager* nm = nodeManager();
+  Node lambda = uf::FunctionConst::getDefinition(f);
+  if (lambda.isNull())
+  {
+    return nm->mkNode(Kind::APPLY_UF, f, x);
+  }
+  return rewrite(nm->mkNode(Kind::APPLY_UF, lambda, x));
+}
+
 void TheorySetsPrivate::checkMapUp()
 {
   NodeManager* nm = nodeManager();
@@ -848,7 +845,7 @@ void TheorySetsPrivate::checkMapUp()
       exp.push_back(pair.second);
       Node B = pair.second[1];
       d_state.addEqualityToExp(A, B, exp);
-      Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
+      Node f_x = mkApplyFunction(f, x);
       Node skolem = d_treg.getProxy(term);
       Node memberMap = nm->mkNode(Kind::SET_MEMBER, f_x, skolem);
       d_im.assertInference(memberMap, InferenceId::SETS_MAP_UP, exp);
@@ -872,6 +869,8 @@ void TheorySetsPrivate::checkMapDown()
     TypeNode elementType = A.getType().getSetElementType();
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
+    const std::map<Node, Node>& aMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
       std::vector<Node> exp;
@@ -879,7 +878,36 @@ void TheorySetsPrivate::checkMapDown()
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
       Node y = pair.second[0];
-
+      // Skip y if some member z of A is already known to map to y.
+      //
+      // (set.member y (set.map f A)) is discharged by any single z in A with
+      // (= (f z) y); since sets are idempotent, a second witness for y adds
+      // nothing. Generating the skolem below anyway would not only be
+      // redundant, it would not terminate when A is equal to (set.map f A):
+      // the skolem x is a member of A, hence a member of (set.map f A), hence
+      // itself an element this loop must find a preimage for, and so on. The
+      // guard in checkMapUp only breaks the cycle between SETS_MAP_UP and
+      // SETS_MAP_DOWN_POSITIVE, not this one.
+      //
+      // Note the corresponding rule for bags is sound only when f is
+      // injective, because the multiplicity of y in (bag.map f A) is the sum
+      // of the multiplicities of its whole preimage, so a single witness does
+      // not discharge it. Sets have no such obligation, so no injectivity
+      // requirement is needed here.
+      bool preimageFound = false;
+      for (const std::pair<const Node, Node>& p : aMembers)
+      {
+        Node z = p.second[0];
+        if (d_state.areEqual(mkApplyFunction(f, z), y))
+        {
+          preimageFound = true;
+          break;
+        }
+      }
+      if (preimageFound)
+      {
+        continue;
+      }
       // general case
       // (=>
       //   (and
@@ -890,10 +918,10 @@ void TheorySetsPrivate::checkMapDown()
       //     (= (f x) y))
       // )
       Node x = sm->mkSkolemFunction(SkolemId::SETS_MAP_DOWN_ELEMENT, {term, y});
-
       d_state.registerMapSkolemElement(term, x);
+
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
-      Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
+      Node f_x = mkApplyFunction(f, x);
       Node equal = f_x.eqNode(y);
       Node fact = memberA.andNode(equal);
       d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
@@ -912,6 +940,7 @@ void TheorySetsPrivate::checkGroups()
   {
     checkGroup(n);
   }
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkGroup(Node n)
@@ -1369,21 +1398,38 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
 {
   Trace("sets-check") << "Sets finished assertions effort " << level
                       << std::endl;
-  // invoke full effort check, relations check
-  if (!d_state.isInConflict())
+  // Decide once, from the pre-check state, whether this is a full-effort check
+  // that should run. The old fullEffortCheck likewise read isInConflict() and
+  // needCheck() a single time before running; capturing it here keeps the
+  // incompleteness guard below structurally identical to the old code and
+  // independent of whether these predicates change while the strategy runs.
+  const bool runFullCheck = level == Theory::EFFORT_FULL
+                            && !d_state.isInConflict()
+                            && !d_external.d_valuation.needCheck();
+  if (runFullCheck)
   {
-    if (level == Theory::EFFORT_FULL)
-    {
-      if (!d_external.d_valuation.needCheck())
-      {
-        fullEffortCheck();
-        if (!d_state.isInConflict() && !d_im.hasSentLemma()
-            && d_fullCheckIncomplete)
-        {
-          d_im.setModelUnsound(d_fullCheckIncompleteId);
-        }
-      }
-    }
+    // Collect the relevant terms once for this check. checkBasic reuses them
+    // while registering terms on every strategy pass; this is the hoist that
+    // used to sit at the top of fullEffortCheck.
+    Trace("sets") << "----- Full effort check ------" << std::endl;
+    d_relevantTerms.clear();
+    std::set<Kind> irrKinds;
+    d_external.collectAssertedTerms(d_relevantTerms, true, irrKinds);
+    d_external.computeRelevantTerms(d_relevantTerms);
+  }
+  // Run the strategy. This is the loop that used to be the body of
+  // fullEffortCheck: it repeatedly runs the steps (checkBasic,
+  // checkCardinality, checkRelations, ...) and flushes pending lemmas until a
+  // conflict or lemma is produced or nothing new is asserted. It is a no-op
+  // unless we are at a registered effort and not already in conflict / needing
+  // a check.
+  d_strategy.postCheck(level);
+  // If full-effort registration flagged a source of incompleteness and we
+  // neither found a conflict nor sent a lemma, report the model as unsound.
+  if (runFullCheck && !d_state.isInConflict() && !d_im.hasSentLemma()
+      && d_fullCheckIncomplete)
+  {
+    d_im.setModelUnsound(d_fullCheckIncompleteId);
   }
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }

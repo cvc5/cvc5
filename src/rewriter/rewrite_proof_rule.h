@@ -152,8 +152,7 @@ class RewriteProofRule
   /**
    * Is variable explicit? An explicit variable is one that does not occur
    * in a condition and thus its value must be specified in a proof
-   * in languages that allow for implicit/unspecified hole arguments,
-   * e.g. LFSC.
+   * in languages that allow for implicit/unspecified hole arguments.
    */
   bool isExplicitVar(Node v) const;
   /**
