@@ -12,8 +12,6 @@
 
 #include "smt/solver_engine.h"
 
-#include <chrono>
-
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
@@ -84,6 +82,7 @@
 #include "util/random.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
+#include "util/scoped_timer.h"
 #include "util/sexpr.h"
 #include "util/statistics_registry.h"
 #include "util/string.h"
@@ -829,15 +828,16 @@ Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
   // Call the SMT solver driver to check for satisfiability. Note that in the
   // case of options like e.g. deep restarts, this may invokve multiple calls
   // to check satisfiability in the underlying SMT solver
-  const auto start = std::chrono::steady_clock::now();
-  Result r = d_smtDriver->checkSat(assumptions);
+  Result r;
+  uint64_t checkSatTime = 0;
+  {
+    ScopedTimer checkSatTimer(checkSatTime);
+    r = d_smtDriver->checkSat(assumptions);
+  }
   if (d_ucManager != nullptr)
   {
     // Record the original solve time before checking or minimizing the core.
-    d_ucManager->setCheckSatTime(
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - start)
-            .count());
+    d_ucManager->setCheckSatTime(checkSatTime);
   }
 
   Trace("smt") << "SolverEngine::checkSat(" << assumptions << ") => " << r
