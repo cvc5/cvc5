@@ -539,7 +539,9 @@ struct cvc5_proof_t
   /**
    * Constructor.
    * @param cvc5  The associated solver instance, may be NULL for a proof
-   *              created from another proof after its solver was deleted.
+   *              created from another proof after its solver was deleted
+   *              (such a proof is associated with that other proof instead,
+   *              see `export_proof()`).
    * @param tm    The associated term manager.
    * @param proof The wrapped C++ proof.
    */
@@ -558,9 +560,20 @@ struct cvc5_proof_t
   void release();
   /**
    * Export a proof obtained from this proof (e.g., one of its children).
+   *
+   * The exported proof is associated with the solver of this proof if it is
+   * still alive, and with this proof otherwise. In both cases, the associated
+   * object holds one reference to it, which it drops when it is deleted.
+   *
    * @param proof The proof to export.
    */
   Cvc5Proof export_proof(const cvc5::Proof& proof);
+  /**
+   * Deregister a proof that was created by `export_proof()` while this proof
+   * was not associated with a solver, when it is freed.
+   * @param proof The proof to deregister.
+   */
+  void deregister(cvc5_proof_t* proof);
   /** The wrapped C++ proof. */
   cvc5::Proof d_proof;
   /** Refs count (the associated solver holds one reference). */
@@ -572,6 +585,18 @@ struct cvc5_proof_t
   Cvc5* d_cvc5 = nullptr;
   /** The associated term manager, kept alive by this proof. */
   Cvc5TermManager* d_tm = nullptr;
+  /**
+   * The proof this proof was created from if it was created while that proof
+   * was not associated with a solver, while it is still alive. Reset to NULL
+   * when that proof is freed.
+   */
+  cvc5_proof_t* d_parent = nullptr;
+  /**
+   * The proofs created from this proof while it was not associated with a
+   * solver, and not yet freed. This proof holds one reference to each of
+   * them.
+   */
+  std::unordered_set<cvc5_proof_t*> d_alloc_proofs;
 };
 
 /**
