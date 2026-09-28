@@ -1,6 +1,7 @@
 ; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-inference=try --sygus-qe-preproc -q
+; --sygus-inference is not supported with full proofs.
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic ALL)
