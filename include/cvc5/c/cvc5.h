@@ -3772,9 +3772,11 @@ struct Cvc5Plugin
   /**
    * Call to check, return list of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
-   * @param size  The size of the returned array of lemmas.
+   * @param size  The size of the returned array of lemmas, must always be
+   *              set.
    * @param state The state data for the function, may be NULL.
-   * @return The vector of lemmas to add to the SAT solver.
+   * @return The vector of lemmas to add to the SAT solver, may be NULL if
+   *         `size` is set to 0.
    * @note This function pointer may be NULL to use the default implementation.
    */
   const Cvc5Term* (*check)(size_t* size, void* state);
@@ -3849,6 +3851,10 @@ CVC5_EXPORT Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
  * @return The premise proofs.
  * @note The returned Cvc5Proof array pointer is only valid until the next call
  *       to this function.
+ * @note The returned proofs are released together with the solver that
+ *       created `proof`, or, if that solver has already been deleted, together
+ *       with `proof`. To use them afterwards, keep a reference to them via
+ *       `cvc5_proof_copy()`.
  */
 CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
                                                      size_t* size);
@@ -3901,8 +3907,10 @@ CVC5_EXPORT Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
 /**
  * Release copy of proof, decrements reference counter of `proof`.
  *
- * @note A proof is released together with the solver that created it. To use
- *       it afterwards, keep a reference to it via `cvc5_proof_copy()`.
+ * @note A proof is released together with the solver that created it (or,
+ *       for a proof obtained via `cvc5_proof_get_children()` after that
+ *       solver has been deleted, together with its parent proof). To use it
+ *       afterwards, keep a reference to it via `cvc5_proof_copy()`.
  *
  * @param proof The proof to release.
  *

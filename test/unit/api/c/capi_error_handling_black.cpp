@@ -142,6 +142,58 @@ TEST_F(TestCApiBlackErrorHandling, captures_non_recoverable_error)
   ASSERT_NE(ok, nullptr);
 }
 
+TEST_F(TestCApiBlackErrorHandling, array_getter_returns_null_on_error)
+{
+  // Regression test for issue #12989: array getters use a thread-local buffer
+  // that still holds the result of a previous successful call. On error, they
+  // must return NULL rather than that stale (non-NULL) buffer.
+  Cvc5Sort int_sort = cvc5_get_integer_sort(d_tm);
+  Cvc5Term x = cvc5_mk_const(d_tm, int_sort, "x");
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  std::vector<Cvc5Term> args = {x, zero};
+  Cvc5Term gt = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  Cvc5Term lt = cvc5_mk_term(d_tm, CVC5_KIND_LT, args.size(), args.data());
+
+  Cvc5* s1 = cvc5_new(d_tm);
+  cvc5_set_option(s1, "produce-unsat-cores", "true");
+  cvc5_assert_formula(s1, gt);
+  cvc5_assert_formula(s1, lt);
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(s1)));
+  size_t size1 = 0;
+  const Cvc5Term* core1 = cvc5_get_unsat_core(s1, &size1);
+  ASSERT_FALSE(cvc5_has_error());
+  ASSERT_NE(core1, nullptr);
+  ASSERT_EQ(size1, 2u);
+
+  // Unsat cores are not enabled on this solver, so getting one fails.
+  Cvc5* s2 = cvc5_new(d_tm);
+  cvc5_assert_formula(s2, gt);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(s2)));
+  size_t size2 = 0;
+  const Cvc5Term* core2 = nullptr;
+  ASSERT_CVC5_ERROR(core2 = cvc5_get_unsat_core(s2, &size2),
+                    "cannot get unsat core");
+  ASSERT_EQ(core2, nullptr);
+
+  cvc5_delete(s1);
+  cvc5_delete(s2);
+
+  // Same for a getter whose result size is given by an input argument.
+  Cvc5DatatypeDecl decl = cvc5_mk_dt_decl(d_tm, "list", false);
+  Cvc5DatatypeConstructorDecl cons = cvc5_mk_dt_cons_decl(d_tm, "cons");
+  cvc5_dt_cons_decl_add_selector(cons, "head", int_sort);
+  cvc5_dt_decl_add_constructor(decl, cons);
+  Cvc5DatatypeConstructorDecl nil = cvc5_mk_dt_cons_decl(d_tm, "nil");
+  cvc5_dt_decl_add_constructor(decl, nil);
+  const Cvc5Sort* sorts1 = cvc5_mk_dt_sorts(d_tm, 1, &decl);
+  ASSERT_FALSE(cvc5_has_error());
+  ASSERT_NE(sorts1, nullptr);
+  const Cvc5Sort* sorts2 = nullptr;
+  ASSERT_CVC5_ERROR(sorts2 = cvc5_mk_dt_sorts(d_tm, 1, &decl),
+                    "is already resolved");
+  ASSERT_EQ(sorts2, nullptr);
+}
+
 TEST_F(TestCApiBlackErrorHandling, error_macro)
 {
   ASSERT_CVC5_ERROR(cvc5_sort_array_get_index_sort(nullptr), "invalid sort");

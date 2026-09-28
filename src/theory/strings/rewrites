@@ -81,8 +81,37 @@
   (str.len (str.update t n r))
   (str.len t))
 
+; An empty one-element substring covers negative indices, indices past the end,
+; and an empty source, using the existing substring rules for the premise.
+(define-cond-rule str-update-oob ((t ?Seq) (n Int) (r ?Seq))
+  (= (str.len (str.substr t n 1)) 0)
+  (str.update t n r)
+  t)
+
+(define-cond-rule str-update-rev ((t ?Seq) (n Int) (r ?Seq))
+  (<= (str.len r) 1)
+  (str.update (str.rev t) n r)
+  (str.rev (str.update t (- (str.len t) (+ n 1)) r)))
+
+(define-cond-rule str-update-fit ((r ?Seq) (n Int) (x ?Seq))
+  (and (= n 0) (= (str.len r) (str.len x)))
+  (str.update r n x)
+  x)
+
+(define-cond-rule str-update-concat-fit0 ((r ?Seq) (qs ?Seq :list) (n Int) (x ?Seq))
+  (and (= n 0) (= (str.len r) (str.len x)))
+  (str.update (str.++ r qs) n x)
+  (str.++ x qs))
+
+; The extra p cancels from the length equation and gives the concat two fixed
+; arguments, avoiding singleton elimination in the CPC premise.
+(define-cond-rule str-update-concat-fit ((p ?Seq) (ps ?Seq :list) (r ?Seq) (qs ?Seq :list) (n Int) (x ?Seq))
+  (and (= (str.len (str.++ p p ps)) (+ (str.len p) n)) (= (str.len r) (str.len x)))
+  (str.update (str.++ p ps r qs) n x)
+  (str.++ p ps x qs))
+
 (define-cond-rule str-update-in-first-concat ((t ?Seq) (ts ?Seq :list) (s ?Seq) (n Int) (tpre ?Seq) (tpost ?Seq))
-  (and (>= n 0) (< (+ n (str.len s)) (str.len t))
+  (and (>= n 0) (<= (+ n (str.len s)) (str.len t))
        (= tpre (str.substr t 0 n))
        (= tpost (str.substr t (+ n (str.len s)) (str.len t))))
   (str.update (str.++ t ts) n s)
@@ -251,6 +280,10 @@
   (str.replace (str.++ t1 t2 r) t1 s)
   (str.++ s t2 r))
 
+(define-rule str-replace-prefix-concat ((t1 ?Seq) (ts ?Seq :list) (rs ?Seq :list) (s ?Seq))
+  (str.replace (str.++ t1 ts rs) (str.++ t1 ts) s)
+  (str.++ s rs))
+
 (define-cond-rule str-replace-no-contains ((t ?Seq) (s ?Seq) (r ?Seq)) 
   (not (str.contains t s))
   (str.replace t s r)
@@ -290,6 +323,20 @@
   (not (str.contains t s))
   (str.replace_all t s r)
   t)
+
+(define-cond-rule str-replace-all-find-pre ((t ?Seq) (s ?Seq) (r ?Seq) (tpost ?Seq))
+  (and (= (str.indexof t s 0) 0) (> (str.len s) 0)
+       (= tpost (str.substr t (str.len s) (str.len t))))
+  (str.replace_all t s r)
+  (str.++ r (str.replace_all tpost s r)))
+
+(define-cond-rule str-replace-all-find ((t ?Seq) (s ?Seq) (r ?Seq) (tpre ?Seq) (tpost ?Seq))
+  (def (n (str.indexof t s 0)))
+  (and (>= n 0) (> (str.len s) 0)
+       (= tpre (str.substr t 0 n))
+       (= tpost (str.substr t (+ n (str.len s)) (str.len t))))
+  (str.replace_all t s r)
+  (str.++ tpre r (str.replace_all tpost s r)))
 
 (define-cond-rule str-replace-all-empty ((t ?Seq) (s ?Seq) (r ?Seq))
   (= (str.len s) 0)
@@ -356,6 +403,20 @@
   (str.indexof (str.++ t1 t s t2) t 0)
   (str.indexof (str.++ t1 t) t 0))
 
+(define-rule str-indexof-prefix-concat ((t1 ?Seq) (ts ?Seq :list) (rs ?Seq :list))
+  (str.indexof (str.++ t1 ts rs) (str.++ t1 ts) 0)
+  0)
+
+(define-cond-rule str-indexof-len-oob ((t ?Seq) (s ?Seq) (w ?Seq) (ss ?Seq :list) (n Int))
+  (and (= (str.len t) (str.len s)) (> (str.len w) 0))
+  (str.indexof t (str.++ s w ss) n)
+  (- 1))
+
+(define-cond-rule str-indexof-len-oob2 ((t ?Seq) (s ?Seq) (w ?Seq) (ss ?Seq :list) (n Int))
+  (and (= (str.len t) (str.len s)) (> (str.len w) 0))
+  (str.indexof t (str.++ w s ss) n)
+  (- 1))
+
 (define-cond-rule str-indexof-find-emp ((t ?Seq) (emp ?Seq) (n Int))
   (and (= (str.len emp) 0) (>= (str.len t) n) (>= n 0))
   (str.indexof t emp n)
@@ -389,8 +450,16 @@
   (str.to_lower (str.to_upper s))
   (str.to_lower s))
 
+(define-rule str-to-lower-idem ((s String))
+  (str.to_lower (str.to_lower s))
+  (str.to_lower s))
+
 (define-rule str-to-upper-lower ((s String))
   (str.to_upper (str.to_lower s))
+  (str.to_upper s))
+
+(define-rule str-to-upper-idem ((s String))
+  (str.to_upper (str.to_upper s))
   (str.to_upper s))
 
 (define-rule str-to-lower-len ((s String))
@@ -741,5 +810,14 @@
 
 (define-rule seq-len-unit ((x ?)) (str.len (seq.unit x)) 1)
 (define-rule seq-nth-unit ((x ?)) (seq.nth (seq.unit x) 0) x)
+(define-rule seq-nth-concat-unit ((x ?) (ys ?Seq :list))
+  (seq.nth (str.++ (seq.unit x) ys) 0)
+  x)
+; The extra t cancels from the length equation and avoids singleton elimination
+; in the CPC premise, including when ts is empty.
+(define-cond-rule seq-nth-concat-unit-gen ((t ?Seq) (ts ?Seq :list) (x ?) (ys ?Seq :list) (n Int))
+  (= (str.len (str.++ t t ts)) (+ (str.len t) n))
+  (seq.nth (str.++ t ts (seq.unit x) ys) n)
+  x)
 (define-rule seq-rev-unit ((x ?)) (str.rev (seq.unit x)) (seq.unit x))
 
