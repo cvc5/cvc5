@@ -221,6 +221,41 @@ void BagSolver::checkLiastarConstraints()
   d_im.addPendingLemma(lemma, InferenceId::BAGS_LIASTAR);
 }
 
+Node BagSolver::getRowCount(const Node& e, const Node& bag)
+{
+  if (bag.getType().getBagElementType() != e.getType())
+  {
+    return d_zero;
+  }
+  NodeManager* nm = nodeManager();
+  Node count = nm->mkNode(Kind::BAG_COUNT, e, bag);
+  Node r = d_state.getRepresentative(bag);
+  for (const std::pair<Node, Node>& pair : d_state.getElementCountPairs(r))
+  {
+    if (pair.first == e)
+    {
+      // the theory knows this count, and the row has to be tied to it
+      return count;
+    }
+  }
+  if (options().bags.bagsLiastarModel == options::BagsLiastarModelMode::ELEMENTS
+      && Theory::isLeafOf(bag, TheoryId::THEORY_BAGS))
+  {
+    // the elements mode builds the leaves from the count terms the theory
+    // has, so the known elements need theirs in every leaf
+    return count;
+  }
+  // A count term the theory does not have yet would make it run its
+  // element-wise rules for e in bag, which the star does not need and which
+  // are expensive when the bags are many, e.g. the bags of a fold reduction,
+  // or when the operator is bag.map or a table operator. A variable that
+  // stands for the count is enough for the row, and the purification skolem of
+  // the count term is the very variable the theory uses if it registers the
+  // term later on. The model construction of the subsolver mode leaves such
+  // counts to the subsolver.
+  return nm->getSkolemManager()->mkPurifySkolem(count);
+}
+
 void BagSolver::collectLiastarModelValues(TheoryModel* m,
                                           std::map<Node, Node>& processedBags)
 {
@@ -800,9 +835,7 @@ void BagSolver::addElementRows(const std::vector<Node>& bags,
     std::vector<Node> row(n);
     for (size_t i = 0; i < n; i++)
     {
-      row[i] = bags[i].getType().getBagElementType() == type
-                   ? nm->mkNode(Kind::BAG_COUNT, e, bags[i])
-                   : d_zero;
+      row[i] = getRowCount(e, bags[i]);
     }
     rows.push_back(body.substitute(
         boundVars.begin(), boundVars.end(), row.begin(), row.end()));

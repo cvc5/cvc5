@@ -299,10 +299,9 @@ class BagSolver : protected EnvObj
   /**
    * The rows of the known elements, see checkLiastarConstraints. An element is
    * known when it has a count term in some bag of the star, and its row is
-   * the vector of its count terms in the slots, (bag.count e M_i), with 0 in
-   * the slots of another element type. The count terms that do not exist yet
-   * are created here, so that the theory registers them and relates the
-   * element to the other bags as it does for any count term.
+   * the vector of its counts in the slots, see getRowCount: the count term
+   * (bag.count e M_i) where the theory has it, 0 in the slots of another
+   * element type, and a variable standing for the count elsewhere.
    *
    * Two known elements can denote the same element, and then their rows are
    * one row, so the sum of the rows is over the distinct elements: the row of
@@ -327,6 +326,22 @@ class BagSolver : protected EnvObj
                       std::vector<Node>& premises,
                       std::vector<Node>& rows,
                       std::vector<Node>& sums);
+  /**
+   * @param e a known element, a representative
+   * @param bag a slot of the star
+   * @return the entry of the row of e at the slot of bag: 0 when e has not the
+   * element type of bag; the count term (bag.count e bag) when the theory has
+   * registered that count, or when bag is a leaf and the elements mode of
+   * bags-liastar-model is on, which builds the leaves from the count terms;
+   * and otherwise the purification skolem of that count term, a variable that
+   * stands for the count. A count term the theory does not have would make it
+   * run its element-wise rules for e in bag, which is expensive when the bags
+   * are many (the bags of a fold reduction) or the operator is bag.map or a
+   * table operator, and which the star does not need. Since the variable is
+   * the purification skolem, it is the one the theory itself uses if it
+   * registers the count term later.
+   */
+  Node getRowCount(const Node& e, const Node& bag);
   /**
    * @param bag a bag term
    * @return the integer variable that denotes the cardinality of bag, i.e. its

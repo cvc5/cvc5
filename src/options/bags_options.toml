@@ -15,7 +15,7 @@ name   = "Bags Theory"
   long       = "bags-to-liastar"
   type       = "bool"
   default    = "false"
-  help       = "translate the bag constraints of each check into one liastar star-contains constraint. This requires a higher order logic, e.g. HO_ALL, since the star-contains predicate takes a lambda as a first argument"
+  help       = "translate the bag constraints of each check into one liastar star-contains constraint. This requires a higher order logic, e.g. HO_ALL, since the star-contains predicate takes a lambda as a first argument. Unless set explicitly, this turns off the Diophantine equation solver of arithmetic (--dio-solver), which is slow on the lemmas of the translation"
 
 [[option]]
   name       = "bagsLiastarModel"

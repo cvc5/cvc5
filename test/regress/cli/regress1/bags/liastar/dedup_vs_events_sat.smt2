@@ -1,10 +1,12 @@
 ; REQUIRES: normaliz
 ; DISABLE-TESTER: proof
 ; the fresh elements the star needs cannot be read back into a bag.map or
-; bag.filter term, see BagSolver::collectLiastarModelValues, so the model is
-; marked unsound and the answer is unknown, although the problem is sat
-; COMMAND-LINE: --bags-to-liastar
-; EXPECT: unknown
+; bag.filter term by the subsolver mode (which answers unknown here), so the
+; elements mode introduces them as terms the theory reasons about. Its model
+; is accepted by --check-models; --debug-check-models cannot evaluate a star
+; literal a false guard left free
+; DISABLE-TESTER: model
+; COMMAND-LINE: --bags-to-liastar --bags-liastar-model=elements
 (set-logic HO_ALL)
 (set-info :status sat)
 (set-option :fmf-bound true)
