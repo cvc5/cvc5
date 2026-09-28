@@ -236,6 +236,7 @@ the generated artifacts into your local Maven repository by running
   * exception `CVC5ApiException <io/github/cvc5/CVC5ApiException.html>`_
   * exception `CVC5ApiOptionException <io/github/cvc5/CVC5ApiOptionException.html>`_
   * exception `CVC5ApiRecoverableException <io/github/cvc5/CVC5ApiRecoverableException.html>`_
+  * interface `ITerminator <io/github/cvc5/ITerminator.html>`_
 
 
 `Package io.github.cvc5.modes <io/github/cvc5/modes/package-summary.html>`_

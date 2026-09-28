@@ -8388,6 +8388,22 @@ void Solver::addPlugin(Plugin& p)
   CVC5_API_TRY_CATCH_END;
 }
 
+void Solver::setTerminator(Terminator* terminator)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  if (terminator == nullptr)
+  {
+    d_slv->setTerminator(nullptr);
+  }
+  else
+  {
+    d_slv->setTerminator([terminator]() { return terminator->terminate(); });
+  }
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 void Solver::pop(uint32_t nscopes) const
 {
   CVC5_API_TRY_CATCH_BEGIN;

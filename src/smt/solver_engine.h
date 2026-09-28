@@ -486,6 +486,14 @@ class CVC5_EXPORT SolverEngine
    */
   void addPlugin(Plugin* p);
   /**
+   * Set the terminator of this solver engine, which is polled periodically to
+   * determine whether the current call should be terminated. An empty
+   * function disconnects the current terminator.
+   *
+   * @param terminator The terminator.
+   */
+  void setTerminator(std::function<bool()> terminator);
+  /**
    * Simplify a term or formula based on rewriting and (optionally) applying
    * substitutions for solved variables.
    *

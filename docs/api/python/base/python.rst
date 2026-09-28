@@ -44,6 +44,7 @@ For a higher-level, more pythonic programming experience, cvc5 provides the
     symbolmanager
     synthresult
     term
+    terminator
     termmanager
     unknownexplanation
 
@@ -70,6 +71,7 @@ Classes
 - :doc:`symbolmanager`
 - :doc:`synthresult`
 - :doc:`term`
+- :doc:`terminator`
 
 Enums
 -----

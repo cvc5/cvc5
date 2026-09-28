@@ -32,7 +32,8 @@ struct SubsolverSetupInfo
   SubsolverSetupInfo(const Options& opts,
                      const LogicInfo& logicInfo,
                      TypeNode sepLocType = TypeNode::null(),
-                     TypeNode sepDataType = TypeNode::null());
+                     TypeNode sepDataType = TypeNode::null(),
+                     const ResourceManager* parentRm = nullptr);
   /** Construct the info from Env */
   SubsolverSetupInfo(const Env& env);
   /** Construct from env, but with options replaced */
@@ -44,6 +45,11 @@ struct SubsolverSetupInfo
   /** The separation logic location and data types */
   TypeNode d_sepLocType;
   TypeNode d_sepDataType;
+  /**
+   * The resource manager of the parent solver, if any. Termination requests
+   * of the parent solver also terminate the subsolver.
+   */
+  const ResourceManager* d_parentRm;
 };
 
 /**

@@ -3655,6 +3655,45 @@ class CVC5_EXPORT Plugin
 };
 
 /* -------------------------------------------------------------------------- */
+/* Terminator                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A terminator, which allows to terminate queries of a solver.
+ *
+ * A terminator is connected to a solver via Solver::setTerminator(). While
+ * the solver executes a query (e.g., Solver::checkSat()), it periodically
+ * calls terminate() to determine whether the query should be terminated. If
+ * terminate() returns true, the query is terminated as if a resource limit
+ * had been reached. For queries that return a Result, the result is unknown
+ * with explanation UnknownExplanation::INTERRUPTED.
+ *
+ * A termination request only applies to the query during which it was
+ * issued: after terminate() returned true, it is not called again during
+ * that query, and the solver can be used for further queries afterwards.
+ * Function terminate() is called at the beginning of each query, i.e., if it
+ * keeps returning true, subsequent queries are terminated immediately.
+ *
+ * Function terminate() is called frequently from the thread that executes the
+ * query, and must thus be cheap to evaluate and must not throw. To terminate
+ * a query from another thread, terminate() can, e.g., check a flag of type
+ * `std::atomic<bool>` that is set by that thread.
+ *
+ * @warning This class is experimental and may change in future versions.
+ */
+class CVC5_EXPORT Terminator
+{
+ public:
+  virtual ~Terminator() = default;
+  /**
+   * Determine whether the current query of the solver this terminator is
+   * connected to should be terminated.
+   * @return True to terminate the current query.
+   */
+  virtual bool terminate() = 0;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Proof                                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -6411,6 +6450,21 @@ class CVC5_EXPORT Solver
    * @param p The plugin to add to this solver.
    */
   void addPlugin(Plugin& p);
+  /**
+   * Connect a terminator to this solver, which is called periodically during
+   * queries to determine whether the current query should be terminated.
+   * See Terminator for details.
+   *
+   * Only one terminator can be connected at a time, connecting a terminator
+   * disconnects the previously connected terminator. The solver does not take
+   * ownership of the terminator, which must stay alive while connected.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param terminator The terminator to connect, or nullptr to disconnect the
+   *                   currently connected terminator.
+   */
+  void setTerminator(Terminator* terminator);
   /**
    * Pop (a) level(s) from the assertion stack.
    *

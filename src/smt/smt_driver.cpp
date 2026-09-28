@@ -60,12 +60,19 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     Trace("smt") << "SmtSolver::check()" << std::endl;
 
     ResourceManager* rm = d_env.getResourceManager();
-    // if we are already out of (cumulative) resources
+    // if we are already out of (cumulative) resources, or termination has
+    // been requested
     if (rm->out())
     {
-      UnknownExplanation why = rm->outOfResources()
-                                   ? UnknownExplanation::RESOURCEOUT
-                                   : UnknownExplanation::TIMEOUT;
+      UnknownExplanation why = UnknownExplanation::INTERRUPTED;
+      if (rm->outOfResources())
+      {
+        why = UnknownExplanation::RESOURCEOUT;
+      }
+      else if (rm->outOfTime())
+      {
+        why = UnknownExplanation::TIMEOUT;
+      }
       result = Result(Result::UNKNOWN, why);
     }
     else

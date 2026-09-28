@@ -3,6 +3,13 @@ This file contains a summary of important user-visible changes.
 cvc5 1.4.1
 ==========
 
+- Added a **terminator** to the C++, Python and Java APIs (class `Terminator`
+  and `Solver::setTerminator()`, interface `ITerminator` in Java), which allows
+  to terminate running queries, e.g., from another thread. Terminated queries
+  return `unknown` with explanation `UnknownExplanation::INTERRUPTED`. In
+  Python, this also allows to interrupt queries via `Ctrl-C` while a
+  terminator is connected.
+
 - Removed support for LFSC proof output, including the
   `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
   `ProofRule::LFSC_RULE` API enum values.

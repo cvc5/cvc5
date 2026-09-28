@@ -1218,6 +1218,11 @@ void SolverEngine::addPlugin(Plugin* p)
   d_env->addPlugin(p);
 }
 
+void SolverEngine::setTerminator(std::function<bool()> terminator)
+{
+  getResourceManager()->setTerminator(std::move(terminator));
+}
+
 Node SolverEngine::simplify(const Node& t, bool applySubs)
 {
   beginCall(true);

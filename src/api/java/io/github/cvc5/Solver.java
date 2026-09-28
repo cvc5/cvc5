@@ -36,6 +36,9 @@ public class Solver extends AbstractPointer
   // store IOracle objects
   List<IOracle> oracles = new ArrayList<>();
 
+  // the wrapper of the connected terminator, if any
+  private TerminatorWrapper terminatorWrapper;
+
   /**
    * Create solver instance.
    *
@@ -1997,7 +2000,7 @@ public class Solver extends AbstractPointer
   public Term simplify(Term t)
   {
     long termPointer = simplify(pointer, t.getPointer());
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
 
   private native long simplify(long pointer, long termPointer);
@@ -2018,7 +2021,7 @@ public class Solver extends AbstractPointer
   public Term simplify(Term t, boolean applySubs)
   {
     long termPointer = simplify(pointer, t.getPointer(), applySubs);
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
 
   private native long simplify(long pointer, long termPointer, boolean applySubs);
@@ -2050,7 +2053,7 @@ public class Solver extends AbstractPointer
   public Result checkSat()
   {
     long resultPointer = checkSat(pointer);
-    return new Result(resultPointer);
+    return checkTerminator(new Result(resultPointer));
   }
 
   private native long checkSat(long pointer);
@@ -2068,7 +2071,7 @@ public class Solver extends AbstractPointer
   public Result checkSatAssuming(Term assumption)
   {
     long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
-    return new Result(resultPointer);
+    return checkTerminator(new Result(resultPointer));
   }
 
   private native long checkSatAssuming(long pointer, long assumptionPointer);
@@ -2088,7 +2091,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     long resultPointer = checkSatAssuming(pointer, pointers);
-    return new Result(resultPointer);
+    return checkTerminator(new Result(resultPointer));
   }
 
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
@@ -2655,7 +2658,7 @@ public class Solver extends AbstractPointer
     Result result = new Result(pair.first);
     Term[] terms = Utils.getTerms(pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
-    return ret;
+    return checkTerminator(ret);
   }
 
   private native Pair<Long, long[]> getTimeoutCore(long pointer);
@@ -2693,7 +2696,7 @@ public class Solver extends AbstractPointer
     Result result = new Result(pair.first);
     Term[] terms = Utils.getTerms(pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
-    return ret;
+    return checkTerminator(ret);
   }
 
   private native Pair<Long, long[]> getTimeoutCoreAssuming(long pointer, long[] assumptionPointers);
@@ -2926,7 +2929,7 @@ public class Solver extends AbstractPointer
   public Term getQuantifierElimination(Term q)
   {
     long termPointer = getQuantifierElimination(pointer, q.getPointer());
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
 
   private native long getQuantifierElimination(long pointer, long qPointer);
@@ -2970,7 +2973,7 @@ public class Solver extends AbstractPointer
   public Term getQuantifierEliminationDisjunct(Term q)
   {
     long termPointer = getQuantifierEliminationDisjunct(pointer, q.getPointer());
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
 
   private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
@@ -3097,6 +3100,97 @@ public class Solver extends AbstractPointer
   private native void addPlugin(long pointer, long termManagerPointer, AbstractPlugin p);
 
   /**
+   * Connect a terminator to this solver, which is called periodically during
+   * queries to determine whether the current query should be terminated.
+   * See {@link ITerminator} for details.
+   * <p>
+   * Only one terminator can be connected at a time, connecting a terminator
+   * disconnects the previously connected terminator.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param terminator The terminator to connect, or null to disconnect the
+   *                   currently connected terminator.
+   */
+  public void setTerminator(ITerminator terminator)
+  {
+    TerminatorWrapper wrapper = terminator == null ? null : new TerminatorWrapper(terminator);
+    setTerminator(pointer, wrapper);
+    terminatorWrapper = wrapper;
+  }
+
+  private native void setTerminator(long pointer, TerminatorWrapper wrapper);
+
+  /**
+   * Wrapper of the connected terminator, which is called from the native code.
+   * Exceptions thrown by the terminator are remembered, and rethrown by the
+   * method that executed the query.
+   */
+  private static class TerminatorWrapper
+  {
+    TerminatorWrapper(ITerminator terminator)
+    {
+      this.terminator = terminator;
+    }
+
+    /**
+     * Called from the native code to determine whether the current query
+     * should be terminated.
+     *
+     * @return True to terminate the current query.
+     */
+    boolean terminate()
+    {
+      // an exception has been thrown before, and not rethrown yet
+      if (exception != null)
+      {
+        return true;
+      }
+      try
+      {
+        return terminator.terminate();
+      }
+      catch (Throwable t)
+      {
+        exception = t;
+        return true;
+      }
+    }
+
+    /** The wrapped terminator. */
+    private final ITerminator terminator;
+    /** The exception thrown by the terminator, if any. */
+    private Throwable exception;
+  }
+
+  /**
+   * Rethrow the exception thrown by the connected terminator during the last
+   * query, if any.
+   *
+   * @param result The result of the last query.
+   * @return The result of the last query.
+   */
+  private <T> T checkTerminator(T result)
+  {
+    TerminatorWrapper wrapper = terminatorWrapper;
+    if (wrapper != null && wrapper.exception != null)
+    {
+      Throwable t = wrapper.exception;
+      wrapper.exception = null;
+      if (t instanceof RuntimeException)
+      {
+        throw (RuntimeException) t;
+      }
+      if (t instanceof Error)
+      {
+        throw (Error) t;
+      }
+      throw new RuntimeException(t);
+    }
+    return result;
+  }
+
+  /**
    * Pop a level from the assertion stack.
    *
    * SMT-LIB:
@@ -3161,7 +3255,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer());
-    return new Term(interpolPtr);
+    return checkTerminator(new Term(interpolPtr));
   }
 
   private native long getInterpolant(long pointer, long conjPointer);
@@ -3199,7 +3293,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj, Grammar grammar)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(interpolPtr);
+    return checkTerminator(new Term(interpolPtr));
   }
 
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
@@ -3231,7 +3325,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolantNext()
   {
     long interpolPtr = getInterpolantNext(pointer);
-    return new Term(interpolPtr);
+    return checkTerminator(new Term(interpolPtr));
   }
 
   private native long getInterpolantNext(long pointer);
@@ -3256,7 +3350,7 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer());
-    return new Term(abdPtr);
+    return checkTerminator(new Term(abdPtr));
   }
 
   private native long getAbduct(long pointer, long conjPointer);
@@ -3282,7 +3376,7 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj, Grammar grammar)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(abdPtr);
+    return checkTerminator(new Term(abdPtr));
   }
 
   private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
@@ -3307,7 +3401,7 @@ public class Solver extends AbstractPointer
   public Term getAbductNext()
   {
     long abdPtr = getAbductNext(pointer);
-    return new Term(abdPtr);
+    return checkTerminator(new Term(abdPtr));
   }
 
   private native long getAbductNext(long pointer);
@@ -3694,7 +3788,7 @@ public class Solver extends AbstractPointer
   public SynthResult checkSynth()
   {
     long resultPointer = checkSynth(pointer);
-    return new SynthResult(resultPointer);
+    return checkTerminator(new SynthResult(resultPointer));
   }
 
   private native long checkSynth(long pointer);
@@ -3720,7 +3814,7 @@ public class Solver extends AbstractPointer
   public SynthResult checkSynthNext()
   {
     long resultPointer = checkSynthNext(pointer);
-    return new SynthResult(resultPointer);
+    return checkTerminator(new SynthResult(resultPointer));
   }
 
   private native long checkSynthNext(long pointer);
@@ -3781,7 +3875,7 @@ public class Solver extends AbstractPointer
   public Term findSynth(FindSynthTarget fst)
   {
     long termPointer = findSynth(pointer, fst.getValue());
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
   private native long findSynth(long pointer, int fst);
 
@@ -3803,7 +3897,7 @@ public class Solver extends AbstractPointer
   public Term findSynth(FindSynthTarget fst, Grammar grammar)
   {
     long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
   private native long findSynth(long pointer, int fst, long grammarPointer);
 
@@ -3824,7 +3918,7 @@ public class Solver extends AbstractPointer
   public Term findSynthNext()
   {
     long termPointer = findSynthNext(pointer);
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
 
   private native long findSynthNext(long pointer);

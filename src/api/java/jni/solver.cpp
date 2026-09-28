@@ -1065,6 +1065,20 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Solver
+ * Method:    setTerminator
+ * Signature: (JLio/github/cvc5/Solver$TerminatorWrapper;)V
+ */
+JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_setTerminator(
+    JNIEnv* env, jobject, jlong pointer, jobject terminator)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
+  api_solver->connectTerminator(env, terminator);
+  CVC5_JAVA_API_TRY_CATCH_END(env);
+}
+
+/*
+ * Class:     io_github_cvc5_Solver
  * Method:    pop
  * Signature: (JI)V
  */

@@ -32,8 +32,25 @@ void ApiSolver::addPluginPointer(jlong pluginPointer)
   d_pluginPointers.push_back(pluginPointer);
 }
 
+void ApiSolver::connectTerminator(JNIEnv* env, jobject terminator)
+{
+  std::unique_ptr<ApiTerminator> t;
+  if (terminator != nullptr)
+  {
+    t.reset(new ApiTerminator(env, terminator));
+  }
+  setTerminator(t.get());
+  // release the previously connected terminator after disconnecting it
+  if (d_terminator)
+  {
+    d_terminator->release(env);
+  }
+  d_terminator = std::move(t);
+}
+
 void ApiSolver::deletePointers(JNIEnv* env)
 {
+  connectTerminator(env, nullptr);
   for (jobject ref : d_globalReferences)
   {
     env->DeleteGlobalRef(ref);

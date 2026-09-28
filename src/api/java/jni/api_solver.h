@@ -15,6 +15,10 @@
 #include <cvc5/cvc5.h>
 #include <jni.h>
 
+#include <memory>
+
+#include "api_terminator.h"
+
 class ApiSolver : public cvc5::Solver
 {
  public:
@@ -35,6 +39,14 @@ class ApiSolver : public cvc5::Solver
    * Store a plugin pointer to be deleted later.
    */
   void addPluginPointer(jlong pluginPointer);
+
+  /**
+   * Connect a Java terminator to this solver.
+   * @param env The JNI environment.
+   * @param terminator The Java object wrapping the terminator, or null to
+   *                   disconnect the currently connected terminator.
+   */
+  void connectTerminator(JNIEnv* env, jobject terminator);
   /**
    * Delete pointers and global references.
    */
@@ -51,6 +63,9 @@ class ApiSolver : public cvc5::Solver
    * the deletePointers method is called.
    */
   std::vector<jlong> d_pluginPointers;
+
+  /** The connected terminator, if any. */
+  std::unique_ptr<ApiTerminator> d_terminator;
 };
 
 #endif  // CVC5__API_SOLVER_H
