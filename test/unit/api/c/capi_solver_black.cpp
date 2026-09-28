@@ -17,6 +17,7 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 
 #include <cmath>
+#include <cstring>
 #include <fstream>
 
 #include "base/check.h"
@@ -1229,8 +1230,13 @@ TEST_F(TestCApiBlackSolver, get_option_info)
                     "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "verbose", nullptr),
                     "unexpected NULL argument");
+  // The info struct is zeroed even if the call fails (issue #12991).
+  std::memset(&info, 0xAB, sizeof(info));
   ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "asdf-invalid", &info),
                     "Unrecognized option");
+  Cvc5OptionInfo zero;
+  std::memset(&zero, 0, sizeof(zero));
+  ASSERT_EQ(std::memcmp(&info, &zero, sizeof(info)), 0);
 
   cvc5_set_option(d_solver, "verbosity", "2");
 
