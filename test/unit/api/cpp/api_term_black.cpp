@@ -674,7 +674,7 @@ TEST_F(TestApiBlackTerm, termChildren)
   ASSERT_EQ(t1[0], two);
   ASSERT_EQ(t1.getNumChildren(), 2);
   Term tnull;
-  ASSERT_THROW(tnull.getNumChildren(), CVC5ApiException);
+  ASSERT_EQ(tnull.getNumChildren(), 0);
 
   Term::const_iterator it;
   it = t1.begin();
