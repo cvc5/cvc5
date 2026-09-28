@@ -240,8 +240,7 @@
 ; rule: bv_poly_norm
 ; implements: ProofRule::BV_POLY_NORM
 ; args:
-; - a (BitVec n): The left-hand side of the equality.
-; - b (BitVec n): The right-hand side of the equality.
+; - eq Bool: The equality to prove between bitvector terms a and b.
 ; requires: >
 ;   That the bitvector terms a and b are equal up to polynomial normalization.
 ; conclusion: The given equality.

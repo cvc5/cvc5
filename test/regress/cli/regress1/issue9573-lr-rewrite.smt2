@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --learned-rewrite
 ; EXPECT: sat
 (set-logic QF_ABV)

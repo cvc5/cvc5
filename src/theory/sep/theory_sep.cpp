@@ -22,6 +22,7 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "proof/trust_id.h"
 #include "smt/logic_exception.h"
 #include "theory/builtin/proof_checker.h"
@@ -246,7 +247,13 @@ void TheorySep::postProcessModel(TheoryModel* m)
       {
         Trace("sep-model") << d_pto_model[l];
         Node vpto = m->getValue(d_pto_model[l]);
-        Assert(vpto.isConst());
+        // The value is not necessarily a constant: with
+        // --default-function-value-mode=hole, the value of an application of
+        // an uninterpreted function may be a distinguished (non-constant)
+        // skolem.
+        Assert(vpto.isConst()
+               || options().theory.defaultFunctionValueMode
+                      == options::DefaultFunctionValueMode::HOLE);
         pto_children.push_back(vpto);
       }
       Trace("sep-model") << std::endl;
@@ -1199,9 +1206,11 @@ void TheorySep::initializeBounds()
   {
     n_emp = d_card_max;
   }
-  else if (d_type_references.empty())
+  if (n_emp == 0 && d_type_references.empty())
   {
-    // must include at least one constant TODO: remove?
+    // We must include at least one constant, so that the set of locations is
+    // not empty. Otherwise, computeLabelModel has no location to fall back on
+    // for a location in the model that has no corresponding term.
     n_emp = 1;
   }
   Trace("sep-bound") << "Cardinality element size : " << d_card_max

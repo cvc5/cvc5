@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --dt-stc-ind
 ; EXPECT: unsat
 (set-logic UFDT)

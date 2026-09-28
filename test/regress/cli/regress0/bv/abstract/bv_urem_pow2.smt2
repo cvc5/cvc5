@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction --bv-abstraction-size=16
 ; EXPECT: unsat
 ; DISABLE-TESTER: proof

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; SCRUBBER: sed -e 's/(error.*/error/; s/(^.*//'
 ; EXPECT: error
 ; EXIT: 1

@@ -27,6 +27,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/LifetimeTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ParserLifetimeTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/PairTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
@@ -35,6 +36,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermManagerTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/TripletTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/UtilsTest.java
 )
@@ -85,6 +87,7 @@ cvc5_add_java_api_test(InputParserTest)
 cvc5_add_java_api_test(LifetimeTest)
 cvc5_add_java_api_test(ParserLifetimeTest)
 cvc5_add_java_api_test(OpTest)
+cvc5_add_java_api_test(PairTest)
 cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)
 cvc5_add_java_api_test(SortTest)
@@ -92,6 +95,7 @@ cvc5_add_java_api_test(SymbolManagerTest)
 cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
 cvc5_add_java_api_test(TermManagerTest)
+cvc5_add_java_api_test(TripletTest)
 cvc5_add_java_api_test(ProofTest)
 cvc5_add_java_api_test(UtilsTest)
 

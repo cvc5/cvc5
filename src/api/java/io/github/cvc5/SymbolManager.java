@@ -91,6 +91,21 @@ public class SymbolManager extends AbstractPointer
   }
 
   /**
+   * Return a hash code value for this symbol manager.
+   *
+   * The hash code is derived from the underlying native pointer, which is what
+   * {@link #equals(Object)} compares, so that instances that are equal have the
+   * same hash code.
+   *
+   * @return a hash code value for this symbol manager
+   */
+  @Override
+  public int hashCode()
+  {
+    return Long.hashCode(pointer);
+  }
+
+  /**
    * Determine if the logic of this symbol manager has been set.
    *
    * @return True if the logic of this symbol manager has been set.

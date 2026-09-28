@@ -1,7 +1,6 @@
 ; COMMAND-LINE: --dump-difficulty --produce-proofs
 ; SCRUBBER: sed 's/(.*//g;s/).*//g'
 ; EXPECT: unsat
-; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: alethe
 (set-logic UFLIA)

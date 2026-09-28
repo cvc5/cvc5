@@ -1,8 +1,8 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-cegqi --mbqi
 ; EXPECT: unsat
 ; REQUIRES: poly
 ; DISABLE-TESTER: cpc
-; DISABLE-TESTER: lfsc
 ; MBQI instantiates with a real algebraic number here, which cannot be
 ; expressed in external proof formats (see wishue #143).
 (set-logic NRA)

@@ -17,6 +17,7 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 
 #include <cmath>
+#include <cstring>
 #include <fstream>
 
 #include "base/check.h"
@@ -42,6 +43,7 @@ class TestCApiBlackSolver : public ::testing::Test
   void TearDown() override
   {
     cvc5_delete(d_solver);
+    cvc5_term_manager_release(d_tm);
     cvc5_term_manager_delete(d_tm);
   }
 
@@ -75,6 +77,11 @@ class TestCApiBlackSolver : public ::testing::Test
   Cvc5Sort d_str;
   Cvc5Sort d_uninterpreted;
 };
+
+TEST_F(TestCApiBlackSolver, new)
+{
+  ASSERT_CVC5_ERROR(cvc5_new(nullptr), "unexpected NULL argument");
+}
 
 TEST_F(TestCApiBlackSolver, pow2_large1)
 {
@@ -251,6 +258,7 @@ TEST_F(TestCApiBlackSolver, simplify)
       cvc5_simplify(slv, x, false),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -282,6 +290,7 @@ TEST_F(TestCApiBlackSolver, assert_formula)
       cvc5_assert_formula(slv, cvc5_mk_true(d_tm)),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -320,6 +329,7 @@ TEST_F(TestCApiBlackSolver, check_sat_assuming)
       "expected a term associated with the term manager of this solver");
   ;
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -453,6 +463,7 @@ TEST_F(TestCApiBlackSolver, declare_datatype)
       "expected a datatype constructor declaration associated with "
       "the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -498,6 +509,7 @@ TEST_F(TestCApiBlackSolver, declare_fun)
       cvc5_declare_fun(slv, "f1", 0, nullptr, bv_sort, true),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -522,6 +534,7 @@ TEST_F(TestCApiBlackSolver, declare_fun_fresh)
       "sort is not associated with the term manager of this solver");
   ;
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -632,6 +645,7 @@ TEST_F(TestCApiBlackSolver, define_fun)
       cvc5_define_fun(slv, "f", vars.size(), vars.data(), bv_sort2, v1, false),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -794,6 +808,7 @@ TEST_F(TestCApiBlackSolver, define_fun_rec)
           slv, "f", vars.size(), vars.data(), bv_sort2, v12, false),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -887,6 +902,7 @@ TEST_F(TestCApiBlackSolver, define_fun_rec_global)
           true),
       "invalid sort of parameter");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1069,6 +1085,7 @@ TEST_F(TestCApiBlackSolver, define_funs_rec)
                            false),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1218,8 +1235,13 @@ TEST_F(TestCApiBlackSolver, get_option_info)
                     "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "verbose", nullptr),
                     "unexpected NULL argument");
+  // The info struct is zeroed even if the call fails (issue #12991).
+  std::memset(&info, 0xAB, sizeof(info));
   ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "asdf-invalid", &info),
                     "Unrecognized option");
+  Cvc5OptionInfo zero;
+  std::memset(&zero, 0, sizeof(zero));
+  ASSERT_EQ(std::memcmp(&info, &zero, sizeof(info)), 0);
 
   cvc5_set_option(d_solver, "verbosity", "2");
 
@@ -1767,6 +1789,30 @@ TEST_F(TestCApiBlackSolver, proof_to_string_assertion_names)
   ASSERT_FALSE(proof_str.empty());
   ASSERT_LT(proof_str.find("as1"), std::string::npos);
   ASSERT_LT(proof_str.find("as2"), std::string::npos);
+
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         assertions,
+                                         nullptr),
+                    "unexpected NULL argument");
+  const Cvc5Term null_assertions[2] = {x_eq_y, nullptr};
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         null_assertions,
+                                         names),
+                    "invalid term at index 1");
+  const char* null_names[2] = {"as1", nullptr};
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         assertions,
+                                         null_names),
+                    "unexpected NULL argument at index 1");
 }
 
 TEST_F(TestCApiBlackSolver, get_learned_literals)
@@ -1906,6 +1952,10 @@ TEST_F(TestCApiBlackSolver, get_value3)
   ASSERT_CVC5_ERROR(
       cvc5_get_values(d_solver, terms.size(), terms.data(), nullptr),
       "unexpected NULL argument");
+  terms = {x, nullptr};
+  ASSERT_CVC5_ERROR(
+      cvc5_get_values(d_solver, terms.size(), terms.data(), &size),
+      "invalid term at index 1");
 
   Cvc5* slv = cvc5_new(d_tm);
   ASSERT_CVC5_ERROR(cvc5_get_value(slv, x), "cannot get value");
@@ -1930,6 +1980,7 @@ TEST_F(TestCApiBlackSolver, get_value3)
       cvc5_get_value(slv, x),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -1965,6 +2016,7 @@ TEST_F(TestCApiBlackSolver, get_modelDomain_elements)
       cvc5_get_model_domain_elements(slv, d_uninterpreted, &size),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2019,6 +2071,7 @@ TEST_F(TestCApiBlackSolver, is_model_core_symbol)
       cvc5_is_model_core_symbol(slv, x),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2113,6 +2166,7 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination)
       cvc5_get_quantifier_elimination(slv, forall),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2144,6 +2198,7 @@ TEST_F(TestCApiBlackSolver, get_quantifier_elimination_disjunct)
       cvc5_get_quantifier_elimination(slv, forall),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2176,6 +2231,7 @@ TEST_F(TestCApiBlackSolver, declare_sep_heap)
       cvc5_declare_sep_heap(slv, d_int, cvc5_get_integer_sort(tm)),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2471,6 +2527,7 @@ TEST_F(TestCApiBlackSolver, declare_sygus_var)
       cvc5_declare_sygus_var(slv, "", d_bool),
       "sort is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2497,29 +2554,34 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
           d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
       "unexpected NULL argument");
 
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_solver, bvars.size(), nullptr, symbols.size(), symbols.data()),
+      "unexpected NULL argument");
+
   symbols = {nullptr};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "invalid term at index 0");
   bvars = {nullptr};
   symbols = {iv};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "invalid term at index 0");
   bvars = {};
   symbols = {bt};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a bound variable");
   bvars = {bt};
   symbols = {iv};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
+          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a bound variable");
 
   Cvc5TermManager* tm = cvc5_term_manager_new();
   Cvc5* slv = cvc5_new(tm);
@@ -2536,6 +2598,7 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
           d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2554,6 +2617,14 @@ TEST_F(TestCApiBlackSolver, synth_fun)
 
   (void)cvc5_synth_fun(d_solver, "", 0, nullptr, d_bool);
   (void)cvc5_synth_fun(d_solver, "f1", bvars.size(), bvars.data(), d_bool);
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun(d_solver, "f3", bvars.size(), nullptr, d_bool),
+      "unexpected NULL argument");
+  std::vector<Cvc5Term> null_bvars{nullptr};
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun(
+          d_solver, "f4", null_bvars.size(), null_bvars.data(), d_bool),
+      "invalid term at index 0");
   ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
                         d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1),
                     "invalid grammar");
@@ -2578,6 +2649,13 @@ TEST_F(TestCApiBlackSolver, synth_fun)
       cvc5_synth_fun_with_grammar(
           d_solver, "f2", bvars.size(), bvars.data(), d_bool, nullptr),
       "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
+                        d_solver, "f2", bvars.size(), nullptr, d_bool, g1),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun_with_grammar(
+          d_solver, "f2", null_bvars.size(), null_bvars.data(), d_bool, g1),
+      "invalid term at index 0");
 
   ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
                         d_solver, "f6", bvars.size(), bvars.data(), d_bool, g2),
@@ -2590,6 +2668,7 @@ TEST_F(TestCApiBlackSolver, synth_fun)
           slv, "f8", bvars.size(), bvars.data(), d_bool, g1),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2652,6 +2731,7 @@ TEST_F(TestCApiBlackSolver, declare_pool)
           slv, "p", cvc5_get_integer_sort(tm), args2.size(), args2.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -2758,6 +2838,7 @@ TEST_F(TestCApiBlackSolver, declare_oracle_fun_unsat)
       "Evaluated an oracle call that is not associated with the term "
       "manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3026,6 +3107,7 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
       cvc5_get_interpolant_with_grammar(slv, cconj2, g),
       "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3153,6 +3235,7 @@ TEST_F(TestCApiBlackSolver, get_abduct)
       cvc5_get_abduct_with_grammar(slv, cconj2, g),
       "grammar is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3269,6 +3352,7 @@ TEST_F(TestCApiBlackSolver, block_model_values1)
       cvc5_block_model_values(slv, args.size(), args.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3366,6 +3450,7 @@ TEST_F(TestCApiBlackSolver, add_sygus_constraint)
       cvc5_add_sygus_constraint(slv, tbool),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3405,6 +3490,7 @@ TEST_F(TestCApiBlackSolver, add_sygus_assume)
       cvc5_add_sygus_assume(slv, tbool),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3532,6 +3618,7 @@ TEST_F(TestCApiBlackSolver, add_sygus_inv_constraint)
       cvc5_add_sygus_inv_constraint(slv, inv22, pre22, trans22, post),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3573,6 +3660,7 @@ TEST_F(TestCApiBlackSolver, get_synth_solution)
       cvc5_get_synth_solution(slv, f),
       "term is not associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3614,6 +3702,7 @@ TEST_F(TestCApiBlackSolver, get_synth_solutions)
       cvc5_get_synth_solutions(slv, args.size(), args.data()),
       "expected a term associated with the term manager of this solver");
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }
 
@@ -3795,6 +3884,7 @@ const char* plugin_unsat_get_name() { return "PluginUnsat"; }
 
 TEST_F(TestCApiBlackSolver, plugin_unsat)
 {
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
   Cvc5Plugin plugin{&plugin_unsat_check,
                     nullptr,
                     nullptr,
@@ -3806,6 +3896,72 @@ TEST_F(TestCApiBlackSolver, plugin_unsat)
   ASSERT_TRUE(plugin.get_name() == std::string("PluginUnsat"));
   // should be unsat since the plugin above asserts "false" as a lemma
   ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+}
+
+namespace {
+const Cvc5Term* plugin_count_check(size_t* size, void* state)
+{
+  static thread_local std::vector<Cvc5Term> lemmas;
+  ++*static_cast<size_t*>(state);
+  *size = lemmas.size();
+  return lemmas.data();
+}
+const char* plugin_count_get_name() { return "PluginCount"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_multiple)
+{
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  size_t num_checks = 0;
+  Cvc5Plugin plugin_unsat{&plugin_unsat_check,
+                          nullptr,
+                          nullptr,
+                          &plugin_unsat_get_name,
+                          d_tm,
+                          nullptr,
+                          nullptr};
+  Cvc5Plugin plugin_count{&plugin_count_check,
+                          nullptr,
+                          nullptr,
+                          &plugin_count_get_name,
+                          &num_checks,
+                          nullptr,
+                          nullptr};
+  // adding a second plugin must not invalidate the first one
+  cvc5_add_plugin(d_solver, &plugin_unsat);
+  cvc5_add_plugin(d_solver, &plugin_count);
+  // should be unsat since the first plugin asserts "false" as a lemma
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  ASSERT_GT(num_checks, 0);
+}
+
+namespace {
+const Cvc5Term* plugin_null_check(size_t* size, void* state)
+{
+  // no lemmas, return NULL instead of an array
+  ++*static_cast<size_t*>(state);
+  *size = 0;
+  return nullptr;
+}
+const char* plugin_null_get_name() { return "PluginNull"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_null)
+{
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  size_t num_checks = 0;
+  Cvc5Plugin plugin{&plugin_null_check,
+                    nullptr,
+                    nullptr,
+                    &plugin_null_get_name,
+                    &num_checks,
+                    nullptr,
+                    nullptr};
+  cvc5_add_plugin(d_solver, &plugin);
+  Cvc5Term x = cvc5_mk_const(d_tm, cvc5_get_boolean_sort(d_tm), "x");
+  cvc5_assert_formula(d_solver, x);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  ASSERT_GT(num_checks, 0);
 }
 
 namespace {
@@ -3822,7 +3978,8 @@ const char* plugin_listen_get_name() { return "PluginListen"; }
 
 TEST_F(TestCApiBlackSolver, plugin_listen)
 {
-  bool clause_seen, lemma_seen;
+  bool clause_seen = false;
+  bool lemma_seen = false;
   Cvc5Plugin plugin{nullptr,
                     &plugin_listen_notify_sat_clause,
                     &plugin_listen_notify_theory_lemma,
@@ -3831,8 +3988,8 @@ TEST_F(TestCApiBlackSolver, plugin_listen)
                     &clause_seen,
                     &lemma_seen};
 
-  // NOTE: this shouldn't be necessary but ensures notify_sat_clause is called
-  // here.
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  // Allow notifications for unit clauses added before the main solve.
   cvc5_set_option(d_solver, "plugin-notify-sat-clause-in-solve", "false");
   cvc5_add_plugin(d_solver, &plugin);
   Cvc5Sort string_sort = cvc5_get_string_sort(d_tm);

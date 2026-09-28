@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-logic QF_FP)
 (declare-fun bv () (_ BitVec 1))

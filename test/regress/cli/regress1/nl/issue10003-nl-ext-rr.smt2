@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-nl-ext-rewrite
 ; EXPECT: sat
 (set-logic QF_NIA)

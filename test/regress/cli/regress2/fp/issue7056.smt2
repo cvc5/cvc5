@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 ; timeout with unsat cores

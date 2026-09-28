@@ -14,7 +14,7 @@
 (declare-const @@Polynomial Type)
 (define @Polynomial () @@Polynomial)
 (declare-const @@poly.zero @Polynomial)
-(define @poly.zero () @@Polynomial)
+(define @poly.zero () @@poly.zero)
 (declare-const @@poly (-> @Monomial @Polynomial @Polynomial) :right-assoc-nil @poly.zero)
 (define @poly () @@poly)
 

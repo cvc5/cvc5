@@ -57,7 +57,7 @@ TEST_F(TestCApiBlackTypes, printEnum)
       "invalid proof format");
   std::string expected =
       "CVC5_KIND_LT CVC5_SORT_KIND_ARRAY_SORT RTZ UNKNOWN_REASON literals "
-      "preprocess full enum smt_lib_2_6 lfsc";
+      "preprocess full enum smt_lib_2_6 cpc";
   std::stringstream ss;
   ss << cvc5_kind_to_string(CVC5_KIND_LT) << " ";
   ss << cvc5_sort_kind_to_string(CVC5_SORT_KIND_ARRAY_SORT) << " ";
@@ -74,7 +74,7 @@ TEST_F(TestCApiBlackTypes, printEnum)
      << " ";
   ss << cvc5_modes_input_language_to_string(CVC5_INPUT_LANGUAGE_SMT_LIB_2_6)
      << " ";
-  ss << cvc5_modes_proof_format_to_string(CVC5_PROOF_FORMAT_LFSC);
+  ss << cvc5_modes_proof_format_to_string(CVC5_PROOF_FORMAT_CPC);
   ASSERT_EQ(ss.str(), expected);
 }
 

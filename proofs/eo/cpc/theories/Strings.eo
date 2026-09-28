@@ -139,9 +139,6 @@
   (-> RegLan (eo::requires ($is_numeral l) true (eo::requires ($is_numeral h) true RegLan))))
 (declare-const str.in_re (-> String RegLan Bool))
 
-; Not supported by cvc5, used to define semantics of @re_unfold_pos_component
-(declare-const str.indexof_re_split (-> String RegLan RegLan Int))
-
 ; Sequence-specific operators.
 ; disclaimer: This function is not in SMT-LIB.
 (declare-parameterized-const seq.unit ((T Type :implicit)) (-> T (Seq T)))

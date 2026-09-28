@@ -98,8 +98,9 @@
 ; - s S: The term to substitute into.
 ; - xs @List: The list of variables to substitute.
 ; - ss @List: The terms to substitute. If isRename is true, this is expected to
-; be a list of variables.
-; return: the result of simultaneously substituting xs to ss in t.
+;   be a list of variables.
+; - bvs @List: The enclosing bound variables that must not be substituted.
+; return: the result of simultaneously substituting xs to ss in s.
 ; note: Assumes applications with lists as their first argument are binders.
 ; note: This method does not evaluate if variable capture is encountered.
 (program $substitute_simul_rec

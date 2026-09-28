@@ -108,7 +108,7 @@ class FloatingPointLiteralMPFR : public FloatingPointLiteral
       const FloatingPointLiteral& arg) const override;
 
   std::unique_ptr<FloatingPointLiteral> maxTotal(
-      const FloatingPointLiteral& arg, bool zeroCaseLeft) const override;
+      const FloatingPointLiteral& arg, bool zeroCaseRight) const override;
   std::unique_ptr<FloatingPointLiteral> minTotal(
       const FloatingPointLiteral& arg, bool zeroCaseLeft) const override;
 

@@ -75,13 +75,13 @@ static inline bool isEof(const char* in) { return *in == '\0'; }
 // Generic parse functions parametrized over the input-stream type.
 
 template <class B>
-static void skipWhitespace(B& in)
+inline void skipWhitespace(B& in)
 {
   while ((*in >= 9 && *in <= 13) || *in == 32) ++in;
 }
 
 template <class B>
-static void skipLine(B& in)
+inline void skipLine(B& in)
 {
   for (;;)
   {
@@ -96,7 +96,7 @@ static void skipLine(B& in)
 }
 
 template <class B>
-static int parseInt(B& in)
+inline int parseInt(B& in)
 {
   int val = 0;
   bool neg = false;
@@ -114,7 +114,7 @@ static int parseInt(B& in)
 // String matching: in case of a match the input iterator will be advanced the
 // corresponding number of characters.
 template <class B>
-static bool match(B& in, const char* str)
+inline bool match(B& in, const char* str)
 {
   int i;
   for (i = 0; str[i] != '\0'; i++)
@@ -128,7 +128,7 @@ static bool match(B& in, const char* str)
 // String matching: consumes characters eagerly, but does not require random
 // access iterator.
 template <class B>
-static bool eagerMatch(B& in, const char* str)
+inline bool eagerMatch(B& in, const char* str)
 {
   for (; *str != '\0'; ++str, ++in)
     if (*str != *in) return false;

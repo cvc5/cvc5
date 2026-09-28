@@ -1,3 +1,5 @@
+; Logos does not support parametric datatype declarations.
+; DISABLE-TESTER: cpc-logos
 
 (set-option :global-declarations true)
 (set-logic ALL)
