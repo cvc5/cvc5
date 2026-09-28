@@ -681,3 +681,9 @@ std::string Cvc5::PluginCpp::getName()
   Assert(d_plugin->get_name);
   return d_plugin->get_name();
 }
+
+bool Cvc5::TerminatorCpp::terminate()
+{
+  Assert(d_terminate);
+  return d_terminate(d_state);
+}

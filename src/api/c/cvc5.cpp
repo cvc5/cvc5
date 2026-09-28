@@ -5491,6 +5491,21 @@ void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin)
   CVC5_CAPI_TRY_CATCH_END;
 }
 
+void cvc5_set_terminator(Cvc5* cvc5, void* state, bool (*terminate)(void*))
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  std::unique_ptr<Cvc5::TerminatorCpp> terminator;
+  if (terminate != nullptr)
+  {
+    terminator.reset(new Cvc5::TerminatorCpp(state, terminate));
+  }
+  cvc5->d_solver.setTerminator(terminator.get());
+  // destroy the previously set terminator after it has been replaced
+  cvc5->d_terminator = std::move(terminator);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj)
 {
   Cvc5Term res = nullptr;

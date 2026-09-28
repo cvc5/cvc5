@@ -5065,6 +5065,38 @@ CVC5_EXPORT Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
 CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
 
 /**
+ * Set a terminator, which is called periodically during queries to determine
+ * whether the current query should be terminated.
+ *
+ * If the terminator returns true, the query is terminated as if a resource
+ * limit had been reached. For queries that return a result, the result is
+ * unknown with explanation #CVC5_UNKNOWN_EXPLANATION_INTERRUPTED.
+ *
+ * A termination request only applies to the query during which it was
+ * issued: after the terminator returned true, it is not called again during
+ * that query, and the solver can be used for further queries afterwards. The
+ * terminator is called at the beginning of each query, i.e., if it keeps
+ * returning true, subsequent queries are terminated immediately.
+ *
+ * The terminator is called frequently from the thread that executes the
+ * query, and must thus be cheap to evaluate. To terminate a query from
+ * another thread, the terminator can, e.g., check an atomic flag that is set
+ * by that thread.
+ *
+ * Only one terminator can be set at a time, setting a terminator replaces the
+ * previously set terminator.
+ *
+ * @warning This function is experimental and may change in future versions.
+ * @param cvc5      The solver instance.
+ * @param state     The state data passed to the terminator, may be NULL.
+ * @param terminate The terminator, or NULL to unset the currently set
+ *                  terminator.
+ */
+CVC5_EXPORT void cvc5_set_terminator(Cvc5* cvc5,
+                                     void* state,
+                                     bool (*terminate)(void*));
+
+/**
  * Get an interpolant.
  *
  * Given that @f$A \rightarrow B@f$ is valid,

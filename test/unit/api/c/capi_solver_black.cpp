@@ -16,8 +16,10 @@ extern "C" {
 
 #include <cvc5/c/cvc5.h>
 
+#include <atomic>
 #include <cmath>
 #include <fstream>
+#include <thread>
 
 #include "base/check.h"
 #include "base/output.h"
@@ -3892,6 +3894,132 @@ TEST_F(TestCApiBlackSolver, plugin_listen)
   // above input formulas should induce a theory lemma and SAT clause learning
   ASSERT_TRUE(lemma_seen);
   ASSERT_TRUE(clause_seen);
+}
+
+namespace {
+/** The state of the terminator, which requests termination if flag is set. */
+struct TerminatorState
+{
+  std::atomic<bool> flag{false};
+  std::atomic<uint64_t> calls{0};
+};
+bool terminator_terminate(void* state)
+{
+  TerminatorState* s = static_cast<TerminatorState*>(state);
+  ++s->calls;
+  return s->flag.load();
+}
+/** Assert that n + 1 pigeons can be placed into n holes (unsat). */
+void assert_pigeon_hole(Cvc5TermManager* tm, Cvc5* solver, int64_t n)
+{
+  Cvc5Term one = cvc5_mk_integer_int64(tm, 1);
+  Cvc5Term nholes = cvc5_mk_integer_int64(tm, n);
+  std::vector<Cvc5Term> pigeons;
+  for (int64_t i = 0; i <= n; ++i)
+  {
+    std::string name = "p" + std::to_string(i);
+    Cvc5Term p = cvc5_mk_const(tm, cvc5_get_integer_sort(tm), name.c_str());
+    std::vector<Cvc5Term> args{one, p};
+    cvc5_assert_formula(
+        solver, cvc5_mk_term(tm, CVC5_KIND_LEQ, args.size(), args.data()));
+    args = {p, nholes};
+    cvc5_assert_formula(
+        solver, cvc5_mk_term(tm, CVC5_KIND_LEQ, args.size(), args.data()));
+    pigeons.push_back(p);
+  }
+  cvc5_assert_formula(
+      solver,
+      cvc5_mk_term(tm, CVC5_KIND_DISTINCT, pigeons.size(), pigeons.data()));
+}
+bool is_interrupted(Cvc5Result result)
+{
+  return cvc5_result_is_unknown(result)
+         && cvc5_result_get_unknown_explanation(result)
+                == CVC5_UNKNOWN_EXPLANATION_INTERRUPTED;
+}
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, set_terminator)
+{
+  TerminatorState state;
+  ASSERT_CVC5_ERROR(cvc5_set_terminator(nullptr, &state, &terminator_terminate),
+                    "unexpected NULL argument");
+  state.flag = true;
+  cvc5_set_terminator(d_solver, &state, &terminator_terminate);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_bool, "x");
+  cvc5_assert_formula(d_solver, x);
+  ASSERT_TRUE(is_interrupted(cvc5_check_sat(d_solver)));
+  // not called again after termination was requested
+  ASSERT_EQ(state.calls, 1);
+  std::vector<Cvc5Term> assumptions{cvc5_mk_term(d_tm, CVC5_KIND_NOT, 1, &x)};
+  ASSERT_TRUE(is_interrupted(cvc5_check_sat_assuming(
+      d_solver, assumptions.size(), assumptions.data())));
+  ASSERT_EQ(state.calls, 2);
+}
+
+TEST_F(TestCApiBlackSolver, set_terminator_never)
+{
+  TerminatorState state;
+  cvc5_set_terminator(d_solver, &state, &terminator_terminate);
+  assert_pigeon_hole(d_tm, d_solver, 4);
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  ASSERT_GT(state.calls, 0);
+}
+
+TEST_F(TestCApiBlackSolver, set_terminator_reuse)
+{
+  TerminatorState state;
+  state.flag = true;
+  cvc5_set_terminator(d_solver, &state, &terminator_terminate);
+  assert_pigeon_hole(d_tm, d_solver, 4);
+  ASSERT_TRUE(is_interrupted(cvc5_check_sat(d_solver)));
+  state.flag = false;
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  state.flag = true;
+  ASSERT_TRUE(is_interrupted(cvc5_check_sat(d_solver)));
+  // unset, the query is solved
+  cvc5_set_terminator(d_solver, nullptr, nullptr);
+  uint64_t calls = state.calls;
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  ASSERT_EQ(state.calls, calls);
+}
+
+TEST_F(TestCApiBlackSolver, set_terminator_thread)
+{
+  TerminatorState state;
+  cvc5_set_terminator(d_solver, &state, &terminator_terminate);
+  // hard enough to not be solved before termination is requested
+  assert_pigeon_hole(d_tm, d_solver, 12);
+  std::thread thread([&state]() {
+    while (state.calls == 0)
+    {
+      std::this_thread::yield();
+    }
+    state.flag = true;
+  });
+  Cvc5Result result = cvc5_check_sat(d_solver);
+  thread.join();
+  ASSERT_TRUE(is_interrupted(result));
+}
+
+TEST_F(TestCApiBlackSolver, set_terminator_subsolver)
+{
+  cvc5_set_logic(d_solver, "QF_LIA");
+  cvc5_set_option(d_solver, "produce-abducts", "true");
+  cvc5_set_option(d_solver, "incremental", "false");
+  Cvc5Term zero = cvc5_mk_integer_int64(d_tm, 0);
+  Cvc5Term x = cvc5_mk_const(d_tm, d_int, "x");
+  Cvc5Term y = cvc5_mk_const(d_tm, d_int, "y");
+  std::vector<Cvc5Term> args{x, zero};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data()));
+  // abduction is performed by a subsolver, which is terminated
+  TerminatorState state;
+  state.flag = true;
+  cvc5_set_terminator(d_solver, &state, &terminator_terminate);
+  args = {y, zero};
+  Cvc5Term conj = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
+  ASSERT_EQ(cvc5_get_abduct(d_solver, conj), nullptr);
 }
 
 TEST_F(TestCApiBlackSolver, tuple_project)

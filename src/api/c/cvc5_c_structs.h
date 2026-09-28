@@ -731,6 +731,24 @@ struct Cvc5
     Cvc5Plugin* d_plugin;
   };
   std::unique_ptr<PluginCpp> d_plugin = nullptr;
+
+  /** The configured terminator. */
+  class TerminatorCpp : public cvc5::Terminator
+  {
+   public:
+    TerminatorCpp(void* state, bool (*terminate)(void*))
+        : d_state(state), d_terminate(terminate)
+    {
+    }
+    bool terminate() override;
+
+   private:
+    /** The state data passed to the terminator. */
+    void* d_state;
+    /** The terminator. */
+    bool (*d_terminate)(void*);
+  };
+  std::unique_ptr<TerminatorCpp> d_terminator = nullptr;
 };
 
 /** Wrapper for cvc5 C++ statistic. */
