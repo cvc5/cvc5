@@ -15,6 +15,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/normal_form.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -56,6 +57,18 @@ const std::map<Node, Bounds>& BoundInference::get() const { return d_bounds; }
 bool BoundInference::add(const Node& n, bool onlyVariables)
 {
   Node tmp = rewrite(n);
+  if (tmp.getKind() == Kind::NOT && tmp[0].getKind() == Kind::EQUAL)
+  {
+    // Disequalities are not used for bound inference. Note we return here,
+    // since a disequality cannot necessarily be parsed as a comparison below.
+    return false;
+  }
+  if (tmp.getKind() == Kind::EQUAL)
+  {
+    // Normalize the equality, so that it can be parsed as a comparison below,
+    // see rewriter::normalizeEquality.
+    tmp = rewriter::normalizeEquality(nodeManager(), tmp);
+  }
   if (tmp.getKind() == Kind::CONST_BOOLEAN)
   {
     return false;
@@ -176,7 +189,12 @@ void BoundInference::update_lower_bound(const Node& origin,
 
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      Node eq = mkEquality(lhs, value);
+      // If both bounds come from the same origin, then that origin already is
+      // (equivalent to) the equality we would construct here. We use it, which
+      // avoids constructing an equality of a different form, e.g. one whose
+      // sides are cast to real.
+      Node eq = b.lower_origin == b.upper_origin ? b.lower_origin
+                                                 : mkEquality(lhs, value);
       b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
@@ -211,7 +229,12 @@ void BoundInference::update_upper_bound(const Node& origin,
     b.upper_origin = origin;
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      Node eq = mkEquality(lhs, value);
+      // If both bounds come from the same origin, then that origin already is
+      // (equivalent to) the equality we would construct here. We use it, which
+      // avoids constructing an equality of a different form, e.g. one whose
+      // sides are cast to real.
+      Node eq = b.lower_origin == b.upper_origin ? b.lower_origin
+                                                 : mkEquality(lhs, value);
       b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else

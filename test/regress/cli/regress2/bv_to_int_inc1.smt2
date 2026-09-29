@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --solve-bv-as-int=sum
 ; COMMAND-LINE: --incremental --solve-bv-as-int=bitwise
 ; COMMAND-LINE: --incremental --solve-bv-as-int=iand

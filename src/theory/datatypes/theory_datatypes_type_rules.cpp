@@ -807,6 +807,15 @@ TypeNode NullableLiftTypeRule::computeType(NodeManager* nodeManager,
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     std::vector<TypeNode> funArgTypes = functionType.getArgTypes();
+    if (n.getNumChildren() != funArgTypes.size() + 1)
+    {
+      std::stringstream ss;
+      ss << "Function '" << n[0] << "' has type '" << functionType
+         << "' which expects " << funArgTypes.size() << " arguments, but term '"
+         << n << "' has " << (n.getNumChildren() - 1) << " arguments.";
+
+      throw TypeCheckingExceptionPrivate(n, ss.str());
+    }
     for (size_t i = 1; i < n.getNumChildren(); i++)
     {
       TypeNode argType = n[i].getType(check);

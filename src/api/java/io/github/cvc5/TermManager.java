@@ -73,6 +73,21 @@ public class TermManager extends AbstractPointer
   }
 
   /**
+   * Return a hash code value for this term manager.
+   *
+   * The hash code is derived from the underlying native pointer, which is what
+   * {@link #equals(Object)} compares, so that instances that are equal have the
+   * same hash code.
+   *
+   * @return a hash code value for this term manager
+   */
+  @Override
+  public int hashCode()
+  {
+    return Long.hashCode(pointer);
+  }
+
+  /**
    * Get a snapshot of the current state of the statistic values of this
    * term manager.
    *

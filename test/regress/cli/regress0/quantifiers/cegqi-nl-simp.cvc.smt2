@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-rlv=none
 ; EXPECT: unsat
 (set-logic ALL)

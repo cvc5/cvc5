@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
 (set-logic ALL)

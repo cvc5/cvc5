@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic UFC)
 (declare-sort a 0)

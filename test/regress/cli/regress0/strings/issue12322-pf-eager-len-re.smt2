@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --strings-eager-len-re
 ; EXPECT: unsat
 (set-logic QF_SLIA)

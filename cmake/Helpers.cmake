@@ -42,9 +42,13 @@ elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
     set(BUILD_TRIPLET "aarch64-apple-darwin")
   endif()
 elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64"
+      OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64")
     set(BUILD_TRIPLET "x86_64-w64-mingw32")
-  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64"
+      OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "ARM64")
+    # CMake derives the host processor on Windows from PROCESSOR_ARCHITECTURE,
+    # which reports "ARM64"; "aarch64" only shows up when uname is used.
     set(BUILD_TRIPLET "aarch64-w64-mingw32")
   endif()
 endif()

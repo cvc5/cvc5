@@ -170,6 +170,23 @@ public final class Utils
   }
 
   /**
+   * Write all bytes from an input stream to a file and close the stream.
+   *
+   * <p>The input stream and the output file are closed on success and on failure.</p>
+   *
+   * @param inputStream The stream to read from
+   * @param dest The destination file
+   * @throws IOException If an I/O error occurs during reading or writing
+   */
+  public static void extractToFile(InputStream inputStream, File dest) throws IOException
+  {
+    try (InputStream in = inputStream; FileOutputStream outputStream = new FileOutputStream(dest))
+    {
+      transferTo(in, outputStream);
+    }
+  }
+
+  /**
    * Load a native library from a specified path within a JAR file and loads it into the JVM.
    *
    * @param tempDir The temporary directory where the extracted native library will be written.
@@ -194,10 +211,7 @@ public final class Utils
     tempLibrary.deleteOnExit(); // Mark the file for deletion on exit
 
     // Write the extracted library to the temp file
-    try (FileOutputStream outputStream = new FileOutputStream(tempLibrary))
-    {
-      transferTo(inputStream, outputStream);
-    }
+    extractToFile(inputStream, tempLibrary);
 
     // Load the library
     try
