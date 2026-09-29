@@ -64,6 +64,30 @@ TEST_F(TestApiBlackCommand, invoke)
   ASSERT_THROW(parseCommand("(set-logic QF_LRA)"), ParserException);
 }
 
+TEST_F(TestApiBlackCommand, invokeResetTerminator)
+{
+  class TerminatorAlways : public Terminator
+  {
+   public:
+    bool terminate() override { return true; }
+  };
+  TerminatorAlways t;
+  d_solver->setTerminator(&t);
+  std::stringstream ss;
+  ss << "(set-logic QF_UF) (check-sat) (reset) (set-logic QF_UF) (check-sat)"
+     << std::endl;
+  InputParser parser(d_solver.get(), d_symman.get());
+  parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "command_black");
+  std::stringstream out;
+  for (Command cmd = parser.nextCommand(); !cmd.isNull();
+       cmd = parser.nextCommand())
+  {
+    cmd.invoke(d_solver.get(), d_symman.get(), out);
+  }
+  // the terminator stays connected after the reset
+  ASSERT_EQ(out.str(), "unknown (INTERRUPTED)\nunknown (INTERRUPTED)\n");
+}
+
 TEST_F(TestApiBlackCommand, toString)
 {
   Command cmd;

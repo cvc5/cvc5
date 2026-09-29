@@ -6833,6 +6833,11 @@ void Solver::resetInternal()
       new internal::SolverEngine(d_tm.d_nm.get(), d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
+  // connect the terminator to the new engine
+  if (d_terminator != nullptr)
+  {
+    setTerminator(d_terminator);
+  }
 }
 
 Solver::Solver(TermManager& tm)
@@ -8392,6 +8397,7 @@ void Solver::setTerminator(Terminator* terminator)
 {
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
+  d_terminator = terminator;
   if (terminator == nullptr)
   {
     d_slv->setTerminator(nullptr);

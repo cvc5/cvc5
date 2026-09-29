@@ -6456,8 +6456,10 @@ class CVC5_EXPORT Solver
    * See Terminator for details.
    *
    * Only one terminator can be connected at a time, connecting a terminator
-   * disconnects the previously connected terminator. The solver does not take
-   * ownership of the terminator, which must stay alive while connected.
+   * disconnects the previously connected terminator. The terminator stays
+   * connected when the solver is reset via the SMT-LIB command `(reset)`. The
+   * solver does not take ownership of the terminator, which must stay alive
+   * while connected.
    *
    * @warning This function is experimental and may change in future versions.
    *
@@ -7163,6 +7165,8 @@ class CVC5_EXPORT Solver
   std::unique_ptr<internal::SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<internal::Random> d_rng;
+  /** The connected terminator, if any, which stays connected on reset. */
+  Terminator* d_terminator = nullptr;
 };
 
 }  // namespace cvc5
