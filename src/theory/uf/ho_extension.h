@@ -188,8 +188,9 @@ class HoExtension : protected EnvObj
    * Check lazy lambda.
    *
    * Lambdas that are not lifted during preprocessing occur directly in the
-   * equality engine. This processes two lemma schemas, UF_HO_LAMBDA_UNIV_EQ
-   * and UF_HO_LAMBDA_APP_REDUCE. For details on these, see inference_id.h.
+   * equality engine. This processes three lemma schemas,
+   * UF_HO_LAMBDA_UNIV_EQ, UF_HO_LAMBDA_APP_REDUCE and
+   * UF_HO_LAMBDA_LAZY_LIFT. For details on these, see inference_id.h.
    *
    * Returns the number of lemmas added on this call.
    */
@@ -223,8 +224,9 @@ class HoExtension : protected EnvObj
   /**
    * This maps equivalence class representatives that have lambdas in them to
    * one such lambda, where the model value of the equivalence class is given
-   * by that lambda. This map is computed at each full effort and valid only
-   * during collectModelInfoHo.
+   * by that lambda. This excludes equivalence classes where the lambda has
+   * been lazily lifted. This map is computed at each full effort and valid
+   * only during collectModelInfoHo.
    */
   std::unordered_map<Node, Node> d_lambdaEqc;
 

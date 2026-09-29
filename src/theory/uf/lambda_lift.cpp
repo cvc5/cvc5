@@ -101,17 +101,49 @@ TrustNode LambdaLift::lift(Node node)
 
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
+  if (node.getKind() == Kind::APPLY_UF)
+  {
+    if (!options().uf.ufHoLazyLambdaLift)
+    {
+      // all lambdas were already lifted
+      return TrustNode::null();
+    }
+    // If a lambda that needs lifting occurs as an argument to APPLY_UF, it
+    // impacts model construction for the function, and thus must be lifted.
+    std::vector<Node> children;
+    children.push_back(node.getOperator());
+    bool childChanged = false;
+    for (const Node& nc : node)
+    {
+      Node lam = FunctionConst::toLambda(nc);
+      Node skolem;
+      if (!lam.isNull() && needsLift(lam))
+      {
+        skolem = liftToSkolem(lam, lems);
+      }
+      childChanged = childChanged || !skolem.isNull();
+      children.push_back(skolem.isNull() ? nc : skolem);
+    }
+    if (!childChanged)
+    {
+      return TrustNode::null();
+    }
+    Node ret = nodeManager()->mkNode(Kind::APPLY_UF, children);
+    Trace("uf-lazy-ll") << "Lift arguments: " << node << " -> " << ret
+                        << std::endl;
+    return mkTrustedRewrite(node, ret);
+  }
   Node lam = FunctionConst::toLambda(node);
-  Node skolem = getSkolemFor(lam);
-  if (skolem.isNull())
+  if (lam.isNull())
   {
     return TrustNode::null();
   }
   if (options().uf.ufHoLazyLambdaLift)
   {
-    // We only lift lambdas that may induce circular dependencies in model
-    // construction. Others are not lifted, and are beta-reduced on demand
-    // when they are equated to ordinary functions.
+    // We do not lift lambdas here. Lambdas that need lifting are lifted only
+    // when they impact model construction, that is, when they occur as
+    // arguments to APPLY_UF (see above), or are equated to ordinary functions
+    // (see HoExtension::checkLazyLambda).
     if (!needsLift(lam))
     {
       return TrustNode::null();
@@ -120,35 +152,58 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     // and add purification lemmas to lems.
     PurifyGroundNodeConverter pgnc(nodeManager());
     Node clam = pgnc.convert(lam);
-    if (!needsLift(clam))
+    if (needsLift(clam))
     {
-      Trace("uf-lazy-ll-purify") << "ppRewrite " << lam << " to " << clam
-                                 << " to avoid lifting." << std::endl;
-      // add purification lemmas for terms we purified
-      for (const Node& t : pgnc.d_pterms)
-      {
-        Node k = SkolemManager::mkPurifySkolem(t);
-        TrustNode trnk = TrustNode::mkTrustLemma(k.eqNode(t));
-        Trace("uf-lazy-ll-purify")
-            << "- purify lemma: " << k.eqNode(t) << std::endl;
-        lems.push_back(SkolemLemma(trnk, k));
-      }
-      return TrustNode::mkTrustRewrite(node, clam);
+      return TrustNode::null();
     }
+    Trace("uf-lazy-ll-purify") << "ppRewrite " << lam << " to " << clam
+                               << " to avoid lifting." << std::endl;
+    // add purification lemmas for terms we purified
+    for (const Node& t : pgnc.d_pterms)
+    {
+      Node k = SkolemManager::mkPurifySkolem(t);
+      TrustNode trnk = TrustNode::mkTrustLemma(k.eqNode(t));
+      Trace("uf-lazy-ll-purify")
+          << "- purify lemma: " << k.eqNode(t) << std::endl;
+      lems.push_back(SkolemLemma(trnk, k));
+    }
+    return TrustNode::mkTrustRewrite(node, clam);
+  }
+  // otherwise, we lift all lambdas eagerly
+  Node skolem = liftToSkolem(lam, lems);
+  if (skolem.isNull())
+  {
+    return TrustNode::null();
+  }
+  return mkTrustedRewrite(node, skolem);
+}
+
+Node LambdaLift::liftToSkolem(const Node& lam, std::vector<SkolemLemma>& lems)
+{
+  Node skolem = getSkolemFor(lam);
+  if (skolem.isNull())
+  {
+    return skolem;
   }
   TrustNode trn = lift(lam);
   if (!trn.isNull())
   {
     lems.push_back(SkolemLemma(trn, skolem));
   }
-  // if no proofs, return lemma with no generator
+  return skolem;
+}
+
+TrustNode LambdaLift::mkTrustedRewrite(const Node& n, const Node& ret) const
+{
+  // if no proofs, return rewrite with no generator
   if (d_epg == nullptr)
   {
-    return TrustNode::mkTrustRewrite(node, skolem);
+    return TrustNode::mkTrustRewrite(n, ret);
   }
-  Node eq = node.eqNode(skolem);
+  // The rewrite is justified by replacing the purification skolems in ret by
+  // the lambdas they purify.
   return d_epg->mkTrustedRewrite(
-      node, skolem, ProofRule::MACRO_SR_PRED_INTRO, {eq});
+      n, ret, ProofRule::MACRO_SR_PRED_INTRO, {n.eqNode(ret)});
 }
 
 bool LambdaLift::needsLift(const Node& lam)
@@ -195,6 +250,25 @@ bool LambdaLift::needsLift(const Node& lam)
   }
   d_needsLift[lam] = shouldLift;
   return shouldLift;
+}
+
+Node LambdaLift::getLiftLemma(const Node& f, const Node& n) const
+{
+  Node lam = getLambdaFor(n);
+  Assert(!lam.isNull());
+  NodeManager* nm = nodeManager();
+  std::vector<Node> fapp;
+  std::vector<Node> lapp;
+  fapp.push_back(f);
+  lapp.push_back(lam);
+  fapp.insert(fapp.end(), lam[0].begin(), lam[0].end());
+  lapp.insert(lapp.end(), lam[0].begin(), lam[0].end());
+  // We use (lam x) instead of the body of lam as the right hand side, since
+  // beta reduction uses capture-avoiding substitution.
+  Node eq =
+      nm->mkNode(Kind::APPLY_UF, fapp).eqNode(nm->mkNode(Kind::APPLY_UF, lapp));
+  Node univ = nm->mkNode(Kind::FORALL, lam[0], eq);
+  return nm->mkNode(Kind::IMPLIES, f.eqNode(n), univ);
 }
 
 Node LambdaLift::getLambdaFor(TNode n) { return FunctionConst::toLambda(n); }

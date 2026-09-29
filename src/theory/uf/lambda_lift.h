@@ -31,13 +31,16 @@ namespace uf {
 /**
  * Module for doing various operations on lambdas, including lambda lifting.
  *
- * Lambdas that are lifted are replaced by a skolem k during preprocessing,
- * where the lemma forall x. (k x) = (lam x) is added. By default
- * (--uf-lazy-ll), we only lift lambdas that may induce circular dependencies
- * in model construction (see needsLift). Other lambdas occur directly in
+ * Lambdas that are lifted during preprocessing are replaced by a skolem k,
+ * where the lemma forall x. (k x) = (lam x) is added. With --no-uf-lazy-ll,
+ * all lambdas are lifted. By default (--uf-lazy-ll), we only lift lambdas
+ * that may induce circular dependencies in model construction (see
+ * needsLift), and only when they impact model construction. This is the case
+ * when they occur as arguments to APPLY_UF, where they are lifted during
+ * preprocessing, or when they are equated to ordinary functions, where they
+ * are lifted lazily via getLiftLemma. Other lambdas occur directly in
  * constraints, and are beta-reduced on demand by the higher-order extension
- * when they are equated to ordinary functions. With --no-uf-lazy-ll, all
- * lambdas are lifted.
+ * when they are equated to ordinary functions.
  */
 class LambdaLift : protected EnvObj
 {
@@ -57,6 +60,13 @@ class LambdaLift : protected EnvObj
    * lambda may induce circular dependencies in model construction.
    */
   bool needsLift(const Node& lam);
+  /**
+   * Get the lemma for lifting n, which is a lambda or function array constant
+   * that is equal to the ordinary function f. This lemma is:
+   *   (=> (= f n) (forall x. (= (f x) (lam x))))
+   * where lam is the lambda for n.
+   */
+  Node getLiftLemma(const Node& f, const Node& n) const;
 
   /**
    * Get the lambda for n, which is n itself if it is a lambda, or its lambda
@@ -77,6 +87,14 @@ class LambdaLift : protected EnvObj
    * the lambda lifting lemma has already been generated in this context.
    */
   TrustNode lift(Node node);
+  /**
+   * Lift lam, returning its skolem, and adding the lemma defining it to lems
+   * if it has not already been lifted. Returns null if lam cannot be lifted,
+   * e.g. if it has free variables.
+   */
+  Node liftToSkolem(const Node& lam, std::vector<SkolemLemma>& lems);
+  /** Make trusted rewrite from n to ret, which is justified by lifting */
+  TrustNode mkTrustedRewrite(const Node& n, const Node& ret) const;
   /**
    * Get assertion for node, which is the axiom defining its skolem.
    */
