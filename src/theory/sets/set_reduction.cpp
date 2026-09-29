@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +33,7 @@ SetReduction::~SetReduction() {}
 Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::SET_FOLD);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node f = node[0];
   Node t = node[1];
@@ -72,7 +69,7 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node union_i_equal =
       union_i.eqNode(nm->mkNode(Kind::SET_UNION, singleton, union_iMinusOne));
   Node interval_i = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
+      Kind::AND, {nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n)});
 
   Node body_i =
       nm->mkNode(Kind::IMPLIES,
@@ -93,7 +90,7 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 Node SetReduction::reduceAggregateOperator(Node node)
 {
   Assert(node.getKind() == Kind::RELATION_AGGREGATE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node function = node[0];
   TypeNode elementType = function.getType().getArgTypes()[0];
@@ -117,7 +114,7 @@ Node SetReduction::reduceAggregateOperator(Node node)
 Node SetReduction::reduceProjectOperator(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_PROJECT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node A = n[0];
   TypeNode elementType = A.getType().getSetElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();

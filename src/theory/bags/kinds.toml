@@ -1,0 +1,279 @@
+# kinds.toml
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.toml.
+#
+
+[theory]
+id                 = "THEORY_BAGS"
+base_class         = "::cvc5::internal::theory::bags::TheoryBags"
+base_class_header  = "theory/bags/theory_bags.h"
+properties         = ["parametric", "check", "presolve"]
+typechecker_header = "theory/bags/theory_bags_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::bags::BagsRewriter"
+header = "theory/bags/bags_rewriter.h"
+
+# constants
+[[kinds]]
+type      = "constant"
+name      = "BAG_EMPTY"
+class_key = "class"
+cpp_type  = "EmptyBag"
+hasher    = "::cvc5::internal::EmptyBagHashFunction"
+header    = "expr/emptybag.h"
+comment   = "the empty bag constant; payload is an instance of the cvc5::internal::EmptyBag class"
+typerule  = "::cvc5::internal::theory::bags::EmptyBagTypeRule"
+
+# the type
+[[kinds]]
+type     = "operator"
+name     = "BAG_TYPE"
+children = 1
+comment  = "bag type, takes as parameter the type of the elements"
+[kinds.cardinality]
+computer = "::cvc5::internal::theory::bags::BagsProperties::computeCardinality(%TYPE%)"
+header   = "theory/bags/theory_bags_type_rules.h"
+[kinds.well-founded]
+wellfoundedness-computer = "::cvc5::internal::theory::bags::BagsProperties::isWellFounded(%TYPE%)"
+ground-term-computer     = "::cvc5::internal::theory::bags::BagsProperties::mkGroundTerm(%TYPE%)"
+header                   = "theory/bags/theory_bags_type_rules.h"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::bags::BagEnumerator"
+header = "theory/bags/theory_bags_type_enumerator.h"
+
+# operators
+[[kinds]]
+type     = "operator"
+name     = "BAG_UNION_MAX"
+children = 2
+comment  = "union for bags (max)"
+typerule = "::cvc5::internal::theory::bags::BinaryOperatorTypeRule"
+
+[[kinds]]
+type      = "operator"
+name      = "BAG_UNION_DISJOINT"
+children  = 2
+comment   = "disjoint union for bags (sum)"
+typerule  = "::cvc5::internal::theory::bags::BinaryOperatorTypeRule"
+construle = "::cvc5::internal::theory::bags::BinaryOperatorTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BAG_INTER_MIN"
+children = 2
+comment  = "bag intersection (min)"
+typerule = "::cvc5::internal::theory::bags::BinaryOperatorTypeRule"
+
+# {|("a", 2), ("b", 3)} \ {("a", 1)|} = {|("a", 1), ("b", 3)|}
+[[kinds]]
+type     = "operator"
+name     = "BAG_DIFFERENCE_SUBTRACT"
+children = 2
+comment  = "bag difference1 (subtracts multiplicities)"
+typerule = "::cvc5::internal::theory::bags::BinaryOperatorTypeRule"
+
+# {|("a", 2), ("b", 3)} \\ {("a", 1)|} = {|("b", 3)|}
+[[kinds]]
+type     = "operator"
+name     = "BAG_DIFFERENCE_REMOVE"
+children = 2
+comment  = "bag difference remove (removes shared elements)"
+typerule = "::cvc5::internal::theory::bags::BinaryOperatorTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BAG_SUBBAG"
+children = 2
+comment  = "inclusion predicate for bags (less than or equal multiplicities)"
+typerule = "::cvc5::internal::theory::bags::SubBagTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BAG_COUNT"
+children = 2
+comment  = "multiplicity of an element in a bag"
+typerule = "::cvc5::internal::theory::bags::CountTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BAG_MEMBER"
+children = 2
+comment  = "bag membership predicate; is first parameter a member of second?"
+typerule = "::cvc5::internal::theory::bags::MemberTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BAG_SETOF"
+children = 1
+comment  = "eliminate duplicates in a bag (also known as the delta operator,or the squash operator)"
+typerule = "::cvc5::internal::theory::bags::SetofTypeRule"
+
+[[kinds]]
+type      = "operator"
+name      = "BAG_MAKE"
+children  = 2
+comment   = "constructs a bag from one element along with its multiplicity"
+typerule  = "::cvc5::internal::theory::bags::BagMakeTypeRule"
+construle = "::cvc5::internal::theory::bags::BagMakeTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "BAG_CARD"
+children = 1
+comment  = "bag cardinality operator"
+typerule = "::cvc5::internal::theory::bags::CardTypeRule"
+
+# The operator choose returns an element from a given bag.
+# If bag A = {("a", 1)}, then the term (choose A) is equivalent to the term a.
+# If the bag is empty, then (choose A) is an arbitrary value.
+# If the bag has cardinality > 1, then (choose A) will deterministically return an element in A.
+[[kinds]]
+type     = "operator"
+name     = "BAG_CHOOSE"
+children = 1
+comment  = "return an element in the bag given as a parameter"
+typerule = "::cvc5::internal::theory::bags::ChooseTypeRule"
+
+# The bag.map operator applies the first argument, a function of type (-> T1 T2), to every element
+# of the second argument, a bag of type (Bag T1), and returns a bag of type (Bag T2).
+[[kinds]]
+type     = "operator"
+name     = "BAG_MAP"
+children = 2
+comment  = "bag map function"
+typerule = "::cvc5::internal::theory::bags::BagMapTypeRule"
+
+# The bag.filter operator takes a predicate of type (-> T Bool) and a bag of type (Bag T)
+# and returns the same bag excluding those elements that do not satisfy the predicate
+[[kinds]]
+type     = "operator"
+name     = "BAG_FILTER"
+children = 2
+comment  = "bag filter operator"
+typerule = "::cvc5::internal::theory::bags::BagFilterTypeRule"
+
+# bag.all operator is a predicate that holds iff all elements in a given bag satisfy the the given predicate.
+# (bag.all p A) receives a predicate p of type (-> T Bool) and a bag of type (Bag T) and returns Bool
+[[kinds]]
+type     = "operator"
+name     = "BAG_ALL"
+children = 2
+comment  = "bag all operator"
+typerule = "::cvc5::internal::theory::bags::BagAllSomeTypeRule"
+
+# bag.some operator is a predicate that holds iff at least one element in a given bag satisfies the the given predicate.
+# (bag.some p A) receives a predicate p of type (-> T Bool) and a bag of type (Bag T) and returns Bool
+[[kinds]]
+type     = "operator"
+name     = "BAG_SOME"
+children = 2
+comment  = "bag some operator"
+typerule = "::cvc5::internal::theory::bags::BagAllSomeTypeRule"
+
+# bag.fold operator combines elements of a bag into a single value.
+# (bag.fold f t B) folds the elements of bag B starting with term t and using
+# the combining function f.
+#  f: a binary operation of type (-> T1 T2 T2)
+#  t: an initial value of type T2
+#  B: a bag of type (Bag T1)
+[[kinds]]
+type     = "operator"
+name     = "BAG_FOLD"
+children = 3
+comment  = "bag fold operator"
+typerule = "::cvc5::internal::theory::bags::BagFoldTypeRule"
+
+# bag.partition operator partitions a bag into a bag of bags based on an equivalence relation such that
+# each element occurs exactly in one these bags.
+[[kinds]]
+type     = "operator"
+name     = "BAG_PARTITION"
+children = 2
+comment  = "bag partition operator"
+typerule = "::cvc5::internal::theory::bags::BagPartitionTypeRule"
+
+# table.product operator returns the cross product of two tables
+[[kinds]]
+type     = "operator"
+name     = "TABLE_PRODUCT"
+children = 2
+comment  = "table cross product"
+typerule = "::cvc5::internal::theory::bags::TableProductTypeRule"
+
+# table.project operator extends datatypes tuple_project operator to a bag of tuples
+[[kinds]]
+type      = "constant"
+name      = "TABLE_PROJECT_OP"
+class_key = "class"
+cpp_type  = "ProjectOp+"
+hasher    = "::cvc5::internal::ProjectOpHashFunction"
+header    = "theory/datatypes/project_op.h"
+comment   = "operator for TABLE_PROJECT; payload is an instance of the cvc5::internal::ProjectOp class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "TABLE_PROJECT"
+K2       = "TABLE_PROJECT_OP"
+children = 1
+comment  = "table projection"
+typerule = "::cvc5::internal::theory::bags::TableProjectTypeRule"
+
+# table.aggregate operator
+[[kinds]]
+type      = "constant"
+name      = "TABLE_AGGREGATE_OP"
+class_key = "class"
+cpp_type  = "ProjectOp+"
+hasher    = "::cvc5::internal::ProjectOpHashFunction"
+header    = "theory/datatypes/project_op.h"
+comment   = "operator for TABLE_AGGREGATE; payload is an instance of the cvc5::internal::ProjectOp class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "TABLE_AGGREGATE"
+K2       = "TABLE_AGGREGATE_OP"
+children = 3
+comment  = "table aggregate"
+typerule = "::cvc5::internal::theory::bags::TableAggregateTypeRule"
+
+# table.join operator
+[[kinds]]
+type      = "constant"
+name      = "TABLE_JOIN_OP"
+class_key = "class"
+cpp_type  = "ProjectOp+"
+hasher    = "::cvc5::internal::ProjectOpHashFunction"
+header    = "theory/datatypes/project_op.h"
+comment   = "operator for TABLE_JOIN; payload is an instance of the cvc5::internal::ProjectOp class"
+typerule  = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "TABLE_JOIN"
+K2       = "TABLE_JOIN_OP"
+children = 2
+comment  = "table join"
+typerule = "::cvc5::internal::theory::bags::TableJoinTypeRule"
+
+# table.group operator
+[[kinds]]
+type      = "constant"
+name      = "TABLE_GROUP_OP"
+class_key = "class"
+cpp_type  = "ProjectOp+"
+hasher    = "::cvc5::internal::ProjectOpHashFunction"
+header    = "theory/datatypes/project_op.h"
+comment   = "operator for TABLE_GROUP; payload is an instance of the cvc5::internal::ProjectOp class"
+typerule = "SimpleTypeRule<RBuiltinOperator>"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "TABLE_GROUP"
+K2       = "TABLE_GROUP_OP"
+children = 1
+comment  = "table group"
+typerule = "::cvc5::internal::theory::bags::TableGroupTypeRule"

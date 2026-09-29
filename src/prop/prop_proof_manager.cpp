@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -221,7 +218,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   for (const std::shared_ptr<ProofNode>& pf : pfs)
   {
     Node proven = pf->getResult();
-    if (std::find(satLeaves.begin(), satLeaves.end(), proven) != satLeaves.end())
+    if (std::find(satLeaves.begin(), satLeaves.end(), proven)
+        != satLeaves.end())
     {
       usedPfs.push_back(pf);
     }
@@ -367,6 +365,10 @@ void PropPfManager::presolve()
   d_plog = d_env.getProofLogger();
   Trace("pf-log-debug") << "PropPfManager::presolve, plog="
                         << (d_plog != nullptr) << std::endl;
+}
+
+void PropPfManager::logPreprocessing()
+{
   if (d_plog != nullptr)
   {
     // TODO (wishues #157): in incremental mode, only get the new assertions

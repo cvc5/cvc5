@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,8 +16,8 @@
 #define CVC5__REWRITER__REWRITE_PROOF_RULE__H
 
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "expr/nary_match_trie.h"
 #include "expr/node.h"
@@ -84,6 +81,11 @@ class RewriteProofRule
   const std::vector<Node>& getVarList() const;
   /** The context that the rule is applied in */
   Node getContext() const { return d_context; }
+  /**
+   * Get path to context variable, for example if
+   * d_context is (lambda x (f a (g x b))), then d_pathToCtx = [1,0].
+   */
+  const std::vector<size_t> getPathToContextVar() const { return d_pathToCtx; }
   /** Does this rule have conditions? */
   bool hasConditions() const;
   /** Get (declared) conditions */
@@ -150,8 +152,7 @@ class RewriteProofRule
   /**
    * Is variable explicit? An explicit variable is one that does not occur
    * in a condition and thus its value must be specified in a proof
-   * in languages that allow for implicit/unspecified hole arguments,
-   * e.g. LFSC.
+   * in languages that allow for implicit/unspecified hole arguments.
    */
   bool isExplicitVar(Node v) const;
   /**
@@ -197,8 +198,6 @@ class RewriteProofRule
   Node d_context;
   /** The level */
   Level d_level;
-  /** Whether the rule is in flat form */
-  bool d_isFlatForm;
   /** the ordered list of free variables, provided by the user */
   std::vector<Node> d_userFvs;
   /** the ordered list of free variables */
@@ -216,6 +215,8 @@ class RewriteProofRule
   std::map<Node, Node> d_listVarCtx;
   /** The match trie (for fixed point matching) */
   expr::NaryMatchTrie d_mt;
+  /** Path to context variable */
+  std::vector<size_t> d_pathToCtx;
 };
 
 }  // namespace rewriter

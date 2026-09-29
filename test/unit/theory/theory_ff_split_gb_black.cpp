@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +48,7 @@ class TestTheoryFfSplitGb : public TestEnv
 
 CoCoA::RingElem randCoeff(const CoCoA::ring& polyRing, Random& rng)
 {
-  return CoCoA::zero(CoCoA::CoeffRing(polyRing)) + rng.rand();
+  return CoCoA::zero(CoCoA::CoeffRing(polyRing)) + rng.pick<uint64_t>();
 }
 
 CoCoA::RingElem randPoly(const CoCoA::ring& polyRing,
@@ -63,10 +60,10 @@ CoCoA::RingElem randPoly(const CoCoA::ring& polyRing,
   for (size_t ti = 0; ti < terms; ++ti)
   {
     CoCoA::RingElem term = CoCoA::zero(polyRing) + randCoeff(polyRing, rng);
-    long tDegree = 1 + (rng.rand() % degree);
+    long tDegree = 1 + (rng.pick<uint64_t>() % degree);
     for (long i = 0; i < tDegree; ++i)
     {
-      long j = rng.rand() % CoCoA::NumIndets(polyRing);
+      long j = rng.pick<uint64_t>() % CoCoA::NumIndets(polyRing);
       term *= CoCoA::indet(polyRing, j);
     }
     out += term;
@@ -112,7 +109,7 @@ TEST_F(TestTheoryFfSplitGb, RandSat)
     {
       allGens.push_back(
           randPolyWithRoot(polyRing, degree, n_terms, solution, rng));
-      size_t j = rng.rand() % n_bases;
+      size_t j = rng.pick<uint64_t>() % n_bases;
       gens[j].push_back(allGens.back());
     }
     std::vector<ff::Gb> bases;
@@ -153,7 +150,7 @@ TEST_F(TestTheoryFfSplitGb, RandUnsat)
     for (size_t i = 0; i < n_eqns; ++i)
     {
       allGens.push_back(randPoly(polyRing, degree, n_terms, rng));
-      size_t j = rng.rand() % n_bases;
+      size_t j = rng.pick<uint64_t>() % n_bases;
       gens[j].push_back(allGens.back());
     }
     std::vector<ff::Gb> bases;

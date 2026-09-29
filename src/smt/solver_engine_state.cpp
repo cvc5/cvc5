@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +27,7 @@ SolverEngineState::SolverEngineState(Env& env)
       d_fullyInited(false),
       d_queryMade(false),
       d_status(),
+      d_statusSolver(nullptr),
       d_expectedStatus(),
       d_smtMode(SmtMode::START)
 {
@@ -65,7 +63,8 @@ void SolverEngineState::notifyCheckSat()
   d_smtMode = SmtMode::ASSERT;
 }
 
-void SolverEngineState::notifyCheckSatResult(const Result& r)
+void SolverEngineState::notifyCheckSatResult(const Result& r,
+                                             SolverEngine* solver)
 {
   // Note that a query has been made
   d_queryMade = true;
@@ -92,6 +91,8 @@ void SolverEngineState::notifyCheckSatResult(const Result& r)
     case Result::SAT: d_smtMode = SmtMode::SAT; break;
     default: d_smtMode = SmtMode::SAT_UNKNOWN;
   }
+  // store the status solver
+  d_statusSolver = solver;
 }
 
 void SolverEngineState::notifyCheckSynthResult(const SynthResult& r)
@@ -186,6 +187,11 @@ void SolverEngineState::notifyUserPop()
 }
 
 Result SolverEngineState::getStatus() const { return d_status; }
+
+SolverEngine* SolverEngineState::getStatusSolver() const
+{
+  return d_statusSolver;
+}
 
 bool SolverEngineState::isFullyInited() const { return d_fullyInited; }
 

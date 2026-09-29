@@ -1,0 +1,80 @@
+# kinds.toml
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.toml.
+#
+
+[theory]
+id                 = "THEORY_BOOL"
+base_class         = "::cvc5::internal::theory::booleans::TheoryBool"
+base_class_header  = "theory/booleans/theory_bool.h"
+properties         = ["finite"]
+typechecker_header = "theory/booleans/theory_bool_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::booleans::TheoryBoolRewriter"
+header = "theory/booleans/theory_bool_rewriter.h"
+
+[[kinds]]
+type          = "sort"
+name          = "BOOLEAN_TYPE"
+cardinality   = 2
+well_founded  = true
+ground-term   = "nm->mkConst(false)"
+header        = "expr/node_manager.h"
+comment       = "Boolean type"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::booleans::BooleanEnumerator"
+header = "theory/booleans/type_enumerator.h"
+
+[[kinds]]
+type      = "constant"
+name      = "CONST_BOOLEAN"
+class_key = "skip"
+cpp_type  = "bool"
+hasher    = "::cvc5::internal::BoolHashFunction"
+header    = "util/bool.h"
+comment   = "truth and falsity; payload is a (C++) bool"
+typerule  = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "NOT"
+children = 1
+comment  = "logical not"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "AND"
+children = "2:"
+comment  = "logical and (N-ary)"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "IMPLIES"
+children = 2
+comment  = "logical implication (exactly two parameters)"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "OR"
+children = "2:"
+comment  = "logical or (N-ary)"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "XOR"
+children = 2
+comment  = "exclusive or (exactly two parameters)"
+typerule = "::cvc5::internal::theory::boolean::BooleanTypeRule"
+
+[[kinds]]
+type     = "operator"
+name     = "ITE"
+children = 3
+comment  = "if-then-else, used for both Boolean and term ITE constructs; first parameter is (Boolean-sorted) condition, second is 'then', third is 'else' and these two parameters must have same base sort"
+typerule = "::cvc5::internal::theory::boolean::IteTypeRule"

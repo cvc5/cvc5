@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Clark Barrett, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +27,7 @@ ArrayEnumerator::ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
       d_tep(tep),
       d_index(type.getArrayIndexType(), tep),
       d_constituentType(type.getArrayConstituentType()),
-      d_nm(NodeManager::currentNM()),
+      d_nm(type.getNodeManager()),
       d_indexVec(),
       d_constituentVec(),
       d_finished(false),
@@ -45,7 +42,7 @@ ArrayEnumerator::ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
 
 ArrayEnumerator::ArrayEnumerator(const ArrayEnumerator& ae)
     : TypeEnumeratorBase<ArrayEnumerator>(
-        ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
+          ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
       d_tep(ae.d_tep),
       d_index(ae.d_index),
       d_constituentType(ae.d_constituentType),

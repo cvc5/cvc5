@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -284,7 +281,7 @@ bool CDProof::addTheoryRewriteStep(Node expected,
     return false;
   }
   std::vector<Node> sargs;
-  sargs.push_back(rewriter::mkRewriteRuleNode(id));
+  sargs.push_back(rewriter::mkRewriteRuleNode(nodeManager(), id));
   sargs.push_back(expected);
   return addStep(
       expected, ProofRule::THEORY_REWRITE, {}, sargs, ensureChildren, opolicy);
@@ -444,6 +441,20 @@ bool CDProof::hasStep(Node fact)
     return true;
   }
   return false;
+}
+
+bool CDProof::hasFact(Node fact) const
+{
+  if (getProof(fact) != nullptr)
+  {
+    return true;
+  }
+  if (!d_autoSymm)
+  {
+    return false;
+  }
+  Node symFact = getSymmFact(fact);
+  return !symFact.isNull() && getProof(symFact) != nullptr;
 }
 
 size_t CDProof::getNumProofNodes() const { return d_nodes.size(); }

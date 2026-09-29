@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Makai Mann
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,14 +35,14 @@ TEST_F(TestApiWhiteTerm, getOp)
   Op ext = d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {4, 0});
   Term extb = d_tm.mkTerm(ext, {b});
 
-  ASSERT_EQ(ab.getOp(), Op(&d_solver->getTermManager(), Kind::SELECT));
+  ASSERT_EQ(ab.getOp(), Op(d_solver->getTermManager().d_nm, Kind::SELECT));
   // can compare directly to a Kind (will invoke Op constructor)
-  ASSERT_EQ(ab.getOp(), Op(&d_solver->getTermManager(), Kind::SELECT));
+  ASSERT_EQ(ab.getOp(), Op(d_solver->getTermManager().d_nm, Kind::SELECT));
 
   Term f = d_tm.mkConst(funsort, "f");
   Term fx = d_tm.mkTerm(Kind::APPLY_UF, {f, x});
 
-  ASSERT_EQ(fx.getOp(), Op(&d_solver->getTermManager(), Kind::APPLY_UF));
+  ASSERT_EQ(fx.getOp(), Op(d_solver->getTermManager().d_nm, Kind::APPLY_UF));
   // testing rebuild from op and children
 
   // Test Datatypes Ops
@@ -75,13 +72,13 @@ TEST_F(TestApiWhiteTerm, getOp)
   Term tailTerm = d_tm.mkTerm(Kind::APPLY_SELECTOR, {tailOpTerm, consTerm});
 
   ASSERT_EQ(nilTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_CONSTRUCTOR));
   ASSERT_EQ(consTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_CONSTRUCTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_CONSTRUCTOR));
   ASSERT_EQ(headTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_SELECTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_SELECTOR));
   ASSERT_EQ(tailTerm.getOp(),
-            Op(&d_solver->getTermManager(), Kind::APPLY_SELECTOR));
+            Op(d_solver->getTermManager().d_nm, Kind::APPLY_SELECTOR));
 }
 }  // namespace test
 }  // namespace cvc5::internal

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Ying Sheng, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -367,14 +364,14 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   subOptions.write_quantifiers().sygus = true;
   smt::SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
-  initializeSubsolver(d_subSolver, ssi);
+  initializeSubsolver(nodeManager(), d_subSolver, ssi);
 
   for (const Node& var : d_vars)
   {
     d_subSolver->declareSygusVar(var);
   }
   std::vector<Node> vars_empty;
-  d_subSolver->declareSynthFun(d_itp, grammarType, false, vars_empty);
+  d_subSolver->declareSynthFun(d_itp, grammarType, vars_empty);
   Trace("sygus-interpol")
       << "SygusInterpol::solveInterpolation: made conjecture : " << d_sygusConj
       << std::endl;

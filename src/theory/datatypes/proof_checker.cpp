@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,9 +12,7 @@
 
 #include "theory/datatypes/proof_checker.h"
 
-#include "expr/dtype_cons.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/rewriter.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -33,9 +28,10 @@ void DatatypesProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::DT_SPLIT, this);
 }
 
-Node DatatypesProofRuleChecker::checkInternal(ProofRule id,
-                                              const std::vector<Node>& children,
-                                              const std::vector<Node>& args)
+Node DatatypesProofRuleChecker::checkInternal(
+    ProofRule id,
+    CVC5_UNUSED const std::vector<Node>& children,
+    const std::vector<Node>& args)
 {
   if (id == ProofRule::DT_SPLIT)
   {

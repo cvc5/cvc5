@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +34,7 @@ BagReduction::~BagReduction() {}
 Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::BAG_FOLD);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node f = node[0];
   Node t = node[1];
@@ -76,7 +73,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node unionDisjoint_i_equal = unionDisjoint_i.eqNode(
       nm->mkNode(Kind::BAG_UNION_DISJOINT, singleton, unionDisjoint_iMinusOne));
   Node interval_i = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
+      Kind::AND, {nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n)});
 
   Node body_i =
       nm->mkNode(Kind::IMPLIES,
@@ -97,7 +94,7 @@ Node BagReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
 Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 {
   Assert(node.getKind() == Kind::BAG_CARD);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   Node A = node[0];
   Node zero = nm->mkConstInt(Rational(0));
@@ -142,11 +139,11 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
       nm->mkNode(Kind::BAG_UNION_DISJOINT, bag, unionDisjoint_iMinusOne));
   // 1 <= i <= n
   Node interval_i = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
+      Kind::AND, {nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n)});
 
   // i < j <= n
   Node interval_j = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::LT, i, j), nm->mkNode(Kind::LEQ, j, n));
+      Kind::AND, {nm->mkNode(Kind::LT, i, j), nm->mkNode(Kind::LEQ, j, n)});
   // elements(i) != elements(j)
   Node elements_i_equals_elements_j =
       nm->mkNode(Kind::EQUAL, elements_i, elements_j);
@@ -173,7 +170,7 @@ Node BagReduction::reduceCardOperator(Node node, std::vector<Node>& asserts)
 Node BagReduction::reduceAggregateOperator(Node node)
 {
   Assert(node.getKind() == Kind::TABLE_AGGREGATE);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = node.getNodeManager();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node function = node[0];
   TypeNode elementType = function.getType().getArgTypes()[0];
@@ -197,7 +194,7 @@ Node BagReduction::reduceAggregateOperator(Node node)
 Node BagReduction::reduceProjectOperator(Node n)
 {
   Assert(n.getKind() == Kind::TABLE_PROJECT);
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node A = n[0];
   TypeNode elementType = A.getType().getBagElementType();
   ProjectOp projectOp = n.getOperator().getConst<ProjectOp>();

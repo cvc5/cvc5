@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,9 +70,7 @@ TheoryProxy::TheoryProxy(Env& env,
   }
 }
 
-TheoryProxy::~TheoryProxy() {
-  /* nothing to do for now */
-}
+TheoryProxy::~TheoryProxy() { /* nothing to do for now */ }
 
 void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
 {
@@ -207,7 +202,8 @@ void TheoryProxy::notifyAssertion(Node a,
   d_prr->addAssertion(a, skolem, isLemma);
 }
 
-void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
+void TheoryProxy::theoryCheck(theory::Theory::Effort effort)
+{
   Trace("theory-proxy") << "TheoryProxy: check " << effort << std::endl;
   d_activatedSkDefs = false;
   // check with the preregistrar
@@ -276,17 +272,21 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
   }
 }
 
-void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output) {
+void TheoryProxy::theoryPropagate(std::vector<SatLiteral>& output)
+{
   // Get the propagated literals
   std::vector<TNode> outputNodes;
   d_theoryEngine->getPropagatedLiterals(outputNodes);
-  for (unsigned i = 0, i_end = outputNodes.size(); i < i_end; ++ i) {
-    Trace("prop-explain") << "theoryPropagate() => " << outputNodes[i] << std::endl;
+  for (unsigned i = 0, i_end = outputNodes.size(); i < i_end; ++i)
+  {
+    Trace("prop-explain") << "theoryPropagate() => " << outputNodes[i]
+                          << std::endl;
     output.push_back(d_cnfStream->getLiteral(outputNodes[i]));
   }
 }
 
-void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
+void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation)
+{
   TNode lNode = d_cnfStream->getNode(l);
   Trace("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
@@ -367,7 +367,8 @@ void TheoryProxy::notifySatClause(const SatClause& clause)
   }
 }
 
-void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
+void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l)
+{
   Node literalNode = d_cnfStream->getNode(l);
   Trace("theory-proxy") << "enqueueing theory literal " << l << " "
                         << literalNode << std::endl;
@@ -460,11 +461,10 @@ theory::IncompleteId TheoryProxy::getRefutationUnsoundId() const
   return d_theoryEngine->getRefutationUnsoundId();
 }
 
-TNode TheoryProxy::getNode(SatLiteral lit) {
-  return d_cnfStream->getNode(lit);
-}
+TNode TheoryProxy::getNode(SatLiteral lit) { return d_cnfStream->getNode(lit); }
 
-void TheoryProxy::notifyRestart() {
+void TheoryProxy::notifyRestart()
+{
   d_propEngine->spendResource(Resource::RestartStep);
   d_theoryEngine->notifyRestart();
 }

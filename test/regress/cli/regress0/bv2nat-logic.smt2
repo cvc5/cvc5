@@ -2,5 +2,5 @@
 (set-info :status sat)
 (declare-fun x () (_ BitVec 4))
 (declare-fun y () Int)
-(assert (not (= (bv2nat x) y)))
+(assert (not (= (ubv_to_int x) y)))
 (check-sat)

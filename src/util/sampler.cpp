@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,7 +61,7 @@ FloatingPoint Sampler::pickFpBiased(unsigned e, unsigned s)
   {
     // Generate special values
 
-    uint64_t type = rnd.pick(0, 12);
+    uint64_t type = rnd.pick<uint64_t>(0, 12);
     switch (type)
     {
       // NaN
@@ -121,7 +118,7 @@ FloatingPoint Sampler::pickFpBiased(unsigned e, unsigned s)
       sign = one;
     }
 
-    uint64_t pattern = rnd.pick(0, 5);
+    uint64_t pattern = rnd.pick<uint64_t>(0, 5);
     switch (pattern)
     {
       case 0:
@@ -156,7 +153,8 @@ FloatingPoint Sampler::pickFpBiased(unsigned e, unsigned s)
       case 5:
       {
         // sign = x, exp = xx...xx0xx...xx, sig = xx...xx
-        uint64_t lsbSize = rnd.pick(1, e - 2);
+        Assert(e > 2);
+        uint64_t lsbSize = rnd.pick<uint64_t>(1, e - 2);
         uint64_t msbSize = e - lsbSize - 1;
         BitVector lsb = pickBvUniform(lsbSize);
         BitVector msb = pickBvUniform(msbSize);

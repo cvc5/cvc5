@@ -8,10 +8,10 @@
 
 (assert (or
 
-(not (= ((_ int2bv 4) (bv2nat x)) (concat #b0 x)))
-(not (= ((_ int2bv 4) (bv2nat y)) ((_ extract 3 0) y)))
+(not (= ((_ int_to_bv 4) (ubv_to_int x)) (concat #b0 x)))
+(not (= ((_ int_to_bv 4) (ubv_to_int y)) ((_ extract 3 0) y)))
 
-(not (= (bv2nat x) (bv2nat (concat #b0 x))))
+(not (= (ubv_to_int x) (ubv_to_int (concat #b0 x))))
 
 ))
 

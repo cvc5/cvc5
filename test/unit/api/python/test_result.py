@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Yoni Zohar, Aina Niemetz, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -30,7 +27,7 @@ def solver(tm):
 
 
 def test_is_null(tm, solver):
-    res_null = Result(solver)
+    res_null = Result()
     assert res_null.isNull()
     assert not res_null.isSat()
     assert not res_null.isUnsat()

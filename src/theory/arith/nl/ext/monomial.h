@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,20 +29,34 @@ class NlModel;
 typedef std::map<Node, unsigned> NodeMultiset;
 typedef std::map<Node, NodeMultiset> MonomialExponentMap;
 
+/**
+ * Relationship between a queried monomial and the trie node currently being
+ * traversed in MonomialIndex.
+ */
+enum class MonomialRelation
+{
+  /** The queried monomial matches the current trie path exactly. */
+  EQUAL,
+  /** The queried monomial is a strict superset of the current trie path. */
+  SUPERSET,
+  /** The queried monomial is a strict subset of the current trie path. */
+  SUBSET,
+  /** The queried monomial can no longer match the current trie path. */
+  INVALID
+};
+
 /** An index data structure for node multisets (monomials) */
 class MonomialIndex
 {
  public:
   /**
    * Add term to this trie. The argument status indicates what the status
-   * of n is with respect to the current node in the trie, where:
-   *   0 : n is equal, -1 : n is superset, 1 : n is subset
-   * of the node described by the current path in the trie.
+   * of n is with respect to the current node in the trie.
    */
   void addTerm(Node n,
                const std::vector<Node>& reps,
                MonomialDb* nla,
-               int status = 0,
+               MonomialRelation status = MonomialRelation::EQUAL,
                unsigned argIndex = 0);
 
  private:

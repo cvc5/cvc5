@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +15,7 @@
 #include "expr/skolem_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
-#include "proof/alf/alf_printer.h"
+#include "proof/eo/eo_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_manager.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -64,7 +61,8 @@ ProofFinalCallback::ProofFinalCallback(Env& env)
           statisticsRegistry().registerInt("finalProof::minPedanticLevel")),
       d_numFinalProofs(
           statisticsRegistry().registerInt("finalProofs::numFinalProofs")),
-      d_pedanticFailure(false)
+      d_pedanticFailure(false),
+      d_checkProofHoles(false)
 {
   d_minPedanticLevel += 10;
 }
@@ -74,11 +72,11 @@ void ProofFinalCallback::initializeUpdate()
   d_pedanticFailure = false;
   d_pedanticFailureOut.str("");
   ++d_numFinalProofs;
+  d_checkProofHoles =
+      options().base.statisticsInternal || options().proof.checkProofsComplete;
 }
 
-bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                      const std::vector<Node>& fa,
-                                      bool& continueUpdate)
+void ProofFinalCallback::finalize(std::shared_ptr<ProofNode> pn)
 {
   ProofRule r = pn->getRule();
   ProofNodeManager* pnm = d_env.getProofNodeManager();
@@ -104,35 +102,38 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   {
     d_minPedanticLevel.minAssign(plevel);
   }
-  // if not taking statistics, don't bother computing the following
-  if (options().base.statisticsInternal)
+  // if not taking statistics or checking completeness, don't bother computing
+  // the following
+  if (d_checkProofHoles)
   {
     // record stats for the rule
     d_ruleCount << r;
-    bool isHandled = proof::AlfPrinter::isHandled(options(), pn.get());
+    bool isHandled = proof::EoPrinter::isHandled(options(), pn.get());
     if (!isHandled)
     {
       d_ruleEouCount << r;
     }
     ++d_totalRuleCount;
+    TheoryId trustTid = THEORY_BUILTIN;
+    TrustId trustId = TrustId::NONE;
+    ProofRewriteRule dslId = ProofRewriteRule::NONE;
     // if a DSL rewrite, take DSL stat
     if (r == ProofRule::DSL_REWRITE || r == ProofRule::THEORY_REWRITE)
     {
       const std::vector<Node>& args = pn->getArguments();
-      ProofRewriteRule di = ProofRewriteRule::NONE;
-      rewriter::getRewriteRule(args[0], di);
-      Assert(di != ProofRewriteRule::NONE);
+      rewriter::getRewriteRule(args[0], dslId);
+      Assert(dslId != ProofRewriteRule::NONE);
       if (r == ProofRule::DSL_REWRITE)
       {
-        d_dslRuleCount << di;
+        d_dslRuleCount << dslId;
       }
       else
       {
         if (!isHandled)
         {
-          d_theoryRewriteEouCount << di;
+          d_theoryRewriteEouCount << dslId;
         }
-        d_theoryRewriteRuleCount << di;
+        d_theoryRewriteRuleCount << dslId;
       }
     }
     // take stats on the instantiations in the proof
@@ -151,19 +152,17 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     }
     else if (r == ProofRule::TRUST)
     {
-      TrustId id;
-      if (getTrustId(pn->getArguments()[0], id))
+      if (getTrustId(pn->getArguments()[0], trustId))
       {
-        d_trustIds << id;
-        if (id == TrustId::THEORY_LEMMA)
+        d_trustIds << trustId;
+        if (trustId == TrustId::THEORY_LEMMA)
         {
           const std::vector<Node>& args = pn->getArguments();
-          TheoryId tid = THEORY_BUILTIN;
           if (args.size() >= 3)
           {
-            builtin::BuiltinProofRuleChecker::getTheoryId(args[2], tid);
+            builtin::BuiltinProofRuleChecker::getTheoryId(args[2], trustTid);
           }
-          d_trustTheoryLemmaCount << tid;
+          d_trustTheoryLemmaCount << trustTid;
         }
       }
     }
@@ -171,9 +170,37 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
     {
       const std::vector<Node>& args = pn->getArguments();
       Node eq = args[0];
-      TheoryId tid = THEORY_BUILTIN;
-      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], tid);
-      d_trustTheoryRewriteCount << tid;
+      builtin::BuiltinProofRuleChecker::getTheoryId(args[1], trustTid);
+      d_trustTheoryRewriteCount << trustTid;
+    }
+    // If the rule is not handled, and we are checking for complete proofs
+    if (!isHandled && options().proof.checkProofsComplete)
+    {
+      // internal error if hardFailure is true
+      std::stringstream ss;
+      ss << "The proof was incomplete";
+      if (r == ProofRule::TRUST)
+      {
+        ss << " due to a trust step with id " << trustId;
+        if (trustId == TrustId::THEORY_LEMMA)
+        {
+          ss << ", from theory " << trustTid;
+        }
+      }
+      else if (r == ProofRule::TRUST_THEORY_REWRITE)
+      {
+        ss << " due to a trusted theory rewrite from theory " << trustTid;
+      }
+      else if (r == ProofRule::THEORY_REWRITE)
+      {
+        ss << " due to an unhandled instance of rewrite rule " << dslId;
+      }
+      else
+      {
+        ss << " due to an unhandled instance of proof rule " << r;
+      }
+      ss << ".";
+      InternalError() << ss.str();
     }
   }
 
@@ -261,7 +288,6 @@ bool ProofFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
       }
     }
   }
-  return false;
 }
 
 bool ProofFinalCallback::wasPedanticFailure(std::ostream& out) const

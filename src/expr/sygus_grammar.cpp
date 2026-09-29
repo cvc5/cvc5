@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,10 +16,10 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/skolem_manager.h"
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "expr/skolem_manager.h"
 #include "util/hash.h"
 
 namespace cvc5::internal {
@@ -124,7 +121,7 @@ void SygusGrammar::addAnyConstant(const Node& ntSym, const TypeNode& tn)
 {
   Assert(d_rules.find(ntSym) != d_rules.cend());
   Assert(tn.isInstanceOf(ntSym.getType()));
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  SkolemManager* sm = tn.getNodeManager()->getSkolemManager();
   Node anyConst =
       sm->mkInternalSkolemFunction(InternalSkolemId::SYGUS_ANY_CONSTANT, tn);
   addRule(ntSym, anyConst);
@@ -178,7 +175,7 @@ Node purifySygusGNode(const Node& n,
                       std::map<Node, Node>& ntSymMap,
                       const std::vector<Node>& nts)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   // if n is non-terminal
   if (std::find(nts.begin(), nts.end(), n) != nts.end())
   {
@@ -203,7 +200,7 @@ Node purifySygusGNode(const Node& n,
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     // it's an indexed operator so we should provide the op
-    internal::NodeBuilder nb(NodeManager::currentNM(), n.getKind());
+    internal::NodeBuilder nb(n.getNodeManager(), n.getKind());
     nb << n.getOperator();
     nb.append(pchildren);
     nret = nb.constructNode();
@@ -233,7 +230,7 @@ void addSygusConstructor(DType& dt,
                          const std::vector<Node>& nts,
                          const std::unordered_map<Node, TypeNode>& ntsToUnres)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = rule.getNodeManager();
   std::stringstream ss;
   if (rule.getKind() == Kind::SKOLEM
       && rule.getInternalSkolemId() == InternalSkolemId::SYGUS_ANY_CONSTANT)
@@ -274,7 +271,7 @@ Node SygusGrammar::getLambdaForRule(const Node& r,
   Node rp = purifySygusGNode(r, args, ntSymMap, d_ntSyms);
   if (!args.empty())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = r.getNodeManager();
     return nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, args), rp);
   }
   return r;
@@ -296,7 +293,8 @@ TypeNode SygusGrammar::resolve(bool allowAny)
 {
   if (!isResolved())
   {
-    NodeManager* nm = NodeManager::currentNM();
+    Assert(!d_ntSyms.empty());
+    NodeManager* nm = d_ntSyms[0].getNodeManager();
     Node bvl;
     if (!d_sygusVars.empty())
     {
@@ -321,7 +319,8 @@ TypeNode SygusGrammar::resolve(bool allowAny)
       for (const Node& rule : d_rules[ntSym])
       {
         if (rule.getKind() == Kind::SKOLEM
-            && rule.getInternalSkolemId() == InternalSkolemId::SYGUS_ANY_CONSTANT)
+            && rule.getInternalSkolemId()
+                   == InternalSkolemId::SYGUS_ANY_CONSTANT)
         {
           allowConsts.insert(ntSym);
         }

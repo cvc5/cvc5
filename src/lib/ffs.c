@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +21,7 @@ extern "C" {
 
 int ffs(int i) {
   long mask = 0x1;
-  int pos = 1;
+  size_t pos = 1;
   while(pos <= sizeof(int) * 8) {
     if((mask & i) != 0) {
       return pos;

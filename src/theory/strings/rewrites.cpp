@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,6 +42,7 @@ const char* toString(Rewrite r)
     case Rewrite::CTN_REPL_TO_CTN_DISJ: return "CTN_REPL_TO_CTN_DISJ";
     case Rewrite::CTN_RHS_EMPTYSTR: return "CTN_RHS_EMPTYSTR";
     case Rewrite::CTN_RPL_NON_CTN: return "CTN_RPL_NON_CTN";
+    case Rewrite::CTN_CONCAT_CTN_SUBSTR: return "CTN_CONCAT_CTN_SUBSTR";
     case Rewrite::CTN_SPLIT: return "CTN_SPLIT";
     case Rewrite::CTN_SPLIT_ONES: return "CTN_SPLIT_ONES";
     case Rewrite::CTN_STRIP_ENDPT: return "CTN_STRIP_ENDPT";
@@ -218,6 +216,7 @@ const char* toString(Rewrite r)
     case Rewrite::STR_LT_ELIM: return "STR_LT_ELIM";
     case Rewrite::RE_RANGE_SINGLE: return "RE_RANGE_SINGLE";
     case Rewrite::RE_RANGE_EMPTY: return "RE_RANGE_EMPTY";
+    case Rewrite::RE_RANGE_NON_SINGLETON: return "RE_RANGE_NON_SINGLETON";
     case Rewrite::RE_OPT_ELIM: return "RE_OPT_ELIM";
     case Rewrite::RE_PLUS_ELIM: return "RE_PLUS_ELIM";
     case Rewrite::RE_DIFF_ELIM: return "RE_DIFF_ELIM";
@@ -233,7 +232,7 @@ const char* toString(Rewrite r)
     case Rewrite::SEQ_NTH_EVAL_SYM: return "SEQ_NTH_EVAL_SYM";
     case Rewrite::UNKNOWN: return "?";
     default:
-      Assert(false) << "No print for rewrite " << static_cast<size_t>(r);
+      DebugUnhandled() << "No print for rewrite " << static_cast<size_t>(r);
       return "?Unhandled";
   }
 }

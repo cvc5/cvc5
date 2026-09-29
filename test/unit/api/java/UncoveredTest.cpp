@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -120,7 +117,7 @@ TEST_F(TestApiBlackUncovered, deprecated)
   (void)slv.mkSepNil(slv.getIntegerSort());
   (void)slv.mkString("asdfasdf");
   std::wstring s;
-  (void)slv.mkString(s);
+  (void)slv.mkString(s).getStringValue();
   (void)slv.mkEmptySequence(slv.getIntegerSort());
   (void)slv.mkUniverseSet(slv.getIntegerSort());
   (void)slv.mkBitVector(32, 2);
@@ -232,10 +229,12 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::ProofComponent::FULL);
   ss << cvc5::modes::FindSynthTarget::ENUM
      << std::to_string(cvc5::modes::FindSynthTarget::ENUM);
+  ss << cvc5::modes::OptionCategory::REGULAR
+     << std::to_string(cvc5::modes::OptionCategory::REGULAR);
   ss << cvc5::modes::InputLanguage::SMT_LIB_2_6
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
-  ss << cvc5::modes::ProofFormat::LFSC
-     << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::modes::ProofFormat::CPC
+     << std::to_string(cvc5::modes::ProofFormat::CPC);
   ss << cvc5::ProofRewriteRule::NONE
      << std::to_string(cvc5::ProofRewriteRule::NONE);
   ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
@@ -255,9 +254,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
 
 TEST_F(TestApiBlackUncovered, mkString)
 {
-  std::wstring s;
-  ASSERT_EQ(d_tm.mkString(s).getStringValue(), s);
-  ASSERT_EQ(d_solver->mkString(s).getStringValue(), s);
+  std::u32string s;
+  ASSERT_EQ(d_tm.mkString(s).getU32StringValue(), s);
 }
 
 TEST_F(TestApiBlackUncovered, isOutputOn)
@@ -431,8 +429,8 @@ class PluginListen : public Plugin
 
 TEST_F(TestApiBlackUncovered, plugin_uncovered_default)
 {
-  // NOTE: this shouldn't be necessary but ensures notifySatClause is called
-  // here.
+  d_solver->setOption("sat-solver", "minisat");
+  // Allow notifications for unit clauses added before the main solve.
   d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
   PluginListen pl(d_tm);
   d_solver->addPlugin(pl);

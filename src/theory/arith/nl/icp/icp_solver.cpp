@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,8 +19,9 @@
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/linear/normal_form.h"
+#include "theory/arith/nl/poly_conversion.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/rewriter.h"
 #include "util/poly_util.h"
 
@@ -42,6 +40,7 @@ struct IAWrapper
   const poly::IntervalAssignment& ia;
   const VariableMapper& vm;
 };
+
 inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 {
   os << "{ ";
@@ -58,7 +57,8 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
       {
         os << ", ";
       }
-      os << v.first << " -> " << iaw.ia.get(v.first);
+      os << stream_variable(iaw.vm.polyCtx, v.first) << " -> "
+         << iaw.ia.get(v.first);
     }
   }
   return os << " }";
@@ -66,7 +66,10 @@ inline std::ostream& operator<<(std::ostream& os, const IAWrapper& iaw)
 }  // namespace
 
 ICPSolver::ICPSolver(Env& env, InferenceManager& im)
-    : EnvObj(env), d_im(im), d_state(env, d_mapper)
+    : EnvObj(env),
+      d_mapper(nodeManager()->getPolyContext()),
+      d_im(im),
+      d_state(env, d_mapper)
 {
 }
 
@@ -85,6 +88,18 @@ std::vector<Node> ICPSolver::collectVariables(const Node& n) const
 std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
 {
   Node tmp = rewrite(n);
+  if (tmp.getKind() == Kind::NOT && tmp[0].getKind() == Kind::EQUAL)
+  {
+    // Disequalities are not used for propagation. Note we return here, since a
+    // disequality cannot necessarily be parsed as a comparison below.
+    return {};
+  }
+  if (tmp.getKind() == Kind::EQUAL)
+  {
+    // Normalize the equality, so that it can be parsed as a comparison below,
+    // see rewriter::normalizeEquality.
+    tmp = rewriter::normalizeEquality(nodeManager(), tmp);
+  }
   if (tmp.isConst())
   {
     return {};
@@ -110,6 +125,8 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
     Node veq_c;
     Node val;
 
+    const poly::Context& polyCtx = nodeManager()->getPolyContext();
+
     int isolated = ArithMSum::isolate(v, msum, veq_c, val, k);
     if (isolated == 1)
     {
@@ -123,7 +140,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
         case Kind::DISTINCT: rel = poly::SignCondition::NE; break;
         case Kind::GT: rel = poly::SignCondition::GT; break;
         case Kind::GEQ: rel = poly::SignCondition::GE; break;
-        default: Assert(false) << "Unexpected kind: " << k;
+        default: DebugUnhandled() << "Unexpected kind: " << k;
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
@@ -132,7 +149,13 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
+      Candidate res{polyCtx,
+                    lhs,
+                    rel,
+                    rhs,
+                    poly::inverse(rhsmult),
+                    n,
+                    collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -148,7 +171,7 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
         case Kind::DISTINCT: rel = poly::SignCondition::NE; break;
         case Kind::GT: rel = poly::SignCondition::LT; break;
         case Kind::GEQ: rel = poly::SignCondition::LE; break;
-        default: Assert(false) << "Unexpected kind: " << k;
+        default: DebugUnhandled() << "Unexpected kind: " << k;
       }
       poly::Rational rhsmult;
       poly::Polynomial rhs = as_poly_polynomial(val, d_mapper, rhsmult);
@@ -156,7 +179,13 @@ std::vector<Candidate> ICPSolver::constructCandidates(const Node& n)
       {
         rhsmult = poly_utils::toRational(veq_c.getConst<Rational>());
       }
-      Candidate res{lhs, rel, rhs, poly::inverse(rhsmult), n, collectVariables(val)};
+      Candidate res{polyCtx,
+                    lhs,
+                    rel,
+                    rhs,
+                    poly::inverse(rhsmult),
+                    n,
+                    collectVariables(val)};
       Trace("nl-icp") << "\tAdded " << res << " from " << n << std::endl;
       result.emplace_back(res);
     }
@@ -370,7 +399,7 @@ void ICPSolver::check()
 
 #else /* CVC5_POLY_IMP */
 
-void ICPSolver::reset(const std::vector<Node>& assertions)
+void ICPSolver::reset(CVC5_UNUSED const std::vector<Node>& assertions)
 {
   Unimplemented() << "ICPSolver requires cvc5 to be configured with LibPoly";
 }

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cbqi-tconstraint
 ; EXPECT: unsat
 (set-logic AUFLIA)

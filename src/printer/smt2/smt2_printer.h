@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,8 +30,9 @@ namespace smt2 {
 enum class Variant
 {
   no_variant,
-  // A variant used for printing commands in the preamble of ALF proofs. This is used by the ALF printer.
-  alf_variant
+  // A variant used for printing commands in the preamble of Eunoia proofs.
+  // This is used by the Eunoia printer.
+  eo_variant
 };
 
 class Smt2Printer : public cvc5::internal::Printer
@@ -96,10 +94,11 @@ class Smt2Printer : public cvc5::internal::Printer
                                    const std::string& binName) const override;
 
   /** Print declare-pool command */
-  void toStreamCmdDeclarePool(std::ostream& out,
-                                      const std::string& id,
-                                      TypeNode type,
-                                      const std::vector<Node>& initValue) const override;
+  void toStreamCmdDeclarePool(
+      std::ostream& out,
+      const std::string& id,
+      TypeNode type,
+      const std::vector<Node>& initValue) const override;
 
   /** Print declare-sort command */
   void toStreamCmdDeclareType(std::ostream& out,
@@ -142,12 +141,11 @@ class Smt2Printer : public cvc5::internal::Printer
                              TypeNode type) const override;
 
   /** Print synth-fun command */
-  void toStreamCmdSynthFun(
-      std::ostream& out,
-      const std::string& id,
-      const std::vector<Node>& vars,
-      TypeNode rangeType,
-      TypeNode sygusType) const override;
+  void toStreamCmdSynthFun(std::ostream& out,
+                           const std::string& id,
+                           const std::vector<Node>& vars,
+                           TypeNode rangeType,
+                           TypeNode sygusType) const override;
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;
@@ -182,6 +180,10 @@ class Smt2Printer : public cvc5::internal::Printer
   /** Print get-value command */
   void toStreamCmdGetValue(std::ostream& out,
                            const std::vector<Node>& n) const override;
+
+  /** Print get-model-domain-elements command */
+  void toStreamCmdGetModelDomainElements(std::ostream& out,
+                                         TypeNode type) const override;
 
   /** Print get-assignment command */
   void toStreamCmdGetAssignment(std::ostream& out) const override;

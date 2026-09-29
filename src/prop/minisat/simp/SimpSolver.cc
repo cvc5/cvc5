@@ -50,24 +50,25 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 SimpSolver::SimpSolver(Env& env,
                        prop::TheoryProxy* proxy,
                        context::Context* context,
-                       context::UserContext* userContext,
-                       prop::PropPfManager* ppm,
                        bool enableIncremental)
-    : Solver(env, proxy, context, userContext, ppm, enableIncremental),
+    : Solver(env, proxy, context, enableIncremental),
       grow(opt_grow),
       clause_lim(opt_clause_lim),
       subsumption_lim(opt_subsumption_lim),
       simp_garbage_frac(opt_simp_garbage_frac),
       use_asymm(opt_use_asymm),
       // make sure this is not enabled if unsat cores or proofs are on
-      use_rcheck(opt_use_rcheck && !options().smt.produceUnsatCores && !ppm),
+      use_rcheck(opt_use_rcheck && !options().smt.produceUnsatCores
+                 && !options().smt.produceProofs),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
       use_simplification(
           options().prop.minisatSimpMode != options::MinisatSimpMode::NONE
-          && !enableIncremental && !options().smt.produceUnsatCores && !ppm),
+          && !enableIncremental
+          && !options().smt.produceUnsatCores
+          && !options().smt.produceProofs),
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
       bwdsub_assigns(0),
@@ -92,14 +93,15 @@ SimpSolver::SimpSolver(Env& env,
     }
 }
 
-
-SimpSolver::~SimpSolver()
+void SimpSolver::attachProofManager(prop::PropPfManager* ppm)
 {
+  AlwaysAssert(!use_simplification && !use_rcheck);
+  Solver::attachProofManager(ppm);
 }
 
 Var SimpSolver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool canErase)
 {
-  Var v = Solver::newVar(sign, dvar, isTheoryAtom, canErase);
+  Var v = Solver::newVar(sign, dvar, isTheoryAtom);
 
   if (use_simplification)
   {
@@ -324,15 +326,14 @@ void SimpSolver::gatherTouchedClauses()
 {
     if (n_touched == 0) return;
 
-    int i,j;
-    for (i = j = 0; i < subsumption_queue.size(); i++)
+    for (int i = 0; i < subsumption_queue.size(); i++)
         if (ca[subsumption_queue[i]].mark() == 0)
             ca[subsumption_queue[i]].mark(2);
 
-    for (i = 0; i < touched.size(); i++)
+    for (int i = 0; i < touched.size(); i++)
         if (touched[i]){
             const vec<CRef>& cs = occurs.lookup(i);
-            for (j = 0; j < cs.size(); j++)
+            for (int j = 0; j < cs.size(); j++)
                 if (ca[cs[j]].mark() == 0){
                     subsumption_queue.insert(cs[j]);
                     ca[cs[j]].mark(2);
@@ -340,7 +341,7 @@ void SimpSolver::gatherTouchedClauses()
             touched[i] = 0;
         }
 
-    for (i = 0; i < subsumption_queue.size(); i++)
+    for (int i = 0; i < subsumption_queue.size(); i++)
         if (ca[subsumption_queue[i]].mark() == 2)
             ca[subsumption_queue[i]].mark(0);
 

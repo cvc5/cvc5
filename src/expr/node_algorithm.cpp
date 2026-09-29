@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/cardinality_constraint.h"
 #include "expr/dtype.h"
+#include "expr/skolem_manager.h"
 
 namespace cvc5::internal {
 namespace expr {
@@ -60,13 +58,12 @@ bool hasSubterm(TNode n, TNode t, bool strict)
       {
         return true;
       }
-      if (visited.find(child) != visited.end())
+      if (!visited.insert(child).second)
       {
         continue;
       }
       else
       {
-        visited.insert(child);
         toProcess.push_back(child);
       }
     }
@@ -140,9 +137,8 @@ bool hasSubtermKind(Kind k, Node n)
   {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       if (cur.getKind() == k)
       {
         return true;
@@ -199,6 +195,60 @@ Kind hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
   return Kind::UNDEFINED_KIND;
 }
 
+void getSubtermsKind(Kind k, TNode n, std::unordered_set<Node>& ts, bool nested)
+{
+  std::unordered_set<Kind, kind::KindHashFunction> ks{k};
+  std::map<Kind, std::unordered_set<Node>> tsm;
+  getSubtermsKinds(ks, n, tsm, nested);
+  std::unordered_set<Node>& tsc = tsm[k];
+  ts.insert(tsc.begin(), tsc.end());
+}
+
+void getSubtermsKinds(
+    const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+    TNode n,
+    std::map<Kind, std::unordered_set<Node>>& ts,
+    bool nested)
+{
+  Assert(!ks.empty());
+  for (Kind k : ks)
+  {
+    if (ts.find(k) == ts.end())
+    {
+      ts[k].clear();
+    }
+  }
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  Kind k;
+  std::map<Kind, std::unordered_set<Node>>::iterator itt;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.insert(cur).second)
+    {
+      k = cur.getKind();
+      itt = ts.find(k);
+      if (itt != ts.end())
+      {
+        itt->second.insert(cur);
+        if (!nested)
+        {
+          continue;
+        }
+      }
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+}
+
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 {
   if (t.empty())
@@ -239,13 +289,12 @@ bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
       {
         return true;
       }
-      if (visited.find(child) != visited.end())
+      if (!visited.insert(child).second)
       {
         continue;
       }
       else
       {
-        visited.insert(child);
         toProcess.push_back(child);
       }
     }
@@ -297,6 +346,59 @@ bool hasBoundVar(TNode n)
   return n.getAttribute(HasBoundVarAttr());
 }
 
+bool hasBoundVar(TNode n, const std::unordered_set<Node>& fvs)
+{
+  if (fvs.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> toProcess;
+  toProcess.push_back(n);
+  // incrementally iterate and add to toProcess
+  for (unsigned i = 0; i < toProcess.size(); ++i)
+  {
+    TNode current = toProcess[i];
+    if (current.isClosure())
+    {
+      // check if any is contained in fvs
+      for (const Node& v : current[0])
+      {
+        if (fvs.find(v) != fvs.end())
+        {
+          return true;
+        }
+      }
+    }
+    for (unsigned j = 0, j_end = current.getNumChildren(); j <= j_end; ++j)
+    {
+      TNode child;
+      // try children then operator
+      if (j < j_end)
+      {
+        child = current[j];
+      }
+      else if (current.hasOperator())
+      {
+        child = current.getOperator();
+      }
+      else
+      {
+        break;
+      }
+      if (!visited.insert(child).second)
+      {
+        continue;
+      }
+      else
+      {
+        toProcess.push_back(child);
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Check variables internal, which is used as a helper to implement many of the
  * methods in this file.
@@ -337,10 +439,8 @@ bool checkVariablesInternal(TNode n,
     {
       continue;
     }
-    std::unordered_set<TNode>::iterator itv = visited.find(cur);
-    if (itv == visited.end())
+    if (visited.insert(cur).second)
     {
-      visited.insert(cur);
       if (cur.getKind() == Kind::BOUND_VARIABLE)
       {
         if (scope.find(cur) == scope.end())
@@ -625,12 +725,15 @@ void getOperatorsMap(TNode n,
       // add the current operator to the result
       if (cur.hasOperator())
       {
-       Node o;
-       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
-         o = cur.getOperator();
-       } else {
-         o = NodeManager::currentNM()->operatorOf(cur.getKind());
-       }
+        Node o;
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          o = cur.getOperator();
+        }
+        else
+        {
+          o = cur.getNodeManager()->operatorOf(cur.getKind());
+        }
         ops[tn].insert(o);
       }
       // add children to visit in the future
@@ -799,7 +902,7 @@ void getConversionConditions(Node n1,
       // holds trivially
       continue;
     }
-    Assert(curr.first.getType() == curr.second.getType());
+    AssertEqual(curr.first.getType(), curr.second.getType());
     it = visited.find(curr);
     if (it != visited.end())
     {
@@ -839,7 +942,7 @@ void getConversionConditions(Node n1,
         for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
         {
           // if there is a type mismatch, we can't unify
-          if (curr.first[i].getType() != curr.second[i].getType())
+          if (!CVC5_EQUAL(curr.first[i].getType(), curr.second[i].getType()))
           {
             stack.resize(prevSize);
             rec = false;

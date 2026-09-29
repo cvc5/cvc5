@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1
 ; COMMAND-LINE: --solve-bv-as-int=sum --bv-to-int-use-pow2 --bvand-integer-granularity=1
 ; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1
@@ -6,6 +7,8 @@
 ; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=value
 ; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=sum
 ; COMMAND-LINE: --solve-bv-as-int=bv
+;; unsupported operator int.pow2
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic QF_BV)
 (declare-fun s () (_ BitVec 4))

@@ -15,6 +15,14 @@ The following enum classes define such configuration modes.
 - :cpp:func:`std::ostream& cvc5::modes::operator<< (std::ostream& out, LearnedLitType type)`
 - :cpp:func:`std::string std::to_string(cvc5::modes::LearnedLitType type)`
 
+- enum class :cpp:enum:`cvc5::modes::FindSynthTarget`
+- :cpp:func:`std::ostream& cvc5::modes::operator<< (std::ostream& out, FindSynthTarget target)`
+- :cpp:func:`std::string std::to_string(cvc5::modes::FindSynthTarget target)`
+
+- enum class :cpp:enum:`cvc5::modes::OptionCategory`
+- :cpp:func:`std::ostream& cvc5::modes::operator<< (std::ostream& out, OptionCategory category)`
+- :cpp:func:`std::string std::to_string(cvc5::modes::OptionCategory category)`
+
 - enum class :cpp:enum:`cvc5::modes::ProofComponent`
 - :cpp:func:`std::ostream& cvc5::modes::operator<< (std::ostream& out, ProofComponent pc)`
 - :cpp:func:`std::string std::to_string(cvc5::modes::ProofComponent component)`
@@ -22,10 +30,6 @@ The following enum classes define such configuration modes.
 - enum class :cpp:enum:`cvc5::modes::ProofFormat`
 - :cpp:func:`std::ostream& cvc5::modes::operator<< (std::ostream& out, ProofFormat pc)`
 - :cpp:func:`std::string std::to_string(cvc5::modes::ProofFormat format)`
-
-- enum class :cpp:enum:`cvc5::modes::FindSynthTarget`
-- :cpp:func:`std::ostream& cvc5::modes::operator<< (std::ostream& out, FindSynthTarget target)`
-- :cpp:func:`std::string std::to_string(cvc5::modes::FindSynthTarget target)`
 
 ----
 
@@ -51,6 +55,28 @@ The following enum classes define such configuration modes.
 
 ----
 
+.. doxygenenum:: cvc5::modes::FindSynthTarget
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::modes::operator<<(std::ostream& out, FindSynthTarget target)
+    :project: cvc5
+
+.. doxygenfunction:: std::to_string(cvc5::modes::FindSynthTarget target)
+    :project: cvc5
+
+----
+
+.. doxygenenum:: cvc5::modes::OptionCategory
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::modes::operator<<(std::ostream& out, OptionCategory category)
+    :project: cvc5
+
+.. doxygenfunction:: std::to_string(cvc5::modes::OptionCategory category)
+    :project: cvc5
+
+----
+
 .. doxygenenum:: cvc5::modes::ProofComponent
     :project: cvc5
 
@@ -71,13 +97,3 @@ The following enum classes define such configuration modes.
 .. doxygenfunction:: std::to_string(cvc5::modes::ProofFormat format)
     :project: cvc5
 
-----
-
-.. doxygenenum:: cvc5::modes::FindSynthTarget
-    :project: cvc5
-
-.. doxygenfunction:: cvc5::modes::operator<<(std::ostream& out, FindSynthTarget target)
-    :project: cvc5
-
-.. doxygenfunction:: std::to_string(cvc5::modes::FindSynthTarget target)
-    :project: cvc5

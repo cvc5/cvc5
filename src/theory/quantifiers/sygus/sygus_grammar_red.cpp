@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,7 +58,7 @@ void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
     if (sop.getKind() == Kind::LAMBDA
         && sop[0].getNumChildren() == sop[1].getNumChildren())
     {
-      Assert(g.getNumChildren()==sop[0].getNumChildren());
+      Assert(g.getNumChildren() == sop[0].getNumChildren());
       lamInOrder = true;
       for (size_t j = 0, nchild = sop[1].getNumChildren(); j < nchild; j++)
       {
@@ -80,7 +77,7 @@ void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
       // If it is a lambda whose arguments are one-to-one with the datatype
       // arguments, then we can add variants of this operator by permuting
       // the argument list (see getGenericList).
-      Assert(g.getNumChildren()==dt[i].getNumArgs());
+      Assert(g.getNumChildren() == dt[i].getNumArgs());
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         pre[j] = g[j];

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +32,7 @@ namespace expr {
  *   (as seq.empty (Seq Int)) for (STRING_CONCAT, (Seq Int)
  *   #x0 for (BITVECTOR_OR, (_ BitVec 4))
  */
-Node getNullTerminator(Kind k, TypeNode tn);
+Node getNullTerminator(NodeManager* nm, Kind k, TypeNode tn);
 
 /**
  * @param k A kind

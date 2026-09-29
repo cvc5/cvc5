@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Yoni Zohar, Aina Niemetz, Alex Ozdemir
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -97,7 +94,7 @@ def validate_exception():
 # obtaining the heap/nil expressions when using separation logic.
 def validate_getters():
     tm  = cvc5.TermManager()
-    slv = cvc5.Solver()
+    slv = cvc5.Solver(tm)
 
     # Setup some options for cvc5
     slv.setLogic("QF_ALL")

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Morgan Deters, Kshitij Bansal
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +32,8 @@ namespace theory {
 namespace arith::linear {
 
 /** A low level vector of indexed doubles. */
-struct PrimitiveVec {
+struct PrimitiveVec
+{
   int len;
   int* inds;
   double* coeffs;
@@ -48,7 +46,8 @@ struct PrimitiveVec {
 };
 std::ostream& operator<<(std::ostream& os, const PrimitiveVec& pv);
 
-struct DenseVector {
+struct DenseVector
+{
   DenseMap<Rational> lhs;
   Rational rhs;
   void purge();
@@ -58,20 +57,26 @@ struct DenseVector {
 };
 
 /** The different kinds of cuts. */
-enum CutInfoKlass{ MirCutKlass, GmiCutKlass, BranchCutKlass,
-                   RowsDeletedKlass,
-                   UnknownKlass};
+enum CutInfoKlass
+{
+  MirCutKlass,
+  GmiCutKlass,
+  BranchCutKlass,
+  RowsDeletedKlass,
+  UnknownKlass
+};
 std::ostream& operator<<(std::ostream& os, CutInfoKlass kl);
 
 /** A general class for describing a cut. */
-class CutInfo {
-protected:
+class CutInfo
+{
+ protected:
   CutInfoKlass d_klass;
   int d_execOrd;
 
-  int d_poolOrd;    /* cut's ordinal in the current node pool */
-  Kind d_cutType;   /* Lowerbound, upperbound or undefined. */
-  double d_cutRhs; /* right hand side of the cut */
+  int d_poolOrd;         /* cut's ordinal in the current node pool */
+  Kind d_cutType;        /* Lowerbound, upperbound or undefined. */
+  double d_cutRhs;       /* right hand side of the cut */
   PrimitiveVec d_cutVec; /* vector of the cut */
 
   /**
@@ -105,13 +110,12 @@ protected:
   void setRowId(int rid);
 
   void print(std::ostream& out) const;
-  //void init_cut(int l);
+  // void init_cut(int l);
   PrimitiveVec& getCutVector();
   const PrimitiveVec& getCutVector() const;
 
   Kind getKind() const;
   void setKind(Kind k);
-
 
   void setRhs(double r);
   double getRhs() const;
@@ -142,50 +146,58 @@ protected:
 };
 std::ostream& operator<<(std::ostream& os, const CutInfo& ci);
 
-class BranchCutInfo : public CutInfo {
-public:
-  BranchCutInfo(int execOrd, int br,  Kind dir, double val);
+class BranchCutInfo : public CutInfo
+{
+ public:
+  BranchCutInfo(int execOrd, int br, Kind dir, double val);
 };
 
-class RowsDeleted : public CutInfo {
-public:
+class RowsDeleted : public CutInfo
+{
+ public:
   RowsDeleted(int execOrd, int nrows, const int num[]);
 };
 
 class TreeLog;
 
-class NodeLog {
-private:
+class NodeLog
+{
+ private:
   int d_nid;
   NodeLog* d_parent; /* If null this is the root */
   TreeLog* d_tl;     /* TreeLog containing the node. */
 
-  struct CmpCutPointer{
-    int operator()(const CutInfo* a, const CutInfo* b) const{
-      return *a < *b;
-    }
+  struct CmpCutPointer
+  {
+    int operator()(const CutInfo* a, const CutInfo* b) const { return *a < *b; }
   };
   typedef std::set<CutInfo*, CmpCutPointer> CutSet;
   CutSet d_cuts;
   std::map<int, int> d_rowIdsSelected;
 
-  enum Status {Open, Closed, Branched};
+  enum Status
+  {
+    Open,
+    Closed,
+    Branched
+  };
   Status d_stat;
 
-  int d_brVar; // branching variable
+  int d_brVar;  // branching variable
   double d_brVal;
   int d_downId;
   int d_upId;
 
-public:
+ public:
   typedef std::unordered_map<int, ArithVar> RowIdMap;
-private:
+
+ private:
   RowIdMap d_rowId2ArithVar;
 
-public:
-  NodeLog(); /* default constructor. */
+ public:
+  NodeLog();                                         /* default constructor. */
   NodeLog(TreeLog* tl, int node, const RowIdMap& m); /* makes a root node. */
-  NodeLog(TreeLog* tl, NodeLog* parent, int node);/* makes a non-root node. */
+  NodeLog(TreeLog* tl, NodeLog* parent, int node); /* makes a non-root node. */
 
   ~NodeLog();
 
@@ -226,12 +238,12 @@ public:
    */
   void mapRowId(int rowid, ArithVar v);
   void applyRowsDeleted(const RowsDeleted& rd);
-
 };
 std::ostream& operator<<(std::ostream& os, const NodeLog& nl);
 
-class TreeLog {
-private:
+class TreeLog
+{
+ private:
   int next_exec_ord;
   typedef std::map<int, NodeLog> ToNodeMap;
   ToNodeMap d_toNode;
@@ -241,14 +253,14 @@ private:
 
   bool d_active;
 
-public:
+ public:
   TreeLog();
 
   NodeLog& getNode(int nid);
   void branch(int nid, int br, double val, int dn, int up);
   void close(int nid);
 
-  //void applySelected();
+  // void applySelected();
   void print(std::ostream& o) const;
 
   typedef ToNodeMap::const_iterator const_iterator;
@@ -265,10 +277,10 @@ public:
   // Synonym for getNode(nid).mapRowId(ind, v)
   void mapRowId(int nid, int ind, ArithVar v);
 
-private:
+ private:
   void clear();
 
-public:
+ public:
   void makeInactive();
   void makeActive();
 
@@ -282,14 +294,12 @@ public:
 
   int getRootId() const;
 
-  uint32_t numNodes() const{
-    return d_toNode.size();
-  }
+  uint32_t numNodes() const { return d_toNode.size(); }
 
   NodeLog& getRootNode();
   void printBranchInfo(std::ostream& os) const;
 };
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -1,0 +1,12 @@
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sat-solver=minisat
+; EXPECT: unsat
+(set-logic QF_NIA)
+(declare-const k Int)
+(declare-const x Int)
+(declare-const y Int)
+(assert (> x 0))
+(assert (< x (int.pow2 k)))
+(assert (= y (- (int.pow2 k) 1)))
+(assert (distinct (piand k x y) x))
+(check-sat)

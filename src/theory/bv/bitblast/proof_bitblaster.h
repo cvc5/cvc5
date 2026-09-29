@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,9 +31,7 @@ class BBProof : protected EnvObj
   using Bits = std::vector<Node>;
 
  public:
-  BBProof(Env& env,
-          TheoryState* state,
-          bool fineGrained);
+  BBProof(Env& env, TheoryState* state, bool fineGrained);
   ~BBProof();
 
   /** Bit-blast atom 'node'. */
@@ -74,7 +69,6 @@ class BBProof : protected EnvObj
   /** Flag to indicate whether fine-grained proofs should be recorded. */
   bool d_recordFineGrainedProofs;
 };
-
 
 }  // namespace bv
 }  // namespace theory

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,9 +26,10 @@ ProofPostprocessCallback::ProofPostprocessCallback(
 
 void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); }
 
-bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                            const std::vector<Node>& fa,
-                                            bool& continueUpdate)
+bool ProofPostprocessCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn,
+    CVC5_UNUSED const std::vector<Node>& fa,
+    bool& continueUpdate)
 {
   bool result =
       pn->getRule() == ProofRule::ASSUME && d_pg->hasProofFor(pn->getResult());

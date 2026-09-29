@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,17 +39,19 @@ Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, TNode cv3)
 
 Node BoundVarManager::getCacheValue(TNode cv1, TNode cv2, size_t i)
 {
-  return NodeManager::mkNode(Kind::SEXPR, cv1, cv2, getCacheValue(i));
+  NodeManager* nm = cv1.getNodeManager();
+  return NodeManager::mkNode(Kind::SEXPR, cv1, cv2, getCacheValue(nm, i));
 }
 
-Node BoundVarManager::getCacheValue(size_t i)
+Node BoundVarManager::getCacheValue(NodeManager* nm, size_t i)
 {
-  return NodeManager::currentNM()->mkConstInt(Rational(i));
+  return nm->mkConstInt(Rational(i));
 }
 
 Node BoundVarManager::getCacheValue(TNode cv, size_t i)
 {
-  return getCacheValue(cv, getCacheValue(i));
+  NodeManager* nm = cv.getNodeManager();
+  return getCacheValue(cv, getCacheValue(nm, i));
 }
 
 Node BoundVarManager::mkBoundVar(BoundVarId id, Node n, TypeNode tn)

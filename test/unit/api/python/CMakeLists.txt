@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Gereon Kremer, Yoni Zohar
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -25,7 +22,7 @@ macro(cvc5_add_python_api_unit_test name)
     COMMAND ${Python_EXECUTABLE}
             -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${name}.py
     # directory for importing the python bindings
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/api/python)
     set_tests_properties(${test_name} PROPERTIES LABELS "unit;python")
 endmacro()
 
@@ -47,6 +44,8 @@ cvc5_add_python_api_unit_test(test_proof test_proof.py)
 cvc5_add_python_api_unit_test(test_command test_command.py)
 cvc5_add_python_api_unit_test(test_input_parser test_input_parser.py)
 cvc5_add_python_api_unit_test(test_symbol_manager test_symbol_manager.py)
+cvc5_add_python_api_unit_test(test_lifetime test_lifetime.py)
+cvc5_add_python_api_unit_test(test_parser_lifetime test_parser_lifetime.py)
 
 set_source_files_properties(test_uncovered.cpp
   PROPERTIES COMPILE_OPTIONS

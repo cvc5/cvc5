@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,12 +48,11 @@ class ArithIteUtils : protected EnvObj
 
   typedef std::unordered_map<Node, Node> NodeMap;
   // cache for reduce vars
-  NodeMap d_reduceVar; // if reduceVars[n].isNull(), treat reduceVars[n] == n
+  NodeMap d_reduceVar;  // if reduceVars[n].isNull(), treat reduceVars[n] == n
 
   // reduceVars[n] = d_constants[n] + d_varParts[n]
-  NodeMap d_constants; // d_constants[n] is a constant ite tree
-  NodeMap d_varParts; // d_varParts[n] is a polynomial
-
+  NodeMap d_constants;  // d_constants[n] is a constant ite tree
+  NodeMap d_varParts;   // d_varParts[n] is a polynomial
 
   NodeMap d_reduceGcd;
   typedef std::unordered_map<Node, Integer> NodeIntegerMap;
@@ -73,27 +69,27 @@ class ArithIteUtils : protected EnvObj
 
   std::vector<Node> d_orBinEqs;
 
-public:
- ArithIteUtils(Env& env,
-               preprocessing::util::ContainsTermITEVisitor& contains,
-               SubstitutionMap& subs);
- ~ArithIteUtils();
+ public:
+  ArithIteUtils(Env& env,
+                preprocessing::util::ContainsTermITEVisitor& contains,
+                SubstitutionMap& subs);
+  ~ArithIteUtils();
 
- //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))
+  //(ite ?v_2 ?v_1 (ite ?v_3 (- ?v_1 128) (- ?v_1 256)))
 
- /** removes common sums variables sums from term ites. */
- Node reduceVariablesInItes(Node n);
+  /** removes common sums variables sums from term ites. */
+  Node reduceVariablesInItes(Node n);
 
- Node reduceConstantIteByGCD(Node n);
+  Node reduceConstantIteByGCD(Node n);
 
- void clear();
+  void clear();
 
- Node applySubstitutions(TNode f);
- unsigned getSubCount() const;
+  Node applySubstitutions(TNode f);
+  unsigned getSubCount() const;
 
- void learnSubstitutions(const std::vector<Node>& assertions);
+  void learnSubstitutions(const std::vector<Node>& assertions);
 
-private:
+ private:
   /* applies this to all children of n and constructs the result */
   Node applyReduceVariablesInItes(Node n);
 

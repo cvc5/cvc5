@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,7 +56,7 @@ class CandidateGenerator : protected EnvObj
 {
  public:
   CandidateGenerator(Env& env, QuantifiersState& qs, TermRegistry& tr);
-  virtual ~CandidateGenerator(){}
+  virtual ~CandidateGenerator() {}
   /** reset instantiation round
    *
    * This is called at the beginning of each instantiation round.
@@ -71,7 +68,7 @@ class CandidateGenerator : protected EnvObj
    * based on its criteria that occur in the equivalence class of eqc, or
    * any equivalence class if eqc is null.
    */
-  virtual void reset( Node eqc ) = 0;
+  virtual void reset(Node eqc) = 0;
   /** get the next candidate */
   virtual Node getNextCandidate() = 0;
   /** is n a legal candidate? */
@@ -133,7 +130,8 @@ class CandidateGeneratorQE : public CandidateGenerator
   /** the current equivalence class */
   Node d_eqc;
   /** candidate generation modes */
-  enum {
+  enum
+  {
     cand_term_db,
     cand_term_ident,
     cand_term_eqc,
@@ -144,8 +142,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   /** is n a legal candidate of the required operator? */
   virtual bool isLegalOpCandidate(const Node& n);
   /** the equivalence classes that we have excluded from candidate generation */
-  std::map< Node, bool > d_exclude_eqc;
-
+  std::map<Node, bool> d_exclude_eqc;
 };
 
 /**
@@ -188,15 +185,15 @@ class CandidateGeneratorQELitDeq : public CandidateGenerator
 class CandidateGeneratorQEAll : public CandidateGenerator
 {
  private:
-  //the equality classes iterator
+  // the equality classes iterator
   eq::EqClassesIterator d_eq;
-  //equality you are trying to match equalities for
+  // equality you are trying to match equalities for
   Node d_match_pattern;
   TypeNode d_match_pattern_type;
   // quantifier/index for the variable we are matching
   Node d_f;
   unsigned d_index;
-  //first time
+  // first time
   bool d_firstTime;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override { return "CandidateGeneratorQEAll"; }

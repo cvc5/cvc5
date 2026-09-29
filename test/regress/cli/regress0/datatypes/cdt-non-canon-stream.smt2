@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (declare-codatatypes ((list 0)) (((cons (head Int) (tail list)))))

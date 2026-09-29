@@ -28,4 +28,4 @@ We have the following list of constraints:
     <examples>/api/java/Relations.java
     <examples>/api/python/relations.py
     <examples>/api/smtlib/relations.smt2
-
+    :skip: py-pythonicapi

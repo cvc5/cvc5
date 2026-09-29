@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -249,6 +246,8 @@ class CDProof : protected EnvObj, public ProofGenerator
                 bool doCopy = false);
   /** Return true if fact already has a proof step */
   bool hasStep(Node fact);
+  /** Return true if fact already has any proof node, including assumptions. */
+  bool hasFact(Node fact) const;
   /** Return how many proof nodes currently in proof */
   size_t getNumProofNodes() const;
   /** Get the proof manager for this proof */

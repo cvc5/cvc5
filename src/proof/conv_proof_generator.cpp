@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -117,7 +114,7 @@ void TConvProofGenerator::addTheoryRewriteStep(
     Node t, Node s, ProofRewriteRule id, bool isPre, uint32_t tctx)
 {
   std::vector<Node> sargs;
-  sargs.push_back(rewriter::mkRewriteRuleNode(id));
+  sargs.push_back(rewriter::mkRewriteRuleNode(nodeManager(), id));
   sargs.push_back(t.eqNode(s));
   addRewriteStep(t, s, ProofRule::THEORY_REWRITE, {}, sargs, isPre, tctx);
 }

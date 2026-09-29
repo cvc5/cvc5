@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Ying Sheng, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -58,13 +55,13 @@ class ArraySolver : protected EnvObj
   void checkArrayConcat();
   /**
    * Perform reasoning about seq.nth and seq.update operations (lazily), which
-   * calls the core sequences-array solver for the set of nth/update terms over atomic
-   * equivalence classes.
+   * calls the core sequences-array solver for the set of nth/update terms over
+   * atomic equivalence classes.
    */
   void checkArray();
   /**
-   * Same as `checkArray`, but called eagerly, and for all nth/update terms, not just
-   * those over atomic equivalence classes.
+   * Same as `checkArray`, but called eagerly, and for all nth/update terms, not
+   * just those over atomic equivalence classes.
    */
   void checkArrayEager();
 

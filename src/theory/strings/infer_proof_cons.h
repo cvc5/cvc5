@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,9 +52,7 @@ class InferProofCons : protected EnvObj, public ProofGenerator
   typedef context::CDHashMap<Node, std::shared_ptr<InferInfo>> NodeInferInfoMap;
 
  public:
-  InferProofCons(Env& env,
-                 context::Context* c,
-                 SequencesStatistics& statistics);
+  InferProofCons(Env& env, context::Context* c);
   ~InferProofCons() {}
   /**
    * This is called to notify that ii is an inference that may need a proof
@@ -196,7 +191,6 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * the requirements of the given proof rule (possibly in its reverse form).
    * If necessary, we rewrite eq to a new equality eqr and add a proof of eqr
    * from eq as a step to psb and return eqr. Otherwise, eq is returned.
-   * @param env Reference to the environment
    * @param psb Reference to proof step buffer.
    * @param rule The rule whose premise is eq.
    * @param eq The equality to ensure constants are spliced in.
@@ -205,16 +199,30 @@ class InferProofCons : protected EnvObj, public ProofGenerator
    * @param isRev Whether rule is being applied in the reverse direction.
    * @return The result of splicing the appropriate constants (if any) in eq.
    */
-  static Node spliceConstants(Env& env,
-                              ProofRule rule,
+  static Node spliceConstants(ProofRule rule,
                               TheoryProofStepBuffer& psb,
                               const Node& eq,
                               const Node& conc,
                               bool isRev);
+  /**
+   * Prove b assuming a, return true if successful.
+   * This method relies on applying MACRO_SR_PRED_TRANSFORM to prove a rewrites
+   * to b. To make things more robust, we additionally look for subterms where
+   * a and b differ, and prove these separately. This often corresponds to
+   * showing the equivalence between two skolems, e.g. where b contains a
+   * skolem for an unrewritten term and a contains a skolem for a rewritten
+   * term.
+   * @param a The first predicate.
+   * @param b The second predicate.
+   * @param psb Reference to proof step buffer.
+   * @return true if we successfully add a step proving b via
+   * MACRO_SR_PRED_TRANSFORM from a.
+   */
+  static bool applyPredTransformConversion(const Node& a,
+                                           const Node& b,
+                                           TheoryProofStepBuffer& psb);
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
-  /** Reference to the statistics for the theory of strings/sequences. */
-  SequencesStatistics& d_statistics;
 };
 
 }  // namespace strings

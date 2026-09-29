@@ -1,6 +1,8 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp
 ; EXPECT: unsat
-; DISABLE-TESTER: dsl-proof
+; Proof testing was disabled in #11912 because it timed out in nightly builds.
+; DISABLE-TESTER: proof
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :produce-models true)

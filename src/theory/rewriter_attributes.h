@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Tim King, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,13 +20,15 @@ namespace cvc5::internal {
 namespace theory {
 
 template <bool pre, theory::TheoryId theoryId>
-struct RewriteCacheTag {};
+struct RewriteCacheTag
+{
+};
 
 template <theory::TheoryId theoryId>
-struct RewriteAttibute {
-
-  typedef expr::Attribute< RewriteCacheTag<true, theoryId>, Node> pre_rewrite;
-  typedef expr::Attribute< RewriteCacheTag<false, theoryId>, Node> post_rewrite;
+struct RewriteAttibute
+{
+  typedef expr::Attribute<RewriteCacheTag<true, theoryId>, Node> pre_rewrite;
+  typedef expr::Attribute<RewriteCacheTag<false, theoryId>, Node> post_rewrite;
 
   /**
    * Get the value of the pre-rewrite cache.
@@ -37,14 +36,20 @@ struct RewriteAttibute {
   static Node getPreRewriteCache(TNode node)
   {
     Node cache;
-    if (node.hasAttribute(pre_rewrite())) {
+    if (node.hasAttribute(pre_rewrite()))
+    {
       node.getAttribute(pre_rewrite(), cache);
-    } else {
+    }
+    else
+    {
       return Node::null();
     }
-    if (cache.isNull()) {
+    if (cache.isNull())
+    {
       return node;
-    } else {
+    }
+    else
+    {
       return cache;
     }
   }
@@ -54,11 +59,15 @@ struct RewriteAttibute {
    */
   static void setPreRewriteCache(TNode node, TNode cache)
   {
-    Trace("rewriter") << "setting pre-rewrite of " << node << " to " << cache << std::endl;
+    Trace("rewriter") << "setting pre-rewrite of " << node << " to " << cache
+                      << std::endl;
     Assert(!cache.isNull());
-    if (node == cache) {
+    if (node == cache)
+    {
       node.setAttribute(pre_rewrite(), Node::null());
-    } else {
+    }
+    else
+    {
       node.setAttribute(pre_rewrite(), cache);
     }
   }
@@ -70,14 +79,20 @@ struct RewriteAttibute {
   static Node getPostRewriteCache(TNode node)
   {
     Node cache;
-    if (node.hasAttribute(post_rewrite())) {
+    if (node.hasAttribute(post_rewrite()))
+    {
       node.getAttribute(post_rewrite(), cache);
-    } else {
+    }
+    else
+    {
       return Node::null();
     }
-    if (cache.isNull()) {
+    if (cache.isNull())
+    {
       return node;
-    } else {
+    }
+    else
+    {
       return cache;
     }
   }
@@ -88,14 +103,18 @@ struct RewriteAttibute {
   static void setPostRewriteCache(TNode node, TNode cache)
   {
     Assert(!cache.isNull());
-    Trace("rewriter") << "setting rewrite of " << node << " to " << cache << std::endl;
-    if (node == cache) {
+    Trace("rewriter") << "setting rewrite of " << node << " to " << cache
+                      << std::endl;
+    if (node == cache)
+    {
       node.setAttribute(post_rewrite(), Node::null());
-    } else {
+    }
+    else
+    {
       node.setAttribute(post_rewrite(), cache);
     }
   }
-};/* struct RewriteAttribute */
+}; /* struct RewriteAttribute */
 
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: sat
 (set-logic QF_BV)
 (set-option :solve-bv-as-int sum)

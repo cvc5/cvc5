@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Hanna Lachnitt, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,8 +33,8 @@ LetUpdaterPfCallback::LetUpdaterPfCallback(AletheLetBinding& lbind)
 LetUpdaterPfCallback::~LetUpdaterPfCallback() {}
 
 bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                        const std::vector<Node>& fa,
-                                        bool& continueUpdate)
+                                        CVC5_UNUSED const std::vector<Node>& fa,
+                                        CVC5_UNUSED bool& continueUpdate)
 {
   ProofRule r = pn->getRule();
   if (r == ProofRule::ASSUME)
@@ -173,10 +170,12 @@ void AletheProofPrinter::print(
   if (options().proof.proofAletheDefineSkolems)
   {
     const std::map<Node, Node>& skolemDefs = d_anc.getSkolemDefinitions();
-    for (const auto& [skolem, choice] : skolemDefs)
+    const std::vector<Node>& skolemList = d_anc.getSkolemList();
+    for (const auto& skolem : skolemList)
     {
+      Assert(skolemDefs.find(skolem) != skolemDefs.end());
       out << "(define-fun " << skolem << " () " << skolem.getType() << " ";
-      printTerm(out, choice);
+      printTerm(out, skolemDefs.at(skolem));
       out << ")" << std::endl;
     }
   }
@@ -263,7 +262,7 @@ void AletheProofPrinter::printInternal(std::ostream& out,
                           << std::endl;
   // We special case printing anchors
   if (arule >= AletheRule::ANCHOR_SUBPROOF
-      && arule <= AletheRule::ANCHOR_SKO_EX)
+      && arule <= AletheRule::ANCHOR_ONEPOINT)
   {
     Trace("alethe-printer") << push;
     Assert(pfChildren.size() == 1);
@@ -292,7 +291,7 @@ void AletheProofPrinter::printInternal(std::ostream& out,
     else
     {
       Assert(arule >= AletheRule::ANCHOR_BIND
-             && arule <= AletheRule::ANCHOR_SKO_EX);
+             && arule <= AletheRule::ANCHOR_ONEPOINT);
       out << " :args (";
       for (size_t i = 3, size = args.size(); i < size; ++i)
       {

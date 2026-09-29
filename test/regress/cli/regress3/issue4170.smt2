@@ -1,6 +1,6 @@
 ; COMMAND-LINE: -q
 (set-logic HO_ALL)
-(set-option :sygus-inference true)
+(set-option :sygus-inference on)
 (set-info :status sat)
 (declare-fun a (Int) Int)
 (declare-fun b (Int) Int)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,7 +47,8 @@ class RewriteDbProofCons : protected EnvObj
    * If cdp is provided, we add a proof for this fact on it.
    *
    * More specifically, the strategy used by this method is:
-   * 1. Try to prove a=b via THEORY_REWRITE in context TheoryRewriteCtx::PRE_DSL,
+   * 1. Try to prove a=b via THEORY_REWRITE in context
+   * TheoryRewriteCtx::PRE_DSL,
    * 2. Try to prove a=b via a proof involving RARE rewrites,
    * 3. Try to prove a'=b' via a proof involving RARE rewrites, where a' and b'
    * are obtained by transforming a and b via RewriteDbNodeConverter.
@@ -143,7 +141,7 @@ class RewriteDbProofCons : protected EnvObj
     ProvenInfo()
         : d_id(RewriteProofStatus::FAIL),
           d_dslId(ProofRewriteRule::NONE),
-          d_failMaxDepth(0)
+          d_failMaxDepth(-1)
     {
     }
     /** The identifier of the proof rule, or fail if we failed */
@@ -154,10 +152,10 @@ class RewriteDbProofCons : protected EnvObj
     std::vector<Node> d_vars;
     std::vector<Node> d_subs;
     /**
-     * The maximum depth tried for rules that have failed, where 0 indicates
+     * The maximum depth tried for rules that have failed, where -1 indicates
      * that the formula is unprovable at any depth.
      */
-    uint64_t d_failMaxDepth;
+    int64_t d_failMaxDepth;
     /**
      * Is internal rule? these rules store children (if any) in d_vars.
      */
@@ -244,6 +242,11 @@ class RewriteDbProofCons : protected EnvObj
   /** Return the evaluation of n, which uses local caching. */
   Node doEvaluate(const Node& n);
   /**
+   * Return the flattening of n. For example, this returns (+ a b c) for
+   * (+ (+ a b) c). This method is used in the FLATTEN tactic.
+   */
+  Node doFlatten(const Node& n);
+  /**
    * A notification that s is equal to n * { vars -> subs }. In this context,
    * s is the current left hand side of a term we are trying to prove and n is
    * the head of a rewrite rule.
@@ -294,15 +297,6 @@ class RewriteDbProofCons : protected EnvObj
                          ProvenInfo& pi,
                          bool doFixedPoint = false);
   /**
-   * Adds to proof info (d_pcache) s.t. we can show that:
-   * context[placeholder -> source] = context[placeholder -> target]
-   * Note: we assume that the placeholder only appears once
-   */
-  void cacheProofSubPlaceholder(TNode context,
-                                TNode placeholder,
-                                TNode source,
-                                TNode target);
-  /**
    * Rewrite concrete, which returns the result of rewriting n if it contains
    * no abstract subterms, or n itself otherwise.
    *
@@ -340,9 +334,11 @@ class RewriteDbProofCons : protected EnvObj
   /** current target equality to prove */
   Node d_target;
   /** current recursion limit */
-  uint64_t d_currRecLimit;
+  int64_t d_currRecLimit;
   /** current step recursion limit */
   uint64_t d_currStepLimit;
+  /** Did we fail due to a resource limit in the current run? */
+  bool d_currFailResource;
   /** The mode for if/when to try theory rewrites */
   rewriter::TheoryRewriteMode d_tmode;
   /** current rule we are applying to fixed point */
