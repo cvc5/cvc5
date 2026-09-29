@@ -297,8 +297,10 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation)
   {
     output(OutputTag::LEMMAS) << "(lemma ";
     // use original form of the lemma here
-    output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(tte.getProven());
-    output(OutputTag::LEMMAS) << " :source " << theory::InferenceId::EXPLAINED_PROPAGATION;
+    output(OutputTag::LEMMAS)
+        << SkolemManager::getOriginalForm(tte.getProven());
+    output(OutputTag::LEMMAS)
+        << " :source " << theory::InferenceId::EXPLAINED_PROPAGATION;
     output(OutputTag::LEMMAS) << ")" << std::endl;
   }
   // notify the prop engine of the explanation, which is only relevant if
