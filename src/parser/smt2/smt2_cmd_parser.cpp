@@ -411,7 +411,16 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.pushScope();
       }
-      bool freshBinders = d_state.usingFreshBinders();
+      // If definitions are expanded in the parser, we construct fresh
+      // variables for the formal arguments of the definition. Otherwise, a
+      // formal argument would be the same variable as a binder of the same
+      // name and sort in the body, and expanding an application of the
+      // definition would replace the occurrences of that binder as well.
+      // Binders in the body are not fresh, instead capturing is avoided when
+      // expanding applications, see ParserState::mkApply.
+      bool freshBinders =
+          d_state.usingFreshBinders()
+          || d_state.getSymbolManager()->getParseDefineFunMacros();
       if (freshBinders)
       {
         // With fresh binders, duplicate names would yield distinct Terms,

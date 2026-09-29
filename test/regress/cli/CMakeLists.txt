@@ -1571,6 +1571,7 @@ set(regress_0_tests
   regress0/proofs/dd_spark_nnf_pf.smt2
   regress0/proofs/dd_textbook-sumeven-arith-rcons.smt2
   regress0/proofs/define-fun-macros.smt2
+  regress0/proofs/define-fun-macros-capture.smt2
   regress0/proofs/define-fun-macros-global-inc.smt2
   regress0/proofs/define-fun-macros-nested.smt2
   regress0/proofs/define-fun-macros-rec.smt2

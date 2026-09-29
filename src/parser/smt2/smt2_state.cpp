@@ -1054,12 +1054,7 @@ bool Smt2State::hasGrammars() const
          || d_solver->getOption("produce-interpolants") == "true";
 }
 
-bool Smt2State::usingFreshBinders() const
-{
-  // Substitution of macro arguments must not capture variables in the body,
-  // including binders with the same name and sort in different definitions.
-  return d_freshBinders || getSymbolManager()->getParseDefineFunMacros();
-}
+bool Smt2State::usingFreshBinders() const { return d_freshBinders; }
 
 void Smt2State::checkThatLogicIsSet()
 {

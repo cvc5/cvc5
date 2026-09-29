@@ -518,6 +518,71 @@ Term ParserState::mkApply(Kind kind, const std::vector<Term>& args)
       remaining.push_back(lambda[0][i]);
     }
   }
+  // The substitution below is not capture-avoiding. The formal arguments of
+  // definitions are fresh, but binders in the body are not, i.e. variables of
+  // the same name and type are the same variable. Hence, a variable in the
+  // arguments may be captured by a binder in the body, e.g. for
+  //   (define-fun f ((x Int)) Bool (exists ((y Int)) (> y x)))
+  // expanding (f y) where y is bound by an enclosing quantifier would yield
+  // (exists ((y Int)) (> y y)). Similar to bound variables that occur in let
+  // bindings (see bindBoundVarsCtx), we rename such binders in the body to
+  // fresh variables. The renaming is done simultaneously with the
+  // substitution of the formal arguments, so that the arguments themselves
+  // are not affected.
+  std::unordered_set<Term> argVars;
+  std::unordered_set<Term> visited;
+  std::vector<Term> toVisit(subs.begin(), subs.end());
+  while (!toVisit.empty())
+  {
+    Term cur = toVisit.back();
+    toVisit.pop_back();
+    if (!visited.insert(cur).second)
+    {
+      continue;
+    }
+    if (cur.getKind() == Kind::VARIABLE)
+    {
+      argVars.insert(cur);
+    }
+    toVisit.insert(toVisit.end(), cur.begin(), cur.end());
+  }
+  if (!argVars.empty())
+  {
+    visited.clear();
+    toVisit.push_back(lambda[1]);
+    while (!toVisit.empty())
+    {
+      Term cur = toVisit.back();
+      toVisit.pop_back();
+      if (!visited.insert(cur).second)
+      {
+        continue;
+      }
+      if (cur.getKind() == Kind::VARIABLE_LIST)
+      {
+        for (const Term& v : cur)
+        {
+          if (argVars.find(v) != argVars.end())
+          {
+            // Note that if this warning is thrown, proof reference checking
+            // will not be accurate in settings where variables are parsed as
+            // canonical, analogous to the case of let bindings.
+            Warning() << "Constructing a fresh variable for " << v
+                      << " since this variable would be captured when "
+                         "expanding a defined function. Set fresh-binders to "
+                         "true or use -q to avoid this warning."
+                      << std::endl;
+            argVars.erase(v);
+            vars.push_back(v);
+            subs.push_back(d_tm.mkVar(v.getSort(),
+                                        v.hasSymbol() ? v.getSymbol() : ""));
+          }
+        }
+        continue;
+      }
+      toVisit.insert(toVisit.end(), cur.begin(), cur.end());
+    }
+  }
   ret = lambda[1].substitute(vars, subs);
   if (!remaining.empty())
   {
