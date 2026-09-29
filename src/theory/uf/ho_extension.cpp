@@ -47,7 +47,7 @@ HoExtension::HoExtension(Env& env,
   d_cachedLemmas.insert(d_true);
 }
 
-TrustNode HoExtension::ppRewrite(Node node)
+TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
   Kind k = node.getKind();
   if (k == Kind::HO_APPLY)
@@ -62,16 +62,26 @@ TrustNode HoExtension::ppRewrite(Node node)
       return TrustNode::mkTrustRewrite(node, ret);
     }
   }
-  else if (k == Kind::LAMBDA)
+  else if (k == Kind::LAMBDA || k == Kind::FUNCTION_ARRAY_CONST)
   {
-    // Lambdas are not lifted, and instead are beta-reduced on demand when
-    // equated to ordinary functions, see checkLazyLambda.
     Trace("uf-lazy-ll") << "Preprocess lambda: " << node << std::endl;
-    Node elimLam = TheoryUfRewriter::canEliminateLambda(nodeManager(), node);
-    if (!elimLam.isNull())
+    if (k == Kind::LAMBDA)
     {
-      Trace("uf-lazy-ll") << "...eliminates to " << elimLam << std::endl;
-      return TrustNode::mkTrustRewrite(node, elimLam, nullptr);
+      Node elimLam = TheoryUfRewriter::canEliminateLambda(nodeManager(), node);
+      if (!elimLam.isNull())
+      {
+        Trace("uf-lazy-ll") << "...eliminates to " << elimLam << std::endl;
+        return TrustNode::mkTrustRewrite(node, elimLam, nullptr);
+      }
+    }
+    // Lift the lambda if necessary. Lambdas that are not lifted are
+    // beta-reduced on demand when equated to ordinary functions, see
+    // checkLazyLambda.
+    TrustNode skTrn = d_ll.ppRewrite(node, lems);
+    if (!skTrn.isNull())
+    {
+      Trace("uf-lazy-ll") << "...return " << skTrn.getNode() << std::endl;
+      return skTrn;
     }
   }
   return TrustNode::null();
@@ -233,9 +243,8 @@ void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
 {
   // The only relevant lambdas are those we use as model values for their
   // equivalence class, as computed by checkLazyLambda. Other lambdas are
-  // either equal to these, or are in equivalence classes whose model value is
-  // determined by ordinary functions. Including them would lead to
-  // syntactically distinct lambdas in the same equivalence class of the model.
+  // equal to these. Including them would lead to syntactically distinct
+  // lambdas in the same equivalence class of the model.
   std::unordered_set<Node> lamReps;
   for (const std::pair<const Node, Node>& p : d_lambdaEqc)
   {
@@ -575,8 +584,6 @@ unsigned HoExtension::checkLazyLambda()
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   // normal functions equated to lambdas
   std::unordered_set<Node> normalEqFuns;
-  // maps equivalence classes to the first lambda we encounter in them
-  std::unordered_map<Node, Node> lamReps;
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
@@ -679,34 +686,13 @@ unsigned HoExtension::checkLazyLambda()
         }
       }
     }
-    if (lamRep.isNull())
+    if (!lamRep.isNull())
     {
-      continue;
+      d_lambdaEqc[eqc] = lamRep;
+      // if we are equal to a lambda, we must beta-reduce applications of the
+      // normal functions in this equivalence class
+      normalEqFuns.insert(normalFuns.begin(), normalFuns.end());
     }
-    lamReps[eqc] = lamRep;
-    // if we are equal to a lambda, we must beta-reduce applications of the
-    // normal functions in this equivalence class
-    normalEqFuns.insert(normalFuns.begin(), normalFuns.end());
-    // Do the lambda lifting lemma if needed. This happens if a lambda
-    // needs lifting based on the symbols in its body and is equated to an
-    // ordinary function symbol. For example, this is what ensures we
-    // handle conflicts like f = (lambda ((x Int)) (+ 1 (f x))).
-    if (!normalFuns.empty() && d_ll.needsLift(lamRepLam))
-    {
-      Node lem = d_ll.getLiftLemma(normalFuns[0], lamRep);
-      if (cacheLemma(lem))
-      {
-        Trace("uf-ho-lemma")
-            << "uf-ho-lemma : lazy lift : " << lem << std::endl;
-        d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
-        numLemmas++;
-      }
-      // The model value for this equivalence class is determined by the
-      // applications of its normal functions, not by the lambda, since the
-      // lambda may induce circular dependencies in model construction.
-      continue;
-    }
-    d_lambdaEqc[eqc] = lamRep;
   }
   Trace("uf-ho-debug") << "  found " << normalEqFuns.size()
                        << " ordinary functions that are equal to lambdas"
@@ -755,8 +741,8 @@ unsigned HoExtension::checkLazyLambda()
                            << std::endl;
       Assert(ee->hasTerm(op));
       Node r = ee->getRepresentative(op);
-      Assert(lamReps.find(r) != lamReps.end());
-      Node lf = lamReps[r];
+      Assert(d_lambdaEqc.find(r) != d_lambdaEqc.end());
+      Node lf = d_lambdaEqc[r];
       Node lam = LambdaLift::getLambdaFor(lf);
       Assert(!lam.isNull() && lam.getKind() == Kind::LAMBDA);
       // a normal function g equal to a lambda, say f --> lambda(f)

@@ -231,8 +231,7 @@ void TheoryUF::notifyFact(TNode atom,
 }
 //--------------------------------- end standard check
 
-TrustNode TheoryUF::ppRewrite(TNode node,
-                              CVC5_UNUSED std::vector<SkolemLemma>& lems)
+TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;
@@ -286,7 +285,7 @@ TrustNode TheoryUF::ppRewrite(TNode node,
   }
   if (isHol)
   {
-    TrustNode ret = d_ho->ppRewrite(node);
+    TrustNode ret = d_ho->ppRewrite(node, lems);
     if (!ret.isNull())
     {
       Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
