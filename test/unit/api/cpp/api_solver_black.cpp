@@ -2784,6 +2784,38 @@ TEST_F(TestApiBlackSolver, terminatorTimeoutCore)
   ASSERT_EQ(res.first.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
 }
 
+TEST_F(TestApiBlackSolver, terminatorCheckSynth)
+{
+  d_solver->setOption("sygus", "true");
+  d_solver->setOption("incremental", "true");
+  d_solver->addSygusConstraint(d_solver->synthFun("f", {}, d_bool));
+  // termination is only requested once, which only applies to the first call
+  TerminatorAt t(1, true);
+  d_solver->setTerminator(&t);
+  ASSERT_FALSE(d_solver->checkSynth().hasSolution());
+  ASSERT_EQ(t.d_calls, 1);
+  ASSERT_TRUE(d_solver->checkSynth().hasSolution());
+  ASSERT_GT(t.d_calls, 1);
+}
+
+TEST_F(TestApiBlackSolver, terminatorFindSynth)
+{
+  d_solver->setOption("sygus", "true");
+  d_solver->setOption("incremental", "true");
+  Term start = d_tm.mkVar(d_bool);
+  Grammar g = d_solver->mkGrammar({}, {start});
+  g.addRule(start, d_tm.mkBoolean(true));
+  g.addRule(start, d_tm.mkBoolean(false));
+  TerminatorFlag t;
+  d_solver->setTerminator(&t);
+  ASSERT_FALSE(d_solver->findSynth(modes::FindSynthTarget::ENUM, g).isNull());
+  t.d_terminate.store(true);
+  ASSERT_TRUE(d_solver->findSynthNext().isNull());
+  // the termination request does not apply to subsequent calls
+  t.d_terminate.store(false);
+  ASSERT_FALSE(d_solver->findSynth(modes::FindSynthTarget::ENUM, g).isNull());
+}
+
 TEST_F(TestApiBlackSolver, verticalBars)
 {
   Term a = d_solver->declareFun("|a |", {}, d_real);
