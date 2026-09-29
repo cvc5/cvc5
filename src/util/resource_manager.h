@@ -138,10 +138,11 @@ class ResourceManager
   /**
    * Checks whether termination of the current call has been requested, either
    * by the terminator of this resource manager or by the parent resource
-   * manager. The terminator is polled on the first check of each call, and
-   * then on every TERMINATOR_POLL_INTERVAL-th check, until it requests
-   * termination. The request is then remembered until the end of the current
-   * call.
+   * manager. Termination can only be requested during calls, i.e., between
+   * beginCall() and refresh(). The terminator is polled on the first check of
+   * each call, and then on every TERMINATOR_POLL_INTERVAL-th check, until it
+   * requests termination. The request is then remembered until the end of the
+   * current call.
    */
   bool terminationRequested() const;
   /**
@@ -203,7 +204,8 @@ class ResourceManager
   void setTerminator(std::function<bool()> terminator);
   /**
    * Set the resource manager of the parent solver. Termination requests of
-   * the parent also apply to this resource manager (used for subsolvers).
+   * the parent during a call of the parent also apply to calls of this
+   * resource manager (used for subsolvers).
    */
   void setParent(const ResourceManager* parent);
 
@@ -244,6 +246,8 @@ class ResourceManager
   static constexpr uint64_t TERMINATOR_POLL_INTERVAL = 100;
   /** The terminator, empty if not set. */
   std::function<bool()> d_terminator;
+  /** Whether a call is in progress, i.e., between beginCall() and refresh(). */
+  bool d_inCall;
   /** The number of checks of the terminator during the current call. */
   mutable uint64_t d_terminatorChecks;
   /** The resource manager of the parent solver, if any. */
