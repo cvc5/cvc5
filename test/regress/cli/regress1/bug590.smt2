@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp
 ; SCRUBBER: grep -o "sat\|((charlst2 ("
 ; EXPECT: sat

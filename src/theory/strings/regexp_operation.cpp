@@ -12,6 +12,7 @@
 
 #include "theory/strings/regexp_operation.h"
 
+#include <limits>
 #include <sstream>
 
 #include "expr/node_algorithm.h"

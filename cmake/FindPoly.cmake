@@ -181,9 +181,20 @@ if(NOT Poly_FOUND_SYSTEM)
   # Disable a warning triggered by compilers (Emscripten, Apple Clang, etc.)
   # due to deprecated literal operator syntax in a GMP header used by LibPoly.
   set(POLY_CXX_FLAGS "")
+  set(_poly_cxx_flags "")
   check_cxx_compiler_flag(-Wno-error=deprecated-literal-operator HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
   if(HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
-    set(POLY_CXX_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-literal-operator)
+    string(APPEND _poly_cxx_flags " -Wno-error=deprecated-literal-operator")
+  endif()
+  # See FindCaDiCaL.cmake: emcc's default -fignore-exceptions emits no
+  # landing pads, so destructors in LibPoly frames an exception unwinds
+  # through would be skipped.
+  if(EMSCRIPTEN)
+    string(APPEND _poly_cxx_flags " -fexceptions")
+  endif()
+  if(_poly_cxx_flags)
+    string(STRIP "${_poly_cxx_flags}" _poly_cxx_flags)
+    set(POLY_CXX_FLAGS "-DCMAKE_CXX_FLAGS=${_poly_cxx_flags}")
   endif()
   
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is

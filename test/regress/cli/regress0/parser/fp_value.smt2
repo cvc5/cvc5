@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp
 (set-logic ALL)
 (set-info :status unsat)

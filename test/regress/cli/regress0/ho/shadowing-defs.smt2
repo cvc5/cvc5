@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-models
 ; EXPECT: sat
 (set-logic HO_ALL)

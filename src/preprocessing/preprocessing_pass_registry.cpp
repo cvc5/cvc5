@@ -29,6 +29,7 @@
 #include "preprocessing/passes/bv_intro_pow2.h"
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/bv_to_int.h"
+#include "preprocessing/passes/distinct_elim.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/ff_bitsum.h"
 #include "preprocessing/passes/ff_disjunctive_bit.h"
@@ -132,6 +133,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("ff-disjunctive-bit", callCtor<FfDisjunctiveBit>);
   registerPassInfo("learned-rewrite", callCtor<LearnedRewrite>);
   registerPassInfo("foreign-theory-rewrite", callCtor<ForeignTheoryRewrite>);
+  registerPassInfo("distinct-elim", callCtor<DistinctElim>);
   registerPassInfo("synth-rr", callCtor<SynthRewRulesPass>);
   registerPassInfo("real-to-int", callCtor<RealToInt>);
   registerPassInfo("sygus-infer", callCtor<SygusInference>);

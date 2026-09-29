@@ -53,7 +53,10 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
-    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
+    : EnvObj(env),
+      d_slvStats(stats),
+      d_preprocessingPassContext(nullptr),
+      d_simplifyAssertionsDepth(0)
 {
   d_true = nodeManager()->mkConst(true);
 }
@@ -219,6 +222,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   if (options().smt.foreignTheoryRewrite)
   {
     applyPass("foreign-theory-rewrite", ap);
+  }
+  // Eagerly eliminate distinct terms up to the configured threshold. Only run
+  // if the threshold option was explicitly set by the user (a value of 0 means
+  // no limit, i.e. eliminate all distinct terms).
+  if (options().smt.distinctElimThresholdWasSetByUser)
+  {
+    applyPass("distinct-elim", ap);
   }
 
   // Assertions MUST BE guaranteed to be rewritten by this point

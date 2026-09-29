@@ -1135,6 +1135,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
       }
       for (const std::string& sym : symList)
       {
+        d_state.checkReservedSymbol(sym);
         params.push_back(d_state.mkSort(sym));
       }
       Trace("parser-dt") << params.size() << " parameters for " << dnames[i]
@@ -1185,11 +1186,13 @@ void Smt2TermParser::parseConstructorDefinitionList(DatatypeDecl& type)
   while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
   {
     std::string name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
+    d_state.checkReservedSymbol(name);
     DatatypeConstructorDecl ctor(tm.mkDatatypeConstructorDecl(name));
     // parse another selector or close the current constructor
     while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
     {
       std::string id = parseSymbol(CHECK_NONE, SYM_SORT);
+      d_state.checkReservedSymbol(id);
       Sort t = parseSort();
       ctor.addSelector(id, t);
       Trace("parser-idt") << "selector: " << id << " of type " << t

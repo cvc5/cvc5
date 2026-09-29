@@ -42,6 +42,14 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
     // always ensure that the arguments of these operators are Real
     convertToRealChildren = true;
   }
+  else if (k == Kind::TO_REAL && isRealTypeStrict(n[0].getType()))
+  {
+    // TO_REAL is strictly Int -> Real. If its argument is already Real, the
+    // application is the identity and is eliminated here. Note this occurs
+    // e.g. if the user writes (to_real t) for a Real term t, which cvc5 permits
+    // when strict parsing is disabled.
+    return n[0];
+  }
   else if (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL || k == Kind::GEQ
            || k == Kind::GT || k == Kind::LEQ || k == Kind::LT)
   {
@@ -56,8 +64,6 @@ Node SubtypeElimNodeConverter::postConvert(Node n)
         isRealTypeStrict(n[0].getType()) || isRealTypeStrict(n[1].getType());
   }
   // note that EQUAL is strictly typed so we don't need to handle it here
-  // also TO_REAL applied to reals is always rewritten, so it doesn't need to
-  // be handled.
   if (convertToRealChildren)
   {
     std::vector<Node> children;

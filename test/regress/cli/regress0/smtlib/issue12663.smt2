@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --incremental --produce-models
 ; EXPECT: sat
 ; EXPECT: sat

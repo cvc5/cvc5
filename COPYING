@@ -7,9 +7,9 @@ original or modified versions; distribution is under the terms of the modified
 BSD license (reproduced below).  Please note that cvc5 can be configured
 (however, by default it is not) to link against some GPLed libraries, and
 therefore the use of these builds may be restricted in non-GPL-compatible
-projects.  See below for a discussion of CLN and GLPK (the two GPLed optional
-library dependences for cvc5), and how to ensure you have a build that doesn't
-link against GPLed libraries.
+projects.  See below for a discussion of the GPLed optional library dependences
+for cvc5 (CLN, glpk-cut-log, CoCoALib, and Normaliz), and how to ensure you have
+a build that doesn't link against GPLed libraries.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -55,6 +55,15 @@ Library, which is licensed under GNU LGPL v3.  See the file
 licenses/lgpl-3.0.txt for a copy of that license.  Note that according to the
 terms of the LGPL, both cvc5's source, and the combined work (cvc5 linked with
 GMP) may (and do) remain under the more permissive modified BSD license.
+
+cvc5 can be optionally configured to link against The GNU Multiple Precision
+Floating-Point Reliable Library (MPFR), which it uses as the back end for
+floating-point constant folding.  This is enabled by default and can be turned
+off by configuring cvc5 with the "--no-mpfr" option, in which case cvc5 does
+not link against MPFR.  MPFR is licensed under GNU LGPL v3; see the file
+licenses/lgpl-3.0.txt for a copy of that license.  As with GMP, the terms of
+the LGPL allow both cvc5's source, and the combined work (cvc5 linked with
+MPFR), to remain under the more permissive modified BSD license.
 
 cvc5 also links against the CaDiCaL library
 (https://github.com/arminbiere/cadical), which is licensed under
@@ -112,10 +121,15 @@ Numbers, available here:
 
   http://www.ginac.de/CLN/
 
-cvc5 can be optionally configured to link against glpk-cut-log, a modified
-version of GLPK, the GNU Linear Programming Kit, available here:
+cvc5 can be optionally configured to link against a modified version of GLPK,
+the GNU Linear Programming Kit, available here:
 
-  https://github.com/timothy-king/glpk-cut-log
+  https://ftp.gnu.org/gnu/glpk/
+
+The modifications are the cut-log patch in cmake/deps-utils/glpk-cut-log.patch,
+which cvc5's build system applies to the GLPK release it downloads from there.
+That patch is taken from https://github.com/timothy-king/glpk-cut-log and is
+covered by the same license as GLPK itself.
 
 cvc5 can be optionally configured to link against CoCoALib, a C++ library for
 doing Computations in Commutative Algebra, available here:

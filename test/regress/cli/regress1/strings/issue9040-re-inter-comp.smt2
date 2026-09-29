@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --re-inter=all
 ; EXPECT: sat
 (set-logic ALL)

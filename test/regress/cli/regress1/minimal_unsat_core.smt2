@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --minimal-unsat-cores
 (set-logic QF_NIA)
 (set-info :status unsat)

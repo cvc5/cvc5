@@ -71,6 +71,8 @@ libcvc5_add_sources(
   preprocessing/passes/bv_to_bool.h
   preprocessing/passes/bv_to_int.cpp
   preprocessing/passes/bv_to_int.h
+  preprocessing/passes/distinct_elim.cpp
+  preprocessing/passes/distinct_elim.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/ff_bitsum.cpp
@@ -176,18 +178,6 @@ libcvc5_add_sources(
   proof/lazy_proof_chain.h
   proof/lazy_tree_proof_generator.cpp
   proof/lazy_tree_proof_generator.h
-  proof/lfsc/lfsc_list_sc_node_converter.cpp
-  proof/lfsc/lfsc_list_sc_node_converter.h
-  proof/lfsc/lfsc_node_converter.cpp
-  proof/lfsc/lfsc_node_converter.h
-  proof/lfsc/lfsc_post_processor.cpp
-  proof/lfsc/lfsc_post_processor.h
-  proof/lfsc/lfsc_printer.cpp
-  proof/lfsc/lfsc_printer.h
-  proof/lfsc/lfsc_print_channel.cpp
-  proof/lfsc/lfsc_print_channel.h
-  proof/lfsc/lfsc_util.cpp
-  proof/lfsc/lfsc_util.h
   proof/method_id.cpp
   proof/method_id.h
   proof/print_expr.cpp
@@ -655,6 +645,10 @@ libcvc5_add_sources(
   theory/builtin/theory_builtin_type_rules.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
+  theory/bv/abstract/abstraction_lemmas.cpp
+  theory/bv/abstract/abstraction_lemmas.h
+  theory/bv/abstract/abstraction_module.cpp
+  theory/bv/abstract/abstraction_module.h
   theory/bv/bitblast/bitblast_proof_generator.cpp
   theory/bv/bitblast/bitblast_proof_generator.h
   theory/bv/bitblast/bitblast_strategies_template.h
@@ -1143,6 +1137,8 @@ libcvc5_add_sources(
   theory/sets/skolem_cache.h
   theory/sets/solver_state.cpp
   theory/sets/solver_state.h
+  theory/sets/strategy.cpp
+  theory/sets/strategy.h
   theory/sets/term_registry.cpp
   theory/sets/term_registry.h
   theory/sets/theory_sets.cpp
@@ -1173,6 +1169,10 @@ libcvc5_add_sources(
   theory/partition_generator.h
   theory/plugin_module.cpp
   theory/plugin_module.h
+  theory/step.cpp
+  theory/step.h
+  theory/strategy.cpp
+  theory/strategy.h
   theory/strings/array_solver.cpp
   theory/strings/array_solver.h
   theory/strings/array_core_solver.cpp
@@ -1613,7 +1613,13 @@ endif()
 add_dependencies(cvc5-obj SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 
-# GMP has to be included at the end because of linker ordering issues when 
+if(CVC5_USE_MPFR)
+  add_dependencies(cvc5-obj MPFR)
+  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
+endif()
+
+# GMP has to be included at the end because of linker ordering issues when
 # generating a static library.
 add_dependencies(cvc5-obj GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
@@ -1621,12 +1627,6 @@ if(BUILD_SHARED_LIBS)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 else()
   target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
-endif()
-
-if(CVC5_USE_MPFR)
-  add_dependencies(cvc5-obj MPFR)
-  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
 endif()
 
 #-----------------------------------------------------------------------------#

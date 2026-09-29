@@ -5851,12 +5851,12 @@ enum ENUM(Kind)
   /**
    * Instantiation no-pattern.
    *
-   * Specifies a (list of) terms that should not be used as a pattern for
-   * quantifier instantiation.
+   * Specifies a term that should not be used as a pattern for quantifier
+   * instantiation.
    *
-   * - Arity: ``n > 0``
+   * - Arity: ``1``
    *
-   *   - ``1..n:`` Terms of any Sort
+   *   - ``1:`` Term of any Sort
    *
    * - Create Term of this Kind with:
    *

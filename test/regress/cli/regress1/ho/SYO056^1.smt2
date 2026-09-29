@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find
 (set-logic HO_ALL)
 (set-info :status sat)

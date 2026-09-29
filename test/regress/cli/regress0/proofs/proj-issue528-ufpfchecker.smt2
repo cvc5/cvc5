@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic QF_ALL)
 (set-info :status unsat)
 (set-option :proof-check eager)
