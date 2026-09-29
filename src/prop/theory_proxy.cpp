@@ -297,7 +297,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation)
   {
     output(OutputTag::LEMMAS) << "(lemma ";
     // use original form of the lemma here
-    output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(theoryExplanation);
+    output(OutputTag::LEMMAS) << SkolemManager::getOriginalForm(tte.getProven());
     output(OutputTag::LEMMAS) << " :source " << theory::InferenceId::EXPLAINED_PROPAGATION;
     output(OutputTag::LEMMAS) << ")" << std::endl;
   }
