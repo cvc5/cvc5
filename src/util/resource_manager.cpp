@@ -157,6 +157,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats,
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
       d_thisCallResourceBudget(0),
+      d_inCall(false),
       d_terminatorChecks(0),
       d_parent(nullptr),
       d_terminationRequested(false),
@@ -254,6 +255,7 @@ void ResourceManager::beginCall()
   // refresh here if not already done so
   refresh();
   // begin call
+  d_inCall = true;
   d_perCallTimer.set(d_options.base.perCallMillisecondLimit);
   d_thisCallResourceUsed = 0;
 
@@ -278,6 +280,7 @@ void ResourceManager::refresh()
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
   d_thisCallResourceUsed = 0;
+  d_inCall = false;
   d_terminatorChecks = 0;
   d_terminationRequested = false;
 }
@@ -326,7 +329,7 @@ bool ResourceManager::outOfTime() const
 
 bool ResourceManager::terminationRequested() const
 {
-  if (!d_enabled)
+  if (!d_enabled || !d_inCall)
   {
     return false;
   }

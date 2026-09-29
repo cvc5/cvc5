@@ -2784,6 +2784,30 @@ TEST_F(TestApiBlackSolver, terminatorTimeoutCore)
   ASSERT_EQ(res.first.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
 }
 
+TEST_F(TestApiBlackSolver, terminatorOutsideQuery)
+{
+  d_solver->setOption("produce-unsat-cores", "true");
+  d_solver->setOption("minimal-unsat-cores", "true");
+  Term zero = d_tm.mkInteger(0);
+  Term x = d_tm.mkConst(d_int, "x");
+  Term y = d_tm.mkConst(d_int, "y");
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {y, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {x, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::LT, {x, zero}));
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  // the terminator is only called during queries, i.e., not while minimizing
+  // the unsat core with subsolvers
+  TerminatorAt t(1);
+  d_solver->setTerminator(&t);
+  ASSERT_EQ(d_solver->getUnsatCore().size(), 2);
+  ASSERT_EQ(t.d_calls, 0);
+  // the terminator is called during the next query
+  cvc5::Result r = d_solver->checkSat();
+  ASSERT_TRUE(r.isUnknown());
+  ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+  ASSERT_EQ(t.d_calls, 1);
+}
+
 TEST_F(TestApiBlackSolver, terminatorCheckSynth)
 {
   d_solver->setOption("sygus", "true");
