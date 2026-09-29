@@ -32,8 +32,8 @@ int main(void)
   Term t138 = tm.mkVar(s1, "_f12_3");
   Term t141 = tm.mkTerm(Kind::INTS_MODULUS, {t122, t122});
   Term t142 = tm.mkTerm(Kind::NEG, {t141});
-  Term t143 = solver.defineFun(
-      "_f12", {t135, t136, t137, t138}, t142.getSort(), t142);
+  Term t143 =
+      solver.defineFun("_f12", {t135, t136, t137, t138}, t142.getSort(), t142);
   (void)solver.simplify(t143);
   (void)solver.simplify(t142);
 
