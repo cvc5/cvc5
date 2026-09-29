@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; SCRUBBER: grep -v fp.to_sbv
 ; EXPECT: sat
 (set-logic ALL)

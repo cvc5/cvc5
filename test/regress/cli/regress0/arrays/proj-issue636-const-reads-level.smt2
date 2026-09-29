@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: model
 ; EXPECT: sat
 (set-logic ALL)
