@@ -1,3 +1,5 @@
+; Proof testing was disabled for a known proof bug in #6151.
+; TODO: Revalidate the inherited external proof checks before removing this.
 ; DISABLE-TESTER: proof
 (set-option :incremental false)
 (set-info :status unsat)
