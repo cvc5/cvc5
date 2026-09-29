@@ -2841,7 +2841,7 @@ public class Solver extends AbstractPointer implements AutoCloseable
   public Term getValue(Term term)
   {
     long termPointer = getValue(getPointer(), term.getPointer());
-    return new Term(ctx, termPointer);
+    return checkTerminator(new Term(ctx, termPointer));
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -2861,7 +2861,7 @@ public class Solver extends AbstractPointer implements AutoCloseable
   {
     long[] pointers = Utils.getPointers(terms);
     long[] retPointers = getValue(getPointer(), pointers);
-    return Utils.getTerms(ctx, retPointers);
+    return checkTerminator(Utils.getTerms(ctx, retPointers));
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -3214,11 +3214,6 @@ public class Solver extends AbstractPointer implements AutoCloseable
      */
     boolean terminate()
     {
-      // an exception has been thrown before, and not rethrown yet
-      if (exception != null)
-      {
-        return true;
-      }
       try
       {
         return terminator.terminate();
@@ -3238,12 +3233,12 @@ public class Solver extends AbstractPointer implements AutoCloseable
 
   /**
    * Rethrow the exception thrown by the connected terminator during the last
-   * query, if any.
+   * query, if any. Must be called by all methods that execute queries.
    *
    * @param result The result of the last query.
    * @return The result of the last query.
    */
-  private <T> T checkTerminator(T result)
+  <T> T checkTerminator(T result)
   {
     TerminatorWrapper wrapper = terminatorWrapper;
     if (wrapper != null && wrapper.exception != null)
