@@ -2487,6 +2487,27 @@ def test_terminator_keyboard_interrupt(tm, solver):
         solver.checkSat()
 
 
+def test_terminator_exception_command(tm, solver):
+    solver.setTerminator(TerminatorRaise(ValueError("terminate")))
+    sm = cvc5.SymbolManager(tm)
+    parser = cvc5.InputParser(solver, sm)
+    parser.setIncrementalStringInput(
+        cvc5.InputLanguage.SMT_LIB_2_6, "test_terminator_exception_command")
+    parser.appendIncrementalStringInput(
+        "(set-logic QF_UF) (declare-const x Bool) (assert x) (check-sat)")
+    for _ in range(3):
+        parser.nextCommand().invoke(solver, sm)
+    # the exception is re-raised by the command that executed the query
+    cmd = parser.nextCommand()
+    with pytest.raises(ValueError, match="terminate"):
+        cmd.invoke(solver, sm)
+    # the exception does not affect subsequent queries
+    t = TerminatorFlag()
+    solver.setTerminator(t)
+    assert solver.checkSat().isSat()
+    assert t.calls > 0
+
+
 def test_terminator_thread(tm, solver):
     class TerminatorEvent(Terminator):
         def __init__(self):

@@ -64,22 +64,6 @@ Java_io_github_cvc5_InputParser_deletePointer(JNIEnv*, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_InputParser
- * Method:    getSolver
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_getSolver(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
-  Solver* solver = parser->getSolver();
-  return reinterpret_cast<jlong>(solver);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_InputParser
  * Method:    getSymbolManager
  * Signature: (J)J
  */

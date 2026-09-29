@@ -41,7 +41,7 @@ public class Command extends AbstractPointer
    */
   public String invoke(Solver solver, SymbolManager symbolManager)
   {
-    return invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+    return solver.checkTerminator(invoke(pointer, solver.getPointer(), symbolManager.getPointer()));
   }
 
   private native String invoke(long pointer, long solverPointer, long symbolManagerPointer);

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
+import io.github.cvc5.modes.InputLanguage;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.OptionCategory;
 import io.github.cvc5.modes.ProofComponent;
@@ -2562,6 +2563,36 @@ class SolverTest
     // the solver can be used after the exception was thrown
     d_solver.setTerminator(null);
     assertTrue(d_solver.checkSat().isUnsat());
+  }
+
+  @Test
+  void terminatorExceptionCommand()
+  {
+    d_solver.setTerminator(() -> { throw new IllegalStateException("terminate"); });
+    SymbolManager sm = new SymbolManager(d_tm);
+    InputParser parser = new InputParser(d_solver, sm);
+    parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "terminatorExceptionCommand");
+    parser.appendIncrementalStringInput(
+        "(set-logic QF_UF) (declare-const x Bool) (assert x) (check-sat)");
+    // the solver of the parser is the solver the terminator is connected to
+    Solver solver = parser.getSolver();
+    for (int i = 0; i < 3; ++i)
+    {
+      parser.nextCommand().invoke(solver, sm);
+    }
+    // the exception is rethrown by the command that executed the query
+    Command cmd = parser.nextCommand();
+    IllegalStateException e =
+        assertThrows(IllegalStateException.class, () -> cmd.invoke(solver, sm));
+    assertEquals("terminate", e.getMessage());
+    // the exception does not affect subsequent queries
+    AtomicInteger calls = new AtomicInteger();
+    d_solver.setTerminator(() -> {
+      calls.incrementAndGet();
+      return false;
+    });
+    assertTrue(d_solver.checkSat().isSat());
+    assertTrue(calls.get() > 0);
   }
 
   @Test

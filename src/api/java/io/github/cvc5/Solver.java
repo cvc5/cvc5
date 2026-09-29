@@ -2815,7 +2815,7 @@ public class Solver extends AbstractPointer
   public Term getValue(Term term)
   {
     long termPointer = getValue(pointer, term.getPointer());
-    return new Term(termPointer);
+    return checkTerminator(new Term(termPointer));
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -2835,7 +2835,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(terms);
     long[] retPointers = getValue(pointer, pointers);
-    return Utils.getTerms(retPointers);
+    return checkTerminator(Utils.getTerms(retPointers));
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -3141,11 +3141,6 @@ public class Solver extends AbstractPointer
      */
     boolean terminate()
     {
-      // an exception has been thrown before, and not rethrown yet
-      if (exception != null)
-      {
-        return true;
-      }
       try
       {
         return terminator.terminate();
@@ -3165,12 +3160,12 @@ public class Solver extends AbstractPointer
 
   /**
    * Rethrow the exception thrown by the connected terminator during the last
-   * query, if any.
+   * query, if any. Must be called by all methods that execute queries.
    *
    * @param result The result of the last query.
    * @return The result of the last query.
    */
-  private <T> T checkTerminator(T result)
+  <T> T checkTerminator(T result)
   {
     TerminatorWrapper wrapper = terminatorWrapper;
     if (wrapper != null && wrapper.exception != null)

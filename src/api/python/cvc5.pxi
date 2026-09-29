@@ -308,7 +308,7 @@ cdef class Command:
         """
         cdef stringstream ss
         self.cc.invoke(solver.csolver, sm.csm, ss)
-        return ss.str().decode()
+        return solver._checkTerminator(ss.str().decode())
 
     def getCommandName(self):
         """
@@ -4315,7 +4315,8 @@ cdef class Solver:
         """
         if isinstance(term_or_list, list):
             return [self.getValue(t) for t in term_or_list]
-        return _term(self.tm, self.csolver.getValue((<Term> term_or_list).cterm))
+        return self._checkTerminator(_term(
+            self.tm, self.csolver.getValue((<Term> term_or_list).cterm)))
 
     def getModelDomainElements(self, Sort s not None):
         """
@@ -4572,7 +4573,8 @@ cdef class Solver:
     cdef _checkTerminator(self, result):
         """
             Re-raise the exception raised by the connected terminator during
-            the last query, if any.
+            the last query, if any. Must be called by all methods that execute
+            queries.
 
             :param result: The result of the last query.
             :return: The result of the last query.
@@ -6319,9 +6321,6 @@ cdef class Proof:
 cdef public api:
     bint cy_call_terminate(object self) noexcept:
         cdef Terminator t = <Terminator> self
-        # an exception has been raised before, and not re-raised yet
-        if t.exception is not None:
-            return True
         try:
             return bool(t.terminate())
         except BaseException as e:

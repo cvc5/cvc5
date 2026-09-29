@@ -42,6 +42,9 @@ import io.github.cvc5.modes.InputLanguage;
  */
 public class InputParser extends AbstractPointer
 {
+  // the solver of this input parser
+  private final Solver solver;
+
   /**
    * Construct an input parser
    *
@@ -53,6 +56,7 @@ public class InputParser extends AbstractPointer
   public InputParser(Solver solver, SymbolManager sm)
   {
     super(newInputParser(solver.getPointer(), sm.getPointer()));
+    this.solver = solver;
   }
 
   private static native long newInputParser(long solverPointer, long symbolManagerPointer);
@@ -68,6 +72,7 @@ public class InputParser extends AbstractPointer
     // we call the corresponding constructor in cpp api
     super(newInputParser(
         solver.getPointer(), new SymbolManager(solver.getTermManager()).getPointer()));
+    this.solver = solver;
   }
 
   private static native long newInputParser(long solverPointer);
@@ -87,10 +92,8 @@ public class InputParser extends AbstractPointer
    */
   public Solver getSolver()
   {
-    return new Solver(getSolver(pointer));
+    return solver;
   }
-
-  private native long getSolver(long pointer);
 
   /**
    * Get the underlying symbol manager of this input parser.
