@@ -729,10 +729,6 @@ unsigned HoExtension::checkLazyLambda()
     {
       continue;
     }
-    lamReps[eqc] = lamRep;
-    // if we are equal to a lambda, we must beta-reduce applications of the
-    // normal functions in this equivalence class
-    normalEqFuns.insert(normalFuns.begin(), normalFuns.end());
     // Do the lambda lifting lemma if needed. This happens if a lambda
     // needs lifting based on the symbols in its body and is equated to an
     // ordinary function symbol. For example, this is what ensures we
@@ -749,9 +745,17 @@ unsigned HoExtension::checkLazyLambda()
       }
       // The model value for this equivalence class is determined by the
       // applications of its normal functions, not by the lambda, since the
-      // lambda may induce circular dependencies in model construction.
+      // lambda may induce circular dependencies in model construction. We
+      // also do not beta-reduce applications of its normal functions, since
+      // this may not terminate, e.g. if g = (lambda ((x Int)) (f (g x))),
+      // then beta-reducing (g t) introduces (g t'), and so on. Instead, these
+      // applications are handled by instantiating the lift lemma.
       continue;
     }
+    lamReps[eqc] = lamRep;
+    // if we are equal to a lambda, we must beta-reduce applications of the
+    // normal functions in this equivalence class
+    normalEqFuns.insert(normalFuns.begin(), normalFuns.end());
     d_lambdaEqc[eqc] = lamRep;
   }
   Trace("uf-ho-debug") << "  found " << normalEqFuns.size()
