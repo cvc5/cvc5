@@ -133,9 +133,13 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
         return TrustNode::mkTrustRewrite(node, elimLam, nullptr);
       }
     }
-    TrustNode skTrn = d_ll.ppRewrite(node, lems);
-    Trace("uf-lazy-ll") << "...return " << skTrn.getNode() << std::endl;
-    return skTrn;
+    Node lam = FunctionConst::toLambda(node);
+    if (!lam.isNull() && d_ll.needsLift(lam))
+    {
+      TrustNode skTrn = d_ll.ppRewrite(node, lems);
+      Trace("uf-lazy-ll") << "...return " << skTrn.getNode() << std::endl;
+      return skTrn;
+    }
   }
   return TrustNode::null();
 }
