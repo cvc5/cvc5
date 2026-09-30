@@ -10,6 +10,7 @@
 # The build system configuration.
 ##
 
+cvc5_add_api_test(issue10104 "issues")
 cvc5_add_api_test(issue11069 "issues")
 cvc5_add_api_test(issue5074 "issues")
 cvc5_add_api_test(issue5893 "issues")
