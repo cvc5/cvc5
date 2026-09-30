@@ -1,5 +1,11 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.4.2 prerelease
+=====================
+
+- Adds techniques for returning "sat" when the returned candidate model
+  happens to satisfy the set of input assertions (`--model-verify`).
+
 cvc5 1.4.1
 ==========
 
