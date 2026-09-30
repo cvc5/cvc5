@@ -12,8 +12,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROP__MINISAT__OPT_CLAUSES_MANAGER_H
-#define CVC5__PROP__MINISAT__OPT_CLAUSES_MANAGER_H
+#ifndef CVC5__PROP__OPT_CLAUSES_MANAGER_H
+#define CVC5__PROP__OPT_CLAUSES_MANAGER_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -34,7 +34,12 @@ namespace prop {
  * context pops, proofs of level no greater than the new one are reinserted in
  * the proof marked to be notified.
  *
- * This class is specific to Minisat.
+ * This is needed because the SAT solver attaches a clause derived during
+ * search to the user level its literals depend on, which may be below the
+ * level in which the clause's proof was generated. It is used by
+ * SatProofManager, which is MiniSat-specific, and by PropPfManager, which
+ * covers the CaDiCaL path (PropPfManager instantiates one unconditionally,
+ * but it stays empty under MiniSat, where SatProofManager does the tracking).
  */
 class OptimizedClausesManager : context::ContextNotifyObj
 {

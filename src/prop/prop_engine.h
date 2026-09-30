@@ -146,6 +146,19 @@ class PropEngine : protected EnvObj
   void notifyExplainedPropagation(TrustNode texp);
 
   /**
+   * This is called when the SAT solver attaches a clause derived during search
+   * at an assertion level below the current one. This method is only used for
+   * proofs. It makes the proof manager preserve the proof of the clause for as
+   * long as the SAT solver keeps the clause. See
+   * PropPfManager::notifyClauseInsertedAtLevel.
+   *
+   * @param clauseNode The clause, in its normalized node form.
+   * @param assertionLevel The SAT solver assertion level it was attached at.
+   */
+  void notifyClauseInsertedAtLevel(const Node& clauseNode,
+                                   uint32_t assertionLevel);
+
+  /**
    * Configure the preferred phase of a decision variable. This occurs
    * *globally*, i.e., even if the literal is untranslated by user pop and
    * retranslated, it keeps this phase.

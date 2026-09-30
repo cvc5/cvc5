@@ -65,6 +65,7 @@ PropPfManager::PropPfManager(Env& env,
       d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
+      d_optClausesManager(userContext(), &d_proof, d_optClausesPfs),
       d_trackLemmaClauseIds(false),
       d_lemmaClauseIds(userContext()),
       d_lemmaClauseTimestamp(userContext()),
@@ -83,6 +84,11 @@ PropPfManager::PropPfManager(Env& env,
   // a learned clause we need at least two literals.
   d_assertions.push_back(nodeManager()->mkConst(true));
   d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
+  // Lemma clauses whose proof we preserve across pops must be preserved as
+  // lemma clauses as well, otherwise they would go missing from e.g. the
+  // theory lemma proof component and the unsat core lemmas.
+  d_optClausesManager.trackNodeHashSet(&d_lemmaClauses,
+                                       &d_optLemmaClauseLevels);
 }
 
 void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
@@ -517,6 +523,58 @@ void PropPfManager::notifyExplainedPropagation(TrustNode trn)
   {
     d_proof.addTrustedStep(clauseExp, TrustId::THEORY_LEMMA, {}, {});
   }
+}
+
+void PropPfManager::notifyClauseInsertedAtLevel(const Node& clauseNode,
+                                                uint32_t assertionLevel)
+{
+  // The user context has a level pushed around everything that the SAT solver
+  // is not notified of, hence the offset. Note we do not assert the exact
+  // coupling (i.e. that the SAT solver's assertion level is one below the
+  // user-context level): PropEngine::pop() runs before userContext()->pop()
+  // (see ContextManager::doPendingPops), so that equality is transiently false
+  // for the duration of a user pop.
+  Assert(assertionLevel < d_satSolver->getAssertionLevel());
+  uint32_t userLevel = assertionLevel + 1;
+  Assert(userLevel < userContext()->getLevel());
+  Trace("cnf") << "PropPfManager::notifyClauseInsertedAtLevel: need to save "
+               << clauseNode << " in level " << userLevel
+               << " despite being currently in level "
+               << userContext()->getLevel() << "\n";
+  // The proof must be materialized eagerly, since its justification comes from
+  // the theory engine and from user-context-dependent steps of d_proof, and
+  // may be gone (or different) by the time the user context pops. It must also
+  // be cloned, so that later updates to d_proof do not modify the saved proof.
+  std::shared_ptr<ProofNode> clausePf =
+      d_proof.getProofFor(clauseNode)->clone();
+  Assert(clausePf != nullptr && clausePf->getResult() == clauseNode);
+  if (clausePf->getRule() == ProofRule::ASSUME)
+  {
+    // We have no justification to preserve. This should not happen: every
+    // clause the SAT solver receives during search was registered via
+    // normalizeAndRegister first, under the very node clauseNode is built to
+    // match. Note LazyCDProof::getProofFor falls back to an assumption not
+    // only when there is no step at all, but also when hasGenerator holds for
+    // the symmetric fact while no generator applies to clauseNode itself.
+    //
+    // Saving an assumption here would be worse than saving nothing: the
+    // clause would be restored into d_lemmaClauses on pop with an open proof.
+    // So flag it in debug builds and otherwise fall back to the pre-existing
+    // behavior of leaving the clause unjustified, which the proof closedness
+    // checks report.
+    Assert(false) << "PropPfManager::notifyClauseInsertedAtLevel: no proof to "
+                     "preserve for clause "
+                  << clauseNode;
+    Trace("cnf") << "..no proof to save\n";
+    return;
+  }
+  Trace("cnf-debug") << "..saved pf " << *clausePf.get() << "\n";
+  d_optClausesPfs[userLevel].push_back(clausePf);
+  // Note we do not restore d_lemmaClauseIds/d_lemmaClauseTimestamp, which are
+  // only populated for -o unsat-core-lemmas. A clause whose level was
+  // optimized will then be reported with InferenceId::NONE rather than being
+  // dropped, which getInferenceIdFor already handles.
+  d_optLemmaClauseLevels[userLevel].push_back(clauseNode);
 }
 
 Node PropPfManager::getLastExplainedPropagation() const

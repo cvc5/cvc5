@@ -11,13 +11,22 @@
  */
 #include "prop/cadical/cdclt_propagator.h"
 
+#include <algorithm>
+
 namespace cvc5::internal::prop::cadical {
 
 CadicalPropagator::CadicalPropagator(prop::TheoryProxy* proxy,
                                      context::Context* context,
+                                     NodeManager* nm,
                                      CaDiCaL::Solver& solver,
-                                     StatisticsRegistry& stats)
-    : d_proxy(proxy), d_context(*context), d_solver(solver), d_stats(stats)
+                                     StatisticsRegistry& stats,
+                                     bool proofs)
+    : d_proxy(proxy),
+      d_context(*context),
+      d_nm(nm),
+      d_solver(solver),
+      d_proofs(proofs),
+      d_stats(stats)
 {
   d_var_info.emplace_back();  // 0: Not used
 }
@@ -422,7 +431,9 @@ int CadicalPropagator::cb_add_reason_clause_lit(int propagated_lit)
     // incremental checks. The reason is still a theory explanation and needs
     // the same user-level activation guard as reasons requested during search.
     // Add activation literal of the clause's user level to the reason.
-    SatLiteral alit = activation_lit(clause_user_level(clause));
+    uint32_t user_level = clause_user_level(clause);
+    notify_clause_level(clause, user_level);
+    SatLiteral alit = activation_lit(user_level);
     if (alit != undefSatLiteral)
     {
       d_reason.push_back(alit);
@@ -531,6 +542,7 @@ void CadicalPropagator::add_clause(const SatClause& clause, bool forgettable)
       }
       Trace("cadical::propagator") << " 0" << std::endl;
     }
+    notify_clause_level(clause, max_user_level);
     // Determine activation literal based on max user level of clause.
     SatLiteral alit = activation_lit(max_user_level);
     if (alit != undefSatLiteral)
@@ -766,6 +778,22 @@ void CadicalPropagator::renotify_fixed()
     ++d_stats.renotifyFixedLit;
   }
   d_renotify_fixed.clear();
+}
+
+void CadicalPropagator::notify_clause_level(const SatClause& clause,
+                                            uint32_t user_level)
+{
+  if (!d_proofs || user_level >= current_user_level())
+  {
+    return;
+  }
+  // The clause outlives the user level it was derived in, so its proof has to
+  // outlive it as well. See PropPfManager::notifyClauseInsertedAtLevel.
+  Trace("cadical::propagator")
+      << "clause attached at user level " << user_level << " < "
+      << current_user_level() << ", preserving its proof" << std::endl;
+  d_proxy->notifyClauseInsertedAtLevel(toClauseNode(d_nm, d_proxy, clause),
+                                       user_level);
 }
 
 void CadicalPropagator::theory_propagate()
