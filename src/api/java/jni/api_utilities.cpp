@@ -48,29 +48,52 @@ jobject getBooleanObject(JNIEnv* env, bool cValue)
   return ret;
 }
 
-cvc5::Term applyOracle(JNIEnv* env,
+JNIEnv* getEnv(JavaVM* vm)
+{
+  JNIEnv* env = nullptr;
+  jint rc = vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+  if (rc == JNI_EDETACHED)
+  {
+    vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
+  }
+  return env;
+}
+
+cvc5::Term applyOracle(JavaVM* vm,
                        jobject oracleRef,
                        const std::vector<cvc5::Term>& terms)
 {
-  jclass termClass = env->FindClass("Lio/github/cvc5/Term;");
+  JNIEnv* env = getEnv(vm);
+  // Release the local references created below when done: this function may
+  // be called many times during a single native call.
+  env->PushLocalFrame(16);
+
+  jclass termClass = env->FindClass("io/github/cvc5/Term");
   jmethodID termConstructor = env->GetMethodID(termClass, "<init>", "(J)V");
-
-  jobjectArray jTerms = env->NewObjectArray(terms.size(), termClass, NULL);
-
+  jobjectArray jTerms = env->NewObjectArray(terms.size(), termClass, nullptr);
   for (size_t i = 0; i < terms.size(); i++)
   {
     jlong termPointer = reinterpret_cast<jlong>(new cvc5::Term(terms[i]));
     jobject jTerm = env->NewObject(termClass, termConstructor, termPointer);
     env->SetObjectArrayElement(jTerms, i, jTerm);
+    env->DeleteLocalRef(jTerm);
   }
 
   jclass oracleClass = env->GetObjectClass(oracleRef);
   jmethodID applyMethod = env->GetMethodID(
       oracleClass, "apply", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
-
   jobject jTerm = env->CallObjectMethod(oracleRef, applyMethod, jTerms);
+  if (env->ExceptionCheck() || jTerm == nullptr)
+  {
+    env->ExceptionClear();
+    env->PopLocalFrame(nullptr);
+    throw cvc5::CVC5ApiException(
+        "The oracle threw an exception or returned null.");
+  }
   jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
   jlong termPointer = env->GetLongField(jTerm, pointer);
-  cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
-  return *term;
+  cvc5::Term term = *reinterpret_cast<cvc5::Term*>(termPointer);
+
+  env->PopLocalFrame(nullptr);
+  return term;
 }

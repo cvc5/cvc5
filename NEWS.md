@@ -6,6 +6,11 @@ cvc5 1.4.2 prerelease
 - Adds techniques for returning "sat" when the returned candidate model
   happens to satisfy the set of input assertions (`--model-verify`).
 
+- **Java API**
+  * Plugin and oracle callbacks may now be invoked from a thread other than
+    the one that registered them, and an exception thrown by a callback is
+    now reported as a `CVC5ApiException` instead of crashing the JVM.
+
 cvc5 1.4.1
 ==========
 
