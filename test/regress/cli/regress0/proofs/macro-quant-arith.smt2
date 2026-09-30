@@ -1,4 +1,4 @@
-; REQUIRES: no-safe-mode
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --macros-quant --macros-quant-mode=ground --proof-granularity=dsl-rewrite --proof-check=eager
 ; EXPECT: unsat
