@@ -354,7 +354,12 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
                      {nm->mkNode(Kind::BOUND_VAR_LIST, x), nm->mkNode(k, x)});
       Node fun = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY, lam);
       // Make (@TRANSCENDENTAL_PURIFY t), where t is node[0]
-      Node var = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
+      Node app = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
+      // We purify the application so that each application has its own
+      // skolem for the skolem lemma below. Notice that fun is shared by all
+      // applications of the same operator, and a skolem may only have one
+      // definition.
+      Node var = sm->mkPurifySkolem(app);
       Node lem;
       if (k == Kind::SQRT)
       {
@@ -364,9 +369,10 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
 
         // (sqrt x) reduces to:
         // (=> (>= x 0.0) (and (>= y 0.0) (= (* y y) x))
-        // where y is (@TRANSCENDENTAL_PURIFY x).
+        // where y is the purification of (@TRANSCENDENTAL_PURIFY x).
         //
-        // This makes sure that the reduction still behaves like a function,
+        // The equality between y and (@TRANSCENDENTAL_PURIFY x) added below
+        // makes sure that the reduction still behaves like a function,
         // otherwise the reduction of (x = -1) ^ (sqrt(x) != sqrt(-1)) would be
         // satisfiable.
         lem = nm->mkNode(Kind::IMPLIES,
@@ -435,8 +441,10 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
             << "Elimination lemma " << lem << " for " << node << std::endl;
       }
       Assert(!lem.isNull());
-      // the skolem lemma is for the function
-      lems.emplace_back(lem, fun);
+      // relate the purification skolem to the application of the function
+      lem = nm->mkNode(Kind::AND, var.eqNode(app), lem);
+      // the skolem lemma is for the purification skolem
+      lems.emplace_back(lem, var);
       return var;
     }
     case Kind::REAL_ALGEBRAIC_NUMBER:
