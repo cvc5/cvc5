@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --rels-acyclic-hammer --rels-acyclic-unroll-max=3
 ;
 ; Regression test for a soundness bug in TheorySetsRels::applyTCGroundingConflict

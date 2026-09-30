@@ -296,6 +296,26 @@ void TheorySetsRels::checkTransitiveClosure()
   // membership in d_tcr_tcGraph, which the UP rule (doTCInference) consumes. A
   // single sweep over the current members is performed (no fixpoint loop), so
   // only finitely many fresh elements are introduced per call.
+  // First build the TC graph of every TC term from the current members of
+  // its base relation. This must happen BEFORE the TC memberships are added
+  // as extra edges below: buildTCGraphForRel overwrites d_tcr_tcGraph, so
+  // running it afterwards used to discard the TC edges just added.
+  for (TERM_IT t_it = d_terms_cache.begin(); t_it != d_terms_cache.end();
+       ++t_it)
+  {
+    KIND_TERM_IT k_t_it = t_it->second.find(Kind::RELATION_TCLOSURE);
+    if (k_t_it != t_it->second.end())
+    {
+      for (const Node& tc_term : k_t_it->second)
+      {
+        ensureTCGraphBuilt(tc_term);
+      }
+    }
+  }
+  // DOWN rule + TC edges: for every (member, TC term) pair, apply
+  // applyTCRule. This both emits the down-rule split (introducing fresh
+  // skolems) and records the TC membership as an edge in d_tcr_tcGraph, which
+  // the UP rule (doTCInference) consumes.
   for (MEM_IT m_it = d_rReps_memberReps_cache.begin();
        m_it != d_rReps_memberReps_cache.end();
        ++m_it)
@@ -317,29 +337,7 @@ void TheorySetsRels::checkTransitiveClosure()
       }
     }
   }
-  // Build the TC graph for every TC term (also adds base-relation members),
-  // then run the UP rule. The down rule above and this up rule share
-  // d_tcr_tcGraph, so they must run in the same call.
-  for (TERM_IT t_it = d_terms_cache.begin(); t_it != d_terms_cache.end();
-       ++t_it)
-  {
-    KIND_TERM_IT k_t_it = t_it->second.find(Kind::RELATION_TCLOSURE);
-    if (k_t_it != t_it->second.end())
-    {
-      for (const Node& tc_term : k_t_it->second)
-      {
-        // BUG FIX: protect d_tcr_tcGraph from being overwritten,
-        // if it already exists
-        if (d_rel_nodes.find(tc_term) == d_rel_nodes.end()
-            && d_rRep_tcGraph.find(getRepresentative(tc_term[0]))
-                   == d_rRep_tcGraph.end())
-        {
-          buildTCGraphForRel(tc_term);
-          d_rel_nodes.insert(tc_term);
-        }
-      }
-    }
-  }
+  // UP rule over the combined graphs (base members + TC memberships).
   doTCInference();
   // don't flush; see the comment in TheorySetsPrivate::checkBasic().
   clearCaches();
@@ -886,7 +884,10 @@ void TheorySetsRels::computeMembersForIdenTerm(Node iden_term)
  */
 void TheorySetsRels::ensureTCGraphBuilt(Node tc_rel)
 {
-  MEM_IT mem_it = d_rReps_memberReps_cache.find(tc_rel[0]);
+  // Members are cached by representative; look the base relation up by its
+  // representative (previously by tc_rel[0] itself, which silently failed to
+  // build the graph whenever tc_rel[0] was not the class representative).
+  MEM_IT mem_it = d_rReps_memberReps_cache.find(getRepresentative(tc_rel[0]));
 
   if (mem_it != d_rReps_memberReps_cache.end()
       && d_rel_nodes.find(tc_rel) == d_rel_nodes.end()
@@ -1409,6 +1410,28 @@ void TheorySetsRels::doTCInference(
       RelsUtils::constructPair(tc_rel, reasons_front_0, reasons_back_1);
   std::vector<Node> all_reasons(reasons);
 
+  // The edges of the TC graph are memberships either in (a term equal to)
+  // the base relation tc_rel[0] or in (a term equal to) tc_rel itself (TC
+  // memberships are added as edges by applyTCRule). For an explanation whose
+  // set is syntactically neither, we must add the equality that actually
+  // holds in the current context. Previously tc_rel[0] = S was always added;
+  // when S was in fact a (purified) term equal to tc_rel, that antecedent was
+  // false, the forward lemma could never fire, and cycles in the base relation
+  // went undetected (wrong "sat" answers against rel.acyclic constraints).
+  auto addSetEq = [&](Node s) {
+    if (s == tc_rel || s == tc_rel[0])
+    {
+      return;
+    }
+    if (areEqual(s, tc_rel) && !areEqual(s, tc_rel[0]))
+    {
+      all_reasons.push_back(nodeManager()->mkNode(Kind::EQUAL, tc_rel, s));
+    }
+    else
+    {
+      all_reasons.push_back(nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], s));
+    }
+  };
   for (unsigned int i = 0; i < reasons.size() - 1; i++)
   {
     Node fst_element_end = TupleUtils::nthElementOfTuple(reasons[i][0], 1);
@@ -1419,17 +1442,9 @@ void TheorySetsRels::doTCInference(
       all_reasons.push_back(nodeManager()->mkNode(
           Kind::EQUAL, fst_element_end, snd_element_begin));
     }
-    if (tc_rel != reasons[i][1] && tc_rel[0] != reasons[i][1])
-    {
-      all_reasons.push_back(
-          nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons[i][1]));
-    }
+    addSetEq(reasons[i][1]);
   }
-  if (tc_rel != reasons.back()[1] && tc_rel[0] != reasons.back()[1])
-  {
-    all_reasons.push_back(
-        nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons.back()[1]));
-  }
+  addSetEq(reasons.back()[1]);
   if (all_reasons.size() > 1)
   {
     // Use andReasons to ensure deterministic node ID assignments
@@ -2057,10 +2072,19 @@ void TheorySetsRels::applyAcyclicDownRule(Node mem_rep,
   Node reason =
       reasons.size() == 1 ? reasons[0] : nm->mkNode(Kind::AND, reasons);
 
-  Node mem_rep0 = TupleUtils::nthElementOfTuple(mem_rep, 0);
-  Node mem_rep1 = TupleUtils::nthElementOfTuple(mem_rep, 1);
+  // SOUNDNESS: the conclusion must be stated on the tuple that actually
+  // occurs in the explanation exp_tc[0], not on mem_rep. mem_rep is only the
+  // current *representative* of that tuple; it may be a syntactically
+  // different tuple that is equal to exp_tc[0] merely in the current SAT
+  // context (e.g. while finite model finding has merged atoms). Since the
+  // inference is added as a context-independent lemma, concluding on mem_rep
+  // yields lemmas such as ((w1,w2) in TC(po) /\ acyclic(po)) => w1' != w2' for
+  // unrelated w1', w2' (or even => false), which wrongly refutes valid models.
+  Node tup = exp_tc[0];
+  Node tup0 = TupleUtils::nthElementOfTuple(tup, 0);
+  Node tup1 = TupleUtils::nthElementOfTuple(tup, 1);
 
-  sendInfer(nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, mem_rep0, mem_rep1)),
+  sendInfer(nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, tup0, tup1)),
             InferenceId::SETS_RELS_ACYCLIC_DOWN,
             reason);
 }

@@ -3418,6 +3418,7 @@ set(regress_1_tests
   regress1/quantifiers/var-eq-trigger-simple.smt2
   regress1/quantifiers/z3.620661-no-fv-trigger.smt2
   regress1/quantifiers/z3.855483_dio_nl.smt2
+  regress1/rels/cycles/acyclic-down-exp-tuple.smt2
   regress1/rels/cycles/acyclic1.smt2
   regress1/rels/cycles/acyclic2.smt2
   regress1/rels/cycles/acyclic3.smt2
