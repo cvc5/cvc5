@@ -58,18 +58,11 @@ Node GetValue::getValue(const Node& t, bool fromUser)
   Node n = d_env.getTopLevelSubstitutions().apply(t);
   n = d_expDef.expandDefinitions(n);
 
-  Trace("smt") << "--- getting value of " << n << std::endl;
-  // There are two ways model values for terms are computed (for historical
-  // reasons).  One way is that used in check-model; the other is that
-  // used by the Model classes.  It's not clear to me exactly how these
-  // two are different, but they need to be unified.  This ugly hack here
-  // is to fix bug 554 until we can revamp boolean-terms and models [MGD]
-
-  // AJR : necessary?
-  if (!n.getType().isFunction())
-  {
-    n = rewrite(n);
-  }
+  // Rewrite the term. This is required for the fast path below, since the
+  // SAT literals of the prop engine are over rewritten terms. Note that
+  // TheoryModel::getValue also rewrites its argument, hence this does not
+  // impact the value we compute in the model.
+  n = rewrite(n);
 
   // Fast path: if n is a Boolean term that the prop engine already has a SAT
   // literal for, and that literal has a value on the current SAT trail, then
