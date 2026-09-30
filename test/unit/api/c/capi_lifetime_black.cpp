@@ -343,6 +343,101 @@ TEST_F(TestCApiBlackLifetime, proofOutlivesSolverAndTermManager)
   cvc5_proof_release(proof);
 }
 
+namespace {
+/**
+ * Create a solver with proofs enabled, check an unsat query and return a
+ * reference to the (copied) full proof. The solver is returned via `slv`.
+ */
+Cvc5Proof getCopiedProof(Cvc5TermManager* tm, Cvc5** slv)
+{
+  *slv = cvc5_new(tm);
+  cvc5_set_option(*slv, "produce-proofs", "true");
+  Cvc5Sort b = cvc5_get_boolean_sort(tm);
+  Cvc5Term x = cvc5_mk_const(tm, b, "x");
+  Cvc5Term args[1] = {x};
+  Cvc5Term not_x = cvc5_mk_term(tm, CVC5_KIND_NOT, 1, args);
+  cvc5_assert_formula(*slv, x);
+  cvc5_assert_formula(*slv, not_x);
+  (void)cvc5_check_sat(*slv);
+  size_t size;
+  const Cvc5Proof* proofs =
+      cvc5_get_proof(*slv, CVC5_PROOF_COMPONENT_FULL, &size);
+  Cvc5Proof proof = cvc5_proof_copy(proofs[0]);
+  cvc5_term_release(not_x);
+  cvc5_term_release(x);
+  cvc5_sort_release(b);
+  return proof;
+}
+}  // namespace
+
+TEST_F(TestCApiBlackLifetime, proofChildrenReleasedWithDetachedParent)
+{
+  // Children of a proof whose solver has been deleted are released together
+  // with that proof, just like children obtained while the solver is alive
+  // are released together with the solver (the leak checker would flag them
+  // otherwise).
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv;
+  Cvc5Proof proof = getCopiedProof(tm, &slv);
+  cvc5_delete(slv);
+  size_t nchildren;
+  const Cvc5Proof* children = cvc5_proof_get_children(proof, &nchildren);
+  ASSERT_GT(nchildren, 0);
+  (void)cvc5_proof_get_rule(children[0]);
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_proof_release(proof);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackLifetime, proofChildrenCopiedFromDetachedParent)
+{
+  // Keeping a reference to a child proof via cvc5_proof_copy() and releasing
+  // it when done must not leak, regardless of whether the solver is still
+  // alive when the child is obtained (issue #12990).
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv;
+  Cvc5Proof proof = getCopiedProof(tm, &slv);
+  cvc5_delete(slv);
+  size_t nchildren;
+  const Cvc5Proof* children = cvc5_proof_get_children(proof, &nchildren);
+  ASSERT_GT(nchildren, 0);
+  std::vector<Cvc5Proof> copies;
+  for (size_t i = 0; i < nchildren; ++i)
+  {
+    copies.push_back(cvc5_proof_copy(children[i]));
+  }
+  for (Cvc5Proof c : copies)
+  {
+    (void)cvc5_proof_get_rule(c);
+    cvc5_proof_release(c);
+  }
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_proof_release(proof);
+  cvc5_term_manager_delete(tm);
+}
+
+TEST_F(TestCApiBlackLifetime, proofChildOutlivesDetachedParent)
+{
+  // A child proof the user kept a reference to outlives its parent proof, its
+  // solver and its term manager, and can itself be queried for children.
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  Cvc5* slv;
+  Cvc5Proof proof = getCopiedProof(tm, &slv);
+  cvc5_delete(slv);
+  size_t nchildren;
+  const Cvc5Proof* children = cvc5_proof_get_children(proof, &nchildren);
+  ASSERT_GT(nchildren, 0);
+  Cvc5Proof child = cvc5_proof_copy(children[0]);
+  cvc5_proof_release(proof);
+  cvc5_term_manager_delete(tm);
+  Cvc5Term result = cvc5_proof_get_result(child);
+  ASSERT_FALSE(std::string(cvc5_term_to_string(result)).empty());
+  (void)cvc5_proof_get_children(child, &nchildren);
+  ASSERT_FALSE(cvc5_has_error());
+  cvc5_term_release(result);
+  cvc5_proof_release(child);
+}
+
 TEST_F(TestCApiBlackLifetime, statisticsOutliveSolverAndTermManager)
 {
   Cvc5TermManager* tm = cvc5_term_manager_new();
