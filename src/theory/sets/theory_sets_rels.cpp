@@ -1020,8 +1020,11 @@ void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
   Node rel_rep = getRepresentative(rel);
 
   // Build the set containing exactly rel's currently-known positive
-  // members.
+  // members, and collect each component of each member of R and their
+  // representatives.
   Node relValue;
+  std::map<Node, Node> memMap;   // original term -> representative
+  std::set<Node> memComponents;  // representatives of the member components
   MEM_IT mem_it = d_rReps_memberReps_cache.find(rel_rep);
   if (mem_it != d_rReps_memberReps_cache.end())
   {
@@ -1031,6 +1034,14 @@ void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
       relValue = relValue.isNull()
                      ? singleton
                      : nm->mkNode(Kind::SET_UNION, relValue, singleton);
+      Node srcTerm = TupleUtils::nthElementOfTuple(m, 0);
+      Node srcRep = getRepresentative(srcTerm);
+      Node sinkTerm = TupleUtils::nthElementOfTuple(m, 1);
+      Node sinkRep = getRepresentative(sinkTerm);
+      memMap.emplace(srcTerm, srcRep);
+      memMap.emplace(sinkTerm, sinkRep);
+      memComponents.insert(srcRep);
+      memComponents.insert(sinkRep);
     }
   }
   if (relValue.isNull())
@@ -1038,8 +1049,44 @@ void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
     relValue = d_treg.getEmptySet(rel.getType());
   }
 
-  Node reason =
-      nm->mkNode(Kind::AND, exp, nm->mkNode(Kind::EQUAL, rel, relValue));
+  // encode the model into the lemma's antecedent. Include the tc(R)-membership,
+  // the known members of R, and assert equality between each member component
+  // and its representative. Also assert that the representatives of the member
+  // components are distinct.
+  Node a0 = TupleUtils::nthElementOfTuple(mem_rep, 0);
+  Node aRep = getRepresentative(a0);
+  Node b0 = TupleUtils::nthElementOfTuple(mem_rep, 1);
+  Node bRep = getRepresentative(b0);
+  std::vector<Node> reasonConjuncts;
+  reasonConjuncts.push_back(exp);
+  reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, rel, relValue));
+  if (a0 != aRep)
+  {
+    reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, a0, aRep));
+  }
+  if (b0 != bRep)
+  {
+    reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, b0, bRep));
+  }
+  for (const auto& [memTerm, memRep] : memMap)
+  {
+    if (memTerm != memRep)
+    {
+      reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, memTerm, memRep));
+    }
+  }
+  memComponents.insert(aRep);
+  memComponents.insert(bRep);
+
+  if (memComponents.size() >= 2)
+  {
+    std::vector<Node> distinctReps(memComponents.begin(), memComponents.end());
+    reasonConjuncts.push_back(nm->mkNode(Kind::DISTINCT, distinctReps));
+  }
+
+  Node reason = reasonConjuncts.size() == 1
+                    ? reasonConjuncts[0]
+                    : nm->mkNode(Kind::AND, reasonConjuncts);
 
   Trace("rels-cycles") << "TCGroundingConflict: " << reason << " => false"
                        << std::endl;
@@ -2035,11 +2082,10 @@ void TheorySetsRels::doCycleInference()
     Node l = c_it->second.second;
     if (maxUnroll >= 0 && s.size() >= static_cast<size_t>(maxUnroll))
     {
-      // Capped by --rels-acyclic-unroll-max: do not unroll this obligation
-      // any further. We cannot confirm whether the acyclicity constraint is
-      // actually satisfied beyond this point, so report incompleteness
-      // instead of silently under-approximating.
-      d_im.setModelUnsound(IncompleteId::SETS_RELS_ACYCLIC_UNROLL_MAX_REACHED);
+      // Set by --rels-acyclic-unroll-max: defer unrolling this obligation
+      // further so that shorter cycles are prioritized during full effort
+      // solving. checkAcyclicityLastCall makes sure that full cycle inference
+      // is performed before a model is accepted.
       ++c_it;
       continue;
     }
@@ -2100,34 +2146,22 @@ void TheorySetsRels::checkAcyclicityLastCall(Valuation& val)
     }
     else
     {
-      int64_t maxUnroll = options().sets.relsAcyclicUnrollMax;
-      if (maxUnroll >= 0 && N > static_cast<size_t>(maxUnroll))
+      // --rels-acyclic-unroll-max limits the number of cycle elements that can
+      // be unrolled during the full effort check. If the model's current value
+      // of l is larger than that, we must complete full cycle inference before
+      // accepting a model.
+      Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: "
+                          << "catching up cnt from " << s.size() << " to " << N
+                          << " (l = " << l << ")" << std::endl;
+      // Ensure that all cycle-unrolling lemmas have been applied up to the
+      // model's current value of l.
+      while (s.size() < N)
       {
-        // The model wants a cycle longer than --rels-acyclic-unroll-max
-        // allows us to catch up to. We cannot confirm whether the
-        // acyclicity constraint is actually satisfied in that case.
-        Trace("rels-debug")
-            << "[Theory::Rels] checkAcyclicityLastCall: model wants l = " << N
-            << " but --rels-acyclic-unroll-max caps unrolling at " << maxUnroll
-            << "; reporting model unsound" << std::endl;
-        d_im.setModelUnsound(
-            IncompleteId::SETS_RELS_ACYCLIC_UNROLL_MAX_REACHED);
-      }
-      else
-      {
-        Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: "
-                            << "catching up cnt from " << s.size() << " to "
-                            << N << " (l = " << l << ")" << std::endl;
-        // Ensure that all cycle-unrolling lemmas have been applied up to the
-        // model's current value of l.
-        while (s.size() < N)
-        {
-          Node acyc_exp =
-              nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)).negate();
-          s = applyUnrollCycle(rels, s, l);
-          applySplitCycleLenRule(rels, s, l);
-          applyContrMinimalRule(rels, s, l, acyc_exp);
-        }
+        Node acyc_exp =
+            nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)).negate();
+        s = applyUnrollCycle(rels, s, l);
+        applySplitCycleLenRule(rels, s, l);
+        applyContrMinimalRule(rels, s, l, acyc_exp);
       }
     }
     ++c_it;
