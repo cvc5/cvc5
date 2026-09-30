@@ -42,7 +42,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
-                                                                jobject,
+                                                                jclass,
                                                                 jlong pointer)
 {
   ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
@@ -1011,7 +1011,7 @@ Java_io_github_cvc5_Solver_declarePool(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    declareOracleFun
- * Signature: (JLjava/lang/String;[JJLio/github/cvc5/IOracle;)J
+ * Signature: (JLjava/lang/String;[JJLio/github/cvc5/Solver$OracleBridge;)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,

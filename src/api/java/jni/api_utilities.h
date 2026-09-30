@@ -167,7 +167,7 @@ JNIEnv* getEnv(JavaVM* vm);
  * Call a Java oracle.
  *
  * @param vm the Java VM
- * @param oracleRef a global reference to a java IOracle object
+ * @param oracleRef a global reference to a java Solver.OracleBridge object
  * @param terms the arguments
  * @return the result of applying the oracle to the arguments
  */

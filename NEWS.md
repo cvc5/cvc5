@@ -11,6 +11,8 @@ cvc5 1.4.3 prerelease
   * Plugin and oracle callbacks may now be invoked from a thread other than
     the one that registered them, and an exception thrown by a callback is
     now reported as a `CVC5ApiException` instead of crashing the JVM.
+  * The helper functions `Utils.getSorts()`, `Utils.getTerms()` and
+    `Utils.getProofs()`, which wrap raw native pointers, are no longer public.
 
 - Fixed a race in builds with CoCoA support when solvers are created
   concurrently in different threads: the initialization of the CoCoA global

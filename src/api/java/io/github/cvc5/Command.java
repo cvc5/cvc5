@@ -24,12 +24,12 @@ public class Command extends AbstractPointer
    * inside cvc5 package.
    * @param pointer The cpp pointer to command.
    */
-  Command(long pointer)
+  Command(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Command::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Invoke the command on the solver and symbol manager sm and return any
