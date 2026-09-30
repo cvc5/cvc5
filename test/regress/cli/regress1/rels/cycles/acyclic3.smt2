@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :rels-exp true)

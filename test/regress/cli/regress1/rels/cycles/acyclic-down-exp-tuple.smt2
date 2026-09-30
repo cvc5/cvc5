@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; Regression test for a soundness bug in the RELATION_ACYCLIC_DOWN rule
 ; (TheorySetsRels::applyAcyclicDownRule): the rule concluded a != b for the
 ; *representative* tuple (a,b) of a membership in TC(R), while its reason
