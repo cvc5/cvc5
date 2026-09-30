@@ -3435,6 +3435,9 @@ set(regress_1_tests
   regress1/rels/cycles/acyclic-cycle-pinned.smt2
   regress1/rels/cycles/not-acyclic-cycle-pinned.smt2
   regress1/rels/cycles/multi-rel-no-hammer-bug.smt2
+  regress1/rels/cycles/unroll-max-catchup-unsat.smt2
+  regress1/rels/cycles/unroll-max-sufficient-cap-sat.smt2
+  regress1/rels/cycles/tcgrounding-identity-sat.smt2
   regress1/rels/addr_book_1.cvc.smt2
   regress1/rels/addr_book_1_1.cvc.smt2
   regress1/rels/bv1-unit.cvc.smt2
