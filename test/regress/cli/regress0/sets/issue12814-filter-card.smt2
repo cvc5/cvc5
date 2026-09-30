@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --model-verify --produce-models
 ; EXPECT: unknown
 (set-logic HO_ALL)
