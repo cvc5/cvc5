@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-option :rels-exp true)
 ; Single-relation regression for the term-driven acyclic-down gap.

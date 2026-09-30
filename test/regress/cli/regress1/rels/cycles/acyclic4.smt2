@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-option :rels-exp true)
 ; Minimal non-concrete cycle test. Expected: unsat.

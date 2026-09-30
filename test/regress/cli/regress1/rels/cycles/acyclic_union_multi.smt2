@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-option :rels-exp true)
 ; Multi-relation acyclic test (exercises the tuple-of-relations / union path).

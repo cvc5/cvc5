@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-option :rels-exp true)
 ; This is the unsat core that cvc5 extracts from acyclic_union_multi.smt2:

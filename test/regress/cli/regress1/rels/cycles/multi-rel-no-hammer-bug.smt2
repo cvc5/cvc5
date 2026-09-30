@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; Regression test for a soundness bug in the relation-acyclicity cycle
 ; machinery: over a union of >= 2 relations, (not (rel.acyclic (tuple rf po)))
 ; was accepted with rf/po forming just an acyclic PATH (e.g. c->b->a), not a
