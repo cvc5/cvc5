@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic UFDTNIA)
 (declare-sort FuelId 0)
