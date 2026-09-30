@@ -1536,6 +1536,7 @@ set(regress_0_tests
   regress0/proj-issue614-minisat.smt2
   regress0/proj-issue645-abs-value-subs.smt2
   regress0/proj-issue750-real-to-int-safe.smt2
+  regress0/proofs/alethe-contra-or-premise.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
@@ -1960,6 +1961,7 @@ set(regress_0_tests
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2
+  regress0/sep/issue12917-wand-star-consequent.smt2
   regress0/sep/issue12916-wand-not-emp-no-pto.smt2
   regress0/sep/issue12918-hole-pto-data.smt2
   regress0/sep/issue3720-check-model.smt2
