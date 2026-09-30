@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --tc-mode=model-based
 ; EXPECT: unsat
 (set-logic ALL)
