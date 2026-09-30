@@ -16,6 +16,7 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
@@ -205,6 +206,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
       std::map<Node, Node> psrc;
       std::map<Node, bool>::iterator itp;
       std::map<Node, Node> boundingLits[2];
+      std::vector<Node> diseqLits;
       for (const Node& a : assumps)
       {
         if (solved.find(a) != solved.end())
@@ -247,6 +249,11 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
         }
         bool pol = asr.getKind() != Kind::NOT;
         Node aslit = pol ? asr : asr[0];
+        // remember disequalities, which may be used to tighten bounds below
+        if (!pol && aslit.getKind() == Kind::EQUAL)
+        {
+          diseqLits.push_back(a);
+        }
         itp = pols.find(aslit);
         // look for conflicting atoms
         if (itp != pols.end())
@@ -308,29 +315,125 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
             continue;
           }
           Rational c2m1 = c2 + negone;
-          // if c1 == c2-1, then this implies t = c1.
-          if (c1 == c2m1)
+          // if c1 == c2-1, then this implies t = c1. If c1 == c2-2, then
+          // this implies t = c1 or t = c2-1, and we look for a disequality
+          // excluding one of these values below.
+          bool isTwoValued =
+              (c1 + Rational(1) == c2m1) && lhs1.getType().isInteger();
+          if (c1 != c2m1 && !isTwoValued)
           {
-            // apply substitution + rewriting with proofs now
-            applySR(cdp, tcnv, asubs, bl.second);
-            applySR(cdp, tcnv, asubs, itb->second);
-            Node l2strict =
-                nm->mkNode(Kind::GT, l2[0], nm->mkConstInt(c2m1)).notNode();
-            Node l2n = l2.notNode();
-            Node equiv = l2n.eqNode(l2strict);
-            cdp.addStep(equiv, ProofRule::MACRO_SR_PRED_INTRO, {}, {equiv});
-            cdp.addStep(l2strict, ProofRule::EQ_RESOLVE, {l2n, equiv}, {});
-            Node eq = l1[0].eqNode(l1[1]);
-            cdp.addStep(eq, ProofRule::ARITH_TRICHOTOMY, {l1, l2strict}, {});
-            Trace("arith-proof-rcons")
-                << ".......solves to " << eq << " by trichotomy" << std::endl;
-            if (solveEquality(cdp, tcnv, asubs, eq))
+            continue;
+          }
+          // the value we solve for, and the disequality excluding the other
+          // value, if applicable
+          Rational cv = c1;
+          Node dsrc, deq;
+          if (c1 != c2m1)
+          {
+            for (const Node& d : diseqLits)
             {
-              addedSubs = true;
-              solved.insert(bl.second);
-              solved.insert(itb->second);
-              break;
+              if (solved.find(d) != solved.end())
+              {
+                continue;
+              }
+              // Use the form after substitution but before rewriting, which
+              // is the form we are guaranteed to have a proof for below.
+              Node ds = asubs.applyArith(d, false);
+              if (ds.getKind() != Kind::NOT || ds[0].getKind() != Kind::EQUAL)
+              {
+                continue;
+              }
+              for (size_t j = 0; j < 2; j++)
+              {
+                Node dc = nm->mkConstInt(j == 0 ? c1 : c2m1);
+                Node ndeq = lhs1.eqNode(dc).notNode();
+                Rational ca, cb;
+                if (PolyNorm::isArithPolyNormRel(ds[0], ndeq[0], ca, cb))
+                {
+                  dsrc = d;
+                  deq = ndeq;
+                  // we solve for the value that is not excluded
+                  cv = j == 0 ? c2m1 : c1;
+                  break;
+                }
+              }
+              if (!dsrc.isNull())
+              {
+                break;
+              }
             }
+            if (dsrc.isNull())
+            {
+              continue;
+            }
+            Trace("arith-proof-rcons")
+                << ".......excluded by disequality " << deq << std::endl;
+          }
+          // apply substitution + rewriting with proofs now
+          applySR(cdp, tcnv, asubs, bl.second);
+          applySR(cdp, tcnv, asubs, itb->second);
+          // (not (>= t c2)) implies (not (> t c2-1))
+          Node l2strict =
+              nm->mkNode(Kind::GT, l2[0], nm->mkConstInt(c2m1)).notNode();
+          Node l2n = l2.notNode();
+          Node equiv = l2n.eqNode(l2strict);
+          cdp.addStep(equiv, ProofRule::MACRO_SR_PRED_INTRO, {}, {equiv});
+          cdp.addStep(l2strict, ProofRule::EQ_RESOLVE, {l2n, equiv}, {});
+          // the lower and upper bounds for t that entail t = cv
+          Node lb = l1;
+          Node ub = l2strict;
+          if (!dsrc.isNull())
+          {
+            // prove the disequality (not (= t c)) for the excluded value c
+            applySR(cdp, tcnv, asubs, dsrc);
+            Node ds = asubs.applyArith(dsrc, false);
+            if (ds != deq)
+            {
+              std::shared_ptr<ProofNode> pfe =
+                  mkArithPolyNormRel(cdp.getManager(), ds, deq);
+              Assert(pfe != nullptr);
+              cdp.addProof(pfe);
+              cdp.addStep(deq, ProofRule::EQ_RESOLVE, {ds, ds.eqNode(deq)}, {});
+            }
+            Node dc = deq[0][1];
+            if (cv == c2m1)
+            {
+              // (>= t c1) and (not (= t c1)) imply (> t c1), which implies
+              // (>= t c1+1).
+              Node gt = nm->mkNode(Kind::GT, lhs1, dc);
+              cdp.addStep(gt, ProofRule::ARITH_TRICHOTOMY, {l1, deq}, {});
+              lb = nm->mkNode(Kind::GEQ, lhs1, nm->mkConstInt(cv));
+              cdp.addStep(lb, ProofRule::INT_TIGHT_LB, {gt}, {});
+            }
+            else
+            {
+              // (<= t c2-1) and (not (= t c2-1)) imply (< t c2-1), which
+              // implies (<= t c1). Note we use (<= t c2-1) instead of
+              // (not (> t c2-1)) here, since the former is the form expected
+              // by the Alethe elaboration of ARITH_TRICHOTOMY.
+              Node l2leq = nm->mkNode(Kind::LEQ, lhs1, dc);
+              cdp.addStep(
+                  l2leq, ProofRule::MACRO_SR_PRED_TRANSFORM, {l2n}, {l2leq});
+              Node lt = nm->mkNode(Kind::LT, lhs1, dc);
+              cdp.addStep(lt, ProofRule::ARITH_TRICHOTOMY, {l2leq, deq}, {});
+              ub = nm->mkNode(Kind::LEQ, lhs1, nm->mkConstInt(cv));
+              cdp.addStep(ub, ProofRule::INT_TIGHT_UB, {lt}, {});
+            }
+          }
+          Node eq = lhs1.eqNode(nm->mkConstInt(cv));
+          cdp.addStep(eq, ProofRule::ARITH_TRICHOTOMY, {lb, ub}, {});
+          Trace("arith-proof-rcons")
+              << ".......solves to " << eq << " by trichotomy" << std::endl;
+          if (solveEquality(cdp, tcnv, asubs, eq))
+          {
+            addedSubs = true;
+            solved.insert(bl.second);
+            solved.insert(itb->second);
+            if (!dsrc.isNull())
+            {
+              solved.insert(dsrc);
+            }
+            break;
           }
           // NOTE: otherwise if c1 > c2-1, this implies a contradiction,
           // although it appears that this case does not happen in DIO lemmas.

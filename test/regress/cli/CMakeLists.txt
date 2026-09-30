@@ -1538,6 +1538,9 @@ set(regress_0_tests
   regress0/proj-issue750-real-to-int-safe.smt2
   regress0/proofs/alethe-contra-or-premise.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
+  regress0/proofs/alpha-eq-bv-reorder-1.smt2
+  regress0/proofs/alpha-eq-bv-reorder-2.smt2
+  regress0/proofs/arith-dio-lemma-diseq-tighten.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
   regress0/proofs/assume-false-final-step-check.smt2
@@ -1673,6 +1676,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/re-concat-star-repeat-fixpoint.smt2
   regress0/proofs/re-emp-star-eval.smt2
   regress0/proofs/re-range-empty.smt2
   regress0/proofs/re-range-refl.smt2
