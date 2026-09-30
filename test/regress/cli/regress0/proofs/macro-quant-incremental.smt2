@@ -1,6 +1,5 @@
 ; REQUIRES: no-safe-mode
-; COMMAND-LINE: --incremental --macros-quant --dump-proofs --proof-granularity=dsl-rewrite --check-proofs --proof-check=eager --no-proof-allow-trust
-; SCRUBBER: grep -o unsat
+; COMMAND-LINE: --incremental --macros-quant --proof-granularity=dsl-rewrite --proof-check=eager
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat

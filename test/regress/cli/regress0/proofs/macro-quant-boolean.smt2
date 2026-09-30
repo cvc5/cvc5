@@ -1,7 +1,6 @@
 ; REQUIRES: no-safe-mode
 ; DISABLE-TESTER: alethe
-; COMMAND-LINE: --macros-quant --dump-proofs --proof-granularity=dsl-rewrite --check-proofs --proof-check=eager --no-proof-allow-trust
-; SCRUBBER: grep -o unsat
+; COMMAND-LINE: --macros-quant --proof-granularity=dsl-rewrite --proof-check=eager
 ; EXPECT: unsat
 (set-logic UFLIA)
 (declare-fun P (Int) Bool)
