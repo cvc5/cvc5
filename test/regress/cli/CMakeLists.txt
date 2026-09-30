@@ -1027,6 +1027,7 @@ set(regress_0_tests
   regress0/fp/real-fp-real-roundtrip.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2
+  regress0/fp/sqrt-cpc.smt2
   regress0/fp/word-blast.smt2
   regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smtv1.smt2
@@ -1535,6 +1536,7 @@ set(regress_0_tests
   regress0/proj-issue614-minisat.smt2
   regress0/proj-issue645-abs-value-subs.smt2
   regress0/proj-issue750-real-to-int-safe.smt2
+  regress0/proofs/alethe-contra-or-premise.smt2
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
@@ -1960,6 +1962,7 @@ set(regress_0_tests
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2
   regress0/sep/issue12870-emp-cache-polarity.smt2
+  regress0/sep/issue12917-wand-star-consequent.smt2
   regress0/sep/issue12916-wand-not-emp-no-pto.smt2
   regress0/sep/issue12918-hole-pto-data.smt2
   regress0/sep/issue3720-check-model.smt2
@@ -2801,6 +2804,7 @@ set(regress_1_tests
   regress1/bags/filter3.smt2
   regress1/bags/filter4.smt2
   regress1/bags/filter5.smt2
+  regress1/bags/bag_filter_congruence.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
@@ -2822,6 +2826,7 @@ set(regress_1_tests
   regress1/bags/map2.smt2
   regress1/bags/map3.smt2
   regress1/bags/map4.smt2
+  regress1/bags/bag_map_congruence.smt2
   regress1/bags/map-lazy-lam.smt2
   regress1/bags/murxla1.smt2
   regress1/bags/murxla2.smt2
@@ -3689,6 +3694,7 @@ set(regress_1_tests
   regress1/sets/relation_group3.smt2
   regress1/sets/relation_group4.smt2
   regress1/sets/relation_group5.smt2
+  regress1/sets/relation_group_congruence.smt2
   regress1/sets/relation_project1.smt2
   regress1/sets/relation_project2.smt2
   regress1/sets/remove_check_free_31_6.smt2
@@ -3701,10 +3707,12 @@ set(regress_1_tests
   regress1/sets/set_filter2.smt2
   regress1/sets/set_filter3.smt2
   regress1/sets/set_filter4.smt2
+  regress1/sets/set_filter_congruence.smt2
   regress1/sets/set_fold1.smt2
   regress1/sets/set_fold2.smt2
   regress1/sets/set_fold3.smt2
   regress1/sets/set_map_card_incomplete.smt2
+  regress1/sets/set_map_congruence.smt2
   regress1/sets/set_map_negative_members.smt2
   regress1/sets/set_map_positive_members.smt2
   regress1/sets/set_map_unsat1.smt2
