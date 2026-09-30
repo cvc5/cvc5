@@ -158,6 +158,11 @@ bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
 bool QuantifiersMacros::isBoundVarApplyUf(Node n)
 {
   Assert(n.getKind() == Kind::APPLY_UF);
+  if (options().quantifiers.fmfFunWellDefined
+      && d_env.isRecursiveFunction(n.getOperator()))
+  {
+    return false;
+  }
   TypeNode tno = n.getOperator().getType();
   std::map<Node, bool> vars;
   // allow if a vector of unique variables of the same type as UF arguments
