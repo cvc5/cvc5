@@ -2591,4 +2591,11 @@ class SolverTest
     d_solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
     assertThrows(CVC5ApiException.class, () -> d_solver.checkSat());
   }
+
+  @Test
+  void getTermManagerSameInstance()
+  {
+    assertSame(d_solver.getTermManager(), d_solver.getTermManager());
+    assertEquals(d_tm.getBooleanSort(), d_solver.getTermManager().getBooleanSort());
+  }
 }
