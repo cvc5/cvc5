@@ -16,7 +16,6 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
@@ -159,6 +158,49 @@ Node ArithProofRCons::applySR(CDProof& cdp,
     cdp.addStep(asr, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {asr});
   }
   return asr;
+}
+
+bool ArithProofRCons::tightenBound(CDProof& cdp,
+                                   TConvProofGenerator& tcnv,
+                                   ArithSubs& asubs,
+                                   const std::vector<Node>& diseqs,
+                                   Node& bound)
+{
+  Assert(bound.getKind() == Kind::GEQ || bound.getKind() == Kind::LEQ);
+  bool isLower = bound.getKind() == Kind::GEQ;
+  Node deq = bound[0].eqNode(bound[1]).notNode();
+  for (const Node& d : diseqs)
+  {
+    // Use the form after substitution but before rewriting, which is the
+    // form that applySR below proves.
+    Node ds = asubs.applyArith(d, false);
+    std::shared_ptr<ProofNode> pfe =
+        mkArithPolyNormRel(cdp.getManager(), ds, deq);
+    if (pfe == nullptr)
+    {
+      continue;
+    }
+    Trace("arith-proof-rcons")
+        << "......tighten " << bound << " by " << deq << std::endl;
+    applySR(cdp, tcnv, asubs, d);
+    if (ds != deq)
+    {
+      cdp.addProof(pfe);
+      cdp.addStep(deq, ProofRule::EQ_RESOLVE, {ds, ds.eqNode(deq)}, {});
+    }
+    // e.g. (>= t c) and (not (= t c)) imply (> t c), which implies (>= t c+1)
+    NodeManager* nm = nodeManager();
+    Node strict = nm->mkNode(isLower ? Kind::GT : Kind::LT, bound[0], bound[1]);
+    cdp.addStep(strict, ProofRule::ARITH_TRICHOTOMY, {bound, deq}, {});
+    Rational c = bound[1].getConst<Rational>() + Rational(isLower ? 1 : -1);
+    bound = nm->mkNode(bound.getKind(), bound[0], nm->mkConstInt(c));
+    cdp.addStep(bound,
+                isLower ? ProofRule::INT_TIGHT_LB : ProofRule::INT_TIGHT_UB,
+                {strict},
+                {});
+    return true;
+  }
+  return false;
 }
 
 std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
@@ -314,113 +356,43 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
           {
             continue;
           }
-          Rational c2m1 = c2 + negone;
-          // if c1 == c2-1, then this implies t = c1. If c1 == c2-2, then
-          // this implies t = c1 or t = c2-1, and we look for a disequality
-          // excluding one of these values below.
-          bool isTwoValued =
-              (c1 + Rational(1) == c2m1) && lhs1.getType().isInteger();
-          if (c1 != c2m1 && !isTwoValued)
+          // t is in the range [c1, c2-1]. We use disequalities to narrow
+          // this range; if it becomes a single value c, this implies t = c.
+          Rational lo = c1;
+          Rational hi = c2 + negone;
+          if (lo > hi || !lhs1.getType().isInteger()
+              || (lo < hi && diseqLits.empty()))
           {
             continue;
-          }
-          // the value we solve for, and the disequality excluding the other
-          // value, if applicable
-          Rational cv = c1;
-          Node dsrc, deq;
-          if (c1 != c2m1)
-          {
-            for (const Node& d : diseqLits)
-            {
-              if (solved.find(d) != solved.end())
-              {
-                continue;
-              }
-              // Use the form after substitution but before rewriting, which
-              // is the form we are guaranteed to have a proof for below.
-              Node ds = asubs.applyArith(d, false);
-              if (ds.getKind() != Kind::NOT || ds[0].getKind() != Kind::EQUAL)
-              {
-                continue;
-              }
-              for (size_t j = 0; j < 2; j++)
-              {
-                Node dc = nm->mkConstInt(j == 0 ? c1 : c2m1);
-                Node ndeq = lhs1.eqNode(dc).notNode();
-                Rational ca, cb;
-                if (PolyNorm::isArithPolyNormRel(ds[0], ndeq[0], ca, cb))
-                {
-                  dsrc = d;
-                  deq = ndeq;
-                  // we solve for the value that is not excluded
-                  cv = j == 0 ? c2m1 : c1;
-                  break;
-                }
-              }
-              if (!dsrc.isNull())
-              {
-                break;
-              }
-            }
-            if (dsrc.isNull())
-            {
-              continue;
-            }
-            Trace("arith-proof-rcons")
-                << ".......excluded by disequality " << deq << std::endl;
           }
           // apply substitution + rewriting with proofs now
           applySR(cdp, tcnv, asubs, bl.second);
           applySR(cdp, tcnv, asubs, itb->second);
-          // (not (>= t c2)) implies (not (> t c2-1))
-          Node l2strict =
-              nm->mkNode(Kind::GT, l2[0], nm->mkConstInt(c2m1)).notNode();
-          Node l2n = l2.notNode();
-          Node equiv = l2n.eqNode(l2strict);
-          cdp.addStep(equiv, ProofRule::MACRO_SR_PRED_INTRO, {}, {equiv});
-          cdp.addStep(l2strict, ProofRule::EQ_RESOLVE, {l2n, equiv}, {});
-          // the lower and upper bounds for t that entail t = cv
+          // (not (>= t c2)) implies (<= t c2-1), since t is integer
           Node lb = l1;
-          Node ub = l2strict;
-          if (!dsrc.isNull())
+          Node ub = nm->mkNode(Kind::LEQ, lhs1, nm->mkConstInt(hi));
+          cdp.addStep(
+              ub, ProofRule::MACRO_SR_PRED_TRANSFORM, {l2.notNode()}, {ub});
+          while (lo < hi)
           {
-            // prove the disequality (not (= t c)) for the excluded value c
-            applySR(cdp, tcnv, asubs, dsrc);
-            Node ds = asubs.applyArith(dsrc, false);
-            if (ds != deq)
+            if (tightenBound(cdp, tcnv, asubs, diseqLits, lb))
             {
-              std::shared_ptr<ProofNode> pfe =
-                  mkArithPolyNormRel(cdp.getManager(), ds, deq);
-              Assert(pfe != nullptr);
-              cdp.addProof(pfe);
-              cdp.addStep(deq, ProofRule::EQ_RESOLVE, {ds, ds.eqNode(deq)}, {});
+              lo = lo + Rational(1);
             }
-            Node dc = deq[0][1];
-            if (cv == c2m1)
+            else if (tightenBound(cdp, tcnv, asubs, diseqLits, ub))
             {
-              // (>= t c1) and (not (= t c1)) imply (> t c1), which implies
-              // (>= t c1+1).
-              Node gt = nm->mkNode(Kind::GT, lhs1, dc);
-              cdp.addStep(gt, ProofRule::ARITH_TRICHOTOMY, {l1, deq}, {});
-              lb = nm->mkNode(Kind::GEQ, lhs1, nm->mkConstInt(cv));
-              cdp.addStep(lb, ProofRule::INT_TIGHT_LB, {gt}, {});
+              hi = hi + negone;
             }
             else
             {
-              // (<= t c2-1) and (not (= t c2-1)) imply (< t c2-1), which
-              // implies (<= t c1). Note we use (<= t c2-1) instead of
-              // (not (> t c2-1)) here, since the former is the form expected
-              // by the Alethe elaboration of ARITH_TRICHOTOMY.
-              Node l2leq = nm->mkNode(Kind::LEQ, lhs1, dc);
-              cdp.addStep(
-                  l2leq, ProofRule::MACRO_SR_PRED_TRANSFORM, {l2n}, {l2leq});
-              Node lt = nm->mkNode(Kind::LT, lhs1, dc);
-              cdp.addStep(lt, ProofRule::ARITH_TRICHOTOMY, {l2leq, deq}, {});
-              ub = nm->mkNode(Kind::LEQ, lhs1, nm->mkConstInt(cv));
-              cdp.addStep(ub, ProofRule::INT_TIGHT_UB, {lt}, {});
+              break;
             }
           }
-          Node eq = lhs1.eqNode(nm->mkConstInt(cv));
+          if (lo != hi)
+          {
+            continue;
+          }
+          Node eq = lhs1.eqNode(lb[1]);
           cdp.addStep(eq, ProofRule::ARITH_TRICHOTOMY, {lb, ub}, {});
           Trace("arith-proof-rcons")
               << ".......solves to " << eq << " by trichotomy" << std::endl;
@@ -429,10 +401,6 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
             addedSubs = true;
             solved.insert(bl.second);
             solved.insert(itb->second);
-            if (!dsrc.isNull())
-            {
-              solved.insert(dsrc);
-            }
             break;
           }
           // NOTE: otherwise if c1 > c2-1, this implies a contradiction,
