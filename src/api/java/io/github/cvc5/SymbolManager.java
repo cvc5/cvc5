@@ -27,7 +27,7 @@ import java.util.*;
  *
  * The symbol manager's interface is otherwise not publicly available.
  */
-public class SymbolManager extends AbstractPointer
+public class SymbolManager extends AbstractPointer implements AutoCloseable
 {
   /**
    * Create symbol manager instance.
@@ -60,6 +60,15 @@ public class SymbolManager extends AbstractPointer
         "SymbolManager.toString() is not supported in the cpp api");
   }
   private static native void deletePointer(long pointer);
+
+  /**
+   * Free the native symbol manager, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
 
   @Override
   public boolean equals(Object s)

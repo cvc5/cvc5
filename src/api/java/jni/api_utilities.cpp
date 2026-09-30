@@ -60,13 +60,21 @@ JNIEnv* getEnv(JavaVM* vm)
 }
 
 cvc5::Term applyOracle(JavaVM* vm,
-                       jobject oracleRef,
+                       jweak oracleRef,
                        const std::vector<cvc5::Term>& terms)
 {
   JNIEnv* env = getEnv(vm);
   // Release the local references created below when done: this function may
   // be called many times during a single native call.
   env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject oracle = env->NewLocalRef(oracleRef);
+  if (oracle == nullptr)
+  {
+    // Cannot happen while the Java solver is alive, which it is during any
+    // call that can invoke an oracle.
+    env->PopLocalFrame(nullptr);
+    throw cvc5::CVC5ApiException("The oracle has been garbage collected.");
+  }
 
   // Ownership of the term copies is transferred to the Java wrappers created
   // by the bridge.
@@ -79,9 +87,9 @@ cvc5::Term applyOracle(JavaVM* vm,
   jlongArray jPointers = env->NewLongArray(pointers.size());
   env->SetLongArrayRegion(jPointers, 0, pointers.size(), pointers.data());
 
-  jclass oracleClass = env->GetObjectClass(oracleRef);
+  jclass oracleClass = env->GetObjectClass(oracle);
   jmethodID applyMethod = env->GetMethodID(oracleClass, "apply", "([J)J");
-  jlong termPointer = env->CallLongMethod(oracleRef, applyMethod, jPointers);
+  jlong termPointer = env->CallLongMethod(oracle, applyMethod, jPointers);
   if (env->ExceptionCheck() || termPointer == 0)
   {
     env->ExceptionClear();

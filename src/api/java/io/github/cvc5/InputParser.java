@@ -40,7 +40,7 @@ import io.github.cvc5.modes.InputLanguage;
  * manager) has its logic set, then the symbol manager (resp. solver) is set to
  * use that logic, if its logic is not already set.
  */
-public class InputParser extends AbstractPointer
+public class InputParser extends AbstractPointer implements AutoCloseable
 {
   /**
    * The solver of this parser. The native parser only borrows the native
@@ -85,6 +85,15 @@ public class InputParser extends AbstractPointer
   }
 
   private static native void deletePointer(long pointer);
+
+  /**
+   * Free the native input parser, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
 
   protected String toString(long pointer)
   {

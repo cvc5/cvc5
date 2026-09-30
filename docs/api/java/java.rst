@@ -22,6 +22,45 @@ provides more details on the individual classes.
 
 ----
 
+Memory management
+-----------------
+
+Objects of the Java API (term managers, solvers, terms, sorts, ...) wrap native
+cvc5 objects. A native object is released automatically once its Java object
+is no longer reachable, so no explicit clean-up is required. Objects derived
+from a term manager (sorts, terms, ...) remain valid after the term manager
+has been released, as they keep the underlying node manager alive.
+
+The garbage collector only accounts for the (small) Java objects, so native
+memory is released only when the garbage collector runs and, for objects
+derived from a term manager that is still in use, when that term manager is
+used next. Every object thus provides ``deletePointer()``, which releases the
+native object immediately; the object must not be used afterwards. The
+classes ``TermManager``, ``Solver``, ``SymbolManager`` and ``InputParser``
+also implement ``AutoCloseable`` and can be used in a try-with-resources
+statement:
+
+.. code-block:: java
+
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
+    {
+      Term x = tm.mkConst(tm.getBooleanSort(), "x");
+      solver.assertFormula(x);
+      System.out.println(solver.checkSat());
+    }
+
+Threads
+-------
+
+A term manager, and the objects derived from it, may be used by one thread at
+a time. Different threads may use different term managers concurrently, and
+objects may be handed over from one thread to another, provided the hand-over
+is synchronized (e.g., via ``Thread.join()`` or a concurrent queue). Native
+memory is released by the thread that uses the term manager or, once nothing
+references the term manager and its objects anymore, by a background thread.
+
+----
+
 Using the cvc5 Java API in a Maven project
 ------------------------------------------
 

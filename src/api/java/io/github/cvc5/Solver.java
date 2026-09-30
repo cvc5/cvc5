@@ -19,12 +19,13 @@ import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.io.IOException;
+import java.lang.ref.Reference;
 import java.util.*;
 
 /**
  * A cvc5 solver.
  */
-public class Solver extends AbstractPointer
+public class Solver extends AbstractPointer implements AutoCloseable
 {
   /**
    * The term manager of this solver: a wrapper of the solver's own copy of
@@ -38,8 +39,14 @@ public class Solver extends AbstractPointer
     Utils.loadLibraries();
   }
 
-  // store IOracle objects
-  List<IOracle> oracles = new ArrayList<>();
+  /**
+   * Objects that native code calls back into (plugins and oracle bridges).
+   * Native code references them only weakly, so they are kept alive here for
+   * the lifetime of this solver. A strong native reference would keep this
+   * solver's term manager reachable (plugins reference it) and thus prevent
+   * the solver from ever being reclaimed automatically.
+   */
+  private final List<Object> callbacks = new ArrayList<>();
 
   /**
    * Create solver instance.
@@ -66,6 +73,15 @@ public class Solver extends AbstractPointer
   private static native long newSolver(long tmPointer);
 
   private static native void deletePointer(long pointer);
+
+  /**
+   * Free the native solver, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
 
   protected String toString(long pointer)
   {
@@ -2066,6 +2082,9 @@ public class Solver extends AbstractPointer
   public Result checkSatAssuming(Term assumption)
   {
     long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(assumption);
     return new Result(ctx, resultPointer);
   }
 
@@ -2086,6 +2105,9 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     long resultPointer = checkSatAssuming(pointer, pointers);
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(assumptions);
     return new Result(ctx, resultPointer);
   }
 
@@ -2688,6 +2710,9 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     Pair<Long, long[]> pair = getTimeoutCoreAssuming(pointer, pointers);
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(assumptions);
     Result result = new Result(ctx, pair.first);
     Term[] terms = Utils.getTerms(ctx, pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
@@ -3072,10 +3097,10 @@ public class Solver extends AbstractPointer
    */
   public Term declareOracleFun(String symbol, Sort[] sorts, Sort sort, IOracle oracle)
   {
-    oracles.add(oracle);
     long[] sortPointers = Utils.getPointers(sorts);
-    long termPointer = declareOracleFun(
-        pointer, symbol, sortPointers, sort.getPointer(), new OracleBridge(ctx, oracle));
+    OracleBridge bridge = new OracleBridge(ctx, oracle);
+    callbacks.add(bridge);
+    long termPointer = declareOracleFun(pointer, symbol, sortPointers, sort.getPointer(), bridge);
     return new Term(ctx, termPointer);
   }
 
@@ -3122,6 +3147,7 @@ public class Solver extends AbstractPointer
    */
   public void addPlugin(AbstractPlugin p)
   {
+    callbacks.add(p);
     addPlugin(pointer, p.getTermManager().getPointer(), p);
   }
 
@@ -3192,6 +3218,9 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer());
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(conj);
     return new Term(ctx, interpolPtr);
   }
 
@@ -3230,6 +3259,10 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj, Grammar grammar)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(conj);
+    Reference.reachabilityFence(grammar);
     return new Term(ctx, interpolPtr);
   }
 
@@ -3287,6 +3320,9 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer());
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(conj);
     return new Term(ctx, abdPtr);
   }
 
@@ -3313,6 +3349,10 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj, Grammar grammar)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(conj);
+    Reference.reachabilityFence(grammar);
     return new Term(ctx, abdPtr);
   }
 
@@ -3834,6 +3874,9 @@ public class Solver extends AbstractPointer
   public Term findSynth(FindSynthTarget fst, Grammar grammar)
   {
     long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
+    // The native call may re-enter Java code (plugins, oracles), which may
+    // release native objects whose wrappers are unreachable.
+    Reference.reachabilityFence(grammar);
     return new Term(ctx, termPointer);
   }
   private native long findSynth(long pointer, int fst, long grammarPointer);

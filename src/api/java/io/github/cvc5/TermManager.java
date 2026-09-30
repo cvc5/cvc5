@@ -18,7 +18,7 @@ import java.util.*;
 /**
  * A cvc5 term manager.
  */
-public class TermManager extends AbstractPointer
+public class TermManager extends AbstractPointer implements AutoCloseable
 {
   static
   {
@@ -52,6 +52,18 @@ public class TermManager extends AbstractPointer
   TermManager(NativeContext ctx, long pointer)
   {
     super(ctx, pointer, TermManager::deletePointer);
+  }
+
+  /**
+   * Free the native term manager, see {@code deletePointer()}.
+   *
+   * <p>Objects created via this term manager remain valid, they keep the
+   * underlying node manager alive.</p>
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
   }
 
   @Override

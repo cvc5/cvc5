@@ -8,11 +8,27 @@ cvc5 1.4.3 prerelease
   query-dependent information. (#13077)
 
 - **Java API**
+  * Native memory is now released automatically: the native object behind a
+    Java object (term manager, solver, term, sort, ...) is freed once the Java
+    object is no longer reachable. Native objects are no longer kept alive by a
+    global registry, and creating them no longer takes a global lock, so
+    applications that use separate term managers in separate threads scale
+    without contention or unbounded memory growth. Memory can still be
+    released deterministically via `deletePointer()`; `TermManager`, `Solver`,
+    `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
+    `Context.deletePointers()` is deprecated.
+  * `Solver.getTermManager()` now returns the same `TermManager` object on
+    every call, which is equal to the term manager the solver was created
+    with, and `InputParser.getSolver()` and `InputParser.getSymbolManager()`
+    return the objects the parser was created with. Previously, they returned
+    new wrappers around the same native objects, and releasing such a wrapper
+    as well as the original freed the native object twice.
   * Plugin and oracle callbacks may now be invoked from a thread other than
     the one that registered them, and an exception thrown by a callback is
     now reported as a `CVC5ApiException` instead of crashing the JVM.
   * The helper functions `Utils.getSorts()`, `Utils.getTerms()` and
     `Utils.getProofs()`, which wrap raw native pointers, are no longer public.
+  * The minimum required Java version is now 11 (previously 8).
 
 - Fixed a race in builds with CoCoA support when solvers are created
   concurrently in different threads: the initialization of the CoCoA global
