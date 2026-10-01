@@ -768,10 +768,10 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
 {
   Trace("nl-ext-cms-debug") << "* Try simple interval analysis..." << std::endl;
   NodeManager* nm = nodeManager();
-  // map from transcendental functions to whether they were set to lower
-  // bound
+  // map from transcendental functions to the value of the bound they were
+  // set to
   bool simpleSuccess = true;
-  std::map<Node, bool> set_bound;
+  std::map<Node, Node> set_bound;
   std::vector<Node> sum_bound;
   for (const std::pair<const Node, Node>& m : msum)
   {
@@ -909,6 +909,10 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         Node l = ls[i];
         Node u = us[i];
         bool vc_set_lower;
+        // whether we set the value of vc to zero, which is the case if we
+        // are minimizing the absolute value of an even power of vc whose
+        // interval contains zero
+        bool vc_set_zero = false;
         int vcsign = signs[i];
         Trace("nl-ext-cms-debug")
             << "Bounds for " << vc << " : " << l << ", " << u
@@ -922,7 +926,18 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         }
         else
         {
-          if (vcfact % 2 == 0)
+          if (vcfact % 2 == 0 && setAbs == -1
+              && l.getConst<Rational>().sgn() == -1
+              && u.getConst<Rational>().sgn() == 1)
+          {
+            // the minimal absolute value is zero
+            vc_set_zero = true;
+            vc_set_lower = true;
+            Trace("nl-ext-cms-debug")
+                << "..." << vc << " interval contains zero, set to zero"
+                << std::endl;
+          }
+          else if (vcfact % 2 == 0)
           {
             // minimize or maximize its absolute value
             Rational la = l.getConst<Rational>().abs();
@@ -952,20 +967,20 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
               << "..." << vc << " set to " << (vc_set_lower ? "lower" : "upper")
               << std::endl;
         }
+        // must over/under approximate based on vc_set_lower, computed above
+        Node vb = vc_set_zero ? d_zero : (vc_set_lower ? l : u);
         // check whether this is a conflicting bound
-        std::map<Node, bool>::iterator itsb = set_bound.find(vc);
+        std::map<Node, Node>::iterator itsb = set_bound.find(vc);
         if (itsb == set_bound.end())
         {
-          set_bound[vc] = vc_set_lower;
+          set_bound[vc] = vb;
         }
-        else if (itsb->second != vc_set_lower)
+        else if (itsb->second != vb)
         {
           Trace("nl-ext-cms")
               << "  failed due to conflicting bound for " << vc << std::endl;
           return false;
         }
-        // must over/under approximate based on vc_set_lower, computed above
-        Node vb = vc_set_lower ? l : u;
         for (unsigned i2 = 0; i2 < vcfact; i2++)
         {
           vbs.push_back(vb);
