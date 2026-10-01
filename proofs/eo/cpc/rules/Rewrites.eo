@@ -2967,7 +2967,10 @@
       (seq.replace (seq.replace y1 w1 z1) y1 z1))
 )
 
-(declare-rule re-all-elim () :args () :conclusion (= re.all (re.* re.allchar)))
+(declare-rule re-all-elim ()
+  :args ()
+  :conclusion (= re.all (re.* re.allchar))
+)
 
 (declare-rule re-opt-elim ((x1 RegLan))
   :args (x1)

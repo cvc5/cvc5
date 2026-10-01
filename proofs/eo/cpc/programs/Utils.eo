@@ -124,8 +124,8 @@
 ; return: >
 ;   The list of arguments provided to the function at the head of t, or the nil
 ;   list if t is not a function application.
-(define $get_arg_list ((T Type :implicit) (t T)) ($get_arg_list_rec t @list.nil)
-)
+(define $get_arg_list ((T Type :implicit) (t T))
+  ($get_arg_list_rec t @list.nil))
 
 ; program: $is_app
 ; args:

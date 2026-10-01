@@ -14,8 +14,8 @@
 ; args:
 ; - m Int: The bitwidth.
 ; return: The bitvector of width m containing all ones.
-(define $bv_ones ((m Int)) (eo::to_bin m (eo::add ($arith_eval_int_pow_2 m) -1))
-)
+(define $bv_ones ((m Int))
+  (eo::to_bin m (eo::add ($arith_eval_int_pow_2 m) -1)))
 
 ; define: $bv_to_signed_int
 ; args:

@@ -37,8 +37,8 @@
 ; - b Bool: The Boolean to repeat
 ; - n Int: The number of times to repeat it.
 ; return: the list of bits containing b, n times.
-(define $bv_bitblast_repeat ((b Bool) (n Int)) (eo::list_repeat @from_bools b n)
-)
+(define $bv_bitblast_repeat ((b Bool) (n Int))
+  (eo::list_repeat @from_bools b n))
 
 ; program: $bv_bitblast_prefix
 ; args:

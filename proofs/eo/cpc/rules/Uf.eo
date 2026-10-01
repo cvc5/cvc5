@@ -8,7 +8,10 @@
 ; args:
 ; - t T: The term to apply reflexivity to.
 ; conclusion: The equality between t and itself.
-(declare-rule refl ((T Type) (t T)) :args (t) :conclusion (= t t))
+(declare-rule refl ((T Type) (t T))
+  :args (t)
+  :conclusion (= t t)
+)
 
 ;;;;; ProofRule::SYMM
 ; program: $mk_symm
@@ -28,7 +31,10 @@
 ; premises:
 ; - F Bool: The (dis)equality to apply symmetry to.
 ; conclusion: The inverted version of the (dis)equality F.
-(declare-rule symm ((F Bool)) :premises (F) :conclusion ($mk_symm F))
+(declare-rule symm ((F Bool))
+  :premises (F)
+  :conclusion ($mk_symm F)
+)
 
 ;;;;; ProofRule::TRANS
 ; program: $mk_trans
@@ -161,7 +167,10 @@
 ; premises:
 ; - F: A formula.
 ; conclusion: The equality between F and true.
-(declare-rule true_intro ((F Bool)) :premises (F) :conclusion (= F true))
+(declare-rule true_intro ((F Bool))
+  :premises (F)
+  :conclusion (= F true)
+)
 
 ;;;;; ProofRule::TRUE_ELIM
 ; rule: true_elim
@@ -169,7 +178,10 @@
 ; premises:
 ; - F1: The formula, which is an equality whose right hand side is true.
 ; conclusion: The left hand side of the premise.
-(declare-rule true_elim ((F Bool)) :premises ((= F true)) :conclusion F)
+(declare-rule true_elim ((F Bool))
+  :premises ((= F true))
+  :conclusion F
+)
 
 ;;;;; ProofRule::FALSE_INTRO
 ; rule: false_intro
@@ -188,7 +200,10 @@
 ; premises:
 ; - F1: The formula, which is an equality whose right hand side is false.
 ; conclusion: The negation of the left hand side of the premise.
-(declare-rule false_elim ((F Bool)) :premises ((= F false)) :conclusion (not F))
+(declare-rule false_elim ((F Bool))
+  :premises ((= F false))
+  :conclusion (not F)
+)
 
 ;;;;; ProofRule::HO_CONG
 ; program: $mk_ho_cong

@@ -7,7 +7,10 @@
 ; args:
 ; - F Bool: The formula to split on.
 ; conclusion: The split of F, which the disjunction of F and its negation.
-(declare-rule split ((F Bool)) :args (F) :conclusion (or F (not F)))
+(declare-rule split ((F Bool))
+  :args (F)
+  :conclusion (or F (not F))
+)
 
 ; program: $to_clause
 ; args:
@@ -299,7 +302,10 @@
 ; premises:
 ; - F1: The application of a double negation.
 ; conclusion: The formula that F1 is the double negation of.
-(declare-rule not_not_elim ((F Bool)) :premises ((not (not F))) :conclusion F)
+(declare-rule not_not_elim ((F Bool))
+  :premises ((not (not F)))
+  :conclusion F
+)
 
 ; rule: contra
 ; implements: ProofRule::CONTRA
@@ -307,7 +313,10 @@
 ; - F1: A formula.
 ; - F2: The negation of F1.
 ; conclusion: false.
-(declare-rule contra ((F Bool)) :premises (F (not F)) :conclusion false)
+(declare-rule contra ((F Bool))
+  :premises (F (not F))
+  :conclusion false
+)
 
 ; rule: and_elim
 ; implements: ProofRule::AND_ELIM
@@ -327,7 +336,10 @@
 ; premises:
 ; - Fs [:list]: The premises of this rule, collected as an and-list.
 ; conclusion: The result of collecting the premises as an and-list.
-(declare-rule and_intro ((F Bool)) :premise-list F and :conclusion F)
+(declare-rule and_intro ((F Bool))
+  :premise-list F and
+  :conclusion F
+)
 
 ; rule: not_or_elim
 ; implements: ProofRule::NOT_OR_ELIM
