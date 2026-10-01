@@ -124,6 +124,8 @@ libcvc5_add_sources(
   non_closed_node_converter.h
   normalize_sort_converter.cpp
   normalize_sort_converter.h
+  weight_symbol.cpp
+  weight_symbol.h
 )
 
 libcvc5_add_sources(GENERATED

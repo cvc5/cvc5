@@ -39,6 +39,8 @@ class SygusDatatypeConstructor
   std::vector<TypeNode> d_argTypes;
   /** Weight of the constructor. */
   int d_weight;
+  /** Weights of the constructor. */
+  std::map<Node, Node> d_weights;
 };
 
 /**
@@ -79,7 +81,8 @@ class SygusDatatype
   void addConstructor(Node op,
                       const std::string& name,
                       const std::vector<TypeNode>& argTypes,
-                      int weight = -1);
+                      int weight = -1,
+                      const std::map<Node, Node>& weights = {});
   /**
    * Add constructor that encodes an application of builtin kind k. Like above,
    * the arguments argTypes should correspond to sygus datatypes that encode
@@ -88,7 +91,8 @@ class SygusDatatype
   void addConstructor(NodeManager* nm,
                       Kind k,
                       const std::vector<TypeNode>& argTypes,
-                      int weight = -1);
+                      int weight = -1,
+                      const std::map<Node, Node>& weights = {});
   /**
    * This adds a constructor that corresponds to the any constant constructor
    * for the given (builtin) type tn.

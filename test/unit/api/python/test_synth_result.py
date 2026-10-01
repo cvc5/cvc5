@@ -35,7 +35,7 @@ def test_is_null(solver):
 
 def test_equal(tm, solver):
     solver.setOption("sygus", "true")
-    solver.synthFun("f", {}, tm.getBooleanSort())
+    solver.synthFun("f", [], tm.getBooleanSort())
     tfalse = tm.mkFalse()
     ttrue = tm.mkTrue()
     solver.addSygusConstraint(ttrue)
