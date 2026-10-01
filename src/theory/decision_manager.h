@@ -54,6 +54,9 @@ class DecisionManager
     // The order of the global decision strategy used by the TheoryEngine
     // for getNextDecision.
 
+    // For forcing the first decisions
+    STRAT_FFD,
+
     //----- assume-feasibile strategies
     //  These are required to go first for the sake of model-soundness. In
     //  other words, if these strategies did not go first, we might answer

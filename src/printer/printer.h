@@ -187,6 +187,10 @@ class CVC5_EXPORT Printer
   virtual void toStreamCmdCheckSatAssuming(
       std::ostream& out, const std::vector<Node>& nodes) const;
 
+  /** Print check-sat-ffd command */
+  virtual void toStreamCmdCheckSatFFD(std::ostream& out,
+                                      const std::vector<Node>& nodes) const;
+
   /** Print query command */
   virtual void toStreamCmdQuery(std::ostream& out, Node n) const;
 
