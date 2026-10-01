@@ -355,11 +355,12 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
       Node fun = sm->mkSkolemFunction(SkolemId::TRANSCENDENTAL_PURIFY, lam);
       // Make (@TRANSCENDENTAL_PURIFY t), where t is node[0]
       Node app = nm->mkNode(Kind::APPLY_UF, fun, node[0]);
-      // We purify the application so that each application has its own
+      // We use the purification of node so that each application has its own
       // skolem for the skolem lemma below. Notice that fun is shared by all
       // applications of the same operator, and a skolem may only have one
-      // definition.
-      Node var = sm->mkPurifySkolem(app);
+      // definition. We purify node rather than app so that the equality
+      // between var and app added below is not trivial up to purification.
+      Node var = sm->mkPurifySkolem(node);
       Node lem;
       if (k == Kind::SQRT)
       {
@@ -369,7 +370,7 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
 
         // (sqrt x) reduces to:
         // (=> (>= x 0.0) (and (>= y 0.0) (= (* y y) x))
-        // where y is the purification of (@TRANSCENDENTAL_PURIFY x).
+        // where y is the purification of (sqrt x).
         //
         // The equality between y and (@TRANSCENDENTAL_PURIFY x) added below
         // makes sure that the reduction still behaves like a function,
@@ -437,12 +438,12 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
         {
           lem = nm->mkNode(Kind::IMPLIES, cond, lem);
         }
-        Trace("arith-op-elim")
-            << "Elimination lemma " << lem << " for " << node << std::endl;
       }
       Assert(!lem.isNull());
       // relate the purification skolem to the application of the function
       lem = nm->mkNode(Kind::AND, var.eqNode(app), lem);
+      Trace("arith-op-elim")
+          << "Elimination lemma " << lem << " for " << node << std::endl;
       // the skolem lemma is for the purification skolem
       lems.emplace_back(lem, var);
       return var;
