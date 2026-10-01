@@ -115,10 +115,9 @@
 ;   and are used to model cvc5's internal symbols, including its skolems,
 ;   other internally introduced terms, and extensions.
 ; note: >
-; @const corresponds to generic abstract constants, which correspond to
-; internally
-;   introduced terms that do not have a formal definition in the signature.
-;   This symbol is intentionally unused in this signature.
+;   @const corresponds to generic abstract constants, which correspond to
+;   internally introduced terms that do not have a formal definition in the
+;   signature. This symbol is intentionally unused in this signature.
 (declare-parameterized-const @const ((id Int :opaque) (T Type :opaque)) T)
 
 ; note: >
