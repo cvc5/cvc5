@@ -27,6 +27,9 @@
 
 namespace cvc5::internal {
 namespace theory {
+
+class Valuation;
+
 namespace sets {
 
 class TheorySetsPrivate;
@@ -51,6 +54,21 @@ class TupleTrie
   void debugPrint(const char* c, Node n, unsigned depth = 0);
   void clear() { d_data.clear(); }
 }; /* class TupleTrie */
+
+/**
+ * Hash function for vector of nodes, used for the context-dependent map
+ * d_cycle_sequences, which maps a relation list to its sequence representation
+ * and count.
+ */
+struct VectorNodeHashFunction
+{
+  size_t operator()(const std::vector<Node>& v) const
+  {
+    size_t h = 0;
+    for (const Node& n : v) h = h * 31 + std::hash<Node>()(n);
+    return h;
+  }
+};
 
 /** The relations extension of the theory of sets
  *
@@ -80,12 +98,23 @@ class TheorySetsRels : protected EnvObj
 
   ~TheorySetsRels();
   /**
-   * Invoke the check method with effort level e. At a high level, this class
-   * will make calls to TheorySetsPrivate::processInference to assert facts,
-   * lemmas, and conflicts. If this class makes no such call, then the current
-   * set of assertions is satisfiable with respect to relations.
+   * Invoke the check method for the basic relational-operator rules. At a
+   * high level, this class will make calls to
+   * TheorySetsPrivate::processInference to assert facts, lemmas, and
+   * conflicts. If this class makes no such call, then the current set of
+   * assertions is satisfiable with respect to relations.
    */
   void check(Theory::Effort e);
+  /**
+   * The acyclicity check creates fresh skolem sequences representing cycles
+   * for constraints of the form (not (rel.acyclic R)), case splits on the
+   * length of the cycles, and unrolls a fresh edge of the cycle, via
+   * applyInstCycleRule, applySplitCycleLenRule, and applyUnrollCycle.
+   * Requires the caches collected by check(Theory::Effort) earlier in the
+   * same check (which is where applyInstCycleRule is invoked for new
+   * (not (rel.acyclic R)) constraints).
+   */
+  void checkAcyclicity();
   /**
    * Seed the closure graph of every TC term with the members of its base
    * relation, then apply the transitive-closure DOWN rule for each asserted TC
@@ -104,6 +133,39 @@ class TheorySetsRels : protected EnvObj
    * the same check.
    */
   void checkTransitiveClosureUp();
+  /**
+   * Last-call check: for each open cycle-sequence obligation whose length
+   * has been fixed to a concrete, practically-sized value N in the current
+   * candidate model, ensure that SplitCycleLen/UnrollCycle/ContrMinimal have
+   * been applied for every count up to N (cheap no-ops for counts already
+   * sent, thanks to sendInfer's lemma cache). If an obligation's length
+   * cannot be determined to be a concrete, practically-sized value, reports
+   * the model as unsound.
+   */
+  void checkAcyclicityLastCall(Valuation& val);
+  /**
+   * True if there is at least one relation acyclicity cycle-sequence
+   * currently being tracked (used to drive needsCheckLastEffort()).
+   */
+  bool hasOpenCycleObligation() const;
+  /**
+   * Last-call check, only relevant under --rels-acyclic-hammer (which
+   * disables applyTCRule's eager case split). Checks that all TC memberships
+   * are justified by the base relation. If not, and cardinalityUsed is false,
+   * sends a grounded conflict (see applyTCGroundingConflict). If
+   * cardinalityUsed is true (i.e., set.card is used), reports incompleteness
+   * (SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN).
+   */
+  void checkTransitiveClosureLastCall(bool cardinalityUsed);
+  /**
+   * Last-call check, only relevant under --rels-acyclic-hammer (which
+   * disables applyJoinRule's eager case split). Checks that all join
+   * memberships are justified by the base relation. If not, and cardinalityUsed
+   * is false, sends a grounded conflict (see applyJoinGroundingConflict). If
+   * cardinalityUsed is true (i.e., set.card is used), reports incompleteness
+   * (SETS_RELS_JOIN_GROUNDING_UNKNOWN).
+   */
+  void checkJoinLastCall(bool cardinalityUsed);
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 
@@ -124,7 +186,7 @@ class TheorySetsRels : protected EnvObj
 
   std::unordered_set<Node> d_rel_nodes;
   /** a map from tuples to their elements' representatives*/
-  std::map<Node, std::vector<Node> > d_tuple_reps;
+  std::map<Node, std::vector<Node>> d_tuple_reps;
   /** a map from relation terms to their member tuples*/
   std::map<Node, TupleTrie> d_membership_trie;
 
@@ -132,14 +194,27 @@ class TheorySetsRels : protected EnvObj
   std::unordered_set<Node> d_symbolic_tuples;
 
   /** Mapping between relation and its member representatives */
-  std::map<Node, std::vector<Node> > d_rReps_memberReps_cache;
+  std::map<Node, std::vector<Node>> d_rReps_memberReps_cache;
 
   /** Mapping between relation and its member representatives explanation */
-  std::map<Node, std::vector<Node> > d_rReps_memberReps_exp_cache;
+  std::map<Node, std::vector<Node>> d_rReps_memberReps_exp_cache;
 
   /** Mapping between a relation representative and its equivalent relations
    * involving relational operators */
-  std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
+  std::map<Node, std::map<Kind, std::vector<Node>>> d_terms_cache;
+
+  /** Mapping from acyclic relation representative to its explanation(s) */
+  std::map<Node, std::vector<Node>> d_acyclic_cache;
+
+  /** Mapping from acyclic relation representatives to the cycle-witness
+   * elements created so far (s1,...,s_cnt) and the symbolic eventual length of
+   * the cycle, l. This must be context-dependent: it needs to correctly roll
+   * back if the search backtracks past the point where some of these elements
+   * were created. */
+  context::CDHashMap<std::vector<Node>,
+                     std::pair<std::vector<Node>, Node>,
+                     VectorNodeHashFunction>
+      d_cycle_sequences;
 
   /**
    * Transitive closure (TC) graphs.
@@ -151,7 +226,8 @@ class TheorySetsRels : protected EnvObj
    * graphs are built during a full-effort check (see buildTCGraphForRel) and
    * cleared at the start of the next one; they are caches for a single
    * full-effort check, not context-dependent data structures. Edges are only
-   * ever added to a graph, never removed or replaced.
+   * ever added to a graph, never removed; see addTCEdge for the one case in
+   * which an edge's explanation is replaced.
    */
   /**
    * Mapping between the representative of a base relation r (the argument of a
@@ -160,17 +236,16 @@ class TheorySetsRels : protected EnvObj
    * already derivable from the members of r, in which case applyTCRule
    * skips sending a redundant lemma.
    */
-  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;
+  std::map<Node, std::map<Node, std::unordered_set<Node>>> d_rRep_tcGraph;
   /**
    * Mapping between a transitive closure term TC(r) = (rel.tclosure r) and its
    * TC graph. Seeded by buildTCGraphForRel with the asserted members of r, and
    * extended by applyTCRule with pairs that are asserted to be members of TC(r)
-   * directly (and are not already reachable in the base graph). Both go through
-   * addTCEdge, so the two sets of edges accumulate. Once per full-effort check,
-   * doTCInference() closes each of these graphs transitively and infers the
-   * implied memberships.
+   * directly. Both go through addTCEdge, so the two sets of edges accumulate.
+   * Once per full-effort check, doTCInference() closes each of these graphs
+   * transitively and infers the implied memberships.
    */
-  std::map<Node, std::map<Node, std::unordered_set<Node> > > d_tcr_tcGraph;
+  std::map<Node, std::map<Node, std::unordered_set<Node>>> d_tcr_tcGraph;
   /**
    * Maps a transitive closure term TC(r) to the explanations of the edges in
    * its TC graph. Each edge (a, b) is keyed by the pair tuple
@@ -179,7 +254,7 @@ class TheorySetsRels : protected EnvObj
    * edge. doTCInference conjoins these explanations along a path to form the
    * reason for each inferred membership.
    */
-  std::map<Node, std::map<Node, Node> > d_tcr_tcGraph_exps;
+  std::map<Node, std::map<Node, Node>> d_tcr_tcGraph_exps;
 
  private:
   /** Send infer
@@ -215,6 +290,35 @@ class TheorySetsRels : protected EnvObj
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
+  /**
+   * Forbid shortcut edges/duplicate positions among the cycle-witness
+   * elements in s, relative to the symbolic eventual length l.
+   */
+  void applyContrMinimalRule(const std::vector<Node>& rels,
+                             const std::vector<Node>& s,
+                             Node l,
+                             Node exp);
+  void applyAcyclicDownRule(Node mem, Node rel, Node exp);
+  void applyInstCycleRule(Node rel_rep, Node exp);
+  /** Build a tuple term whose elements are the given relations. */
+  Node mkRelTuple(const std::vector<Node>& rels);
+  /** Build the (rewritten) union of the given relations. */
+  Node mkRelUnion(const std::vector<Node>& rels);
+  /**
+   * Case-splits on whether the cycle closes at the current last element of
+   * s (cnt = l) or continues past it (cnt < l).
+   */
+  void applySplitCycleLenRule(const std::vector<Node>& rels,
+                              const std::vector<Node>& s,
+                              Node l);
+  /**
+   * Creates a new cycle-witness element s_{cnt+1}. Asserts that it is connected
+   * to s_{cnt} via the transitive closure of some Ri in rels. Returns the new,
+   * extended vector.
+   */
+  std::vector<Node> applyUnrollCycle(const std::vector<Node>& rels,
+                                     const std::vector<Node>& s,
+                                     Node l);
   void applyProductRule(Node rel, Node rel_rep, Node exp);
   void applyJoinRule(Node rel, Node rel_rep, Node exp);
   /**
@@ -257,12 +361,32 @@ class TheorySetsRels : protected EnvObj
    */
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
   /**
-   * Add the edge (fst_rep, snd_rep), justified by exp, to the TC graph of
-   * tc_rel. Edges are only added: if the edge is already present it keeps the
-   * explanation it was first added with. This is the only way d_tcr_tcGraph and
-   * d_tcr_tcGraph_exps are written.
+   * Sends a conflict for a transitive-closure membership mem_rep in
+   * tc_rel that is not reachable via members of tc_rel[0]. Introduces no
+   * fresh skolems.
    */
-  void addTCEdge(Node tc_rel, Node fst_rep, Node snd_rep, Node exp);
+  void applyTCGroundingConflict(Node mem_rep, Node tc_rel, Node exp);
+  /**
+   * Sends a conflict for a join membership mem_rep in join_rel that is not
+   * justified by members of join_rel[0] and join_rel[1]. Introduces no fresh
+   * skolems.
+   */
+  void applyJoinGroundingConflict(Node mem_rep, Node join_rel, Node exp);
+  /**
+   * Add the edge (fst_rep, snd_rep), justified by exp, to the TC graph of
+   * tc_rel. Edges are only added, never removed. If the edge is already
+   * present, it keeps the explanation it was first added with, unless
+   * overwriteExp is true, in which case its explanation is replaced by exp.
+   * applyTCRule passes overwriteExp = true so that doTCInference chains the
+   * asserted TC membership rather than the (withdrawable) base-relation
+   * membership that seeded the same edge. This is the only way d_tcr_tcGraph
+   * and d_tcr_tcGraph_exps are written.
+   */
+  void addTCEdge(Node tc_rel,
+                 Node fst_rep,
+                 Node snd_rep,
+                 Node exp,
+                 bool overwriteExp = false);
   /**
    * Seed the TC graph of tc_rel = (rel.tclosure r) with the currently asserted
    * members of r, with all nodes and edges expressed in terms of
@@ -270,9 +394,21 @@ class TheorySetsRels : protected EnvObj
    * (keyed by tc_rel) via addTCEdge and to d_rRep_tcGraph (keyed by r's
    * representative); nothing is overwritten, so this can be called at any point
    * of a check without discarding the edges applyTCRule contributed. It is
-   * called once per TC term per check, by checkTransitiveClosureDown.
+   * called once per TC term per check, via ensureTCGraphBuilt.
    */
   void buildTCGraphForRel(Node tc_rel);
+  /**
+   * Ensure buildTCGraphForRel has been called for tc_rel in the current check
+   * (tracked via d_rel_nodes, which clearCaches resets).
+   */
+  void ensureTCGraphBuilt(Node tc_rel);
+  /**
+   * Unroll every tracked cycle-witness sequence in d_cycle_sequences by one
+   * element (applyUnrollCycle), then apply applySplitCycleLenRule and
+   * applyContrMinimalRule to the extended sequence. Obligations that have
+   * reached --rels-acyclic-unroll-max are reported as incomplete instead.
+   */
+  void doCycleInference();
   /**
    * Called at the end of a full-effort check. For each transitive closure
    * term TC(r) with a graph in d_tcr_tcGraph, computes the transitive
@@ -288,7 +424,7 @@ class TheorySetsRels : protected EnvObj
    * rel_tc_graph_exps maps each edge of the graph to its explanation, as in
    * d_tcr_tcGraph_exps.
    */
-  void doTCInference(std::map<Node, std::unordered_set<Node> > rel_tc_graph,
+  void doTCInference(std::map<Node, std::unordered_set<Node>> rel_tc_graph,
                      std::map<Node, Node> rel_tc_graph_exps,
                      Node tc_rel);
   /**
@@ -304,7 +440,7 @@ class TheorySetsRels : protected EnvObj
    */
   void doTCInference(Node tc_rel,
                      std::vector<Node> reasons,
-                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     std::map<Node, std::unordered_set<Node>>& tc_graph,
                      std::map<Node, Node>& rel_tc_graph_exps,
                      Node start_node_rep,
                      Node cur_node_rep,
@@ -346,8 +482,13 @@ class TheorySetsRels : protected EnvObj
   void isTCReachable(Node start,
                      Node dest,
                      std::unordered_set<Node>& hasSeen,
-                     std::map<Node, std::unordered_set<Node> >& tc_graph,
+                     std::map<Node, std::unordered_set<Node>>& tc_graph,
                      bool& isReachable);
+  /**
+   * True if mem_rep is justified by currently-known members of join_rel[0] and
+   * join_rel[1].
+   */
+  bool isJoinReachable(Node mem_rep, Node join_rel);
 
   /** Helper functions */
   bool hasTerm(Node a);
@@ -359,7 +500,7 @@ class TheorySetsRels : protected EnvObj
   Node getRepresentative(Node t);
   inline void addToMembershipDB(Node, Node, Node);
   inline Node constructPair(Node tc_rep, Node a, Node b);
-  bool safelyAddToMap(std::map<Node, std::vector<Node> >&, Node, Node);
+  bool safelyAddToMap(std::map<Node, std::vector<Node>>&, Node, Node);
   bool isRel(Node n)
   {
     return n.getType().isSet() && n.getType().getSetElementType().isTuple();

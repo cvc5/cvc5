@@ -352,6 +352,11 @@ class TheorySetsPrivate : protected EnvObj
   /** Run the relations subsolver, if relational constraints are present. */
   void checkRelations();
   /**
+   * Run the acyclicity subsolver, if not-acyclicity constraints are present.
+   * See TheorySetsRels::checkAcyclicity.
+   */
+  void checkAcyclicity();
+  /**
    * Run the transitive-closure down rule, which introduces fresh skolem
    * elements. One sweep over the current TC members is done per call, so only
    * finitely many fresh elements are introduced per strategy pass.
@@ -363,6 +368,41 @@ class TheorySetsPrivate : protected EnvObj
    * down rule, since the two share that graph.
    */
   void checkTransitiveClosureUp();
+  /**
+   * Last-call check: give open relation-acyclicity cycle obligations one
+   * more chance to catch up to a now-fixed cycle length before the model is
+   * accepted. See TheorySetsRels::checkAcyclicityLastCall.
+   */
+  void checkAcyclicityLastCall();
+  /**
+   * True if there is an open relation-acyclicity cycle obligation, used to
+   * drive TheorySets::needsCheckLastEffort().
+   */
+  bool hasOpenCycleObligation() const;
+  /**
+   * Last-call check (only relevant under --rels-acyclic-hammer, which
+   * disables the case split lemma in TheorySetsRels::applyTCRule): confirm
+   * every currently-known transitive-closure membership is backed up by known
+   * base relation memberships.
+   */
+  void checkTransitiveClosureLastCall();
+  /**
+   * Last-call check (only relevant under --rels-acyclic-hammer, which
+   * disables the case split lemma in TheorySetsRels::applyJoinRule): confirm
+   * every currently-known join membership is backed up by known base relation
+   * memberships.
+   */
+  void checkJoinLastCall();
+  /**
+   * True under --rels-acyclic-hammer if rel.tclosure has been used, used to
+   * drive TheorySets::needsCheckLastEffort().
+   */
+  bool needsTCGroundingLastCall() const;
+  /**
+   * True under --rels-acyclic-hammer if rel.join has been used, used to
+   * drive TheorySets::needsCheckLastEffort().
+   */
+  bool needsJoinGroundingLastCall() const;
   /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
   void checkFilters();
   /** Run the set.map inference rules (checkMapUp / checkMapDown). */
@@ -449,6 +489,20 @@ class TheorySetsPrivate : protected EnvObj
    * involving relational constraints is asserted to this theory.
    */
   bool d_rels_enabled;
+  /** is transitive closure (rel.tclosure) specifically enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * rel.tclosure term is asserted to this theory. Used in
+   * needsTCGroundingLastCall.
+   */
+  bool d_tc_enabled;
+  /** is relational join (rel.join) specifically enabled?
+   *
+   * This flag is set to true during a full effort check if any
+   * rel.join term is asserted to this theory. Used in
+   * needsJoinGroundingLastCall.
+   */
+  bool d_join_enabled;
   /** Have we ever seen cardinality? */
   bool d_hasEnabledCard;
   /** is cardinality enabled?
