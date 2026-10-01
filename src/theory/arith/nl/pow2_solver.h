@@ -110,6 +110,7 @@ class Pow2Solver : protected EnvObj
    * Value-based refinement lemma for i of the form (pow2 x). Returns:
    *   x = M(x) /\ x>= 0 ---->
    *     (pow2 x) = rewrite((pow2 M(x)))
+   * Returns null if rewrite((pow2 M(x))) is not a constant.
    */
   Node valueBasedLemma(Node i);
 }; /* class Pow2Solver */
