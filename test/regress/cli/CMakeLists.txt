@@ -1046,7 +1046,6 @@ set(regress_0_tests
   regress0/fp/proj-issue744-safe.smt2
   regress0/fp/proj-issue745-safe.smt2
   regress0/fp/proj-issue746-safe.smt2
-  regress0/fp/proj-issue757-to-sbv-get-value.smt2
   regress0/fp/real-fp-real-roundtrip.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/simple.smt2

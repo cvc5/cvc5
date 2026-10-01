@@ -1,5 +1,6 @@
 ; REQUIRES: unrestricted-mode
-; EXPECT: unknown
+; COMMAND-LINE: --produce-models -q
+; EXPECT: sat
 (set-logic ALL)
 (set-option :fp-exp true)
 (declare-const _x3 Real)
