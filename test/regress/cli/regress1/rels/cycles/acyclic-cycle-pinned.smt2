@@ -1,4 +1,5 @@
-; REQUIRES: unrestricted-mode
+; REQUIRES: no-safe-mode
+; REQUIRES: no-stable-mode
 ; r is pinned to the 2-cycle {(a,b),(b,a)} with a != b.
 ; Asserting acyclicity of a cyclic relation is UNSAT. This is CORRECT.
 (set-logic ALL)

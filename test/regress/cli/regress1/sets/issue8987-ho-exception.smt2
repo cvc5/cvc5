@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: (error "Term of kind rel.project are only supported with higher-order logic. Try adding the logic prefix HO_.")
 ; EXIT: 1
 (set-logic ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --macros-quant
 ; EXPECT: sat
 (set-logic AUFNIRA)

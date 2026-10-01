@@ -1,4 +1,5 @@
-; REQUIRES: unrestricted-mode
+; REQUIRES: no-safe-mode
+; REQUIRES: no-stable-mode
 (set-logic ALL)
 (set-option :rels-exp true)
 ; Single-relation regression for the term-driven acyclic-down gap.

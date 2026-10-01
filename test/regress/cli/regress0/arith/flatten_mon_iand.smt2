@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-logic QF_ALL)
 (declare-const p Int)

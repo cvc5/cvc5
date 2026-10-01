@@ -304,6 +304,20 @@ TEST_F(TestUtilBlackInteger, base_inference)
   ASSERT_EQ(Integer("0b1010", 0), 10);
   ASSERT_EQ(Integer("-1", 0), -1);
   ASSERT_EQ(Integer("42", 0), 42);
+  ASSERT_EQ(Integer("0", 0), 0);
+  ASSERT_EQ(Integer("-0", 0), 0);
+}
+
+TEST_F(TestUtilBlackInteger, fits_signed_int)
+{
+  Integer imin(std::numeric_limits<int>::min());
+  Integer imax(std::numeric_limits<int>::max());
+  Integer too_small(std::numeric_limits<int64_t>::min());
+  ASSERT_TRUE(imin.fitsSignedInt());
+  ASSERT_TRUE(imax.fitsSignedInt());
+  ASSERT_FALSE(too_small.fitsSignedInt());
+  ASSERT_EQ(imin.getSignedInt(), std::numeric_limits<int>::min());
+  ASSERT_EQ(imax.getSignedInt(), std::numeric_limits<int>::max());
 }
 
 TEST_F(TestUtilBlackInteger, parse_errors)

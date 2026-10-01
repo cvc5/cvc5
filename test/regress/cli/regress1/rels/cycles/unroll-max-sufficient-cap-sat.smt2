@@ -1,4 +1,5 @@
-; REQUIRES: unrestricted-mode
+; REQUIRES: no-safe-mode
+; REQUIRES: no-stable-mode
 ; COMMAND-LINE: --rels-acyclic-hammer --rels-acyclic-unroll-max=4
 ;
 ; Regression test for --rels-acyclic-unroll-max: confirms a cap that is

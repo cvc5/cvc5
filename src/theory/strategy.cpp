@@ -23,13 +23,8 @@ namespace theory {
 
 StrategyBase::StrategyBase(TheoryId id,
                            TheoryState* state,
-                           InferenceManagerBuffered* im,
-                           Valuation* valuation)
-    : d_theoryId(id),
-      d_state(state),
-      d_im(im),
-      d_valuation(valuation),
-      d_strategyInit(false)
+                           InferenceManagerBuffered* im)
+    : d_theoryId(id), d_state(state), d_im(im), d_strategyInit(false)
 {
 }
 
@@ -42,31 +37,31 @@ bool StrategyBase::hasStrategyEffort(Theory::Effort e) const
   return d_stratSteps.find(e) != d_stratSteps.end();
 }
 
-std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepBegin(
+std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepBegin(
     Theory::Effort e)
 {
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
+  std::map<Theory::Effort, std::pair<size_t, size_t>>::const_iterator it =
       d_stratSteps.find(e);
   Assert(it != d_stratSteps.end());
   return d_steps.begin() + it->second.first;
 }
 
-std::vector<std::pair<Step, unsigned>>::iterator StrategyBase::stepEnd(
+std::vector<std::pair<Step, Theory::Effort>>::iterator StrategyBase::stepEnd(
     Theory::Effort e)
 {
-  std::map<Theory::Effort, std::pair<unsigned, unsigned>>::const_iterator it =
+  std::map<Theory::Effort, std::pair<size_t, size_t>>::const_iterator it =
       d_stratSteps.find(e);
   Assert(it != d_stratSteps.end());
   return d_steps.begin() + it->second.second;
 }
 
-void StrategyBase::addStrategyStep(Step s, int effort, bool addBreak)
+void StrategyBase::addStrategyStep(Step s, Theory::Effort effort, bool addBreak)
 {
-  Assert(s != BREAK);
-  d_steps.push_back(std::pair<Step, unsigned>(s, effort));
+  Assert(s != Step::BREAK);
+  d_steps.push_back(std::pair<Step, Theory::Effort>(s, effort));
   if (addBreak)
   {
-    d_steps.push_back(std::pair<Step, unsigned>(BREAK, 0));
+    d_steps.push_back(std::pair<Step, Theory::Effort>(Step::BREAK, effort));
   }
 }
 
@@ -86,13 +81,12 @@ void StrategyBase::markEndEffort(Theory::Effort e)
 
 void StrategyBase::finishInit()
 {
-  for (const std::pair<const Theory::Effort, unsigned>& b : d_stepBegin)
+  for (const std::pair<const Theory::Effort, size_t>& b : d_stepBegin)
   {
     Theory::Effort e = b.first;
-    std::map<Theory::Effort, unsigned>::const_iterator itEnd =
-        d_stepEnd.find(e);
+    std::map<Theory::Effort, size_t>::const_iterator itEnd = d_stepEnd.find(e);
     Assert(itEnd != d_stepEnd.end());
-    d_stratSteps[e] = std::pair<unsigned, unsigned>(b.second, itEnd->second);
+    d_stratSteps[e] = std::pair<size_t, size_t>(b.second, itEnd->second);
   }
   // the begin/end marks are scratch state only needed while building the
   // strategy; drop them so no stale data persists after initialization.
@@ -103,18 +97,23 @@ void StrategyBase::finishInit()
 
 void StrategyBase::runStrategy(Theory::Effort e)
 {
-  std::vector<std::pair<Step, unsigned>>::iterator it = stepBegin(e);
-  std::vector<std::pair<Step, unsigned>>::iterator end = stepEnd(e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator it = stepBegin(e);
+  std::vector<std::pair<Step, Theory::Effort>>::iterator end = stepEnd(e);
 
   Trace("strings-process") << "----check, next round---" << std::endl;
   while (it != end)
   {
     Step curr = it->first;
-    int effort = it->second;
+    Theory::Effort effort = it->second;
     if (curr == Step::BREAK)
     {
-      // if we have a pending inference or lemma, we will process it
-      if (d_im->hasProcessed())
+      // A step may either buffer its conclusions as pending facts/lemmas
+      // (caught by hasPending) or assert facts / send lemmas immediately
+      // (caught by hasSent, which also covers conflicts). Accounting for both
+      // lets the BREAK markers fire regardless of which style a theory uses to
+      // emit inferences: the relations solver, for instance, flushes its own
+      // lemmas, so nothing is left pending for hasPending to see.
+      if (d_im->hasSent() || d_im->hasPending())
       {
         break;
       }
@@ -134,22 +133,18 @@ void StrategyBase::runStrategy(Theory::Effort e)
 
 void StrategyBase::postCheck(Theory::Effort e)
 {
-  d_im->doPendingFacts();
-
   Assert(isStrategyInit());
-  if (!d_state->isInConflict() && !d_valuation->needCheck()
+  if (!d_state->isInConflict() && !d_state->getValuation().needCheck()
       && hasStrategyEffort(e))
   {
     Trace("check-debug") << "Theory of " << d_theoryId << " " << e
                          << " effort check " << std::endl;
 
-    // ToDo: ++(d_statistics->d_checkRuns);
     bool sentLemma = false;
     bool hadPending = false;
     do
     {
       d_im->reset();
-      // ++(d_statistics->d_strategyRuns);
       Trace("check") << "  * Run strategy..." << std::endl;
       runStrategy(e);
       // Remember if this round produced work. Conclusions may be buffered as

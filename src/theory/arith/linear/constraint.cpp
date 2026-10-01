@@ -494,6 +494,16 @@ Constraint::~Constraint()
     {
       d_database->d_nodetoConstraintMap.erase(getLiteral());
     }
+    std::unordered_map<ConstraintP, std::vector<Node>>::iterator ita =
+        d_database->d_altLiterals.find(this);
+    if (ita != d_database->d_altLiterals.end())
+    {
+      for (const Node& l : ita->second)
+      {
+        d_database->d_nodetoConstraintMap.erase(l);
+      }
+      d_database->d_altLiterals.erase(ita);
+    }
   }
 }
 
@@ -1316,16 +1326,20 @@ bool ConstraintDatabase::hasLiteral(TNode literal) const
   return lookup(literal) != NullConstraint;
 }
 
-ConstraintP ConstraintDatabase::addLiteral(TNode literal)
+ConstraintP ConstraintDatabase::addLiteral(TNode literal, TNode nliteral)
 {
   Assert(!hasLiteral(literal));
   bool isNot = (literal.getKind() == Kind::NOT);
   Node atomNode = (isNot ? literal[0] : literal);
   Node negationNode = atomNode.notNode();
+  // The normal form of the atom, which determines the constraint this literal
+  // maps to. Note this may be distinct from atomNode.
+  Node nAtomNode = (nliteral.getKind() == Kind::NOT ? nliteral[0] : nliteral);
+  Assert((nliteral.getKind() == Kind::NOT) == isNot);
 
   Assert(!hasLiteral(atomNode));
   Assert(!hasLiteral(negationNode));
-  Comparison posCmp = Comparison::parseNormalForm(atomNode);
+  Comparison posCmp = Comparison::parseNormalForm(nAtomNode);
 
   ConstraintType posType = Constraint::constraintTypeOfComparison(posCmp);
 
@@ -1359,13 +1373,13 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal)
 
     delete posC;
 
-    hit->setLiteral(atomNode);
-    hit->getNegation()->setLiteral(negationNode);
+    hit->setLiteral(atomNode, nAtomNode);
+    hit->getNegation()->setLiteral(negationNode, nAtomNode.notNode());
     return isNot ? hit->getNegation() : hit;
   }
   else
   {
-    Comparison negCmp = Comparison::parseNormalForm(negationNode);
+    Comparison negCmp = Comparison::parseNormalForm(nAtomNode.notNode());
 
     ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
@@ -1404,8 +1418,8 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal)
     posC->initialize(this, posI, negC);
     negC->initialize(this, negI, posC);
 
-    posC->setLiteral(atomNode);
-    negC->setLiteral(negationNode);
+    posC->setLiteral(atomNode, nAtomNode);
+    negC->setLiteral(negationNode, nAtomNode.notNode());
 
     return isNot ? negC : posC;
   }
@@ -2287,16 +2301,32 @@ ConstraintDatabase::Watches::Watches(context::Context* satContext,
 {
 }
 
-void Constraint::setLiteral(Node n)
+void Constraint::setLiteral(Node n, CVC5_UNUSED Node nn)
 {
   Trace("arith::constraint") << "Mapping " << *this << " to " << n << std::endl;
-  Assert(Comparison::isNormalAtom(n));
-  Assert(!hasLiteral());
-  Assert(sanityChecking(n));
-  d_literal = n;
+  // Note that we check the normal form nn of the literal here, not the
+  // literal n itself. The literal may be an equality that is not in normal
+  // form, e.g. (= (+ x 1) 2), (= 1 x) or (= (to_real x) 0.0), since the
+  // rewriter does not normalize equalities, see rewriter::normalizeEquality.
+  Assert(Comparison::isNormalAtom(nn));
+  Assert(sanityChecking(nn));
   NodetoConstraintMap& map = d_database->d_nodetoConstraintMap;
   Assert(map.find(n) == map.end());
-  map.insert(make_pair(d_literal, this));
+  map.insert(make_pair(n, this));
+  if (hasLiteral())
+  {
+    // Multiple atoms may normalize to the same constraint. This is possible
+    // for equalities, whose rewritten form retains the type of the original
+    // equality, e.g. both (= x 0) and (= (to_real x) 0.0) may occur for an
+    // integer variable x. We keep the first such atom as the literal of this
+    // constraint and remember the others so that the node-to-constraint map
+    // can be cleaned up when this constraint is deleted. Note the constraint
+    // may still be asserted or explained using any of these atoms, which is
+    // handled by tracking the witness of the assertion.
+    d_database->d_altLiterals[this].push_back(n);
+    return;
+  }
+  d_literal = n;
 }
 
 Node Constraint::getProofLiteral() const

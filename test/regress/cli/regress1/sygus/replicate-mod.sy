@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --sygus-qe-preproc --sygus-si=all  --sygus-out=status
 (set-logic LIA)

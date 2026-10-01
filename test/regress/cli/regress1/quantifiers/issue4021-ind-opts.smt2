@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

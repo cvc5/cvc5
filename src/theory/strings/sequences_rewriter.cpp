@@ -1435,13 +1435,30 @@ Node SequencesRewriter::rewriteViaReEqElim(const Node& n)
 
 Node SequencesRewriter::rewriteViaStrInReEval(const Node& node)
 {
-  if (node.getKind() != Kind::STRING_IN_REGEXP || !node[0].isConst()
-      || !RegExpEntail::isConstRegExp(node[1]))
+  if (node.getKind() != Kind::STRING_IN_REGEXP || !node[0].isConst())
+  {
+    return Node::null();
+  }
+  String s = node[0].getConst<String>();
+  if (s.empty())
+  {
+    // If the string is empty, membership holds if and only if the regular
+    // expression is nullable, which can often be determined even if the
+    // regular expression is not constant, e.g. (str.in_re "" (re.* R)) is
+    // true for any R.
+    bool res;
+    if (RegExpEntail::isNullable(node[1], res))
+    {
+      return nodeManager()->mkConst(res);
+    }
+    // otherwise, fall through, where note that the check below will fail
+    // if the regular expression is not constant
+  }
+  if (!RegExpEntail::isConstRegExp(node[1]))
   {
     return Node::null();
   }
   // test whether x in node[1]
-  String s = node[0].getConst<String>();
   bool test = RegExpEntail::testConstStringInRegExp(s, node[1]);
   return nodeManager()->mkConst(test);
 }

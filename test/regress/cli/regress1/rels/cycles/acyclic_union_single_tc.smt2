@@ -1,4 +1,5 @@
-; REQUIRES: unrestricted-mode
+; REQUIRES: no-safe-mode
+; REQUIRES: no-stable-mode
 (set-logic ALL)
 (set-option :rels-exp true)
 ; Single-relation acyclic test where the user ALSO supplies a tclosure term.

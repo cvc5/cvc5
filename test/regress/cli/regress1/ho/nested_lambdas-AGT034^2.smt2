@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --no-produce-models --ho-elim
 ; EXPECT: unsat
 

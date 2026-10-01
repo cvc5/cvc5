@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-abducts --sygus-stream --sygus-abort-size=2
 ; EXPECT: (error "Maximum term size (2) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun)'

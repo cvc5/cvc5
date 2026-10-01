@@ -25,6 +25,7 @@
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 #include "util/result.h"
 
@@ -61,7 +62,7 @@ TheorySetsPrivate::TheorySetsPrivate(Env& env,
       d_card_enabled(false),
       d_higher_order_kinds_enabled(false),
       d_cpacb(cpacb),
-      d_strategy(this, &state, &im, &external.getValuation())
+      d_strategy(this, &state, &im)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -385,11 +386,8 @@ void TheorySetsPrivate::checkBasic()
   }
 
   // We may have sent lemmas while registering the terms in the loop above,
-  // e.g. the cardinality solver. Don't flush here; check hasPending (not yet
-  // flushed) in addition to hasSent (already sent directly), so whatever is
-  // queued stays visible to the strategy's own BREAK check instead of being
-  // silently flushed away before it gets a chance to stop the round.
-  if (d_im.hasSent() || d_im.hasPending())
+  // e.g. the cardinality solver.
+  if (d_im.hasSent())
   {
     return;
   }
@@ -416,18 +414,21 @@ void TheorySetsPrivate::checkBasic()
       Trace("sets-mem") << std::endl;
     }
   }
-  if (d_im.hasSent() || d_im.hasPending())
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
   {
     return;
   }
   // check downwards closure
   checkDownwardsClosure();
-  if (d_im.hasSent() || d_im.hasPending())
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
   {
     return;
   }
   // check upwards closure
   checkUpwardsClosure();
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkCardinality()
@@ -444,7 +445,7 @@ void TheorySetsPrivate::checkRelations()
   if (d_rels_enabled)
   {
     // call the check method of the relations solver
-    d_rels->checkRelations();
+    d_rels->check(Theory::EFFORT_FULL);
   }
 }
 
@@ -460,7 +461,7 @@ void TheorySetsPrivate::checkAcyclicity()
   }
 }
 
-void TheorySetsPrivate::checkTransitiveClosure()
+void TheorySetsPrivate::checkTransitiveClosureDown()
 {
   // The transitive-closure down rule introduces fresh skolem elements. It does
   // one sweep over the current TC members per call (it does not loop to a
@@ -468,7 +469,17 @@ void TheorySetsPrivate::checkTransitiveClosure()
   // strategy pass; further elements are introduced on subsequent passes.
   if (d_rels_enabled)
   {
-    d_rels->checkTransitiveClosure();
+    d_rels->checkTransitiveClosureDown();
+  }
+}
+
+void TheorySetsPrivate::checkTransitiveClosureUp()
+{
+  // The up rule chains the closure graph the down rule contributed to, so it
+  // must run in the same strategy pass as checkTransitiveClosureDown.
+  if (d_rels_enabled)
+  {
+    d_rels->checkTransitiveClosureUp();
   }
 }
 
@@ -515,26 +526,28 @@ void TheorySetsPrivate::checkFilters()
 {
   // check filter up rule
   checkFilterUp();
-  // don't flush; see the comment in checkBasic().
-  if (d_im.hasSent() || d_im.hasPending())
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
   {
     return;
   }
   // check filter down rules
   checkFilterDown();
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkMaps()
 {
   // check map up rules
   checkMapUp();
-  // don't flush; see the comment in checkBasic().
-  if (d_im.hasSent() || d_im.hasPending())
+  d_im.doPendingLemmas();
+  if (d_im.hasSent())
   {
     return;
   }
   // check map down rules
   checkMapDown();
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkDownwardsClosure()
@@ -860,6 +873,17 @@ void TheorySetsPrivate::checkFilterDown()
   }
 }
 
+Node TheorySetsPrivate::mkApplyFunction(const Node& f, const Node& x)
+{
+  NodeManager* nm = nodeManager();
+  Node lambda = uf::FunctionConst::getDefinition(f);
+  if (lambda.isNull())
+  {
+    return nm->mkNode(Kind::APPLY_UF, f, x);
+  }
+  return rewrite(nm->mkNode(Kind::APPLY_UF, lambda, x));
+}
+
 void TheorySetsPrivate::checkMapUp()
 {
   NodeManager* nm = nodeManager();
@@ -898,7 +922,7 @@ void TheorySetsPrivate::checkMapUp()
       exp.push_back(pair.second);
       Node B = pair.second[1];
       d_state.addEqualityToExp(A, B, exp);
-      Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
+      Node f_x = mkApplyFunction(f, x);
       Node skolem = d_treg.getProxy(term);
       Node memberMap = nm->mkNode(Kind::SET_MEMBER, f_x, skolem);
       d_im.assertInference(memberMap, InferenceId::SETS_MAP_UP, exp);
@@ -922,6 +946,8 @@ void TheorySetsPrivate::checkMapDown()
     TypeNode elementType = A.getType().getSetElementType();
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
+    const std::map<Node, Node>& aMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
       std::vector<Node> exp;
@@ -929,7 +955,36 @@ void TheorySetsPrivate::checkMapDown()
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
       Node y = pair.second[0];
-
+      // Skip y if some member z of A is already known to map to y.
+      //
+      // (set.member y (set.map f A)) is discharged by any single z in A with
+      // (= (f z) y); since sets are idempotent, a second witness for y adds
+      // nothing. Generating the skolem below anyway would not only be
+      // redundant, it would not terminate when A is equal to (set.map f A):
+      // the skolem x is a member of A, hence a member of (set.map f A), hence
+      // itself an element this loop must find a preimage for, and so on. The
+      // guard in checkMapUp only breaks the cycle between SETS_MAP_UP and
+      // SETS_MAP_DOWN_POSITIVE, not this one.
+      //
+      // Note the corresponding rule for bags is sound only when f is
+      // injective, because the multiplicity of y in (bag.map f A) is the sum
+      // of the multiplicities of its whole preimage, so a single witness does
+      // not discharge it. Sets have no such obligation, so no injectivity
+      // requirement is needed here.
+      bool preimageFound = false;
+      for (const std::pair<const Node, Node>& p : aMembers)
+      {
+        Node z = p.second[0];
+        if (d_state.areEqual(mkApplyFunction(f, z), y))
+        {
+          preimageFound = true;
+          break;
+        }
+      }
+      if (preimageFound)
+      {
+        continue;
+      }
       // general case
       // (=>
       //   (and
@@ -940,10 +995,10 @@ void TheorySetsPrivate::checkMapDown()
       //     (= (f x) y))
       // )
       Node x = sm->mkSkolemFunction(SkolemId::SETS_MAP_DOWN_ELEMENT, {term, y});
-
       d_state.registerMapSkolemElement(term, x);
+
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
-      Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
+      Node f_x = mkApplyFunction(f, x);
       Node equal = f_x.eqNode(y);
       Node fact = memberA.andNode(equal);
       d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
@@ -962,7 +1017,7 @@ void TheorySetsPrivate::checkGroups()
   {
     checkGroup(n);
   }
-  // don't flush; see the comment in checkBasic().
+  d_im.doPendingLemmas();
 }
 
 void TheorySetsPrivate::checkGroup(Node n)
@@ -1366,8 +1421,8 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(Kind::SET_MEMBER, x, deq[1]);
     Node mdeq = nm->mkNode(Kind::EQUAL, mem1, mem2).negate();
     d_im.assertInference(mdeq, InferenceId::SETS_DEQ, deq.notNode(), 1);
-    // don't flush; see the comment in checkBasic().
-    if (d_im.hasSent() || d_im.hasPending())
+    d_im.doPendingLemmas();
+    if (d_im.hasSent())
     {
       return;
     }

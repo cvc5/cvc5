@@ -71,5 +71,6 @@ int main()
   assert(cvc5_result_is_unsat(r));
 
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
 }

@@ -1,4 +1,5 @@
-; REQUIRES: unrestricted-mode
+; REQUIRES: no-safe-mode
+; REQUIRES: no-stable-mode
 (set-logic ALL)
 (set-option :rels-exp true)
 ; Multi-relation acyclic test via the rewriter union-fold.

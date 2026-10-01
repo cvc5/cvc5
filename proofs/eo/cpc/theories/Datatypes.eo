@@ -23,8 +23,17 @@
 ;   symbols over this sort are also not part of the SMT-LIB standard.
 (declare-const Tuple (-> Type Type Type) :right-assoc-nil UnitTuple)
 
+; define: $is_tuple_type
+; args:
+; - T Type: The type
+; return: true iff T is a Tuple type, i.e. it is a Tuple-list.
+(define $is_tuple_type ((T Type)) (eo::is_ok (eo::list_len Tuple T)))
+
 (declare-const tuple.unit UnitTuple)
-(declare-parameterized-const tuple ((T Type :implicit) (U Type :implicit)) (-> T U (_ Tuple T U)) :right-assoc-nil tuple.unit)
+(declare-parameterized-const tuple ((T Type :implicit) (U Type :implicit))
+  ; U must be a Tuple type
+  (-> T U (eo::requires ($is_tuple_type U) true (_ Tuple T U)))
+  :right-assoc-nil tuple.unit)
 (declare-parameterized-const tuple.select ((T Type :implicit) (i Int :opaque)) (-> T (eo::list_nth Tuple T i)))
 
 ; disclaimer: This function is not in the SMT-LIB standard.

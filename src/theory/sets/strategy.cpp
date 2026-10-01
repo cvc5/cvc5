@@ -22,10 +22,8 @@ namespace sets {
 
 Strategy::Strategy(TheorySetsPrivate* parent,
                    TheoryState* state,
-                   InferenceManagerBuffered* im,
-                   Valuation* valuation)
-    : StrategyBase(TheoryId::THEORY_SETS, state, im, valuation),
-      d_setsSolver(parent)
+                   InferenceManagerBuffered* im)
+    : StrategyBase(TheoryId::THEORY_SETS, state, im), d_setsSolver(parent)
 {
 }
 
@@ -41,38 +39,45 @@ void Strategy::initializeStrategy()
   // the full-effort strategy
   markStartEffort(Theory::EFFORT_FULL);
   // add the ence steps
-  addStrategyStep(SETS_CHECK_RESET);
-  addStrategyStep(SETS_CHECK_BASIC);
-  addStrategyStep(SETS_CHECK_RELATIONS);
-  addStrategyStep(SETS_CHECK_ACYCLICITY);
-  addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE);
-  addStrategyStep(SETS_CHECK_FILTER);
-  addStrategyStep(SETS_CHECK_MAP);
-  addStrategyStep(SETS_CHECK_GROUP);
-  addStrategyStep(SETS_CHECK_DISEQUALITY);
-  addStrategyStep(SETS_CHECK_COMPREHENSION);
-  addStrategyStep(SETS_CHECK_CARDINALITY);
+  addStrategyStep(Step::SETS_CHECK_RESET);
+  addStrategyStep(Step::SETS_CHECK_BASIC);
+  addStrategyStep(Step::SETS_CHECK_RELATIONS);
+  // Relation acyclicity: unroll the cycle witnesses of the asserted
+  // (not (rel.acyclic R)) constraints collected by SETS_CHECK_RELATIONS.
+  addStrategyStep(Step::SETS_CHECK_ACYCLICITY);
+  // The transitive-closure down and up rules share the closure graph the down
+  // rule builds, so they run back-to-back in the same pass (no BREAK between
+  // them), mirroring TheorySetsRels::check() before the strategy refactor.
+  addStrategyStep(
+      Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN, Theory::EFFORT_FULL, false);
+  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE_UP);
+  addStrategyStep(Step::SETS_CHECK_FILTER);
+  addStrategyStep(Step::SETS_CHECK_MAP);
+  addStrategyStep(Step::SETS_CHECK_GROUP);
+  addStrategyStep(Step::SETS_CHECK_DISEQUALITY);
+  addStrategyStep(Step::SETS_CHECK_CARDINALITY);
+  addStrategyStep(Step::SETS_CHECK_COMPREHENSION);
   markEndEffort(Theory::EFFORT_FULL);
   // the last-call effort strategy: give open relation-acyclicity cycle
   // obligations one more chance to catch up to a now-fixed cycle length
-  // before the engine accepts the current model.
+  // before the engine accepts the current model, and (under
+  // --rels-acyclic-hammer) confirm that transitive-closure and join
+  // memberships are grounded by base-relation memberships.
   markStartEffort(Theory::EFFORT_LAST_CALL);
-  addStrategyStep(SETS_CHECK_ACYCLICITY_LAST_CALL);
-  addStrategyStep(SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL);
-  addStrategyStep(SETS_CHECK_JOIN_LAST_CALL);
+  addStrategyStep(Step::SETS_CHECK_ACYCLICITY_LAST_CALL,
+                  Theory::EFFORT_LAST_CALL);
+  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL,
+                  Theory::EFFORT_LAST_CALL);
+  addStrategyStep(Step::SETS_CHECK_JOIN_LAST_CALL, Theory::EFFORT_LAST_CALL);
   markEndEffort(Theory::EFFORT_LAST_CALL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
 }
 
-void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
+void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
 {
-  Trace("sets-process") << "Run " << s;
-  if (effort > 0)
-  {
-    Trace("sets-process") << ", effort = " << effort;
-  }
-  Trace("sets-process") << "..." << std::endl;
+  Trace("sets-process") << "Run " << s << ", effort = " << effort << "..."
+                        << std::endl;
   Assert(d_setsSolver != nullptr);
   switch (s)
   {
@@ -81,8 +86,11 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
     case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
     case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;
     case Step::SETS_CHECK_ACYCLICITY: d_setsSolver->checkAcyclicity(); break;
-    case Step::SETS_CHECK_TRANSITIVE_CLOSURE:
-      d_setsSolver->checkTransitiveClosure();
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN:
+      d_setsSolver->checkTransitiveClosureDown();
+      break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_UP:
+      d_setsSolver->checkTransitiveClosureUp();
       break;
     case Step::SETS_CHECK_FILTER: d_setsSolver->checkFilters(); break;
     case Step::SETS_CHECK_MAP: d_setsSolver->checkMaps(); break;
@@ -112,6 +120,15 @@ void Strategy::runStep(Step s, Theory::Effort, unsigned effort)
                         << ", addedLemma = " << d_im->hasPendingLemma()
                         << ", conflict = " << d_state->isInConflict()
                         << std::endl;
+}
+
+void Strategy::postCheck(Theory::Effort e)
+{
+  // Flush any facts that were buffered before this check so that the strategy
+  // runs on an up-to-date equality engine. Note this is currently a no-op:
+  // sets asserts its internal facts eagerly and never buffers pending facts.
+  d_im->doPendingFacts();
+  StrategyBase::postCheck(e);
 }
 
 }  // namespace sets

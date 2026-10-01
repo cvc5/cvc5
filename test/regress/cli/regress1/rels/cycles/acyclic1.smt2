@@ -1,4 +1,5 @@
-; REQUIRES: unrestricted-mode
+; REQUIRES: no-safe-mode
+; REQUIRES: no-stable-mode
 (set-logic ALL)
 (set-info :status sat)
 (set-option :rels-exp true)

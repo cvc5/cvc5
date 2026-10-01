@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 ; EXPECT: (
 ; EXPECT: (define-fun x () Int 0)

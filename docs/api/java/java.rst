@@ -162,7 +162,7 @@ build artifacts.
 
      $ git clone https://github.com/cvc5/cvc5
      $ cd cvc5
-     $ ./configure.sh production --java-bindings --auto-download --prefix=build/install
+     $ ./configure.sh unrestricted --java-bindings --auto-download --prefix=build/install
      $ cd build
      $ make
      $ make install

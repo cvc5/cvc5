@@ -34,8 +34,7 @@ class Strategy : public StrategyBase
  public:
   Strategy(TheorySetsPrivate* parent = nullptr,
            TheoryState* state = nullptr,
-           InferenceManagerBuffered* im = nullptr,
-           Valuation* valuation = nullptr);
+           InferenceManagerBuffered* im = nullptr);
 
   ~Strategy();
   /** initialize the strategy
@@ -49,7 +48,13 @@ class Strategy : public StrategyBase
    * Execute a single inference step by dispatching to the matching check
    * method on the owning TheorySetsPrivate.
    */
-  void runStep(Step s, Theory::Effort e, unsigned effort) override;
+  void runStep(Step s, Theory::Effort e, Theory::Effort effort) override;
+
+  /**
+   * Flush the facts that sets buffered before this check, then run the
+   * standard check loop of StrategyBase::postCheck.
+   */
+  void postCheck(Theory::Effort e) override;
 
  private:
   /** The sets solver that owns this strategy and implements the steps. */

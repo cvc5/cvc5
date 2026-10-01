@@ -62,6 +62,7 @@ int main()
   printf("%s\n", cvc5_result_to_string(cvc5_check_sat(slv)));
 
   cvc5_delete(slv);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return 0;
 }

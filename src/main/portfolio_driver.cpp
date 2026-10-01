@@ -231,6 +231,28 @@ namespace {
 class Pipe
 {
  public:
+  Pipe() : d_pipe{-1, -1} {}
+  Pipe(const Pipe&) = delete;
+  Pipe& operator=(const Pipe&) = delete;
+  Pipe(Pipe&& o) noexcept : d_pipe{o.d_pipe[0], o.d_pipe[1]}
+  {
+    o.d_pipe[0] = -1;
+    o.d_pipe[1] = -1;
+  }
+  Pipe& operator=(Pipe&& o) noexcept
+  {
+    if (this != &o)
+    {
+      closeAll();
+      d_pipe[0] = o.d_pipe[0];
+      d_pipe[1] = o.d_pipe[1];
+      o.d_pipe[0] = -1;
+      o.d_pipe[1] = -1;
+    }
+    return *this;
+  }
+  ~Pipe() { closeAll(); }
+
   /** Open a new pipe */
   void open()
   {
@@ -253,12 +275,33 @@ class Pipe
     }
     close(d_pipe[0]);
     close(d_pipe[1]);
+    d_pipe[0] = -1;
+    d_pipe[1] = -1;
   }
   /**
    * Close the input of this pipe. This method should be called within the
    * parent process after forking.
    */
-  void closeIn() { close(d_pipe[1]); }
+  void closeIn()
+  {
+    if (d_pipe[1] != -1)
+    {
+      close(d_pipe[1]);
+      d_pipe[1] = -1;
+    }
+  }
+  /**
+   * Close the output of this pipe. This method should be called within the
+   * parent process after flushTo or when a job is abandoned.
+   */
+  void closeOut()
+  {
+    if (d_pipe[0] != -1)
+    {
+      close(d_pipe[0]);
+      d_pipe[0] = -1;
+    }
+  }
   /**
    * Copy the content of the pipe into the given output stream. This method
    * should be called within the parent process after the child process has
@@ -287,11 +330,31 @@ class Pipe
       }
       os.write(buf, cnt);
     }
+    closeOut();
   }
 
  private:
+  void closeAll()
+  {
+    closeIn();
+    closeOut();
+  }
   int d_pipe[2];
 };
+
+/** Kill pid if it is still live and reap it. */
+void reapPid(pid_t& pid)
+{
+  if (pid <= 0)
+  {
+    return;
+  }
+  kill(pid, SIGKILL);
+  while (waitpid(pid, nullptr, 0) == -1 && errno == EINTR)
+  {
+  }
+  pid = -1;
+}
 
 void printPortfolioConfig(Solver& solver, PortfolioConfig& config)
 {
@@ -358,6 +421,8 @@ class PortfolioProcessPool
   {
   }
 
+  ~PortfolioProcessPool() { stopRemaining(); }
+
   bool run(PortfolioStrategy& strategy)
   {
     for (const auto& s : strategy.d_strategies)
@@ -396,6 +461,27 @@ class PortfolioProcessPool
   }
 
  private:
+  /**
+   * Kill and reap remaining running jobs. Reap the timeout child before the
+   * worker so the timeout process cannot SIGKILL a reused worker pid.
+   */
+  void stopRemaining()
+  {
+    for (auto& job : d_jobs)
+    {
+      if (job.d_state != JobState::RUNNING)
+      {
+        continue;
+      }
+      reapPid(job.d_timeout);
+      reapPid(job.d_worker);
+      job.d_errPipe.closeOut();
+      job.d_outPipe.closeOut();
+      job.d_state = JobState::DONE;
+      --d_running;
+    }
+  }
+
   void startNextJob()
   {
     Assert(d_nextJob < d_jobs.size());
@@ -414,42 +500,51 @@ class PortfolioProcessPool
     }
     if (job.d_worker == 0)
     {
-      job.d_errPipe.dup(STDERR_FILENO);
-      job.d_outPipe.dup(STDOUT_FILENO);
-
-      std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
-      std::string logic = d_ctx.solver().getLogic();
-
-      std::string produceUnsatCoresValue =
-          d_ctx.solver().getOption("produce-unsat-cores");
-      std::string produceModelsValue =
-          d_ctx.solver().getOption("produce-models");
-      d_ctx.storeDeclarationsAndNamedTerms();
-
-      d_ctx.runResetCommand();
-
-      d_ctx.solver().setOption("produce-unsat-cores", produceUnsatCoresValue);
-      d_ctx.solver().setOption("produce-models", produceModelsValue);
-      job.d_config.applyOptions(d_ctx.solver());
-      d_ctx.solver().setLogic(logic);
-
-      for (Term& t : assertions)
-      {
-        d_ctx.solver().assertFormula(t);
-      }
-      // 0 = solved, 1 = not solved
+      // Catch everything. An uncaught exception would unwind through the
+      // parent's PortfolioProcessPool in this child and SIGKILL sibling
+      // workers (their pids are still in d_jobs). Record solve status
+      // before trailing commands so junk after (check-sat) keeps sat/unsat.
       SolveStatus rc = SolveStatus::STATUS_UNSOLVED;
-      if (d_ctx.runCheckSatCommand())
-      // if (d_ctx.solveCommands(d_commands))
+      try
       {
-        Result res = d_ctx.d_executor->getResult();
-        d_ctx.continueAfterSolving(d_parser);
-        if (res.isSat() || res.isUnsat())
+        job.d_errPipe.dup(STDERR_FILENO);
+        job.d_outPipe.dup(STDOUT_FILENO);
+
+        std::vector<cvc5::Term> assertions = d_ctx.solver().getAssertions();
+        std::string logic = d_ctx.solver().getLogic();
+
+        std::string produceUnsatCoresValue =
+            d_ctx.solver().getOption("produce-unsat-cores");
+        std::string produceModelsValue =
+            d_ctx.solver().getOption("produce-models");
+        d_ctx.storeDeclarationsAndNamedTerms();
+
+        d_ctx.runResetCommand();
+
+        d_ctx.solver().setOption("produce-unsat-cores", produceUnsatCoresValue);
+        d_ctx.solver().setOption("produce-models", produceModelsValue);
+        job.d_config.applyOptions(d_ctx.solver());
+        d_ctx.solver().setLogic(logic);
+
+        for (Term& t : assertions)
         {
-          rc = SolveStatus::STATUS_SOLVED;
+          d_ctx.solver().assertFormula(t);
         }
+        if (d_ctx.runCheckSatCommand())
+        {
+          Result res = d_ctx.d_executor->getResult();
+          if (res.isSat() || res.isUnsat())
+          {
+            rc = SolveStatus::STATUS_SOLVED;
+          }
+          d_ctx.continueAfterSolving(d_parser);
+        }
+        _exit(rc);
       }
-      _exit(rc);
+      catch (...)
+      {
+        _exit(rc);
+      }
     }
     job.d_errPipe.closeIn();
     job.d_outPipe.closeIn();
@@ -460,11 +555,18 @@ class PortfolioProcessPool
       job.d_timeout = fork();
       if (job.d_timeout == 0)
       {
-        auto duration = std::chrono::duration<double, std::milli>(
-            job.d_config.d_timeout * d_timeout);
-        std::this_thread::sleep_for(duration);
-        kill(job.d_worker, SIGKILL);
-        _exit(0);
+        try
+        {
+          auto duration = std::chrono::duration<double, std::milli>(
+              job.d_config.d_timeout * d_timeout);
+          std::this_thread::sleep_for(duration);
+          kill(job.d_worker, SIGKILL);
+          _exit(0);
+        }
+        catch (...)
+        {
+          _exit(0);
+        }
       }
     }
 
@@ -482,6 +584,19 @@ class PortfolioProcessPool
    */
   bool checkResults(pid_t child = -1, int status = 0)
   {
+    // wait() may reap a timeout child. Forget that pid so later reapPid
+    // does not waitpid a reused identifier.
+    if (child != -1)
+    {
+      for (auto& job : d_jobs)
+      {
+        if (job.d_state == JobState::RUNNING && job.d_timeout == child)
+        {
+          job.d_timeout = -1;
+          return false;
+        }
+      }
+    }
     // check d_jobs for items where worker has terminated and timeout != -1
     for (auto& job : d_jobs)
     {
@@ -496,7 +611,7 @@ class PortfolioProcessPool
       if (child == -1)
       {
         pid_t res = waitpid(job.d_worker, &wstatus, WNOHANG);
-        // has not terminated yet
+        // has not terminated yet; leave its timeout child running
         if (res == 0) continue;
         if (res == -1) continue;
       }
@@ -504,18 +619,18 @@ class PortfolioProcessPool
       {
         wstatus = status;
       }
+      // Worker is already reaped. Kill the timeout before anything else so
+      // it cannot SIGKILL a reused worker pid.
+      reapPid(job.d_timeout);
       // mark as analyzed
       Trace("portfolio") << "Finished " << job.d_config << std::endl;
-      // terminate the corresponding timeout process if it is still running
-      if (job.d_timeout > 0)
-      {
-        kill(job.d_timeout, SIGKILL);
-      }
       job.d_state = JobState::DONE;
       --d_running;
       // check if exited normally
       if (WIFSIGNALED(wstatus))
       {
+        job.d_errPipe.closeOut();
+        job.d_outPipe.closeOut();
         continue;
       }
       if (WIFEXITED(wstatus))
@@ -531,9 +646,12 @@ class PortfolioProcessPool
           }
           job.d_errPipe.flushTo(std::cerr);
           job.d_outPipe.flushTo(std::cout);
+          stopRemaining();
           return true;
         }
       }
+      job.d_errPipe.closeOut();
+      job.d_outPipe.closeOut();
     }
     return false;
   }

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :status unsat)
 (declare-fun f (Int Int) Int)

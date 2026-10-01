@@ -1,4 +1,5 @@
-; REQUIRES: unrestricted-mode
+; REQUIRES: no-safe-mode
+; REQUIRES: no-stable-mode
 ; COMMAND-LINE: --rels-acyclic-hammer --rels-acyclic-unroll-max=3
 ; EXPECT: unsat
 ;
