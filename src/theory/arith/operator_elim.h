@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Martin Brain
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -106,7 +103,7 @@ class OperatorElim : protected EnvObj, public ProofGenerator
    *
    * @param nm Pointer to the node manager
    * @param n The node to eliminate operators from.
-   * @param lems The lemmas storing (L, k) where L is the lemma and k is the 
+   * @param lems The lemmas storing (L, k) where L is the lemma and k is the
    * attached skolem it is associated with.
    * @param partialOnly Whether we are only eliminating partial operators.
    * @param wasNonLinear Set to true if n requires a non-linear logic.

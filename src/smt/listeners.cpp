@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,10 +19,7 @@ namespace smt {
 
 ResourceOutListener::ResourceOutListener(SolverEngine& slv) : d_slv(slv) {}
 
-void ResourceOutListener::notify()
-{
-  d_slv.interrupt();
-}
+void ResourceOutListener::notify() { d_slv.interrupt(); }
 
 }  // namespace smt
 }  // namespace cvc5::internal

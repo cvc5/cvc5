@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -118,7 +115,7 @@ bool LambdaLift::needsLift(const Node& lam)
   // The following lambdas require eager lifting:
   // - (lambda ((x Int)) (g x x))
   // - (lambda ((x Int) (y Int)) (f (g x y)))
-  // The following lambads do not require eager lifting:
+  // The following lambdas do not require eager lifting:
   // - (lambda ((x Int)) (+ x 1)), since it has no free symbols.
   // - (lambda ((x Int) (y Int)) (f x)), since its free symbol f has a type
   // Int -> Int which is processed before the type of the lambda, i.e.
@@ -154,7 +151,7 @@ bool LambdaLift::needsLift(const Node& lam)
 
 bool LambdaLift::isLifted(const Node& node) const
 {
-  return d_lifted.find(node)!=d_lifted.end();
+  return d_lifted.find(node) != d_lifted.end();
 }
 
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
@@ -251,7 +248,8 @@ Node LambdaLift::getAssertionFor(TNode node)
     skolem_app_c[0] = lambda;
     Node rhs = nm->mkNode(Kind::APPLY_UF, skolem_app_c);
     // For the sake of proofs, we use
-    // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is instead of
+    // (= (k t1 ... tn) ((lambda (x1 ... xn) s) t1 ... tn)) here. This is
+    // instead of
     // (= (k t1 ... tn) s); the former is more accurate since
     // beta reduction uses capture-avoiding substitution, which implies that
     // ((lambda (y1 ... yn) s) t1 ... tn) is alpha-equivalent but not

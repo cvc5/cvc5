@@ -43,10 +43,10 @@ name   = "Finite Field Theory"
   help_mode  = "Which field solver"
 [[option.mode.GB]]
   name = "gb"
-  help = "use a groebner basis for the whole system"
+  help = "use one Groebner basis for the whole system"
 [[option.mode.SPLIT_GB]]
   name = "split"
-  help = "use multiple groebner bases for partitions of the system"
+  help = "use multiple Groebner bases for partitions of the system"
 
 [[option]]
   name       = "ff"

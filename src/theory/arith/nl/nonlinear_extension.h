@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,6 +31,7 @@
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/piand_solver.h"
 #include "theory/arith/nl/pow2_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
@@ -45,7 +43,7 @@
 namespace cvc5::internal {
 namespace theory {
 namespace eq {
-  class EqualityEngine;
+class EqualityEngine;
 }
 namespace arith {
 
@@ -91,6 +89,14 @@ class NonlinearExtension : EnvObj
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
+
+  /**
+   * Called once per check-sat after preregistration and preprocessing are
+   * done, before the first full-effort check. This is used to emit structural
+   * lemmas (e.g. preemptive monomial zero-sign lemmas) so they are seen by
+   * the linear solver before it computes its first candidate model.
+   */
+  void presolve();
 
   /**
    * Performs the main checks for nonlinear arithmetic, based on the current
@@ -185,8 +191,7 @@ class NonlinearExtension : EnvObj
    *
    * This method adds lemmas to d_im directly.
    */
-  void runStrategy(Theory::Effort effort,
-                   const std::vector<Node>& assertions,
+  void runStrategy(const std::vector<Node>& assertions,
                    const std::vector<Node>& false_asserts,
                    const std::vector<Node>& xts);
 
@@ -251,6 +256,13 @@ class NonlinearExtension : EnvObj
    */
   IAndSolver d_iandSlv;
 
+  /** The parametric integer and solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving parametric integer and.
+   */
+  PIAndSolver d_piandSlv;
+
   /** The pow2 solver
    *
    * This is the subsolver responsible for running the procedure for
@@ -267,4 +279,4 @@ class NonlinearExtension : EnvObj
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H */

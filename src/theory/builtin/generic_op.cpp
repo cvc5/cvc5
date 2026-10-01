@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -376,8 +373,10 @@ Node GenericOp::getOperatorForIndices(NodeManager* nm,
         return nm->mkConst(Kind::TABLE_PROJECT_OP, ProjectOp(numerals));
       case Kind::TABLE_AGGREGATE:
         return nm->mkConst(Kind::TABLE_AGGREGATE_OP, ProjectOp(numerals));
-      case Kind::TABLE_JOIN: return nm->mkConst(Kind::TABLE_JOIN_OP, ProjectOp(numerals));
-      case Kind::TABLE_GROUP: return nm->mkConst(Kind::TABLE_GROUP_OP, ProjectOp(numerals));
+      case Kind::TABLE_JOIN:
+        return nm->mkConst(Kind::TABLE_JOIN_OP, ProjectOp(numerals));
+      case Kind::TABLE_GROUP:
+        return nm->mkConst(Kind::TABLE_GROUP_OP, ProjectOp(numerals));
       default:
         Unhandled() << "GenericOp::getOperatorForIndices: unhandled kind " << k;
         break;

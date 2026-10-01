@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +15,7 @@
  *
  * At a high level, this technique implements a generic inference scheme based
  * on the combination of SAT-context-dependent equality reasoning and
- * SAT-context-indepedent rewriting.
+ * SAT-context-independent rewriting.
  *
  * As a simple example, say
  * (1) TheoryStrings tells us that the following facts hold in the SAT context:

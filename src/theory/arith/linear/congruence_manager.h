@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Tim King, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +40,7 @@ namespace theory {
 namespace eq {
 class ProofEqEngine;
 class EqualityEngine;
-}
+}  // namespace eq
 
 namespace arith::linear {
 
@@ -191,6 +188,13 @@ class ArithCongruenceManager : protected EnvObj
 
   void pushBack(TNode n, TNode r, TNode w);
 
+  /**
+   * Add n as an additional node that is explained by the most recent
+   * propagation that was pushed back. This is used for nodes that we may
+   * propagate but that are not the propagation itself, nor its rewritten form.
+   */
+  void pushBackAlias(TNode n);
+
   /** Assert this literal to the eq engine. Common functionality for
    *   * assertionToEqualityEngine(..)
    *   * equalsConstant(c)
@@ -234,8 +238,9 @@ class ArithCongruenceManager : protected EnvObj
    */
   TrustNode explainInternal(TNode internal);
 
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_watchedVariables;
     IntStat d_watchedVariableIsZero;
     IntStat d_watchedVariableIsNotZero;
@@ -251,6 +256,6 @@ class ArithCongruenceManager : protected EnvObj
 
 }; /* class ArithCongruenceManager */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

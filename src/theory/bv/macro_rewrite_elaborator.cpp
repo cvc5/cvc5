@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,7 +77,24 @@ bool MacroRewriteElaborator::ensureProofForSimplify(CDProof* cdp,
   }
   if (consts.size() <= 1 || nconsts.empty())
   {
-    Assert(false) << "BV simplify: no constant eval";
+    // As a corner case, (xor (not a) a) --> #b1111 is not handled by RARE
+    // reconstruction, we do (xor (not a) a) --> (xor (not a) a #b0000) -->
+    // #b1111 instead.
+    if (k == Kind::BITVECTOR_XOR && eq[1].isConst())
+    {
+      std::vector<Node> children(eq[0].begin(), eq[0].end());
+      Node nil = expr::getNullTerminator(nm, k, eq[1].getType());
+      children.push_back(nil);
+      Node t = nm->mkNode(Kind::BITVECTOR_XOR, children);
+      Node equiv = eq[0].eqNode(t);
+      cdp->addStep(equiv, ProofRule::ACI_NORM, {}, {equiv});
+      Node equiv2 = t.eqNode(eq[1]);
+      // just try simple
+      cdp->addTrustedStep(
+          equiv2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+      cdp->addStep(eq, ProofRule::TRANS, {equiv, equiv2}, {});
+      return true;
+    }
     return false;
   }
   std::vector<Node> transEq;
@@ -206,7 +220,7 @@ bool MacroRewriteElaborator::ensureProofForConcatMerge(CDProof* cdp,
     cdp->addStep(eq, ProofRule::TRANS, {equiv1, equiv2}, {});
     return true;
   }
-  Assert(false) << "...mismatch " << equiv2[1] << " " << eq[1];
+  DebugUnhandled() << "...mismatch " << equiv2[1] << " " << eq[1];
   return false;
 }
 
@@ -391,7 +405,7 @@ bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
                            : nm->mkNode(Kind::BITVECTOR_CONCAT, cpost);
           Node cg = nm->mkNode(Kind::BITVECTOR_CONCAT, {npre, c[i], npost});
           Trace("ajr-temp") << "Groupd " << c << " to " << cg << std::endl;
-          Assert(cg.getType() == c.getType());
+          AssertEqual(cg.getType(), c.getType());
           // should be shown by ACI_NORM
           tcpg.addRewriteStep(c,
                               cg,
@@ -406,7 +420,7 @@ bool MacroRewriteElaborator::ensureProofForAndOrXorConcatPullup(CDProof* cdp,
   }
   if (!addedRewrite)
   {
-    Assert(false) << "Failed to elaborate and-or-xor-concat-pullup";
+    DebugUnhandled() << "Failed to elaborate and-or-xor-concat-pullup";
     return false;
   }
   std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(eq[0]);

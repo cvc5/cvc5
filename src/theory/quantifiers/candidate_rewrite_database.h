@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Abdalrhman Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,8 +112,6 @@ class CandidateRewriteDatabase : public ExprMiner
    * sygusRewSynthAccel()).
    */
   bool d_rewAccel;
-  /** if true, we silence the output of candidate rewrites */
-  bool d_silent;
   /** if true, we filter pairs of terms to check equivalence */
   bool d_filterPairs;
   /** whether we are using sygus */

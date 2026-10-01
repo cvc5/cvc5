@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +64,7 @@ void ProofPostprocessDsl::reconstruct(
 }
 
 bool ProofPostprocessDsl::shouldUpdate(std::shared_ptr<ProofNode> pn,
-                                       const std::vector<Node>& fa,
+                                       CVC5_UNUSED const std::vector<Node>& fa,
                                        bool& continueUpdate)
 {
   ProofRule id = pn->getRule();
@@ -103,7 +100,7 @@ void ProofPostprocessDsl::finalize(std::shared_ptr<ProofNode> pn)
 
 bool ProofPostprocessDsl::update(Node res,
                                  ProofRule id,
-                                 const std::vector<Node>& children,
+                                 CVC5_UNUSED const std::vector<Node>& children,
                                  const std::vector<Node>& args,
                                  CDProof* cdp,
                                  bool& continueUpdate)
@@ -166,8 +163,9 @@ bool ProofPostprocessDsl::update(Node res,
     return true;
   }
   // clean up traversing, since we are setting continueUpdate to false
-  Assert (!d_traversing.empty());
-  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get() << std::endl;
+  Assert(!d_traversing.empty());
+  Trace("pp-dsl-process") << "...pop due to fail " << d_traversing.back().get()
+                          << std::endl;
   d_traversing.pop_back();
   // otherwise no update
   return false;

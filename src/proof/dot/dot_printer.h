@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Vinícius Braga Freire, Diego Della Rocca de Camargos, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -188,7 +185,7 @@ class DotPrinter : protected EnvObj
   inline bool isSCOPE(const ProofRule& rule);
 
   /** Verify if the rule is in the theory lemma range (open interval between
-   * CNF_ITE_NEG3 and LFSC_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
+   * CNF_ITE_NEG3 and ALETHE_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
    * @param rule The rule to be verified.
    * @return The bool indicating whether the rule is for a theory lemma
    * range.

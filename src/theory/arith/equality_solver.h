@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,9 +91,13 @@ class EqualitySolver : protected EnvObj
                                      bool value) override;
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyMerge(TNode t1, TNode t2) override {}
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
+    void eqNotifyNewClass(CVC5_UNUSED TNode t) override {}
+    void eqNotifyMerge(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) override {}
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
+    {
+    }
 
    private:
     /** reference to parent */

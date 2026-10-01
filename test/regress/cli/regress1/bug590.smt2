@@ -1,6 +1,7 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --arrays-exp
-; SCRUBBER: grep -o "unknown\|((charlst2 ("
-; EXPECT: unknown
+; SCRUBBER: grep -o "sat\|((charlst2 ("
+; EXPECT: sat
 ; EXPECT: ((charlst2 (
 
 (set-logic ALL)

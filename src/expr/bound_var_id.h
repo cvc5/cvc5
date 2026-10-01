@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -139,6 +136,11 @@ enum class BoundVarId
   QUANT_REW_PRENEX,
   /** Mapping sygus variables to builtin variables */
   QUANT_SYGUS_BUILTIN_FV,
+  /**
+   * Cached on a canonical variable index and type class, used by
+   * expr::TermCanonize when building alpha-invariant representative terms.
+   */
+  TERM_CANONIZE,
   /**
    * A variable used by the valid witness proof generator. This is cached based
    * on the skolem that witnesses the variable, whose skolem identifier is one

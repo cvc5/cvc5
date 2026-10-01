@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +22,7 @@ class TestApiWhiteOp : public TestApi
 
 TEST_F(TestApiWhiteOp, opFromKind)
 {
-  Op plus(&d_solver->getTermManager(), Kind::ADD);
+  Op plus(d_solver->getTermManager().d_nm, Kind::ADD);
   ASSERT_FALSE(plus.isIndexed());
   ASSERT_EQ(0, plus.getNumIndices());
   ASSERT_EQ(plus, d_tm.mkOp(Kind::ADD));

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -51,7 +48,7 @@ class ModelConsDefault : public ModelCons
    * It furthermore computes the model value for each of these length
    * terms based on the valuation class.
    */
-  void separateByLength(TheoryModel * m,
+  void separateByLength(TheoryModel* m,
                         const std::vector<Node>& ns,
                         std::vector<std::vector<Node>>& cols,
                         std::vector<Node>& lts) override;

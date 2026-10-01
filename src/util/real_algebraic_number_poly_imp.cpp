@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,9 +62,10 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
 {
 }
 
-RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
-                                         long lower,
-                                         long upper)
+RealAlgebraicNumber::RealAlgebraicNumber(
+    CVC5_UNUSED const std::vector<long>& coefficients,
+    CVC5_UNUSED long lower,
+    CVC5_UNUSED long upper)
 {
 #ifdef CVC5_ASSERTIONS
   for (long c : coefficients)
@@ -88,9 +86,9 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(
-    const std::vector<Integer>& coefficients,
-    const Rational& lower,
-    const Rational& upper)
+    CVC5_UNUSED const std::vector<Integer>& coefficients,
+    CVC5_UNUSED const Rational& lower,
+    CVC5_UNUSED const Rational& upper)
 {
 #ifdef CVC5_POLY_IMP
   d_isRational = false;
@@ -101,9 +99,9 @@ RealAlgebraicNumber::RealAlgebraicNumber(
 #endif
 }
 RealAlgebraicNumber::RealAlgebraicNumber(
-    const std::vector<Rational>& coefficients,
-    const Rational& lower,
-    const Rational& upper)
+    CVC5_UNUSED const std::vector<Rational>& coefficients,
+    CVC5_UNUSED const Rational& lower,
+    CVC5_UNUSED const Rational& upper)
 {
 #ifdef CVC5_POLY_IMP
   d_isRational = false;

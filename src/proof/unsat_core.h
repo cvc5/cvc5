@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,7 +64,7 @@ class CVC5_EXPORT UnsatCore
   std::vector<Node> d_core;
   /** The names of assertions in the above core */
   std::vector<std::string> d_names;
-};/* class UnsatCore */
+}; /* class UnsatCore */
 
 /** Print the unsat core to stream out */
 std::ostream& operator<<(std::ostream& out, const UnsatCore& core);

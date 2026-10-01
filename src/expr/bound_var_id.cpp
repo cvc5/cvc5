@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,6 +44,7 @@ const char* toString(BoundVarId id)
     case BoundVarId::QUANT_REW_MINISCOPE: return "QUANT_REW_MINISCOPE";
     case BoundVarId::QUANT_REW_PRENEX: return "QUANT_REW_PRENEX";
     case BoundVarId::QUANT_SYGUS_BUILTIN_FV: return "QUANT_SYGUS_BUILTIN_FV";
+    case BoundVarId::TERM_CANONIZE: return "TERM_CANONIZE";
     case BoundVarId::VALID_WITNESS_VAR: return "VALID_WITNESS_VAR";
     default: return "?";
   }

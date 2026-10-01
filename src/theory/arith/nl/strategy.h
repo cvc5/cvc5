@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Yoni Zohar, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,6 +45,13 @@ enum class InferStep
   IAND_FULL,
   /** An initial IAND check */
   IAND_INITIAL,
+
+  /** Initialize the PIAND solver */
+  PIAND_INIT,
+  /** A full PIAND check */
+  PIAND_FULL,
+  /** An initial PIAND check */
+  PIAND_INITIAL,
 
   /** Initialize the POW2 solver */
   POW2_INIT,

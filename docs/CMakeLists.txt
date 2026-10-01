@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Aina Niemetz, Mathias Preiner
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -13,7 +10,7 @@
 # The build system configuration.
 ##
 find_package(Sphinx REQUIRED)
-check_python_module(breathe)
+check_python_module(breathe "breathe<5")
 check_python_module(sphinxcontrib.bibtex sphinxcontrib-bibtex)
 check_python_module(sphinx_tabs.tabs sphinx-tabs)
 check_python_module(sphinxcontrib.programoutput sphinxcontrib-programoutput)
@@ -28,6 +25,15 @@ if(BUILD_DOCS_GA)
   set(GOOGLE_ANALYTICS_ENABLE "True")
 else()
   set(GOOGLE_ANALYTICS_ENABLE "False")
+endif()
+
+# Use permanent links to the tagged sources in the documentation of a release
+# (e.g. .../blob/cvc5-x.y.z/...), and links to the main branch otherwise, so
+# that links keep pointing at the files as they were at release time (#12194).
+if(CVC5_IS_RELEASE STREQUAL "true")
+  set(CVC5_GIT_REF "cvc5-${CVC5_VERSION_NUMBER}")
+else()
+  set(CVC5_GIT_REF "main")
 endif()
 
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)

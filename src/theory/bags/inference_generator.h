@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@
 
 #include "expr/node.h"
 #include "infer_info.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -32,10 +30,10 @@ class SolverState;
  * An inference generator class. This class is used by the core solver to
  * generate lemmas
  */
-class InferenceGenerator
+class InferenceGenerator : protected EnvObj
 {
  public:
-  InferenceGenerator(NodeManager* nm, SolverState* state, InferenceManager* im);
+  InferenceGenerator(Env& env, SolverState* state, InferenceManager* im);
 
   /**
    * @param n a node of the form (bag.count e A)
@@ -246,14 +244,14 @@ class InferenceGenerator
    *          (>= count_u_i 1)
    *          (or
    *           (and
-   *            (= (f u_i) e)            
+   *            (= (f u_i) e)
    *            (= (sum i) (+ (sum (- i 1)) count_u_i))
    *            (forall ((j Int))
    *                    (or
    *                     (not (and (< i j) (<= j size)))
    *                     (not (= (u i) (u j))))))
    *           (and
-   *            (distinct (f u_i) e)   
+   *            (distinct (f u_i) e)
    *            (= (sum i) (sum (- i 1)))))))))))
    * where uf: Int -> E is an uninterpreted function from integers to the
    * type of the elements of A,
@@ -268,17 +266,29 @@ class InferenceGenerator
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param y is a node of Type T
-   * @return an inference that represents the following conjunction
-   * (=> (>= (bag.count y skolem) 1)
-   *   (and
-   *     (= (f x) y)
-   *     (= (bag.count x A) (bag.count y skolem))
+   * @return an inference that represents the following equality
+   * (= (bag.count y skolem)
+   *   (ite (= y (f x))
+   *     (bag.count x A)
+   *     0
    *   )
    * )
    * where skolem is a fresh variable equals (bag.map f A))
    * and x is a fresh variable unique per n, y.
    */
   InferInfo mapDownInjective(Node n, Node y);
+
+  /**
+   * @param n is (bag.map f A) where f is an injective function (-> E T),
+   * A a bag of type (Bag E)
+   * @param x is an element of type E
+   * @return an inference that represents the following implication
+   * (=
+   *   (bag.count x A)
+   *   (bag.count (f x) skolem)
+   * where skolem is a fresh variable equals (bag.map f A))
+   */
+  InferInfo mapUpInjective(Node n, Node x);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
@@ -547,6 +557,18 @@ class InferenceGenerator
    * generate skolem variable for node n and add pending lemma for the equality
    */
   Node registerAndAssertSkolemLemma(Node& n);
+  /**
+   * @param f a function of type (-> E T)
+   * @param x a term of type E
+   * @return the application of f to x, beta-reduced if f is defined by a
+   * lambda.
+   *
+   * The terms this class builds are asserted as internal facts and so never go
+   * through preprocessing. We therefore have to perform the beta reduction
+   * that HoExtension::ppRewrite would otherwise have performed, see
+   * FunctionConst::getDefinition.
+   */
+  Node mkApplyFunction(const Node& f, const Node& x);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;

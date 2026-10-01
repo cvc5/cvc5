@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -67,8 +64,7 @@ TypeNode TypeChecker::computeType(NodeManager* nodeManager,
   // Infer the type
   switch (n.getKind())
   {
-
-      // clang-format off
+    // clang-format off
 ${typerules}
       // clang-format on
 
@@ -98,7 +94,7 @@ ${construles}
 
   return false;
 
-}/* TypeChecker::computeIsConst */
+} /* TypeChecker::computeIsConst */
 
 }  // namespace expr
 }  // namespace cvc5::internal

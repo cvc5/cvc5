@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-interpolants --interpolants-mode=default --check-interpolants
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0

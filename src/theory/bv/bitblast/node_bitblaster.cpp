@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -108,7 +105,7 @@ Node NodeBitblaster::getStoredBBAtom(TNode node)
   return negated ? atom_bb.negate() : atom_bb;
 }
 
-Node NodeBitblaster::getModelFromSatSolver(TNode a, bool fullModel)
+Node NodeBitblaster::getModelFromSatSolver(TNode a, CVC5_UNUSED bool fullModel)
 {
   NodeManager* nm = a.getNodeManager();
   if (!hasBBTerm(a))

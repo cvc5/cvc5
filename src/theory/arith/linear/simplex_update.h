@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,15 +28,16 @@
 
 #include <optional>
 
+#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/constraint_forward.h"
-#include "theory/arith/delta_rational.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-enum WitnessImprovement {
+enum WitnessImprovement
+{
   ConflictFound = 0,
   ErrorDropped = 1,
   FocusImproved = 2,
@@ -50,38 +48,37 @@ enum WitnessImprovement {
   AntiProductive = 7
 };
 
-inline bool strongImprovement(WitnessImprovement w){
+inline bool strongImprovement(WitnessImprovement w)
+{
   return w <= FocusImproved;
 }
 
-inline bool improvement(WitnessImprovement w){
-  return w <= FocusShrank;
-}
+inline bool improvement(WitnessImprovement w) { return w <= FocusShrank; }
 
-inline bool degenerate(WitnessImprovement w){
-  switch(w){
-  case Degenerate:
-  case BlandsDegenerate:
-  case HeuristicDegenerate:
-    return true;
-  default:
-    return false;
+inline bool degenerate(WitnessImprovement w)
+{
+  switch (w)
+  {
+    case Degenerate:
+    case BlandsDegenerate:
+    case HeuristicDegenerate: return true;
+    default: return false;
   }
 }
 
-std::ostream& operator<<(std::ostream& out,  WitnessImprovement w);
+std::ostream& operator<<(std::ostream& out, WitnessImprovement w);
 
 /**
  * This class summarizes both potential:
  * - pivot-and-update operations or
  * - a pure update operation.
- * This stores enough information for the various algorithms  hat consider these operations.
- * These require slightly different pieces of information at different points
- * so they are a bit verbose and paranoid.
+ * This stores enough information for the various algorithms  hat consider these
+ * operations. These require slightly different pieces of information at
+ * different points so they are a bit verbose and paranoid.
  */
-class UpdateInfo {
-private:
-
+class UpdateInfo
+{
+ private:
   /**
    * The nonbasic variables under consideration.
    * This is either the entering variable on a pivot and update
@@ -114,7 +111,8 @@ private:
 
   /**
    * This is true if the pivot-and-update is *known* to cause a conflict.
-   * This can only be true if it was constructed through the static conflict(...) method.
+   * This can only be true if it was constructed through the static
+   * conflict(...) method.
    */
   bool d_foundConflict;
 
@@ -131,10 +129,11 @@ private:
   std::optional<const Rational*> d_tableauCoefficient;
 
   /**
-   * This is the constraint that nonbasic is basic is updating s.t. its variable is against it.
-   * This has 3 different possibilities:
+   * This is the constraint that nonbasic is basic is updating s.t. its variable
+   * is against it. This has 3 different possibilities:
    * - Unbounded : then this is NullConstraint and unbounded() is true.
-   * - Pivot-And-Update: then this is not NullConstraint and the variable is not d_nonbasic.
+   * - Pivot-And-Update: then this is not NullConstraint and the variable is not
+   * d_nonbasic.
    * - Update: then this is not NullConstraint and the variable is d_nonbasic.
    */
   ConstraintP d_limiting;
@@ -145,16 +144,20 @@ private:
    * This returns true if
    * d_nonbasicDelta is zero() or its sgn() must agree with d_nonbasicDirection.
    */
-  bool debugSgnAgreement() const {
+  bool debugSgnAgreement() const
+  {
     int deltaSgn = d_nonbasicDelta.value().sgn();
     return deltaSgn == 0 || deltaSgn == d_nonbasicDirection;
   }
 
   /** This private constructor allows for setting conflict to true. */
-  UpdateInfo(bool conflict, ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP lim);
+  UpdateInfo(bool conflict,
+             ArithVar nb,
+             const DeltaRational& delta,
+             const Rational& r,
+             ConstraintP lim);
 
-public:
-
+ public:
   /** This constructs an uninitialized UpdateInfo. */
   UpdateInfo();
 
@@ -170,45 +173,46 @@ public:
    */
   void updateUnbounded(const DeltaRational& d, int ec, int f);
 
-
   void updatePureFocus(const DeltaRational& d, ConstraintP c);
-  //void updatePureError(const DeltaRational& d, Constraint c, int e);
-  //void updatePure(const DeltaRational& d, Constraint c, int e, int f);
+  // void updatePureError(const DeltaRational& d, Constraint c, int e);
+  // void updatePure(const DeltaRational& d, Constraint c, int e, int f);
 
   /**
    * This updates the nonBasicDelta to d and limiting to c.
    * This clears errorChange() and focusDir().
    */
-  void updatePivot(const DeltaRational& d, const Rational& r,  ConstraintP c);
+  void updatePivot(const DeltaRational& d, ConstraintP c);
 
   /**
    * This updates the nonBasicDelta to d, limiting to c, and errorChange to e.
    * This clears focusDir().
    */
-  void updatePivot(const DeltaRational& d, const Rational& r, ConstraintP c, int e);
+  void updatePivot(const DeltaRational& d,
+                   const Rational& r,
+                   ConstraintP c,
+                   int e);
 
   /**
    * This updates the nonBasicDelta to d, limiting to c, errorChange to e and
    * focusDir to f.
    */
   void witnessedUpdate(const DeltaRational& d, ConstraintP c, int e, int f);
-  void update(const DeltaRational& d, const Rational& r, ConstraintP c, int e, int f);
+  void update(
+      const DeltaRational& d, const Rational& r, ConstraintP c, int e, int f);
 
-
-  static UpdateInfo conflict(ArithVar nb, const DeltaRational& delta, const Rational& r, ConstraintP lim);
+  static UpdateInfo conflict(ArithVar nb,
+                             const DeltaRational& delta,
+                             const Rational& r,
+                             ConstraintP lim);
 
   inline ArithVar nonbasic() const { return d_nonbasic; }
-  inline bool uninitialized() const {
-    return d_nonbasic == ARITHVAR_SENTINEL;
-  }
+  inline bool uninitialized() const { return d_nonbasic == ARITHVAR_SENTINEL; }
 
   /**
    * There is no limiting value to the improvement of the focus.
    * If this is true, this never describes an update.
    */
-  inline bool unbounded() const {
-    return d_limiting == NullConstraint;
-  }
+  inline bool unbounded() const { return d_limiting == NullConstraint; }
 
   /**
    * The update either describes a pivotAndUpdate operation
@@ -221,21 +225,24 @@ public:
 
   /**
    * Returns true if this is *known* to find a conflict.
-   * If true, this must have been made through the static conflict(...) function.
+   * If true, this must have been made through the static conflict(...)
+   * function.
    */
   bool foundConflict() const { return d_foundConflict; }
 
   /** Returns the direction nonbasic is supposed to move. */
-  inline int nonbasicDirection() const{  return d_nonbasicDirection; }
+  inline int nonbasicDirection() const { return d_nonbasicDirection; }
 
-  /** Requires errorsChange to be set through setErrorsChange or updateProposal. */
+  /** Requires errorsChange to be set through setErrorsChange or updateProposal.
+   */
   inline int errorsChange() const { return d_errorsChange.value(); }
 
   /**
    * If errorsChange has been set, return errorsChange().
    * Otherwise, return def.
    */
-  inline int errorsChangeSafe(int def) const {
+  inline int errorsChangeSafe(int def) const
+  {
     if (d_errorsChange)
     {
       return d_errorsChange.value();
@@ -247,17 +254,19 @@ public:
   }
 
   /** Sets the errorChange. */
-  void setErrorsChange(int ec){
+  void setErrorsChange(int ec)
+  {
     d_errorsChange = ec;
     updateWitness();
   }
 
-
-  /** Requires errorsChange to be set through setErrorsChange or updateProposal. */
+  /** Requires errorsChange to be set through setErrorsChange or updateProposal.
+   */
   inline int focusDirection() const { return d_focusDirection.value(); }
 
   /** Sets the focusDirection. */
-  void setFocusDirection(int fd){
+  void setFocusDirection(int fd)
+  {
     Assert(-1 <= fd && fd <= 1);
     d_focusDirection = fd;
     updateWitness();
@@ -268,51 +277,58 @@ public:
    * coefficient for this to be safe.
    * The burden for this being safe is on the user!
    */
-  void determineFocusDirection(){
+  void determineFocusDirection()
+  {
     const int deltaSgn = d_nonbasicDelta.value().sgn();
     setFocusDirection(deltaSgn * d_nonbasicDirection);
   }
 
   /** Requires nonbasicDelta to be set through updateProposal(...). */
   const DeltaRational& nonbasicDelta() const { return d_nonbasicDelta.value(); }
-  const Rational& getCoefficient() const {
+  const Rational& getCoefficient() const
+  {
     Assert(describesPivot());
-    Assert(d_tableauCoefficient.value() != NULL);
+    Assert(d_tableauCoefficient.value() != nullptr);
     return *(d_tableauCoefficient.value());
   }
-  int basicDirection() const {
+  int basicDirection() const
+  {
     return nonbasicDirection() * (getCoefficient().sgn());
   }
 
   /** Returns the limiting constraint. */
-  inline ConstraintP limiting() const {
-    return d_limiting;
-  }
+  inline ConstraintP limiting() const { return d_limiting; }
 
-  WitnessImprovement getWitness(bool useBlands = false) const{
+  WitnessImprovement getWitness(bool useBlands = false) const
+  {
     Assert(d_witness == computeWitness());
 
-    if(d_witness == Degenerate){
-      if(useBlands){
+    if (d_witness == Degenerate)
+    {
+      if (useBlands)
+      {
         return BlandsDegenerate;
-      }else{
+      }
+      else
+      {
         return HeuristicDegenerate;
       }
-    }else{
+    }
+    else
+    {
       return d_witness;
     }
   }
 
   const DeltaRational& focusChange() const { return d_focusChange.value(); }
-  void setFocusChange(const DeltaRational& fc) {
-    d_focusChange = fc;
-  }
+  void setFocusChange(const DeltaRational& fc) { d_focusChange = fc; }
 
   /** Outputs the UpdateInfo into out. */
   void output(std::ostream& out) const;
 
-private:
-  void updateWitness() {
+ private:
+  void updateWitness()
+  {
     d_witness = computeWitness();
     Assert(describesPivot() || improvement(d_witness));
   }
@@ -323,11 +339,15 @@ private:
    *
    * This is safe if:
    * - d_foundConflict is true, or
-   * - d_foundConflict is false and d_errorsChange has been set and d_errorsChange < 0, or
-   * - d_foundConflict is false and d_errorsChange has been set and d_errorsChange >= 0 and d_focusDirection has been set.
+   * - d_foundConflict is false and d_errorsChange has been set and
+   * d_errorsChange < 0, or
+   * - d_foundConflict is false and d_errorsChange has been set and
+   * d_errorsChange >= 0 and d_focusDirection has been set.
    */
-  WitnessImprovement computeWitness() const {
-    if(d_foundConflict){
+  WitnessImprovement computeWitness() const
+  {
+    if (d_foundConflict)
+    {
       return ConflictFound;
     }
     else if (d_errorsChange && d_errorsChange.value() < 0)
@@ -350,11 +370,10 @@ private:
     }
     return AntiProductive;
   }
-
 };
 
 std::ostream& operator<<(std::ostream& out, const UpdateInfo& up);
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Clark Barrett, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,17 +29,19 @@ namespace cvc5::context {
 
 #ifndef CVC5_DEBUG_CONTEXT_MEMORY_MANAGER
 
-void ContextMemoryManager::newChunk() {
-
+void ContextMemoryManager::newChunk()
+{
   // Increment index to chunk list
   ++d_indexChunkList;
   Assert(d_chunkList.size() == d_indexChunkList)
       << "Index should be at the end of the list";
 
   // Create new chunk if no free chunk available
-  if(d_freeChunks.empty()) {
+  if (d_freeChunks.empty())
+  {
     d_chunkList.push_back((char*)malloc(chunkSizeBytes));
-    if(d_chunkList.back() == NULL) {
+    if (d_chunkList.back() == nullptr)
+    {
       throw std::bad_alloc();
     }
 
@@ -51,7 +50,8 @@ void ContextMemoryManager::newChunk() {
 #endif /* CVC5_VALGRIND */
   }
   // If there is a free chunk, use that
-  else {
+  else
+  {
     d_chunkList.push_back(d_freeChunks.back());
     d_freeChunks.pop_back();
   }
@@ -60,12 +60,13 @@ void ContextMemoryManager::newChunk() {
   d_endChunk = d_nextFree + chunkSizeBytes;
 }
 
-
-ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
+ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0)
+{
   // Create initial chunk
   d_chunkList.push_back((char*)malloc(chunkSizeBytes));
   d_nextFree = d_chunkList.back();
-  if(d_nextFree == NULL) {
+  if (d_nextFree == nullptr)
+  {
     throw std::bad_alloc();
   }
   d_endChunk = d_nextFree + chunkSizeBytes;
@@ -77,30 +78,33 @@ ContextMemoryManager::ContextMemoryManager() : d_indexChunkList(0) {
 #endif /* CVC5_VALGRIND */
 }
 
-
-ContextMemoryManager::~ContextMemoryManager() {
+ContextMemoryManager::~ContextMemoryManager()
+{
 #ifdef CVC5_VALGRIND
   VALGRIND_DESTROY_MEMPOOL(this);
 #endif /* CVC5_VALGRIND */
 
   // Delete all chunks
-  while(!d_chunkList.empty()) {
+  while (!d_chunkList.empty())
+  {
     free(d_chunkList.back());
     d_chunkList.pop_back();
   }
-  while(!d_freeChunks.empty()) {
+  while (!d_freeChunks.empty())
+  {
     free(d_freeChunks.back());
     d_freeChunks.pop_back();
   }
 }
 
-
-void* ContextMemoryManager::newData(size_t size) {
+void* ContextMemoryManager::newData(size_t size)
+{
   // Use next available free location in current chunk
   void* res = (void*)d_nextFree;
   d_nextFree += size;
   // Check if the request is too big for the chunk
-  if(d_nextFree > d_endChunk) {
+  if (d_nextFree > d_endChunk)
+  {
     newChunk();
     res = (void*)d_nextFree;
     d_nextFree += size;
@@ -116,8 +120,8 @@ void* ContextMemoryManager::newData(size_t size) {
   return res;
 }
 
-
-void ContextMemoryManager::push() {
+void ContextMemoryManager::push()
+{
 #ifdef CVC5_VALGRIND
   d_allocations.push_back(std::vector<char*>());
 #endif /* CVC5_VALGRIND */
@@ -128,8 +132,8 @@ void ContextMemoryManager::push() {
   d_indexChunkListStack.push_back(d_indexChunkList);
 }
 
-
-void ContextMemoryManager::pop() {
+void ContextMemoryManager::pop()
+{
 #ifdef CVC5_VALGRIND
   for (auto allocation : d_allocations.back())
   {
@@ -147,7 +151,8 @@ void ContextMemoryManager::pop() {
   d_endChunkStack.pop_back();
 
   // Free all the new chunks since the last push
-  while(d_indexChunkList > d_indexChunkListStack.back()) {
+  while (d_indexChunkList > d_indexChunkListStack.back())
+  {
     d_freeChunks.push_back(d_chunkList.back());
 #ifdef CVC5_VALGRIND
     VALGRIND_MAKE_MEM_NOACCESS(d_chunkList.back(), chunkSizeBytes);
@@ -158,7 +163,8 @@ void ContextMemoryManager::pop() {
   d_indexChunkListStack.pop_back();
 
   // Delete excess free chunks
-  while(d_freeChunks.size() > maxFreeChunks) {
+  while (d_freeChunks.size() > maxFreeChunks)
+  {
     free(d_freeChunks.front());
     d_freeChunks.pop_front();
   }

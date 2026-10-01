@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -63,6 +60,7 @@ class ContextManager;
 class SolverEngineState;
 class ResourceOutListener;
 class CheckModels;
+class ExpandDefs;
 /** Subsolvers */
 class SmtSolver;
 class SmtDriver;
@@ -75,6 +73,7 @@ class FindSynthSolver;
 struct SolverEngineStatistics;
 class PfManager;
 class UnsatCoreManager;
+class TimeoutCoreManager;
 
 }  // namespace smt
 
@@ -390,19 +389,14 @@ class CVC5_EXPORT SolverEngine
    *
    * vars contains the arguments of the function-to-synthesize. These variables
    * are also stored to be used during solving.
-   *
-   * isInv determines whether the function-to-synthesize is actually an
-   * invariant. This information is necessary if we are dumping a command
-   * corresponding to this declaration, so that it can be properly printed.
    */
   void declareSynthFun(Node func,
                        TypeNode sygusType,
-                       bool isInv,
                        const std::vector<Node>& vars);
   /**
    * Same as above, without a sygus type.
    */
-  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
+  void declareSynthFun(Node func, const std::vector<Node>& vars);
 
   /**
    * Add a regular sygus constraint or assumption.
@@ -834,26 +828,6 @@ class CVC5_EXPORT SolverEngine
   void setTimeLimit(uint64_t millis);
 
   /**
-   * Get the current resource usage count for this SolverEngine.  This
-   * function can be used to ascertain reasonable values to pass as
-   * resource limits to setResourceLimit().
-   */
-  unsigned long getResourceUsage() const;
-
-  /** Get the current millisecond count for this SolverEngine.  */
-  unsigned long getTimeUsage() const;
-
-  /**
-   * Get the remaining resources that can be consumed by this SolverEngine
-   * according to the currently-set cumulative resource limit.  If there
-   * is not a cumulative resource limit set, this function throws a
-   * ModalException.
-   *
-   * @throw ModalException
-   */
-  unsigned long getResourceRemaining() const;
-
-  /**
    * Print statistics from the statistics registry in the env object owned by
    * this SolverEngine. Safe to use in a signal handler.
    */
@@ -875,19 +849,19 @@ class CVC5_EXPORT SolverEngine
   ResourceManager* getResourceManager() const;
 
   /**
-   * Get substituted assertions.
-   *
-   * Return the set of assertions, after applying top-level substitutions.
-   */
-  std::vector<Node> getSubstitutedAssertions();
-
-  /**
    * Get the enviornment from this solver engine.
    */
   Env& getEnv();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
+
+  /**
+   * Get substituted assertions.
+   *
+   * Return the set of assertions, after applying top-level substitutions.
+   */
+  std::vector<Node> getSubstitutedAssertions();
 
   // disallow copy/assignment
   SolverEngine(const SolverEngine&) = delete;
@@ -932,6 +906,17 @@ class CVC5_EXPORT SolverEngine
 
   /** Internal version of assertFormula */
   void assertFormulaInternal(const Node& formula);
+
+  /**
+   * If we are producing proofs that do not permit subtypes (mixed arithmetic),
+   * return the result of eliminating subtypes from n; otherwise return n
+   * unchanged. This is applied to formulas and definitions before they are
+   * added to the assertions, so that they match the subtype-eliminated proof
+   * and do not require a trust step for an irreducible mixed-arithmetic term
+   * (e.g. division by zero). This is a no-op for internal subsolvers, since it
+   * only impacts having exportable, complete proofs.
+   */
+  Node eliminateSubtypesForProof(const Node& n) const;
 
   /**
    * Check that a generated proof checks. This method is the same as getProof,
@@ -985,6 +970,17 @@ class CVC5_EXPORT SolverEngine
    * this method was called.
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
+  /**
+   * Check that a model is available, i.e. that cvc5 is producing models and is
+   * in "SAT mode", otherwise throw a (recoverable) exception. This is the
+   * portion of getAvailableModel that does not require the theory model to
+   * have been built. It is used by get-value in cases where the value of a
+   * term can be determined without building a model, see getValue.
+   *
+   * @param c used for giving an error message to indicate the context
+   * this method was called.
+   */
+  void checkModelAvailable(const char* c) const;
   /**
    * Get the available proof, which is that of the prop engine if SAT
    * proof producing, or else a dummy proof SAT_REFUTATION whose assumptions
@@ -1110,6 +1106,14 @@ class CVC5_EXPORT SolverEngine
   std::unique_ptr<smt::CheckModels> d_checkModels;
 
   /**
+   * The utility used for expanding definitions, which is used when getting
+   * model values. Note this object maintains a cache of expanded forms that
+   * is valid for the lifetime of this solver engine, see
+   * ExpandDefs::expandDefinitions.
+   */
+  std::unique_ptr<smt::ExpandDefs> d_expDef;
+
+  /**
    * The proof manager, which manages all things related to checking,
    * processing, and printing proofs.
    */
@@ -1119,6 +1123,10 @@ class CVC5_EXPORT SolverEngine
    * The unsat core manager, which produces unsat cores and related information
    * from refutations. */
   std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
+  /**
+   * The timeout core manager, for responding to get-timeout-core commands.
+   */
+  std::unique_ptr<smt::TimeoutCoreManager> d_tcm;
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;

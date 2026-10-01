@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,11 +37,11 @@ namespace smt {
  * connecting proofs of preprocessing, and expanding macro ProofRule
  * applications.
  */
-class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvObj
+class ProofPostprocessCallback : public ProofNodeUpdaterCallback,
+                                 protected EnvObj
 {
  public:
-  ProofPostprocessCallback(Env& env,
-                           bool updateScopedAssumptions);
+  ProofPostprocessCallback(Env& env, bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -94,13 +91,11 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * expanded in macro elimination by this class.
    */
   HistogramStat<ProofRule> d_macroExpand;
-  /** Whether we are collecting all trusted rules */
-  bool d_collectAllTrusted;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
   /** Mapping assumptions to their proof from preprocessing */
-  std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
+  std::map<Node, std::shared_ptr<ProofNode>> d_assumpToProof;
   //---------------------------------end reset at the begining of each update
   /** Return true if id is a proof rule that we should expand */
   bool shouldExpand(ProofRule id) const;
@@ -185,7 +180,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   bool addToTransChildren(Node eq,
                           std::vector<Node>& tchildren,
                           bool isSymm = false);
-
 };
 
 /**

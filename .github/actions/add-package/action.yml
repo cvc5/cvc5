@@ -7,6 +7,8 @@ inputs:
     description: target name of the package
   shell:
     default: bash
+  dry-run:
+    default: false
 outputs:
   install-path:
     description: path to the installation directory
@@ -30,13 +32,11 @@ runs:
         rm -rf ${{ inputs.build-dir }}/install/lib/python*
         rm -rf ${{ inputs.build-dir }}/install/lib/site-packages
 
-        if [[ "$MSYSTEM" == "MINGW64" ]]; then
+        if [[ "$MSYSTEM" == "CLANG64" ]]; then
           if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ]; then
-            cp /mingw64/bin/libgcc_s_seh-1.dll ${{ inputs.build-dir }}/install/bin/
-            cp /mingw64/bin/libstdc++-6.dll ${{ inputs.build-dir }}/install/bin/
-            cp /mingw64/bin/libwinpthread-1.dll ${{ inputs.build-dir }}/install/bin/
+            cp /clang64/bin/libc++.dll ${{ inputs.build-dir }}/install/bin/
           else
-            cp /mingw64/lib/libgmp.a ${{ inputs.build-dir }}/install/lib/
+            cp /clang64/lib/libgmp.a ${{ inputs.build-dir }}/install/lib/
           fi
         fi
 
@@ -64,14 +64,14 @@ runs:
         echo "::endgroup::"
 
     - name: Store to latest
-      if: github.ref == 'refs/heads/main'
+      if: ${{ github.ref == 'refs/heads/main' && inputs.dry-run != 'true' }}
       uses: ./.github/actions/store-to-latest
       with:
         asset-filename: ${{ inputs.package-name }}.zip
         shell: ${{ inputs.shell }}
 
     - name: Store to release
-      if: startsWith(github.ref, 'refs/tags/')
+      if: ${{ startsWith(github.ref, 'refs/tags/') && inputs.dry-run != 'true' }}
       shell: ${{ inputs.shell }}
       env:
         GH_TOKEN: ${{ github.token }}

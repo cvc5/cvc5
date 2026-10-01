@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -61,7 +58,8 @@ class QuantifiersRegistry : public QuantifiersUtil
    */
   void setOwner(Node q, QuantifiersModule* m, int32_t priority = 0);
   /**
-   * Return true if module q has no owner registered or if its registered owner is m.
+   * Return true if module q has no owner registered or if its registered owner
+   * is m.
    */
   bool hasOwnership(Node q, QuantifiersModule* m) const;
   //----------------------------- end ownership

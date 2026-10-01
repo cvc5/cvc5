@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Martin Brain, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,6 +56,54 @@ class FloatingPoint
    */
   static uint32_t getUnpackedSignificandWidth(FloatingPointSize& size);
 
+  /**
+   * The nextUp operation as defined in IEEE 754-2019, Section 5.3.1: the
+   * least floating-point value of the same format that compares greater
+   * than fp.
+   *
+   * The underlying order is the total order on the non-NaN values of a
+   * format that orders them by the extended real values they denote:
+   *
+   *   -oo < -maxNormal < ... < -minSubnormal < 0 < +minSubnormal < ...
+   *       < +maxNormal < +oo
+   *
+   * Since -0 and +0 both denote the real value 0, they compare equal in this
+   * order (the zero class). This is the order underlying fp.leq and fp.geq;
+   * it is not the order of the packed encodings, which is reversed on the
+   * negative values.
+   *
+   * Special cases:
+   *   nextUp(+-0)           = +minSubnormal
+   *   nextUp(-minSubnormal) = -0
+   *   nextUp(+maxNormal)    = +oo
+   *   nextUp(+oo)           = +oo
+   *   nextUp(-oo)           = -maxNormal
+   *   nextUp(NaN)           = NaN
+   *
+   * @param fp The value to compute nextUp for.
+   * @return The least value of the same format that compares greater than fp.
+   */
+  static FloatingPoint nextUp(const FloatingPoint& fp);
+
+  /**
+   * The nextDown operation as defined in IEEE 754-2019, Section 5.3.1: the
+   * greatest floating-point value of the same format that compares less than
+   * fp. This is the dual of nextUp(), i.e., nextDown(fp) = -nextUp(-fp) (see
+   * nextUp() for the definition of the order).
+   *
+   * Special cases:
+   *   nextDown(+-0)           = -minSubnormal
+   *   nextDown(+minSubnormal) = +0
+   *   nextDown(-maxNormal)    = -oo
+   *   nextDown(-oo)           = -oo
+   *   nextDown(+oo)           = +maxNormal
+   *   nextDown(NaN)           = NaN
+   *
+   * @param fp The value to compute nextDown for.
+   * @return The greatest value of the same format that compares less than fp.
+   */
+  static FloatingPoint nextDown(const FloatingPoint& fp);
+
   /** Constructors. */
 
   /** Create a FP value from its IEEE bit-vector representation. */
@@ -84,6 +129,13 @@ class FloatingPoint
 
   /** Copy constructor. */
   FloatingPoint(const FloatingPoint& fp);
+  /** Move constructor. */
+  FloatingPoint(FloatingPoint&& fp) noexcept;
+
+  /** Copy Assignment. */
+  FloatingPoint& operator=(const FloatingPoint& other);
+  /** Move Assignment. */
+  FloatingPoint& operator=(FloatingPoint&& other) noexcept;
 
   /** Destructor. */
   ~FloatingPoint();
@@ -181,14 +233,18 @@ class FloatingPoint
 
   /**
    * Floating-point max (total version).
-   * zeroCase: true to return the left (rather than the right operand) in case
-   *           of max(-0,+0) or max(+0,-0).
+   * @param arg           The floating-point to compare for max.
+   * @param zeroCaseRight True to return the right (rather than the left
+   *                      operand) in case of max(-0,+0) or max(+0,-0).
+   *                      Note that the polarity is the opposite of minTotal's,
+   *                      see FloatingPointLiteral::maxTotal.
    */
-  FloatingPoint maxTotal(const FloatingPoint& arg, bool zeroCaseLeft) const;
+  FloatingPoint maxTotal(const FloatingPoint& arg, bool zeroCaseRight) const;
   /**
    * Floating-point min (total version).
-   * zeroCase: true to return the left (rather than the right operand) in case
-   *           of min(-0,+0) or min(+0,-0).
+   * @param arg          The floating-point to compare for min.
+   * @param zeroCaseLeft True to return the left (rather than the right operand)
+   *                     in case of min(-0,+0) or min(+0,-0).
    */
   FloatingPoint minTotal(const FloatingPoint& arg, bool zeroCaseLeft) const;
 
@@ -215,10 +271,20 @@ class FloatingPoint
   /** Floating-point less than. */
   bool operator<(const FloatingPoint& arg) const;
 
-  /** Get the exponent of this floating-point value. */
-  BitVector getExponent() const;
-  /** Get the significand of this floating-point value. */
-  BitVector getSignificand() const;
+  /**
+   * Get the unpacked representation of the exponent (as used by SymFPU) of this
+   * floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  BitVector getUnpackedExponent() const;
+  /**
+   * Get the unpacked representation of the significand (as used by SymFPU) of
+   * this floating-point value.
+   * @note This is only required for constant-folding of floating-point variable
+   *       components, as required by model generation (see #1915).
+   */
+  BitVector getUnpackedSignificand() const;
   /** True if this value is a negative value. */
   bool getSign() const;
 
@@ -286,7 +352,7 @@ class FloatingPoint
    * Note: This constructor takes ownership of 'fpl' and is not intended for
    *       public use.
    */
-  FloatingPoint(FloatingPointLiteral* fpl);
+  FloatingPoint(std::unique_ptr<FloatingPointLiteral>&& fpl);
 
   /** The floating-point literal of this floating-point value. */
   std::unique_ptr<FloatingPointLiteral> d_fpl;

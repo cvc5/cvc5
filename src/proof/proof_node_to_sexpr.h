@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -48,7 +45,7 @@ class ProofNodeToSExpr
    * The s-expression for a ProofNode has the form:
    *   (SEXPR (VAR "<d_rule>") S1 ... Sn (VAR ":args") (SEXPR <d_args>))
    * where S1, ..., Sn are the s-expressions for its <d_children>.
-   * 
+   *
    * @param pn The proof node to print
    * @param printConclusion Whether to print conclusions
    */

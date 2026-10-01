@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +23,19 @@ extern "C" {
 
 #include "api/c/cvc5_c_structs.h"
 #include "api/c/cvc5_checks.h"
+
+/* -------------------------------------------------------------------------- */
+/* Error handling                                                             */
+/* -------------------------------------------------------------------------- */
+
+bool cvc5_has_error() { return cvc5::cvc5_capi_has_error(); }
+
+const char* cvc5_get_error_message()
+{
+  return cvc5::cvc5_capi_get_error_message();
+}
+
+void cvc5_reset_error() { cvc5::cvc5_capi_reset_error(); }
 
 /* -------------------------------------------------------------------------- */
 /* Cvc5Kind                                                                   */
@@ -739,7 +749,9 @@ const Cvc5Sort* cvc5_sort_get_instantiated_parameters(Cvc5Sort sort,
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return *size > 0 ? res.data() : nullptr;
+  // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
+  // so we must not dereference `size` here; gate on the error state instead.
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Sort cvc5_sort_substitute(Cvc5Sort sort, Cvc5Sort s, Cvc5Sort replacement)
@@ -829,7 +841,9 @@ const Cvc5Sort* cvc5_sort_dt_constructor_get_domain(Cvc5Sort sort, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return *size > 0 ? res.data() : nullptr;
+  // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
+  // so we must not dereference `size` here; gate on the error state instead.
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Sort cvc5_sort_dt_constructor_get_codomain(Cvc5Sort sort)
@@ -914,7 +928,9 @@ const Cvc5Sort* cvc5_sort_fun_get_domain(Cvc5Sort sort, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return *size > 0 ? res.data() : nullptr;
+  // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
+  // so we must not dereference `size` here; gate on the error state instead.
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Sort cvc5_sort_fun_get_codomain(Cvc5Sort sort)
@@ -1094,7 +1110,9 @@ const Cvc5Sort* cvc5_sort_tuple_get_element_sorts(Cvc5Sort sort, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return *size > 0 ? res.data() : nullptr;
+  // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
+  // so we must not dereference `size` here; gate on the error state instead.
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Sort cvc5_sort_nullable_get_element_sort(Cvc5Sort sort)
@@ -1641,7 +1659,9 @@ const Cvc5Sort* cvc5_dt_get_parameters(Cvc5Datatype dt, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return *size > 0 ? res.data() : nullptr;
+  // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
+  // so we must not dereference `size` here; gate on the error state instead.
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_dt_is_parametric(Cvc5Datatype dt)
@@ -2262,7 +2282,7 @@ const Cvc5Term* cvc5_term_get_tuple_value(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_term_is_rm_value(Cvc5Term term)
@@ -2385,7 +2405,7 @@ const Cvc5Term* cvc5_term_get_set_value(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_term_is_sequence_value(Cvc5Term term)
@@ -2412,7 +2432,7 @@ const Cvc5Term* cvc5_term_get_sequence_value(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_term_is_cardinality_constraint(Cvc5Term term)
@@ -2518,7 +2538,7 @@ const Cvc5Term* cvc5_term_get_skolem_indices(Cvc5Term term, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 size_t cvc5_term_hash(Cvc5Term term)
@@ -2662,7 +2682,12 @@ void cvc5_term_manager_delete(Cvc5TermManager* tm)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  delete tm;
+  // This only decrements the reference count of the term manager. Managed
+  // objects (and solver instances) keep the term manager alive, so if any of
+  // them are still alive here, the term manager is not freed yet, but only
+  // once the last of them is released. `cvc5_term_manager_release()` releases
+  // them all at once.
+  tm->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -2829,7 +2854,7 @@ const Cvc5Sort* cvc5_mk_dt_sorts(Cvc5TermManager* tm,
     res.push_back(tm->export_sort(s));
   }
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
@@ -2890,7 +2915,7 @@ Cvc5Sort cvc5_mk_record_sort(Cvc5TermManager* tm,
   Cvc5Sort res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
-  if (names != NULL)
+  if (names != nullptr)
   {
     CVC5_CAPI_CHECK_NOT_NULL(sorts);
     std::vector<std::pair<std::string, cvc5::Sort>> cfields;
@@ -3723,7 +3748,7 @@ Cvc5Result cvc5_result_copy(Cvc5Result result)
   Cvc5Result res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_RESULT(result);
-  res = result->d_cvc5->copy(result);
+  res = result->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3732,7 +3757,7 @@ void cvc5_result_release(Cvc5Result result)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_RESULT(result);
-  result->d_cvc5->release(result);
+  result->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -3849,7 +3874,7 @@ Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result)
   Cvc5SynthResult res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_SYNTH_RESULT(result);
-  res = result->d_cvc5->copy(result);
+  res = result->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -3858,7 +3883,7 @@ void cvc5_synth_result_release(Cvc5SynthResult result)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_SYNTH_RESULT(result);
-  result->d_cvc5->release(result);
+  result->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -3985,7 +4010,7 @@ Cvc5Term cvc5_proof_get_result(Cvc5Proof proof)
   Cvc5Term res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  res = proof->d_cvc5->d_tm->export_term(proof->d_proof.getResult());
+  res = proof->d_tm->export_term(proof->d_proof.getResult());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4000,11 +4025,11 @@ const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof, size_t* size)
   auto children = proof->d_proof.getChildren();
   for (auto& p : children)
   {
-    res.push_back(proof->d_cvc5->export_proof(p));
+    res.push_back(proof->export_proof(p));
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
@@ -4017,11 +4042,11 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
   auto args = proof->d_proof.getArguments();
   for (auto& t : args)
   {
-    res.push_back(proof->d_cvc5->d_tm->export_term(t));
+    res.push_back(proof->d_tm->export_term(t));
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b)
@@ -4071,7 +4096,7 @@ Cvc5Proof cvc5_proof_copy(Cvc5Proof proof)
   Cvc5Proof res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  res = proof->d_cvc5->copy(proof);
+  res = proof->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4080,7 +4105,7 @@ void cvc5_proof_release(Cvc5Proof proof)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
-  proof->d_cvc5->release(proof);
+  proof->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4192,7 +4217,7 @@ Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar)
   Cvc5Grammar res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  res = grammar->d_cvc5->copy(grammar);
+  res = grammar->copy();
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4201,7 +4226,7 @@ void cvc5_grammar_release(Cvc5Grammar grammar)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  grammar->d_cvc5->release(grammar);
+  grammar->release();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4336,6 +4361,24 @@ const char* cvc5_stat_to_string(Cvc5Stat stat)
   return str.c_str();
 }
 
+Cvc5Stat cvc5_stat_copy(Cvc5Stat stat)
+{
+  Cvc5Stat res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  res = stat->d_tm->copy(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_stat_release(Cvc5Stat stat)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STAT(stat);
+  stat->d_tm->release(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Statistics                                                             */
 /* -------------------------------------------------------------------------- */
@@ -4367,6 +4410,8 @@ Cvc5Stat cvc5_stats_iter_next(Cvc5Statistics stat, const char** name)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_STATS(stat);
   CVC5_API_CHECK(stat->d_iter != nullptr) << "iterator not initialized";
+  CVC5_API_CHECK(*stat->d_iter != stat->d_stat.end())
+      << "iterator has no next statistic";
   cvc5::Stat rstat;
   std::tie(str, rstat) = **stat->d_iter;
   if (name)
@@ -4400,6 +4445,24 @@ const char* cvc5_stats_to_string(Cvc5Statistics stat)
   return str.c_str();
 }
 
+Cvc5Statistics cvc5_stats_copy(Cvc5Statistics stat)
+{
+  Cvc5Statistics res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  res = stat->d_tm->copy(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+void cvc5_stats_release(Cvc5Statistics stat)
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_STATS(stat);
+  stat->d_tm->release(stat);
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -4408,6 +4471,7 @@ Cvc5* cvc5_new(Cvc5TermManager* tm)
 {
   Cvc5* res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
   res = new Cvc5(tm);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
@@ -4416,7 +4480,12 @@ Cvc5* cvc5_new(Cvc5TermManager* tm)
 void cvc5_delete(Cvc5* cvc5)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
-  delete cvc5;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  // This only decrements the reference count of the solver. Input parser
+  // instances also hold a reference to the solver, so if any of them are still
+  // alive here, the solver is not freed yet, but only once the last of them is
+  // freed (see `cvc5_parser_delete()`).
+  cvc5->dec_ref();
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -4826,7 +4895,7 @@ const Cvc5Term* cvc5_get_assertions(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const char* cvc5_get_info(Cvc5* cvc5, const char* flag)
@@ -4866,7 +4935,7 @@ const char** cvc5_get_option_names(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 static thread_local std::vector<const char*> c_modes;
@@ -4886,10 +4955,12 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
   CVC5_CAPI_CHECK_NOT_NULL(option);
   CVC5_CAPI_CHECK_NOT_NULL(info);
 
+  // Zero the struct before the call that may throw, so that it has defined
+  // values even on failure.
+  std::memset(info, 0, sizeof(*info));
+
   static thread_local cvc5::OptionInfo cpp_info;
   cpp_info = cvc5->d_solver.getOptionInfo(option);
-
-  std::memset(info, 0, sizeof(*info));
 
   info->name = cpp_info.name.c_str();
 
@@ -4989,7 +5060,7 @@ void cvc5_get_option_info(Cvc5* cvc5, const char* option, Cvc5OptionInfo* info)
               info->info_double.has_max = true;
             }
           },
-          [info](const cvc5::OptionInfo::ModeInfo& vi) {
+          [info](const cvc5::OptionInfo::ModeInfo&) {
             info->kind = CVC5_OPTION_INFO_MODES;
             info->info_mode.cur =
                 std::get<cvc5::OptionInfo::ModeInfo>(cpp_info.valueInfo)
@@ -5040,7 +5111,7 @@ const Cvc5Term* cvc5_get_unsat_assumptions(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size)
@@ -5057,7 +5128,7 @@ const Cvc5Term* cvc5_get_unsat_core(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size)
@@ -5074,7 +5145,7 @@ const Cvc5Term* cvc5_get_unsat_core_lemmas(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 void cvc5_get_difficulty(Cvc5* cvc5,
@@ -5121,7 +5192,7 @@ const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
   }
   *size = ccore.second.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
@@ -5151,7 +5222,7 @@ const Cvc5Term* cvc5_get_timeout_core_assuming(Cvc5* cvc5,
   }
   *rsize = ccore.second.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size)
@@ -5169,7 +5240,7 @@ const Cvc5Proof* cvc5_get_proof(Cvc5* cvc5, Cvc5ProofComponent c, size_t* size)
   }
   *size = proofs.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
@@ -5189,7 +5260,7 @@ const Cvc5Term* cvc5_get_learned_literals(Cvc5* cvc5,
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Term cvc5_get_value(Cvc5* cvc5, Cvc5Term term)
@@ -5217,6 +5288,7 @@ const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
   std::vector<cvc5::Term> cterms;
   for (size_t i = 0; i < size; ++i)
   {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(terms, i);
     cterms.push_back(terms[i]->d_term);
   }
   auto values = cvc5->d_solver.getValue(cterms);
@@ -5226,7 +5298,7 @@ const Cvc5Term* cvc5_get_values(Cvc5* cvc5,
   }
   *rsize = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
@@ -5246,7 +5318,7 @@ const Cvc5Term* cvc5_get_model_domain_elements(Cvc5* cvc5,
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 bool cvc5_is_model_core_symbol(Cvc5* cvc5, Cvc5Term v)
@@ -5276,11 +5348,13 @@ const char* cvc5_get_model(Cvc5* cvc5,
   std::vector<cvc5::Sort> csorts;
   for (size_t i = 0; i < nsorts; ++i)
   {
+    CVC5_CAPI_CHECK_SORT_AT_IDX(sorts, i);
     csorts.push_back(sorts[i]->d_sort);
   }
   std::vector<cvc5::Term> cconsts;
   for (size_t i = 0; i < nconsts; ++i)
   {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(consts, i);
     cconsts.push_back(consts[i]->d_term);
   }
   str = cvc5->d_solver.getModel(csorts, cconsts);
@@ -5424,8 +5498,9 @@ void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(plugin);
-  cvc5->d_plugin.reset(new Cvc5::PluginCpp(cvc5->d_tm->d_tm, cvc5, plugin));
-  cvc5->d_solver.addPlugin(*cvc5->d_plugin);
+  cvc5->d_plugins.push_back(
+      std::make_unique<Cvc5::PluginCpp>(cvc5->d_tm->d_tm, cvc5, plugin));
+  cvc5->d_solver.addPlugin(*cvc5->d_plugins.back());
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -5578,12 +5653,15 @@ const char* cvc5_proof_to_string(Cvc5* cvc5,
   std::map<cvc5::Term, std::string> cassertion_names;
   if (assertions)
   {
+    CVC5_CAPI_CHECK_NOT_NULL(names);
     for (size_t i = 0; i < size; ++i)
     {
+      CVC5_CAPI_CHECK_TERM_AT_IDX(assertions, i);
+      CVC5_CAPI_CHECK_NOT_NULL_AT_IDX(names, i);
       cassertion_names.emplace(assertions[i]->d_term, names[i]);
     }
   }
-  str = proof->d_cvc5->d_solver.proofToString(
+  str = cvc5->d_solver.proofToString(
       proof->d_proof,
       static_cast<cvc5::modes::ProofFormat>(format),
       cassertion_names);
@@ -5614,17 +5692,18 @@ Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(symbols);
+  CVC5_API_CHECK(bound_vars || nbound_vars == 0)
+      << "unexpected NULL argument for 'bound_vars'";
   std::vector<cvc5::Term> cbound_vars;
-  if (nbound_vars)
+  for (size_t i = 0; i < nbound_vars; ++i)
   {
-    for (size_t i = 0; i < nbound_vars; ++i)
-    {
-      cbound_vars.push_back(bound_vars[i]->d_term);
-    }
+    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
+    cbound_vars.push_back(bound_vars[i]->d_term);
   }
   std::vector<cvc5::Term> csymbols;
   for (size_t i = 0; i < nsymbols; ++i)
   {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(symbols, i);
     csymbols.push_back(symbols[i]->d_term);
   }
   res = cvc5->export_grammar(cvc5->d_solver.mkGrammar(cbound_vars, csymbols));
@@ -5643,13 +5722,13 @@ Cvc5Term cvc5_synth_fun(Cvc5* cvc5,
   CVC5_CAPI_CHECK_NOT_NULL(cvc5);
   CVC5_CAPI_CHECK_NOT_NULL(symbol);
   CVC5_CAPI_CHECK_SORT(sort);
+  CVC5_API_CHECK(bound_vars || size == 0)
+      << "unexpected NULL argument for 'bound_vars'";
   std::vector<cvc5::Term> cbound_vars;
-  if (size)
+  for (size_t i = 0; i < size; ++i)
   {
-    for (size_t i = 0; i < size; ++i)
-    {
-      cbound_vars.push_back(bound_vars[i]->d_term);
-    }
+    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
+    cbound_vars.push_back(bound_vars[i]->d_term);
   }
   res = cvc5->d_tm->export_term(
       cvc5->d_solver.synthFun(symbol, cbound_vars, sort->d_sort));
@@ -5670,13 +5749,13 @@ Cvc5Term cvc5_synth_fun_with_grammar(Cvc5* cvc5,
   CVC5_CAPI_CHECK_NOT_NULL(symbol);
   CVC5_CAPI_CHECK_SORT(sort);
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
+  CVC5_API_CHECK(bound_vars || size == 0)
+      << "unexpected NULL argument for 'bound_vars'";
   std::vector<cvc5::Term> cbound_vars;
-  if (size)
+  for (size_t i = 0; i < size; ++i)
   {
-    for (size_t i = 0; i < size; ++i)
-    {
-      cbound_vars.push_back(bound_vars[i]->d_term);
-    }
+    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
+    cbound_vars.push_back(bound_vars[i]->d_term);
   }
   res = cvc5->d_tm->export_term(cvc5->d_solver.synthFun(
       symbol, cbound_vars, sort->d_sort, grammar->d_grammar));
@@ -5707,7 +5786,9 @@ const Cvc5Term* cvc5_get_sygus_constraints(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return *size > 0 ? res.data() : nullptr;
+  // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
+  // so we must not dereference `size` here; gate on the error state instead.
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 void cvc5_add_sygus_assume(Cvc5* cvc5, Cvc5Term term)
@@ -5733,7 +5814,9 @@ const Cvc5Term* cvc5_get_sygus_assumptions(Cvc5* cvc5, size_t* size)
   }
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
-  return *size > 0 ? res.data() : nullptr;
+  // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
+  // so we must not dereference `size` here; gate on the error state instead.
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 void cvc5_add_sygus_inv_constraint(
@@ -5802,7 +5885,7 @@ const Cvc5Term* cvc5_get_synth_solutions(Cvc5* cvc5,
     res.push_back(cvc5->d_tm->export_term(t));
   }
   CVC5_CAPI_TRY_CATCH_END;
-  return res.data();
+  return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
 Cvc5Term cvc5_find_synth(Cvc5* cvc5, Cvc5FindSynthTarget target)

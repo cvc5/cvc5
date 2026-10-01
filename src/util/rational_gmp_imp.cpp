@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Christopher L. Conway, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,68 +24,82 @@
 
 namespace cvc5::internal {
 
-std::ostream& operator<<(std::ostream& os, const Rational& q){
+std::ostream& operator<<(std::ostream& os, const Rational& q)
+{
   return os << q.toString();
 }
-
 
 /* Computes a rational given a decimal string. The rational
  * version of <code>xxx.yyy</code> is <code>xxxyyy/(10^3)</code>.
  */
-Rational Rational::fromDecimal(const std::string& dec) {
+Rational Rational::fromDecimal(const std::string& dec)
+{
   using std::string;
   // Find the decimal point, if there is one
-  string::size_type i( dec.find(".") );
-  if( i != string::npos ) {
+  string::size_type i(dec.find("."));
+  if (i != string::npos)
+  {
     /* Erase the decimal point, so we have just the numerator. */
-    Integer numerator( string(dec).erase(i,1) );
+    Integer numerator(string(dec).erase(i, 1));
 
     /* Compute the denominator: 10 raise to the number of decimal places */
     int decPlaces = dec.size() - (i + 1);
-    Integer denominator( Integer(10).pow(decPlaces) );
+    Integer denominator(Integer(10).pow(decPlaces));
 
-    return Rational( numerator, denominator );
-  } else {
+    return Rational(numerator, denominator);
+  }
+  else
+  {
     /* No decimal point, assume it's just an integer. */
-    return Rational( dec );
+    return Rational(dec);
   }
 }
 
-
-
 /** Equivalent to calling (this->abs()).cmp(b.abs()) */
-int Rational::absCmp(const Rational& q) const{
+int Rational::absCmp(const Rational& q) const
+{
   const Rational& r = *this;
   int rsgn = r.sgn();
   int qsgn = q.sgn();
-  if(rsgn == 0){
+  if (rsgn == 0)
+  {
     return (qsgn == 0) ? 0 : -1;
-  }else if(qsgn == 0){
+  }
+  else if (qsgn == 0)
+  {
     Assert(rsgn != 0);
     return 1;
-  }else if((rsgn > 0) && (qsgn > 0)){
+  }
+  else if ((rsgn > 0) && (qsgn > 0))
+  {
     return r.cmp(q);
-  }else if((rsgn < 0) && (qsgn < 0)){
+  }
+  else if ((rsgn < 0) && (qsgn < 0))
+  {
     // if r < q < 0, q.cmp(r) = +1, (r.abs()).cmp(q.abs()) = +1
     // if q < r < 0, q.cmp(r) = -1, (r.abs()).cmp(q.abs()) = -1
     // if q = r < 0, q.cmp(r) =  0, (r.abs()).cmp(q.abs()) =  0
     return q.cmp(r);
-  }else if((rsgn < 0) && (qsgn > 0)){
+  }
+  else if ((rsgn < 0) && (qsgn > 0))
+  {
     Rational rpos = -r;
     return rpos.cmp(q);
-  }else {
+  }
+  else
+  {
     Assert(rsgn > 0 && (qsgn < 0));
     Rational qpos = -q;
     return r.cmp(qpos);
   }
 }
 
-
 /** Return an exact rational for a double d. */
 std::optional<Rational> Rational::fromDouble(double d)
 {
   using namespace std;
-  if(isfinite(d)){
+  if (isfinite(d))
+  {
     Rational q;
     mpq_set_d(q.d_value.get_mpq_t(), d);
     return q;

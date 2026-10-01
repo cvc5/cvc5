@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,6 +34,15 @@ class SymbolManagerTest extends ParserTest
     Command cmd = parser.nextCommand();
     assertNotEquals(cmd.isNull(), true);
     cmd.invoke(d_solver, d_symman);
+  }
+
+  @Test
+  void equalHash()
+  {
+    SymbolManager symman = new SymbolManager(d_tm);
+    assertEquals(d_symman, d_symman);
+    assertNotEquals(d_symman, symman);
+    assertEquals(d_symman.hashCode(), d_symman.hashCode());
   }
 
   @Test

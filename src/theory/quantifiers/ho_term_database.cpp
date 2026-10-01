@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,7 +91,7 @@ Node HoTermDb::getOperatorRepresentative(TNode op) const
   }
   return op;
 }
-bool HoTermDb::finishResetInternal(Theory::Effort effort)
+bool HoTermDb::finishResetInternal(CVC5_UNUSED Theory::Effort effort)
 {
   if (!options().quantifiers.hoMergeTermDb)
   {
@@ -168,7 +165,7 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
     }
     else
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
   }

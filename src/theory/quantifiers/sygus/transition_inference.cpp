@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,7 +83,7 @@ Node DetTrace::constructFormula(NodeManager* nm, const std::vector<Node>& vars)
   return d_trie.constructFormula(nm, vars);
 }
 
-void DetTrace::print(const char* c) const
+void DetTrace::print(CVC5_UNUSED const char* c) const
 {
   for (const Node& n : d_curr)
   {
@@ -278,8 +275,7 @@ void TransitionInference::process(Node n)
       {
         for (unsigned j = 0, nchild = next.getNumChildren(); j < nchild; j++)
         {
-          Node v = NodeManager::mkDummySkolem(
-              "ir", next[j].getType(), "template inference rev argument");
+          Node v = NodeManager::mkDummySkolem("ir", next[j].getType());
           d_prime_vars.push_back(v);
         }
       }
@@ -429,8 +425,7 @@ bool TransitionInference::processDisjunct(
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
       for (const Node& l : lit)
       {
-        Node v = NodeManager::mkDummySkolem(
-            "i", l.getType(), "template inference argument");
+        Node v = NodeManager::mkDummySkolem("i", l.getType());
         d_vars.push_back(v);
         Trace("cegqi-inv-debug") << v << " ";
       }
@@ -531,7 +526,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   if (!fwd)
   {
     // only implemented in forward direction
-    Assert(false);
+    DebugUnhandled();
     return TRACE_INC_INVALID;
   }
   Component& cm = d_trans;

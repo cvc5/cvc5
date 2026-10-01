@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Haniel Barbosa, Leni Aniva, Andrew Reynolds
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -107,7 +104,10 @@ def gen_mk_node(defns, expr):
           return f'nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, {{ {args} }})'
         elif expr.op in {Op.REAL_PI}:
           return f'nm->mkNullaryOperator(nm->realType(), Kind::PI)'
-        return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
+        if args:
+          return f'nm->mkNode(Kind::{gen_kind(expr.op)}, {{ {args} }})'
+        else:
+          return f'nm->mkNode(Kind::{gen_kind(expr.op)})'
     else:
         die(f'Cannot generate code for {expr}')
 
@@ -122,9 +122,14 @@ def gen_rewrite_db_rule(defns, rule, flag_expert):
         assert not rule.is_fixed_point
         fixed_point_arg = 'Node::null()'
     level = "Level::" + ("EXPERT" if flag_expert else "NORMAL")
-    return f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
-           f'{gen_mk_node(defns, rule.lhs)}, {gen_mk_node(defns, rule.rhs)}, '\
-           f'{gen_mk_node(defns, rule.cond)}, {fixed_point_arg}, {level});'
+    return f'{{' \
+           f'Node lhs = {gen_mk_node(defns, rule.lhs)};' \
+           f'Node rhs = {gen_mk_node(defns, rule.rhs)};' \
+           f'Node cond = {gen_mk_node(defns, rule.cond)};' \
+           f'Node fix_point = {fixed_point_arg};' \
+           f'db.addRule(ProofRewriteRule::{rule.get_enum()}, {{ {fvs_list} }}, ' \
+           f'lhs, rhs, cond, fix_point, {level});' \
+           f'}}'
 
 
 class Rewrites:

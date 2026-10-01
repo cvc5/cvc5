@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -169,7 +166,6 @@ std::ostream& operator<<(std::ostream& out, ProofFormat format)
   {
     case ProofFormat::NONE: out << "none"; break;
     case ProofFormat::DOT: out << "dot"; break;
-    case ProofFormat::LFSC: out << "lfsc"; break;
     case ProofFormat::ALETHE: out << "alethe"; break;
     case ProofFormat::CPC: out << "cpc"; break;
     case ProofFormat::DEFAULT: out << "default"; break;

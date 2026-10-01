@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -94,6 +91,18 @@ class ArithProofRCons : protected EnvObj, public ProofGenerator
                TConvProofGenerator& tcnv,
                ArithSubs& asubs,
                const Node& a);
+  /**
+   * Tighten an integer bound using a disequality. If bound is (>= t c)
+   * (resp. (<= t c)) and a disequality in diseqs is equivalent to
+   * (not (= t c)) after applying asubs and polynomial normalization, then
+   * we update bound to (>= t c+1) (resp. (<= t c-1)), add its proof to cdp
+   * and return true. Otherwise, we return false.
+   */
+  bool tightenBound(CDProof& cdp,
+                    TConvProofGenerator& tcnv,
+                    ArithSubs& asubs,
+                    const std::vector<Node>& diseqs,
+                    Node& bound);
   /** The trust id to use if the proof reconstruction fails. */
   TrustId d_id;
   /** False node */

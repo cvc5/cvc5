@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE:
 ; COMMAND-LINE: --bv-solver=bitblast-internal
 (set-logic QF_BV)

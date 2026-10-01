@@ -30,7 +30,7 @@ Resource manager and resource spending
 All other limits are enforced centrally by the resource manager as follows.
 Whenever certain parts of the solver execute, they instruct the resource manager to *spend* a resource.
 As soon as the resource manager realizes that some limit is exhausted (either the resource limit or the per-check time limit is reached), it asynchronously instructs the core solver to interrupt the check.
-To not invalidate the internal state of the solver, and allow to use it again after an interrupt, the solver continues its work until it reaches a safe point in one of the core solving components.
+To not invalidate the internal state of the solver, and allow one to use it again after an interrupt, the solver continues its work until it reaches a safe point in one of the core solving components.
 Then, it returns `unknown` (with an :cpp:enum:`explanation <cvc5::UnknownExplanation>`).
 
 The intention of a resource limit is to be a deterministic measure that grows (linearly, if possible) with actual running time.

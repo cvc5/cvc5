@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +31,8 @@ class FiniteFieldEnumerator : public TypeEnumeratorBase<FiniteFieldEnumerator>
   Integer d_currentInt;
 
  public:
-  FiniteFieldEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
+  FiniteFieldEnumerator(TypeNode type,
+                        CVC5_UNUSED TypeEnumeratorProperties* tep = nullptr)
       : TypeEnumeratorBase<FiniteFieldEnumerator>(type),
         d_modulus(type.getFfSize()),
         d_currentInt(0)

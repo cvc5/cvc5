@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +29,8 @@ namespace datatypes {
  * so that the arguments of type S1 ... Sn are specializations of T1 ... Tn
  * for type substitution sigma, and returns T * sigma.
  */
-struct DatatypeConstructorTypeRule {
+struct DatatypeConstructorTypeRule
+{
   static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -51,7 +49,8 @@ struct DatatypeConstructorTypeRule {
  * for selectors ensures that the argument is T1 and returns T2.
  * This rule is generalized for parametric datatypes.
  */
-struct DatatypeSelectorTypeRule {
+struct DatatypeSelectorTypeRule
+{
   static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -64,7 +63,8 @@ struct DatatypeSelectorTypeRule {
  * for testers ensures that the argument is T1 and returns Bool.
  * This rule is generalized for parametric datatypes.
  */
-struct DatatypeTesterTypeRule {
+struct DatatypeTesterTypeRule
+{
   static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
@@ -108,7 +108,8 @@ struct ConstructorProperties
 /**
  * The datatype size function expects any datatype and returns the integer type.
  */
-class DtSizeTypeRule {
+class DtSizeTypeRule
+{
  public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
@@ -121,7 +122,8 @@ class DtSizeTypeRule {
  * The datatype bound predicate expects any datatype, a constant integer, and
  * returns the Boolean type.
  */
-class DtBoundTypeRule {
+class DtBoundTypeRule
+{
  public:
   static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,

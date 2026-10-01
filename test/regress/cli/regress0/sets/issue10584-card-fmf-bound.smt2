@@ -1,4 +1,5 @@
-; EXPECT: unknown
+; REQUIRES: unrestricted-mode
+; EXPECT: sat
 (set-logic ALL)
 (set-option :produce-models true)
 (set-option :fmf-bound true)

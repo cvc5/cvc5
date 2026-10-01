@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,8 +41,7 @@ std::ostream& operator<<(std::ostream& os, const Sum& sum)
   return os;
 }
 
-namespace
-{
+namespace {
 
 /**
  * Adds a factor n to a product, consisting of the numerical multiplicity and
@@ -138,14 +134,15 @@ Node collectSumWithBase(NodeManager* nm,
   }
   return nb.constructNode();
 }
-}
+}  // namespace
 
 bool isIntegral(const Sum& sum)
 {
   std::vector<TNode> queue;
-  for (const auto& s: sum)
+  for (const auto& s : sum)
   {
     queue.emplace_back(s.first);
+    if (!s.second.isRational()) return false;
   }
   while (!queue.empty())
   {

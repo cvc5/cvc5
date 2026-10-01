@@ -132,6 +132,36 @@ as a requirement, refer to cvc5's `--show-config` output. Features can also be
 excluded by adding the `no-` prefix, e.g. `no-cryptominisat` means that the
 test is not valid for builds that include CryptoMiniSat support.
 
+Two features are of special note. Builds configured with `./configure.sh safe` or
+`./configure.sh stable` restrict the options and the logics that cvc5 accepts.
+The regression runner does *not* infer these restrictions from cvc5's output,
+so a benchmark that such a build rejects must say so explicitly. Apart from the
+`safe-mode` and `stable-mode` features reported by `--show-config`, the
+regression runner synthesizes the feature `unrestricted-mode`, which is
+supported exactly when neither of the former two is. Thus, use:
+
+```
+; REQUIRES: unrestricted-mode
+```
+
+if the benchmark is admissible in neither safe nor stable mode, e.g. it uses
+`declare-pool`, sets an expert option, sets more than one regular option, or
+uses a logic that both modes restrict, and:
+
+```
+; REQUIRES: no-safe-mode
+```
+
+if it is admissible in stable mode but not in safe mode, e.g. it uses
+`define-fun-rec` or `define-funs-rec`, or sets a regular option that does not
+support proofs. Recursive-definition tests that also require expert options or
+other features unavailable in stable mode still need `unrestricted-mode`.
+
+Note that `REQUIRES` applies to the entire file, i.e. it is evaluated before the
+individual `COMMAND-LINE` configurations are considered. Annotating a benchmark
+thus disables all of its configurations, so it should be annotated based on the
+strictest requirement of any of its configurations.
+
 To disable a specific type of test, the `DISABLE-TESTER` directive can be used.
 The following example disables the abduct tester for a regression:
 
@@ -141,6 +171,8 @@ The following example disables the abduct tester for a regression:
 
 Multiple testers can be disabled using multiple `DISABLE-TESTER` directives. In
 general, each `DISABLE-TESTER` directive disables only the specified tester. The
-only exception to this rule is the proof tester. Disabling the proof tester,
-which directs cvc5 to check generated proofs internally, also disables testers
-that check the printed versions of those proofs (e.g., the lfsc tester).
+exceptions are the `proof` and `cpc` testers. Disabling `proof`, which directs
+cvc5 to check generated proofs internally, also disables testers that check the
+printed versions of those proofs (e.g., `cpc` and `cpc-logos`). Disabling
+`cpc` also disables `cpc-logos`, since both check the CPC proof format. Disabling
+`cpc-logos` alone leaves `cpc` enabled.

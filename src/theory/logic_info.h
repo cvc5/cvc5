@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,8 +43,8 @@ namespace cvc5::internal {
 class CVC5_EXPORT LogicInfo
 {
   mutable std::string d_logicString; /**< an SMT-LIB-like logic string */
-  std::vector<bool> d_theories; /**< set of active theories */
-  size_t d_sharingTheories; /**< count of theories that need sharing */
+  std::vector<bool> d_theories;      /**< set of active theories */
+  size_t d_sharingTheories;          /**< count of theories that need sharing */
 
   /** are integers used in this logic? */
   bool d_integers;
@@ -70,19 +67,18 @@ class CVC5_EXPORT LogicInfo
    * Returns true iff this is a "true" theory (one that must be worried
    * about for sharing
    */
-  static inline bool isTrueTheory(theory::TheoryId theory) {
-    switch(theory) {
-    case theory::THEORY_BUILTIN:
-    case theory::THEORY_BOOL:
-    case theory::THEORY_QUANTIFIERS:
-      return false;
-    default:
-      return true;
+  static inline bool isTrueTheory(theory::TheoryId theory)
+  {
+    switch (theory)
+    {
+      case theory::THEORY_BUILTIN:
+      case theory::THEORY_BOOL:
+      case theory::THEORY_QUANTIFIERS: return false;
+      default: return true;
     }
   }
 
-public:
-
+ public:
   /**
    * Constructs a LogicInfo for the most general logic (quantifiers, all
    * background theory modules, ...).
@@ -128,7 +124,8 @@ public:
    */
   bool hasEverything() const;
 
-  /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
+  /** Is this the all-exclusive logic?  (Here, that means propositional logic)
+   */
   bool hasNothing() const;
 
   /**
@@ -199,16 +196,12 @@ public:
   /**
    * Quantifiers are a special case, since two theory modules handle them.
    */
-  void enableQuantifiers() {
-    enableTheory(theory::THEORY_QUANTIFIERS);
-  }
+  void enableQuantifiers() { enableTheory(theory::THEORY_QUANTIFIERS); }
 
   /**
    * Quantifiers are a special case, since two theory modules handle them.
    */
-  void disableQuantifiers() {
-    disableTheory(theory::THEORY_QUANTIFIERS);
-  }
+  void disableQuantifiers() { disableTheory(theory::THEORY_QUANTIFIERS); }
 
   /**
    * Enable everything that is needed for sygus with respect to this logic info.
@@ -269,17 +262,19 @@ public:
   bool operator==(const LogicInfo& other) const;
 
   /** Are these two LogicInfos disequal? */
-  bool operator!=(const LogicInfo& other) const {
-    return !(*this == other);
-  }
+  bool operator!=(const LogicInfo& other) const { return !(*this == other); }
 
-  /** Is this LogicInfo "greater than" (does it contain everything and more) the other? */
-  bool operator>(const LogicInfo& other) const {
+  /** Is this LogicInfo "greater than" (does it contain everything and more) the
+   * other? */
+  bool operator>(const LogicInfo& other) const
+  {
     return *this >= other && *this != other;
   }
 
-  /** Is this LogicInfo "less than" (does it contain strictly less) the other? */
-  bool operator<(const LogicInfo& other) const {
+  /** Is this LogicInfo "less than" (does it contain strictly less) the other?
+   */
+  bool operator<(const LogicInfo& other) const
+  {
     return *this <= other && *this != other;
   }
   /** Is this LogicInfo "less than or equal" the other? */
@@ -289,7 +284,8 @@ public:
   bool operator>=(const LogicInfo& other) const;
 
   /** Are two LogicInfos comparable?  That is, is one of <= or > true? */
-  bool isComparableTo(const LogicInfo& other) const {
+  bool isComparableTo(const LogicInfo& other) const
+  {
     return *this <= other || *this >= other;
   }
 

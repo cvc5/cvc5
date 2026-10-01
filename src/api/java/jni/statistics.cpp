@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,8 +24,8 @@ using namespace cvc5;
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Statistics_deletePointer(
-    JNIEnv*, jobject, jlong pointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_Statistics_deletePointer(JNIEnv*, jobject, jlong pointer)
 {
   delete reinterpret_cast<Statistics*>(pointer);
 }
@@ -38,8 +35,9 @@ JNIEXPORT void JNICALL Java_io_github_cvc5_Statistics_deletePointer(
  * Method:    toString
  * Signature: (J)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL
-Java_io_github_cvc5_Statistics_toString(JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jstring JNICALL Java_io_github_cvc5_Statistics_toString(JNIEnv* env,
+                                                                  jobject,
+                                                                  jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
 
@@ -56,9 +54,9 @@ Java_io_github_cvc5_Statistics_toString(JNIEnv* env, jobject, jlong pointer)
  * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL Java_io_github_cvc5_Statistics_get(JNIEnv* env,
-                                                               jobject,
-                                                               jlong pointer,
-                                                               jstring jName)
+                                                           jobject,
+                                                           jlong pointer,
+                                                           jstring jName)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
@@ -91,13 +89,12 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Statistics_getIteratorOpts(
  * Method:    getIterator
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Statistics_getIterator(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_Statistics_getIterator(JNIEnv* env, jobject, jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
-  Statistics::iterator* it =
-      new Statistics::iterator(current->begin());
+  Statistics::iterator* it = new Statistics::iterator(current->begin());
   return reinterpret_cast<jlong>(it);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

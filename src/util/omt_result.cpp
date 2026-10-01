@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Nestan Tsiskaridze
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,10 +11,10 @@
  */
 #include "util/omt_result.h"
 
+#include <iostream>
 #include <sstream>
 
 #include "base/check.h"
-#include <iostream>
 
 using namespace std;
 
@@ -47,10 +44,7 @@ bool OmtResult::operator==(const OmtResult& r) const
              || d_unknownExplanation == r.d_unknownExplanation);
 }
 
-bool OmtResult::operator!=(const OmtResult& r) const
-{
-  return !(*this == r);
-}
+bool OmtResult::operator!=(const OmtResult& r) const { return !(*this == r); }
 
 std::string OmtResult::toString() const
 {
@@ -71,14 +65,14 @@ std::ostream& operator<<(std::ostream& out, const OmtResult& r)
 }
 
 ostream& operator<<(ostream& out, OmtResult::Status s)
-{ 
+{
   switch (s)
   {
     case OmtResult::NONE: out << "NONE"; break;
     case OmtResult::OPTIMAL: out << "OPTIMAL"; break;
     case OmtResult::LIMIT_OPTIMAL: out << "LIMIT_OPTIMAL"; break;
     case OmtResult::NON_OPTIMAL: out << "NON_OPTIMAL"; break;
-    case OmtResult::UNBOUNDED: out << "UNBOUNDED"; break;  
+    case OmtResult::UNBOUNDED: out << "UNBOUNDED"; break;
     case OmtResult::UNSAT: out << "UNSAT"; break;
     case OmtResult::UNKNOWN: out << "UNKNOWN"; break;
     default: Unhandled() << s;

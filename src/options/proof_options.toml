@@ -15,9 +15,6 @@ name   = "Proof"
 [[option.mode.DOT]]
   name       = "dot"
   help       = "Output DOT proof"
-[[option.mode.LFSC]]
-  name       = "lfsc"
-  help       = "Output LFSC proof"
 [[option.mode.ALETHE]]
   name       = "alethe"
   help       = "Output Alethe proof"
@@ -46,7 +43,7 @@ name   = "Proof"
   category   = "expert"
   long       = "proof-elim-subtypes"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "Eliminate subtypes (mixed arithmetic) in proofs"
 
 [[option]]
@@ -176,6 +173,14 @@ name   = "Proof"
   help       = "Add pivots to Alethe resolution steps"
 
 [[option]]
+  name       = "proofAletheTesting"
+  category   = "expert"
+  long       = "proof-alethe-testing"
+  type       = "bool"
+  default    = "false"
+  help       = "If testing, do not support experimental features such as BV, Strings, Datatypes, and print holes coming from the CPC proof with an \"undefined\" rule to help identify it."
+
+[[option]]
   name       = "printDotAsDAG"
   category   = "expert"
   long       = "proof-dot-dag"
@@ -200,36 +205,12 @@ name   = "Proof"
   help       = "Check proof steps for satisfiability, for refutation soundness testing. Note this checks only steps for non-core proof rules"
 
 [[option]]
-  name       = "lfscExpandTrust"
-  category   = "expert"
-  long       = "lfsc-expand-trust"
-  type       = "bool"
-  default    = "false"
-  help       = "Print the children of trusted proof steps"
-
-[[option]]
-  name       = "lfscFlatten"
-  category   = "expert"
-  long       = "lfsc-flatten"
-  type       = "bool"
-  default    = "false"
-  help       = "Flatten steps in the LFSC proof"
-
-[[option]]
   name       = "proofPrintReference"
   category   = "common"
   long       = "proof-print-reference"
   type       = "bool"
   default    = "false"
   help       = "Print reference to original file instead of redeclaring"
-
-[[option]]
-  name       = "dratBinaryFormat"
-  category   = "expert"
-  long       = "drat-binary-format"
-  type       = "bool"
-  default    = "false"
-  help       = "Print the DRAT proof in binary format"
 
 [[option]]
   name       = "satProofMinDimacs"

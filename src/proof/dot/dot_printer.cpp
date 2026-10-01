@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Vinícius Braga Freire, Haniel Barbosa, Diego Della Rocca de Camargos
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -475,7 +472,7 @@ inline bool DotPrinter::isTheoryLemma(const ProofNode* pn)
     }
   }
   return rule == ProofRule::SCOPE
-         || (ProofRule::CNF_ITE_NEG3 < rule && rule < ProofRule::LFSC_RULE);
+         || (ProofRule::CNF_ITE_NEG3 < rule && rule < ProofRule::ALETHE_RULE);
 }
 
 inline bool DotPrinter::isASSUME(const ProofRule& rule)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -86,7 +83,7 @@ class ExampleEvalCache
    * procedure for SyGuS datatypes or the SyGuS fast enumerator when we are
    * considering a value of enumerator e passed to the constructor of this
    * class whose analog in the signature of builtin theory is bvr.
-   * 
+   *
    * The type tn passed to this function is the sygus type of the term whose
    * builtin equivalent is bvr. Terms with distinct types must be cached
    * independently since two sygus types may not generate the same terms.
@@ -158,7 +155,7 @@ class ExampleEvalCache
    * This is used for symmetry breaking in quantifier-free reasoning
    * about SyGuS datatypes.
    */
-  std::map< TypeNode, NodeTrie> d_trie;
+  std::map<TypeNode, NodeTrie> d_trie;
   /** cache for evaluate */
   std::map<Node, std::vector<Node>> d_exOutCache;
 };

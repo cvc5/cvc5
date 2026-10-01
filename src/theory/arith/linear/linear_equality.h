@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,9 +28,9 @@
 #pragma once
 
 #include "options/arith_options.h"
+#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/constraint_forward.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/partial_model.h"
 #include "theory/arith/linear/simplex_update.h"
 #include "theory/arith/linear/tableau.h"
@@ -43,7 +40,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-struct Border{
+struct Border
+{
   // The constraint for the border
   ConstraintP d_bound;
 
@@ -60,56 +58,77 @@ struct Border{
   // Was this an upper bound or a lower bound?
   bool d_upperbound;
 
-  Border():
-    d_bound(NullConstraint) // ignore the other values
-  {}
-
-  Border(ConstraintP l, const DeltaRational& diff, bool areFixing, const Tableau::Entry* en, bool ub):
-    d_bound(l), d_diff(diff), d_areFixing(areFixing), d_entry(en),  d_upperbound(ub)
-  {}
-
-  Border(ConstraintP l, const DeltaRational& diff, bool areFixing, bool ub):
-    d_bound(l), d_diff(diff), d_areFixing(areFixing), d_entry(NULL),  d_upperbound(ub)
-  {}
-  bool operator<(const Border& other) const{
-    return d_diff < other.d_diff;
+  Border() : d_bound(NullConstraint)  // ignore the other values
+  {
   }
 
+  Border(ConstraintP l,
+         const DeltaRational& diff,
+         bool areFixing,
+         const Tableau::Entry* en,
+         bool ub)
+      : d_bound(l),
+        d_diff(diff),
+        d_areFixing(areFixing),
+        d_entry(en),
+        d_upperbound(ub)
+  {
+  }
+
+  Border(ConstraintP l, const DeltaRational& diff, bool areFixing, bool ub)
+      : d_bound(l),
+        d_diff(diff),
+        d_areFixing(areFixing),
+        d_entry(nullptr),
+        d_upperbound(ub)
+  {
+  }
+  bool operator<(const Border& other) const { return d_diff < other.d_diff; }
+
   /** d_lim is the nonbasic variable's own bound. */
-  bool ownBorder() const { return d_entry == NULL; }
+  bool ownBorder() const { return d_entry == nullptr; }
 
   bool isZero() const { return d_diff.sgn() == 0; }
   static bool nonZero(const Border& b) { return !b.isZero(); }
 
-  const Rational& getCoefficient() const {
+  const Rational& getCoefficient() const
+  {
     Assert(!ownBorder());
     return d_entry->getCoefficient();
   }
   void output(std::ostream& out) const;
 };
 
-inline std::ostream& operator<<(std::ostream& out, const Border& b){
+inline std::ostream& operator<<(std::ostream& out, const Border& b)
+{
   b.output(out);
   return out;
 }
 
 typedef std::vector<Border> BorderVec;
 
-class BorderHeap {
+class BorderHeap
+{
   const int d_dir;
 
-  class BorderHeapCmp {
-  private:
+  class BorderHeapCmp
+  {
+   private:
     int d_nbDirection;
-  public:
-    BorderHeapCmp(int dir): d_nbDirection(dir){}
-    bool operator()(const Border& a, const Border& b) const{
-      if(d_nbDirection > 0){
+
+   public:
+    BorderHeapCmp(int dir) : d_nbDirection(dir) {}
+    bool operator()(const Border& a, const Border& b) const
+    {
+      if (d_nbDirection > 0)
+      {
         // if nb is increasing,
         //  this needs to act like a max
         //  in order to have a min heap
         return b < a;
-      }else{
+      }
+      else
+      {
         // if nb is decreasing,
         //  this needs to act like a min
         //  in order to have a max heap
@@ -132,17 +151,21 @@ class BorderHeap {
   int d_possibleFixes;
   int d_numZeroes;
 
-public:
+ public:
   BorderHeap(int dir)
-  : d_dir(dir), d_cmp(dir), d_possibleFixes(0), d_numZeroes(0)
-  {}
+      : d_dir(dir), d_cmp(dir), d_possibleFixes(0), d_numZeroes(0)
+  {
+  }
 
-  void push_back(const Border& b){
+  void push_back(const Border& b)
+  {
     d_vec.push_back(b);
-    if(b.d_areFixing){
+    if (b.d_areFixing)
+    {
       d_possibleFixes++;
     }
-    if(b.d_diff.sgn() == 0){
+    if (b.d_diff.sgn() == 0)
+    {
       d_numZeroes++;
     }
   }
@@ -151,56 +174,63 @@ public:
   int possibleFixes() const { return d_possibleFixes; }
   int direction() const { return d_dir; }
 
-  void make_heap(){
+  void make_heap()
+  {
     d_begin = d_vec.begin();
     d_end = d_vec.end();
     std::make_heap(d_begin, d_end, d_cmp);
   }
 
-  void dropNonZeroes(){
+  void dropNonZeroes()
+  {
     d_vec.erase(std::remove_if(d_vec.begin(), d_vec.end(), &Border::nonZero),
                 d_vec.end());
   }
 
-  const Border& top() const {
+  const Border& top() const
+  {
     Assert(more());
     return *d_begin;
   }
-  void pop_heap(){
+  void pop_heap()
+  {
     Assert(more());
 
     std::pop_heap(d_begin, d_end, d_cmp);
     --d_end;
   }
 
-  BorderVec::const_iterator end() const{
+  BorderVec::const_iterator end() const
+  {
     return BorderVec::const_iterator(d_end);
   }
-  BorderVec::const_iterator begin() const{
+  BorderVec::const_iterator begin() const
+  {
     return BorderVec::const_iterator(d_begin);
   }
 
-  inline bool more() const{ return d_begin != d_end; }
+  inline bool more() const { return d_begin != d_end; }
 
-  inline bool empty() const{ return d_vec.empty(); }
+  inline bool empty() const { return d_vec.empty(); }
 
-  void clear(){
+  void clear()
+  {
     d_possibleFixes = 0;
     d_numZeroes = 0;
     d_vec.clear();
   }
 };
 
+class LinearEqualityModule
+{
+ public:
+  typedef ArithVar (LinearEqualityModule::*VarPreferenceFunction)(
+      ArithVar, ArithVar) const;
 
-class LinearEqualityModule {
-public:
-  typedef ArithVar (LinearEqualityModule::*VarPreferenceFunction)(ArithVar, ArithVar) const;
+  typedef bool (LinearEqualityModule::*UpdatePreferenceFunction)(
+      const UpdateInfo&, const UpdateInfo&) const;
 
-
-  typedef bool (LinearEqualityModule::*UpdatePreferenceFunction)(const UpdateInfo&, const UpdateInfo&) const;
-
-  
-private:
+ private:
   /**
    * Manages information about the assignment and upper and lower bounds on the
    * variables.
@@ -220,40 +250,41 @@ private:
 
   Rational d_one;
   Rational d_negOne;
-public:
 
+ public:
   /**
    * Initializes a LinearEqualityModule with a partial model, a tableau,
    * and a callback function for when basic variables update their values.
    */
- LinearEqualityModule(StatisticsRegistry& sr,
-                      ArithVariables& vars,
-                      Tableau& t,
-                      BoundInfoMap& boundTracking,
-                      BasicVarModelUpdateCallBack f);
+  LinearEqualityModule(StatisticsRegistry& sr,
+                       ArithVariables& vars,
+                       Tableau& t,
+                       BoundInfoMap& boundTracking,
+                       BasicVarModelUpdateCallBack f);
 
- /**
-  * Updates the assignment of a nonbasic variable x_i to v.
-  * Also updates the assignment of basic variables accordingly.
-  */
- void update(ArithVar x_i, const DeltaRational& v)
- {
-   if (d_areTracking)
-   {
-     updateTracked(x_i, v);
-   }
-   else
-   {
-     updateUntracked(x_i, v);
-   }
- }
+  /**
+   * Updates the assignment of a nonbasic variable x_i to v.
+   * Also updates the assignment of basic variables accordingly.
+   */
+  void update(ArithVar x_i, const DeltaRational& v)
+  {
+    if (d_areTracking)
+    {
+      updateTracked(x_i, v);
+    }
+    else
+    {
+      updateUntracked(x_i, v);
+    }
+  }
 
-  /** Specialization of update if the module is not tracking yet (for Assert*). */
+  /** Specialization of update if the module is not tracking yet (for Assert*).
+   */
   void updateUntracked(ArithVar x_i, const DeltaRational& v);
 
-  /** Specialization of update if the module is not tracking yet (for Simplex). */
+  /** Specialization of update if the module is not tracking yet (for Simplex).
+   */
   void updateTracked(ArithVar x_i, const DeltaRational& v);
-
 
   /**
    * Updates the value of a basic variable x_i to v,
@@ -262,8 +293,8 @@ public:
    */
   void pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& v);
 
-  ArithVariables& getVariables() const{ return d_variables; }
-  Tableau& getTableau() const{ return d_tableau; }
+  ArithVariables& getVariables() const { return d_variables; }
+  Tableau& getTableau() const { return d_tableau; }
 
   /**
    * Updates every non-basic to reflect the assignment in many.
@@ -271,29 +302,32 @@ public:
    */
   void updateMany(const DenseMap<DeltaRational>& many);
   void forceNewBasis(const DenseSet& newBasis);
-  void applySolution(const DenseSet& newBasis, const DenseMap<DeltaRational>& newValues);
-
+  void applySolution(const DenseSet& newBasis,
+                     const DenseMap<DeltaRational>& newValues);
 
   /**
    * Returns a pointer to the first Tableau entry on the row ridx that does not
    * have an either a lower bound/upper bound for proving a bound on skip.
-   * The variable skip is always excluded. Returns NULL if there is no such element.
+   * The variable skip is always excluded. Returns NULL if there is no such
+   * element.
    *
-   * If skip == ARITHVAR_SENTINEL, this is equivalent to considering the whole row.
+   * If skip == ARITHVAR_SENTINEL, this is equivalent to considering the whole
+   * row.
    */
-  const Tableau::Entry* rowLacksBound(RowIndex ridx, bool upperBound, ArithVar skip);
-
+  const Tableau::Entry* rowLacksBound(RowIndex ridx,
+                                      bool upperBound,
+                                      ArithVar skip);
 
   void startTrackingBoundCounts();
   void stopTrackingBoundCounts();
 
-
   void includeBoundUpdate(ArithVar nb, const BoundsInfo& prev);
-
 
   uint32_t updateProduct(const UpdateInfo& inf) const;
 
-  inline bool minNonBasicVarOrder(const UpdateInfo& a, const UpdateInfo& b) const{
+  inline bool minNonBasicVarOrder(const UpdateInfo& a,
+                                  const UpdateInfo& b) const
+  {
     return a.nonbasic() >= b.nonbasic();
   }
 
@@ -303,115 +337,142 @@ public:
    * The intuition is that this operation will be cheaper.
    * This strongly biases the system towards updates instead of pivots.
    */
-  inline bool minProduct(const UpdateInfo& a, const UpdateInfo& b) const{
+  inline bool minProduct(const UpdateInfo& a, const UpdateInfo& b) const
+  {
     uint32_t aprod = updateProduct(a);
     uint32_t bprod = updateProduct(b);
 
-    if(aprod == bprod){
-      return minNonBasicVarOrder(a,b);
-    }else{
+    if (aprod == bprod)
+    {
+      return minNonBasicVarOrder(a, b);
+    }
+    else
+    {
       return aprod > bprod;
     }
   }
-  inline bool constrainedMin(const UpdateInfo& a, const UpdateInfo& b) const{
-    if(a.describesPivot() && b.describesPivot()){
+  inline bool constrainedMin(const UpdateInfo& a, const UpdateInfo& b) const
+  {
+    if (a.describesPivot() && b.describesPivot())
+    {
       bool aAtBounds = basicsAtBounds(a);
       bool bAtBounds = basicsAtBounds(b);
-      if(aAtBounds != bAtBounds){
+      if (aAtBounds != bAtBounds)
+      {
         return bAtBounds;
       }
     }
-    return minProduct(a,b);
+    return minProduct(a, b);
   }
 
   /**
-   * If both a and b are pivots, prefer the pivot with the leaving variables that has equal bounds.
-   * The intuition is that such variables will be less likely to lead to future problems.
+   * If both a and b are pivots, prefer the pivot with the leaving variables
+   * that has equal bounds. The intuition is that such variables will be less
+   * likely to lead to future problems.
    */
-  inline bool preferFrozen(const UpdateInfo& a, const UpdateInfo& b) const {
-    if(a.describesPivot() && b.describesPivot()){
+  inline bool preferFrozen(const UpdateInfo& a, const UpdateInfo& b) const
+  {
+    if (a.describesPivot() && b.describesPivot())
+    {
       bool aFrozen = d_variables.boundsAreEqual(a.leaving());
       bool bFrozen = d_variables.boundsAreEqual(b.leaving());
 
-      if(aFrozen != bFrozen){
+      if (aFrozen != bFrozen)
+      {
         return bFrozen;
       }
     }
-    return constrainedMin(a,b);
+    return constrainedMin(a, b);
   }
 
   /**
    * Prefer pivots with entering variables that do not have bounds.
-   * The intuition is that such variables will be less likely to lead to future problems.
+   * The intuition is that such variables will be less likely to lead to future
+   * problems.
    */
-  bool preferNeitherBound(const UpdateInfo& a, const UpdateInfo& b) const {
-    if(d_variables.hasEitherBound(a.nonbasic()) == d_variables.hasEitherBound(b.nonbasic())){
-      return preferFrozen(a,b);
-    }else{
+  bool preferNeitherBound(const UpdateInfo& a, const UpdateInfo& b) const
+  {
+    if (d_variables.hasEitherBound(a.nonbasic())
+        == d_variables.hasEitherBound(b.nonbasic()))
+    {
+      return preferFrozen(a, b);
+    }
+    else
+    {
       return d_variables.hasEitherBound(a.nonbasic());
     }
   }
 
-  bool modifiedBlands(const UpdateInfo& a, const UpdateInfo& b) const {
+  bool modifiedBlands(const UpdateInfo& a, const UpdateInfo& b) const
+  {
     Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
     Assert(a.describesPivot());
     Assert(b.describesPivot());
-    if(a.nonbasic() == b.nonbasic()){
+    if (a.nonbasic() == b.nonbasic())
+    {
       bool aIsZero = a.nonbasicDelta().sgn() == 0;
       bool bIsZero = b.nonbasicDelta().sgn() == 0;
 
-      if((aIsZero || bIsZero) && (!aIsZero || !bIsZero)){
+      if ((aIsZero || bIsZero) && (!aIsZero || !bIsZero))
+      {
         return bIsZero;
-      }else{
+      }
+      else
+      {
         return a.leaving() >= b.leaving();
       }
-    }else{
+    }
+    else
+    {
       return a.nonbasic() > b.nonbasic();
     }
   }
 
   template <bool heuristic>
-  bool preferWitness(const UpdateInfo& a, const UpdateInfo& b) const{
+  bool preferWitness(const UpdateInfo& a, const UpdateInfo& b) const
+  {
     WitnessImprovement aImp = a.getWitness(!heuristic);
     WitnessImprovement bImp = b.getWitness(!heuristic);
 
-    if(aImp == bImp){
-      switch(aImp){
-      case ConflictFound:
-        return preferNeitherBound(a,b);
-      case ErrorDropped:
-        if(a.errorsChange() == b.errorsChange()){
-          return preferNeitherBound(a,b);
-        }else{
-          return a.errorsChange() > b.errorsChange();
-        }
-      case FocusImproved:
-        return preferNeitherBound(a,b);
-      case BlandsDegenerate:
-        Assert(a.describesPivot());
-        Assert(b.describesPivot());
-        Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
-        return modifiedBlands(a,b);
-      case HeuristicDegenerate:
-        Assert(a.describesPivot());
-        Assert(b.describesPivot());
-        Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
-        return preferNeitherBound(a,b);
-      case AntiProductive:
-        return minNonBasicVarOrder(a, b);
-      // Not valid responses
-      case Degenerate:
-      case FocusShrank:
-        Unreachable();
+    if (aImp == bImp)
+    {
+      switch (aImp)
+      {
+        case ConflictFound: return preferNeitherBound(a, b);
+        case ErrorDropped:
+          if (a.errorsChange() == b.errorsChange())
+          {
+            return preferNeitherBound(a, b);
+          }
+          else
+          {
+            return a.errorsChange() > b.errorsChange();
+          }
+        case FocusImproved: return preferNeitherBound(a, b);
+        case BlandsDegenerate:
+          Assert(a.describesPivot());
+          Assert(b.describesPivot());
+          Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
+          return modifiedBlands(a, b);
+        case HeuristicDegenerate:
+          Assert(a.describesPivot());
+          Assert(b.describesPivot());
+          Assert(a.focusDirection() == 0 && b.focusDirection() == 0);
+          return preferNeitherBound(a, b);
+        case AntiProductive: return minNonBasicVarOrder(a, b);
+        // Not valid responses
+        case Degenerate:
+        case FocusShrank: Unreachable();
       }
       Unreachable();
-    }else{
+    }
+    else
+    {
       return aImp > bImp;
     }
   }
 
-private:
-
+ private:
   /**
    * This maps each row index to its relevant bounds info.
    * This tracks the count for how many variables on a row have bounds
@@ -420,91 +481,94 @@ private:
   BoundInfoMap& d_btracking;
   bool d_areTracking;
 
-public:
+ public:
   /**
    * The constraint on a basic variable b is implied by the constraints
    * on its row.  This is a wrapper for propagateRow().
    */
- void propagateBasicFromRow(NodeManager* nm, ConstraintP c, bool produceProofs);
+  void propagateBasicFromRow(NodeManager* nm,
+                             ConstraintP c,
+                             bool produceProofs);
 
- /**
-  * Let v be the variable for the constraint c.
-  * Exports either the explanation of an upperbound or a lower bound
-  * of v using the other variables in the row.
-  *
-  * If farkas != RationalVectorPSentinel, this function additionally
-  * stores the farkas coefficients of the constraints stored in into.
-  * Position 0 is the coefficient of v.
-  * Position i > 0, corresponds to the order of the other constraints.
-  */
- void propagateRow(ConstraintCPVec& into,
-                   RowIndex ridx,
-                   bool rowUp,
-                   ConstraintP c,
-                   RationalVectorP farkas);
+  /**
+   * Let v be the variable for the constraint c.
+   * Exports either the explanation of an upperbound or a lower bound
+   * of v using the other variables in the row.
+   *
+   * If farkas != RationalVectorPSentinel, this function additionally
+   * stores the farkas coefficients of the constraints stored in into.
+   * Position 0 is the coefficient of v.
+   * Position i > 0, corresponds to the order of the other constraints.
+   */
+  void propagateRow(ConstraintCPVec& into,
+                    RowIndex ridx,
+                    bool rowUp,
+                    ConstraintP c,
+                    RationalVectorP farkas);
 
- /**
-  * Computes the value of a basic variable using the assignments
-  * of the values of the variables in the basic variable's row tableau.
-  * This can compute the value using either:
-  * - the the current assignment (useSafe=false) or
-  * - the safe assignment (useSafe = true).
-  */
- DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
+  /**
+   * Computes the value of a basic variable using the assignments
+   * of the values of the variables in the basic variable's row tableau.
+   * This can compute the value using either:
+   * - the the current assignment (useSafe=false) or
+   * - the safe assignment (useSafe = true).
+   */
+  DeltaRational computeRowValue(ArithVar x, bool useSafe) const;
 
- /**
-  * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
-  * and 2 ArithVar variables and returns one of the ArithVar variables
-  * potentially using the internals of the SimplexDecisionProcedure.
-  */
+  /**
+   * A PreferenceFunction takes a const ref to the SimplexDecisionProcedure,
+   * and 2 ArithVar variables and returns one of the ArithVar variables
+   * potentially using the internals of the SimplexDecisionProcedure.
+   */
 
- ArithVar noPreference(ArithVar x, ArithVar y) const { return x; }
+  ArithVar noPreference(ArithVar x, CVC5_UNUSED ArithVar y) const { return x; }
 
- /**
-  * minVarOrder is a PreferenceFunction for selecting the smaller of the 2
-  * ArithVars. This PreferenceFunction is used during the VarOrder stage of
-  * findModel.
-  */
- ArithVar minVarOrder(ArithVar x, ArithVar y) const;
+  /**
+   * minVarOrder is a PreferenceFunction for selecting the smaller of the 2
+   * ArithVars. This PreferenceFunction is used during the VarOrder stage of
+   * findModel.
+   */
+  ArithVar minVarOrder(ArithVar x, ArithVar y) const;
 
- /**
-  * minColLength is a PreferenceFunction for selecting the variable with the
-  * smaller row count in the tableau.
-  *
-  * This is a heuristic rule and should not be used during the VarOrder
-  * stage of findModel.
-  */
- ArithVar minColLength(ArithVar x, ArithVar y) const;
+  /**
+   * minColLength is a PreferenceFunction for selecting the variable with the
+   * smaller row count in the tableau.
+   *
+   * This is a heuristic rule and should not be used during the VarOrder
+   * stage of findModel.
+   */
+  ArithVar minColLength(ArithVar x, ArithVar y) const;
 
- /**
-  * minRowLength is a PreferenceFunction for selecting the variable with the
-  * smaller row count in the tableau.
-  *
-  * This is a heuristic rule and should not be used during the VarOrder
-  * stage of findModel.
-  */
- ArithVar minRowLength(ArithVar x, ArithVar y) const;
+  /**
+   * minRowLength is a PreferenceFunction for selecting the variable with the
+   * smaller row count in the tableau.
+   *
+   * This is a heuristic rule and should not be used during the VarOrder
+   * stage of findModel.
+   */
+  ArithVar minRowLength(ArithVar x, ArithVar y) const;
 
- /**
-  * minBoundAndRowCount is a PreferenceFunction for preferring a variable
-  * without an asserted bound over variables with an asserted bound.
-  * If both have bounds or both do not have bounds,
-  * the rule falls back to minRowCount(...).
-  *
-  * This is a heuristic rule and should not be used during the VarOrder
-  * stage of findModel.
-  */
- ArithVar minBoundAndColLength(ArithVar x, ArithVar y) const;
+  /**
+   * minBoundAndRowCount is a PreferenceFunction for preferring a variable
+   * without an asserted bound over variables with an asserted bound.
+   * If both have bounds or both do not have bounds,
+   * the rule falls back to minRowCount(...).
+   *
+   * This is a heuristic rule and should not be used during the VarOrder
+   * stage of findModel.
+   */
+  ArithVar minBoundAndColLength(ArithVar x, ArithVar y) const;
 
- template <bool above>
- inline bool isAcceptableSlack(int sgn, ArithVar nonbasic) const
- {
-   return (above && sgn < 0 && d_variables.strictlyBelowUpperBound(nonbasic))
-          || (above && sgn > 0 && d_variables.strictlyAboveLowerBound(nonbasic))
-          || (!above && sgn > 0
-              && d_variables.strictlyBelowUpperBound(nonbasic))
-          || (!above && sgn < 0
-              && d_variables.strictlyAboveLowerBound(nonbasic));
+  template <bool above>
+  inline bool isAcceptableSlack(int sgn, ArithVar nonbasic) const
+  {
+    return (above && sgn < 0 && d_variables.strictlyBelowUpperBound(nonbasic))
+           || (above && sgn > 0
+               && d_variables.strictlyAboveLowerBound(nonbasic))
+           || (!above && sgn > 0
+               && d_variables.strictlyBelowUpperBound(nonbasic))
+           || (!above && sgn < 0
+               && d_variables.strictlyAboveLowerBound(nonbasic));
   }
 
   /**
@@ -520,24 +584,30 @@ public:
    * - !lowerBound && a_ij < 0 && assignment(x_j) > lowerbound(x_j)
    *
    */
-  template <bool lowerBound>  ArithVar selectSlack(ArithVar x_i, VarPreferenceFunction pf) const;
-  ArithVar selectSlackLowerBound(ArithVar x_i, VarPreferenceFunction pf) const {
+  template <bool lowerBound>
+  ArithVar selectSlack(ArithVar x_i, VarPreferenceFunction pf) const;
+  ArithVar selectSlackLowerBound(ArithVar x_i, VarPreferenceFunction pf) const
+  {
     return selectSlack<true>(x_i, pf);
   }
-  ArithVar selectSlackUpperBound(ArithVar x_i, VarPreferenceFunction pf) const {
+  ArithVar selectSlackUpperBound(ArithVar x_i, VarPreferenceFunction pf) const
+  {
     return selectSlack<false>(x_i, pf);
   }
 
   const Tableau::Entry* selectSlackEntry(ArithVar x_i, bool above) const;
 
-  inline bool rowIndexIsTracked(RowIndex ridx) const {
+  inline bool rowIndexIsTracked(RowIndex ridx) const
+  {
     return d_btracking.isKey(ridx);
   }
-  inline bool basicIsTracked(ArithVar v) const {
+  inline bool basicIsTracked(ArithVar v) const
+  {
     return rowIndexIsTracked(d_tableau.basicToRowIndex(v));
   }
   void trackRowIndex(RowIndex ridx);
-  void stopTrackingRowIndex(RowIndex ridx){
+  void stopTrackingRowIndex(RowIndex ridx)
+  {
     Assert(rowIndexIsTracked(ridx));
     d_btracking.remove(ridx);
   }
@@ -546,12 +616,12 @@ public:
    * If the pivot described in u were performed,
    * then the row would qualify as being either at the minimum/maximum
    * to the non-basics being at their bounds.
-   * The minimum/maximum is determined by the direction the non-basic is changing.
+   * The minimum/maximum is determined by the direction the non-basic is
+   * changing.
    */
   bool basicsAtBounds(const UpdateInfo& u) const;
 
-private:
-
+ private:
   /**
    * Recomputes the bound info for a row using either the information
    * in the bounds queue or the current information.
@@ -559,18 +629,22 @@ private:
    */
   BoundsInfo computeRowBoundInfo(RowIndex ridx, bool inQueue) const;
 
-public:
+ public:
   /** Debug only routine. */
   BoundCounts debugBasicAtBoundCount(ArithVar x_i) const;
 
   /** Track the effect of the change of coefficient for bound counting. */
-  void trackingCoefficientChange(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn);
+  void trackingCoefficientChange(RowIndex ridx,
+                                 ArithVar nb,
+                                 int oldSgn,
+                                 int currSgn);
 
   /** Track the effect of multiplying a row by a sign for bound counting. */
   void trackingMultiplyRow(RowIndex ridx, int sgn);
 
   /** Count for how many on a row have *an* upper/lower bounds. */
-  BoundCounts hasBoundCount(RowIndex ri) const {
+  BoundCounts hasBoundCount(RowIndex ri) const
+  {
     Assert(d_variables.boundsQueueEmpty());
     return d_btracking[ri].hasBounds();
   }
@@ -589,11 +663,13 @@ public:
    */
   bool nonbasicsAtUpperBounds(ArithVar x_i) const;
 
-private:
-  class TrackingCallback : public CoefficientChangeCallback {
-  private:
+ private:
+  class TrackingCallback : public CoefficientChangeCallback
+  {
+   private:
     LinearEqualityModule* d_linEq;
-  public:
+
+   public:
     TrackingCallback(LinearEqualityModule* le) : d_linEq(le) {}
     void update(RowIndex ridx, ArithVar nb, int oldSgn, int currSgn) override
     {
@@ -608,43 +684,47 @@ private:
       ArithVar basic = d_linEq->getTableau().rowIndexToBasic(ridx);
       return d_linEq->basicIsTracked(basic);
     }
- } d_trackCallback;
+  } d_trackCallback;
 
   /**
    * Selects the constraint for the variable v on the row for basic
    * with the weakest possible constraint that is consistent with the surplus
    * surplus.
    */
-  ConstraintP weakestExplanation(bool aboveUpper, DeltaRational& surplus, ArithVar v,
-                                const Rational& coeff, bool& anyWeakening, ArithVar basic) const;
+  ConstraintP weakestExplanation(bool aboveUpper,
+                                 DeltaRational& surplus,
+                                 ArithVar v,
+                                 const Rational& coeff,
+                                 bool& anyWeakening,
+                                 ArithVar basic) const;
 
-public:
+ public:
   /**
    * Constructs a minimally weak conflict for the basic variable basicVar.
    *
    * Returns a constraint that is now in conflict.
    */
- ConstraintCP minimallyWeakConflict(NodeManager* nm,
-                                    bool aboveUpper,
-                                    ArithVar basicVar,
-                                    FarkasConflictBuilder& rc) const;
+  ConstraintCP minimallyWeakConflict(NodeManager* nm,
+                                     bool aboveUpper,
+                                     ArithVar basicVar,
+                                     FarkasConflictBuilder& rc) const;
 
- /**
-  * Given a basic variable that is know to have a conflict on it,
-  * construct and return a conflict.
-  * Follows section 4.2 in the CAV06 paper.
-  */
- inline ConstraintCP generateConflictAboveUpperBound(
-     NodeManager* nm, ArithVar conflictVar, FarkasConflictBuilder& rc) const
- {
-   return minimallyWeakConflict(nm, true, conflictVar, rc);
- }
+  /**
+   * Given a basic variable that is know to have a conflict on it,
+   * construct and return a conflict.
+   * Follows section 4.2 in the CAV06 paper.
+   */
+  inline ConstraintCP generateConflictAboveUpperBound(
+      NodeManager* nm, ArithVar conflictVar, FarkasConflictBuilder& rc) const
+  {
+    return minimallyWeakConflict(nm, true, conflictVar, rc);
+  }
 
- inline ConstraintCP generateConflictBelowLowerBound(
-     NodeManager* nm, ArithVar conflictVar, FarkasConflictBuilder& rc) const
- {
-   return minimallyWeakConflict(nm, false, conflictVar, rc);
- }
+  inline ConstraintCP generateConflictBelowLowerBound(
+      NodeManager* nm, ArithVar conflictVar, FarkasConflictBuilder& rc) const
+  {
+    return minimallyWeakConflict(nm, false, conflictVar, rc);
+  }
 
   /**
    * Computes the sum of the upper/lower bound of row.
@@ -652,10 +732,13 @@ public:
    */
   DeltaRational computeRowBound(RowIndex ridx, bool rowUb, ArithVar skip) const;
 
-public:
-  void substitutePlusTimesConstant(ArithVar to, ArithVar from, const Rational& mult);
-  void directlyAddToCoefficient(ArithVar row, ArithVar col, const Rational& mult);
-
+ public:
+  void substitutePlusTimesConstant(ArithVar to,
+                                   ArithVar from,
+                                   const Rational& mult);
+  void directlyAddToCoefficient(ArithVar row,
+                                ArithVar col,
+                                const Rational& mult);
 
   /**
    * Checks to make sure the assignment is consistent with the tableau.
@@ -675,16 +758,20 @@ public:
    * and update using its basic variable and one of the non-basic variables on
    * the row.
    */
-  bool willBeInConflictAfterPivot(const Tableau::Entry& entry, const DeltaRational& nbDiff, bool bToUB) const;
+  bool willBeInConflictAfterPivot(const Tableau::Entry& entry,
+                                  const DeltaRational& nbDiff,
+                                  bool bToUB) const;
   UpdateInfo mkConflictUpdate(const Tableau::Entry& entry, bool ub) const;
 
   /**
-   * Looks more an update for fcSimplex on the nonbasic variable nb with the focus coefficient.
+   * Looks more an update for fcSimplex on the nonbasic variable nb with the
+   * focus coefficient.
    */
-  UpdateInfo speculativeUpdate(ArithVar nb, const Rational& focusCoeff, UpdatePreferenceFunction pref);
+  UpdateInfo speculativeUpdate(ArithVar nb,
+                               const Rational& focusCoeff,
+                               UpdatePreferenceFunction pref);
 
-private:
-
+ private:
   /**
    * Examines the effects of pivoting the entries column variable
    * with the row's basic variable and setting the variable s.t.
@@ -704,15 +791,25 @@ private:
    */
   bool accumulateBorder(const Tableau::Entry& entry, bool ub);
 
-  void handleBorders(UpdateInfo& selected, ArithVar nb, const Rational& focusCoeff, BorderHeap& heap, int minimumFixes, UpdatePreferenceFunction pref);
-  void pop_block(BorderHeap& heap, int& brokenInBlock, int& fixesRemaining, int& negErrorChange);
+  void handleBorders(UpdateInfo& selected,
+                     ArithVar nb,
+                     const Rational& focusCoeff,
+                     BorderHeap& heap,
+                     int minimumFixes,
+                     UpdatePreferenceFunction pref);
+  void pop_block(BorderHeap& heap,
+                 int& brokenInBlock,
+                 int& fixesRemaining,
+                 int& negErrorChange);
   void clearSpeculative();
-  Rational updateCoefficient(BorderVec::const_iterator startBlock, BorderVec::const_iterator endBlock);
+  Rational updateCoefficient(BorderVec::const_iterator startBlock,
+                             BorderVec::const_iterator endBlock);
 
-private:
+ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_statPivots, d_statUpdates;
     TimerStat d_pivotTime;
     TimerStat d_adjTime;
@@ -725,21 +822,24 @@ private:
   };
   mutable Statistics d_statistics;
 
-};/* class LinearEqualityModule */
+}; /* class LinearEqualityModule */
 
-struct Cand {
+struct Cand
+{
   ArithVar d_nb;
   uint32_t d_penalty;
   int d_sgn;
   const Rational* d_coeff;
 
-  Cand(ArithVar nb, uint32_t penalty, int s, const Rational* c) :
-    d_nb(nb), d_penalty(penalty), d_sgn(s), d_coeff(c){}
+  Cand(ArithVar nb, uint32_t penalty, int s, const Rational* c)
+      : d_nb(nb), d_penalty(penalty), d_sgn(s), d_coeff(c)
+  {
+  }
 };
 
-
-class CompPenaltyColLength {
-private:
+class CompPenaltyColLength
+{
+ private:
   LinearEqualityModule* d_mod;
   const bool d_havePenalties;
 
@@ -749,10 +849,11 @@ private:
   {
   }
 
-  bool operator()(const Cand& x, const Cand& y) const {
+  bool operator()(const Cand& x, const Cand& y) const
+  {
     if (x.d_penalty == y.d_penalty || !d_havePenalties)
     {
-      return x.d_nb == d_mod->minBoundAndColLength(x.d_nb,y.d_nb);
+      return x.d_nb == d_mod->minBoundAndColLength(x.d_nb, y.d_nb);
     }
     else
     {
@@ -761,17 +862,19 @@ private:
   }
 };
 
-class UpdateTrackingCallback : public BoundUpdateCallback {
-private:
+class UpdateTrackingCallback : public BoundUpdateCallback
+{
+ private:
   LinearEqualityModule* d_mod;
-public:
-  UpdateTrackingCallback(LinearEqualityModule* mod): d_mod(mod){}
+
+ public:
+  UpdateTrackingCallback(LinearEqualityModule* mod) : d_mod(mod) {}
   void operator()(ArithVar v, const BoundsInfo& bi) override
   {
     d_mod->includeBoundUpdate(v, bi);
   }
 };
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

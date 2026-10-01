@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --bitblast=lazy
 ; COMMAND-LINE: --bitblast=eager
 ; COMMAND-LINE: --bv-solver=bitblast-internal

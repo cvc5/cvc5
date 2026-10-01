@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +46,7 @@ void ExponentialSolver::doPurification(TNode a, TNode new_a)
   Assert(TranscendentalState::isSimplePurify(a));
   NodeManager* nm = nodeManager();
   // do both equalities to ensure that new_a becomes a preregistered term
-  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(new_a[0]));
+  Node lem = nm->mkNode(Kind::AND, {a.eqNode(new_a), a[0].eqNode(new_a[0])});
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
@@ -103,7 +100,7 @@ void ExponentialSolver::checkInitialRefine()
           Node rone = nm->mkConstReal(Rational(1));
           // exp at zero: (t = 0.0) <=> (exp(t) = 1.0)
           Node lem =
-              nm->mkNode(Kind::EQUAL, t[0].eqNode(rzero), t.eqNode(rone));
+              nm->mkNode(Kind::EQUAL, {t[0].eqNode(rzero), t.eqNode(rone)});
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -115,9 +112,9 @@ void ExponentialSolver::checkInitialRefine()
         }
         {
           // exp on negative values: (t < 0) <=> (exp(t) < 1)
-          Node lem = nm->mkNode(Kind::EQUAL,
-                                nm->mkNode(Kind::LT, t[0], zero),
-                                nm->mkNode(Kind::LT, t, one));
+          Node lem = nm->mkNode(
+              Kind::EQUAL,
+              {nm->mkNode(Kind::LT, t[0], zero), nm->mkNode(Kind::LT, t, one)});
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -131,8 +128,8 @@ void ExponentialSolver::checkInitialRefine()
           // exp on positive values: (t <= 0) or (exp(t) > t+1)
           Node lem = nm->mkNode(
               Kind::OR,
-              nm->mkNode(Kind::LEQ, t[0], zero),
-              nm->mkNode(Kind::GT, t, nm->mkNode(Kind::ADD, t[0], one)));
+              {nm->mkNode(Kind::LEQ, t[0], zero),
+               nm->mkNode(Kind::GT, t, nm->mkNode(Kind::ADD, t[0], one))});
           CDProof* proof = nullptr;
           if (d_data->isProofEnabled())
           {
@@ -167,11 +164,14 @@ void ExponentialSolver::checkMonotonic()
   for (const Node& tf : it->second)
   {
     Node mva = d_data->d_model.computeAbstractModelValue(tf);
-    if (mva == tf)
+    if (!mva.isConst())
     {
-      // if it was not assigned a model value by the linear solver, it is
-      // not a relevant term. This can happen for terms like (exp (exp 1.0)),
+      // If it was not assigned a model value by the linear solver, it is not
+      // a relevant term. This can happen for terms like (exp (exp 1.0)),
       // where (exp 1.0) is not relevant until we purify (exp (exp 1.0)).
+      // Note that the abstract model value of such a term is not necessarily
+      // the term itself: it is computed from the model values of its
+      // arguments, e.g. (exp c) for a constant c, which does not evaluate.
       continue;
     }
     Node a = tf[0];
@@ -203,15 +203,15 @@ void ExponentialSolver::checkMonotonic()
                            << s;
 
     // store the concavity region
-    d_data->d_tf_region[s] = 1;
+    d_data->d_tf_region[s] = TranscendentalRegion::EXPONENTIAL;
     Trace("nl-ext-concavity") << ", arg model value = " << sargval << std::endl;
 
     if (!tval.isNull() && sval.getConst<Rational>() > tval.getConst<Rational>())
     {
       NodeManager* nm = nodeManager();
-      Node mono_lem = nm->mkNode(Kind::IMPLIES,
-                                 nm->mkNode(Kind::GEQ, targ, sarg),
-                                 nm->mkNode(Kind::GEQ, t, s));
+      Node mono_lem = nm->mkNode(
+          Kind::IMPLIES,
+          {nm->mkNode(Kind::GEQ, targ, sarg), nm->mkNode(Kind::GEQ, t, s)});
       Trace("nl-ext-exp") << "Monotonicity lemma : " << mono_lem << std::endl;
 
       d_data->d_im.addPendingLemma(mono_lem,
@@ -236,9 +236,9 @@ void ExponentialSolver::doTangentLemma(TNode e,
   // We use zero slope tangent planes, since the concavity of the Taylor
   // approximation cannot be easily established.
   // Tangent plane is valid in the interval [c,u).
-  Node lem = nm->mkNode(Kind::IMPLIES,
-                        nm->mkNode(Kind::GEQ, e[0], c),
-                        nm->mkNode(Kind::GEQ, e, poly_approx));
+  Node lem = nm->mkNode(
+      Kind::IMPLIES,
+      {nm->mkNode(Kind::GEQ, e[0], c), nm->mkNode(Kind::GEQ, e, poly_approx)});
   Trace("nl-ext-exp") << "*** Tangent plane lemma (pre-rewrite): " << lem
                       << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
@@ -263,7 +263,7 @@ void ExponentialSolver::doSecantLemmas(TNode e,
                                        unsigned d,
                                        unsigned actual_d)
 {
-  d_data->doSecantLemmas(getSecantBounds(e, center, d),
+  d_data->doSecantLemmas(getSecantBounds(e, center, d, actual_d),
                          poly_approx,
                          center,
                          cval,
@@ -275,37 +275,77 @@ void ExponentialSolver::doSecantLemmas(TNode e,
 
 std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
                                                          TNode center,
-                                                         unsigned d)
+                                                         unsigned d,
+                                                         unsigned actual_d)
 {
   std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, center, d);
 
-  int csign = center.getConst<Rational>().sgn();
+  NodeManager* nm = nodeManager();
+  Node one = nm->mkConstInt(Rational(1));
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
-    NodeManager* nm = nodeManager();
-    Node one = nm->mkConstInt(Rational(1));
     // pick c-1
     bounds.first = rewrite(nm->mkNode(Kind::SUB, center, one));
-    // ensure we don't cross zero
-    if (bounds.first.getConst<Rational>().sgn() != csign)
-    {
-      bounds.first = nm->mkConstReal(Rational(0));
-    }
   }
   if (bounds.second.isNull())
   {
-    NodeManager* nm = nodeManager();
-    Node one = nm->mkConstInt(Rational(1));
     // pick c+1
     bounds.second = rewrite(nm->mkNode(Kind::ADD, center, one));
-    // ensure we don't cross zero
-    if (bounds.second.getConst<Rational>().sgn() != csign)
+  }
+  // Ensure the polynomial approximation we use for the secant plane is a
+  // sound upper bound for exp at both end points. Note this is required for
+  // the end points that were taken from the previous secant points as well,
+  // since these were validated for their own (possibly higher) degree only.
+  bounds.first = getValidSecantPoint(bounds.first, center, actual_d);
+  bounds.second = getValidSecantPoint(bounds.second, center, actual_d);
+  return bounds;
+}
+
+Node ExponentialSolver::getValidSecantPoint(TNode p,
+                                            TNode center,
+                                            unsigned actual_d)
+{
+  Assert(p.isConst() && center.isConst());
+  NodeManager* nm = nodeManager();
+  const Rational& cr = center.getConst<Rational>();
+  int csign = cr.sgn();
+  Assert(csign != 0);
+  Rational pr = p.getConst<Rational>();
+  // The upper bound for exp is chosen based on the sign of the center and is
+  // only sound for arguments of that sign, hence ensure we don't cross zero.
+  if (pr.sgn() != csign)
+  {
+    pr = Rational(0);
+  }
+  Node ret = nm->mkConstReal(pr);
+  if (csign == 1)
+  {
+    // For positive arguments the upper bound is P(x)/(1-x^n/n!), which is only
+    // sound where 1-x^n/n! is positive. This holds for the center by
+    // construction (see
+    // TaylorGenerator::getPolynomialApproximationBoundForArg), but not
+    // necessarily for p. Since x^n/n! is increasing for non-negative
+    // arguments, we move p towards the center until the bound is sound.
+    for (size_t i = 0; !d_data->d_taylor.isExpUpperPosSound(ret, actual_d); i++)
     {
-      bounds.second = nm->mkConstReal(Rational(0));
+      if (i == s_maxSecantPointShrink)
+      {
+        // Give up, which means no secant lemma is constructed on this side.
+        return center;
+      }
+      pr = (pr + cr) / Rational(2);
+      ret = nm->mkConstReal(pr);
     }
   }
-  return bounds;
+  // We do not expect to end up at the center here: for a negative center the
+  // clamp above cannot produce it since the center is non-zero, and for a
+  // positive center the bisection approaches it without ever reaching it. We
+  // guard against it nevertheless, since a secant plane whose end points
+  // coincide is degenerate. Returning the center makes the caller skip this
+  // side.
+  Assert(pr != cr);
+  return pr == cr ? Node(center) : ret;
 }
 
 }  // namespace transcendental

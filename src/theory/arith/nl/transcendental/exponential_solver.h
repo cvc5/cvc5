@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -96,8 +93,32 @@ class ExponentialSolver : protected EnvObj
                       unsigned actual_d);
 
  private:
-  /** Generate bounds for secant lemmas */
-  std::pair<Node, Node> getSecantBounds(TNode e, TNode center, unsigned d);
+  /**
+   * Generate bounds for secant lemmas, where actual_d is the degree of the
+   * polynomial approximation that will be evaluated at these bounds.
+   */
+  std::pair<Node, Node> getSecantBounds(TNode e,
+                                        TNode center,
+                                        unsigned d,
+                                        unsigned actual_d);
+
+  /**
+   * Return an end point for a secant plane whose other end point is center,
+   * such that the polynomial approximation of exp of degree actual_d is a
+   * sound upper bound for exp on the interval spanned by the two points.
+   *
+   * This moves the (constant) point p towards the (constant) point center
+   * until this is the case. We return center itself if we fail to find such
+   * a point, which means that no secant lemma is constructed on this side of
+   * center.
+   */
+  Node getValidSecantPoint(TNode p, TNode center, unsigned actual_d);
+
+  /**
+   * The maximal number of times getValidSecantPoint moves a secant point
+   * towards the center before giving up.
+   */
+  static constexpr size_t s_maxSecantPointShrink = 16;
 
   /** Holds common state for transcendental solvers */
   TranscendentalState* d_data;

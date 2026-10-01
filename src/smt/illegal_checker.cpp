@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -78,7 +75,9 @@ IllegalChecker::IllegalChecker(Env& e)
     d_illegalKinds.insert(Kind::ARCCOTANGENT);
     d_illegalKinds.insert(Kind::SQRT);
     d_illegalKinds.insert(Kind::IAND);
+    d_illegalKinds.insert(Kind::PIAND);
     d_illegalKinds.insert(Kind::POW2);
+    d_illegalKinds.insert(Kind::INTS_LOG2);
   }
   if (logicInfo().isTheoryEnabled(theory::THEORY_DATATYPES)
       && !options().datatypes.datatypesExp)

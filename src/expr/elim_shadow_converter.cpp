@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "expr/elim_shadow_converter.h"
 
 #include "expr/bound_var_manager.h"
+#include "expr/subtype_elim_node_converter.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -71,6 +69,9 @@ Node ElimShadowNodeConverter::getElimShadowVar(const Node& q,
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node ii = nm->mkConstInt(Rational(i));
   Node cacheVal = BoundVarManager::getCacheValue(q, n, ii);
+  // must be robust to subtype elimination
+  SubtypeElimNodeConverter senc(nm);
+  cacheVal = senc.convert(cacheVal);
   return bvm->mkBoundVar(BoundVarId::ELIM_SHADOW, cacheVal, n[0][i].getType());
 }
 

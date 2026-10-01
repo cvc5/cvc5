@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,8 +16,8 @@
 #define CVC5__REWRITER__REWRITE_PROOF_RULE__H
 
 #include <string>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include "expr/nary_match_trie.h"
 #include "expr/node.h"
@@ -89,6 +86,13 @@ class RewriteProofRule
    * d_context is (lambda x (f a (g x b))), then d_pathToCtx = [1,0].
    */
   const std::vector<size_t> getPathToContextVar() const { return d_pathToCtx; }
+  /**
+   * Does the statement of this rule mention an indexed operator whose indices
+   * are given as explicit arguments (APPLY_INDEXED_SYMBOLIC)? If so, instances
+   * of this rule must be folded when constructing proofs, since such terms
+   * have no counterpart in external proof formats.
+   */
+  bool hasIndexedOperator() const;
   /** Does this rule have conditions? */
   bool hasConditions() const;
   /** Get (declared) conditions */
@@ -155,8 +159,7 @@ class RewriteProofRule
   /**
    * Is variable explicit? An explicit variable is one that does not occur
    * in a condition and thus its value must be specified in a proof
-   * in languages that allow for implicit/unspecified hole arguments,
-   * e.g. LFSC.
+   * in languages that allow for implicit/unspecified hole arguments.
    */
   bool isExplicitVar(Node v) const;
   /**
@@ -202,14 +205,14 @@ class RewriteProofRule
   Node d_context;
   /** The level */
   Level d_level;
-  /** Whether the rule is in flat form */
-  bool d_isFlatForm;
   /** the ordered list of free variables, provided by the user */
   std::vector<Node> d_userFvs;
   /** the ordered list of free variables */
   std::vector<Node> d_fvs;
   /** number of free variables */
   size_t d_numFv;
+  /** Whether this rule mentions an indexed operator, see above */
+  bool d_hasIndexedOp;
   /**
    * The free variables that do not occur in the conditions. These cannot be
    * "holes" in a proof.

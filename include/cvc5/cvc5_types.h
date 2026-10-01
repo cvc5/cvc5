@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -478,8 +475,6 @@ enum ENUM(ProofFormat)
   EVALUE(NONE) = 0,
   /** Output DOT proof. */
   EVALUE(DOT),
-  /** Output LFSC proof. */
-  EVALUE(LFSC),
   /** Output Alethe proof. */
   EVALUE(ALETHE),
   /** Output Cooperating Proof Calculus proof based on Eunoia signatures. */

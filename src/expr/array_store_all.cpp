@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,7 +53,8 @@ ArrayStoreAll::ArrayStoreAll(const ArrayStoreAll& other)
 }
 
 ArrayStoreAll::~ArrayStoreAll() {}
-ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other) {
+ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other)
+{
   (*d_type) = other.getType();
   (*d_value) = other.getValue();
   return *this;
@@ -98,12 +96,14 @@ bool ArrayStoreAll::operator>=(const ArrayStoreAll& asa) const
   return !(*this < asa);
 }
 
-std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) {
+std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa)
+{
   return out << "__array_store_all__(" << asa.getType() << ", "
              << asa.getValue() << ')';
 }
 
-size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
+size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const
+{
   return std::hash<TypeNode>()(asa.getType())
          * std::hash<Node>()(asa.getValue());
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Daneshvar Amrollahi
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,14 +34,14 @@ struct NodeInfo
   /** Compressed string encoding of the DAG, aka patterns. */
   std::string encoding;
   /** Equivalence class ID. */
-  uint32_t equivClass;
+  size_t equivClass;
   /** First occurrence index (counter) of each symbol when traversing the DAG,
    * aka super-pattern */
   std::unordered_map<std::string, int32_t> role;
   /** Variable names and their indices. */
   std::vector<std::pair<std::string, int32_t>> varNames;
   /** Index of the assertion after first round of sorting. */
-  uint32_t id;
+  size_t id;
 
   /** Default constructor. */
   NodeInfo() {}

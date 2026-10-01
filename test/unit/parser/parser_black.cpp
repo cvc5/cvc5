@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Christopher L. Conway
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +19,6 @@
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
-#include <cvc5/cvc5_parser.h>
 #include "test.h"
 
 using namespace cvc5::parser;
@@ -250,6 +246,20 @@ TEST_F(TestParserBlackSmt2InputParser, bad_inputs)
   // core theory symbol "Bool" undefined
   tryBadInput("(declare-fun p Bool)", true);
 #endif
+}
+
+TEST_F(TestParserBlackSmt2InputParser, ff_byte_not_eof)
+{
+  std::string ffByte(1, static_cast<char>(0xFF));
+  std::string input = "(set-logic QF_UF)\n";
+  input += "(set-info :notes |ff";
+  input += ffByte;
+  input += "name|)\n";
+  input += "; comment with ";
+  input += ffByte;
+  input += " byte here\n";
+  input += "(check-sat)\n";
+  tryGoodInput(input);
 }
 
 TEST_F(TestParserBlackSmt2InputParser, good_exprs)
