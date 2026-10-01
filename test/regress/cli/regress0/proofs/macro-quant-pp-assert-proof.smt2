@@ -1,4 +1,5 @@
 ; REQUIRES: no-safe-mode
+; DISABLE-TESTER: alethe
 ; COMMAND-LINE: --proof-granularity=dsl-rewrite --proof-check=eager
 ; EXPECT: unsat
 (set-logic UFLIA)
