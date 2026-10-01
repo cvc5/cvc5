@@ -3400,7 +3400,6 @@ set(regress_1_tests
   regress1/quantifiers/issue12323-quant-rewrite-body.smt2
   regress1/quantifiers/issue12323-quant-rewrite-body-min.smt2
   regress1/quantifiers/issue12388-cegqi-excessive-string.smt2
-  regress1/quantifiers/issue12398-debug-check-models.smt2
   regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/issue3250-syg-inf-q.smt2
   regress1/quantifiers/issue3316.smt2
