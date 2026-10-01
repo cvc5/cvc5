@@ -165,6 +165,15 @@ class BasicRewriteRCons : protected EnvObj
   bool ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_QUANT_MACRO_DEF.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by ProofRewriteRule::MACRO_QUANT_MACRO_DEF.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofMacroQuantMacroDef(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX.
    *
    * @param cdp The proof to add to.
