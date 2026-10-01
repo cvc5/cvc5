@@ -3059,6 +3059,7 @@ set(regress_1_tests
   regress1/fmf/german169.smt2
   regress1/fmf/german73.smt2
   regress1/fmf/issue10943.smt2
+  regress1/fmf/issue12246-fmc-wrong-sel.smt2
   regress1/fmf/issue2034-preinit.smt2
   regress1/fmf/issue3615.smt2
   regress1/fmf/issue3626.smt2
