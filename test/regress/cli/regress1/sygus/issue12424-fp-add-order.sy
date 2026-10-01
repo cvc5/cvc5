@@ -1,0 +1,66 @@
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sygus-out=status --check-synth-sol
+; EXPECT: feasible
+; simple testing for FP synthesis approximating the multi-segment
+(set-logic ALL)
+(set-option :fp-exp true)
+(synth-fun f_c () (_ FloatingPoint 8 8)
+(
+   (const (_ FloatingPoint 8 8))
+   )
+(
+   (const (_ FloatingPoint 8 8)
+   (
+            (Constant (_ FloatingPoint 8 8))
+            ))
+   ))
+
+(synth-fun f ((x (_ FloatingPoint 8 8)) (f_c (_ FloatingPoint 8 8))) (_ FloatingPoint 8 8)
+(
+   (start (_ FloatingPoint 8 8))
+   (const (_ FloatingPoint 8 8))
+   )
+(
+   (start (_ FloatingPoint 8 8)
+   (
+            ; ===== Failed case =====
+            (fp.add roundNearestTiesToEven
+               (fp.add roundNearestTiesToEven
+                  (fp.mul roundNearestTiesToEven
+                     const
+                     (fp.mul roundNearestTiesToEven (fp.add roundNearestTiesToEven x f_c) (fp.add roundNearestTiesToEven x f_c)))
+                  (fp.mul roundNearestTiesToEven
+                     const
+                     (fp.add roundNearestTiesToEven x f_c)))
+               const)
+
+            ; ===== Succeeded case From SyGuS =====
+            ; (fp.add roundNearestTiesToEven
+            ;    const
+            ;    (fp.add roundNearestTiesToEven
+            ;       (fp.mul roundNearestTiesToEven
+            ;          const
+            ;          (fp.mul roundNearestTiesToEven (fp.add roundNearestTiesToEven x f_c) (fp.add roundNearestTiesToEven x f_c)))
+            ;       (fp.mul roundNearestTiesToEven
+            ;          const
+            ;          (fp.add roundNearestTiesToEven x f_c))))
+
+            ))
+   (const (_ FloatingPoint 8 8)
+   (
+            (Constant (_ FloatingPoint 8 8))
+            ))
+   ))
+
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 0.2380952380952381) f_c) ((_ to_fp 8 8) roundTowardPositive 0.24367559523809528832)) (fp.gt (f ((_ to_fp 8 8) RNE 0.2380952380952381) f_c) ((_ to_fp 8 8) roundTowardNegative 0.2325148809523809867))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 0.3968253968253963) f_c) ((_ to_fp 8 8) roundTowardPositive 0.40612599206349153658)) (fp.gt (f ((_ to_fp 8 8) RNE 0.3968253968253963) f_c) ((_ to_fp 8 8) roundTowardNegative 0.3875248015873010709))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 0.5555555555555554) f_c) ((_ to_fp 8 8) roundTowardPositive 0.56857638888888872852)) (fp.gt (f ((_ to_fp 8 8) RNE 0.5555555555555554) f_c) ((_ to_fp 8 8) roundTowardNegative 0.5425347222222219878))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 0.7142857142857135) f_c) ((_ to_fp 8 8) roundTowardPositive 0.73102678571428492127)) (fp.gt (f ((_ to_fp 8 8) RNE 0.7142857142857135) f_c) ((_ to_fp 8 8) roundTowardNegative 0.6975446428571421275))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 0.8730158730158726) f_c) ((_ to_fp 8 8) roundTowardPositive 0.89347718253968211322)) (fp.gt (f ((_ to_fp 8 8) RNE 0.8730158730158726) f_c) ((_ to_fp 8 8) roundTowardNegative 0.8525545634920630444))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 1.1904761904761898) f_c) ((_ to_fp 8 8) roundTowardPositive 1.21837797619047538689)) (fp.gt (f ((_ to_fp 8 8) RNE 1.1904761904761898) f_c) ((_ to_fp 8 8) roundTowardNegative 1.1625744047619042120))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 1.5079365079365079) f_c) ((_ to_fp 8 8) roundTowardPositive 1.54327876984126977078)) (fp.gt (f ((_ to_fp 8 8) RNE 1.5079365079365079) f_c) ((_ to_fp 8 8) roundTowardNegative 1.4725942460317460458))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 1.6666666666666661) f_c) ((_ to_fp 8 8) roundTowardPositive 1.70572916666666607455)) (fp.gt (f ((_ to_fp 8 8) RNE 1.6666666666666661) f_c) ((_ to_fp 8 8) roundTowardNegative 1.6276041666666660745))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 1.8253968253968251) f_c) ((_ to_fp 8 8) roundTowardPositive 1.86817956349206326649)) (fp.gt (f ((_ to_fp 8 8) RNE 1.8253968253968251) f_c) ((_ to_fp 8 8) roundTowardNegative 1.7826140873015869914))))
+(constraint (and (fp.lt (f ((_ to_fp 8 8) RNE 1.9841269841269842) f_c) ((_ to_fp 8 8) roundTowardPositive 2.03062996031746045844)) (fp.gt (f ((_ to_fp 8 8) RNE 1.9841269841269842) f_c) ((_ to_fp 8 8) roundTowardNegative 1.9376240079365079083))))
+
+(check-synth)

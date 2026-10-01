@@ -81,6 +81,7 @@ set(regress_0_tests
   regress0/arith/issue8872-msum-types.smt2
   regress0/arith/issue8872-2-msum-types.smt2
   regress0/arith/issue9131-inverse-of-int.smt2
+  regress0/arith/issue9427-cdiv-neg.smt2
   regress0/arith/issue9643.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
@@ -144,6 +145,7 @@ set(regress_0_tests
   regress0/arrays/incorrect8.minimized.smtv1.smt2
   regress0/arrays/incorrect8.smtv1.smt2
   regress0/arrays/incorrect9.smtv1.smt2
+  regress0/arrays/issue10812-const-arr-check-models.smt2
   regress0/arrays/issue11908-eec-ensure-atom.smt2
   regress0/arrays/issue12026.smt2
   regress0/arrays/issue12648.smt2
@@ -992,6 +994,8 @@ set(regress_0_tests
   regress0/fp/issue-5524.smt2
   regress0/fp/issue10144.smt2
   regress0/fp/issue10507.smt2
+  regress0/fp/issue13012-1.smt2
+  regress0/fp/issue13012-2.smt2
   regress0/fp/issue3536.smt2
   regress0/fp/issue3582.smt2
   regress0/fp/issue3619.smt2
@@ -1000,6 +1004,8 @@ set(regress_0_tests
   regress0/fp/issue5734.smt2
   regress0/fp/issue6164.smt2
   regress0/fp/issue7002.smt2
+  regress0/fp/issue7368-1.smt2
+  regress0/fp/issue7368-2.smt2
   regress0/fp/issue7569.smt2
   regress0/fp/issue7858-fp-exp.smt2
   regress0/fp/issue8950-9162-9662-afp-model.smt2
@@ -1008,6 +1014,8 @@ set(regress_0_tests
   regress0/fp/issue9078-1.smt2
   regress0/fp/issue9078-2.smt2
   regress0/fp/issue9078-3.smt2
+  regress0/fp/issue9425-1.smt2
+  regress0/fp/issue9425-2.smt2
   regress0/fp/issue9505.smt2
   regress0/fp/issue9697.smt2
   regress0/fp/issue9854.smt2
@@ -1218,6 +1226,9 @@ set(regress_0_tests
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue10140-nl-tc.smt2
+  regress0/nl/issue10990-subst-model.smt2
+  regress0/nl/issue11080-uf-div-perf.smt2
+  regress0/nl/issue11535-mod-mult-factor.smt2
   regress0/nl/issue11901-pow-rewrite-type.smt2
   regress0/nl/issue12239-subtype-elim.smt2
   regress0/nl/issue12408-nl-fm.smt2
@@ -1264,6 +1275,7 @@ set(regress_0_tests
   regress0/nl/issue8835-int-second.smt2
   regress0/nl/issue8934-lr-int-mod-range.smt2
   regress0/nl/issue12499-learned-rewrite-mod-range.smt2
+  regress0/nl/issue9420-mod-abs.smt2
   regress0/nl/issue9661.smt2
   regress0/nl/issue12296.smt2
   regress0/nl/lazard-spurious-root.smt2
@@ -1625,6 +1637,7 @@ set(regress_0_tests
   regress0/proofs/from_code_oob_eval.smt2
   regress0/proofs/indexof-eval-rw_155.smt2
   regress0/proofs/ios_np_sf.smt2
+  regress0/proofs/issue12387-fp-quant-check-proofs.smt2
   regress0/proofs/issue277-circuit-propagator.smt2
   regress0/proofs/dd_issue2031-bv-var-elim.smt2
   regress0/proofs/issue10278-pf-clone.smt2
@@ -1794,6 +1807,12 @@ set(regress_0_tests
   regress0/quantifiers/cegqi-needs-justify.smt2
   regress0/quantifiers/cegqi-nl-simp.cvc.smt2
   regress0/quantifiers/cegqi-nl-sq.smt2
+  regress0/quantifiers/issue10104-gcd-exists-2.smt2
+  regress0/quantifiers/issue10104-gcd-exists-3.smt2
+  regress0/quantifiers/issue10104-gcd-exists.smt2
+  regress0/quantifiers/issue10675-prenex-none.smt2
+  regress0/quantifiers/issue8575-bv2nat.smt2
+  regress0/quantifiers/issue8848-dvd-plus.smt2
   regress0/quantifiers/nl-sqrt2-q.smt2
   regress0/quantifiers/cegqi-par-dt-simple.smt2
   regress0/quantifiers/clock-10.smt2
@@ -2281,6 +2300,7 @@ set(regress_0_tests
   regress0/strings/indexof-len-oob.smt2
   regress0/strings/indexof-len-oob2.smt2
   regress0/strings/indexof-prefix-concat.smt2
+  regress0/strings/issue12797-re-unfold-proof.smt2
   regress0/strings/out-of-bound-code-point.smt2
   regress0/strings/from-int-eval.smt2
   regress0/strings/gen-esc-seq.smt2
@@ -2491,6 +2511,7 @@ set(regress_0_tests
   regress0/sygus/infeasible-trivial.sy
   regress0/sygus/interpolant-gn.smt2
   regress0/sygus/inv-different-var-order.sy
+  regress0/sygus/issue10708-usort.sy
   regress0/sygus/issue3356-syg-inf-usort.smt2
   regress0/sygus/issue3624.sy
   regress0/sygus/issue3645-grammar-sets.smt2
@@ -2802,6 +2823,7 @@ set(regress_1_tests
   regress1/arith/issue7252-arith-sanity.smt2
   regress1/arith/issue9126-nb-alloc.smt2
   regress1/arith/issue789.smt2
+  regress1/arith/issue9427-cdiv-def.smt2
   regress1/arith/miplib3.cvc.smt2
   regress1/arith/mod.02.smt2
   regress1/arith/mod.03.smt2
@@ -3368,6 +3390,7 @@ set(regress_1_tests
   regress1/quantifiers/015-psyco-pp.smt2
   regress1/quantifiers/AdditiveMethods_OwnedResults.Mz.smt2
   regress1/quantifiers/Arrays_Q1-noinfer.smt2
+  regress1/quantifiers/issue9427-cdiv-axiom.smt2
   regress1/quantifiers/NUM878.smt2
   regress1/quantifiers/proj-issue214-nia-div-zero-ite.smt2
   regress1/quantifiers/RND-small.smt2
@@ -4020,6 +4043,8 @@ set(regress_1_tests
   regress1/strings/witness-model.smt2
   regress1/sygus/proj-issue221-perf.sy
   regress1/sygus/proj-issue556-srr-fp-div.smt2
+  regress1/sygus/issue12424-fp-add-order.sy
+  regress1/sygus/issue12425-fp-const-grammar.sy
   regress1/sygus/VC22_a.sy
   regress1/sygus/abv.sy
   regress1/sygus/array-grammar-store.sy
