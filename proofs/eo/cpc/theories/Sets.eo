@@ -38,7 +38,8 @@
   (-> (Set T) Bool))
 
 (declare-parameterized-const set.insert ((T Type :implicit))
-  (-> T (Set T) (Set T)) :right-assoc)
+  (-> T (Set T) (Set T))
+  :right-assoc)
 
 ; Skolems for the theory of sets.
 (declare-parameterized-const @sets_deq_diff
