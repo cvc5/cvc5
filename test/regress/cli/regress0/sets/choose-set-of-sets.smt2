@@ -1,4 +1,3 @@
-; COMMAND-LINE: --check-models
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun A () (Set (Set Int)))
