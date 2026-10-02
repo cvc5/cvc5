@@ -161,12 +161,6 @@ class Smt2State : public ParserState
   Kind getClosureKind(const std::string& name);
 
   /**
-   * If we are in a version < 2.6, this updates name to the tester name of cons,
-   * e.g. "is-cons".
-   */
-  bool getTesterName(Term cons, std::string& name) override;
-
-  /**
    * Make function defined by a define-fun(s)-rec command and bind it.
    *
    * fname : the name of the function.

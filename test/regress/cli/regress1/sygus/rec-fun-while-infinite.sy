@@ -12,7 +12,7 @@
 (declare-datatype Env ((cons (head Pair) (tail Env)) (nil)))
 
 (define-fun-rec envStore ((var NVars) (value Int) (env Env)) Env
-  (ite (is-nil env)
+  (ite ((_ is nil) env)
     (cons (build var value) env)
     (ite (= var (first (head env)))
       (cons (build var value) (tail env))
@@ -22,7 +22,7 @@
   )
 
 (define-fun-rec envSelect ((var NVars) (env Env)) Int
-  (ite (is-nil env)
+  (ite ((_ is nil) env)
     0
     (ite (= var (first (head env)))
       (second (head env))
@@ -42,9 +42,9 @@
 
 ; Function to evaluate arithmetic expressions
 (define-fun-rec evalA ((env Env) (a Aexp)) Int
-  (ite (is-Val a)
+  (ite ((_ is Val) a)
     (val a)
-    (ite (is-Var a)
+    (ite ((_ is Var) a)
       (envSelect (name a) env)
       ; (is-Add a)
       (+ (evalA env (addL a)) (evalA env (addR a)))
@@ -58,7 +58,7 @@
 
 ; Function to evaluate boolean expressions
 (define-fun-rec evalB ((env Env) (b Bexp)) Bool
-  (is-TRUE b)
+  ((_ is TRUE) b)
 )
 
 ; Syntax for commands
@@ -71,7 +71,7 @@
 
 ; Function to evaluate statements
 (define-fun-rec evalC ((env Env) (c Com)) Env
-  (ite (is-Assign c)
+  (ite ((_ is Assign) c)
     (envStore (lhs c) (evalA env (rhs c)) env)
         ; (is-While c)
           (ite (evalB env (wCond c)) (evalC (evalC env (wCom c)) c) env)
