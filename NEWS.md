@@ -6,6 +6,11 @@ cvc5 1.4.2 prerelease
 - Adds techniques for returning "sat" when the returned candidate model
   happens to satisfy the set of input assertions (`--model-verify`).
 
+- The SMT-LIB parser no longer defines the legacy tester symbols `is-C` for
+  datatype constructors `C` by default. Testers should be written using the
+  standard indexed syntax `((_ is C) t)`. The legacy tester symbols are still
+  available when parsing with `--parsing-mode=lenient`.
+
 cvc5 1.4.1
 ==========
 
