@@ -374,8 +374,6 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
     case ProofRewriteRule::SETS_EVAL_OP: return "sets-eval-op";
-    case ProofRewriteRule::SETS_INSERT_ELIM:
-      return "sets-insert-elim";
       //================================================= RARE rules
       // clang-format off
       ${printer}$
