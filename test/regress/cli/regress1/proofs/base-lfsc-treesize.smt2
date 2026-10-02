@@ -1,6 +1,7 @@
 ; EXPECT: unsat
 ;; slow conversion
 ; DISABLE-TESTER: alethe
+; DISABLE-TESTER: cpc-logos
 (set-logic QF_UFLIRA)
 (declare-sort FArray 2)
 

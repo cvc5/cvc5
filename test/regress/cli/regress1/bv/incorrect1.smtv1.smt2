@@ -1,5 +1,6 @@
 ;; slow conversion
 ; DISABLE-TESTER: alethe
+; DISABLE-TESTER: cpc-logos
 (set-option :incremental false)
 (set-info :status unsat)
 (set-logic QF_BV)

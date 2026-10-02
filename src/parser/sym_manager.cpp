@@ -311,6 +311,7 @@ SymManager::SymManager(cvc5::TermManager& tm)
       d_implementation(new SymManager::Implementation()),
       d_globalDeclarations(false),
       d_freshDeclarations(true),
+      d_parseDefineFunMacros(false),
       d_termSortOverload(true),
       d_logicIsForced(false),
       d_logicIsSet(false),
@@ -531,6 +532,15 @@ bool SymManager::getGlobalDeclarations() const { return d_globalDeclarations; }
 
 void SymManager::setFreshDeclarations(bool flag) { d_freshDeclarations = flag; }
 bool SymManager::getFreshDeclarations() const { return d_freshDeclarations; }
+
+void SymManager::setParseDefineFunMacros(bool flag)
+{
+  d_parseDefineFunMacros = flag;
+}
+bool SymManager::getParseDefineFunMacros() const
+{
+  return d_parseDefineFunMacros;
+}
 
 void SymManager::setTermSortOverload(bool flag) { d_termSortOverload = flag; }
 bool SymManager::getTermSortOverload() const { return d_termSortOverload; }

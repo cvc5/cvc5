@@ -12,6 +12,8 @@
 
 #include "parser/smt2/smt2_cmd_parser.h"
 
+#include <unordered_set>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "parser/commands.h"
@@ -409,7 +411,30 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       {
         d_state.pushScope();
       }
-      bool freshBinders = d_state.usingFreshBinders();
+      // If definitions are expanded in the parser, we construct fresh
+      // variables for the formal arguments of the definition. Otherwise, a
+      // formal argument would be the same variable as a binder of the same
+      // name and sort in the body, and expanding an application of the
+      // definition would replace the occurrences of that binder as well.
+      // Binders in the body are not fresh, instead capturing is avoided when
+      // expanding applications, see ParserState::mkApply.
+      bool freshBinders =
+          d_state.usingFreshBinders()
+          || d_state.getSymbolManager()->getParseDefineFunMacros();
+      if (freshBinders)
+      {
+        // With fresh binders, duplicate names would yield distinct Terms,
+        // bypassing the API check for duplicate formal arguments.
+        std::unordered_set<std::string> names;
+        for (const auto& v : sortedVarNames)
+        {
+          if (!names.insert(v.first).second)
+          {
+            d_state.parseError(
+                "All formal arguments to defined functions must be unique");
+          }
+        }
+      }
       // If freshBinders is false, we use fresh=false here to ensure that
       // variables introduced by define-fun are accurate with respect to proofs,
       // i.e. variables of the same name and type are indeed the same variable.
@@ -905,6 +930,10 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       else if (key == "fresh-declarations")
       {
         d_state.getSymbolManager()->setFreshDeclarations(ss == "true");
+      }
+      else if (key == "parse-define-fun-macros")
+      {
+        d_state.getSymbolManager()->setParseDefineFunMacros(ss == "true");
       }
       else if (key == "term-sort-overload")
       {

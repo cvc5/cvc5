@@ -230,6 +230,10 @@ class CVC5_EXPORT SymManager
   void setFreshDeclarations(bool flag);
   /** Get fresh declarations flag. */
   bool getFreshDeclarations() const;
+  /** Set whether non-recursive definitions are expanded in the parser. */
+  void setParseDefineFunMacros(bool flag);
+  /** Get the cached parse-define-fun-macros flag. */
+  bool getParseDefineFunMacros() const;
   /** Set term sort overloading to the value flag. */
   void setTermSortOverload(bool flag);
   /** Get term sort overloading flag. */
@@ -278,6 +282,8 @@ class CVC5_EXPORT SymManager
    * true.
    */
   bool d_freshDeclarations;
+  /** Whether --parse-define-fun-macros is enabled. */
+  bool d_parseDefineFunMacros;
   /** Whether --term-sort-overload is enabled */
   bool d_termSortOverload;
   /** Whether the logic has been forced with --force-logic. */

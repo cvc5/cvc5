@@ -227,6 +227,11 @@ void InputParser::initialize()
   {
     sm->setFreshDeclarations(info.boolValue());
   }
+  info = d_solver->getOptionInfo("parse-define-fun-macros");
+  if (info.setByUser)
+  {
+    sm->setParseDefineFunMacros(info.boolValue());
+  }
   info = d_solver->getOptionInfo("term-sort-overload");
   if (info.setByUser)
   {

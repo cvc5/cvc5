@@ -14,6 +14,7 @@
 #include <cvc5/cvc5_parser.h>
 
 #include <sstream>
+#include <unordered_set>
 
 #include "base/output.h"
 #include "options/base_options.h"
@@ -41,7 +42,193 @@ class TestApiBlackInputParser : public TestParser
     p.appendIncrementalStringInput(ss.str());
     return p.nextCommand();
   }
+
+  void parseCommands(InputParser& p, const std::string& input)
+  {
+    p.setStringInput(modes::InputLanguage::SMT_LIB_2_6, input, "macros");
+    std::stringstream out;
+    for (Command cmd = p.nextCommand(); !cmd.isNull(); cmd = p.nextCommand())
+    {
+      cmd.invoke(d_solver.get(), d_symman.get(), out);
+    }
+    ASSERT_EQ(out.str(), "");
+  }
+
+  Term parseTerm(InputParser& p, const std::string& input)
+  {
+    p.setStringInput(modes::InputLanguage::SMT_LIB_2_6, input, "macros");
+    return p.nextTerm();
+  }
 };
+
+TEST_F(TestApiBlackInputParser, defineFunMacros)
+{
+  d_solver->setOption("parse-define-fun-macros", "true");
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-logic ALL)"
+                "(declare-const a Int)"
+                "(define-fun f ((x Int)) Int (+ x 1))"
+                "(define-fun g ((x Int)) Int (f (f x)))"
+                "(define-fun c () Int 2)"
+                "(define-const d Int (f c))");
+  ASSERT_EQ(parseTerm(p, "f").getKind(), Kind::LAMBDA);
+  ASSERT_EQ(parseTerm(p, "(g a)"), parseTerm(p, "(+ (+ a 1) 1)"));
+  ASSERT_EQ(parseTerm(p, "d"), parseTerm(p, "(+ 2 1)"));
+  ASSERT_EQ(parseTerm(p, "((as f Int) a)"), parseTerm(p, "(+ a 1)"));
+  // Definitions belong to the symbol manager, including when it is shared.
+  InputParser p2(d_solver.get(), d_symman.get());
+  ASSERT_EQ(parseTerm(p2, "(f a)"), parseTerm(p, "(+ a 1)"));
+  ASSERT_TRUE(d_solver->getAssertions().empty());
+}
+
+TEST_F(TestApiBlackInputParser, defineFunMacrosCapture)
+{
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-option :parse-define-fun-macros true)"
+                "(set-logic LIA)"
+                "(define-fun p ((x Int)) Bool (forall ((y Int)) (= x y)))"
+                "(define-fun q ((x Int)) Bool (forall ((x Int)) (= x 0)))");
+  Term t = parseTerm(p, "(forall ((y Int)) (p y))");
+  ASSERT_EQ(t.getKind(), Kind::FORALL);
+  ASSERT_EQ(t[1].getKind(), Kind::FORALL);
+  ASSERT_NE(t[0][0], t[1][0][0]);
+  ASSERT_EQ(t[1][1][0], t[0][0]);
+  ASSERT_EQ(t[1][1][1], t[1][0][0]);
+  Term q = parseTerm(p, "(q 1)");
+  ASSERT_EQ(q[1][0], q[0][0]);
+  d_solver->assertFormula(d_tm.mkTerm(Kind::NOT, {t}));
+  ASSERT_TRUE(d_solver->checkSat().isSat());
+}
+
+TEST_F(TestApiBlackInputParser, defineFunMacrosOverloading)
+{
+  d_solver->setOption("parse-define-fun-macros", "true");
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-logic ALL)"
+                "(define-fun c () Int 0)"
+                "(define-fun d () Int 0)"
+                "(declare-const c Bool)"
+                "(define-fun f ((x Int)) Int x)"
+                "(declare-fun f (Bool) Bool)");
+  ASSERT_EQ(parseTerm(p, "d"), d_tm.mkInteger(0));
+  ASSERT_EQ(parseTerm(p, "(as c Int)"), d_tm.mkInteger(0));
+  ASSERT_EQ(parseTerm(p, "(as c Bool)").getSort(), d_bool);
+  ASSERT_EQ(parseTerm(p, "(f 1)"), d_tm.mkInteger(1));
+  ASSERT_EQ(parseTerm(p, "(f false)").getKind(), Kind::APPLY_UF);
+  // An overload for an alias in a popped scope must not remain active.
+  parseCommands(p, "(push 1)(declare-const d Bool)(pop 1)");
+  ASSERT_EQ(parseTerm(p, "d"), d_tm.mkInteger(0));
+  ASSERT_THROW(parseTerm(p, "(as d Bool)"), ParserException);
+}
+
+TEST_F(TestApiBlackInputParser, defineFunMacrosScopes)
+{
+  d_solver->setOption("parse-define-fun-macros", "true");
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-logic ALL)(push 1)"
+                "(define-fun local ((x Int)) Int (+ x 1))(pop 1)");
+  ASSERT_THROW(parseTerm(p, "(local 0)"), ParserException);
+  parseCommands(p, "(define-fun local ((x Int)) Int (+ x 2))");
+  ASSERT_EQ(parseTerm(p, "(local 0)"), parseTerm(p, "(+ 0 2)"));
+}
+
+TEST_F(TestApiBlackInputParser, defineFunMacrosGlobalScopes)
+{
+  d_solver->setOption("parse-define-fun-macros", "true");
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-option :global-declarations true)(set-logic ALL)(push 1)"
+                "(define-fun global ((x Int)) Int (+ x 2))(pop 1)");
+  ASSERT_EQ(parseTerm(p, "(global 0)"), parseTerm(p, "(+ 0 2)"));
+  parseCommands(p, "(reset-assertions)");
+  ASSERT_EQ(parseTerm(p, "(global 0)"), parseTerm(p, "(+ 0 2)"));
+  parseCommands(p,
+                "(reset)(set-logic ALL)"
+                "(define-fun after-reset ((x Int)) Int (+ x 2))");
+  ASSERT_EQ(d_solver->getOption("parse-define-fun-macros"), "false");
+  ASSERT_EQ(parseTerm(p, "after-reset").getKind(), Kind::CONSTANT);
+}
+
+TEST_F(TestApiBlackInputParser, defineFunMacrosTypeChecking)
+{
+  d_solver->setOption("parse-define-fun-macros", "true");
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-logic ALL)"
+                "(define-fun unused ((x Int)) Int 0)"
+                "(define-fun real-id ((x Real)) Real x)");
+  ASSERT_THROW(parseTerm(p, "(unused true)"), ParserException);
+  ASSERT_THROW(parseTerm(p, "(unused 1 2)"), ParserException);
+  ASSERT_THROW(parseTerm(p, "(real-id 1)"), ParserException);
+  ASSERT_EQ(parseTerm(p, "(real-id 1.0)"), d_tm.mkReal(1));
+  p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                   "(define-fun bad () Bool 0)",
+                   "macros");
+  Command cmd = p.nextCommand();
+  std::stringstream out;
+  cmd.invoke(d_solver.get(), d_symman.get(), out);
+  ASSERT_NE(out.str().find("(error"), std::string::npos);
+  ASSERT_THROW(parseTerm(p, "bad"), ParserException);
+  p.setStringInput(modes::InputLanguage::SMT_LIB_2_6,
+                   "(define-fun bad ((x Int) (x Int)) Int x)",
+                   "macros");
+  ASSERT_THROW(p.nextCommand(), ParserException);
+}
+
+TEST_F(TestApiBlackInputParser, defineFunMacrosHigherOrder)
+{
+  d_solver->setOption("parse-define-fun-macros", "true");
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-logic HO_ALL)"
+                "(define-fun f ((x Int) (y Int)) Int (+ x y))"
+                "(define-fun g ((__flatten_var_0 Int)) (-> Int Int)"
+                "  (f __flatten_var_0))");
+  ASSERT_EQ(parseTerm(p, "(f 1)").getKind(), Kind::LAMBDA);
+  ASSERT_EQ(parseTerm(p, "(@ (f 1) 2)"), parseTerm(p, "(+ 1 2)"));
+  ASSERT_EQ(parseTerm(p, "(g 1 2)"), parseTerm(p, "(+ 1 2)"));
+}
+
+TEST_F(TestApiBlackInputParser, defineFunMacrosProof)
+{
+  d_solver->setOption("parse-define-fun-macros", "true");
+  d_solver->setOption("produce-proofs", "true");
+  d_solver->setOption("check-proofs", "true");
+  InputParser p(d_solver.get(), d_symman.get());
+  parseCommands(p,
+                "(set-logic QF_LIA)"
+                "(declare-const a Int)"
+                "(define-fun f ((x Int)) Int (+ x 1))"
+                "(assert (< (f a) a))");
+  ASSERT_EQ(d_solver->getAssertions(),
+            std::vector<Term>{parseTerm(p, "(< (+ a 1) a)")});
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  std::vector<Proof> todo = d_solver->getProof();
+  std::unordered_set<Proof> visited;
+  while (!todo.empty())
+  {
+    Proof proof = todo.back();
+    todo.pop_back();
+    if (!visited.insert(proof).second)
+    {
+      continue;
+    }
+    ASSERT_NE(proof.getRule(), ProofRule::HO_CONG);
+    if (proof.getRule() == ProofRule::DSL_REWRITE
+        || proof.getRule() == ProofRule::THEORY_REWRITE)
+    {
+      ASSERT_NE(proof.getRewriteRule(), ProofRewriteRule::BETA_REDUCE);
+    }
+    std::vector<Proof> children = proof.getChildren();
+    todo.insert(todo.end(), children.begin(), children.end());
+  }
+  std::string printed = d_solver->proofToString(d_solver->getProof()[0]);
+  ASSERT_EQ(printed.find("lambda"), std::string::npos);
+}
 
 TEST_F(TestApiBlackInputParser, constructSymbolManager)
 {
