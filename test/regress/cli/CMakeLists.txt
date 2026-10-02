@@ -1625,6 +1625,7 @@ set(regress_0_tests
   regress0/proofs/dd_spark_nnf_pf.smt2
   regress0/proofs/dd_textbook-sumeven-arith-rcons.smt2
   regress0/proofs/define-fun-shadow.smt2
+  regress0/proofs/distinct-values-const-seq-nested.smt2
   regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
@@ -2138,6 +2139,10 @@ set(regress_0_tests
   regress0/sets/card-3sets.cvc.smt2
   regress0/sets/card.smt2
   regress0/sets/card3-ground.smt2
+  regress0/sets/choose-cong-sat.smt2
+  regress0/sets/choose-cong.smt2
+  regress0/sets/choose-reduction-pf.smt2
+  regress0/sets/choose-set-of-sets.smt2
   regress0/sets/comp-qf-error.smt2
   regress0/sets/complement.cvc.smt2
   regress0/sets/complement2.cvc.smt2
@@ -2195,6 +2200,7 @@ set(regress_0_tests
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/set_is_empty.smt2
   regress0/sets/set-eval-dup.smt2
+  regress0/sets/set-map-define-fun-no-ho.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-deq-dd.smt2
   regress0/sets/sets-dsl-rew.smt2

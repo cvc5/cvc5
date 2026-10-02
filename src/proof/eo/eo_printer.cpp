@@ -152,6 +152,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::SKOLEM_INTRO:
     case ProofRule::SETS_SINGLETON_INJ:
     case ProofRule::SETS_EXT:
+    case ProofRule::SETS_CHOOSE_MEMBER:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
@@ -544,9 +545,11 @@ bool EoPrinter::canEvaluate(Node n)
 
 bool EoPrinter::isHandledDistinctValues(const Node& n)
 {
-  std::unordered_set<TNode> visited;
-  std::vector<TNode> visit;
-  TNode cur;
+  // Note that we use Node instead of TNode, since we may traverse on terms
+  // that we construct below.
+  std::unordered_set<Node> visited;
+  std::vector<Node> visit;
+  Node cur;
   visit.push_back(n);
   do
   {

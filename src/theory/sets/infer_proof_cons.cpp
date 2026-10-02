@@ -145,10 +145,29 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(assumps.size() == 1 || assumps[1].getKind() == Kind::EQUAL);
       // (and (set.member x S) (= S (op T1 T2))) =>
       // rewrite((set.member x (op T1 T2)))
-      // this holds by applying the equality as a substitution to the first
-      // assumption and rewriting.
-      std::vector<Node> exp(assumps.begin() + 1, assumps.end());
-      Node aelim = psb.applyPredElim(assumps[0], exp);
+      // this holds by applying the equality to the first assumption and
+      // rewriting.
+      Node aelim;
+      Node s = assumps[0][1];
+      if (assumps.size() == 2 && assumps[1][0] == s)
+      {
+        // We use congruence to rewrite only the set argument of the
+        // membership. Applying (= S (op T1 T2)) as a substitution would
+        // also replace S in x, which may contain S if x is e.g.
+        // (set.choose S).
+        Node x = assumps[0][0];
+        Node xeq = psb.tryStep(ProofRule::REFL, {}, {x});
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(assumps[0], cargs);
+        Node ceq = psb.tryStep(cr, {xeq, assumps[1]}, cargs);
+        aelim = psb.tryStep(ProofRule::EQ_RESOLVE, {assumps[0], ceq}, {});
+      }
+      else
+      {
+        // apply the equalities as a substitution to the first assumption
+        std::vector<Node> exp(assumps.begin() + 1, assumps.end());
+        aelim = psb.applyPredElim(assumps[0], exp);
+      }
       success = true;
       if (!CDProof::isSame(aelim, conc))
       {
@@ -301,6 +320,18 @@ bool InferProofCons::convert(CDProof& cdp,
     {
       Assert(assumps.empty());
       success = psb.applyPredIntro(conc, {});
+      Assert(success);
+    }
+    break;
+    case InferenceId::SETS_CHOOSE_MEMBER:
+    {
+      Assert(assumps.empty());
+      // the conclusion is
+      //   (or (= A (as set.empty (Set E))) (set.member (set.choose A) A))
+      Assert(conc.getKind() == Kind::OR && conc.getNumChildren() == 2);
+      Node t = conc[1][0];
+      Node res = psb.tryStep(ProofRule::SETS_CHOOSE_MEMBER, {}, {t}, conc);
+      success = CDProof::isSame(res, conc);
       Assert(success);
     }
     break;

@@ -1562,6 +1562,18 @@ enum ENUM(ProofRule)
   EVALUE(SETS_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets choose membership**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \mathit{set.choose}(a)}
+   *   {a = \emptyset \vee \mathit{set.member}(\mathit{set.choose}(a),a)}
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_CHOOSE_MEMBER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Sets filter up**
    *
    * .. math::

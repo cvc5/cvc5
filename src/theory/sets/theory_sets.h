@@ -75,8 +75,8 @@ class TheorySets : public Theory
   void preRegisterTerm(TNode node) override;
   /**
    * If the sets-ext option is not set and we have an extended operator,
-   * we throw an exception. Additionally, we expand operators like choose
-   * and is_singleton.
+   * we throw an exception. Additionally, we expand operators like
+   * is_singleton.
    */
   TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
   bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
