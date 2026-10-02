@@ -545,11 +545,9 @@ bool EoPrinter::canEvaluate(Node n)
 
 bool EoPrinter::isHandledDistinctValues(const Node& n)
 {
-  // Note that we use Node instead of TNode, since we may traverse on terms
-  // that we construct below.
-  std::unordered_set<Node> visited;
-  std::vector<Node> visit;
-  Node cur;
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  TNode cur;
   visit.push_back(n);
   do
   {

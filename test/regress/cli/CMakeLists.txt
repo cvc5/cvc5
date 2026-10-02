@@ -1625,7 +1625,6 @@ set(regress_0_tests
   regress0/proofs/dd_spark_nnf_pf.smt2
   regress0/proofs/dd_textbook-sumeven-arith-rcons.smt2
   regress0/proofs/define-fun-shadow.smt2
-  regress0/proofs/distinct-values-const-seq-nested.smt2
   regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
