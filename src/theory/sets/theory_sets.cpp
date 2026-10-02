@@ -69,6 +69,9 @@ void TheorySets::finishInit()
   // Universe set is not evaluated. This is moreover important for ensuring that
   // we do not eliminate terms whose value involves the universe set.
   d_valuation.setUnevaluatedKind(Kind::SET_UNIVERSE);
+  // The value of set.choose is determined by congruence with the terms in the
+  // equality engine.
+  d_valuation.setSemiEvaluatedKind(Kind::SET_CHOOSE);
 
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(Kind::SET_SINGLETON);
@@ -77,6 +80,7 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::SET_MINUS);
   d_equalityEngine->addFunctionKind(Kind::SET_MEMBER);
   d_equalityEngine->addFunctionKind(Kind::SET_SUBSET);
+  d_equalityEngine->addFunctionKind(Kind::SET_CHOOSE);
   // relation operators
   d_equalityEngine->addFunctionKind(Kind::RELATION_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN);

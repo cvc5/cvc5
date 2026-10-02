@@ -23,6 +23,7 @@
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
+#include "theory/sets/set_reduction.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
 #include "theory/uf/function_const.h"
@@ -1483,7 +1484,8 @@ void TheorySetsPrivate::computeCareGraph()
   for (const std::pair<const Kind, std::vector<Node>>& it : ol)
   {
     Kind k = it.first;
-    if (k == Kind::SET_SINGLETON || k == Kind::SET_MEMBER)
+    if (k == Kind::SET_SINGLETON || k == Kind::SET_MEMBER
+        || k == Kind::SET_CHOOSE)
     {
       Trace("sets-cg-summary") << "Compute graph for sets, op=" << k << "..."
                                << it.second.size() << std::endl;
@@ -1503,11 +1505,15 @@ void TheorySetsPrivate::computeCareGraph()
           // get the type of the singleton set (not the type of its element)
           tn = f1.getType().getSetElementType();
         }
-        else
+        else if (k == Kind::SET_MEMBER)
         {
-          Assert(k == Kind::SET_MEMBER);
           // get the element type of the set (not the type of the element)
           tn = f1[1].getType().getSetElementType();
+        }
+        else
+        {
+          Assert(k == Kind::SET_CHOOSE);
+          tn = f1.getType();
         }
         std::vector<TNode> reps;
         bool hasCareArg = false;
@@ -1556,6 +1562,12 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
            && a == 0 && n[0].getType().isSet())
   {
     // when the elements themselves are sets
+    return true;
+  }
+  else if (n.getKind() == Kind::SET_CHOOSE)
+  {
+    // set.choose is a function, we must split on whether its arguments are
+    // equal
     return true;
   }
   return false;
@@ -1741,6 +1753,14 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       }
     }
     break;
+    case Kind::SET_CHOOSE:
+    {
+      d_equalityEngine->addTerm(node);
+      // send the axiom for set.choose
+      Node lem = SetReduction::mkChooseMemberAxiom(node);
+      d_im.sendAxiomLemma(lem, InferenceId::SETS_CHOOSE_MEMBER);
+    }
+    break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
@@ -1752,44 +1772,10 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
 
   switch (node.getKind())
   {
-    case Kind::SET_CHOOSE: return expandChooseOperator(node, lems);
     case Kind::SET_IS_SINGLETON: return expandIsSingletonOperator(node);
     default: break;
   }
   return TrustNode::null();
-}
-
-TrustNode TheorySetsPrivate::expandChooseOperator(
-    const Node& node, std::vector<SkolemLemma>& lems)
-{
-  Assert(node.getKind() == Kind::SET_CHOOSE);
-
-  // (choose A) is eliminated to k, with lemma
-  //   (and (= k (uf A)) (or (= A (as set.empty (Set E))) (set.member k A)))
-  // where uf: (Set E) -> E is a skolem function, and E is the type of elements
-  // of A
-
-  NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node);
-  Node A = node[0];
-  TypeNode setType = A.getType();
-  ensureFirstClassSetType(setType);
-  // use canonical constant to ensure it can be typed
-  Node mkElem = NodeManager::mkGroundValue(setType);
-  // a Null node is used here to get a unique skolem function per set type
-  Node uf = sm->mkSkolemFunction(SkolemId::SETS_CHOOSE, mkElem);
-  Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
-
-  Node equal = x.eqNode(ufA);
-  Node emptySet = nm->mkConst(EmptySet(setType));
-  Node isEmpty = A.eqNode(emptySet);
-  Node member = nm->mkNode(Kind::SET_MEMBER, x, A);
-  Node lem =
-      nm->mkNode(Kind::AND, equal, nm->mkNode(Kind::OR, isEmpty, member));
-  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
-  lems.push_back(SkolemLemma(tlem, x));
-  return TrustNode::mkTrustRewrite(node, x, nullptr);
 }
 
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)

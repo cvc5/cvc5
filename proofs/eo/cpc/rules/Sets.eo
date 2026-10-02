@@ -29,6 +29,19 @@
         (set.member (@sets_deq_diff a b) b)))
 )
 
+;;;;; ProofRule::SETS_CHOOSE_MEMBER
+; rule: sets_choose_member
+; implements: ProofRule::SETS_CHOOSE_MEMBER
+; args:
+; - t T: The set.choose term.
+; conclusion: >
+;   The argument of t is empty, or t is a member of it.
+(declare-rule sets_choose_member ((T Type) (a (Set T)))
+  :args ((set.choose a))
+  :conclusion
+    (or (= a (as set.empty (eo::typeof a))) (set.member (set.choose a) a))
+)
+
 ;;;;; ProofRewriteRule::SETS_EVAL_OP
 ; program: $set_union_to_list
 ; args:
