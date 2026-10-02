@@ -3469,7 +3469,7 @@ enum ENUM(Kind)
   /**
    * The set obtained by inserting elements;
    *
-   * - Arity: ``n > 0``
+   * - Arity: ``n > 1``
    *
    *   - ``1..n-1:`` Terms of any Sort (must match the element sort of the given set Term)
    *   - ``n:`` Term of set Sort
