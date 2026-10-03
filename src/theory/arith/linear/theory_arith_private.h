@@ -772,7 +772,21 @@ class TheoryArithPrivate : protected EnvObj
   ApproximateStatistics* d_approxStats;
   ApproximateStatistics& getApproxStats();
   context::CDO<int32_t> d_attemptSolveIntTurnedOff;
+  /**
+   * Number of consecutive approximate LP relaxations that came back feasible
+   * but whose solution could not be turned into an exact model. Reset as soon
+   * as one import succeeds. Used to stop calling the approximate solver on
+   * problems where it cannot help; see solveRealRelaxation().
+   */
+  uint64_t d_consecutiveRelaxFailures;
   void turnOffApproxFor(int32_t rounds);
+  /**
+   * Called after importing an approximate relaxation. Resets the failure
+   * counter if the import yielded a model or a conflict, and otherwise
+   * disables the approximate solver once approxRelaxFailureLimit imports in a
+   * row have yielded neither.
+   */
+  void noteRelaxationOutcome();
   bool getSolveIntegerResource();
 
   void tryBranchCut(ApproximateSimplex* approx, int nid, BranchCutInfo& bl);
