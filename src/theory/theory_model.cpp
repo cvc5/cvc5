@@ -22,6 +22,7 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
+#include "theory/sep/sep_model_checker.h"
 #include "theory/trust_substitutions.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_model.h"
@@ -77,6 +78,7 @@ void TheoryModel::reset()
   d_semiEvalCache.clear();
   d_sep_heap = Node::null();
   d_sep_nil_eq = Node::null();
+  d_sep_heap_labels.clear();
   d_reps.clear();
   d_assignExcSet.clear();
   d_aesMaster.clear();
@@ -104,6 +106,16 @@ bool TheoryModel::getHeapModel(Node& h, Node& neq) const
   h = d_sep_heap;
   neq = d_sep_nil_eq;
   return true;
+}
+
+void TheoryModel::setSepHeapLabels(const std::unordered_set<Node>& labels)
+{
+  d_sep_heap_labels = labels;
+}
+
+bool TheoryModel::isSepHeapLabel(TNode lbl) const
+{
+  return d_sep_heap_labels.find(lbl) != d_sep_heap_labels.end();
 }
 
 std::vector<Node> TheoryModel::getDomainElements(TypeNode tn) const
@@ -231,6 +243,38 @@ Node TheoryModel::getModelValue(TNode n) const
   {
     d_modelCache[n] = n;
     return n;
+  }
+
+  // The magic wand (quantifies over all extension heaps) and the internal
+  // SEP_LABEL atom (whose truth is relative to a solver-chosen sub-heap that
+  // the model does not expose) cannot be reliably decided against the concrete
+  // heap, so we leave them opaque rather than evaluating their children (which
+  // would produce a nonsensical partially-evaluated atom).
+  if (nk == Kind::SEP_WAND || nk == Kind::SEP_LABEL)
+  {
+    d_modelCache[n] = n;
+    return n;
+  }
+  // Separation logic spatial atoms are Boolean, but the generic evaluation
+  // below cannot decide them: their truth depends on the heap. If a heap model
+  // has been constructed, evaluate them against it, so that e.g. get-value
+  // returns a Boolean.
+  if (!d_sep_heap.isNull()
+      && (nk == Kind::SEP_EMP || nk == Kind::SEP_PTO || nk == Kind::SEP_STAR))
+  {
+    Node sval = sep::SepModelChecker::evaluate(this, d_sep_heap, n);
+    // If the atom could not be decided against the heap, it must stay opaque,
+    // exactly like the wand above. Falling through to the generic evaluation
+    // would evaluate each child of the spatial connective against the *whole*
+    // heap and let the rewriter combine the results, which corresponds to no
+    // separation logic semantics at all: in
+    //   (sep (pto 1 1) (wand (pto 5 5) true))
+    // over the heap 1 -> 1, 2 -> 2, the conjunct (pto 1 1) evaluates to false
+    // because the whole heap has two cells, and (sep false ...) rewrites to
+    // false. That would report a satisfied assertion as violated.
+    Node sret = sval.isNull() ? Node(n) : sval;
+    d_modelCache[n] = sret;
+    return sret;
   }
 
   Node ret = n;
