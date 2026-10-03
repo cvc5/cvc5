@@ -61,65 +61,11 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
                      << std::endl;
       return TrustNode::mkTrustRewrite(node, ret);
     }
-    // partial beta reduction
-    // f ---> (lambda ((x Int) (y Int)) s[x, y]) then (@ f t) is preprocessed
-    // to (lambda ((y Int)) s[t, y]).
-    if (options().uf.ufHoLazyLambdaLift)
-    {
-      Node op = node[0];
-      Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull() && !d_ll.isLifted(opl))
-      {
-        NodeManager* nm = nodeManager();
-        Node app = nm->mkNode(Kind::HO_APPLY, opl, node[1]);
-        app = rewrite(app);
-        Trace("uf-lazy-ll")
-            << "Partial beta reduce: " << node << " -> " << app << std::endl;
-        return TrustNode::mkTrustRewrite(node, app, nullptr);
-      }
-    }
   }
   else if (k == Kind::APPLY_UF)
   {
-    // Say (lambda ((x Int)) t[x]) occurs in the input. We replace this
-    // by k during ppRewrite. In the following, if we see (k s), we replace
-    // it by t[s]. This maintains the invariant that the *only* occurrences
-    // of k are as arguments to other functions; k is not applied
-    // in any preprocessed constraints.
-    if (options().uf.ufHoLazyLambdaLift)
-    {
-      // if an application of the lambda lifted function, do beta reduction
-      // immediately
-      Node op = node.getOperator();
-      Node opl = d_ll.getLambdaFor(op);
-      if (!opl.isNull() && !d_ll.isLifted(opl))
-      {
-        Assert(opl.getKind() == Kind::LAMBDA);
-        std::vector<Node> args(node.begin(), node.end());
-        Node app = d_ll.betaReduce(opl, args);
-        Trace("uf-lazy-ll")
-            << "Beta reduce: " << node << " -> " << app << std::endl;
-        return TrustNode::mkTrustRewrite(node, app, nullptr);
-      }
-      // If an unlifted lambda occurs in an argument to APPLY_UF, it must be
-      // lifted. We do this only if the lambda needs lifting, i.e. it is one
-      // that may induce circular model dependencies.
-      for (const Node& nc : node)
-      {
-        if (nc.getType().isFunction())
-        {
-          Node lam = d_ll.getLambdaFor(nc);
-          if (!lam.isNull() && d_ll.needsLift(lam))
-          {
-            TrustNode trn = d_ll.lift(lam);
-            if (!trn.isNull())
-            {
-              lems.push_back(SkolemLemma(trn, nc));
-            }
-          }
-        }
-      }
-    }
+    // lift lambda arguments if necessary
+    return d_ll.ppRewrite(node, lems);
   }
   else if (k == Kind::LAMBDA || k == Kind::FUNCTION_ARRAY_CONST)
   {
@@ -133,9 +79,15 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
         return TrustNode::mkTrustRewrite(node, elimLam, nullptr);
       }
     }
+    // Lift or purify the lambda if necessary. Lambdas that are not lifted are
+    // beta-reduced on demand when equated to ordinary functions, see
+    // checkLazyLambda.
     TrustNode skTrn = d_ll.ppRewrite(node, lems);
-    Trace("uf-lazy-ll") << "...return " << skTrn.getNode() << std::endl;
-    return skTrn;
+    if (!skTrn.isNull())
+    {
+      Trace("uf-lazy-ll") << "...return " << skTrn.getNode() << std::endl;
+      return skTrn;
+    }
   }
   return TrustNode::null();
 }
@@ -200,6 +152,14 @@ unsigned HoExtension::applyExtensionality(TNode deq)
     d_extensionality.insert(deq);
     Node conc = getExtensionalityDeq(deq);
     Node lem = nodeManager()->mkNode(Kind::OR, deq[0], conc);
+    // If deq is between two lambdas, the lemma may rewrite to true, e.g.
+    // (or (= (lambda ((x Int)) (+ x 1)) (lambda ((x Int)) (+ x 2)))
+    //     (not (= (+ k 1) (+ k 2))))
+    // in which case we do not send it.
+    if (rewrite(lem).isConst())
+    {
+      return 0;
+    }
     Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem
                          << std::endl;
     d_im.lemma(lem, InferenceId::UF_HO_EXTENSIONALITY);
@@ -286,6 +246,27 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
 void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
 {
+  // The only relevant lambdas are those we use as model values for their
+  // equivalence class, as computed by checkLazyLambda. Other lambdas are
+  // either equal to these, or are in equivalence classes whose model value is
+  // determined by ordinary functions. Including them would lead to
+  // syntactically distinct lambdas in the same equivalence class of the model.
+  std::unordered_set<Node> lamReps;
+  for (const std::pair<const Node, Node>& p : d_lambdaEqc)
+  {
+    lamReps.insert(p.second);
+  }
+  for (std::set<Node>::iterator it = termSet.begin(); it != termSet.end();)
+  {
+    if (it->getKind() == Kind::LAMBDA && lamReps.find(*it) == lamReps.end())
+    {
+      it = termSet.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
   for (const Node& t : termSet)
   {
     if (t.getKind() == Kind::APPLY_UF)
@@ -321,7 +302,38 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
   {
     Node eqc = (*eqcs_i);
     TypeNode tn = eqc.getType();
-    if (tn.isFunction() && d_lambdaEqc.find(eqc) == d_lambdaEqc.end())
+    // Whether the model value of this equivalence class is given by a lambda,
+    // and an ordinary function in it if one exists. We use the latter as the
+    // representative of this equivalence class below, since otherwise
+    // extensionality may introduce applications of lambdas, e.g. if the
+    // equivalence class has a lambda that was lazily lifted. Note that
+    // d_lambdaEqc is keyed by the representatives of the equality engine of
+    // d_state, which may differ from those of ee if we are building a model.
+    bool isLambdaEqc = false;
+    Node rep = eqc;
+    if (tn.isFunction())
+    {
+      eq::EqualityEngine* see = d_state.getEqualityEngine();
+      bool foundRep = false;
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+      while (!eqc_i.isFinished())
+      {
+        Node n = *eqc_i;
+        ++eqc_i;
+        if (see->hasTerm(n)
+            && d_lambdaEqc.find(see->getRepresentative(n)) != d_lambdaEqc.end())
+        {
+          isLambdaEqc = true;
+          break;
+        }
+        if (!foundRep && !LambdaLift::isLambda(n))
+        {
+          rep = n;
+          foundRep = true;
+        }
+      }
+    }
+    if (tn.isFunction() && !isLambdaEqc)
     {
       hasFunctions = true;
       std::vector<TypeNode> argTypes = tn.getArgTypes();
@@ -356,9 +368,9 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
       // such function symbols must be handled during solving.
       if (eagerExtType != isCollectModel)
       {
-        func_eqcs[tn].push_back(eqc);
+        func_eqcs[tn].push_back(rep);
         Trace("uf-ho-debug")
-            << "  func eqc : " << tn << " : " << eqc << std::endl;
+            << "  func eqc : " << tn << " : " << rep << std::endl;
       }
     }
     ++eqcs_i;
@@ -601,20 +613,16 @@ unsigned HoExtension::checkAppCompletion()
 
 unsigned HoExtension::checkLazyLambda()
 {
-  if (!options().uf.ufHoLazyLambdaLift)
-  {
-    // no lambdas are lazily lifted
-    return 0;
-  }
   Trace("uf-ho") << "HoExtension::checkLazyLambda..." << std::endl;
   NodeManager* nm = nodeManager();
   unsigned numLemmas = 0;
   d_lambdaEqc.clear();
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
-  // normal functions equated to lambda functions
+  // normal functions equated to lambdas
   std::unordered_set<Node> normalEqFuns;
-  // mapping from functions to terms
+  // maps equivalence classes to the first lambda we encounter in them
+  std::unordered_map<Node, Node> lamReps;
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
@@ -624,47 +632,28 @@ unsigned HoExtension::checkLazyLambda()
       continue;
     }
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
-    Node lamRep;  // the first lambda function we encounter in the equivalence
-                  // class
-    bool needsLift = false;
-    bool doLift = false;
+    Node lamRep;  // the first lambda we encounter in the equivalence class
     Node lamRepLam;
-    std::unordered_set<Node> normalEqFunWait;
+    // the normal functions in this equivalence class
+    std::vector<Node> normalFuns;
     while (!eqc_i.isFinished())
     {
       Node n = *eqc_i;
       ++eqc_i;
-      Node lam = d_ll.getLambdaFor(n);
-      if (lam.isNull() || d_ll.isLifted(lam))
+      Node lam = LambdaLift::getLambdaFor(n);
+      if (lam.isNull())
       {
-        if (!lamRep.isNull())
-        {
-          // if we are equal to a lambda function, we must beta-reduce
-          // applications of this
-          normalEqFuns.insert(n);
-          doLift = needsLift;
-        }
-        else
-        {
-          // waiting to see if there is a lambda function in this equivalence
-          // class
-          normalEqFunWait.insert(n);
-        }
+        normalFuns.push_back(n);
       }
       else if (lamRep.isNull())
       {
-        // there is a lambda function in this equivalence class
+        // there is a lambda in this equivalence class
         lamRep = n;
         lamRepLam = lam;
-        needsLift = d_ll.needsLift(lam) && !d_ll.isLifted(lam);
-        doLift = needsLift && !normalEqFunWait.empty();
-        // must consider all normal functions we've seen so far
-        normalEqFuns.insert(normalEqFunWait.begin(), normalEqFunWait.end());
-        normalEqFunWait.clear();
       }
       else
       {
-        // two lambda functions are in same equivalence class
+        // two lambdas are in same equivalence class
         Node f = lamRep < n ? lamRep : n;
         Node g = lamRep < n ? n : lamRep;
         // swap based on order
@@ -736,29 +725,47 @@ unsigned HoExtension::checkLazyLambda()
         }
       }
     }
-    if (!lamRep.isNull())
+    if (lamRep.isNull())
     {
-      d_lambdaEqc[eqc] = lamRep;
-      // Do the lambda lifting lemma if needed. This happens if a lambda
-      // needs lifting based on the symbols in its body and is equated to an
-      // ordinary function symbol. For example, this is what ensures we
-      // handle conflicts like f = (lambda ((x Int)) (+ 1 (f x))).
-      if (doLift)
-      {
-        TrustNode tlift = d_ll.lift(lamRepLam);
-        Assert(!tlift.isNull());
-        d_im.trustedLemma(tlift, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
-      }
+      continue;
     }
+    // Do the lambda lifting lemma if needed. This happens if a lambda
+    // needs lifting based on the symbols in its body and is equated to an
+    // ordinary function symbol. For example, this is what ensures we
+    // handle conflicts like f = (lambda ((x Int)) (+ 1 (f x))).
+    if (!normalFuns.empty() && d_ll.needsLift(lamRepLam))
+    {
+      Node lem = d_ll.getLiftLemma(normalFuns[0], lamRep);
+      if (cacheLemma(lem))
+      {
+        Trace("uf-ho-lemma")
+            << "uf-ho-lemma : lazy lift : " << lem << std::endl;
+        d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
+        numLemmas++;
+      }
+      // The model value for this equivalence class is determined by the
+      // applications of its normal functions, not by the lambda, since the
+      // lambda may induce circular dependencies in model construction. We
+      // also do not beta-reduce applications of its normal functions, since
+      // this may not terminate, e.g. if g = (lambda ((x Int)) (f (g x))),
+      // then beta-reducing (g t) introduces (g t'), and so on. Instead, these
+      // applications are handled by instantiating the lift lemma.
+      continue;
+    }
+    lamReps[eqc] = lamRep;
+    // if we are equal to a lambda, we must beta-reduce applications of the
+    // normal functions in this equivalence class
+    normalEqFuns.insert(normalFuns.begin(), normalFuns.end());
+    d_lambdaEqc[eqc] = lamRep;
   }
-  Trace("uf-ho-debug")
-      << "  found " << normalEqFuns.size()
-      << " ordinary functions that are equal to lambda functions" << std::endl;
+  Trace("uf-ho-debug") << "  found " << normalEqFuns.size()
+                       << " ordinary functions that are equal to lambdas"
+                       << std::endl;
   if (normalEqFuns.empty())
   {
     return numLemmas;
   }
-  // if we have normal functions that are equal to lambda functions, go back
+  // if we have normal functions that are equal to lambdas, go back
   // and ensure they are mapped properly
   // mapping from functions to terms
   eq::EqClassesIterator eqcs_i2 = eq::EqClassesIterator(ee);
@@ -798,9 +805,9 @@ unsigned HoExtension::checkLazyLambda()
                            << std::endl;
       Assert(ee->hasTerm(op));
       Node r = ee->getRepresentative(op);
-      Assert(d_lambdaEqc.find(r) != d_lambdaEqc.end());
-      Node lf = d_lambdaEqc[r];
-      Node lam = d_ll.getLambdaFor(lf);
+      Assert(lamReps.find(r) != lamReps.end());
+      Node lf = lamReps[r];
+      Node lam = LambdaLift::getLambdaFor(lf);
       Assert(!lam.isNull() && lam.getKind() == Kind::LAMBDA);
       // a normal function g equal to a lambda, say f --> lambda(f)
       // need to infer f = g => g(t) = f(t) for all terms g(t)
@@ -885,7 +892,7 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   // for equivalence classes that we know to assign a lambda directly
   for (const std::pair<const Node, Node>& p : d_lambdaEqc)
   {
-    Node lam = d_ll.getLambdaFor(p.second);
+    Node lam = LambdaLift::getLambdaFor(p.second);
     lam = rewrite(lam);
     Assert(!lam.isNull());
     m->assertEquality(p.second, lam, true);
