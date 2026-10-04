@@ -688,6 +688,8 @@ set(regress_0_tests
   regress0/bv/issue10796-invalid-post-assert-logic-string.smt2
   regress0/bv/issue12336-xor-simp.smt2
   regress0/bv/issue12336-xor-simp-s.smt2
+  regress0/bv/issue13039.smt2
+  regress0/bv/issue13039-2-concat.smt2
   regress0/bv/le-elim-conv.smt2
   regress0/bv/macro-rewrites.smt2
   regress0/bv/mul-neg-unsat.smt2
