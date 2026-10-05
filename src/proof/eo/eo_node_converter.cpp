@@ -179,13 +179,6 @@ Node EoNodeConverter::postConvert(Node n)
     return mkInternalApp(
         printer::smt2::Smt2Printer::smtKindString(k), args, tn);
   }
-  else if (k == Kind::SET_INSERT)
-  {
-    TypeNode tn = n.getType();
-    std::vector<Node> iargs(n.begin(), n.begin() + n.getNumChildren() - 1);
-    Node list = mkTypedList(iargs);
-    return mkInternalApp("set.insert", {list, n[n.getNumChildren() - 1]}, tn);
-  }
   else if (k == Kind::CONST_SEQUENCE)
   {
     if (!n.getConst<Sequence>().empty())
