@@ -335,6 +335,18 @@ a package named `libedit-dev`, `libedit-devel`, or similar.  Configure cvc5 with
 to run tests related to interactive mode with this dependency, you will need
 the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
 
+mimalloc (Optional memory allocator)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`mimalloc <https://github.com/microsoft/mimalloc>`_ is a general-purpose memory
+allocator that is considerably faster than the default allocators on Linux and
+macOS for the many small, short-lived allocations cvc5 makes. Configure cvc5
+with ``configure.sh --mimalloc --auto-download`` to download and build it and
+link it into the ``cvc5`` binary, where it replaces ``malloc``, ``free`` and
+related functions. The cvc5 library is not affected, so programs using the API
+keep their allocator. This option is not available on Windows, for WebAssembly,
+or together with the address or thread sanitizers.
+
 Normaliz (Optional rational cones library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

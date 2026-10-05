@@ -72,6 +72,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --glpk                   use GLPK simplex solver
   --cryptominisat          use the CryptoMiniSat SAT solver
   --kissat                 use the Kissat SAT solver
+  --mimalloc               use the mimalloc memory allocator in the cvc5 binary
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
   --editline               support the editline library
@@ -147,6 +148,7 @@ docs_ga=default
 glpk=default
 gpl=default
 kissat=default
+mimalloc=default
 poly=ON
 cocoa=default
 normaliz=default
@@ -270,6 +272,9 @@ do
 
     --kissat) kissat=ON;;
     --no-kissat) kissat=OFF;;
+
+    --mimalloc) mimalloc=ON;;
+    --no-mimalloc) mimalloc=OFF;;
 
     --win64) win64=ON;;
 
@@ -531,6 +536,8 @@ fi
   && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk"
 [ $kissat != default ] \
   && cmake_opts="$cmake_opts -DUSE_KISSAT=$kissat"
+[ $mimalloc != default ] \
+  && cmake_opts="$cmake_opts -DUSE_MIMALLOC=$mimalloc"
 [ $poly != default ] \
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
