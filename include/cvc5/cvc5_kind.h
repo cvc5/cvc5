@@ -3467,9 +3467,9 @@ enum ENUM(Kind)
    */
   EVALUE(SET_SINGLETON),
   /**
-   * The set obtained by inserting elements;
+   * The set obtained by inserting elements, right associative.
    *
-   * - Arity: ``n > 0``
+   * - Arity: ``n > 1``
    *
    *   - ``1..n-1:`` Terms of any Sort (must match the element sort of the given set Term)
    *   - ``n:`` Term of set Sort
@@ -3482,6 +3482,15 @@ enum ENUM(Kind)
    * - Create Op of this kind with:
    *
    *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
+   *
+   * \rst
+   * .. note::
+   *
+   *     Similar to :cpp:enumerator:`IMPLIES`, terms of this kind with more
+   *     than two arguments are constructed as nested binary applications,
+   *     e.g. ``(set.insert a b S)`` is constructed as
+   *     ``(set.insert a (set.insert b S))``.
+   * \endrst
    */
   EVALUE(SET_INSERT),
   /**

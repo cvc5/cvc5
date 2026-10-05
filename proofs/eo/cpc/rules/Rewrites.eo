@@ -1834,6 +1834,11 @@
   :conclusion (= (set.subset x1 y1) (= (set.union x1 y1) y1))
 )
 
+(declare-rule sets-insert-elim ((@T0 Type) (@T1 Type) (x1 @T0) (y1 (Set @T1)))
+  :args (x1 y1)
+  :conclusion (= (set.insert x1 y1) (set.union (set.singleton x1) y1))
+)
+
 (declare-rule sets-union-comm
   ((@T0 Type) (@T1 Type) (x1 (Set @T0)) (y1 (Set @T1)))
   :args (x1 y1)

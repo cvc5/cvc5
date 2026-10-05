@@ -11,6 +11,12 @@ cvc5 1.4.2 prerelease
   standard indexed syntax `((_ is C) t)`. The legacy tester symbols are still
   available when parsing with `--parsing-mode=lenient`.
 
+- `set.insert` is now a binary operator, where applications with more than two
+  arguments are constructed as nested binary applications, e.g.
+  `(set.insert a b S)` is constructed as `(set.insert a (set.insert b S))`.
+  This impacts the children of such terms when inspected via the API, as well
+  as how they are printed.
+
 cvc5 1.4.1
 ==========
 

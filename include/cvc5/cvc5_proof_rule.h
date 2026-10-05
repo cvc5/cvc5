@@ -4185,17 +4185,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(SETS_EVAL_OP),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets insert elimination**
-   *
-   * .. math::
-   *
-   *   \mathit{set.insert}(t_1, \ldots, t_n, S) = \texttt{set.union}(\texttt{sets.singleton}(t_1), \ldots, \texttt{sets.singleton}(t_n), S)
-   *
-   * \endverbatim
-   */
-  EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-div-total-zero-real */
@@ -4656,6 +4645,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_MEMBER_EMP),
   /** Auto-generated from RARE rule sets-subset-elim */
   EVALUE(SETS_SUBSET_ELIM),
+  /** Auto-generated from RARE rule sets-insert-elim */
+  EVALUE(SETS_INSERT_ELIM),
   /** Auto-generated from RARE rule sets-union-comm */
   EVALUE(SETS_UNION_COMM),
   /** Auto-generated from RARE rule sets-inter-comm */

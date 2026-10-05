@@ -5583,7 +5583,7 @@ Term TermManager::mkTermHelper(Kind kind, const std::vector<Term>& children)
       // left-associative, but cvc5 internally only supports 2 args
       res = d_nm->mkLeftAssociative(k, echildren);
     }
-    else if (kind == Kind::IMPLIES)
+    else if (kind == Kind::IMPLIES || kind == Kind::SET_INSERT)
     {
       // right-associative, but cvc5 internally only supports 2 args
       res = d_nm->mkRightAssociative(k, echildren);
