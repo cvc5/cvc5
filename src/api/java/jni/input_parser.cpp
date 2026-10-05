@@ -24,7 +24,7 @@ using namespace cvc5::parser;
  * Method:    newInputParser
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__JJ(
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser(
     JNIEnv* env, jclass, jlong solverPointer, jlong symbolManagerPointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
@@ -38,21 +38,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__JJ(
 
 /*
  * Class:     io_github_cvc5_InputParser
- * Method:    newInputParser
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_newInputParser__J(
-    JNIEnv* env, jclass, jlong solverPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(solverPointer);
-  InputParser* parser = new InputParser(solver);
-  return reinterpret_cast<jlong>(parser);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_InputParser
  * Method:    deletePointer
  * Signature: (J)V
  */
@@ -60,37 +45,6 @@ JNIEXPORT void JNICALL
 Java_io_github_cvc5_InputParser_deletePointer(JNIEnv*, jobject, jlong pointer)
 {
   delete reinterpret_cast<InputParser*>(pointer);
-}
-
-/*
- * Class:     io_github_cvc5_InputParser
- * Method:    getSolver
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_getSolver(JNIEnv* env,
-                                                                  jobject,
-                                                                  jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
-  Solver* solver = parser->getSolver();
-  return reinterpret_cast<jlong>(solver);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_InputParser
- * Method:    getSymbolManager
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_InputParser_getSymbolManager(
-    JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  InputParser* parser = reinterpret_cast<InputParser*>(pointer);
-  SymbolManager* symbolManager = parser->getSymbolManager();
-  return reinterpret_cast<jlong>(symbolManager);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*

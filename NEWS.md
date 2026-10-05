@@ -6,6 +6,14 @@ cvc5 1.4.2 prerelease
 - Adds techniques for returning "sat" when the returned candidate model
   happens to satisfy the set of input assertions (`--model-verify`).
 
+- **Java API**
+  * `Solver.getTermManager()` now returns the same `TermManager` object on
+    every call, and `InputParser.getSolver()` and
+    `InputParser.getSymbolManager()` return the objects the parser was created
+    with, instead of new wrappers around the same native objects. Releasing a
+    wrapper obtained from these getters and the original object no longer
+    frees the native object twice.
+
 cvc5 1.4.1
 ==========
 

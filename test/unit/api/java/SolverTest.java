@@ -2539,4 +2539,11 @@ class SolverTest
       assertEquals(value1, value3);
     }
   }
+
+  @Test
+  void getTermManagerSameInstance()
+  {
+    assertSame(d_solver.getTermManager(), d_solver.getTermManager());
+    assertEquals(d_tm.getBooleanSort(), d_solver.getTermManager().getBooleanSort());
+  }
 }
