@@ -478,11 +478,28 @@ Cvc5::~Cvc5()
     Assert(d_output_tag_streambuf);
     d_output_tag_stream->rdbuf(d_output_tag_streambuf);
   }
-  // Drop our handle to the term manager. Note that this may free the term
+  // Drop our reference to the term manager. Note that this may free the term
   // manager wrapper (if it was already deleted by the user and no managed
   // objects are left). This is safe, the C++ solver instance holds its own
   // copy of the C++ term manager.
   d_tm->dec_ref();
+}
+
+void Cvc5::inc_ref() { d_refs += 1; }
+
+void Cvc5::dec_ref()
+{
+  Assert(d_refs > 0);
+  d_refs -= 1;
+  free_if_unused();
+}
+
+void Cvc5::free_if_unused()
+{
+  if (d_refs == 0)
+  {
+    delete this;
+  }
 }
 
 Cvc5Result Cvc5::export_result(const cvc5::Result& result)
@@ -562,7 +579,19 @@ cvc5_proof_t::cvc5_proof_t(Cvc5* cvc5,
   d_tm->inc_ref();
 }
 
-cvc5_proof_t::~cvc5_proof_t() { d_tm->dec_ref(); }
+cvc5_proof_t::~cvc5_proof_t()
+{
+  // Drop one reference on each proof created from this proof while not
+  // associated with a solver (see `export_proof()`): proofs the user holds
+  // an additional reference to survive, the others are freed here.
+  for (cvc5_proof_t* res : d_alloc_proofs)
+  {
+    res->d_parent = nullptr;
+    res->release();
+  }
+  d_alloc_proofs.clear();
+  d_tm->dec_ref();
+}
 
 cvc5_proof_t* cvc5_proof_t::copy()
 {
@@ -579,6 +608,10 @@ void cvc5_proof_t::release()
     {
       d_cvc5->deregister(this);
     }
+    else if (d_parent)
+    {
+      d_parent->deregister(this);
+    }
     delete this;
   }
 }
@@ -589,9 +622,20 @@ Cvc5Proof cvc5_proof_t::export_proof(const cvc5::Proof& proof)
   {
     return d_cvc5->export_proof(proof);
   }
-  // The solver is already gone: the exported proof is not associated with
-  // any solver and is only freed by its own release.
-  return new cvc5_proof_t(nullptr, d_tm, proof);
+  // The solver is already gone: the exported proof is associated with this
+  // proof instead, which then holds the reference that the solver would
+  // otherwise hold. This way, the ownership of the returned proof is the same
+  // in both cases.
+  cvc5_proof_t* res = new cvc5_proof_t(nullptr, d_tm, proof);
+  res->d_parent = this;
+  d_alloc_proofs.insert(res);
+  return res;
+}
+
+void cvc5_proof_t::deregister(cvc5_proof_t* proof)
+{
+  Assert(d_alloc_proofs.find(proof) != d_alloc_proofs.end());
+  d_alloc_proofs.erase(proof);
 }
 
 Cvc5Proof Cvc5::export_proof(const cvc5::Proof& proof)
@@ -645,7 +689,7 @@ std::vector<cvc5::Term> Cvc5::PluginCpp::check()
   std::vector<cvc5::Term> res;
   if (d_plugin->check)
   {
-    size_t size;
+    size_t size = 0;
     const Cvc5Term* terms = d_plugin->check(&size, d_plugin->d_check_state);
     for (size_t i = 0; i < size; ++i)
     {

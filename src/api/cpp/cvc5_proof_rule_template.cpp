@@ -219,7 +219,6 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_POLY_NORM_EQ:
       return "FF_POLY_NORM_EQ";
       //================================================= External rules
-    case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";
@@ -374,9 +373,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
-    case ProofRewriteRule::SETS_EVAL_OP: return "sets-eval-op";
-    case ProofRewriteRule::SETS_INSERT_ELIM:
-      return "sets-insert-elim";
+    case ProofRewriteRule::SETS_EVAL_OP:
+      return "sets-eval-op";
       //================================================= RARE rules
       // clang-format off
       ${printer}$

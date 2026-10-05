@@ -91,8 +91,8 @@ construle = "::cvc5::internal::theory::sets::SingletonTypeRule"
 [[kinds]]
 type     = "operator"
 name     = "SET_INSERT"
-children = "2:"
-comment  = "set obtained by inserting elements (first N-1 parameters) into a set (the last parameter)"
+children = 2
+comment  = "set obtained by inserting an element (first parameter) into a set (second parameter)"
 typerule = "::cvc5::internal::theory::sets::InsertTypeRule"
 
 [[kinds]]

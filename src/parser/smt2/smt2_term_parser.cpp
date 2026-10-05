@@ -965,16 +965,27 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars)
         if (tok2 == Token::SYMBOL)
         {
           std::string tokenStr(d_lex.tokenStr());
+          if (tokenStr == "Constant" || tokenStr == "Variable")
+          {
+            // the sort must match the type of the non-terminal
+            Sort ts = parseSort();
+            if (ts != t)
+            {
+              std::stringstream sse;
+              sse << "Type " << ts << " of (" << tokenStr << " " << ts
+                  << ") does not match the type of non-terminal " << name
+                  << " (" << t << ")." << std::endl;
+              d_lex.parseError(sse.str().c_str());
+            }
+          }
           if (tokenStr == "Constant")
           {
-            t = parseSort();
             ret->addAnyConstant(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
           else if (tokenStr == "Variable")
           {
-            t = parseSort();
             ret->addAnyVariable(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
@@ -1135,6 +1146,7 @@ std::vector<DatatypeDecl> Smt2TermParser::parseDatatypesDef(
       }
       for (const std::string& sym : symList)
       {
+        d_state.checkReservedSymbol(sym);
         params.push_back(d_state.mkSort(sym));
       }
       Trace("parser-dt") << params.size() << " parameters for " << dnames[i]
@@ -1185,11 +1197,13 @@ void Smt2TermParser::parseConstructorDefinitionList(DatatypeDecl& type)
   while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
   {
     std::string name = parseSymbol(CHECK_NONE, SYM_VARIABLE);
+    d_state.checkReservedSymbol(name);
     DatatypeConstructorDecl ctor(tm.mkDatatypeConstructorDecl(name));
     // parse another selector or close the current constructor
     while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
     {
       std::string id = parseSymbol(CHECK_NONE, SYM_SORT);
+      d_state.checkReservedSymbol(id);
       Sort t = parseSort();
       ctor.addSelector(id, t);
       Trace("parser-idt") << "selector: " << id << " of type " << t

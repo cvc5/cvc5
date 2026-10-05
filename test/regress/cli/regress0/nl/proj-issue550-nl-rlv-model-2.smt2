@@ -1,0 +1,12 @@
+; REQUIRES: unrestricted-mode
+; EXPECT: sat
+(set-logic QF_UFNRA)
+(set-option :produce-unsat-assumptions true)
+(set-option :nl-rlv always)
+(declare-fun S (Real) Real)
+(declare-fun t () Real)
+(declare-fun x () Real)
+(declare-fun x1 () Real)
+(assert (ite (= x1 t) (= 0.0 (S 0.0)) (= t (* x1 x))))
+(assert (= 0.0 (S t)))
+(check-sat)

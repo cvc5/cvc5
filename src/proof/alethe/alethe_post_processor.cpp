@@ -1318,12 +1318,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is false
     case ProofRule::CONTRA:
     {
-      return addAletheStep(AletheRule::RESOLUTION,
+      return addAletheStep(AletheRule::RESOLUTION_OR,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl),
                            children,
-                           d_resPivots ? std::vector<Node>{children[0], d_true}
-                                       : std::vector<Node>(),
+                           {children[0], d_true},
                            *cdp);
     }
     // ======== And elimination
@@ -2348,6 +2347,50 @@ bool AletheProofPostprocessCallback::update(Node res,
                            d_resPivots ? resArgs : std::vector<Node>(),
                            *cdp);
     }
+    // ======== Adding Scaled Inequalities
+    //
+    // -------------------------------------- LA_GENERIC
+    // (cl (not P1) ... (not Pn) (>< t1 t2))              P1 ... Pn
+    // ------------------------------------------------------------- RESOLUTION
+    //  (cl (>< t1 t2))
+    //
+    // The coefficients given to LA_GENERIC are derived from the scaling
+    // factors k1 ... kn of this rule: inequality premises are given |ki|,
+    // since LA_GENERIC accounts for the direction of the inequality itself,
+    // while equality premises are given (- ki). The conclusion is given
+    // coefficient 1.
+    case ProofRule::MACRO_ARITH_SCALE_SUM_UB:
+    {
+      // the conclusion of this rule is always an inequality
+      Assert(res.getKind() != Kind::EQUAL);
+      std::vector<Node> resArgs;
+      std::vector<Node> lits{d_cl};
+      for (size_t i = 0, size = children.size(); i < size; i++)
+      {
+        const Node& child = children[i];
+        lits.push_back(child.notNode());
+        Rational coeff = args[i].getConst<Rational>();
+        // equalities are multiplied by minus its coefficient since LA_GENERIC
+        // does not infer the sign for the scaling for equalities, only for
+        // inequalities (which is why for them the absulote value is taken)
+        coeff = child.getKind() == Kind::EQUAL ? -coeff : coeff.abs();
+        new_args.push_back(nm->mkConstRealOrInt(args[i].getType(), coeff));
+        resArgs.push_back(child);
+        resArgs.push_back(d_false);
+      }
+      lits.push_back(res);
+      new_args.push_back(nm->mkConstReal(Rational(1)));
+      Node laGen = nm->mkNode(Kind::SEXPR, lits);
+      addAletheStep(AletheRule::LA_GENERIC, laGen, laGen, {}, new_args, *cdp);
+      std::vector<Node> resChildren{laGen};
+      resChildren.insert(resChildren.end(), children.begin(), children.end());
+      return addAletheStep(AletheRule::RESOLUTION,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           resChildren,
+                           d_resPivots ? resArgs : std::vector<Node>(),
+                           *cdp);
+    }
     // Direct translation
     case ProofRule::ARITH_MULT_POS:
     case ProofRule::ARITH_MULT_NEG:
@@ -3324,9 +3367,14 @@ bool AletheProofPostprocessCallback::updatePost(
       pivIdx = 3;
       // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
-      // only be equal to the pivot in the case the polarity is true.
+      // only be equal to the pivot in the case the polarity is true. Note
+      // that the pivot argument has been converted (in addAletheStep), while
+      // the child is the original node, so the comparison must be modulo
+      // conversion.
       if (children[0].getKind() == Kind::OR
-          && (args[polIdx] != d_true || args[pivIdx] != children[0]))
+          && (args[polIdx] != d_true
+              || !CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                             d_anc.convert(children[0]))))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
         bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
@@ -3369,7 +3417,9 @@ bool AletheProofPostprocessCallback::updatePost(
       // proof indeed concludes a singleton clause.
       else if (children[0].getKind() == Kind::OR)
       {
-        Assert(args[polIdx] == d_true && args[pivIdx] == children[0]);
+        Assert(args[polIdx] == d_true
+               && CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                             d_anc.convert(children[0])));
         if (maybeReplacePremiseProof(children[0], cdp))
         {
           hasUpdated = true;

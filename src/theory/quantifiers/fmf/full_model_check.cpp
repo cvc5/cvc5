@@ -1725,6 +1725,15 @@ Node FullModelChecker::evaluateInterpreted(Node n, std::vector<Node>& vals)
     Trace("fmc-eval") << "Evaluate " << nc << " to ";
     nc = rewrite(nc);
     Trace("fmc-eval") << nc << std::endl;
+    // If the result is not a value, e.g. a wrongly applied selector such as
+    // (sel C) where C is a constructor other than the selector's, then its
+    // value in the model is not known here. We return null in this case,
+    // since otherwise the term would be compared syntactically to values or
+    // be looked up in function definitions as if it were a value.
+    if (!nc.isConst())
+    {
+      return Node::null();
+    }
     return nc;
   }
 }
