@@ -400,7 +400,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == Kind::EXPONENTIAL)
     {
-      d_expSlv.doTangentLemma(tf, c, poly_approx_c, d);
+      // the lower bound was computed for degree actual_d
+      d_expSlv.doTangentLemma(tf, c, poly_approx_c, actual_d);
     }
     else if (k == Kind::SINE)
     {

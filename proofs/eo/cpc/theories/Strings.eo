@@ -167,7 +167,7 @@
 ;   functions.
 (declare-const re.union (-> RegLan RegLan RegLan) :right-assoc-nil re.none)
 
-(declare-const re.diff (-> RegLan RegLan RegLan))
+(declare-const re.diff (-> RegLan RegLan RegLan) :left-assoc)
 
 (declare-parameterized-const re.loop ((l Int :opaque) (h Int :opaque))
   (->
