@@ -1,0 +1,15 @@
+; EXPECT: unsat
+; EXPECT: unsat
+(set-logic QF_NIRA)
+(declare-fun a () Int)
+(declare-fun b () Int)
+(assert (> a b 0))
+(assert (= (/ 3 (/ a b)) a))
+(check-sat)
+(reset)
+(set-logic QF_NIRA)
+(declare-fun a () Int)
+(declare-fun b () Int)
+(assert (> a b 0))
+(assert (= (/ 5 (/ a b)) a))
+(check-sat)
