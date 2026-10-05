@@ -119,15 +119,13 @@ class CandidateGeneratorQE : public CandidateGenerator
   void resetForOperator(Node eqc, Node op);
   /** the default implementation of getNextCandidate. */
   Node getNextCandidateInternal();
-  /** The pattern */
-  Node d_pat;
   /** operator you are looking for */
   Node d_op;
   /** the equality class iterator (for cand_term_eqc) */
   eq::EqClassIterator d_eqc_iter;
-  /** the TermDb index of the current ground term (for cand_term_db) */
+  /** the index of the current ground term in d_termIterList */
   size_t d_termIter;
-  /** the TermDb index of the current ground term (for cand_term_db) */
+  /** the ground terms to consider (for cand_term_db) */
   std::vector<Node> d_termIterList;
   /** the current equivalence class */
   Node d_eqc;

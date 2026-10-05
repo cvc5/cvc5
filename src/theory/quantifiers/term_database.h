@@ -100,6 +100,13 @@ class TermDb : public QuantifiersUtil
   Node getGroundTerm(TNode f, size_t i) const;
   /** Get ground term list */
   DbList* getGroundTermList(TNode f) const;
+  /**
+   * Get the ground terms whose operator is known to be equivalent to f, in the
+   * order they were added to the database. In the higher-order case, this
+   * includes the ground terms of all operators that are currently equal to f;
+   * otherwise this is the ground term list of f itself.
+   */
+  void getGroundTermsForOperator(TNode f, std::vector<Node>& terms);
   /** get num type terms
    * Get the number of ground terms of tn that have been added to the database
    */

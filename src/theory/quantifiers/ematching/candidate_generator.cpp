@@ -49,10 +49,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(Env& env,
                                            QuantifiersState& qs,
                                            TermRegistry& tr,
                                            Node pat)
-    : CandidateGenerator(env, qs, tr),
-      d_pat(pat),
-      d_termIter(0),
-      d_mode(cand_term_none)
+    : CandidateGenerator(env, qs, tr), d_termIter(0), d_mode(cand_term_none)
 {
   d_op = d_treg.getTermDatabase()->getMatchOperator(pat);
   Assert(!d_op.isNull());
@@ -67,17 +64,9 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_op = op;
   if (eqc.isNull())
   {
-    TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
     d_termIterList.clear();
-    if (tat != nullptr)
-    {
-      d_termIterList = tat->getLeaves(d_pat.getNumChildren());
-      d_mode = cand_term_db;
-    }
-    else
-    {
-      d_mode = cand_term_none;
-    }
+    d_treg.getTermDatabase()->getGroundTermsForOperator(d_op, d_termIterList);
+    d_mode = d_termIterList.empty() ? cand_term_none : cand_term_db;
   }
   else
   {
@@ -137,12 +126,12 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
     {
       Node n = d_termIterList[d_termIter];
       d_termIter++;
-      if (d_exclude_eqc.empty())
+      if (isLegalCandidate(n) && d_treg.getTermDatabase()->hasTermCurrent(n))
       {
-        return n;
-      }
-      else
-      {
+        if (d_exclude_eqc.empty())
+        {
+          return n;
+        }
         Node r = d_qs.getRepresentative(n);
         if (d_exclude_eqc.find(r) == d_exclude_eqc.end())
         {
@@ -299,11 +288,10 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
     // set mode to none unless option is set.
     if (options().quantifiers.consExpandTriggers)
     {
-      TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
       d_termIterList.clear();
-      if (tat != nullptr)
+      d_treg.getTermDatabase()->getGroundTermsForOperator(d_op, d_termIterList);
+      if (!d_termIterList.empty())
       {
-        d_termIterList = tat->getLeaves(d_pat.getNumChildren());
         d_mode = cand_term_db;
       }
     }

@@ -178,6 +178,25 @@ DbList* TermDb::getGroundTermList(TNode f) const
   return nullptr;
 }
 
+void TermDb::getGroundTermsForOperator(TNode f, std::vector<Node>& terms)
+{
+  // notice if we are not higher-order, getOperatorRepresentative and
+  // getOperatorsFor are no-ops, and ops is simply { f }.
+  std::vector<TNode> ops;
+  getOperatorsFor(getOperatorRepresentative(f), ops);
+  for (TNode ff : ops)
+  {
+    NodeDbListMap::const_iterator it = d_opMap.find(ff);
+    if (it == d_opMap.end())
+    {
+      // no terms for this operator
+      continue;
+    }
+    const context::CDList<Node>& tlist = it->second->d_list;
+    terms.insert(terms.end(), tlist.begin(), tlist.end());
+  }
+}
+
 size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
 {
   TypeNodeDbListMap::const_iterator it = d_typeMap.find(tn);
