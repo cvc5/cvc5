@@ -77,13 +77,6 @@ class CandidateGenerator : protected EnvObj
   virtual std::string identify() const = 0;
 
  protected:
-  /**
-   * Add to terms the relevant ground terms in the term database whose
-   * operator is op, modulo congruence, as given by the leaves of the term
-   * index for op. In the higher-order case, this also includes the ground
-   * terms whose operator is currently equal to op.
-   */
-  void getGroundTermsForOperator(const Node& op, std::vector<Node>& terms);
   /** Reference to the quantifiers state */
   QuantifiersState& d_qs;
   /** Reference to the term registry */
@@ -126,6 +119,14 @@ class CandidateGeneratorQE : public CandidateGenerator
   void resetForOperator(Node eqc, Node op);
   /** the default implementation of getNextCandidate. */
   Node getNextCandidateInternal();
+  /**
+   * Set d_termIterList to the leaves of the term index of d_op, which are the
+   * relevant ground terms whose operator is (equal to) d_op, modulo
+   * congruence. Returns true if d_termIterList is non-empty.
+   */
+  bool setTermIterListFromIndex();
+  /** the pattern */
+  Node d_pat;
   /** operator you are looking for */
   Node d_op;
   /** the equality class iterator (for cand_term_eqc) */

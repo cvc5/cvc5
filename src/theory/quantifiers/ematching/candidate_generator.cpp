@@ -45,48 +45,14 @@ bool CandidateGenerator::isLegalCandidate(const Node& n)
   return d_treg.getTermDatabase()->isTermActive(n);
 }
 
-void CandidateGenerator::getGroundTermsForOperator(const Node& op,
-                                                   std::vector<Node>& terms)
-{
-  TermDb* tdb = d_treg.getTermDatabase();
-  Node f = op;
-  eq::EqualityEngine* ee = d_qs.getEqualityEngine();
-  if (logicInfo().isHigherOrder() && op.getType().isFunction()
-      && ee->hasTerm(op))
-  {
-    // The term index of an operator includes the terms of all operators that
-    // are equal to it. However, op may not have ground terms itself, in which
-    // case we use the term index of an operator equal to op that does.
-    eq::EqClassIterator eqc_i(ee->getRepresentative(op), ee);
-    for (; !eqc_i.isFinished(); ++eqc_i)
-    {
-      if (tdb->getGroundTermList(*eqc_i) != nullptr)
-      {
-        f = *eqc_i;
-        break;
-      }
-    }
-  }
-  DbList* dbl = tdb->getGroundTermList(f);
-  if (dbl == nullptr || dbl->d_list.empty())
-  {
-    return;
-  }
-  TNodeTrie* tat = tdb->getTermArgTrie(f);
-  size_t depth = dbl->d_list[0].getNumChildren();
-  if (tat != nullptr && depth > 0)
-  {
-    // the leaves of the index are the relevant, non-congruent terms
-    std::vector<Node> leaves = tat->getLeaves(depth);
-    terms.insert(terms.end(), leaves.begin(), leaves.end());
-  }
-}
-
 CandidateGeneratorQE::CandidateGeneratorQE(Env& env,
                                            QuantifiersState& qs,
                                            TermRegistry& tr,
                                            Node pat)
-    : CandidateGenerator(env, qs, tr), d_termIter(0), d_mode(cand_term_none)
+    : CandidateGenerator(env, qs, tr),
+      d_pat(pat),
+      d_termIter(0),
+      d_mode(cand_term_none)
 {
   d_op = d_treg.getTermDatabase()->getMatchOperator(pat);
   Assert(!d_op.isNull());
@@ -101,9 +67,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_op = op;
   if (eqc.isNull())
   {
-    d_termIterList.clear();
-    getGroundTermsForOperator(d_op, d_termIterList);
-    d_mode = d_termIterList.empty() ? cand_term_none : cand_term_db;
+    d_mode = setTermIterListFromIndex() ? cand_term_db : cand_term_none;
   }
   else
   {
@@ -137,6 +101,18 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
     }
   }
 }
+
+bool CandidateGeneratorQE::setTermIterListFromIndex()
+{
+  d_termIterList.clear();
+  TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
+  if (tat != nullptr)
+  {
+    d_termIterList = tat->getLeaves(d_pat.getNumChildren());
+  }
+  return !d_termIterList.empty();
+}
+
 bool CandidateGeneratorQE::isLegalOpCandidate(const Node& n)
 {
   const Node opm = d_treg.getTermDatabase()->getMatchOperator(n);
@@ -322,9 +298,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
     // set mode to none unless option is set.
     if (options().quantifiers.consExpandTriggers)
     {
-      d_termIterList.clear();
-      getGroundTermsForOperator(d_op, d_termIterList);
-      if (!d_termIterList.empty())
+      if (setTermIterListFromIndex())
       {
         d_mode = cand_term_db;
       }
