@@ -652,7 +652,7 @@
 ; re.loop expansion).
 (define-rule* re-concat-star-swap ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) r ys) (re.++ xs r (re.* r) ys))
 
-(define-rule re-concat-star-repeat ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) (re.* r) ys) (re.++ xs (re.* r) ys))
+(define-rule* re-concat-star-repeat ((xs RegLan :list) (r RegLan) (ys RegLan :list)) (re.++ xs (re.* r) (re.* r) ys) (re.++ xs (re.* r) ys))
 
 ; Any nullable regular expression adjacent to (re.* re.allchar) can be dropped,
 ; since (re.* re.allchar) already matches all strings and r accepts the empty

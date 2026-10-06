@@ -3,7 +3,6 @@
 (include "../programs/DistinctValues.eo")
 
 ;;;;; ProofRule::SETS_SINGLETON_INJ
-
 ; rule: sets_singleton_inj
 ; implements: ProofRule::SETS_SINGLETON_INJ
 ; premises:
@@ -15,7 +14,6 @@
 )
 
 ;;;;; ProofRule::SETS_EXT
-
 ; rule: sets_ext
 ; implements: ProofRule::SETS_EXT
 ; premises:
@@ -25,11 +23,13 @@
 ;   (@set_deq_diff a b).
 (declare-rule sets_ext ((T Type) (a (Set T)) (b (Set T)))
   :premises ((not (= a b)))
-  :conclusion (not (= (set.member (@sets_deq_diff a b) a) (set.member (@sets_deq_diff a b) b)))
+  :conclusion
+    (not
+      (= (set.member (@sets_deq_diff a b) a)
+        (set.member (@sets_deq_diff a b) b)))
 )
 
 ;;;;; ProofRewriteRule::SETS_EVAL_OP
-
 ; program: $set_union_to_list
 ; args:
 ; - s (Set T): The set to process.
@@ -38,9 +38,10 @@
 (program $set_union_to_list ((T Type) (t (Set T)) (e T))
   :signature ((Set T)) (@TList T)
   (
-  (($set_union_to_list (set.union (set.singleton e) t)) (_ @tlist e ($set_union_to_list t)))
-  (($set_union_to_list (as set.empty (Set T)))          (@tlist.nil T))
-  (($set_union_to_list (set.singleton e))               (@tlist e))
+  (($set_union_to_list (set.union (set.singleton e) t))
+    (_ @tlist e ($set_union_to_list t)))
+  (($set_union_to_list (as set.empty (Set T)))  (@tlist.nil T))
+  (($set_union_to_list (set.singleton e))       (@tlist e))
   )
 )
 
@@ -53,11 +54,12 @@
 (program $eval_sets_inter ((T Type) (a T) (as (@TList T) :list) (bs (@TList T)))
   :signature ((@TList T) (@TList T)) (@TList T)
   (
-    (($eval_sets_inter (@tlist a as) bs)  (eo::define ((r ($eval_sets_inter as bs)))
-                                         (eo::ite (eo::is_neg (eo::list_find @tlist bs a))
-                                           (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true r)
-                                           (_ @tlist a r))))
-    (($eval_sets_inter (@tlist.nil T) bs)   (@tlist.nil T))
+  (($eval_sets_inter (@tlist a as) bs)
+    (eo::define ((r ($eval_sets_inter as bs)))
+      (eo::ite (eo::is_neg (eo::list_find @tlist bs a))
+        (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true r)
+        (_ @tlist a r))))
+  (($eval_sets_inter (@tlist.nil T) bs) (@tlist.nil T))
   )
 )
 
@@ -70,26 +72,31 @@
 (program $eval_sets_minus ((T Type) (a T) (as (@TList T) :list) (bs (@TList T)))
   :signature ((@TList T) (@TList T)) (@TList T)
   (
-    (($eval_sets_minus (@tlist a as) bs)  (eo::define ((r ($eval_sets_minus as bs)))
-                                          (eo::ite (eo::is_neg (eo::list_find @tlist bs a))
-                                            (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true
-                                              (_ @tlist a r))
-                                            r)))
-    (($eval_sets_minus (@tlist.nil T) bs)  (@tlist.nil T))
+  (($eval_sets_minus (@tlist a as) bs)
+    (eo::define ((r ($eval_sets_minus as bs)))
+      (eo::ite (eo::is_neg (eo::list_find @tlist bs a))
+        (eo::requires ($are_distinct_terms_list_rec a bs (eo::typeof a)) true
+          (_ @tlist a r))
+        r)))
+  (($eval_sets_minus (@tlist.nil T) bs) (@tlist.nil T))
   )
 )
 
 ; program: $eval_sets_op
 ; args:
-; - s (Set T): The set to process, expected to be a set operator applied to values
+; - s (Set T): The set to process, expected to be a set operator applied to
+; values
 ; return: >
 ;   The result of evaluating the operator.
 (program $eval_sets_op ((T Type) (s (Set T)) (t (Set T)))
   :signature ((Set T)) (@TList T)
   (
-    (($eval_sets_op (set.union s t)) (eo::list_concat @tlist ($set_union_to_list s) ($set_union_to_list t)))
-    (($eval_sets_op (set.inter s t)) ($eval_sets_inter ($set_union_to_list s) ($set_union_to_list t)))
-    (($eval_sets_op (set.minus s t)) ($eval_sets_minus ($set_union_to_list s) ($set_union_to_list t)))
+  (($eval_sets_op (set.union s t))
+    (eo::list_concat @tlist ($set_union_to_list s) ($set_union_to_list t)))
+  (($eval_sets_op (set.inter s t))
+    ($eval_sets_inter ($set_union_to_list s) ($set_union_to_list t)))
+  (($eval_sets_op (set.minus s t))
+    ($eval_sets_minus ($set_union_to_list s) ($set_union_to_list t)))
   )
 )
 
@@ -102,36 +109,11 @@
 ; conclusion: The given equality.
 (declare-rule sets-eval-op ((T Type) (a (Set T)) (b (Set T)))
   :args ((= a b))
-  :requires (((eo::list_meq @tlist
-              (eo::list_setof @tlist ($eval_sets_op a))
-              ($set_union_to_list b)) true))    ; b is already assumed to have no duplicates
+  :requires
+    (((eo::list_meq
+          @tlist
+          (eo::list_setof @tlist ($eval_sets_op a))
+          ($set_union_to_list b))
+        true)) ; b is already assumed to have no duplicates
   :conclusion (= a b)
-)
-
-;;;;; ProofRewriteRule::SETS_INSERT_ELIM
-
-; program: $set_eval_insert
-; args:
-; - es @List: The list of elements
-; - t (Set T): The set to insert into.
-; return: >
-;   The union of elements in es with t.
-(program $set_eval_insert ((T Type) (x T) (xs (@TList T) :list) (t (Set T)))
-  :signature ((@TList T) (Set T)) (Set T)
-  (
-    (($set_eval_insert (@tlist x xs) t) (set.union (set.singleton x) ($set_eval_insert xs t)))
-    (($set_eval_insert (@tlist.nil T) t)    t)
-  )
-)
-
-; rule: sets-insert-elim
-; implements: ProofRewriteRule::SETS_INSERT_ELIM
-; args:
-; - eq Bool: The equality to prove with this rule.
-; requires: the union of the elements in the first argument with the last argument equal the right hand side.
-; conclusion: the equality between a and b.
-(declare-rule sets-insert-elim ((T Type) (s (Set T)) (es (@TList T)) (t (Set T)))
-  :args ((= (set.insert es s) t))
-  :requires ((($set_eval_insert es s) t))
-  :conclusion (= (set.insert es s) t)
 )

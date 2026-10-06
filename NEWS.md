@@ -1,5 +1,17 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.4.2 prerelease
+=====================
+
+- Adds techniques for returning "sat" when the returned candidate model
+  happens to satisfy the set of input assertions (`--model-verify`).
+
+- `set.insert` is now a binary operator, where applications with more than two
+  arguments are constructed as nested binary applications, e.g.
+  `(set.insert a b S)` is constructed as `(set.insert a (set.insert b S))`.
+  This impacts the children of such terms when inspected via the API, as well
+  as how they are printed.
+
 cvc5 1.4.1
 ==========
 

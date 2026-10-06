@@ -1,6 +1,5 @@
 (include "../theories/Builtin.eo")
 
-
 ; rule: scope
 ; assumption:
 ; - F: The formula we have assumed.
@@ -18,8 +17,7 @@
 ;   an application of ProofRule::SCOPE with n assumptions, which proves
 ;   (=> F1 (=> F2 ... (=> Fn C))). We use process_scope to turn this into
 ;   (=> (and F1 ... Fn) C), as required by the definition of ProofRule::SCOPE.
-(declare-rule scope
-  ((F Bool) (G Bool))
+(declare-rule scope ((F Bool) (G Bool))
   :assumption F
   :premises (G)
   :conclusion (=> F G)
@@ -30,15 +28,14 @@
 ; - F Bool: The implication to extract the antecedant from.
 ; - C Bool: The conclusion.
 ; return: >
-;   The antecedant of F for conclusion C, e.g. this returns (and G1 G2) when F is
+; The antecedant of F for conclusion C, e.g. this returns (and G1 G2) when F is
 ;   (=> G1 (=> G2 C)), or true if F is C. Otherwise, it does not evaluate.
-(program $extract_antec_rec
-   ((C Bool) (F1 Bool) (F2 Bool))
-   :signature (Bool Bool) Bool
-   (
-   (($extract_antec_rec C C)          true)
-   (($extract_antec_rec (=> F1 F2) C) (_ and F1 ($extract_antec_rec F2 C)))
-   )
+(program $extract_antec_rec ((C Bool) (F1 Bool) (F2 Bool))
+  :signature (Bool Bool) Bool
+  (
+  (($extract_antec_rec C C)           true)
+  (($extract_antec_rec (=> F1 F2) C)  (_ and F1 ($extract_antec_rec F2 C)))
+  )
 )
 
 ; program: $extract_antec
@@ -46,16 +43,16 @@
 ; - F Bool: The implication to extract the antecedant from.
 ; - C Bool: The conclusion.
 ; return: >
-;   The antecedant of F for conclusion C, calling $extract_antec_rec if necessary.
-;   Note that the singleton case is handled here to avoid constructing an and term with
+; The antecedant of F for conclusion C, calling $extract_antec_rec if necessary.
+; Note that the singleton case is handled here to avoid constructing an and term
+; with
 ;   single child.
-(program $extract_antec
-   ((C Bool) (F Bool))
-   :signature (Bool Bool) Bool
-   (
-   (($extract_antec (=> F C) C) F)
-   (($extract_antec F C)        ($extract_antec_rec F C))
-   )
+(program $extract_antec ((C Bool) (F Bool))
+  :signature (Bool Bool) Bool
+  (
+  (($extract_antec (=> F C) C)  F)
+  (($extract_antec F C)         ($extract_antec_rec F C))
+  )
 )
 
 ; program: $run_process_scope
@@ -64,20 +61,18 @@
 ; - C Bool: The conclusion.
 ; return: >
 ;   The expected conclusion of a ProofRule::SCOPE.
-(program $run_process_scope
-   ((C Bool) (F Bool))
-   :signature (Bool Bool) Bool
-   (
-   (($run_process_scope F false)  (not ($extract_antec F false)))
-   (($run_process_scope F C)      (=> ($extract_antec F C) C))
-   )
+(program $run_process_scope ((C Bool) (F Bool))
+  :signature (Bool Bool) Bool
+  (
+  (($run_process_scope F false) (not ($extract_antec F false)))
+  (($run_process_scope F C)     (=> ($extract_antec F C) C))
+  )
 )
-
-
 
 ; rule: process_scope
 ; premises:
-; - F: A formula, expected to be one proven by n>0 consecutive applications of scope.
+; - F: A formula, expected to be one proven by n>0 consecutive applications of
+; scope.
 ; args:
 ; - C Bool: The conclusion of the innermost scope.
 ; conclusion: >
@@ -85,8 +80,7 @@
 ;   For example, if F is (=> F1 (=> F2 ... (=> Fn C))), then this rule concludes
 ;   (=> (and F1 ... Fn) C) when C is not false. Otherwise, this rule concludes
 ;   (not (and F1 ... Fn)).
-(declare-rule process_scope
-  ((C Bool) (F Bool))
+(declare-rule process_scope ((C Bool) (F Bool))
   :premises (F)
   :args (C)
   :conclusion ($run_process_scope F C)
@@ -102,7 +96,5 @@
 ;   condition is false.
 (declare-rule ite_eq ((T Type) (b Bool) (t1 T) (t2 T))
   :args ((ite b t1 t2))
-  :conclusion
-    (eo::define ((k (ite b t1 t2))) (ite b (= k t1) (= k t2)))
+  :conclusion (eo::define ((k (ite b t1 t2))) (ite b (= k t1) (= k t2)))
 )
-
