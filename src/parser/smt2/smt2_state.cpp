@@ -620,8 +620,10 @@ Term Smt2State::mkIndexedOp(Kind k,
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
       Datatype d = sf.getDatatype();
-      // lookup by name
-      DatatypeConstructor dc = d.getConstructor(f.toString());
+      // lookup by name, using the raw symbol since toString() may print
+      // the name as a quoted symbol, e.g. |C,|
+      DatatypeConstructor dc =
+          d.getConstructor(f.hasSymbol() ? f.getSymbol() : f.toString());
       return dc.getTesterTerm();
     }
     else
@@ -631,12 +633,14 @@ Term Smt2State::mkIndexedOp(Kind k,
       {
         parseError("Bad syntax for (_ update X), X must be a selector.");
       }
-      std::string sname = f.toString();
+      // use the raw symbol since toString() may print the name as a quoted
+      // symbol, e.g. |fst,|
+      std::string sname = f.hasSymbol() ? f.getSymbol() : f.toString();
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeSelectorDomainSort();
       Datatype d = sf.getDatatype();
       // find the selector
-      DatatypeSelector ds = d.getSelector(f.toString());
+      DatatypeSelector ds = d.getSelector(sname);
       // get the updater term
       return ds.getUpdaterTerm();
     }

@@ -472,7 +472,7 @@ inline bool DotPrinter::isTheoryLemma(const ProofNode* pn)
     }
   }
   return rule == ProofRule::SCOPE
-         || (ProofRule::CNF_ITE_NEG3 < rule && rule < ProofRule::LFSC_RULE);
+         || (ProofRule::CNF_ITE_NEG3 < rule && rule < ProofRule::ALETHE_RULE);
 }
 
 inline bool DotPrinter::isASSUME(const ProofRule& rule)

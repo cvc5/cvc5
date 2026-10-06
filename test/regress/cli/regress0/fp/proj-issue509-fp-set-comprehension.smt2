@@ -1,5 +1,5 @@
 ; REQUIRES: unrestricted-mode
-; DISABLE-TESTER: lfsc
+; CPC checking fails on an instantiate step involving set.comprehension.
 ; DISABLE-TESTER: cpc
 (set-logic ALL)
 (set-option :sets-exp true)
