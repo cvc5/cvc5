@@ -63,6 +63,8 @@
 ; Experimental relation operators.
 (declare-parameterized-const rel.iden ((T Type :implicit))
   (-> (Set (Tuple T)) (Set (Tuple T T))))
+(declare-parameterized-const rel.is_functional ((T Type :implicit) (U Type :implicit))
+  (-> (Set (Tuple T U)) Bool))
 (declare-parameterized-const rel.join_image ((T Type :implicit))
   (-> (Set (Tuple T T)) Int (Set (Tuple T))))
 

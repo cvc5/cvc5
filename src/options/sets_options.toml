@@ -18,6 +18,24 @@ name   = "Sets Theory"
   help       = "enable extended symbols such as complement and universe in theory of sets"
 
 [[option]]
+  name       = "relsFunctionalMode"
+  category   = "expert"
+  long       = "rels-functional-mode=MODE"
+  type       = "RelsFunctionalMode"
+  default    = "UF"
+  help       = "how the relations solver reasons about asserted (rel.is_functional R) constraints"
+  help_mode  = "Modes for reasoning about functional relations."
+[[option.mode.UF]]
+  name = "uf"
+  help = "Introduce a fresh function f for R and infer y = f(x) for every member (x, y) of R. Falls back to pairs if the logic has no uninterpreted functions."
+[[option.mode.PAIRS]]
+  name = "pairs"
+  help = "For every two members (x1, y1) and (x2, y2) of R, infer x1 = x2 => y1 = y2."
+[[option.mode.IDEN]]
+  name = "iden"
+  help = "Infer (rel.join (rel.transpose R) R) subset (rel.iden universe) once and let the relational rules do the rest. Requires --sets-exp, falls back to uf otherwise."
+
+[[option]]
   name       = "relsExp"
   category   = "expert"
   long       = "rels-exp"

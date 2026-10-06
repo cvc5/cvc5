@@ -344,6 +344,20 @@ struct RelIdenTypeRule
 };
 
 /**
+ * Type rule for the predicate (rel.is_functional R) to check that R is a binary
+ * relation of type (Relation T1 T2). The type of the predicate is Bool.
+ */
+struct RelIsFunctionalTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
  * Relation group operator is indexed by a list of indices (n_1, ..., n_k). It
  * ensures that the argument is a relation whose arity is greater than each n_i
  * for i = 1, ..., k. If the passed relation is of type T, then the returned

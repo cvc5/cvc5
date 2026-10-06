@@ -421,6 +421,13 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_CARD_UNIV_TYPE: return "SETS_CARD_UNIV_TYPE";
     case InferenceId::SETS_RELS_IDENTITY_DOWN: return "SETS_RELS_IDENTITY_DOWN";
     case InferenceId::SETS_RELS_IDENTITY_UP: return "SETS_RELS_IDENTITY_UP";
+    case InferenceId::SETS_RELS_FUNCTIONAL: return "SETS_RELS_FUNCTIONAL";
+    case InferenceId::SETS_RELS_FUNCTIONAL_PAIR:
+      return "SETS_RELS_FUNCTIONAL_PAIR";
+    case InferenceId::SETS_RELS_FUNCTIONAL_IDEN:
+      return "SETS_RELS_FUNCTIONAL_IDEN";
+    case InferenceId::SETS_RELS_NOT_FUNCTIONAL:
+      return "SETS_RELS_NOT_FUNCTIONAL";
     case InferenceId::SETS_RELS_JOIN_COMPOSE: return "SETS_RELS_JOIN_COMPOSE";
     case InferenceId::SETS_RELS_JOIN_IMAGE_DOWN:
       return "SETS_RELS_JOIN_IMAGE_DOWN";

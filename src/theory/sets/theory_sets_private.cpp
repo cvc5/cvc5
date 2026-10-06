@@ -265,6 +265,8 @@ void TheorySetsPrivate::checkBasic()
     Trace("sets-eqc") << d_equalityEngine->debugPrintEqc() << std::endl;
   }
   std::map<TypeNode, unsigned> eqcTypeCount;
+  // whether a (rel.is_functional R) term occurs
+  bool hasFunctional = false;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while (!eqcs_i.isFinished())
   {
@@ -323,6 +325,10 @@ void TheorySetsPrivate::checkBasic()
       else if (d_rels->isRelationKind(nk))
       {
         ensureRelationsEnabled();
+        if (nk == Kind::RELATION_IS_FUNCTIONAL)
+        {
+          hasFunctional = true;
+        }
       }
       else if (isHigherOrderKind(nk))
       {
@@ -330,6 +336,18 @@ void TheorySetsPrivate::checkBasic()
       }
     }
     ++eqcs_i;
+  }
+
+  if (hasFunctional && d_card_enabled)
+  {
+    // The cardinality solver may complete the model of a relation with fresh
+    // elements that are not constrained by (rel.is_functional R), so we cannot
+    // answer sat in this case.
+    d_fullCheckIncomplete = true;
+    d_fullCheckIncompleteId = IncompleteId::SETS_RELS_CARD;
+    Trace("sets-incomplete")
+        << "Sets : incomplete because of rel.is_functional with cardinality."
+        << std::endl;
   }
 
   if (TraceIsOn("sets-state"))
@@ -1715,8 +1733,9 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   {
     case Kind::EQUAL:
     case Kind::SET_MEMBER:
+    case Kind::RELATION_IS_FUNCTIONAL:
     {
-      // add trigger predicate for equality and membership
+      // add trigger predicate for equality, membership and functionality
       d_state.addEqualityEngineTriggerPredicate(node);
     }
     break;

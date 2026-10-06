@@ -15,6 +15,7 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
+#include "options/sets_options.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/theory_sets.h"
@@ -151,6 +152,8 @@ void TheorySetsRels::check()
     ++m_it;
   }
 
+  applyFunctionalRules();
+
   TERM_IT t_it = d_terms_cache.begin();
   while (t_it != d_terms_cache.end())
   {
@@ -218,6 +221,7 @@ void TheorySetsRels::clearCaches()
   d_membership_trie.clear();
   d_rel_nodes.clear();
   d_rReps_memberReps_cache.clear();
+  d_functional_cache.clear();
   d_rRep_tcGraph.clear();
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
@@ -317,6 +321,18 @@ void TheorySetsRels::collectRelsInfo()
 
       if (erType.isBoolean() && eqc_rep.isConst())
       {
+        if (eqc_node.getKind() == Kind::RELATION_IS_FUNCTIONAL)
+        {
+          if (eqc_rep.getConst<bool>())
+          {
+            d_functional_cache[getRepresentative(eqc_node[0])].push_back(
+                eqc_node);
+          }
+          else
+          {
+            applyNotFunctionalRule(eqc_node);
+          }
+        }
         // collect membership info
         if (eqc_node.getKind() == Kind::SET_MEMBER
             && eqc_node[1].getType().getSetElementType().isTuple())
@@ -618,6 +634,169 @@ void TheorySetsRels::applyIdenRule(Node mem_rep, Node iden_term, Node exp)
   Trace("rels-debug")
       << "\n[Theory::Rels] *********** Done with applyIdenRule on " << iden_term
       << std::endl;
+}
+
+/*
+ * RELATION_IS_FUNCTIONAL, mode uf (default):
+ *
+ *   (rel.is_functional R)    (x, y) IS_IN R
+ *   ---------------------------------------
+ *              y = f_R(x)
+ *
+ * where f_R is a fresh function symbol for R. Sound: if R is functional, then
+ * f_R can be interpreted as the function that maps every x in the domain of R
+ * to its unique image (and arbitrarily elsewhere). Complete: two members
+ * (x1, y1), (x2, y2) with x1 = x2 in a model have y1 = f_R(x1) = f_R(x2) = y2
+ * by congruence, which theory combination enforces for the shared terms x1, x2.
+ * The number of lemmas is linear in the number of members of R.
+ *
+ * Mode pairs:
+ *
+ *   (rel.is_functional R)    (x1, y1) IS_IN R    (x2, y2) IS_IN R
+ *   -------------------------------------------------------------
+ *                    x1 = x2 => y1 = y2
+ *
+ * Quadratic in the number of members of R, but introduces no symbol.
+ *
+ * Mode iden:
+ *
+ *   (rel.is_functional R)
+ *   -----------------------------------------------------------
+ *   (rel.join (rel.transpose R) R) subset (rel.iden universe)
+ *
+ * sent once per constraint; the join and identity rules then derive y1 = y2
+ * from the members (x, y1) and (x, y2) of R.
+ */
+void TheorySetsRels::applyFunctionalRules()
+{
+  NodeManager* nm = nodeManager();
+  options::RelsFunctionalMode mode = options().sets.relsFunctionalMode;
+  if (mode == options::RelsFunctionalMode::IDEN && !options().sets.setsExp)
+  {
+    mode = options::RelsFunctionalMode::UF;
+  }
+  if (mode == options::RelsFunctionalMode::UF
+      && !logicInfo().isTheoryEnabled(THEORY_UF))
+  {
+    mode = options::RelsFunctionalMode::PAIRS;
+  }
+  for (const auto& fc : d_functional_cache)
+  {
+    Node relRep = fc.first;
+    // Any of the constraints in this equivalence class can be used; use the
+    // first one.
+    Node atom = fc.second[0];
+    Node rel = atom[0];
+    TypeNode tupleType = rel.getType().getSetElementType();
+    std::vector<TypeNode> types = tupleType.getTupleTypes();
+    Assert(types.size() == 2);
+    if (mode == options::RelsFunctionalMode::IDEN)
+    {
+      Node univ = nm->mkNullaryOperator(
+          nm->mkSetType(nm->mkTupleType({types[1]})), Kind::SET_UNIVERSE);
+      Node join = nm->mkNode(
+          Kind::RELATION_JOIN, nm->mkNode(Kind::RELATION_TRANSPOSE, rel), rel);
+      Node conc = nm->mkNode(
+          Kind::SET_SUBSET, join, nm->mkNode(Kind::RELATION_IDEN, univ));
+      sendInfer(conc, InferenceId::SETS_RELS_FUNCTIONAL_IDEN, atom);
+      continue;
+    }
+    MEM_IT mit = d_rReps_memberReps_exp_cache.find(relRep);
+    if (mit == d_rReps_memberReps_exp_cache.end())
+    {
+      continue;
+    }
+    const std::vector<Node>& exps = mit->second;
+    // the reason for a membership: the constraint, the membership, and the
+    // equality between the relation of the membership and rel
+    auto memReason = [&](const Node& exp, std::vector<Node>& reason) {
+      reason.push_back(exp);
+      if (exp[1] != rel)
+      {
+        reason.push_back(exp[1].eqNode(rel));
+      }
+    };
+    if (mode == options::RelsFunctionalMode::UF)
+    {
+      Node f =
+          d_skCache.mkTypedSkolemCached(nm->mkFunctionType(types[0], types[1]),
+                                        rel,
+                                        SkolemCache::SK_FUNCTIONAL,
+                                        "rfun");
+      for (const Node& exp : exps)
+      {
+        // Conclude on the tuple of the explanation, not on its representative,
+        // since the lemma is context-independent.
+        Node x = TupleUtils::nthElementOfTuple(exp[0], 0);
+        Node y = TupleUtils::nthElementOfTuple(exp[0], 1);
+        std::vector<Node> reason{atom};
+        memReason(exp, reason);
+        Node conc = y.eqNode(nm->mkNode(Kind::APPLY_UF, f, x));
+        sendInfer(conc, InferenceId::SETS_RELS_FUNCTIONAL, nm->mkAnd(reason));
+      }
+      continue;
+    }
+    Assert(mode == options::RelsFunctionalMode::PAIRS);
+    for (size_t i = 0, nexps = exps.size(); i < nexps; i++)
+    {
+      Node x1 = TupleUtils::nthElementOfTuple(exps[i][0], 0);
+      Node y1 = TupleUtils::nthElementOfTuple(exps[i][0], 1);
+      for (size_t j = i + 1; j < nexps; j++)
+      {
+        Node x2 = TupleUtils::nthElementOfTuple(exps[j][0], 0);
+        Node y2 = TupleUtils::nthElementOfTuple(exps[j][0], 1);
+        if (areEqual(y1, y2) || d_state.areDisequal(x1, x2))
+        {
+          // nothing to infer in the current context
+          continue;
+        }
+        std::vector<Node> reason{atom};
+        memReason(exps[i], reason);
+        memReason(exps[j], reason);
+        Node conc = y1.eqNode(y2);
+        if (x1 != x2)
+        {
+          conc = nm->mkNode(Kind::OR, x1.eqNode(x2).negate(), conc);
+        }
+        sendInfer(
+            conc, InferenceId::SETS_RELS_FUNCTIONAL_PAIR, nm->mkAnd(reason));
+      }
+    }
+  }
+}
+
+/*
+ * NOT RELATION_IS_FUNCTIONAL:
+ *
+ *             not (rel.is_functional R)
+ *   -----------------------------------------------
+ *   (k1, k2) IS_IN R ^ (k1, k3) IS_IN R ^ k2 != k3
+ *
+ * for fresh k1, k2, k3, sent once per constraint.
+ */
+void TheorySetsRels::applyNotFunctionalRule(Node atom)
+{
+  if (!d_notFunctionalSent.insert(atom).second)
+  {
+    return;
+  }
+  NodeManager* nm = nodeManager();
+  Node rel = atom[0];
+  std::vector<TypeNode> types =
+      rel.getType().getSetElementType().getTupleTypes();
+  Assert(types.size() == 2);
+  Node k1 = d_skCache.mkTypedSkolemCached(
+      types[0], rel, SkolemCache::SK_NOT_FUNCTIONAL1, "rnf1");
+  Node k2 = d_skCache.mkTypedSkolemCached(
+      types[1], rel, SkolemCache::SK_NOT_FUNCTIONAL2, "rnf2");
+  Node k3 = d_skCache.mkTypedSkolemCached(
+      types[1], rel, SkolemCache::SK_NOT_FUNCTIONAL3, "rnf3");
+  Node conc = nm->mkNode(
+      Kind::AND,
+      nm->mkNode(Kind::SET_MEMBER, RelsUtils::constructPair(rel, k1, k2), rel),
+      nm->mkNode(Kind::SET_MEMBER, RelsUtils::constructPair(rel, k1, k3), rel),
+      k2.eqNode(k3).negate());
+  sendInfer(conc, InferenceId::SETS_RELS_NOT_FUNCTIONAL, atom.negate());
 }
 
 /* RELATION_IDEN UP  : (x) IS_IN R        RELATION_IDEN(R) IN T
@@ -1632,7 +1811,7 @@ bool TheorySetsRels::isRelationKind(Kind k)
   return k == Kind::RELATION_TRANSPOSE || k == Kind::RELATION_PRODUCT
          || k == Kind::RELATION_JOIN || k == Kind::RELATION_TABLE_JOIN
          || k == Kind::RELATION_TCLOSURE || k == Kind::RELATION_IDEN
-         || k == Kind::RELATION_JOIN_IMAGE;
+         || k == Kind::RELATION_JOIN_IMAGE || k == Kind::RELATION_IS_FUNCTIONAL;
 }
 
 Node TheorySetsRels::getRepresentative(Node t)
