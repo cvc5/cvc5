@@ -22,6 +22,7 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/env.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/uf/function_const.h"
 #include "theory/uf/theory_uf_model.h"
@@ -1213,6 +1214,15 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
     for (; !eqc_i.isFinished(); ++eqc_i)
     {
       Node n = *eqc_i;
+      if (n.getKind() == Kind::FORALL
+          && quantifiers::TermUtil::hasInstConstAttr(n))
+      {
+        // Quantified formulas with instantiation constants are internal to
+        // counterexample-guided quantifier instantiation. They are assigned a
+        // value by the SAT solver, but need not be satisfied by the model,
+        // e.g. if the counterexample lemma they occur in is disabled.
+        continue;
+      }
       AlwaysAssert(CVC5_EQUAL(rep.getType(), n.getType()))
           << "Representative " << rep << " of " << n
           << " violates type constraints (" << rep.getType() << " and "
