@@ -67,7 +67,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_op = op;
   if (eqc.isNull())
   {
-    d_mode = setTermIterListFromIndex() ? cand_term_db : cand_term_none;
+    d_mode = setTermIterList() ? cand_term_db : cand_term_none;
   }
   else
   {
@@ -102,13 +102,27 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   }
 }
 
-bool CandidateGeneratorQE::setTermIterListFromIndex()
+bool CandidateGeneratorQE::setTermIterList()
 {
   d_termIterList.clear();
-  TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(d_op);
-  if (tat != nullptr)
+  TermDb* tdb = d_treg.getTermDatabase();
+  if (logicInfo().isHigherOrder())
   {
-    d_termIterList = tat->getLeaves(d_pat.getNumChildren());
+    // In the higher-order case, we use the leaves of the term index of d_op,
+    // which includes the ground terms of all operators equal to d_op.
+    TNodeTrie* tat = tdb->getTermArgTrie(d_op);
+    if (tat != nullptr)
+    {
+      d_termIterList = tat->getLeaves(d_pat.getNumChildren());
+    }
+  }
+  else
+  {
+    DbList* dbl = tdb->getGroundTermList(d_op);
+    if (dbl != nullptr)
+    {
+      d_termIterList.assign(dbl->d_list.begin(), dbl->d_list.end());
+    }
   }
   return !d_termIterList.empty();
 }
@@ -139,6 +153,10 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
     {
       Node n = d_termIterList[d_termIter];
       d_termIter++;
+      if (!isLegalCandidate(n) || !d_treg.getTermDatabase()->hasTermCurrent(n))
+      {
+        continue;
+      }
       if (d_exclude_eqc.empty())
       {
         return n;
@@ -298,7 +316,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
     // set mode to none unless option is set.
     if (options().quantifiers.consExpandTriggers)
     {
-      if (setTermIterListFromIndex())
+      if (setTermIterList())
       {
         d_mode = cand_term_db;
       }

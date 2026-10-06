@@ -120,11 +120,13 @@ class CandidateGeneratorQE : public CandidateGenerator
   /** the default implementation of getNextCandidate. */
   Node getNextCandidateInternal();
   /**
-   * Set d_termIterList to the leaves of the term index of d_op, which are the
-   * relevant ground terms whose operator is (equal to) d_op, modulo
-   * congruence. Returns true if d_termIterList is non-empty.
+   * Set d_termIterList to the ground terms to consider for d_op. In the
+   * higher-order case, these are the leaves of the term index of d_op, which
+   * includes the ground terms of all operators equal to d_op. Otherwise, these
+   * are the ground terms whose operator is d_op. Returns true if
+   * d_termIterList is non-empty.
    */
-  bool setTermIterListFromIndex();
+  bool setTermIterList();
   /** the pattern */
   Node d_pat;
   /** operator you are looking for */
