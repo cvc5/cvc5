@@ -12,7 +12,6 @@
 
 #include "proof/eo/eo_printer.h"
 
-#include <algorithm>
 #include <cctype>
 #include <iostream>
 #include <memory>
@@ -871,6 +870,8 @@ void EoPrinter::print(EoPrintChannelOut& aout,
   std::ostream& out = aout.getOStream();
   Assert(d_pletMap.empty());
   d_pfIdCounter = 0;
+  d_topAssumps.clear();
+  d_closed.clear();
 
   const ProofNode* ascope = nullptr;
   const ProofNode* dscope = nullptr;
@@ -963,7 +964,8 @@ void EoPrinter::print(EoPrintChannelOut& aout,
       Node lam = d_tproc.convert(n[1]);
       ao->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
-    // [5] print proof body
+    // [5] print proof body, where the above are the top-level assumptions
+    d_topAssumps = processed;
     printProofInternal(ao, pnBody, i == 1);
   }
   // [6] If the body of the proof is an assumption, then no step was printed
@@ -1013,6 +1015,8 @@ void EoPrinter::printNext(EoPrintChannelOut& aout,
                           std::shared_ptr<ProofNode> pfn)
 {
   const ProofNode* pnBody = pfn.get();
+  // the proof nodes may differ from previous calls
+  d_closed.clear();
   // print with letification
   printProofInternal(&d_eletify, pnBody, false);
   // print the new let bindings
@@ -1036,9 +1040,8 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
   context::CDHashMap<const ProofNode*, bool> processingChildren(&d_passumeCtx);
   // helper iterators
   context::CDHashMap<const ProofNode*, bool>::iterator pit;
-  // The SCOPE proofs whose independent subproofs we have processed, see
-  // getScopeIndependentSubproofs. This is also dependent on the proof
-  // assumption context.
+  // The SCOPE proofs whose closed subproofs we have processed, see
+  // getClosedSubproofs.
   context::CDHashSet<const ProofNode*> hoisted(&d_passumeCtx);
   const ProofNode* cur;
   visit.push_back(pn);
@@ -1062,11 +1065,11 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
       }
       if (r == ProofRule::SCOPE && hoisted.find(cur) == hoisted.end())
       {
-        // Process the subproofs that do not depend on the assumptions of the
-        // scope beforehand, so that they are printed outside of the scope.
+        // Process the closed subproofs of the body of the scope beforehand,
+        // so that they are printed outside of the scope and can be shared.
         hoisted.insert(cur);
         std::vector<const ProofNode*> pfs;
-        getScopeIndependentSubproofs(cur, processingChildren, pfs);
+        getClosedSubproofs(cur->getChildren()[0].get(), pfs);
         if (!pfs.empty())
         {
           visit.insert(visit.end(), pfs.begin(), pfs.end());
@@ -1100,25 +1103,7 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
   } while (!visit.empty());
 }
 
-bool EoPrinter::isProcessed(
-    const ProofNode* pn,
-    const context::CDHashMap<const ProofNode*, bool>& processing) const
-{
-  if (d_alreadyPrinted.find(pn) != d_alreadyPrinted.end())
-  {
-    return true;
-  }
-  context::CDHashMap<const ProofNode*, bool>::const_iterator it =
-      processing.find(pn);
-  return it != processing.end() && !it->second;
-}
-
-bool EoPrinter::dependsOnAssumptions(
-    const ProofNode* pn,
-    const std::vector<Node>& assumps,
-    const context::CDHashMap<const ProofNode*, bool>& processing,
-    std::map<std::pair<const ProofNode*, std::vector<Node>>, bool>& scache,
-    std::unordered_map<const ProofNode*, bool>& dep)
+bool EoPrinter::isClosed(const ProofNode* pn)
 {
   std::unordered_map<const ProofNode*, bool>::iterator it;
   std::vector<const ProofNode*> visit;
@@ -1128,63 +1113,17 @@ bool EoPrinter::dependsOnAssumptions(
   do
   {
     cur = visit.back();
-    it = dep.find(cur);
-    if (it == dep.end())
+    it = d_closed.find(cur);
+    if (it == d_closed.end())
     {
-      ProofRule r = cur->getRule();
-      if (isProcessed(cur, processing))
+      if (cur->getRule() == ProofRule::ASSUME)
       {
-        // already processed in the current context, hence it does not
-        // depend on the assumptions
-        dep[cur] = false;
+        d_closed[cur] =
+            d_topAssumps.find(cur->getResult()) != d_topAssumps.end();
         visit.pop_back();
         continue;
       }
-      if (r == ProofRule::ASSUME)
-      {
-        dep[cur] = std::binary_search(
-            assumps.begin(), assumps.end(), cur->getResult());
-        visit.pop_back();
-        continue;
-      }
-      if (r == ProofRule::SCOPE)
-      {
-        // the assumptions of a nested SCOPE are bound in its body
-        const std::vector<Node>& sargs = cur->getArguments();
-        std::vector<Node> sassumps;
-        for (const Node& a : assumps)
-        {
-          if (std::find(sargs.begin(), sargs.end(), a) == sargs.end())
-          {
-            sassumps.push_back(a);
-          }
-        }
-        bool sdep = false;
-        if (!sassumps.empty())
-        {
-          std::pair<const ProofNode*, std::vector<Node>> key(cur, sassumps);
-          std::map<std::pair<const ProofNode*, std::vector<Node>>,
-                   bool>::iterator its = scache.find(key);
-          if (its != scache.end())
-          {
-            sdep = its->second;
-          }
-          else
-          {
-            std::unordered_map<const ProofNode*, bool> sdepMap;
-            sdep = dependsOnAssumptions(cur->getChildren()[0].get(),
-                                        sassumps,
-                                        processing,
-                                        scache,
-                                        sdepMap);
-            scache[key] = sdep;
-          }
-        }
-        dep[cur] = sdep;
-        visit.pop_back();
-        continue;
-      }
-      dep[cur] = false;
+      d_closed[cur] = false;
       children.clear();
       getChildrenFromProofRule(cur, children);
       for (const std::shared_ptr<ProofNode>& c : children)
@@ -1194,69 +1133,46 @@ bool EoPrinter::dependsOnAssumptions(
       continue;
     }
     visit.pop_back();
-    if (cur->getRule() == ProofRule::ASSUME
-        || cur->getRule() == ProofRule::SCOPE || it->second
-        || isProcessed(cur, processing))
+    if (cur->getRule() == ProofRule::ASSUME || it->second)
     {
       continue;
     }
+    bool closed = true;
     children.clear();
     getChildrenFromProofRule(cur, children);
     for (const std::shared_ptr<ProofNode>& c : children)
     {
-      Assert(dep.find(c.get()) != dep.end());
-      if (dep[c.get()])
+      if (!d_closed[c.get()])
       {
-        dep[cur] = true;
+        closed = false;
         break;
       }
     }
+    d_closed[cur] = closed;
   } while (!visit.empty());
-  return dep[pn];
+  return d_closed[pn];
 }
 
-void EoPrinter::getScopeIndependentSubproofs(
-    const ProofNode* pn,
-    const context::CDHashMap<const ProofNode*, bool>& processing,
-    std::vector<const ProofNode*>& pfs)
+void EoPrinter::getClosedSubproofs(const ProofNode* pn,
+                                   std::vector<const ProofNode*>& pfs)
 {
-  Assert(pn->getRule() == ProofRule::SCOPE);
-  std::vector<Node> assumps = pn->getArguments();
-  if (assumps.empty())
-  {
-    return;
-  }
-  std::sort(assumps.begin(), assumps.end());
-  const ProofNode* body = pn->getChildren()[0].get();
-  // compute which subproofs of the body depend on the assumptions
-  std::map<std::pair<const ProofNode*, std::vector<Node>>, bool> scache;
-  std::unordered_map<const ProofNode*, bool> dep;
-  dependsOnAssumptions(body, assumps, processing, scache, dep);
-  // now collect the maximal independent subproofs
   std::unordered_set<const ProofNode*> visited;
   std::vector<const ProofNode*> visit;
   std::vector<std::shared_ptr<ProofNode>> children;
   const ProofNode* cur;
-  visit.push_back(body);
+  visit.push_back(pn);
   do
   {
     cur = visit.back();
     visit.pop_back();
     if (cur->getRule() == ProofRule::ASSUME || !visited.insert(cur).second
-        || isProcessed(cur, processing))
+        || d_alreadyPrinted.find(cur) != d_alreadyPrinted.end())
     {
       continue;
     }
-    if (!dep[cur])
+    if (isClosed(cur))
     {
       pfs.push_back(cur);
-      continue;
-    }
-    else if (cur->getRule() == ProofRule::SCOPE)
-    {
-      // We do not traverse nested SCOPEs, since their subproofs may depend on
-      // their assumptions. Their independent subproofs are computed when they
-      // are processed.
       continue;
     }
     children.clear();

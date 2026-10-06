@@ -18,9 +18,8 @@
 #define CVC5__PROOF__EO_PROOF_PRINTER_H
 
 #include <iostream>
-#include <map>
 #include <unordered_map>
-#include <vector>
+#include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -144,42 +143,19 @@ class EoPrinter : protected EnvObj
                           const ProofNode* pn,
                           bool addToCache);
   /**
-   * Get the maximal subproofs of the body of pn, which is an application of
-   * ProofRule::SCOPE, that do not depend on the assumptions of pn. We print
-   * these subproofs before printing the assumptions of pn, which ensures they
-   * are printed in the context outside of pn, so that they can be shared with
-   * other parts of the proof.
-   *
-   * @param pn The SCOPE proof.
-   * @param processing The proofs processed by printProofInternal, which we
-   * do not traverse or return.
-   * @param pfs The subproofs to process before pn.
+   * Is pn closed, i.e. are all of its free assumptions top-level assumptions
+   * (in d_topAssumps)? This is computed conservatively, i.e. it does not take
+   * into account the assumptions bound by SCOPE proofs within pn.
    */
-  void getScopeIndependentSubproofs(
-      const ProofNode* pn,
-      const context::CDHashMap<const ProofNode*, bool>& processing,
-      std::vector<const ProofNode*>& pfs);
+  bool isClosed(const ProofNode* pn);
   /**
-   * Compute whether the subproofs of pn have free assumptions in assumps,
-   * which is a sorted vector, and store the result in dep. This takes into
-   * account the assumptions bound by nested SCOPEs, whose results are cached
-   * in scache. Proofs that have already been processed (see isProcessed) do
-   * not depend on assumps. Returns true if pn depends on assumps.
+   * Get the maximal closed subproofs of pn that have not been printed. We
+   * print these subproofs before printing a SCOPE whose body is pn. This
+   * ensures they are printed outside of the SCOPE, so that they can be shared
+   * with other parts of the proof.
    */
-  bool dependsOnAssumptions(
-      const ProofNode* pn,
-      const std::vector<Node>& assumps,
-      const context::CDHashMap<const ProofNode*, bool>& processing,
-      std::map<std::pair<const ProofNode*, std::vector<Node>>, bool>& scache,
-      std::unordered_map<const ProofNode*, bool>& dep);
-  /**
-   * Has pn already been processed in the current context, i.e. it is in the
-   * cache of printed proofs, or it has been processed by the current call to
-   * printProofInternal, whose processing map is given.
-   */
-  bool isProcessed(
-      const ProofNode* pn,
-      const context::CDHashMap<const ProofNode*, bool>& processing) const;
+  void getClosedSubproofs(const ProofNode* pn,
+                          std::vector<const ProofNode*>& pfs);
   /**
    * Helper for print. Prints a (dummy) step concluding the formula assumed by
    * pn, which is expected to be an application of ProofRule::ASSUME that is
@@ -234,6 +210,10 @@ class EoPrinter : protected EnvObj
    * used by printProofInternal.
    */
   context::CDHashSet<const ProofNode*> d_alreadyPrinted;
+  /** The top-level assumptions of the proof we are printing */
+  std::unordered_set<Node> d_topAssumps;
+  /** Caches the result of isClosed */
+  std::unordered_map<const ProofNode*, bool> d_closed;
   /** Mapping assumed formulas to identifiers */
   context::CDHashMap<Node, size_t> d_passumeMap;
   /** The (dummy) type used for proof terms */
