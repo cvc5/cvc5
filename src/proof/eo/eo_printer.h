@@ -18,6 +18,9 @@
 #define CVC5__PROOF__EO_PROOF_PRINTER_H
 
 #include <iostream>
+#include <map>
+#include <unordered_map>
+#include <vector>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -140,6 +143,43 @@ class EoPrinter : protected EnvObj
   void printProofInternal(EoPrintChannel* out,
                           const ProofNode* pn,
                           bool addToCache);
+  /**
+   * Get the maximal subproofs of the body of pn, which is an application of
+   * ProofRule::SCOPE, that do not depend on the assumptions of pn. We print
+   * these subproofs before printing the assumptions of pn, which ensures they
+   * are printed in the context outside of pn, so that they can be shared with
+   * other parts of the proof.
+   *
+   * @param pn The SCOPE proof.
+   * @param processing The proofs processed by printProofInternal, which we
+   * do not traverse or return.
+   * @param pfs The subproofs to process before pn.
+   */
+  void getScopeIndependentSubproofs(
+      const ProofNode* pn,
+      const context::CDHashMap<const ProofNode*, bool>& processing,
+      std::vector<const ProofNode*>& pfs);
+  /**
+   * Compute whether the subproofs of pn have free assumptions in assumps,
+   * which is a sorted vector, and store the result in dep. This takes into
+   * account the assumptions bound by nested SCOPEs, whose results are cached
+   * in scache. Proofs that have already been processed (see isProcessed) do
+   * not depend on assumps. Returns true if pn depends on assumps.
+   */
+  bool dependsOnAssumptions(
+      const ProofNode* pn,
+      const std::vector<Node>& assumps,
+      const context::CDHashMap<const ProofNode*, bool>& processing,
+      std::map<std::pair<const ProofNode*, std::vector<Node>>, bool>& scache,
+      std::unordered_map<const ProofNode*, bool>& dep);
+  /**
+   * Has pn already been processed in the current context, i.e. it is in the
+   * cache of printed proofs, or it has been processed by the current call to
+   * printProofInternal, whose processing map is given.
+   */
+  bool isProcessed(
+      const ProofNode* pn,
+      const context::CDHashMap<const ProofNode*, bool>& processing) const;
   /**
    * Helper for print. Prints a (dummy) step concluding the formula assumed by
    * pn, which is expected to be an application of ProofRule::ASSUME that is
