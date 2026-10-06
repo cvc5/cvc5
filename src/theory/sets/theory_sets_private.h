@@ -387,7 +387,7 @@ class TheorySetsPrivate : protected EnvObj
   void preRegisterTerm(TNode node);
 
   /** ppRewrite, which expands is_singleton.  */
-  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
+  TrustNode ppRewrite(Node n);
 
   void presolve();
 

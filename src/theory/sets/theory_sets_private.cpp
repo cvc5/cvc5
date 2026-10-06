@@ -1765,8 +1765,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-TrustNode TheorySetsPrivate::ppRewrite(Node node,
-                                       std::vector<SkolemLemma>& lems)
+TrustNode TheorySetsPrivate::ppRewrite(Node node)
 {
   Trace("sets-proc") << "ppRewrite : " << node << std::endl;
 

@@ -134,7 +134,8 @@ void TheorySets::preRegisterTerm(TNode node)
   d_internal->preRegisterTerm(node);
 }
 
-TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+TrustNode TheorySets::ppRewrite(TNode n,
+                                CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
   if (nk == Kind::SET_UNIVERSE || nk == Kind::SET_COMPLEMENT
@@ -190,7 +191,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     Node ret = SetReduction::reduceProjectOperator(n);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
-  return d_internal->ppRewrite(n, lems);
+  return d_internal->ppRewrite(n);
 }
 
 bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
