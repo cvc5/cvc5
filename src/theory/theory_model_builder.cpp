@@ -132,10 +132,11 @@ bool TheoryEngineModelBuilder::isAssignerActive(TheoryModel* tm, Assigner& a)
 bool TheoryEngineModelBuilder::isAssignable(TNode n)
 {
   Kind k = n.getKind();
-  if (k == Kind::SELECT || k == Kind::APPLY_SELECTOR || k == Kind::SEQ_NTH)
+  if (k == Kind::SELECT || k == Kind::APPLY_SELECTOR || k == Kind::SEQ_NTH
+      || k == Kind::SET_CHOOSE)
   {
-    // selectors are always assignable (where we guarantee that they are not
-    // evaluatable here)
+    // selectors (and set.choose) are always assignable (where we guarantee
+    // that they are not evaluatable here)
     if (!logicInfo().isHigherOrder())
     {
       Assert(!n.getType().isFunction());

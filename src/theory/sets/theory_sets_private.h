@@ -103,6 +103,24 @@ class TheorySetsPrivate : protected EnvObj
    *   where x is a fresh skolem
    */
   void checkMapDown();
+  /**
+   * @param f a function of type (-> E T)
+   * @param x a term of type E
+   * @return the application of f to x, beta-reduced if f is defined by a
+   * lambda.
+   *
+   * The terms this solver builds for the map rules are asserted as internal
+   * facts and so never go through preprocessing. We therefore have to perform
+   * the beta reduction that HoExtension::ppRewrite would otherwise have
+   * performed, see FunctionConst::getDefinition.
+   *
+   * Note the filter rules build applications of their predicate in the same
+   * way and have the same problem, but their conclusions are reconstructed by
+   * the SETS_FILTER_UP and SETS_FILTER_DOWN proof rules, which are stated over
+   * the unreduced application. Beta-reducing there requires updating those
+   * rules in lockstep, so it is left alone here.
+   */
+  Node mkApplyFunction(const Node& f, const Node& x);
   void checkGroup(Node n);
   /**
    * @param n has form ((_ rel.group n1 ... nk) A) where A has type T
@@ -368,8 +386,8 @@ class TheorySetsPrivate : protected EnvObj
 
   void preRegisterTerm(TNode node);
 
-  /** ppRewrite, which expands choose and is_singleton.  */
-  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
+  /** ppRewrite, which expands is_singleton.  */
+  TrustNode ppRewrite(Node n);
 
   void presolve();
 
@@ -401,9 +419,6 @@ class TheorySetsPrivate : protected EnvObj
 
   bool isCareArg(Node n, unsigned a);
 
-  /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node,
-                                 std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
   /** ensure that the set type is over first class type, throw logic exception

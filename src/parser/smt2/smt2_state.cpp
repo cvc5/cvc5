@@ -475,20 +475,6 @@ bool Smt2State::hasCardinalityConstraints() const
 
 bool Smt2State::logicIsSet() { return d_logicSet; }
 
-bool Smt2State::getTesterName(Term cons, std::string& name)
-{
-  if (strictModeEnabled())
-  {
-    // 2.6 or above uses indexed tester symbols, if we are in strict mode,
-    // we do not automatically define is-cons for constructor cons.
-    return false;
-  }
-  std::stringstream ss;
-  ss << "is-" << cons;
-  name = ss.str();
-  return true;
-}
-
 Term Smt2State::mkIndexedConstant(const std::string& name,
                                   const std::vector<uint32_t>& numerals)
 {

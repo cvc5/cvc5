@@ -1,7 +1,7 @@
 [![License: BSD](
     https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](
         https://opensource.org/licenses/BSD-3-Clause)
-![CI](https://github.com/cvc5/cvc5/workflows/CI/badge.svg)
+![CI](https://github.com/cvc5/cvc5/actions/workflows/ci.yml/badge.svg?branch=main)
 [![Coverage](
   https://img.shields.io/endpoint?url=https://cvc5.stanford.edu/downloads/builds/coverage/nightly-coverage.json)](
     https://cvc5.stanford.edu/downloads/builds/coverage)

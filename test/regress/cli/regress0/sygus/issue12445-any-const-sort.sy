@@ -1,0 +1,11 @@
+; DISABLE-TESTER: dump
+; ERROR-SCRUBBER: grep -o "does not match the type of non-terminal Const_p"
+; EXPECT-ERROR: does not match the type of non-terminal Const_p
+; EXIT: 1
+(set-logic ALL)
+(synth-fun f ((x (_ BitVec 32))) (_ BitVec 32)
+  ((Start (_ BitVec 32)) (Const_p (_ BitVec 3)))
+  ((Start (_ BitVec 32) ((bvshl x ((_ zero_extend 29) Const_p))))
+   (Const_p (_ BitVec 3) ((Constant Int)))))
+(constraint (= (f #x0000000a) #x000000a0))
+(check-synth)

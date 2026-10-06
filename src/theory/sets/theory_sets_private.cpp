@@ -23,8 +23,10 @@
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
 #include "theory/sets/normal_form.h"
+#include "theory/sets/set_reduction.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 #include "util/result.h"
 
@@ -795,6 +797,17 @@ void TheorySetsPrivate::checkFilterDown()
   }
 }
 
+Node TheorySetsPrivate::mkApplyFunction(const Node& f, const Node& x)
+{
+  NodeManager* nm = nodeManager();
+  Node lambda = uf::FunctionConst::getDefinition(f);
+  if (lambda.isNull())
+  {
+    return nm->mkNode(Kind::APPLY_UF, f, x);
+  }
+  return rewrite(nm->mkNode(Kind::APPLY_UF, lambda, x));
+}
+
 void TheorySetsPrivate::checkMapUp()
 {
   NodeManager* nm = nodeManager();
@@ -833,7 +846,7 @@ void TheorySetsPrivate::checkMapUp()
       exp.push_back(pair.second);
       Node B = pair.second[1];
       d_state.addEqualityToExp(A, B, exp);
-      Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
+      Node f_x = mkApplyFunction(f, x);
       Node skolem = d_treg.getProxy(term);
       Node memberMap = nm->mkNode(Kind::SET_MEMBER, f_x, skolem);
       d_im.assertInference(memberMap, InferenceId::SETS_MAP_UP, exp);
@@ -857,6 +870,8 @@ void TheorySetsPrivate::checkMapDown()
     TypeNode elementType = A.getType().getSetElementType();
     const std::map<Node, Node>& positiveMembers =
         d_state.getMembers(d_state.getRepresentative(term));
+    const std::map<Node, Node>& aMembers =
+        d_state.getMembers(d_state.getRepresentative(A));
     for (const std::pair<const Node, Node>& pair : positiveMembers)
     {
       std::vector<Node> exp;
@@ -864,7 +879,36 @@ void TheorySetsPrivate::checkMapDown()
       exp.push_back(pair.second);
       d_state.addEqualityToExp(B, term, exp);
       Node y = pair.second[0];
-
+      // Skip y if some member z of A is already known to map to y.
+      //
+      // (set.member y (set.map f A)) is discharged by any single z in A with
+      // (= (f z) y); since sets are idempotent, a second witness for y adds
+      // nothing. Generating the skolem below anyway would not only be
+      // redundant, it would not terminate when A is equal to (set.map f A):
+      // the skolem x is a member of A, hence a member of (set.map f A), hence
+      // itself an element this loop must find a preimage for, and so on. The
+      // guard in checkMapUp only breaks the cycle between SETS_MAP_UP and
+      // SETS_MAP_DOWN_POSITIVE, not this one.
+      //
+      // Note the corresponding rule for bags is sound only when f is
+      // injective, because the multiplicity of y in (bag.map f A) is the sum
+      // of the multiplicities of its whole preimage, so a single witness does
+      // not discharge it. Sets have no such obligation, so no injectivity
+      // requirement is needed here.
+      bool preimageFound = false;
+      for (const std::pair<const Node, Node>& p : aMembers)
+      {
+        Node z = p.second[0];
+        if (d_state.areEqual(mkApplyFunction(f, z), y))
+        {
+          preimageFound = true;
+          break;
+        }
+      }
+      if (preimageFound)
+      {
+        continue;
+      }
       // general case
       // (=>
       //   (and
@@ -875,10 +919,10 @@ void TheorySetsPrivate::checkMapDown()
       //     (= (f x) y))
       // )
       Node x = sm->mkSkolemFunction(SkolemId::SETS_MAP_DOWN_ELEMENT, {term, y});
-
       d_state.registerMapSkolemElement(term, x);
+
       Node memberA = nm->mkNode(Kind::SET_MEMBER, x, A);
-      Node f_x = nm->mkNode(Kind::APPLY_UF, f, x);
+      Node f_x = mkApplyFunction(f, x);
       Node equal = f_x.eqNode(y);
       Node fact = memberA.andNode(equal);
       d_im.assertInference(fact, InferenceId::SETS_MAP_DOWN_POSITIVE, exp);
@@ -1440,7 +1484,8 @@ void TheorySetsPrivate::computeCareGraph()
   for (const std::pair<const Kind, std::vector<Node>>& it : ol)
   {
     Kind k = it.first;
-    if (k == Kind::SET_SINGLETON || k == Kind::SET_MEMBER)
+    if (k == Kind::SET_SINGLETON || k == Kind::SET_MEMBER
+        || k == Kind::SET_CHOOSE)
     {
       Trace("sets-cg-summary") << "Compute graph for sets, op=" << k << "..."
                                << it.second.size() << std::endl;
@@ -1460,11 +1505,15 @@ void TheorySetsPrivate::computeCareGraph()
           // get the type of the singleton set (not the type of its element)
           tn = f1.getType().getSetElementType();
         }
-        else
+        else if (k == Kind::SET_MEMBER)
         {
-          Assert(k == Kind::SET_MEMBER);
           // get the element type of the set (not the type of the element)
           tn = f1[1].getType().getSetElementType();
+        }
+        else
+        {
+          Assert(k == Kind::SET_CHOOSE);
+          tn = f1.getType();
         }
         std::vector<TNode> reps;
         bool hasCareArg = false;
@@ -1513,6 +1562,12 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
            && a == 0 && n[0].getType().isSet())
   {
     // when the elements themselves are sets
+    return true;
+  }
+  else if (n.getKind() == Kind::SET_CHOOSE)
+  {
+    // set.choose is a function, we must split on whether its arguments are
+    // equal
     return true;
   }
   return false;
@@ -1698,55 +1753,28 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
       }
     }
     break;
+    case Kind::SET_CHOOSE:
+    {
+      d_equalityEngine->addTerm(node);
+      // send the axiom for set.choose
+      Node lem = SetReduction::mkChooseMemberAxiom(node);
+      d_im.sendAxiomLemma(lem, InferenceId::SETS_CHOOSE_MEMBER);
+    }
+    break;
     default: d_equalityEngine->addTerm(node); break;
   }
 }
 
-TrustNode TheorySetsPrivate::ppRewrite(Node node,
-                                       std::vector<SkolemLemma>& lems)
+TrustNode TheorySetsPrivate::ppRewrite(Node node)
 {
   Trace("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {
-    case Kind::SET_CHOOSE: return expandChooseOperator(node, lems);
     case Kind::SET_IS_SINGLETON: return expandIsSingletonOperator(node);
     default: break;
   }
   return TrustNode::null();
-}
-
-TrustNode TheorySetsPrivate::expandChooseOperator(
-    const Node& node, std::vector<SkolemLemma>& lems)
-{
-  Assert(node.getKind() == Kind::SET_CHOOSE);
-
-  // (choose A) is eliminated to k, with lemma
-  //   (and (= k (uf A)) (or (= A (as set.empty (Set E))) (set.member k A)))
-  // where uf: (Set E) -> E is a skolem function, and E is the type of elements
-  // of A
-
-  NodeManager* nm = nodeManager();
-  SkolemManager* sm = nm->getSkolemManager();
-  Node x = sm->mkPurifySkolem(node);
-  Node A = node[0];
-  TypeNode setType = A.getType();
-  ensureFirstClassSetType(setType);
-  // use canonical constant to ensure it can be typed
-  Node mkElem = NodeManager::mkGroundValue(setType);
-  // a Null node is used here to get a unique skolem function per set type
-  Node uf = sm->mkSkolemFunction(SkolemId::SETS_CHOOSE, mkElem);
-  Node ufA = nodeManager()->mkNode(Kind::APPLY_UF, uf, A);
-
-  Node equal = x.eqNode(ufA);
-  Node emptySet = nm->mkConst(EmptySet(setType));
-  Node isEmpty = A.eqNode(emptySet);
-  Node member = nm->mkNode(Kind::SET_MEMBER, x, A);
-  Node lem =
-      nm->mkNode(Kind::AND, equal, nm->mkNode(Kind::OR, isEmpty, member));
-  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
-  lems.push_back(SkolemLemma(tlem, x));
-  return TrustNode::mkTrustRewrite(node, x, nullptr);
 }
 
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)

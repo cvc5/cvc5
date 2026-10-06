@@ -235,6 +235,7 @@ enum class InferenceId
   BAGS_SETOF,
   BAGS_MAP_DOWN,
   BAGS_MAP_DOWN_INJECTIVE,
+  BAGS_MAP_UP_INJECTIVE,
   BAGS_MAP_UP1,
   BAGS_MAP_UP2,
   BAGS_FILTER_DOWN,
@@ -542,6 +543,8 @@ enum class InferenceId
   // split when computing care graph
   SETS_SKOLEM,
   SETS_CG_SPLIT,
+  // (or (= A (as set.empty (Set E))) (set.member (set.choose A) A))
+  SETS_CHOOSE_MEMBER,
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,

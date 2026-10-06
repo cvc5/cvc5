@@ -629,18 +629,6 @@ enum ENUM(SkolemId)
    */
   EVALUE(RELATIONS_GROUP_PART_ELEMENT),
   /**
-   * An interpreted function for set.choose operator, where ``(set.choose A)``
-   * is expanded to ``(uf A)`` along with the inference
-   * ``(set.member (uf A) A))`` when ``A`` is non-empty,
-   * where uf: ``(-> (Set E) E)`` is this skolem function, and E is the type of
-   * elements of ``A``.
-   *
-   * - Number of skolem indices: ``1``
-   *   - ``1:`` a ground value for the type ``(Set E)``.
-   * - Sort: ``(-> (Set E) E)``
-   */
-  EVALUE(SETS_CHOOSE),
-  /**
    * The set diff skolem, which is the witness k for the inference
    * ``(=> (not (= A B)) (not (= (set.member k A) (set.member k B))))``.
    *

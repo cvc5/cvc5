@@ -112,13 +112,16 @@ class CVC5_EXPORT SymManager
                 cvc5::Sort t,
                 bool isUser);
   /**
-   * Binds sorts of a list of mutually-recursive datatype declarations.
+   * Binds the sorts, constructors, and selectors of a list of
+   * mutually-recursive datatype declarations. Testers are accessed via indexed
+   * symbols (_ is C).
    *
-   * If bindTesters is true, we bind the testers of this datatype to
-   * `is-C` where `C` is the name of the constructor for that tester.
+   * If bindTesters is true, we additionally bind the testers of this datatype
+   * to the (legacy) names `is-C` where `C` is the name of the constructor for
+   * that tester.
    */
   bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
-                               bool bindTesters = true);
+                               bool bindTesters = false);
 
   //---------------------------- named expressions
   /** Set name of term t to name

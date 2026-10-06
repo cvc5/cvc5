@@ -152,6 +152,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::SKOLEM_INTRO:
     case ProofRule::SETS_SINGLETON_INJ:
     case ProofRule::SETS_EXT:
+    case ProofRule::SETS_CHOOSE_MEMBER:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
@@ -332,7 +333,6 @@ bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::RE_EQ_ELIM:
     case ProofRewriteRule::SETS_EVAL_OP:
-    case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:

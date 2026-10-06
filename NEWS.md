@@ -1,11 +1,47 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.4.1 prerelease
+cvc5 1.4.2 prerelease
 =====================
+
+- Adds techniques for returning "sat" when the returned candidate model
+  happens to satisfy the set of input assertions (`--model-verify`).
+
+- The SMT-LIB parser no longer defines the legacy tester symbols `is-C` for
+  datatype constructors `C` by default. Testers should be written using the
+  standard indexed syntax `((_ is C) t)`. The legacy tester symbols are still
+  available when parsing with `--parsing-mode=lenient`.
+
+- `set.insert` is now a binary operator, where applications with more than two
+  arguments are constructed as nested binary applications, e.g.
+  `(set.insert a b S)` is constructed as `(set.insert a (set.insert b S))`.
+  This impacts the children of such terms when inspected via the API, as well
+  as how they are printed.
+
+cvc5 1.4.1
+==========
 
 - Removed support for LFSC proof output, including the
   `--proof-format-mode=lfsc` option and the `ProofFormat::LFSC` and
   `ProofRule::LFSC_RULE` API enum values.
+
+- Updated the classification of options and commands with respect to
+  `--safe-mode`. Options that only set timeouts for internal subsolver calls
+  (`--mbqi-check-timeout`, `--sub-cbqi-timeout`, `--sygus-verify-timeout`,
+  `--sygus-repair-const-timeout`, `--sygus-expr-miner-check-timeout` and
+  `--timeout-core-timeout`) are now common options. Recursive function definitions
+  (`define-fun-rec`, `define-funs-rec`) are no longer available in safe mode,
+  and pool declarations (`declare-pool`) are now only available in
+  unrestricted mode.
+
+- **C API**: Fixed several memory management issues, including dangling
+  pointers to names returned by `cvc5_sm_get_named_terms`, input parsers and
+  plugins not keeping their solver and symbol manager alive, detached proofs
+  not owning the child proofs they export, a missing check for exhausted
+  iterators in `cvc5_stats_iter_next`, and plugin checks that return `NULL` or
+  do not set the size of the returned array.
+
+- The current CPC proofs are checkable by Ethos 0.2.5
+  (see `./contrib/get-ethos-checker`).
 
 cvc5 1.4.0
 ==========
