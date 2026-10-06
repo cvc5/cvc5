@@ -568,8 +568,8 @@ Term ParserState::mkApply(Kind kind, const std::vector<Term>& args)
                       << std::endl;
             argVars.erase(v);
             vars.push_back(v);
-            subs.push_back(d_tm.mkVar(v.getSort(),
-                                        v.hasSymbol() ? v.getSymbol() : ""));
+            subs.push_back(
+                d_tm.mkVar(v.getSort(), v.hasSymbol() ? v.getSymbol() : ""));
           }
         }
         continue;
