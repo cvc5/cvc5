@@ -17,6 +17,14 @@ cvc5 1.4.2 prerelease
   This impacts the children of such terms when inspected via the API, as well
   as how they are printed.
 
+- Fixes a **refutation soundness** issue in the bit-vector rewrite rule for
+  signed comparisons of multiplications, which was incorrectly applied when
+  one operand was zero-extended and the other was sign-extended. (#13039)
+
+- Fixes a **model soundness** issue for arrays indexed by reals, where the
+  candidate model values of `to_real` terms had type Int, leading to missed
+  care pairs during theory combination. (#13040)
+
 cvc5 1.4.1
 ==========
 
