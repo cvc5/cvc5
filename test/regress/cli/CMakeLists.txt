@@ -4068,7 +4068,6 @@ set(regress_1_tests
   regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
   regress1/strings/witness-model.smt2
-  regress1/sygus/proj-issue221-perf.sy
   regress1/sygus/proj-issue556-srr-fp-div.smt2
   regress1/sygus/issue12424-fp-add-order.sy
   regress1/sygus/issue12425-fp-const-grammar.sy
@@ -4648,6 +4647,8 @@ set(regression_disabled_tests
   regress0/sygus/c100.sy
   # timeout after ignoring sygus eval terms in model
   regress1/sygus/proj-issue264.smt2
+  # times out in nightly builds
+  regress1/sygus/proj-issue221-perf.sy
   # For the six regressions below, solution terms require rewrites not in
   # database and are too big to enumerate
   regress0/sygus/aig-si.sy

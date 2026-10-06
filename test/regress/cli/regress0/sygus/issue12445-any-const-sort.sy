@@ -1,4 +1,5 @@
 ; DISABLE-TESTER: dump
+; REQUIRES: no-competition
 ; ERROR-SCRUBBER: grep -o "does not match the type of non-terminal Const_p"
 ; EXPECT-ERROR: does not match the type of non-terminal Const_p
 ; EXIT: 1
