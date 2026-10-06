@@ -1319,6 +1319,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8294-2-double-solve.smt2
   regress0/nl/nta/issue8415-embed-arg.smt2
   regress0/nl/nta/issue8773-phase-shift.smt2
+  regress0/nl/nta/issue13029-even-power-zero.smt2
   regress0/nl/nta/nta-dsl-rew.smt2
   regress0/nl/nta/pi-simplest.smt2
   regress0/nl/nta/proj-issue376.smt2
