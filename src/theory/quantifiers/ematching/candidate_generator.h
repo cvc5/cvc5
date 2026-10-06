@@ -77,6 +77,13 @@ class CandidateGenerator : protected EnvObj
   virtual std::string identify() const = 0;
 
  protected:
+  /**
+   * Add to terms the relevant ground terms in the term database whose
+   * operator is op, modulo congruence, as given by the leaves of the term
+   * index for op. In the higher-order case, this also includes the ground
+   * terms whose operator is currently equal to op.
+   */
+  void getGroundTermsForOperator(const Node& op, std::vector<Node>& terms);
   /** Reference to the quantifiers state */
   QuantifiersState& d_qs;
   /** Reference to the term registry */
