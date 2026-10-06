@@ -1413,6 +1413,7 @@ set(regress_0_tests
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/bv_nat.smt2
   regress0/parser/constraint.smt2
+  regress0/parser/datatype-tester-user-symbol.smt2
   regress0/parser/dd.define-named.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/define_sort.smt2
@@ -1462,6 +1463,8 @@ set(regress_0_tests
   regress0/parser/issue10489.smt2
   regress0/parser/issue11763-quoted-dt-cons.smt2
   regress0/parser/issue12356.smt2
+  regress0/parser/legacy-datatype-tester.smt2
+  regress0/parser/legacy-datatype-tester-lenient.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2

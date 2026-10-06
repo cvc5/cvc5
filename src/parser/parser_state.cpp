@@ -89,12 +89,6 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
   return expr;
 }
 
-bool ParserState::getTesterName(CVC5_UNUSED Term cons,
-                                CVC5_UNUSED std::string& name)
-{
-  return false;
-}
-
 Kind ParserState::getKindForFunction(Term fun)
 {
   Sort t = fun.getSort();
