@@ -172,12 +172,19 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_allCompSets.push_back(n);
     Trace("sets-debug2") << "Comp-set[" << r << "] : " << n << std::endl;
   }
-  else if (Theory::isLeafOf(n, THEORY_SETS) && !d_skCache.isSkolem(n))
+  else if ((nk == Kind::SET_CHOOSE || Theory::isLeafOf(n, THEORY_SETS))
+           && !d_skCache.isSkolem(n))
   {
+    if (nk == Kind::SET_CHOOSE)
+    {
+      // for computing the care graph
+      d_op_list[nk].push_back(n);
+    }
     // It is important that we check it is a leaf, due to parametric theories
     // that may be used to construct terms of set type. It is also important to
     // exclude internally introduced skolems, due to the semantics of the
-    // universe set.
+    // universe set. We treat applications of set.choose as variables, since
+    // they are not otherwise interpreted by this solver.
     if (tnn.isSet())
     {
       if (d_var_set.find(r) == d_var_set.end())

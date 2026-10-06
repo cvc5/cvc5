@@ -76,6 +76,12 @@ class SetReduction
    * @return (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
    */
   static Node reduceProjectOperator(Node n);
+  /**
+   * @param n a term of the form (set.choose A) where A has type (Set E)
+   * @return the axiom for n:
+   *   (or (= A (as set.empty (Set E))) (set.member (set.choose A) A))
+   */
+  static Node mkChooseMemberAxiom(const Node& n);
 };
 
 }  // namespace sets

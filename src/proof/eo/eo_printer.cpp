@@ -152,6 +152,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::SKOLEM_INTRO:
     case ProofRule::SETS_SINGLETON_INJ:
     case ProofRule::SETS_EXT:
+    case ProofRule::SETS_CHOOSE_MEMBER:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:

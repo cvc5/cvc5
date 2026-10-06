@@ -386,8 +386,8 @@ class TheorySetsPrivate : protected EnvObj
 
   void preRegisterTerm(TNode node);
 
-  /** ppRewrite, which expands choose and is_singleton.  */
-  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
+  /** ppRewrite, which expands is_singleton.  */
+  TrustNode ppRewrite(Node n);
 
   void presolve();
 
@@ -419,9 +419,6 @@ class TheorySetsPrivate : protected EnvObj
 
   bool isCareArg(Node n, unsigned a);
 
-  /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node,
-                                 std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
   /** ensure that the set type is over first class type, throw logic exception
