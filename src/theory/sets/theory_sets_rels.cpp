@@ -657,24 +657,11 @@ void TheorySetsRels::applyIdenRule(Node mem_rep, Node iden_term, Node exp)
  *                    x1 = x2 => y1 = y2
  *
  * Quadratic in the number of members of R, but introduces no symbol.
- *
- * Mode iden:
- *
- *   (rel.is_functional R)
- *   -----------------------------------------------------------
- *   (rel.join (rel.transpose R) R) subset (rel.iden universe)
- *
- * sent once per constraint; the join and identity rules then derive y1 = y2
- * from the members (x, y1) and (x, y2) of R.
  */
 void TheorySetsRels::applyFunctionalRules()
 {
   NodeManager* nm = nodeManager();
   options::RelsFunctionalMode mode = options().sets.relsFunctionalMode;
-  if (mode == options::RelsFunctionalMode::IDEN && !options().sets.setsExp)
-  {
-    mode = options::RelsFunctionalMode::UF;
-  }
   if (mode == options::RelsFunctionalMode::UF
       && !logicInfo().isTheoryEnabled(THEORY_UF))
   {
@@ -690,17 +677,6 @@ void TheorySetsRels::applyFunctionalRules()
     TypeNode tupleType = rel.getType().getSetElementType();
     std::vector<TypeNode> types = tupleType.getTupleTypes();
     Assert(types.size() == 2);
-    if (mode == options::RelsFunctionalMode::IDEN)
-    {
-      Node univ = nm->mkNullaryOperator(
-          nm->mkSetType(nm->mkTupleType({types[1]})), Kind::SET_UNIVERSE);
-      Node join = nm->mkNode(
-          Kind::RELATION_JOIN, nm->mkNode(Kind::RELATION_TRANSPOSE, rel), rel);
-      Node conc = nm->mkNode(
-          Kind::SET_SUBSET, join, nm->mkNode(Kind::RELATION_IDEN, univ));
-      sendInfer(conc, InferenceId::SETS_RELS_FUNCTIONAL_IDEN, atom);
-      continue;
-    }
     MEM_IT mit = d_rReps_memberReps_exp_cache.find(relRep);
     if (mit == d_rReps_memberReps_exp_cache.end())
     {

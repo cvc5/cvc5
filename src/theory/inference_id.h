@@ -595,9 +595,6 @@ enum class InferenceId
   // (rel.is_functional R) /\ (x1, y1) in R /\ (x2, y2) in R =>
   //   (x1 = x2 => y1 = y2)
   SETS_RELS_FUNCTIONAL_PAIR,
-  // (rel.is_functional R) =>
-  //   (rel.join (rel.transpose R) R) subset (rel.iden universe)
-  SETS_RELS_FUNCTIONAL_IDEN,
   // not (rel.is_functional R) =>
   //   (k1, k2) in R /\ (k1, k3) in R /\ k2 != k3, k1, k2, k3 fresh
   SETS_RELS_NOT_FUNCTIONAL,

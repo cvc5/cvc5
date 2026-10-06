@@ -1,7 +1,6 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE:
 ; COMMAND-LINE: --rels-functional-mode=pairs
-; COMMAND-LINE: --sets-exp --rels-functional-mode=iden
 ; EXPECT: sat
 (set-logic ALL)
 (declare-sort U 0)

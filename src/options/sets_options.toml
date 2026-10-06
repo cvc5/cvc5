@@ -31,9 +31,6 @@ name   = "Sets Theory"
 [[option.mode.PAIRS]]
   name = "pairs"
   help = "For every two members (x1, y1) and (x2, y2) of R, infer x1 = x2 => y1 = y2."
-[[option.mode.IDEN]]
-  name = "iden"
-  help = "Infer (rel.join (rel.transpose R) R) subset (rel.iden universe) once and let the relational rules do the rest. Requires --sets-exp, falls back to uf otherwise."
 
 [[option]]
   name       = "relsExp"
