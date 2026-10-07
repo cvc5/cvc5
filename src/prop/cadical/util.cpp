@@ -11,7 +11,10 @@
  */
 #include "prop/cadical/util.h"
 
+#include <algorithm>
+
 #include "base/check.h"
+#include "prop/theory_proxy.h"
 
 namespace cvc5::internal::prop::cadical {
 
@@ -56,6 +59,27 @@ SatClause toSatClause(const std::unordered_set<int64_t>& activation_literals,
     }
   }
   return clause;
+}
+
+Node toClauseNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause)
+{
+  if (clause.empty())
+  {
+    return nm->mkConst(false);
+  }
+  std::vector<Node> lits;
+  for (const auto& lit : clause)
+  {
+    lits.push_back(proxy->getNode(lit));
+  }
+  // Sort by node id and factor duplicate literals, to match the normalization
+  // PropPfManager applies when registering CNF clause proofs. Note the input
+  // order varies by caller (CaDiCaL clause order for the proof tracer, CNF
+  // stream or explanation order for the propagator), so the sort is what makes
+  // the result canonical.
+  std::sort(lits.begin(), lits.end());
+  lits.erase(std::unique(lits.begin(), lits.end()), lits.end());
+  return lits.size() == 1 ? lits[0] : nm->mkNode(Kind::OR, lits);
 }
 
 }  // namespace cvc5::internal::prop::cadical
