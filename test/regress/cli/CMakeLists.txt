@@ -1470,6 +1470,7 @@ set(regress_0_tests
   regress0/parser/issue12356.smt2
   regress0/parser/legacy-datatype-tester.smt2
   regress0/parser/legacy-datatype-tester-lenient.smt2
+  regress0/parser/legacy-datatype-tester-strict.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
