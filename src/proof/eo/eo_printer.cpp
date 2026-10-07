@@ -28,6 +28,7 @@
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/eo/eo_dependent_type_converter.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
@@ -871,7 +872,7 @@ void EoPrinter::print(EoPrintChannelOut& aout,
   Assert(d_pletMap.empty());
   d_pfIdCounter = 0;
   d_topAssumps.clear();
-  d_closed.clear();
+  d_caMap.clear();
 
   const ProofNode* ascope = nullptr;
   const ProofNode* dscope = nullptr;
@@ -933,15 +934,15 @@ void EoPrinter::print(EoPrintChannelOut& aout,
       // [3] print proof-level term bindings
       printLetList(out, d_lbind);
     }
-    // [4] print (unique) assumptions, including definitions
-    std::unordered_set<Node> processed;
+    // [4] print (unique) assumptions, including definitions, which are the
+    // top-level assumptions of the proof body
+    d_topAssumps.clear();
     for (const Node& n : assertions)
     {
-      if (processed.find(n) != processed.end())
+      if (!d_topAssumps.insert(n).second)
       {
         continue;
       }
-      processed.insert(n);
       size_t id = allocateAssumeId(n, wasAlloc);
       Node nc = d_tproc.convert(n);
       ao->printAssume(nc, id, false);
@@ -953,19 +954,17 @@ void EoPrinter::print(EoPrintChannelOut& aout,
         // skip define-fun-rec?
         continue;
       }
-      if (processed.find(n) != processed.end())
+      if (!d_topAssumps.insert(n).second)
       {
         continue;
       }
-      processed.insert(n);
       // define-fun are HO equalities that can be proven by refl
       size_t id = allocateAssumeId(n, wasAlloc);
       Node f = d_tproc.convert(n[0]);
       Node lam = d_tproc.convert(n[1]);
       ao->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
-    // [5] print proof body, where the above are the top-level assumptions
-    d_topAssumps = processed;
+    // [5] print proof body
     printProofInternal(ao, pnBody, i == 1);
   }
   // [6] If the body of the proof is an assumption, then no step was printed
@@ -1016,7 +1015,12 @@ void EoPrinter::printNext(EoPrintChannelOut& aout,
 {
   const ProofNode* pnBody = pfn.get();
   // the proof nodes may differ from previous calls
-  d_closed.clear();
+  d_caMap.clear();
+  // Note that d_topAssumps is intentionally not reset here. It contains the
+  // assumptions of the last call to print (e.g. the preprocessed input
+  // assertions when proof logging), which remain in scope for the proofs
+  // printed by this method. If print was not called, it is empty and no
+  // subproof depending on assumptions is hoisted.
   // print with letification
   printProofInternal(&d_eletify, pnBody, false);
   // print the new let bindings
@@ -1070,9 +1074,18 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
         hoisted.insert(cur);
         std::vector<const ProofNode*> pfs;
         getClosedSubproofs(cur->getChildren()[0].get(), pfs);
-        if (!pfs.empty())
+        bool hasHoisted = false;
+        for (const ProofNode* p : pfs)
         {
-          visit.insert(visit.end(), pfs.begin(), pfs.end());
+          // skip those already processed in this traversal
+          if (processingChildren.find(p) == processingChildren.end())
+          {
+            visit.push_back(p);
+            hasHoisted = true;
+          }
+        }
+        if (hasHoisted)
+        {
           continue;
         }
       }
@@ -1103,56 +1116,6 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
   } while (!visit.empty());
 }
 
-bool EoPrinter::isClosed(const ProofNode* pn)
-{
-  std::unordered_map<const ProofNode*, bool>::iterator it;
-  std::vector<const ProofNode*> visit;
-  std::vector<std::shared_ptr<ProofNode>> children;
-  const ProofNode* cur;
-  visit.push_back(pn);
-  do
-  {
-    cur = visit.back();
-    it = d_closed.find(cur);
-    if (it == d_closed.end())
-    {
-      if (cur->getRule() == ProofRule::ASSUME)
-      {
-        d_closed[cur] =
-            d_topAssumps.find(cur->getResult()) != d_topAssumps.end();
-        visit.pop_back();
-        continue;
-      }
-      d_closed[cur] = false;
-      children.clear();
-      getChildrenFromProofRule(cur, children);
-      for (const std::shared_ptr<ProofNode>& c : children)
-      {
-        visit.push_back(c.get());
-      }
-      continue;
-    }
-    visit.pop_back();
-    if (cur->getRule() == ProofRule::ASSUME || it->second)
-    {
-      continue;
-    }
-    bool closed = true;
-    children.clear();
-    getChildrenFromProofRule(cur, children);
-    for (const std::shared_ptr<ProofNode>& c : children)
-    {
-      if (!d_closed[c.get()])
-      {
-        closed = false;
-        break;
-      }
-    }
-    d_closed[cur] = closed;
-  } while (!visit.empty());
-  return d_closed[pn];
-}
-
 void EoPrinter::getClosedSubproofs(const ProofNode* pn,
                                    std::vector<const ProofNode*>& pfs)
 {
@@ -1170,7 +1133,8 @@ void EoPrinter::getClosedSubproofs(const ProofNode* pn,
     {
       continue;
     }
-    if (isClosed(cur))
+    // closed if all of its free assumptions are top-level assumptions
+    if (!expr::containsAssumption(cur, d_caMap, d_topAssumps))
     {
       pfs.push_back(cur);
       continue;

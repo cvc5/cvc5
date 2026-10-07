@@ -143,16 +143,13 @@ class EoPrinter : protected EnvObj
                           const ProofNode* pn,
                           bool addToCache);
   /**
-   * Is pn closed, i.e. are all of its free assumptions top-level assumptions
-   * (in d_topAssumps)? This is computed conservatively, i.e. it does not take
-   * into account the assumptions bound by SCOPE proofs within pn.
-   */
-  bool isClosed(const ProofNode* pn);
-  /**
-   * Get the maximal closed subproofs of pn that have not been printed. We
-   * print these subproofs before printing a SCOPE whose body is pn. This
-   * ensures they are printed outside of the SCOPE, so that they can be shared
-   * with other parts of the proof.
+   * Get the maximal closed subproofs of pn that have not been printed, where
+   * a proof is closed if all of its free assumptions are top-level
+   * assumptions (in d_topAssumps). This is computed conservatively, i.e. it
+   * does not take into account the assumptions bound by SCOPE proofs within
+   * the subproof. We print these subproofs before printing a SCOPE whose body
+   * is pn. This ensures they are printed outside of the SCOPE, so that they
+   * can be shared with other parts of the proof.
    */
   void getClosedSubproofs(const ProofNode* pn,
                           std::vector<const ProofNode*>& pfs);
@@ -212,8 +209,11 @@ class EoPrinter : protected EnvObj
   context::CDHashSet<const ProofNode*> d_alreadyPrinted;
   /** The top-level assumptions of the proof we are printing */
   std::unordered_set<Node> d_topAssumps;
-  /** Caches the result of isClosed */
-  std::unordered_map<const ProofNode*, bool> d_closed;
+  /**
+   * Cache for expr::containsAssumption with respect to d_topAssumps, which we
+   * use to check whether a proof is closed.
+   */
+  std::unordered_map<const ProofNode*, bool> d_caMap;
   /** Mapping assumed formulas to identifiers */
   context::CDHashMap<Node, size_t> d_passumeMap;
   /** The (dummy) type used for proof terms */
