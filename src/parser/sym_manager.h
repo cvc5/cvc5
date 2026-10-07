@@ -121,7 +121,7 @@ class CVC5_EXPORT SymManager
    * that tester.
    */
   bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
-                               bool bindTesters = false);
+                               bool bindTesters = true);
 
   //---------------------------- named expressions
   /** Set name of term t to name

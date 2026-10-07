@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; COMMAND-LINE: --strict-parsing
 ; EXPECT: sat
 (set-logic QF_UFDT)

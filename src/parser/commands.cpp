@@ -2727,8 +2727,8 @@ const std::vector<cvc5::Sort>& DatatypeDeclarationCommand::getDatatypes() const
 void DatatypeDeclarationCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
   // Bind the datatype sorts, constructors, and selectors. We additionally
-  // bind the legacy tester names is-C if lenient parsing is enabled.
-  bool bindTesters = solver->getOption("parsing-mode") == "lenient";
+  // bind the legacy tester names is-C unless strict parsing is enabled.
+  bool bindTesters = solver->getOption("parsing-mode") != "strict";
   if (!sm->bindMutualDatatypeTypes(d_datatypes, bindTesters))
   {
     // this should generally never happen since we look ahead to check whether
