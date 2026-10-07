@@ -17,6 +17,11 @@ cvc5 1.4.2 prerelease
   This impacts the children of such terms when inspected via the API, as well
   as how they are printed.
 
+- The **bit-vector abstraction refinement strategy** (`--bv-abstraction`) now
+  also abstracts n-ary multiplications, i.e., `bvmul` with more than two
+  arguments, which were previously not abstracted. They are left-associated
+  into a chain of binary multiplications, each abstracted separately. (#12935)
+
 - Fixes a **refutation soundness** issue in the bit-vector rewrite rule for
   signed comparisons of multiplications, which was incorrectly applied when
   one operand was zero-extended and the other was sign-extended. (#13039)
