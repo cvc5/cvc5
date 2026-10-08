@@ -25,6 +25,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
     strategy:
+      fail-fast: false
       matrix:
         name:
           - manylinux-x86_64
@@ -169,12 +170,14 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
         echo "::group::Upload to pypi.org"
+        failed=0
         for wheel in `ls ./wheelhouse/*.whl`
         do
           # --skip-existing is only valid when uploading to PyPI
-          twine upload --skip-existing $wheel
+          twine upload --skip-existing $wheel || { echo "::error::Failed to upload $wheel"; failed=1; }
         done
         echo "::endgroup::"
+        exit $failed
 
     - name: Upload wheels to test.pypi.org
       if: >
@@ -185,8 +188,10 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
         echo "::group::Upload to test.pypi.org"
+        failed=0
         for wheel in `ls ./wheelhouse/*.whl`
         do
-          twine upload --repository testpypi $wheel
+          twine upload --repository testpypi $wheel || { echo "::error::Failed to upload $wheel"; failed=1; }
         done
         echo "::endgroup::"
+        exit $failed
