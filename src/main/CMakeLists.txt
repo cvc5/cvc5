@@ -111,4 +111,5 @@ add_custom_target(gen-tokens
   DEPENDS
     smt2_tokens.h
 )
+add_dependencies(cvc5-prerequisites gen-tokens)
 
