@@ -191,7 +191,7 @@ TrustNode TheorySets::ppRewrite(TNode n,
     Node ret = SetReduction::reduceProjectOperator(n);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
-  return d_internal->ppRewrite(n);
+  return TrustNode::null();
 }
 
 bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
