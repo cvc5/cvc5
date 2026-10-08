@@ -3,5 +3,5 @@
 (set-logic ALL)
 (declare-sort U 0)
 (declare-fun R () (Set (Tuple U U)))
-(assert (not (rel.is_functional R)))
+(assert (not (rel.is-functional R)))
 (check-sat)

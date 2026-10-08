@@ -8,7 +8,7 @@
 (declare-fun a () U)
 (declare-fun b () U)
 (declare-fun c () U)
-(assert (rel.is_functional R))
+(assert (rel.is-functional R))
 (assert (set.member (tuple a b) R))
 (assert (set.member (tuple a c) (rel.tclosure R)))
 (assert (not (set.member (tuple b c) (rel.tclosure R))))

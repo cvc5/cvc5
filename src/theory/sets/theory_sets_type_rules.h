@@ -344,7 +344,7 @@ struct RelIdenTypeRule
 };
 
 /**
- * Type rule for the predicate (rel.is_functional R) to check that R is a binary
+ * Type rule for the predicate (rel.is-functional R) to check that R is a binary
  * relation of type (Relation T1 T2). The type of the predicate is Bool.
  */
 struct RelIsFunctionalTypeRule

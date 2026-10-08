@@ -197,10 +197,10 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Product              | ``(rel.product X Y)``                        | ``Term t = solver.mkTerm(Kind::RELATION_PRODUCT, X, Y);``                          |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Functional           | ``(rel.is_functional X)``                    | ``Term t = solver.mkTerm(Kind::RELATION_IS_FUNCTIONAL, {X});``                     |
+| Functional           | ``(rel.is-functional X)``                    | ``Term t = solver.mkTerm(Kind::RELATION_IS_FUNCTIONAL, {X});``                     |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 
-The predicate ``(rel.is_functional X)`` holds if the binary relation ``X`` is
+The predicate ``(rel.is-functional X)`` holds if the binary relation ``X`` is
 functional (right-unique), i.e., if ``(x, y)`` and ``(x, z)`` in ``X`` imply
 ``y = z``; ``X`` need not be total. The solver reasons about it directly, which
 is usually much cheaper than stating the same property with a quantifier.

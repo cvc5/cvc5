@@ -8,7 +8,7 @@
 (declare-fun x () U)
 (declare-fun y () U)
 (declare-fun z () U)
-(assert (rel.is_functional (rel.transpose R)))
+(assert (rel.is-functional (rel.transpose R)))
 (assert (set.member (tuple x y) R))
 (assert (set.member (tuple z y) R))
 (assert (distinct x z))

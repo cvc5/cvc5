@@ -8,7 +8,7 @@
 (declare-fun x () Int)
 (declare-fun y () Int)
 (declare-fun z () Int)
-(assert (rel.is_functional R))
+(assert (rel.is-functional R))
 (assert (set.member (tuple x y) R))
 (assert (set.member (tuple z y) R))
 (assert (set.member (tuple z 7) R))

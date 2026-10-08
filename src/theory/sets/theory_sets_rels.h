@@ -143,11 +143,11 @@ class TheorySetsRels : protected EnvObj
 
   /**
    * Mapping between a relation representative and the constraints
-   * (rel.is_functional R) that are asserted (positively) for a relation R in
+   * (rel.is-functional R) that are asserted (positively) for a relation R in
    * its equivalence class.
    */
   std::map<Node, std::vector<Node> > d_functional_cache;
-  /** (rel.is_functional R) atoms asserted false for which we sent a witness */
+  /** (rel.is-functional R) atoms asserted false for which we sent a witness */
   std::unordered_set<Node> d_notFunctionalSent;
 
   /**
@@ -243,14 +243,14 @@ class TheorySetsRels : protected EnvObj
   void applyJoinImageRule(Node mem_rep, Node rel_rep, Node exp);
   void applyIdenRule(Node mem_rep, Node rel_rep, Node exp);
   /**
-   * Apply the rules for the asserted constraints (rel.is_functional R), see
+   * Apply the rules for the asserted constraints (rel.is-functional R), see
    * the description of InferenceId::SETS_RELS_FUNCTIONAL and the option
    * --rels-functional-mode. For each representative of a relation with such
    * a constraint, the rules are applied to its asserted members.
    */
   void applyFunctionalRules();
   /**
-   * Apply the witness rule for (not (rel.is_functional R)), see
+   * Apply the witness rule for (not (rel.is-functional R)), see
    * InferenceId::SETS_RELS_NOT_FUNCTIONAL. Sent once per constraint.
    */
   void applyNotFunctionalRule(Node atom);

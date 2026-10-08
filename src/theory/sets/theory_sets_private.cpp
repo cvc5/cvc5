@@ -265,7 +265,7 @@ void TheorySetsPrivate::checkBasic()
     Trace("sets-eqc") << d_equalityEngine->debugPrintEqc() << std::endl;
   }
   std::map<TypeNode, unsigned> eqcTypeCount;
-  // whether a (rel.is_functional R) term occurs
+  // whether a (rel.is-functional R) term occurs
   bool hasFunctional = false;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while (!eqcs_i.isFinished())
@@ -341,12 +341,12 @@ void TheorySetsPrivate::checkBasic()
   if (hasFunctional && d_card_enabled)
   {
     // The cardinality solver may complete the model of a relation with fresh
-    // elements that are not constrained by (rel.is_functional R), so we cannot
+    // elements that are not constrained by (rel.is-functional R), so we cannot
     // answer sat in this case.
     d_fullCheckIncomplete = true;
     d_fullCheckIncompleteId = IncompleteId::SETS_RELS_CARD;
     Trace("sets-incomplete")
-        << "Sets : incomplete because of rel.is_functional with cardinality."
+        << "Sets : incomplete because of rel.is-functional with cardinality."
         << std::endl;
   }
 

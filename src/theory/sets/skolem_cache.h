@@ -55,10 +55,10 @@ class SkolemCache
     // (a,b) in join(A,B) => exists k. (a,k) in A ^ (k,b) in B
     // This is cached by the nodes corresponding to (a,b) and join(A,B).
     SK_JOIN,
-    // (rel.is_functional R) => exists f. forall x y. (x, y) in R => y = f(x)
+    // (rel.is-functional R) => exists f. forall x y. (x, y) in R => y = f(x)
     // This is cached by the node R.
     SK_FUNCTIONAL,
-    // not (rel.is_functional R) => exists k1 k2 k3.
+    // not (rel.is-functional R) => exists k1 k2 k3.
     //   (k1, k2) in R ^ (k1, k3) in R ^ k2 != k3
     // These are cached by the node R.
     SK_NOT_FUNCTIONAL1,

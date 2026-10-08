@@ -3967,7 +3967,7 @@ enum ENUM(Kind)
    * Relation functionality predicate.
    *
    * \rst
-   * :math:`(rel.is\_functional \; R)` holds if the binary relation
+   * ``(rel.is-functional R)`` holds if the binary relation
    * :math:`R` is functional (right-unique), that is, if
    * :math:`(x, y) \in R` and :math:`(x, z) \in R` imply :math:`y = z`.
    * :math:`R` need not be total.
