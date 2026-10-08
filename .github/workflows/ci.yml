@@ -453,7 +453,9 @@ jobs:
     # 3.10, central-publishing-maven-plugin (at least up to 0.11.0) leaves
     # maven-metadata-local.xml and _remote.repositories in the bundle, and
     # Maven Central rejects it ("Bundle has content that does NOT have a .pom
-    # file"). This broke the publication of 1.4.2.
+    # file"). This broke the publication of 1.4.2. The pin can be removed once
+    # https://github.com/apache/maven/issues/13388 is fixed or the plugin
+    # supports Maven 3.10.
     - name: Install Maven
       env:
         MAVEN_VERSION: 3.9.16
