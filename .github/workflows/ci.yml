@@ -424,7 +424,9 @@ jobs:
         (matrix.build.upload-maven-doc ||
          (matrix.build.java-bindings && matrix.build.package-name))
       uses: ./.github/actions/upload-mvn-files
-      continue-on-error: true
+      # Do not let a Maven problem fail the CI on main (snapshots), but do
+      # fail on releases, so that a failed publication is not missed.
+      continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/') }}
       with:
         build-dir: ${{ steps.configure-and-build.outputs.static-build-dir }}
         upload-main: ${{ matrix.build.upload-maven-main }}
@@ -435,7 +437,8 @@ jobs:
     name: Publish to Maven central
     if: github.repository == 'cvc5/cvc5' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) && github.event_name != 'schedule'
     runs-on: ubuntu-latest
-    continue-on-error: true
+    # See "Upload Maven artifacts" above.
+    continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/') }}
     needs: [builds]
     steps:
     - name: Set up Maven Central
@@ -457,7 +460,8 @@ jobs:
         merge-multiple: true
 
     - name: Deploy to Maven Central
-      continue-on-error: true
+      id: deploy
+      continue-on-error: ${{ !startsWith(github.ref, 'refs/tags/') }}
       run: |
         cd ./maven
         mkdir -p ./src/api/java ./docs/api/java
@@ -469,7 +473,9 @@ jobs:
         MAVEN_TOKEN: ${{ secrets.MAVEN_TOKEN }}
         MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
+    # Keep the artifacts if the deployment failed, so that it can be retried.
     - name: Delete mvn-* artifacts from this run
+      if: steps.deploy.outcome == 'success'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
