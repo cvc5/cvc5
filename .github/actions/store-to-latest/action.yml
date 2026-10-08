@@ -26,4 +26,7 @@ runs:
         echo "Generated filename: $filename"
         RENAMED_PACKAGE=$(dirname "$PACKAGE")/$filename
         mv -- "$PACKAGE" "$RENAMED_PACKAGE"
-        gh release upload latest "$RENAMED_PACKAGE" --repo "${repo}"
+        # --clobber: if the asset already exists (e.g., the job is re-run, or
+        # the upload succeeded but its response was lost), replace it instead
+        # of failing.
+        gh release upload latest "$RENAMED_PACKAGE" --repo "${repo}" --clobber
