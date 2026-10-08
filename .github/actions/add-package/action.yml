@@ -78,4 +78,5 @@ runs:
       run: |
         gh release upload $GITHUB_REF_NAME \
           ${{ inputs.package-name }}.zip \
-          --repo $GITHUB_REPOSITORY
+          --repo $GITHUB_REPOSITORY \
+          --clobber
