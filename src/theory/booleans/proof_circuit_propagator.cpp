@@ -355,9 +355,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::andTrue(
   {
     return nullptr;
   }
-  return mkProof(ProofRule::AND_ELIM,
-                 {assume(d_parent)},
-                 {mkInt(d_nm, i - d_parent.begin())});
+  // Create the assumption first: the evaluation order of function arguments
+  // is unspecified, and both arguments may create nodes.
+  std::shared_ptr<ProofNode> premise = assume(d_parent);
+  return mkProof(
+      ProofRule::AND_ELIM, {premise}, {mkInt(d_nm, i - d_parent.begin())});
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
@@ -367,9 +369,11 @@ std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::orFalse(
   {
     return nullptr;
   }
-  return mkNot(mkProof(ProofRule::NOT_OR_ELIM,
-                       {assume(d_parent.notNode())},
-                       {mkInt(d_nm, i - d_parent.begin())}));
+  // Create the assumption first: the evaluation order of function arguments
+  // is unspecified, and both arguments may create nodes.
+  std::shared_ptr<ProofNode> premise = assume(d_parent.notNode());
+  return mkNot(mkProof(
+      ProofRule::NOT_OR_ELIM, {premise}, {mkInt(d_nm, i - d_parent.begin())}));
 }
 
 std::shared_ptr<ProofNode> ProofCircuitPropagatorBackward::iteC(bool c)
