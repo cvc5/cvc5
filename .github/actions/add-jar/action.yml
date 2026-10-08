@@ -49,6 +49,5 @@ runs:
       run: |
         gh release upload $GITHUB_REF_NAME \
           ${{ inputs.jar-name }}.jar \
-          --repo $GITHUB_REPOSITORY \
-          --clobber
+          --repo $GITHUB_REPOSITORY
 
