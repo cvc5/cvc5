@@ -391,7 +391,11 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node)
         // we return true for (is_singleton (singleton x))
         return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
       }
-      break;
+      // (set.is_singleton A) ---> (= A (set.singleton (set.choose A)))
+      Node choose = nm->mkNode(Kind::SET_CHOOSE, node[0]);
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, choose);
+      return RewriteResponse(REWRITE_AGAIN_FULL,
+                             nm->mkNode(Kind::EQUAL, node[0], singleton));
     }  // Kind::SET_IS_SINGLETON
 
     case Kind::SET_COMPREHENSION: return postRewriteComprehension(node); break;

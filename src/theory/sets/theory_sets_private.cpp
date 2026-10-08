@@ -1765,32 +1765,6 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-TrustNode TheorySetsPrivate::ppRewrite(Node node)
-{
-  Trace("sets-proc") << "ppRewrite : " << node << std::endl;
-
-  switch (node.getKind())
-  {
-    case Kind::SET_IS_SINGLETON: return expandIsSingletonOperator(node);
-    default: break;
-  }
-  return TrustNode::null();
-}
-
-TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)
-{
-  Assert(node.getKind() == Kind::SET_IS_SINGLETON);
-  Assert(rewrite(node) == node);
-
-  // (is_singleton A) is expanded as (= A (set.singleton (set.choose A)))
-
-  NodeManager* nm = nodeManager();
-  Node choose = nm->mkNode(Kind::SET_CHOOSE, node[0]);
-  Node ss = nm->mkNode(Kind::SET_SINGLETON, choose);
-  Node ret = nm->mkNode(Kind::EQUAL, node[0], ss);
-  return TrustNode::mkTrustRewrite(node, ret, nullptr);
-}
-
 void TheorySetsPrivate::ensureFirstClassSetType(TypeNode tn) const
 {
   Assert(tn.isSet());
