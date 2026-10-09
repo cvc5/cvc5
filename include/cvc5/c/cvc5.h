@@ -4900,6 +4900,12 @@ CVC5_EXPORT const char* cvc5_get_model(Cvc5* cvc5,
  *     (get-qe <q>)
  * \endverbatim
  *
+ * @note The formula @f$q@f$ must not contain free variables, i.e.,
+ *       variables constructed via cvc5_mk_var() that are not bound by a
+ *       quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
+ *       constants constructed via cvc5_mk_const(). An error is raised if
+ *       @f$q@f$ contains free variables.
+ *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
  *       LIA and BV.
  *
@@ -4916,7 +4922,7 @@ CVC5_EXPORT const char* cvc5_get_model(Cvc5* cvc5,
  *         @f$A@f$ asserted to this solver:
  *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
  *         - @f$\phi@f$ is quantifier-free formula containing only free
- *           variables in @f$y_1...y_n@f$.
+ *           constants in @f$y_1...y_j@f$.
  */
 CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
 
@@ -4931,6 +4937,12 @@ CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *
  *     (get-qe-disjunct <q>)
  * \endverbatim
+ *
+ * @note The formula @f$q@f$ must not contain free variables, i.e.,
+ *       variables constructed via cvc5_mk_var() that are not bound by a
+ *       quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
+ *       constants constructed via cvc5_mk_const(). An error is raised if
+ *       @f$q@f$ contains free variables.
  *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
  * LIA and BV.
@@ -4950,7 +4962,7 @@ CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *           @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
  *           @f$Q@f$ is @f$\exists@f$
  *         - @f$\phi@f$ is quantifier-free formula containing only free
- *           variables in @f$y_1...y_n@f$
+ *           constants in @f$y_1...y_j@f$
  *         - If @f$Q@f$ is @f$\exists@f$, let @f$(A \wedge Q_n)@f$ be the
  *           formula
  *           @f$(A \wedge \neg (\phi \wedge Q_1) \wedge ... \wedge
