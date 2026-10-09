@@ -1575,10 +1575,9 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
   ASSERT_NO_THROW(d_solver->getQuantifierElimination(forall));
   // free variables are not allowed
   Term y = d_tm.mkVar(d_bool, "y");
-  Term forallFv =
-      d_tm.mkTerm(Kind::FORALL,
-                  {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}),
-                   d_tm.mkTerm(Kind::OR, {x, y})});
+  Term forallFv = d_tm.mkTerm(
+      Kind::FORALL,
+      {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}), d_tm.mkTerm(Kind::OR, {x, y})});
   ASSERT_THROW(d_solver->getQuantifierElimination(forallFv), CVC5ApiException);
 
   TermManager tm;
@@ -1602,10 +1601,9 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
   ASSERT_NO_THROW(d_solver->getQuantifierEliminationDisjunct(forall));
   // free variables are not allowed
   Term y = d_tm.mkVar(d_bool, "y");
-  Term forallFv =
-      d_tm.mkTerm(Kind::FORALL,
-                  {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}),
-                   d_tm.mkTerm(Kind::OR, {x, y})});
+  Term forallFv = d_tm.mkTerm(
+      Kind::FORALL,
+      {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}), d_tm.mkTerm(Kind::OR, {x, y})});
   ASSERT_THROW(d_solver->getQuantifierEliminationDisjunct(forallFv),
                CVC5ApiException);
 
