@@ -1239,6 +1239,7 @@ set(regress_0_tests
   regress0/nl/iand-no-init.smt2
   regress0/nl/issue10145-ir-pow.smt2
   regress0/nl/issue10140-nl-tc.smt2
+  regress0/nl/issue10286-pow2-large-value.smt2
   regress0/nl/issue10990-subst-model.smt2
   regress0/nl/issue11080-uf-div-perf.smt2
   regress0/nl/issue11535-mod-mult-factor.smt2
