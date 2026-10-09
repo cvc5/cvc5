@@ -937,6 +937,11 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term output2 = d_solver->getAbduct(conj2, g);
   // abduct must be true
   ASSERT_EQ(output2, truen);
+  // free variables are not allowed
+  Term v = d_tm.mkVar(d_int, "v");
+  Term conjFv = d_tm.mkTerm(Kind::GT, {v, zero});
+  ASSERT_THROW(d_solver->getAbduct(conjFv), CVC5ApiException);
+  ASSERT_THROW(d_solver->getAbduct(conjFv, g), CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
@@ -1029,6 +1034,11 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term output2 = d_solver->getInterpolant(conj2, g);
   // interpolant must be true
   ASSERT_EQ(output2, truen);
+  // free variables are not allowed
+  Term v = d_tm.mkVar(d_int, "v");
+  Term conjFv = d_tm.mkTerm(Kind::GT, {v, zero});
+  ASSERT_THROW(d_solver->getInterpolant(conjFv), CVC5ApiException);
+  ASSERT_THROW(d_solver->getInterpolant(conjFv, g), CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
@@ -1563,6 +1573,13 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
   ASSERT_THROW(d_solver->getQuantifierElimination(d_tm.mkBoolean(false)),
                CVC5ApiException);
   ASSERT_NO_THROW(d_solver->getQuantifierElimination(forall));
+  // free variables are not allowed
+  Term y = d_tm.mkVar(d_bool, "y");
+  Term forallFv =
+      d_tm.mkTerm(Kind::FORALL,
+                  {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}),
+                   d_tm.mkTerm(Kind::OR, {x, y})});
+  ASSERT_THROW(d_solver->getQuantifierElimination(forallFv), CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
@@ -1583,6 +1600,14 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
       d_solver->getQuantifierEliminationDisjunct(d_tm.mkBoolean(false)),
       CVC5ApiException);
   ASSERT_NO_THROW(d_solver->getQuantifierEliminationDisjunct(forall));
+  // free variables are not allowed
+  Term y = d_tm.mkVar(d_bool, "y");
+  Term forallFv =
+      d_tm.mkTerm(Kind::FORALL,
+                  {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}),
+                   d_tm.mkTerm(Kind::OR, {x, y})});
+  ASSERT_THROW(d_solver->getQuantifierEliminationDisjunct(forallFv),
+               CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
