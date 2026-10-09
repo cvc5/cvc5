@@ -54,7 +54,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
 
   if (options().quantifiers.macrosQuant)
   {
-    d_qmacros.reset(new QuantifiersMacros(env, d_qreg));
+    d_qmacros.reset(new QuantifiersMacros(env));
   }
 }
 
@@ -119,7 +119,16 @@ bool TheoryQuantifiers::ppAssert(TrustNode tin,
       {
         // add substitution solved, which ensures we track that eq depends on
         // tin, which can impact unsat cores.
-        outSubstitutions.addSubstitutionSolved(eq[0], eq[1], tin);
+        if (d_env.isProofProducing())
+        {
+          d_qmacros->notifySolved(eq, tin);
+          TrustNode tmacro = TrustNode::mkTrustLemma(eq, d_qmacros.get());
+          outSubstitutions.addSubstitutionSolved(eq[0], eq[1], tmacro);
+        }
+        else
+        {
+          outSubstitutions.addSubstitutionSolved(eq[0], eq[1], tin);
+        }
         return true;
       }
     }

@@ -1691,6 +1691,11 @@ set(regress_0_tests
   regress0/proofs/issue12632-datatypes-check-proofs.smt2
   regress0/proofs/lfsc-test-1.smt2
   regress0/proofs/macro-eq-const-eq.smt2
+  regress0/proofs/macro-quant-arith.smt2
+  regress0/proofs/macro-quant-boolean.smt2
+  regress0/proofs/macro-quant-incremental.smt2
+  regress0/proofs/macro-quant-nested.smt2
+  regress0/proofs/macro-quant-pp-assert-proof.smt2
   regress0/proofs/macro-quant-prenex-simple.smt2
   regress0/proofs/mod-total-256.smt2
   regress0/proofs/mod-total-mult.smt2

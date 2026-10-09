@@ -32,6 +32,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_macros.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -80,6 +81,8 @@ QuantifiersRewriter::QuantifiersRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_ELIM_SHADOW,
                            TheoryRewriteCtx::PRE_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MACRO_DEF,
+                           TheoryRewriteCtx::PRE_DSL);
   // QUANT_MERGE_PRENEX is part of the reconstruction for
   // MACRO_QUANT_MERGE_PRENEX
   registerProofRewriteRule(ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX,
@@ -120,6 +123,12 @@ Node QuantifiersRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         }
       }
       return Node::null();
+    }
+    case ProofRewriteRule::MACRO_QUANT_MACRO_DEF:
+    {
+      bool reqGround =
+          d_opts.quantifiers.macrosQuantMode != options::MacrosQuantMode::ALL;
+      return QuantifiersMacros::getMacroDefinition(d_opts, n, reqGround);
     }
     case ProofRewriteRule::EXISTS_ELIM:
     {
