@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --proof-log
 ; DISABLE-TESTER: alethe
 ; DISABLE-TESTER: cpc
