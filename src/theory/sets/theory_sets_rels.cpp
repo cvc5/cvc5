@@ -14,11 +14,14 @@
 
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/skolem_manager.h"
+#include "options/sets_options.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/datatypes/tuple_utils.h"
+#include "theory/incomplete_id.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/sets/theory_sets_private.h"
+#include "theory/valuation.h"
+#include "util/integer.h"
 #include "util/rational.h"
 
 using namespace std;
@@ -29,11 +32,14 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-typedef std::map<Node, std::vector<Node> >::iterator MEM_IT;
-typedef std::map<Kind, std::vector<Node> >::iterator KIND_TERM_IT;
-typedef std::map<Node, std::unordered_set<Node> >::iterator TC_GRAPH_IT;
-typedef std::map<Node, std::map<Kind, std::vector<Node> > >::iterator TERM_IT;
-typedef std::map<Node, std::map<Node, std::unordered_set<Node> > >::iterator
+typedef std::map<Node, std::vector<Node>>::iterator MEM_IT;
+typedef context::CDHashMap<std::vector<Node>,
+                           std::pair<std::vector<Node>, Node>,
+                           VectorNodeHashFunction>::iterator CYC_IT;
+typedef std::map<Kind, std::vector<Node>>::iterator KIND_TERM_IT;
+typedef std::map<Node, std::unordered_set<Node>>::iterator TC_GRAPH_IT;
+typedef std::map<Node, std::map<Kind, std::vector<Node>>>::iterator TERM_IT;
+typedef std::map<Node, std::map<Node, std::unordered_set<Node>>>::iterator
     TC_IT;
 
 TheorySetsRels::TheorySetsRels(Env& env,
@@ -46,7 +52,13 @@ TheorySetsRels::TheorySetsRels(Env& env,
       d_im(im),
       d_skCache(skc),
       d_treg(treg),
-      d_shared_terms(userContext())
+      d_shared_terms(userContext()),
+      // ===== TEMP CHANGE (cycle-ext): construct CD map with SAT context =====
+      // NEW CODE: context() = SAT search context, so entries roll back on every
+      // decision/backtrack (unlike userContext() used for d_shared_terms
+      // above).
+      d_cycle_sequences(context())
+// ===== END TEMP CHANGE =====
 {
   d_trueNode = nodeManager()->mkConst(true);
   d_falseNode = nodeManager()->mkConst(false);
@@ -90,7 +102,7 @@ void TheorySetsRels::check()
     {
       Node mem = d_rReps_memberReps_cache[rel_rep][i];
       Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
-      std::map<Kind, std::vector<Node> >& kind_terms = d_terms_cache[rel_rep];
+      std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
 
       if (kind_terms.find(Kind::RELATION_TRANSPOSE) != kind_terms.end())
       {
@@ -129,7 +141,16 @@ void TheorySetsRels::check()
       // here. It introduces fresh skolem elements and can do so unboundedly, so
       // it is run as its own step (checkTransitiveClosure), at most once per
       // postCheck. The UP rule (doTCInference, below) still runs here, using
-      // the TC graph built by buildTCGraphForRel.
+      // the TC graph built by buildTCGraphForRel. The AcyclicDown rule is
+      // still applied here for every asserted TC membership.
+      if (kind_terms.find(Kind::RELATION_TCLOSURE) != kind_terms.end())
+      {
+        std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
+        for (unsigned int j = 0; j < tc_terms.size(); j++)
+        {
+          applyAcyclicDownRule(mem, tc_terms[j], exp);
+        }
+      }
       if (kind_terms.find(Kind::RELATION_JOIN_IMAGE) != kind_terms.end())
       {
         std::vector<Node>& join_image_terms =
@@ -175,6 +196,39 @@ void TheorySetsRels::check()
         {
           computeMembersForBinOpRel(*term_it);
           ++term_it;
+          // bool is_true_eq = eqc_rep.getConst<bool>();
+
+          // // collect membership info
+          // if (eqc_node.getKind() == Kind::SET_MEMBER
+          //     && eqc_node[1].getType().getSetElementType().isTuple())
+          // {
+          //   Node tup_rep = getRepresentative( eqc_node[0] );
+          //   Node rel_rep = getRepresentative( eqc_node[1] );
+
+          //   if( eqc_node[0].isVar() ){
+          //     reduceTupleVar( eqc_node );
+          //   }
+
+          //   Node reason        = is_true_eq ? eqc_node : eqc_node.negate();
+
+          //   if( is_true_eq ) {
+          //     if( safelyAddToMap(d_rReps_memberReps_cache, rel_rep, tup_rep)
+          //     ) {
+          //       d_rReps_memberReps_exp_cache[rel_rep].push_back(reason);
+          //       computeTupleReps(tup_rep);
+          //       d_membership_trie[rel_rep].addTerm(tup_rep,
+          //       d_tuple_reps[tup_rep]);
+          //     }
+          //   }
+          // }
+          // else if (eqc_node.getKind() == Kind::RELATION_ACYCLIC)
+          // {
+          //   Trace("rels-acyclic") << "[Theory::Rels] Collecting acyclic
+          //   terms!"
+          //                         << eqc_node << is_true_eq << std::endl;
+          //   d_acyclic_cache[eqc_node] = is_true_eq;
+          // }
+          // collect relational terms info
         }
       }
       else if (k_t_it->first == Kind::RELATION_TRANSPOSE)
@@ -221,6 +275,131 @@ void TheorySetsRels::clearCaches()
   d_rRep_tcGraph.clear();
   d_tcr_tcGraph_exps.clear();
   d_tcr_tcGraph.clear();
+  d_acyclic_cache.clear();
+
+  // d_cycle_sequences.clear();
+}
+
+void TheorySetsRels::checkAcyclicity()
+{
+  Trace("rels")
+      << "\n[sets-rels] *********** Start acyclicity check ***********\n"
+      << std::endl;
+  // The cycle-witness sequences of the asserted (not (rel.acyclic R))
+  // constraints were created (applyInstCycleRule) by collectRelsInfo, which
+  // check(Theory::Effort) ran earlier in this pass. Here we unroll each of
+  // them by one element and apply the split/minimality rules.
+  doCycleInference();
+  d_im.doPendingLemmas();
+  Assert(!d_im.hasPendingLemma());
+  Trace("rels")
+      << "\n[sets-rels] *********** Done with acyclicity check ***********\n"
+      << std::endl;
+}
+
+void TheorySetsRels::checkTransitiveClosureLastCall(bool cardinalityUsed)
+{
+  Trace("rels") << "\n[sets-rels] *********** Start transitive closure "
+                   "last call ***********\n"
+                << std::endl;
+  // This runs at last-call effort, outside the full-effort pass whose caches
+  // check(Theory::Effort) collected, so (re)collect from a clean slate.
+  clearCaches();
+  collectRelsInfo();
+  for (MEM_IT m_it = d_rReps_memberReps_cache.begin();
+       m_it != d_rReps_memberReps_cache.end();
+       ++m_it)
+  {
+    Node rel_rep = m_it->first;
+    std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
+    if (kind_terms.find(Kind::RELATION_TCLOSURE) == kind_terms.end())
+    {
+      continue;
+    }
+    std::vector<Node>& tc_terms = kind_terms[Kind::RELATION_TCLOSURE];
+    for (unsigned int i = 0; i < m_it->second.size(); i++)
+    {
+      Node mem = d_rReps_memberReps_cache[rel_rep][i];
+      Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
+      for (unsigned int j = 0; j < tc_terms.size(); j++)
+      {
+        Node tc_rel = tc_terms[j];
+        ensureTCGraphBuilt(tc_rel);
+        if (!isTCReachable(mem, tc_rel))
+        {
+          if (cardinalityUsed)
+          {
+            // Cardinality-driven model completion can later introduce a fresh
+            // member that would justify mem. We cannot confirm nor refute this
+            // TC membership in this case, so report incompleteness.
+            d_im.setModelUnsound(
+                IncompleteId::SETS_RELS_TCLOSURE_GROUNDING_UNKNOWN);
+          }
+          else
+          {
+            applyTCGroundingConflict(mem, tc_rel, exp);
+          }
+        }
+      }
+    }
+  }
+  // don't flush pending lemmas
+  clearCaches();
+  Trace("rels") << "\n[sets-rels] *********** Done with transitive closure "
+                   "last call ***********\n"
+                << std::endl;
+}
+
+void TheorySetsRels::checkJoinLastCall(bool cardinalityUsed)
+{
+  Trace("rels") << "\n[sets-rels] *********** Start join "
+                   "last call ***********\n"
+                << std::endl;
+  // This runs at last-call effort, outside the full-effort pass whose caches
+  // check(Theory::Effort) collected, so (re)collect from a clean slate.
+  clearCaches();
+  collectRelsInfo();
+  for (MEM_IT m_it = d_rReps_memberReps_cache.begin();
+       m_it != d_rReps_memberReps_cache.end();
+       ++m_it)
+  {
+    Node rel_rep = m_it->first;
+    std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
+    if (kind_terms.find(Kind::RELATION_JOIN) == kind_terms.end())
+    {
+      continue;
+    }
+    std::vector<Node>& join_terms = kind_terms[Kind::RELATION_JOIN];
+    for (unsigned int i = 0; i < m_it->second.size(); i++)
+    {
+      Node mem = d_rReps_memberReps_cache[rel_rep][i];
+      Node exp = d_rReps_memberReps_exp_cache[rel_rep][i];
+      for (unsigned int j = 0; j < join_terms.size(); j++)
+      {
+        Node join_rel = join_terms[j];
+        if (!isJoinReachable(mem, join_rel))
+        {
+          if (cardinalityUsed)
+          {
+            // Cardinality-driven model completion can later introduce a fresh
+            // member that would justify mem. We cannot confirm nor refute this
+            // join membership in this case, so report incompleteness.
+            d_im.setModelUnsound(
+                IncompleteId::SETS_RELS_JOIN_GROUNDING_UNKNOWN);
+          }
+          else
+          {
+            applyJoinGroundingConflict(mem, join_rel, exp);
+          }
+        }
+      }
+    }
+  }
+  // don't flush pending lemmas
+  clearCaches();
+  Trace("rels") << "\n[sets-rels] *********** Done with join "
+                   "last call ***********\n"
+                << std::endl;
 }
 
 void TheorySetsRels::checkTransitiveClosureDown()
@@ -239,7 +418,7 @@ void TheorySetsRels::checkTransitiveClosureDown()
     {
       for (const Node& tc_term : k_t_it->second)
       {
-        buildTCGraphForRel(tc_term);
+        ensureTCGraphBuilt(tc_term);
       }
     }
   }
@@ -253,7 +432,7 @@ void TheorySetsRels::checkTransitiveClosureDown()
        ++m_it)
   {
     Node rel_rep = m_it->first;
-    std::map<Kind, std::vector<Node> >& kind_terms = d_terms_cache[rel_rep];
+    std::map<Kind, std::vector<Node>>& kind_terms = d_terms_cache[rel_rep];
     if (kind_terms.find(Kind::RELATION_TCLOSURE) == kind_terms.end())
     {
       continue;
@@ -317,6 +496,9 @@ void TheorySetsRels::collectRelsInfo()
 
       if (erType.isBoolean() && eqc_rep.isConst())
       {
+        bool is_true_eq = eqc_rep.getConst<bool>();
+        Node reason = is_true_eq ? eqc_node : eqc_node.negate();
+
         // collect membership info
         if (eqc_node.getKind() == Kind::SET_MEMBER
             && eqc_node[1].getType().getSetElementType().isTuple())
@@ -329,9 +511,6 @@ void TheorySetsRels::collectRelsInfo()
             reduceTupleVar(eqc_node);
           }
 
-          bool is_true_eq = eqc_rep.getConst<bool>();
-          Node reason = is_true_eq ? eqc_node : eqc_node.negate();
-
           if (is_true_eq)
           {
             if (safelyAddToMap(d_rReps_memberReps_cache, rel_rep, tup_rep))
@@ -341,6 +520,43 @@ void TheorySetsRels::collectRelsInfo()
               d_membership_trie[rel_rep].addTerm(tup_rep,
                                                  d_tuple_reps[tup_rep]);
             }
+          }
+        }
+        // collect acyclic info
+        else if (eqc_node.getKind() == Kind::RELATION_ACYCLIC)
+        {
+          if (is_true_eq)
+          {
+            // acyclic((R1,...,Rk)) is acyclic(R1 ∪ ... ∪ Rk); key by the
+            // union's representative so the acyclic down rule (a membership in
+            // TC(union)) finds it directly.
+            Node u = mkRelUnion(TupleUtils::getTupleElements(eqc_node[0]));
+            d_acyclic_cache[getRepresentative(u)].push_back(eqc_node);
+
+            // The acyclic-down rule contradicts reflexive memberships in TC(u)
+            // (for u = R1 U ... U Rk, and acyclic((R1,...,Rk)) a constraint).
+            // Such memberships are only ever materialized if (a) u itself is
+            // a registered relation whose members are populated in the
+            // solver's data structures, and (b) (rel.tclosure u) is processed
+            // by the TC solver. If the user never mentions u and/or
+            // (rel.tclosure u), nothing registers them, the cycle is never
+            // derived, and we wrongly answer sat.
+            //
+            // Solution: emit the vacuous lemma acyclic(u) => u <= TC(u) to
+            // register u and TC(u) as terms.
+            //
+            // NOTE: the consequent must SURVIVE rewriting to actually register
+            // the terms. A reflexive equality TC(u) = TC(u) does not -- the
+            // lemma path rewrites it to true before the term registers, so it
+            // registers nothing. subset(u, TC(u)) has no such
+            // collapsing rewrite, so the terms survive into the registered set.
+            Node tc = nodeManager()->mkNode(Kind::RELATION_TCLOSURE, u);
+            Node reg = nodeManager()->mkNode(Kind::SET_SUBSET, u, tc);
+            sendInfer(reg, InferenceId::SETS_RELS_ACYCLIC_DOWN, eqc_node);
+          }
+          else
+          {
+            applyInstCycleRule(eqc_node[0], eqc_node.negate());
           }
         }
         // collect relational terms info
@@ -690,6 +906,15 @@ void TheorySetsRels::computeMembersForIdenTerm(Node iden_term)
  *                            (a, c) IS_IN RELATION_TCLOSURE(x)
  *
  */
+void TheorySetsRels::ensureTCGraphBuilt(Node tc_rel)
+{
+  if (d_rel_nodes.find(tc_rel) == d_rel_nodes.end())
+  {
+    buildTCGraphForRel(tc_rel);
+    d_rel_nodes.insert(tc_rel);
+  }
+}
+
 void TheorySetsRels::applyTCRule(Node mem_rep,
                                  Node tc_rel,
                                  Node tc_rel_rep,
@@ -700,27 +925,43 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
                       << tc_rel << ", its representative = " << tc_rel_rep
                       << " with member rep = " << mem_rep
                       << " and explanation = " << exp << std::endl;
-  // The closure graph of tc_rel was already seeded with the members of its
-  // base relation by checkTransitiveClosureDown, so it is not built here.
+  // The closure graph of tc_rel is normally already seeded with the members
+  // of its base relation by checkTransitiveClosureDown; this is a no-op then.
+  ensureTCGraphBuilt(tc_rel);
 
-  // mem_rep is a member of tc_rel[0] or mem_rep can be infered by TC_Graph of
-  // tc_rel[0], thus skip
-  if (isTCReachable(mem_rep, tc_rel))
+  // Unconditionally add the TC edge to the graph. Only the later TClos-Down
+  // split is guarded by `reachable`.
+  bool reachable = isTCReachable(mem_rep, tc_rel);
+  if (reachable)
   {
-    Trace("rels-debug") << "[Theory::Rels] mem_rep is a member of tc_rel[0] = "
-                        << tc_rel[0]
-                        << " or can be infered by TC_Graph of tc_rel[0]! "
-                        << std::endl;
-    return;
+    Trace("rels-tcgraph")
+        << "  isTCReachable (add edge, no split) for mem_rep = " << mem_rep
+        << " in " << tc_rel << std::endl;
   }
+
   NodeManager* nm = nodeManager();
 
-  // record the asserted closure membership as an edge of the graph of tc_rel
+  // Record the asserted closure membership as an edge of the graph of tc_rel.
+  // Always overwrite the edge's explanation with the TC membership exp, so
+  // doTCInference chains the forced TC unit rather than the withdrawable base
+  // grounding.
   Node fst_element_rep =
       getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 0));
   Node snd_element_rep =
       getRepresentative(TupleUtils::nthElementOfTuple(mem_rep, 1));
-  addTCEdge(tc_rel, fst_element_rep, snd_element_rep, exp);
+  addTCEdge(tc_rel, fst_element_rep, snd_element_rep, exp, true);
+
+  // The TC edge has now been added above. If the membership was already
+  // reachable, skip the TClos-Down case split.
+  if (reachable) return;
+
+  if (options().sets.relsAcyclicHammer)
+  {
+    // The TCLOSURE_DOWN case split is disabled: the TC edge above is still
+    // recorded for doTCInference (TCLOSURE_UP) to consume; only this
+    // case-split lemma is skipped.
+    return;
+  }
 
   Node fst_element = TupleUtils::nthElementOfTuple(exp[0], 0);
   Node snd_element = TupleUtils::nthElementOfTuple(exp[0], 1);
@@ -764,6 +1005,215 @@ void TheorySetsRels::applyTCRule(Node mem_rep,
   sendInfer(conc, InferenceId::SETS_RELS_TCLOSURE_DOWN, reason);
 }
 
+void TheorySetsRels::applyTCGroundingConflict(Node mem_rep,
+                                              Node tc_rel,
+                                              Node exp)
+{
+  Trace("rels-debug") << "[Theory::Rels] *********** Applying "
+                         "RELATION_TCLOSURE grounding conflict on a tc term "
+                         "= "
+                      << tc_rel << " with member rep = " << mem_rep
+                      << " and explanation = " << exp << std::endl;
+
+  NodeManager* nm = nodeManager();
+  Node rel = tc_rel[0];
+  Node rel_rep = getRepresentative(rel);
+
+  // Build the set containing exactly rel's currently-known positive
+  // members, and collect each component of each member of R and their
+  // representatives.
+  Node relValue;
+  std::map<Node, Node> memMap;   // original term -> representative
+  std::set<Node> memComponents;  // representatives of the member components
+  MEM_IT mem_it = d_rReps_memberReps_cache.find(rel_rep);
+  if (mem_it != d_rReps_memberReps_cache.end())
+  {
+    for (const Node& m : mem_it->second)
+    {
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, m);
+      relValue = relValue.isNull()
+                     ? singleton
+                     : nm->mkNode(Kind::SET_UNION, relValue, singleton);
+      Node srcTerm = TupleUtils::nthElementOfTuple(m, 0);
+      Node srcRep = getRepresentative(srcTerm);
+      Node sinkTerm = TupleUtils::nthElementOfTuple(m, 1);
+      Node sinkRep = getRepresentative(sinkTerm);
+      memMap.emplace(srcTerm, srcRep);
+      memMap.emplace(sinkTerm, sinkRep);
+      memComponents.insert(srcRep);
+      memComponents.insert(sinkRep);
+    }
+  }
+  if (relValue.isNull())
+  {
+    relValue = d_treg.getEmptySet(rel.getType());
+  }
+
+  // encode the model into the lemma's antecedent. Include the tc(R)-membership,
+  // the known members of R, and assert equality between each member component
+  // and its representative. Also assert that the representatives of the member
+  // components are distinct.
+  Node a0 = TupleUtils::nthElementOfTuple(mem_rep, 0);
+  Node aRep = getRepresentative(a0);
+  Node b0 = TupleUtils::nthElementOfTuple(mem_rep, 1);
+  Node bRep = getRepresentative(b0);
+  std::vector<Node> reasonConjuncts;
+  reasonConjuncts.push_back(exp);
+  reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, rel, relValue));
+  if (a0 != aRep)
+  {
+    reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, a0, aRep));
+  }
+  if (b0 != bRep)
+  {
+    reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, b0, bRep));
+  }
+  for (const auto& [memTerm, memRep] : memMap)
+  {
+    if (memTerm != memRep)
+    {
+      reasonConjuncts.push_back(nm->mkNode(Kind::EQUAL, memTerm, memRep));
+    }
+  }
+  memComponents.insert(aRep);
+  memComponents.insert(bRep);
+
+  if (memComponents.size() >= 2)
+  {
+    std::vector<Node> distinctReps(memComponents.begin(), memComponents.end());
+    reasonConjuncts.push_back(nm->mkNode(Kind::DISTINCT, distinctReps));
+  }
+
+  Node reason = reasonConjuncts.size() == 1
+                    ? reasonConjuncts[0]
+                    : nm->mkNode(Kind::AND, reasonConjuncts);
+
+  Trace("rels-cycles") << "TCGroundingConflict: " << reason << " => false"
+                       << std::endl;
+
+  sendInfer(
+      d_falseNode, InferenceId::SETS_RELS_TCLOSURE_GROUNDING_CONFLICT, reason);
+}
+
+void TheorySetsRels::applyJoinGroundingConflict(Node mem_rep,
+                                                Node join_rel,
+                                                Node exp)
+{
+  Trace("rels-debug") << "[Theory::Rels] *********** Applying "
+                         "RELATION_JOIN grounding conflict on a join term "
+                         "= "
+                      << join_rel << " with member rep = " << mem_rep
+                      << " and explanation = " << exp << std::endl;
+
+  NodeManager* nm = nodeManager();
+  Node r1 = join_rel[0];
+  Node r2 = join_rel[1];
+  Node r1_rep = getRepresentative(r1);
+  Node r2_rep = getRepresentative(r2);
+
+  // Build the set containing exactly r1's currently-known positive
+  // members.
+  Node rel1_Value;
+  MEM_IT mem_it = d_rReps_memberReps_cache.find(r1_rep);
+  if (mem_it != d_rReps_memberReps_cache.end())
+  {
+    for (const Node& m : mem_it->second)
+    {
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, m);
+      rel1_Value = rel1_Value.isNull()
+                       ? singleton
+                       : nm->mkNode(Kind::SET_UNION, rel1_Value, singleton);
+    }
+  }
+  if (rel1_Value.isNull())
+  {
+    rel1_Value = d_treg.getEmptySet(r1.getType());
+  }
+
+  // Build the set containing exactly r2's currently-known positive
+  // members.
+  Node rel2_Value;
+  MEM_IT mem_it2 = d_rReps_memberReps_cache.find(r2_rep);
+  if (mem_it2 != d_rReps_memberReps_cache.end())
+  {
+    for (const Node& m : mem_it2->second)
+    {
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, m);
+      rel2_Value = rel2_Value.isNull()
+                       ? singleton
+                       : nm->mkNode(Kind::SET_UNION, rel2_Value, singleton);
+    }
+  }
+  if (rel2_Value.isNull())
+  {
+    rel2_Value = d_treg.getEmptySet(r2.getType());
+  }
+
+  Node reason = nm->mkNode(Kind::AND,
+                           exp,
+                           nm->mkNode(Kind::EQUAL, r1, rel1_Value),
+                           nm->mkNode(Kind::EQUAL, r2, rel2_Value));
+
+  Trace("rels-cycles") << "JoinGroundingConflict: " << reason << " => false"
+                       << std::endl;
+
+  sendInfer(
+      d_falseNode, InferenceId::SETS_RELS_JOIN_GROUNDING_CONFLICT, reason);
+}
+
+bool TheorySetsRels::isJoinReachable(Node mem_rep, Node join_rel)
+{
+  Node r1 = join_rel[0];
+  Node r2 = join_rel[1];
+  Node r1_rep = getRepresentative(r1);
+  Node r2_rep = getRepresentative(r2);
+
+  unsigned int s1_len = r1.getType().getSetElementType().getTupleLength();
+  unsigned int tup_len =
+      join_rel.getType().getSetElementType().getTupleLength();
+
+  computeTupleReps(mem_rep);
+  std::vector<Node>& mem_reps = d_tuple_reps[mem_rep];
+
+  MEM_IT r1_mem_it = d_rReps_memberReps_cache.find(r1_rep);
+  if (r1_mem_it == d_rReps_memberReps_cache.end())
+  {
+    return false;
+  }
+  for (const Node& r1_mem : r1_mem_it->second)
+  {
+    computeTupleReps(r1_mem);
+    std::vector<Node>& r1_mem_reps = d_tuple_reps[r1_mem];
+    // r1_mem must agree with mem_rep on the join_rel[0]-side prefix (all of
+    // r1_mem's components except its last, the candidate shared element).
+    bool prefixMatches = true;
+    for (unsigned int k = 0; k + 1 < s1_len; k++)
+    {
+      if (r1_mem_reps[k] != mem_reps[k])
+      {
+        prefixMatches = false;
+        break;
+      }
+    }
+    if (!prefixMatches)
+    {
+      continue;
+    }
+    Node shared_cand = r1_mem_reps[s1_len - 1];
+    std::vector<Node> r2_pattern;
+    r2_pattern.push_back(shared_cand);
+    for (unsigned int k = s1_len - 1; k < tup_len; k++)
+    {
+      r2_pattern.push_back(mem_reps[k]);
+    }
+    if (d_membership_trie[r2_rep].existsTerm(r2_pattern) != Node::null())
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool TheorySetsRels::isTCReachable(Node mem_rep, Node tc_rel)
 {
   MEM_IT mem_it = d_rReps_memberReps_cache.find(getRepresentative(tc_rel[0]));
@@ -799,7 +1249,7 @@ void TheorySetsRels::isTCReachable(
     Node start,
     Node dest,
     std::unordered_set<Node>& hasSeen,
-    std::map<Node, std::unordered_set<Node> >& tc_graph,
+    std::map<Node, std::unordered_set<Node>>& tc_graph,
     bool& isReachable)
 {
   if (hasSeen.find(start) == hasSeen.end())
@@ -833,19 +1283,26 @@ void TheorySetsRels::isTCReachable(
   }
 }
 
-void TheorySetsRels::addTCEdge(Node tc_rel,
-                               Node fst_rep,
-                               Node snd_rep,
-                               Node exp)
+void TheorySetsRels::addTCEdge(
+    Node tc_rel, Node fst_rep, Node snd_rep, Node exp, bool overwriteExp)
 {
   // A closure graph only ever grows: an edge and its explanation are added if
-  // the edge is new, and an edge already in the graph keeps the explanation it
-  // was added with. Nothing is removed or replaced, so the memberships that
+  // the edge is new, and nothing is removed, so the memberships that
   // applyTCRule and buildTCGraphForRel contribute for the same term accumulate
-  // instead of one discarding the other.
+  // instead of one discarding the other. An edge already in the graph keeps
+  // the explanation it was added with, unless overwriteExp is set (applyTCRule
+  // does this so that an asserted TC membership takes precedence over the
+  // base-relation membership that seeded the same edge).
   d_tcr_tcGraph[tc_rel][fst_rep].insert(snd_rep);
-  d_tcr_tcGraph_exps[tc_rel].emplace(
-      RelsUtils::constructPair(tc_rel, fst_rep, snd_rep), exp);
+  Node edge = RelsUtils::constructPair(tc_rel, fst_rep, snd_rep);
+  if (overwriteExp)
+  {
+    d_tcr_tcGraph_exps[tc_rel][edge] = exp;
+  }
+  else
+  {
+    d_tcr_tcGraph_exps[tc_rel].emplace(edge, exp);
+  }
 }
 
 void TheorySetsRels::buildTCGraphForRel(Node tc_rel)
@@ -862,7 +1319,7 @@ void TheorySetsRels::buildTCGraphForRel(Node tc_rel)
   // collectRelsInfo maintains these two as parallel vectors
   Assert(members.size() == exps.size());
 
-  std::map<Node, std::unordered_set<Node> >& rel_tc_graph =
+  std::map<Node, std::unordered_set<Node>>& rel_tc_graph =
       d_rRep_tcGraph[rel_rep];
   for (size_t i = 0, msize = members.size(); i < msize; i++)
   {
@@ -878,7 +1335,7 @@ void TheorySetsRels::buildTCGraphForRel(Node tc_rel)
 }
 
 void TheorySetsRels::doTCInference(
-    std::map<Node, std::unordered_set<Node> > rel_tc_graph,
+    std::map<Node, std::unordered_set<Node>> rel_tc_graph,
     std::map<Node, Node> rel_tc_graph_exps,
     Node tc_rel)
 {
@@ -919,7 +1376,7 @@ void TheorySetsRels::doTCInference(
 void TheorySetsRels::doTCInference(
     Node tc_rel,
     std::vector<Node> reasons,
-    std::map<Node, std::unordered_set<Node> >& tc_graph,
+    std::map<Node, std::unordered_set<Node>>& tc_graph,
     std::map<Node, Node>& rel_tc_graph_exps,
     Node start_node_rep,
     Node cur_node_rep,
@@ -934,6 +1391,28 @@ void TheorySetsRels::doTCInference(
       RelsUtils::constructPair(tc_rel, reasons_front_0, reasons_back_1);
   std::vector<Node> all_reasons(reasons);
 
+  // The edges of the TC graph are memberships either in (a term equal to)
+  // the base relation tc_rel[0] or in (a term equal to) tc_rel itself (TC
+  // memberships are added as edges by applyTCRule). For an explanation whose
+  // set is syntactically neither, we must add the equality that actually
+  // holds in the current context. Previously tc_rel[0] = S was always added;
+  // when S was in fact a (purified) term equal to tc_rel, that antecedent was
+  // false, the forward lemma could never fire, and cycles in the base relation
+  // went undetected (wrong "sat" answers against rel.acyclic constraints).
+  auto addSetEq = [&](Node s) {
+    if (s == tc_rel || s == tc_rel[0])
+    {
+      return;
+    }
+    if (areEqual(s, tc_rel) && !areEqual(s, tc_rel[0]))
+    {
+      all_reasons.push_back(nodeManager()->mkNode(Kind::EQUAL, tc_rel, s));
+    }
+    else
+    {
+      all_reasons.push_back(nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], s));
+    }
+  };
   for (unsigned int i = 0; i < reasons.size() - 1; i++)
   {
     Node fst_element_end = TupleUtils::nthElementOfTuple(reasons[i][0], 1);
@@ -944,17 +1423,9 @@ void TheorySetsRels::doTCInference(
       all_reasons.push_back(nodeManager()->mkNode(
           Kind::EQUAL, fst_element_end, snd_element_begin));
     }
-    if (tc_rel != reasons[i][1] && tc_rel[0] != reasons[i][1])
-    {
-      all_reasons.push_back(
-          nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons[i][1]));
-    }
+    addSetEq(reasons[i][1]);
   }
-  if (tc_rel != reasons.back()[1] && tc_rel[0] != reasons.back()[1])
-  {
-    all_reasons.push_back(
-        nodeManager()->mkNode(Kind::EQUAL, tc_rel[0], reasons.back()[1]));
-  }
+  addSetEq(reasons.back()[1]);
   if (all_reasons.size() > 1)
   {
     // Use andReasons to ensure deterministic node ID assignments
@@ -1144,11 +1615,21 @@ void TheorySetsRels::applyJoinRule(Node join_rel, Node join_rel_rep, Node exp)
         reason,
         nodeManager()->mkNode(Kind::EQUAL, join_rel, exp[1]));
   }
-  Node fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
-  sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
-  fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
-  sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
-  makeSharedTerm(shared_x);
+  if (!options().sets.relsAcyclicHammer)
+  {
+    Node fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem1, join_rel[0]);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
+    fact = nodeManager()->mkNode(Kind::SET_MEMBER, mem2, join_rel[1]);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
+    // Only needed because shared_x was just asserted into the facts above:
+    // under --rels-acyclic-hammer, those facts are never sent, so shared_x is
+    // never asserted to be a member of anything and there is nothing to
+    // share. Registering it anyway (as this used to do unconditionally) would
+    // leave a fresh, permanently-live, totally unconstrained element of
+    // shared_type sitting in the equality engine for every unjustified join
+    // membership, for no benefit.
+    makeSharedTerm(shared_x);
+  }
 }
 
 void TheorySetsRels::applyTableJoinRule(Node n, Node nRep, Node exp)
@@ -1272,11 +1753,438 @@ void TheorySetsRels::applyTransposeRule(Node tp_rel, Node tp_rel_rep, Node exp)
             reason);
 }
 
+/*
+ * RELATION_INST_CYCLE:   NOT RELATION_ACYCLIC(x)  (x,_,_) NOT IN C
+ *                         ---------------------------------------------------------
+ *                                              C := C U {(x,<s1>,l)}
+ * for s1 and l fresh variables.
+ */
+Node TheorySetsRels::mkRelTuple(const std::vector<Node>& rels)
+{
+  std::vector<TypeNode> relTypes;
+  for (const Node& r : rels)
+  {
+    relTypes.push_back(r.getType());
+  }
+  return TupleUtils::constructTupleFromElements(
+      nodeManager()->mkTupleType(relTypes), rels, 0, rels.size() - 1);
+}
+
+Node TheorySetsRels::mkRelUnion(const std::vector<Node>& rels)
+{
+  Assert(!rels.empty());
+  Node u = rels[0];
+  for (size_t i = 1, n = rels.size(); i < n; i++)
+  {
+    u = nodeManager()->mkNode(Kind::SET_UNION, u, rels[i]);
+  }
+  return rewrite(u);
+}
+
+void TheorySetsRels::applyInstCycleRule(Node relTuple, Node exp)
+{
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_INST_CYCLE rule on relation tuple = "
+                      << relTuple << " and explanation " << exp << std::endl;
+  // The acyclic argument is a tuple of relations; split it into the vector of
+  // component relations used as the d_cycle_sequences key.
+  std::vector<Node> rels = TupleUtils::getTupleElements(relTuple);
+  if (d_cycle_sequences.find(rels) != d_cycle_sequences.end())
+  {
+    return;
+  }
+
+  NodeManager* nm = nodeManager();
+
+  // Key both skolems on the cyclic relation. s1 is the first element of the
+  // cycle.
+  Node relUnion = mkRelUnion(rels);
+  TypeNode elementType =
+      relUnion.getType().getSetElementType().getTupleTypes()[0];
+  Node s1 = d_skCache.mkTypedSkolemCached(elementType,
+                                          relUnion,
+                                          nm->mkConstInt(Rational(1)),
+                                          SkolemCache::SK_CYCLE_ELEM,
+                                          "cyc");
+  // l is the symbolic eventual length of the cycle. Register l as a
+  // shared term so that checkAcyclicityLastCall can query its model value.
+  Node l = d_skCache.mkTypedSkolemCached(
+      nm->integerType(), relUnion, SkolemCache::SK_CYCLE_LEN, "cyclen");
+  makeSharedTerm(l);
+
+  d_cycle_sequences.insert(rels, std::make_pair(std::vector<Node>{s1}, l));
+
+  Node conc = nm->mkNode(Kind::LT, nm->mkConstInt(Rational(1)), l);
+
+  Trace("rels-cycles") << "InstCycleRule: exp = " << exp << ", conc = " << conc
+                       << std::endl;
+
+  sendInfer(conc, InferenceId::SETS_RELS_INST_CYCLE, exp);
+}
+
+/*
+ * RELATION_SPLIT_CYCLE_LEN:   (x,<s_1,...,s_cnt>,l) IN C     cnt <= l IN S
+ *                     ------------------------------------------------------
+ *                      S := S U {cnt < l}  ||  C := C U {s_1 = s_cnt, l = cnt}
+ */
+void TheorySetsRels::applySplitCycleLenRule(const std::vector<Node>& rels,
+                                            const std::vector<Node>& s,
+                                            Node l)
+{
+  size_t cnt = s.size();
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_SPLIT_CYCLE_LEN rule, cnt = "
+                      << cnt << ", l = " << l << std::endl;
+
+  NodeManager* nm = nodeManager();
+
+  Node cnt_node = nm->mkConstInt(Rational(cnt));
+
+  Node case_1 = nm->mkNode(Kind::LT, cnt_node, l);
+
+  Node case_2 = nm->mkNode(Kind::AND,
+                           nm->mkNode(Kind::EQUAL, cnt_node, l),
+                           nm->mkNode(Kind::EQUAL, s[0], s.back()));
+
+  Node conc = nm->mkNode(Kind::OR, case_1, case_2);
+
+  Node l_geq_cnt = nm->mkNode(Kind::GEQ, l, cnt_node);
+  Node exp = nm->mkNode(
+      Kind::AND,
+      nm->mkNode(Kind::NOT,
+                 nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))),
+      l_geq_cnt);
+
+  Trace("rels-cycles") << "SplitCycleLen: " << conc << std::endl;
+
+  sendInfer(conc, InferenceId::SETS_RELS_SPLIT_CYCLE_LEN, exp);
+}
+
+/*
+ * RELATION_UNROLL_CYCLE:
+ *      ((R1,...,Rk),<s_1,...,s_cnt>,l) IN C  cnt < l IN S
+ *            C' === C  \ {(R,<s_1,...,s_cnt>,l)}
+ *                   U {(R,<s_1,...,s_cnt,s_{cnt+1}>,l)}
+ *    ---------------------------------------------------------
+ *       C := C'   S := S U {(s_cnt,s_{cnt+1}) IS_IN RELATION_TCLOSURE(R1)}
+ *    || ...
+ *    || C := C'   S := S U {(s_cnt,s_{cnt+1}) IS_IN RELATION_TCLOSURE(Rk)}
+ *
+ * A fresh (vector, l) pair is constructed and re-inserted in d_cycle_sequences,
+ * since it is a context-dependent data structure.
+ */
+std::vector<Node> TheorySetsRels::applyUnrollCycle(
+    const std::vector<Node>& rels, const std::vector<Node>& s, Node l)
+{
+  Assert(0 < rels.size());
+  Assert(!s.empty());
+
+  NodeManager* nm = nodeManager();
+  size_t cnt = s.size();
+  Node exp = nm->mkNode(Kind::LT, nm->mkConstInt(Rational(cnt)), l);
+
+  // Create a new cycle element, keyed on the cycle relation and its position.
+  Node relUnion = mkRelUnion(rels);
+  TypeNode elementType =
+      relUnion.getType().getSetElementType().getTupleTypes()[0];
+  Node newElem =
+      d_skCache.mkTypedSkolemCached(elementType,
+                                    relUnion,
+                                    nm->mkConstInt(Rational(cnt + 1)),
+                                    SkolemCache::SK_CYCLE_ELEM,
+                                    "cyc");
+  Node sPrev = s.back();
+
+  std::vector<Node> disjs;
+  for (const Node& Ri : rels)
+  {
+    TypeNode tt = Ri.getType().getSetElementType();
+    Node tup =
+        TupleUtils::constructTupleFromElements(tt, {sPrev, newElem}, 0, 1);
+    Node Ri_tclos = nm->mkNode(Kind::RELATION_TCLOSURE, Ri);
+    disjs.push_back(nm->mkNode(Kind::SET_MEMBER, tup, Ri_tclos));
+  }
+
+  Node disj = disjs.size() == 1 ? disjs[0] : nm->mkNode(Kind::OR, disjs);
+
+  Trace("rels-cycles") << "UnrollCycle: exp = " << exp << ", disj = " << disj
+                       << std::endl;
+
+  sendInfer(disj, InferenceId::SETS_RELS_UNROLL_CYCLE, exp);
+
+  std::vector<Node> sNew = s;
+  sNew.push_back(newElem);
+  d_cycle_sequences.insert(rels, std::make_pair(sNew, l));
+  return sNew;
+}
+
+/*
+ * RELATION_CONTR_MINIMAL I:   ((R1,...,Rk),(s_1,...,s_cnt),l) IN C
+ *                           1 <= q < r - 1 <= cnt - 1  r <= l  b IN [1,k]
+ *                         ---------------------------------------
+ *                           (s[q],s[r]) NOT IN RELATION_TCLOSURE(Rb)
+ *
+ * RELATION_CONTR_MINIMAL II:  ((R1,...,Rk),(s_1,...,s_cnt),l) IN C
+ *                           1 <= q < r <= cnt  !(q == 1 and r == l)   b IN
+ * [1,k]
+ *                         ---------------------------------------
+ *                           (s[q],s[r]) NOT IN RELATION_TCLOSURE(Rb)
+ *
+ * Given that the cycle (R,(s_1,...,s_cnt),l) is in C (i.e., NOT ACYCLIC(R) in
+ * S), and by definition (s_1,...,s_cnt) is a minimal cycle in R1 U ... U Rk, no
+ * "shortcut" edge may exist between two non-adjacent nodes of the cycle, i.e.
+ * we forbid (s_q,s_r) IN TC(R) for every 1 <= q < r - 1 <= cnt - 1. Also, we
+ * forbid s_q = s_r for every 1 <= q < r <= cnt, except for the one allowed by
+ * the cycle definition: q = 1  and r = cnt.
+ */
+void TheorySetsRels::applyContrMinimalRule(const std::vector<Node>& rels,
+                                           const std::vector<Node>& s,
+                                           Node l,
+                                           Node exp)
+{
+  size_t cnt = s.size();
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_CONTR_MINIMAL rule, cnt = "
+                      << cnt << ", l = " << l << ", exp = " << exp << std::endl;
+  // need r >= 3 and q <= r-2, so the smallest usable case is q=1, r=3
+  if (cnt < 3) return;
+  NodeManager* nm = nodeManager();
+
+  for (const Node& Ri : rels)
+  {
+    TypeNode tt = Ri.getType().getSetElementType();
+    Node Ri_tc = nm->mkNode(Kind::RELATION_TCLOSURE, Ri);
+    // 1 <= q < r - 1 <= cnt - 1 =>  r in [3, cnt], q in [1, r-2]
+    for (size_t r = 3; r <= cnt; ++r)
+    {
+      Node sr = s[r - 1];  // Adjust for 0-based indexing
+      Node r_leq_l = nm->mkNode(Kind::LEQ, nm->mkConstInt(Rational(r)), l);
+      Node reason = nm->mkNode(Kind::AND, exp, r_leq_l);
+      for (size_t q = 1; q + 2 <= r; ++q)
+      {
+        Node sq = s[q - 1];  // Adjust for 0-based indexing
+        Node tup = TupleUtils::constructTupleFromElements(tt, {sq, sr}, 0, 1);
+        Node mem = nm->mkNode(Kind::SET_MEMBER, tup, Ri_tc);
+        Node conc = mem.notNode();
+        sendInfer(conc, InferenceId::SETS_RELS_CONTR_MINIMAL, reason);
+
+        // s_q and s_r must be pairwise distinct, EXCEPT when they are the first
+        // and last cycle elements (q=1 and r=l).
+        Node reason_diseq = reason;
+        if (q == 1)
+        {
+          Node r_neq_l =
+              nm->mkNode(Kind::EQUAL, nm->mkConstInt(Rational(r)), l).notNode();
+          reason_diseq = nm->mkNode(Kind::AND, reason, r_neq_l);
+        }
+        Node conc_diseq = nm->mkNode(Kind::EQUAL, sq, sr).notNode();
+        sendInfer(
+            conc_diseq, InferenceId::SETS_RELS_CONTR_MINIMAL, reason_diseq);
+
+        Trace("rels-cycles") << "ContrMinimal: exp = " << reason
+                             << ", conc = " << conc << std::endl;
+      }
+    }
+  }
+}
+
+/*
+ * RELATION_ACYLIC_DOWN:   (a, b) IS_IN RELATION_TCLOSURE(x) RELATION_ACYCLIC(x)
+ *                         ---------------------------------------------------------
+ *                                              a != b
+ */
+void TheorySetsRels::applyAcyclicDownRule(Node mem_rep,
+                                          Node tc_rel,
+                                          Node exp_tc)
+{
+  Node tc_rel0_rep = getRepresentative(tc_rel[0]);
+
+  Trace("rels-debug") << "\n[Theory::Rels] *********** Applying "
+                         "RELATION_ACYCLIC rule on member"
+                      << mem_rep << ", transitively closed term = " << tc_rel
+                      << " and its representative = " << tc_rel0_rep
+                      << ", with explanation = " << exp_tc << std::endl;
+  // Step 1: find rep of the transitively closed relation in d_acyclic_cache
+  // This means that some relation in the equivalence class of tc_rel[0] is
+  // acyclic, meaning tc_rel[0] is also acyclic
+  if (d_acyclic_cache.find(tc_rel0_rep) == d_acyclic_cache.end())
+  {
+    return;
+  }
+
+  // Pick any acyclic relation in our equivalence class of tc_rel[0] as the
+  // reason for the acyclicity of the transitively closed relation
+  Node exp_acyc = d_acyclic_cache[tc_rel0_rep][0];
+
+  NodeManager* nm = nodeManager();
+
+  // Reason is that mem_rep is in tc_rel_rep, and that some relation
+  // equivalent to tc_rel0_rep is acyclic
+  // Node reason = nodeManager()->mkNode(
+  //     Kind::AND, exp_tc, exp_acyc);
+
+  // If the membership explanation involves a relation that is not tc_rel,
+  // update the reason to include the equality of these relations
+  // if (tc_rel != exp_tc[1])
+  // {
+  //   reason = nm->mkNode(Kind::AND, reason,
+  //                       nm->mkNode(Kind::EQUAL, tc_rel, exp_tc[1]));
+  // }
+
+  // If the acyclic relation is not the tc one, then we must assert
+  // the equality of these two relations
+  // if (exp_acyc[0] != tc_rel[0])
+  // {
+  //   reason = nodeManager()->mkNode(
+  //       Kind::AND,
+  //       reason,
+  //       nodeManager()->mkNode(Kind::EQUAL, exp_acyc[0],
+  //       tc_rel[0]));
+  // }
+
+  // Here is a cleaner way of doing the above:
+  std::vector<Node> reasons{exp_tc, exp_acyc};
+  if (tc_rel != exp_tc[1])
+    reasons.push_back(nm->mkNode(Kind::EQUAL, tc_rel, exp_tc[1]));
+  // x in the rule is the union of the acyclic tuple's relations; relate it to
+  // tc_rel[0].
+  Node u = mkRelUnion(TupleUtils::getTupleElements(exp_acyc[0]));
+  if (u != tc_rel[0]) reasons.push_back(nm->mkNode(Kind::EQUAL, u, tc_rel[0]));
+  Node reason =
+      reasons.size() == 1 ? reasons[0] : nm->mkNode(Kind::AND, reasons);
+
+  // SOUNDNESS: the conclusion must be stated on the tuple that actually
+  // occurs in the explanation exp_tc[0], not on mem_rep. mem_rep is only the
+  // current *representative* of that tuple; it may be a syntactically
+  // different tuple that is equal to exp_tc[0] merely in the current SAT
+  // context (e.g. while finite model finding has merged atoms). Since the
+  // inference is added as a context-independent lemma, concluding on mem_rep
+  // yields lemmas such as ((w1,w2) in TC(po) /\ acyclic(po)) => w1' != w2' for
+  // unrelated w1', w2' (or even => false), which wrongly refutes valid models.
+  Node tup = exp_tc[0];
+  Node tup0 = TupleUtils::nthElementOfTuple(tup, 0);
+  Node tup1 = TupleUtils::nthElementOfTuple(tup, 1);
+
+  sendInfer(nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, tup0, tup1)),
+            InferenceId::SETS_RELS_ACYCLIC_DOWN,
+            reason);
+}
+
+void TheorySetsRels::doCycleInference()
+{
+  CYC_IT c_it = d_cycle_sequences.begin();
+  int64_t maxUnroll = options().sets.relsAcyclicUnrollMax;
+
+  while (c_it != d_cycle_sequences.end())
+  {
+    std::vector<Node> rels = c_it->first;
+    std::vector<Node> s = c_it->second.first;
+    Node l = c_it->second.second;
+    if (maxUnroll >= 0 && s.size() >= static_cast<size_t>(maxUnroll))
+    {
+      // Set by --rels-acyclic-unroll-max: defer unrolling this obligation
+      // further so that shorter cycles are prioritized during full effort
+      // solving. checkAcyclicityLastCall makes sure that full cycle inference
+      // is performed before a model is accepted.
+      ++c_it;
+      continue;
+    }
+    // applyUnrollCycle returns the extended vector with the newly-created
+    // element appended.
+    s = applyUnrollCycle(rels, s, l);
+    applySplitCycleLenRule(rels, s, l);
+    // Minimality: forbid shortcut edges in the cycle.
+    Node acyc_exp = nodeManager()
+                        ->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels))
+                        .negate();
+    applyContrMinimalRule(rels, s, l, acyc_exp);
+    ++c_it;
+  }
+}
+
+bool TheorySetsRels::hasOpenCycleObligation() const
+{
+  return !d_cycle_sequences.empty();
+}
+
+void TheorySetsRels::checkAcyclicityLastCall(Valuation& val)
+{
+  // Bounds the O(cnt^2) cost of applyContrMinimalRule's shortcut-forbidding
+  // loop; a length beyond this is not something we can feasibly catch up on.
+  static constexpr size_t MAX_CATCHUP_LEN = 10000;
+
+  NodeManager* nm = nodeManager();
+  CYC_IT c_it = d_cycle_sequences.begin();
+  while (c_it != d_cycle_sequences.end())
+  {
+    std::vector<Node> rels = c_it->first;
+    std::vector<Node> s = c_it->second.first;
+    Node l = c_it->second.second;
+
+    // The model's current candidate value for l.
+    Node lVal = val.getCandidateModelValue(l);
+    bool haveL = !lVal.isNull() && lVal.isConst();
+    size_t N = 0;
+    if (haveL)
+    {
+      Integer lInt = lVal.getConst<Rational>().getNumerator();
+      haveL = lInt.fitsUnsignedInt() && lInt.toUnsignedInt() <= MAX_CATCHUP_LEN;
+      if (haveL)
+      {
+        N = lInt.toUnsignedInt();
+      }
+    }
+
+    if (!haveL)
+    {
+      Trace("rels-debug")
+          << "[Theory::Rels] checkAcyclicityLastCall: l = " << l
+          << " is not a concrete, practically-sized value; reporting model "
+             "unsound"
+          << std::endl;
+      d_im.setModelUnsound(IncompleteId::SETS_RELS_ACYCLIC_LEN_UNKNOWN);
+    }
+    else
+    {
+      // --rels-acyclic-unroll-max limits the number of cycle elements that can
+      // be unrolled during the full effort check. If the model's current value
+      // of l is larger than that, we must complete full cycle inference before
+      // accepting a model.
+      Trace("rels-debug") << "[Theory::Rels] checkAcyclicityLastCall: "
+                          << "catching up cnt from " << s.size() << " to " << N
+                          << " (l = " << l << ")" << std::endl;
+      // Ensure that all cycle-unrolling lemmas have been applied up to the
+      // model's current value of l.
+      while (s.size() < N)
+      {
+        Node acyc_exp =
+            nm->mkNode(Kind::RELATION_ACYCLIC, mkRelTuple(rels)).negate();
+        s = applyUnrollCycle(rels, s, l);
+        applySplitCycleLenRule(rels, s, l);
+        applyContrMinimalRule(rels, s, l, acyc_exp);
+      }
+    }
+    ++c_it;
+  }
+}
+
 void TheorySetsRels::doTCInference()
 {
   Trace("rels-debug")
       << "[Theory::Rels] ****** Finalizing transitive closure inferences!"
       << std::endl;
+
+  // --- TEMP DEBUG: dump the whole TC graph ---
+  for (const auto& relEntry : d_tcr_tcGraph)
+  {
+    Trace("rels-tcgraph") << "[TCGraph] " << relEntry.first << ":" << std::endl;
+    for (const auto& adj : relEntry.second)  // from-vertex -> {to-vertices}
+      for (const Node& to : adj.second)
+        Trace("rels-tcgraph")
+            << "    " << adj.first << " -> " << to << std::endl;
+  }
+  // --- end TEMP DEBUG ---
+
   TC_IT tc_graph_it = d_tcr_tcGraph.begin();
   while (tc_graph_it != d_tcr_tcGraph.end())
   {
@@ -1632,7 +2540,8 @@ bool TheorySetsRels::isRelationKind(Kind k)
   return k == Kind::RELATION_TRANSPOSE || k == Kind::RELATION_PRODUCT
          || k == Kind::RELATION_JOIN || k == Kind::RELATION_TABLE_JOIN
          || k == Kind::RELATION_TCLOSURE || k == Kind::RELATION_IDEN
-         || k == Kind::RELATION_JOIN_IMAGE;
+         || k == Kind::RELATION_JOIN_IMAGE || k == Kind::RELATION_ACYCLIC
+         || k == Kind::RELATION_RCLOSURE || k == Kind::RELATION_RTCLOSURE;
 }
 
 Node TheorySetsRels::getRepresentative(Node t)
@@ -1681,11 +2590,11 @@ bool TheorySetsRels::areEqual(Node a, Node b)
 /*
  * Make sure duplicate members are not added in map
  */
-bool TheorySetsRels::safelyAddToMap(std::map<Node, std::vector<Node> >& map,
+bool TheorySetsRels::safelyAddToMap(std::map<Node, std::vector<Node>>& map,
                                     Node rel_rep,
                                     Node member)
 {
-  std::map<Node, std::vector<Node> >::iterator mem_it = map.find(rel_rep);
+  std::map<Node, std::vector<Node>>::iterator mem_it = map.find(rel_rep);
   if (mem_it == map.end())
   {
     std::vector<Node> members;
