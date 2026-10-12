@@ -64,7 +64,10 @@ TrustNode HoExtension::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
   }
   else if (k == Kind::APPLY_UF)
   {
-    // lift lambda arguments if necessary
+    // Lift lambda arguments if necessary. Note that no beta reduction is
+    // needed here: since lambdas are not replaced by skolems, an application of
+    // a lambda, e.g. ((lambda ((x Int)) t) s), is beta-reduced by the rewriter,
+    // which the preprocessor applies before this method.
     return d_ll.ppRewrite(node, lems);
   }
   else if (k == Kind::LAMBDA || k == Kind::FUNCTION_ARRAY_CONST)
@@ -155,7 +158,11 @@ unsigned HoExtension::applyExtensionality(TNode deq)
     // If deq is between two lambdas, the lemma may rewrite to true, e.g.
     // (or (= (lambda ((x Int)) (+ x 1)) (lambda ((x Int)) (+ x 2)))
     //     (not (= (+ k 1) (+ k 2))))
-    // in which case we do not send it.
+    // in which case we do not send it. Note the lemma cannot rewrite to false:
+    // this would require (= f g) to rewrite to false, i.e. f and g are
+    // distinct values, and (= (f k) (g k)) to rewrite to true for fresh k,
+    // i.e. f and g are equal on every argument, which is impossible for a
+    // sound rewriter.
     if (rewrite(lem).isConst())
     {
       return 0;
@@ -640,6 +647,8 @@ unsigned HoExtension::checkLazyLambda()
     {
       Node n = *eqc_i;
       ++eqc_i;
+      // Note that a lambda that was lifted during preprocessing was replaced by
+      // its skolem, which is an ordinary function here.
       Node lam = LambdaLift::getLambdaFor(n);
       if (lam.isNull())
       {
@@ -735,6 +744,9 @@ unsigned HoExtension::checkLazyLambda()
     // handle conflicts like f = (lambda ((x Int)) (+ 1 (f x))).
     if (!normalFuns.empty() && d_ll.needsLift(lamRepLam))
     {
+      // It suffices to state the lemma for one ordinary function of this
+      // class, since the others are equal to it. The lemma is cached (see
+      // cacheLemma).
       Node lem = d_ll.getLiftLemma(normalFuns[0], lamRep);
       if (cacheLemma(lem))
       {
@@ -747,11 +759,12 @@ unsigned HoExtension::checkLazyLambda()
       // applications of its normal functions, not by the lambda, since the
       // lambda may induce circular dependencies in model construction. We
       // also do not beta-reduce applications of its normal functions, since
-      // this may not terminate, e.g. if g = (lambda ((x Int)) (f (g x))),
-      // then beta-reducing (g t) introduces (g t'), and so on. Instead, these
-      // applications are handled by instantiating the lift lemma.
+      // this may not terminate, e.g. if g = (lambda ((x Int)) (f (g (+ x 1)))),
+      // then beta-reducing (g t) introduces (g (+ t 1)), and so on. Instead,
+      // these applications are handled by instantiating the lift lemma.
       continue;
     }
+    // Note that lamReps and d_lambdaEqc have the same content.
     lamReps[eqc] = lamRep;
     // if we are equal to a lambda, we must beta-reduce applications of the
     // normal functions in this equivalence class
@@ -809,9 +822,10 @@ unsigned HoExtension::checkLazyLambda()
       Node lf = lamReps[r];
       Node lam = LambdaLift::getLambdaFor(lf);
       Assert(!lam.isNull() && lam.getKind() == Kind::LAMBDA);
-      // a normal function g equal to a lambda, say f --> lambda(f)
-      // need to infer f = g => g(t) = f(t) for all terms g(t)
-      // that occur in the equality engine.
+      // op is a normal function equal to the lambda lf, which is a lambda or a
+      // function array constant, and lam is its lambda form. We infer
+      //   op = lf => op(t) = reduce(lam(t))
+      // for all terms op(t) that occur in the equality engine.
       Node premise = op.eqNode(lf);
       args.insert(args.begin(), lam);
       Node rhs = nm->mkNode(n.getKind(), args);
@@ -892,6 +906,8 @@ bool HoExtension::collectModelInfoHo(TheoryModel* m,
   // for equivalence classes that we know to assign a lambda directly
   for (const std::pair<const Node, Node>& p : d_lambdaEqc)
   {
+    // p.second is the lambda (or function array constant) chosen as the model
+    // value of its class by checkLazyLambda; lam is its lambda form.
     Node lam = LambdaLift::getLambdaFor(p.second);
     lam = rewrite(lam);
     Assert(!lam.isNull());

@@ -53,6 +53,18 @@ class LambdaLift : protected EnvObj
    * This method has the same contract as Theory::ppRewrite.
    * Preprocess, return the trust node corresponding to the rewrite. A null
    * trust node indicates no rewrite.
+   *
+   * With --uf-lazy-ll (the default):
+   * - An APPLY_UF whose arguments include lambdas that need lifting is
+   *   rewritten by replacing these arguments by their skolems, and the lemmas
+   *   defining the skolems are added to lems.
+   * - A lambda that does not need lifting is not rewritten.
+   * - A lambda that needs lifting is rewritten to the lambda obtained by
+   *   purifying its ground subterms if the latter does not need lifting, in
+   *   which case the purification lemmas are added to lems. Otherwise, it is
+   *   not rewritten.
+   * With --no-uf-lazy-ll, every lambda is rewritten to its skolem, and the
+   * lemma defining the skolem is added to lems.
    */
   TrustNode ppRewrite(Node node, std::vector<SkolemLemma>& lems);
   /**
@@ -64,7 +76,9 @@ class LambdaLift : protected EnvObj
    * Get the lemma for lifting n, which is a lambda or function array constant
    * that is equal to the ordinary function f. This lemma is:
    *   (=> (= f n) (forall x. (= (f x) (lam x))))
-   * where lam is the lambda for n.
+   * where lam is the lambda for n. The term f is not necessarily a variable;
+   * it may be any term of function type that is not a lambda, e.g. a partial
+   * application.
    */
   Node getLiftLemma(const Node& f, const Node& n) const;
 
@@ -74,7 +88,11 @@ class LambdaLift : protected EnvObj
    * otherwise.
    */
   static Node getLambdaFor(TNode n);
-  /** Is n a lambda, or a function array constant? */
+  /**
+   * Is n a lambda, or a function array constant? Note that the skolem of a
+   * lifted lambda is not a lambda: it is an ordinary function, whose meaning
+   * is given by the lemma that defines it.
+   */
   static bool isLambda(TNode n);
 
   /** Beta-reduce the given lambda on the given arguments. */
@@ -90,7 +108,8 @@ class LambdaLift : protected EnvObj
   /**
    * Lift lam, returning its skolem, and adding the lemma defining it to lems
    * if it has not already been lifted. Returns null if lam cannot be lifted,
-   * e.g. if it has free variables.
+   * e.g. if it has free variables. The same skolem is returned for every call
+   * with the same lam.
    */
   Node liftToSkolem(const Node& lam, std::vector<SkolemLemma>& lems);
   /** Make trusted rewrite from n to ret, which is justified by lifting */

@@ -86,7 +86,8 @@ class HoExtension : protected EnvObj
    *   f = g V (f k) != (g k) for fresh constant k on the output channel of the
    * parent TheoryUF object. This is an "extensionality lemma".
    * Return value is the number of lemmas of this form sent on the output
-   * channel.
+   * channel. The lemma is not sent if it rewrites to a constant, which may
+   * happen if f and g are lambdas.
    */
   unsigned applyExtensionality(TNode deq);
 
@@ -122,6 +123,12 @@ class HoExtension : protected EnvObj
   /**
    * Compute relevant terms. For each (f a b) in termSet, we add terms
    * e.g. (@ f a), (@ (@ f a) b) to termSet.
+   *
+   * We also remove the lambdas in termSet that are not the model value of
+   * their equivalence class (see d_lambdaEqc). This is required since an
+   * equivalence class of the model cannot contain two syntactically distinct
+   * lambda values, and since the model value of a class whose lambda was
+   * lazily lifted is determined by the ordinary functions in it.
    */
   void computeRelevantTerms(std::set<Node>& termSet);
 
@@ -164,6 +171,11 @@ class HoExtension : protected EnvObj
    * whose type is infinite, since our decision procedure guarantees that
    * extensionality lemmas are added for all pairs of functions whose types are
    * finite.
+   *
+   * Equivalence classes whose model value is a lambda (see d_lambdaEqc) are
+   * skipped. For the other classes, an ordinary function in the class, if one
+   * exists, is used as its representative, so that extensionality is stated on
+   * applications of ordinary functions rather than of lambdas.
    */
   unsigned checkExtensionality(TheoryModel* m = nullptr);
 
@@ -235,7 +247,7 @@ class HoExtension : protected EnvObj
 
   /** map from non-standard operators to their skolems */
   NodeNodeMap d_uf_std_skolem;
-  /** Equalities between lambads we have already processed */
+  /** Equalities between lambdas we have already processed */
   NodeSet d_lamEqProcessed;
 };
 
