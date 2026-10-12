@@ -21,6 +21,7 @@
 #include "printer/ast/ast_printer.h"
 #include "printer/let_binding.h"
 #include "printer/smt2/smt2_printer.h"
+#include "printer/tptp/smt2_tptp_printer.h"
 #include "proof/unsat_core.h"
 #include "smt/model.h"
 #include "theory/quantifiers/instantiation_list.h"
@@ -39,6 +40,8 @@ unique_ptr<Printer> Printer::makePrinter(Language lang)
   {
     case Language::LANG_SMTLIB_V2_6:
       return unique_ptr<Printer>(new printer::smt2::Smt2Printer);
+    case Language::LANG_SMTLIB_V2_6_TPTP:
+      return unique_ptr<Printer>(new printer::smt2::Smt2TptpPrinter);
 
     case Language::LANG_SYGUS_V2:
       // sygus version 2.0 does not have discrepancies with smt2, hence we use
