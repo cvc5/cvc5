@@ -904,6 +904,7 @@ void Smt2State::setLogic(std::string name)
     addOperator(Kind::RELATION_TCLOSURE, "rel.tclosure");
     addOperator(Kind::RELATION_JOIN_IMAGE, "rel.join_image");
     addOperator(Kind::RELATION_IDEN, "rel.iden");
+    addOperator(Kind::RELATION_IS_FUNCTIONAL, "rel.is-functional");
     // these operators can be with/without indices
     addOperator(Kind::RELATION_GROUP, "rel.group");
     addOperator(Kind::RELATION_AGGREGATE, "rel.aggr");

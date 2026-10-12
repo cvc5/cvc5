@@ -3964,6 +3964,37 @@ enum ENUM(Kind)
    */
   EVALUE(RELATION_IDEN),
   /**
+   * Relation functionality predicate.
+   *
+   * \rst
+   * ``(rel.is-functional R)`` holds if the binary relation
+   * :math:`R` is functional (right-unique), that is, if
+   * :math:`(x, y) \in R` and :math:`(x, z) \in R` imply :math:`y = z`.
+   * :math:`R` need not be total.
+   * \endrst
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` Term of binary relation Sort
+   *
+   * - Create Term of this Kind with:
+   *
+   *   - TermManager::mkTerm(Kind, const std::vector<Term>&)
+   *   - TermManager::mkTerm(const Op&, const std::vector<Term>&)
+   *
+   * - Create Op of this kind with:
+   *
+   *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
+   *
+   * \rst
+   * .. warning::
+   *
+   *     This kind is experimental and may be changed or removed in future
+   *     versions.
+   * \endrst
+   */
+  EVALUE(RELATION_IS_FUNCTIONAL),
+  /**
    * Relation group
    *
    * \rst

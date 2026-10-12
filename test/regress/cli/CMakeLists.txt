@@ -1983,6 +1983,22 @@ set(regress_0_tests
   regress0/rels/card_transpose.cvc.smt2
   regress0/rels/iden_0.cvc.smt2
   regress0/rels/iden_1.cvc.smt2
+  regress0/rels/is_functional_arith.smt2
+  regress0/rels/is_functional_basic.smt2
+  regress0/rels/is_functional_compose.smt2
+  regress0/rels/is_functional_congruence.smt2
+  regress0/rels/is_functional_injective.smt2
+  regress0/rels/is_functional_neg_congr.smt2
+  regress0/rels/is_functional_neg_model.smt2
+  regress0/rels/is_functional_neg_sat.smt2
+  regress0/rels/is_functional_rw_const_false.smt2
+  regress0/rels/is_functional_rw_const_true.smt2
+  regress0/rels/is_functional_rw_empty.smt2
+  regress0/rels/is_functional_rw_iden.smt2
+  regress0/rels/is_functional_sat.smt2
+  regress0/rels/is_functional_subset.smt2
+  regress0/rels/is_functional_tclosure.smt2
+  regress0/rels/is_functional_union_sat.smt2
   regress0/rels/issue11903-join-unit-tuple.smt2
   regress0/rels/join-eq-u-sat.cvc.smt2
   regress0/rels/join-eq-u.cvc.smt2
