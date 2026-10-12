@@ -13,6 +13,7 @@
 #include <stdint.h>
 
 #include <algorithm>
+#include <atomic>
 #include <numeric>
 
 #include "cvc5_private.h"
@@ -739,25 +740,24 @@ namespace attr {
 /**
  * This is the last-attribute-assigner.  IDs are not globally
  * unique; rather, they are unique for each table_value_type.
+ *
+ * Two attributes with the same table value type can be registered
+ * from different threads.  Each TermManager may live on its own
+ * thread, and this counter is process-global, so the increment has
+ * to be atomic.  Otherwise both registrations can observe one id.
  */
 template <class T>
 struct LastAttributeId
 {
  public:
-  static uint64_t getNextId()
-  {
-    uint64_t* id = raw_id();
-    const uint64_t next_id = *id;
-    ++(*id);
-    return next_id;
-  }
-  static uint64_t getId() { return *raw_id(); }
+  static uint64_t getNextId() { return raw_id().fetch_add(1); }
+  static uint64_t getId() { return raw_id().load(); }
 
  private:
-  static uint64_t* raw_id()
+  static std::atomic<uint64_t>& raw_id()
   {
-    static uint64_t s_id = 0;
-    return &s_id;
+    static std::atomic<uint64_t> s_id{0};
+    return s_id;
   }
 };
 

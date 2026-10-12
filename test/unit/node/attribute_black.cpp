@@ -10,7 +10,9 @@
  * Black box testing of cvc5::Attribute.
  */
 
+#include <algorithm>
 #include <sstream>
+#include <thread>
 #include <vector>
 
 #include "expr/attribute.h"
@@ -118,6 +120,47 @@ TEST_F(TestNodeBlackAttribute, bools)
   ASSERT_EQ(data1, val);
 
   delete node;
+}
+
+TEST_F(TestNodeBlackAttribute, concurrent_ids)
+{
+  // One counter per table value type, shared by every thread.
+  struct Tag
+  {
+  };
+  using Assigner = expr::attr::LastAttributeId<Tag>;
+
+  constexpr std::size_t nthreads = 8;
+  constexpr std::size_t perThread = 10000;
+  std::vector<std::vector<uint64_t>> ids(nthreads);
+  std::vector<std::thread> threads;
+  threads.reserve(nthreads);
+  for (std::size_t t = 0; t < nthreads; ++t)
+  {
+    threads.emplace_back([&, t]() {
+      ids[t].reserve(perThread);
+      for (std::size_t i = 0; i < perThread; ++i)
+      {
+        ids[t].push_back(Assigner::getNextId());
+      }
+    });
+  }
+  for (std::thread& th : threads)
+  {
+    th.join();
+  }
+
+  std::vector<uint64_t> all;
+  all.reserve(nthreads * perThread);
+  for (const std::vector<uint64_t>& part : ids)
+  {
+    all.insert(all.end(), part.begin(), part.end());
+  }
+  std::sort(all.begin(), all.end());
+  ASSERT_EQ(all.size(), nthreads * perThread);
+  ASSERT_TRUE(std::adjacent_find(all.begin(), all.end()) == all.end());
+  ASSERT_EQ(all.back() - all.front() + 1, all.size());
+  ASSERT_EQ(Assigner::getId(), all.back() + 1);
 }
 
 }  // namespace test
