@@ -15,10 +15,12 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_ENUMERATOR_CALLBACK_H
 #define CVC5__THEORY__QUANTIFIERS__SYGUS__SYGUS_ENUMERATOR_CALLBACK_H
 
+#include <unordered_map>
 #include <unordered_set>
 
 #include "expr/node.h"
 #include "expr/sygus_term_enumerator.h"
+#include "expr/type_node.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
@@ -68,6 +70,13 @@ class SygusEnumeratorCallback : public SygusTermEnumeratorCallback,
    * @return true if the term should be considered in the enumeration.
    */
   bool addTermInternal(const Node& n, const Node& bn, const Node& cval);
+  /**
+   * Return the distinct weight attributes referenced by any constructor of
+   * the sygus datatype @p tn, computing and caching the result on first
+   * access. Returns an empty vector for non-sygus types and for grammars
+   * with no weight annotations.
+   */
+  const std::vector<Node>& getWeightVars(const TypeNode& tn);
   /** Term database sygus */
   TermDbSygus* d_tds;
   /** pointer to the statistics */
@@ -77,6 +86,8 @@ class SygusEnumeratorCallback : public SygusTermEnumeratorCallback,
    * breaking).
    */
   ExampleEvalCache* d_eec;
+  /** Per-type cache of distinct weight attributes. */
+  std::unordered_map<TypeNode, std::vector<Node>> d_weightVars;
 };
 
 }  // namespace quantifiers
