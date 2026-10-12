@@ -341,6 +341,9 @@ const DType& NodeManager::getDTypeForIndex(size_t index) const
 
 void NodeManager::reclaimZombies()
 {
+#if CVC5_ATOMIC_REFCOUNT
+	std::lock_guard<std::mutex> _guard(reclaim_mutex);
+#endif
   Assert(!d_attrManager->inGarbageCollection());
 
   // during reclamation, reclaimZombies() is never supposed to be called
