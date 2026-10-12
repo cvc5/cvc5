@@ -19,6 +19,12 @@
 #define CVC5__THEORY__ARITH__NORMAL_FORM_H
 
 #include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "base/output.h"
 #include "expr/node.h"
@@ -693,6 +699,20 @@ class Monomial : public NodeWrapper
   static Monomial mkMonomial(const Variable& v) { return Monomial(VarList(v)); }
 
   static Monomial parseMonomial(Node n);
+
+  /**
+   * Returns the VarList of the monomial n, as parseMonomial(n).getVarList()
+   * would, but without constructing the monomial or its coefficient.
+   */
+  static VarList parseVarListOf(TNode n)
+  {
+    Kind k = n.getKind();
+    if (k == Kind::CONST_RATIONAL || k == Kind::CONST_INTEGER)
+    {
+      return VarList::mkEmptyVarList();
+    }
+    return VarList::parseVarList(multStructured(n) ? n[1] : n);
+  }
 
   static Monomial mkZero(NodeManager* nm)
   {
@@ -1512,6 +1532,153 @@ class Comparison : public NodeWrapper
       bool split_constant = false) const;
 
 }; /* class Comparison */
+
+/**
+ * A linear form  c_1 * x_1 + ... + c_n * x_n + k  over variables identified by
+ * small integer ids, for the Diophantine solver's internal arithmetic.
+ *
+ * Unlike Polynomial and SumPair it is not backed by Nodes: scaling and
+ * combining forms creates no nodes, so there is no hash-consing or reference
+ * counting in the solver's inner loops. Conversion to and from SumPair happens
+ * only at the solver's boundaries, with the caller supplying the mapping
+ * between ids and VarList nodes.
+ *
+ * The terms are kept strictly sorted by id and have no zero coefficients, so
+ * each form has a unique representation and coefficient lookup is a binary
+ * search. T is the coefficient type: Integer for equations, Rational for
+ * proofs, which become fractional when an equation is divided by its gcd.
+ */
+template <class T>
+class DioLinearForm
+{
+ public:
+  using Var = uint32_t;
+  using Term = std::pair<Var, T>;
+
+  /** The zero form. */
+  DioLinearForm() : d_terms(), d_constant(0) {}
+  /** The constant form c. */
+  explicit DioLinearForm(const T& c) : d_terms(), d_constant(c) {}
+
+  /** The form 1 * v. */
+  static DioLinearForm mkVariable(Var v);
+  /**
+   * The form sum(terms) + c. The terms may be in any order and may repeat
+   * ids; like terms are summed and zero coefficients dropped.
+   */
+  static DioLinearForm mkForm(std::vector<Term> terms, const T& c);
+
+  const std::vector<Term>& getTerms() const { return d_terms; }
+  const T& getConstant() const { return d_constant; }
+  /** The number of variable terms. */
+  size_t size() const { return d_terms.size(); }
+  /** True if the form has no variable terms. */
+  bool isConstant() const { return d_terms.empty(); }
+  bool isZero() const { return isConstant() && d_constant.isZero(); }
+
+  /** Returns the coefficient of v, or nullptr if v does not occur. */
+  const T* findCoefficient(Var v) const;
+  /** Returns the coefficient of v, or 0 if v does not occur. */
+  T getCoefficient(Var v) const;
+  /**
+   * Returns the index in getTerms() of the term with the smallest absolute
+   * coefficient; ties go to the lowest index. The form must not be constant.
+   */
+  size_t minAbsTermIndex() const;
+  /** The term at minAbsTermIndex(). The form must not be constant. */
+  const Term& minAbsTerm() const { return d_terms[minAbsTermIndex()]; }
+
+  DioLinearForm operator*(const T& c) const;
+  DioLinearForm operator+(const DioLinearForm& other) const;
+  DioLinearForm operator-(const DioLinearForm& other) const;
+  DioLinearForm operator-() const;
+  /** Returns q * a + r * b, merging the terms of a and b in one pass. */
+  static DioLinearForm combine(const T& q,
+                               const DioLinearForm& a,
+                               const T& r,
+                               const DioLinearForm& b);
+
+  bool operator==(const DioLinearForm& other) const
+  {
+    return d_terms == other.d_terms && d_constant == other.d_constant;
+  }
+  bool operator!=(const DioLinearForm& other) const
+  {
+    return !(*this == other);
+  }
+
+  /**
+   * Prints the form as, e.g., "3*v2 + -1*v5 + 7", writing each variable id
+   * after varPrefix. Use a different prefix when the ids mean something else,
+   * e.g. "in" for proofs whose ids are input constraint indices.
+   */
+  void print(std::ostream& out, const char* varPrefix = "v") const;
+  /** The output of print() as a string. */
+  std::string toString(const char* varPrefix = "v") const;
+
+  /**
+   * Builds the SumPair for this form. varLists[v] is the VarList node of
+   * variable v; distinct ids must map to distinct VarLists.
+   */
+  SumPair toSumPair(NodeManager* nm, const std::vector<Node>& varLists) const;
+  /**
+   * Builds the form for sp. varId returns the id of a VarList node. For
+   * T = Integer, sp must be integral.
+   */
+  static DioLinearForm fromSumPair(const SumPair& sp,
+                                   const std::function<Var(TNode)>& varId);
+
+  /*
+   * The following are defined only for T = Integer.
+   *
+   * There is deliberately no gcd(): SumPair::gcd() includes the constant
+   * while Polynomial::gcd() excludes it, so code ported from either must
+   * choose one of the two below explicitly.
+   */
+
+  /**
+   * The gcd of the coefficients, excluding the constant, like
+   * Polynomial::gcd(); 0 if the form is constant.
+   */
+  Integer coefficientGcd() const;
+  /** The gcd of the coefficients and the constant, like SumPair::gcd(). */
+  Integer gcdWithConstant() const;
+  /** Divides every coefficient and the constant by g, which must divide all of them. */
+  DioLinearForm exactDivide(const Integer& g) const;
+  /**
+   * The largest bit length of a coefficient or of the constant, as
+   * SumPair::maxLength computes it.
+   */
+  uint32_t maxLength() const;
+  /**
+   * Splits the form as  this = div * q + r  using floor division of every
+   * coefficient and of the constant, as SumPair::computeQR does. Returns
+   * (q, r).
+   */
+  std::pair<DioLinearForm, DioLinearForm> computeQR(const Integer& div) const;
+
+ private:
+  /** Sorted strictly by id, no zero coefficients. */
+  std::vector<Term> d_terms;
+  T d_constant;
+}; /* class DioLinearForm */
+
+template <>
+Integer DioLinearForm<Integer>::coefficientGcd() const;
+template <>
+Integer DioLinearForm<Integer>::gcdWithConstant() const;
+template <>
+DioLinearForm<Integer> DioLinearForm<Integer>::exactDivide(
+    const Integer& g) const;
+template <>
+uint32_t DioLinearForm<Integer>::maxLength() const;
+template <>
+std::pair<DioLinearForm<Integer>, DioLinearForm<Integer>>
+DioLinearForm<Integer>::computeQR(const Integer& div) const;
+
+/** Prints the form with the default variable prefix "v". */
+template <class T>
+std::ostream& operator<<(std::ostream& out, const DioLinearForm<T>& f);
 
 }  // namespace arith::linear
 }  // namespace theory
