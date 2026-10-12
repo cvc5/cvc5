@@ -1534,19 +1534,15 @@ class Comparison : public NodeWrapper
 }; /* class Comparison */
 
 /**
- * A linear form  c_1 * x_1 + ... + c_n * x_n + k  over variables identified by
- * small integer ids, for the Diophantine solver's internal arithmetic.
+ * A linear form  c_1 * x_1 + ... + c_n * x_n + k where each variable x_i
+ * is identified by its node id, for the Diophantine solver's internal arithmetic.
  *
- * Unlike Polynomial and SumPair it is not backed by Nodes: scaling and
- * combining forms creates no nodes, so there is no hash-consing or reference
- * counting in the solver's inner loops. Conversion to and from SumPair happens
- * only at the solver's boundaries, with the caller supplying the mapping
- * between ids and VarList nodes.
+ * Unlike Polynomial and SumPair it is not backed by Nodes.
  *
  * The terms are kept strictly sorted by id and have no zero coefficients, so
  * each form has a unique representation and coefficient lookup is a binary
  * search. T is the coefficient type: Integer for equations, Rational for
- * proofs, which become fractional when an equation is divided by its gcd.
+ * proofs.
  */
 template <class T>
 class DioLinearForm

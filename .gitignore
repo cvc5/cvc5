@@ -2,7 +2,7 @@
 /stamp-h1
 /cvc4-*.tar.gz
 /cvc4-*.tar.bz2
-/build/
+/build*/
 /doc/doxygen
 callgrind.out*
 gmon.out
@@ -15,5 +15,7 @@ generated/
 /deps/
 .vscode
 *.pyc
-
-
+/benchresult*
+/benchProfile
+/benchanalysis
+/ignore
