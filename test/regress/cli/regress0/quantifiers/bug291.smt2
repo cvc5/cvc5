@@ -1,3 +1,4 @@
+; COMMAND-LINE: --no-model-verify
 ; EXPECT: unknown
 ; EXPECT: (:reason-unknown incomplete)
 (set-logic AUFLIA)

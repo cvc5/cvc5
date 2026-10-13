@@ -158,6 +158,7 @@ const char* toString(InferenceId i)
     case InferenceId::BAGS_SETOF: return "BAGS_SETOF";
     case InferenceId::BAGS_MAP_DOWN: return "BAGS_MAP_DOWN";
     case InferenceId::BAGS_MAP_DOWN_INJECTIVE: return "BAGS_MAP_DOWN_INJECTIVE";
+    case InferenceId::BAGS_MAP_UP_INJECTIVE: return "BAGS_MAP_UP_INJECTIVE";
     case InferenceId::BAGS_MAP_UP1: return "BAGS_MAP_UP1";
     case InferenceId::BAGS_MAP_UP2: return "BAGS_MAP_UP2";
     case InferenceId::BAGS_FILTER_DOWN: return "BAGS_FILTER_DOWN";
@@ -380,6 +381,7 @@ const char* toString(InferenceId i)
 
     case InferenceId::SETS_SKOLEM: return "SETS_SKOLEM";
     case InferenceId::SETS_CG_SPLIT: return "SETS_CG_SPLIT";
+    case InferenceId::SETS_CHOOSE_MEMBER: return "SETS_CHOOSE_MEMBER";
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
     case InferenceId::SETS_DOWN_CLOSURE: return "SETS_DOWN_CLOSURE";
