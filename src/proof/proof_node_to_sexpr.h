@@ -63,7 +63,7 @@ class ProofNodeToSExpr
     THEORY_ID,
     // print the argument as a method id
     METHOD_ID,
-    // print the arugment as a trust id
+    // print the argument as a trust id
     TRUST_ID,
     // print the argument as an annotation id
     ANNOTATION_ID,
