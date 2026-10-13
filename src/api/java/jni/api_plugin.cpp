@@ -25,7 +25,7 @@ std::vector<Term> ApiPlugin::check()
   JNIEnv* env = getEnv(d_vm);
   // Release the local references created below when done: this function may
   // be called many times during a single native call.
-  env->PushLocalFrame(16);
+  env->PushLocalFrame(callbackLocalFrameCapacity);
 
   jclass termClass = env->FindClass("io/github/cvc5/Term");
   jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
@@ -58,7 +58,7 @@ std::vector<Term> ApiPlugin::check()
 void ApiPlugin::notifyHelper(const char* functionName, const Term& cl)
 {
   JNIEnv* env = getEnv(d_vm);
-  env->PushLocalFrame(16);
+  env->PushLocalFrame(callbackLocalFrameCapacity);
 
   jclass termClass = env->FindClass("io/github/cvc5/Term");
   jmethodID termConstructor = env->GetMethodID(termClass, "<init>", "(J)V");
@@ -92,7 +92,7 @@ void ApiPlugin::notifyTheoryLemma(const Term& lem)
 std::string ApiPlugin::getName()
 {
   JNIEnv* env = getEnv(d_vm);
-  env->PushLocalFrame(16);
+  env->PushLocalFrame(callbackLocalFrameCapacity);
 
   jclass pluginClass = env->GetObjectClass(d_plugin);
   jmethodID getNameMethod =

@@ -143,6 +143,14 @@ jobject getDoubleObject(JNIEnv* env, double value);
 jobject getBooleanObject(JNIEnv* env, bool value);
 
 /**
+ * The capacity of the JNI local frame that callbacks into Java (plugins,
+ * oracles) push for the local references they create. The callbacks hold only
+ * a few local references at a time, and 16 is the number of local references
+ * the JNI specification guarantees to every native method.
+ */
+inline constexpr jint callbackLocalFrameCapacity = 16;
+
+/**
  * Get the JNI environment of the current thread.
  *
  * A JNIEnv is only valid on the thread it was obtained from. Callbacks into

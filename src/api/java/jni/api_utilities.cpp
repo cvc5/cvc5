@@ -66,7 +66,7 @@ cvc5::Term applyOracle(JavaVM* vm,
   JNIEnv* env = getEnv(vm);
   // Release the local references created below when done: this function may
   // be called many times during a single native call.
-  env->PushLocalFrame(16);
+  env->PushLocalFrame(callbackLocalFrameCapacity);
 
   jclass termClass = env->FindClass("io/github/cvc5/Term");
   jmethodID termConstructor = env->GetMethodID(termClass, "<init>", "(J)V");
