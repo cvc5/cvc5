@@ -85,7 +85,8 @@ class TaylorGenerator
    * that are sound (lower, upper) bounds for <k>( c ). Notice that these
    * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ) where
    * c>0, we return the P_u+[x] from the function above for the minimum degree
-   * d' >= d such that (1-c^{2*d'}/(2*d')!) is positive.
+   * d' >= d such that (1-c^{2*d'}/(2*d')!) is positive. In this case, all
+   * returned polynomials are those of degree d'.
    * @return the actual degree of the polynomial approximations (which may be
    * larger than d).
    */

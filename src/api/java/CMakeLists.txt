@@ -180,6 +180,7 @@ add_custom_command(
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
+add_dependencies(cvc5-prerequisites generate-jni-headers)
 
 # JNI_HOME, if defined, specifies the path to the JNI libraries
 if(NOT DEFINED JNI_HOME AND DEFINED ENV{JNI_HOME})

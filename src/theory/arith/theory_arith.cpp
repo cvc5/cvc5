@@ -19,6 +19,7 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_evaluator.h"
 #include "theory/arith/arith_rewriter.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/equality_solver.h"
 #include "theory/arith/linear/theory_arith_private.h"
 #include "theory/arith/nl/nonlinear_extension.h"
@@ -481,13 +482,29 @@ EqualityStatus TheoryArith::getEqualityStatus(TNode a, TNode b)
 
 Node TheoryArith::getCandidateModelValue(TNode var)
 {
-  var = var.getKind() == Kind::TO_REAL ? var[0] : var;
-  std::map<Node, Node>::iterator it = d_arithModelCache.find(var);
+  // If var is a TO_REAL term, we get the model value of its (integer)
+  // argument, which is cast to a real constant below. This is required since
+  // the value we return must have the same type as var, as it may be compared
+  // to the values of other shared terms of the same type (e.g. when computing
+  // care pairs for array indices).
+  bool isToReal = (var.getKind() == Kind::TO_REAL);
+  TNode v = isToReal ? var[0] : var;
+  Node ret;
+  std::map<Node, Node>::iterator it = d_arithModelCache.find(v);
   if (it != d_arithModelCache.end())
   {
-    return it->second;
+    ret = it->second;
   }
-  return d_internal.getCandidateModelValue(var);
+  else
+  {
+    ret = d_internal.getCandidateModelValue(v);
+  }
+  if (isToReal && !ret.isNull())
+  {
+    Assert(ret.isConst());
+    ret = castToReal(nodeManager(), ret);
+  }
+  return ret;
 }
 
 std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
