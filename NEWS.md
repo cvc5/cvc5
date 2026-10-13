@@ -1,5 +1,13 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.4.3 prerelease
+=====================
+
+- **Java API**
+  * Plugin and oracle callbacks may now be invoked from a thread other than
+    the one that registered them, and an exception thrown by a callback is
+    now reported as a `CVC5ApiException` instead of crashing the JVM.
+
 cvc5 1.4.2
 ==========
 
