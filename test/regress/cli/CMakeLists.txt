@@ -1441,6 +1441,8 @@ set(regress_0_tests
   regress0/parser/issue11991-nwf.smt2
   regress0/parser/issue12514-bitvec-width-overflow.smt2
   regress0/parser/issue12514-sign-extend-overflow.smt2
+  regress0/parser/issue13073-overloaded-inv-constraint.sy
+  regress0/parser/issue13073-overloaded-nullable-lift.smt2
   regress0/parser/issue13073-overloaded-true-as.smt2
   regress0/parser/issue13073-overloaded-true.smt2
   regress0/parser/issue12062-overflow.smt2
