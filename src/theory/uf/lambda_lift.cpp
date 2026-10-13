@@ -18,6 +18,7 @@
 #include "expr/sort_type_size.h"
 #include "options/uf_options.h"
 #include "proof/proof.h"
+#include "proof/proof_rule_checker.h"
 #include "smt/env.h"
 #include "theory/uf/function_const.h"
 
@@ -120,11 +121,12 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     // For example, if g : Int x Int -> Int, then
     //   (P (lambda ((x Int)) (g x x)))
     // is rewritten to (P k), where k is the purification skolem of the lambda,
-    // and the lemma
+    // and the lemmas
     //   (forall ((x Int)) (= (k x) ((lambda ((x Int)) (g x x)) x)))
-    // is added. Only the arguments of this application are replaced. Other
-    // occurrences of the same lambda, e.g. in (= h (lambda ...)), are kept,
-    // and are lifted lazily if necessary (see HoExtension::checkLazyLambda).
+    //   (= k (lambda ((x Int)) (g x x)))
+    // are added. Only the arguments of this application are replaced. The
+    // equality connects k to other occurrences of the same lambda, e.g. in
+    // (= h (lambda ...)), so that congruence can relate them immediately.
     std::vector<Node> children;
     children.push_back(node.getOperator());
     bool childChanged = false;
@@ -226,6 +228,17 @@ Node LambdaLift::liftToSkolem(const Node& lam, std::vector<SkolemLemma>& lems)
   if (!trn.isNull())
   {
     lems.push_back(SkolemLemma(trn, skolem));
+    if (options().uf.ufHoLazyLambdaLift)
+    {
+      // Other occurrences of lam may remain inline. Connect them to skolem
+      // once per user context, together with its defining lemma.
+      Node eq = skolem.eqNode(lam);
+      TrustNode teq = d_epg == nullptr
+                          ? TrustNode::mkTrustLemma(eq)
+                          : d_epg->mkTrustNode(
+                                eq, ProofRule::MACRO_SR_PRED_INTRO, {}, {eq});
+      lems.push_back(SkolemLemma(teq, skolem));
+    }
   }
   return skolem;
 }
@@ -289,7 +302,7 @@ bool LambdaLift::needsLift(const Node& lam)
   return shouldLift;
 }
 
-Node LambdaLift::getLiftLemma(const Node& f, const Node& n) const
+TrustNode LambdaLift::getLiftLemma(const Node& f, const Node& n) const
 {
   // Unlike the lemma of lift, which defines a fresh skolem, this lemma is
   // stated for a term f that already has a meaning, and hence it must be
@@ -303,17 +316,48 @@ Node LambdaLift::getLiftLemma(const Node& f, const Node& n) const
   std::vector<Node> fapp;
   std::vector<Node> lapp;
   fapp.push_back(f);
-  lapp.push_back(lam);
+  lapp.push_back(n);
   // We use the bound variables of lam as the variables of the quantified
   // formula, as in getAssertionFor.
   fapp.insert(fapp.end(), lam[0].begin(), lam[0].end());
   lapp.insert(lapp.end(), lam[0].begin(), lam[0].end());
-  // We use (lam x) instead of the body of lam as the right hand side, since
-  // beta reduction uses capture-avoiding substitution.
+  // We use (n x) instead of the body of lam as the right hand side, since
+  // beta reduction uses capture-avoiding substitution. Function array
+  // constants are converted to lambdas by rewriting.
   Node eq =
       nm->mkNode(Kind::APPLY_UF, fapp).eqNode(nm->mkNode(Kind::APPLY_UF, lapp));
   Node univ = nm->mkNode(Kind::FORALL, lam[0], eq);
-  return nm->mkNode(Kind::IMPLIES, f.eqNode(n), univ);
+  Node premise = f.eqNode(n);
+  Node lem = nm->mkNode(Kind::IMPLIES, premise, univ);
+  if (d_epg == nullptr)
+  {
+    return TrustNode::mkTrustLemma(lem);
+  }
+  // Prove the pointwise equality by congruence, then lift its equality to
+  // true under the quantifier and discharge the premise. Substituting f -> n
+  // throughout univ would also change occurrences of f inside n, so it would
+  // not reduce univ to true for circular lambdas such as
+  // n = (lambda ((x Int)) (+ 1 (f x))).
+  CDProof cdp(d_env);
+  std::vector<Node> premises{premise};
+  for (const Node& v : lam[0])
+  {
+    Node refl = v.eqNode(v);
+    cdp.addStep(refl, ProofRule::REFL, {}, {v});
+    premises.push_back(refl);
+  }
+  cdp.addStep(eq,
+              ProofRule::HO_CONG,
+              premises,
+              {ProofRuleChecker::mkKindNode(nm, Kind::APPLY_UF)});
+  Node eqTrue = eq.eqNode(nm->mkConst(true));
+  cdp.addStep(eqTrue, ProofRule::TRUE_INTRO, {eq}, {});
+  Node univTrue = nm->mkNode(Kind::FORALL, lam[0], nm->mkConst(true));
+  Node univEq = univ.eqNode(univTrue);
+  cdp.addStep(univEq, ProofRule::CONG, {eqTrue}, {univ});
+  cdp.addStep(univ, ProofRule::MACRO_SR_PRED_INTRO, {univEq}, {univ});
+  cdp.addStep(lem, ProofRule::SCOPE, {univ}, {premise});
+  return d_epg->mkTrustNode(lem, cdp.getProofFor(lem));
 }
 
 Node LambdaLift::getLambdaFor(TNode n) { return FunctionConst::toLambda(n); }

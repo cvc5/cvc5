@@ -163,7 +163,7 @@ unsigned HoExtension::applyExtensionality(TNode deq)
     // distinct values, and (= (f k) (g k)) to rewrite to true for fresh k,
     // i.e. f and g are equal on every argument, which is impossible for a
     // sound rewriter.
-    if (rewrite(lem).isConst())
+    if (rewrite(lem) == d_true)
     {
       return 0;
     }
@@ -253,6 +253,21 @@ Node HoExtension::getApplyUfForHoApply(Node node)
 
 void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
 {
+  for (const Node& t : termSet)
+  {
+    if (t.getKind() == Kind::APPLY_UF)
+    {
+      Node ht = TheoryUfRewriter::getHoApplyForApplyUf(t);
+      // Also add all subterms before filtering lambdas below, since an
+      // argument may be a lambda that is not a model value.
+      while (ht.getKind() == Kind::HO_APPLY)
+      {
+        termSet.insert(ht);
+        termSet.insert(ht[1]);
+        ht = ht[0];
+      }
+    }
+  }
   // The only relevant lambdas are those we use as model values for their
   // equivalence class, as computed by checkLazyLambda. Other lambdas are
   // either equal to these, or are in equivalence classes whose model value is
@@ -272,20 +287,6 @@ void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
     else
     {
       ++it;
-    }
-  }
-  for (const Node& t : termSet)
-  {
-    if (t.getKind() == Kind::APPLY_UF)
-    {
-      Node ht = TheoryUfRewriter::getHoApplyForApplyUf(t);
-      // also add all subterms
-      while (ht.getKind() == Kind::HO_APPLY)
-      {
-        termSet.insert(ht);
-        termSet.insert(ht[1]);
-        ht = ht[0];
-      }
     }
   }
 }
@@ -628,8 +629,6 @@ unsigned HoExtension::checkLazyLambda()
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   // normal functions equated to lambdas
   std::unordered_set<Node> normalEqFuns;
-  // maps equivalence classes to the first lambda we encounter in them
-  std::unordered_map<Node, Node> lamReps;
   while (!eqcs_i.isFinished())
   {
     Node eqc = (*eqcs_i);
@@ -747,12 +746,13 @@ unsigned HoExtension::checkLazyLambda()
       // It suffices to state the lemma for one ordinary function of this
       // class, since the others are equal to it. The lemma is cached (see
       // cacheLemma).
-      Node lem = d_ll.getLiftLemma(normalFuns[0], lamRep);
+      TrustNode tlem = d_ll.getLiftLemma(normalFuns[0], lamRep);
+      Node lem = tlem.getNode();
       if (cacheLemma(lem))
       {
         Trace("uf-ho-lemma")
             << "uf-ho-lemma : lazy lift : " << lem << std::endl;
-        d_im.lemma(lem, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
+        d_im.trustedLemma(tlem, InferenceId::UF_HO_LAMBDA_LAZY_LIFT);
         numLemmas++;
       }
       // The model value for this equivalence class is determined by the
@@ -764,8 +764,6 @@ unsigned HoExtension::checkLazyLambda()
       // these applications are handled by instantiating the lift lemma.
       continue;
     }
-    // Note that lamReps and d_lambdaEqc have the same content.
-    lamReps[eqc] = lamRep;
     // if we are equal to a lambda, we must beta-reduce applications of the
     // normal functions in this equivalence class
     normalEqFuns.insert(normalFuns.begin(), normalFuns.end());
@@ -818,8 +816,8 @@ unsigned HoExtension::checkLazyLambda()
                            << std::endl;
       Assert(ee->hasTerm(op));
       Node r = ee->getRepresentative(op);
-      Assert(lamReps.find(r) != lamReps.end());
-      Node lf = lamReps[r];
+      Assert(d_lambdaEqc.find(r) != d_lambdaEqc.end());
+      Node lf = d_lambdaEqc[r];
       Node lam = LambdaLift::getLambdaFor(lf);
       Assert(!lam.isNull() && lam.getKind() == Kind::LAMBDA);
       // op is a normal function equal to the lambda lf, which is a lambda or a
