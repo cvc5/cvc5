@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 
+#include "base/exception.h"
 #include "theory/inference_id.h"
 
 namespace cvc5::internal {
@@ -103,6 +104,35 @@ constexpr std::size_t ResourceMax = static_cast<std::size_t>(Resource::Unknown);
 };  // namespace resman_detail
 
 /**
+ * Exception thrown by the resource manager when a resource or time limit is
+ * reached while the resource manager is armed to throw (see
+ * ResourceManager::ThrowScope). It unwinds the solver out of any phase that
+ * does not observe interrupts cooperatively, e.g. preprocessing.
+ *
+ * It must only be thrown when some enclosing frame catches it before it
+ * reaches a frame of a third-party library (e.g. a SAT solver).
+ */
+class ResourceOutException : public Exception
+{
+ public:
+  /**
+   * @param timeout True if a time limit was reached, false if a resource
+   * limit was reached.
+   */
+  ResourceOutException(bool timeout)
+      : Exception(timeout ? "Time limit reached" : "Resource limit reached"),
+        d_timeout(timeout)
+  {
+  }
+  /** Was a time limit (as opposed to a resource limit) reached? */
+  bool isTimeout() const { return d_timeout; }
+
+ private:
+  /** True if a time limit was reached. */
+  bool d_timeout;
+};
+
+/**
  * This class manages resource limits (cumulative or per call) and (per call)
  * time limits. The available resources are listed in Resource and their
  * individual costs are configured via command line options.
@@ -110,6 +140,63 @@ constexpr std::size_t ResourceMax = static_cast<std::size_t>(Resource::Unknown);
 class ResourceManager
 {
  public:
+  /**
+   * RAII helper that arms or disarms the resource manager for throwing a
+   * ResourceOutException when a limit is reached. The previous state is
+   * restored on destruction, so scopes nest.
+   *
+   * Arming has no effect if the option resource-limit-abort is disabled.
+   */
+  class ThrowScope
+  {
+   public:
+    /**
+     * @param rm The resource manager.
+     * @param armed True to arm, false to disarm, for the lifetime of this
+     * object.
+     */
+    ThrowScope(ResourceManager& rm, bool armed);
+    ~ThrowScope();
+    ThrowScope(const ThrowScope&) = delete;
+    ThrowScope& operator=(const ThrowScope&) = delete;
+
+   private:
+    /** The resource manager */
+    ResourceManager& d_rm;
+    /** The state to restore */
+    bool d_previous;
+    /** The resource manager to restore in s_armed */
+    ResourceManager* d_previousArmed;
+  };
+
+  /**
+   * A cheap checkpoint for long running loops in code that runs in an armed
+   * region. Unlike spendResource, this does not spend resources, so it does
+   * not affect resource counts. If this resource manager is armed and a limit
+   * has been reached, it notifies the listeners and throws a
+   * ResourceOutException. To keep it cheap (reading the wall clock is not),
+   * the limits are only consulted every few calls.
+   */
+  void checkLimit()
+  {
+    if (d_throwArmed && ((++d_checkCount) & (kCheckInterval - 1)) == 0)
+    {
+      checkLimitSlow();
+    }
+  }
+  /**
+   * Same as checkLimit on the resource manager that is currently armed in this
+   * thread, if any. This allows placing checkpoints in code that has no access
+   * to the resource manager. It is a no-op if no resource manager is armed.
+   */
+  static void checkpoint()
+  {
+    if (s_armed != nullptr)
+    {
+      s_armed->checkLimit();
+    }
+  }
+
   /** Construct a resource manager. */
   ResourceManager(StatisticsRegistry& statistics_registry,
                   const Options& options);
@@ -147,7 +234,8 @@ class ResourceManager
 
   /**
    * Spends a given resource. Calls the listener to interrupt the solver if
-   * there are no remaining resources.
+   * there are no remaining resources. If additionally this resource manager is
+   * armed (see ThrowScope), throws a ResourceOutException.
    */
   void spendResource(Resource r);
   /**
@@ -156,9 +244,17 @@ class ResourceManager
   uint64_t getResource(Resource r) const;
   /**
    * Spends a given resource. Calls the listener to interrupt the solver if
-   * there are no remaining resources.
+   * there are no remaining resources. If additionally this resource manager is
+   * armed (see ThrowScope), throws a ResourceOutException.
    */
   void spendResource(theory::InferenceId iid);
+
+  /**
+   * Did a ResourceOutException get thrown since the last call to beginCall()?
+   * This is true even if the exception was caught and absorbed by some frame
+   * before it reached the top-level check-sat call.
+   */
+  bool abortedThisCall() const { return d_abortedThisCall; }
 
   /**
    * Resets perCall limits to mark the start of a new call,
@@ -186,6 +282,31 @@ class ResourceManager
    * of resources are disabled. Resources are still spent, however.
    */
   bool d_enabled;
+
+  /**
+   * Whether spending a resource throws a ResourceOutException when a limit is
+   * reached. Managed by ThrowScope.
+   */
+  bool d_throwArmed;
+  /** Was a ResourceOutException thrown since the last call to beginCall()? */
+  bool d_abortedThisCall;
+  /** Number of calls to checkLimit while armed, since the last beginCall(). */
+  uint32_t d_checkCount;
+  /** Only every kCheckInterval-th call to checkLimit consults the limits. */
+  static constexpr uint32_t kCheckInterval = 64;
+  /**
+   * The resource manager that is currently armed in this thread, or nullptr.
+   * Maintained by ThrowScope.
+   */
+  static thread_local ResourceManager* s_armed;
+
+  /** Slow path of checkLimit */
+  void checkLimitSlow();
+  /**
+   * Notify the listeners that a limit has been reached, and throw a
+   * ResourceOutException if armed.
+   */
+  void notifyAndAbort();
 
   /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;

@@ -15,6 +15,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/rewriter.h"
+#include "util/resource_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -151,6 +152,10 @@ MonomialDb::MonomialDb() {}
 
 void MonomialDb::registerMonomial(Node n)
 {
+  // Registering many monomials is expensive and does not spend resources. We
+  // check the limits before modifying this database, such that an abort leaves
+  // it consistent: the monomial is either fully registered or not at all.
+  ResourceManager::checkpoint();
   if (std::find(d_monomials.begin(), d_monomials.end(), n) != d_monomials.end())
   {
     return;

@@ -483,6 +483,15 @@ Result PropEngine::checkSat()
   // Reset the interrupted flag
   d_interrupted = false;
 
+  ResourceManager* rm = resourceManager();
+
+  // The SAT solver observes resource limits cooperatively. Exceptions must
+  // never unwind through its frames, or through the callbacks it makes into the
+  // theory engine, whose state is not exception safe. We stay disarmed for the
+  // rest of this method, since the bookkeeping after solving must complete in
+  // order to return a result.
+  ResourceManager::ThrowScope disarm(*rm, false);
+
   // Check the problem
   SatValue result;
   if (assumptions.empty())
@@ -494,7 +503,6 @@ Result PropEngine::checkSat()
     result = d_satSolver->solve(assumptions);
   }
 
-  ResourceManager* rm = resourceManager();
   bool wasInterrupted = result == SAT_VALUE_UNKNOWN;
   // If a resource limit expires during a full theory check, the SAT solver may
   // still return SAT before observing its termination callback. In that case,
@@ -612,6 +620,9 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
 
 Node PropEngine::ensureLiteral(TNode n)
 {
+  // This is called by theories during solving, and is not safe to abort half
+  // way, since it may add skolem definitions and CNF clauses.
+  ResourceManager::ThrowScope disarm(*resourceManager(), false);
   // must preprocess
   Node preprocessed = getPreprocessedTerm(n);
   Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
@@ -629,6 +640,8 @@ Node PropEngine::ensureLiteral(TNode n)
 
 Node PropEngine::getPreprocessedTerm(TNode n)
 {
+  // Not safe to abort half way, see ensureLiteral.
+  ResourceManager::ThrowScope disarm(*resourceManager(), false);
   // must preprocess
   std::vector<theory::SkolemLemma> newLemmas;
   TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas);

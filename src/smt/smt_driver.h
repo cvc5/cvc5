@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/assertions.h"
@@ -102,6 +103,19 @@ class SmtDriver : protected EnvObj
    */
   virtual Result checkSatNext(preprocessing::AssertionPipeline& ap) = 0;
   /**
+   * Called at the beginning of every call to checkSat, before any assertions
+   * are consumed. Drivers that consume assertions incrementally use this to
+   * remember their state, so that it can be restored by notifyResourceOut.
+   */
+  virtual void notifyCheckSatStart() {}
+  /**
+   * Called when a check-sat call was aborted by a ResourceOutException. The
+   * assertions that were obtained by this call were not (fully) processed, so
+   * drivers that consume assertions incrementally must make them available to
+   * the next call again.
+   */
+  virtual void notifyResourceOut() {}
+  /**
    * Get the next assertions. This is called:
    * (1) immediately before calls to checkSatNext, where we populate ap with
    * those that will be checked on the next call to checkSatNext.
@@ -122,6 +136,17 @@ class SmtDriver : protected EnvObj
    * The utility used for checking for illegal inputs
    */
   IllegalChecker d_illegalChecker;
+  /**
+   * Set (in the user context) when a check-sat call was aborted by a
+   * ResourceOutException, either at the top level or in a frame that absorbed
+   * it. Such an abort may leave partially processed state behind in the user
+   * context (e.g. a cached skolem whose definition was never sent, or a
+   * literal whose clauses were never added to the SAT solver). This state only
+   * lacks constraints, thus "unsat" answers remain correct but "sat" answers
+   * may not be. While this flag is set, "sat" is not reported. It is reset when
+   * the user context is popped below the level where the abort happened.
+   */
+  context::CDO<bool> d_resourceOutTaint;
 };
 
 /**
@@ -142,12 +167,21 @@ class SmtDriverSingleCall : public SmtDriver
   Result checkSatNext(preprocessing::AssertionPipeline& ap) override;
   /** Gets all the assertions we have yet to process */
   void getNextAssertions(preprocessing::AssertionPipeline& ap) override;
+  /** Remember the value of d_assertionListIndex */
+  void notifyCheckSatStart() override;
+  /** Restore the value of d_assertionListIndex */
+  void notifyResourceOut() override;
   /**
    * The first index in the assertion list of the underlying SMT solver that we
    * have not processed yet. The call to getNextAssertions gets all assertions
    * starting from this index onward.
    */
   context::CDO<size_t> d_assertionListIndex;
+  /**
+   * The value of d_assertionListIndex when the current call to checkSat
+   * started.
+   */
+  size_t d_assertionListIndexAtStart;
 };
 
 }  // namespace smt

@@ -18,6 +18,7 @@
 #include <ostream>
 
 #include "expr/node.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -270,6 +271,9 @@ inline void shiftAddMultiplier(NodeManager* nm,
 
   for (unsigned k = 1; k < res.size(); ++k)
   {
+    // Large multipliers are expensive and do not spend resources. Aborting is
+    // safe, the bits being constructed are local to the caller.
+    ResourceManager::checkpoint();
     T carry_in = mkFalse<T>(nm);
     T carry_out;
     for (unsigned j = 0; j < res.size() - k; ++j)

@@ -20,6 +20,7 @@
 #include "smt/env.h"
 #include "smt/smt_driver.h"
 #include "smt/solver_engine_state.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace smt {
@@ -148,7 +149,9 @@ void ContextManager::internalPush()
     // notifies the SolverEngine to process the assertions immediately
     d_smt->notifyPushPre();
     userContext()->push();
-    // the context push is done inside of the SAT solver
+    // the context push is done inside of the SAT solver, which must not be
+    // aborted by a resource limit after the user context has been pushed
+    ResourceManager::ThrowScope disarm(*d_env.getResourceManager(), false);
     d_smt->notifyPushPost();
   }
 }

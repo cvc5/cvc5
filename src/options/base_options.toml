@@ -327,6 +327,14 @@ name   = "Base"
   default    = "0"
   help       = "set resource limit per query"
 
+[[option]]
+  name       = "resourceLimitAbort"
+  category   = "expert"
+  long       = "resource-limit-abort"
+  type       = "bool"
+  default    = "true"
+  help       = "abort the solver by throwing an exception when a resource or time limit is reached outside of the SAT search, instead of only interrupting it cooperatively"
+
 # --rweight is used to override the default of one particular resource weight.
 # It can be given multiple times to override multiple weights. When options are
 # parsed, the resource manager might now be created yet, and it is not clear

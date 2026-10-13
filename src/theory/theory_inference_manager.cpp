@@ -265,7 +265,12 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   Assert(id != InferenceId::UNKNOWN)
       << "Must provide an inference id for lemma";
   d_lemmaIdStats << id;
-  resourceManager()->spendResource(id);
+  {
+    // The lemma may already be in the cache above. Aborting here would lose
+    // it forever, so the resource manager does not throw when spending for it.
+    ResourceManager::ThrowScope disarm(*resourceManager(), false);
+    resourceManager()->spendResource(id);
+  }
   Trace("im") << "(lemma " << id << " " << tlem.getProven() << ")" << std::endl;
   // shouldn't send trivially true or false lemmas
   Assert(!rewrite(tlem.getProven()).isConst());

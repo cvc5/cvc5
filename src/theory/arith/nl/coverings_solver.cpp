@@ -107,6 +107,10 @@ void CoveringsSolver::initLastCall(
 void CoveringsSolver::checkFull()
 {
 #ifdef CVC5_POLY_IMP
+  // Every path below sets this. We set it eagerly such that it is false if the
+  // computation is aborted by a ResourceOutException, in which case the CAC is
+  // in an arbitrary state and must not be used to construct a model.
+  d_foundSatisfiability = false;
   if (d_CAC.getConstraints().getConstraints().empty())
   {
     d_foundSatisfiability = true;

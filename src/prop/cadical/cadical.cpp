@@ -131,6 +131,8 @@ class ResourceLimitTerminator : public CaDiCaL::Terminator
 
   bool terminate() override
   {
+    // This is called from within CaDiCaL, an exception must not escape here.
+    ResourceManager::ThrowScope disarm(d_resmgr, false);
     d_resmgr.spendResource(Resource::BvSatStep);
     return d_resmgr.out();
   }

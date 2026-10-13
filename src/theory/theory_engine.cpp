@@ -286,6 +286,9 @@ TheoryEngine::~TheoryEngine()
 void TheoryEngine::interrupt() { d_interrupted = true; }
 void TheoryEngine::preRegister(TNode preprocessed)
 {
+  // The state of the theory solvers is not exception safe, so we never abort
+  // them with a ResourceOutException.
+  ResourceManager::ThrowScope disarm(*d_env.getResourceManager(), false);
   Trace("theory") << "TheoryEngine::preRegister( " << preprocessed << ")"
                   << std::endl;
   d_preregisterQueue.push(preprocessed);
@@ -749,6 +752,8 @@ theory::TheoryId TheoryEngine::theoryExpPropagation(theory::TheoryId tid) const
 
 bool TheoryEngine::presolve()
 {
+  // Theory solvers are not exception safe, see preRegister.
+  ResourceManager::ThrowScope disarm(*d_env.getResourceManager(), false);
   // Reset the interrupt flag
   d_interrupted = false;
 
@@ -1005,6 +1010,8 @@ TrustNode TheoryEngine::ppStaticRewrite(TNode term)
 void TheoryEngine::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions)
 {
+  // Theory solvers are not exception safe, see preRegister.
+  ResourceManager::ThrowScope disarm(*d_env.getResourceManager(), false);
   // call all the theories
   for (TheoryId theoryId = theory::THEORY_FIRST; theoryId < theory::THEORY_LAST;
        ++theoryId)
@@ -1317,6 +1324,9 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory)
 
   // spendResource();
 
+  // Sending a propagation must be atomic, see TheoryEngine::lemma.
+  ResourceManager::ThrowScope disarm(*d_env.getResourceManager(), false);
+
   // Get the atom
   bool polarity = literal.getKind() != Kind::NOT;
   TNode atom = polarity ? literal : literal[0];
@@ -1614,6 +1624,10 @@ void TheoryEngine::lemma(TrustNode tlemma,
 {
   // For resource-limiting (also does a time check).
   // spendResource();
+
+  // Sending a lemma must be atomic: a partially sent lemma would leave the
+  // CNF stream and the caches of the theories in an inconsistent state.
+  ResourceManager::ThrowScope disarm(*d_env.getResourceManager(), false);
   Assert(tlemma.getKind() == TrustNodeKind::LEMMA
          || tlemma.getKind() == TrustNodeKind::CONFLICT);
 
@@ -1699,6 +1713,9 @@ void TheoryEngine::conflict(TrustNode tconflict,
                             TheoryId theoryId)
 {
   Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
+
+  // Sending a conflict must be atomic, see TheoryEngine::lemma.
+  ResourceManager::ThrowScope disarm(*d_env.getResourceManager(), false);
 
   TNode conflict = tconflict.getNode();
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "

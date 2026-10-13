@@ -14,6 +14,7 @@
 #include "options/bv_options.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -86,6 +87,10 @@ void NodeBitblaster::bbTerm(TNode node, Bits& bits)
     getBBTerm(node, bits);
     return;
   }
+  // Bit-blasting a large term does not spend resources. Aborting here is safe:
+  // a term is only stored in the cache once it has been bit-blasted
+  // completely, see storeBBTerm.
+  ResourceManager::checkpoint();
   d_termBBStrategies[static_cast<uint32_t>(node.getKind())](node, bits, this);
   Assert(bits.size() == utils::getSize(node));
   storeBBTerm(node, bits);

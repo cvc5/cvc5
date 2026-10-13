@@ -141,6 +141,10 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
   prepareRootIsolation(le, cur_variable);
   for (const auto& c : d_constraints.getConstraints())
   {
+    // Checkpoints in this file are only placed between calls to libpoly, which
+    // never calls back into cvc5. See NonlinearExtension::checkFullEffort for
+    // why aborting is safe.
+    ResourceManager::checkpoint();
     const poly::Polynomial& p = std::get<0>(c);
     poly::SignCondition sc = std::get<1>(c);
     const Node& n = std::get<2>(c);
@@ -398,6 +402,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
     }
     for (const auto& p : i.d_mainPolys)
     {
+      ResourceManager::checkpoint();
       Trace("cdcac::projection")
           << "Discriminant of " << p << " -> " << discriminant(p) << std::endl;
       // Add all discriminants
@@ -406,6 +411,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
       // Add pairwise resultants
       for (const auto& q : i.d_mainPolys)
       {
+        ResourceManager::checkpoint();
         // avoid symmetric duplicates
         if (p >= q) continue;
         res.add(resultant(p, q));
@@ -420,6 +426,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
       }
       for (const auto& q : i.d_lowerPolys)
       {
+        ResourceManager::checkpoint();
         if (p == q) continue;
         // Check whether p(s \times a) = 0 for some a <= l
         if (!hasRootBelow(q, get_lower(i.d_interval))) continue;
@@ -429,6 +436,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
       }
       for (const auto& q : i.d_upperPolys)
       {
+        ResourceManager::checkpoint();
         if (p == q) continue;
         // Check whether p(s \times a) = 0 for some a >= u
         if (!hasRootAbove(q, get_upper(i.d_interval))) continue;
@@ -503,6 +511,7 @@ CACInterval CDCAC::intervalFromCharacterization(
   roots.emplace_back(poly::Value::minus_infty());
   for (const auto& p : m)
   {
+    ResourceManager::checkpoint();
     Trace("cdcac") << "Isolating real roots of " << p << " over "
                    << d_assignment << std::endl;
 

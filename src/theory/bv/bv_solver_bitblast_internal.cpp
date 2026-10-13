@@ -19,6 +19,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -78,7 +79,27 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
 {
   if (!d_bitblaster->hasBBAtom(fact))
   {
-    d_bitblaster->bbAtom(fact);
+    // Bit-blasting a large atom can run for a long time without observing
+    // resource limits, so we let the resource manager abort it with a
+    // ResourceOutException. This is safe since the bit-blaster only caches
+    // terms and atoms once they are bit-blasted completely, and nothing else
+    // is modified. Aborting means that we do not send the lemma that connects
+    // the atom to its bit-blasted form, i.e. we lose a constraint; the abort
+    // is recorded by the resource manager, which taints the solver. This
+    // method is also called from the SAT solver, which we return to normally:
+    // the exception is caught here and the SAT solver is interrupted by the
+    // listeners of the resource manager.
+    ResourceManager::ThrowScope arm(*d_env.getResourceManager(), true);
+    try
+    {
+      d_bitblaster->bbAtom(fact);
+    }
+    catch (const ResourceOutException&)
+    {
+      Trace("bv-bitblast") << "bit-blasting aborted by resource limit"
+                           << std::endl;
+      return;
+    }
   }
   NodeManager* nm = nodeManager();
 

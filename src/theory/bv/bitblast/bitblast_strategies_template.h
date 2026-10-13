@@ -525,6 +525,8 @@ void uDivModRec(NodeManager* nm,
 {
   Assert(q.size() == 0 && r.size() == 0);
 
+  // See shiftAddMultiplier.
+  ResourceManager::checkpoint();
   if (rec_width == 0 || isZero(nm, a))
   {
     makeZero(nm, q, a.size());

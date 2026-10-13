@@ -20,12 +20,18 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_solver.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
-    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env), d_illegalChecker(env)
+    : EnvObj(env),
+      d_smt(smt),
+      d_ctx(ctx),
+      d_ap(env),
+      d_illegalChecker(env),
+      d_resourceOutTaint(userContext(), false)
 {
   // set up proofs, this is done after options are finalized, so the
   // preprocess proof has been setup
@@ -40,14 +46,28 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
   bool hasAssumptions = !assumptions.empty();
-  if (d_ctx)
-  {
-    d_ctx->notifyCheckSat(hasAssumptions);
-  }
+  ResourceManager* rm = d_env.getResourceManager();
   Assertions& as = d_smt.getAssertions();
   Result result;
+  // Whether the context manager has been notified of this check-sat, in which
+  // case it must be notified of the result as well.
+  bool notifiedCtx = false;
+  notifyCheckSatStart();
   try
   {
+    // Everything below is aborted by an exception if a resource limit is
+    // reached, including the preprocessing that is done when notifying the
+    // context manager. Frames where this is not safe disarm the resource
+    // manager again, e.g. the SAT search and the theory solvers, which
+    // interrupt cooperatively.
+    ResourceManager::ThrowScope armed(*rm, true);
+
+    if (d_ctx)
+    {
+      d_ctx->notifyCheckSat(hasAssumptions);
+      notifiedCtx = true;
+    }
+
     // then, initialize the assertions
     as.setAssumptions(assumptions);
 
@@ -59,7 +79,6 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 
     Trace("smt") << "SmtSolver::check()" << std::endl;
 
-    ResourceManager* rm = d_env.getResourceManager();
     // if we are already out of (cumulative) resources
     if (rm->out())
     {
@@ -82,7 +101,9 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
             && result.getUnknownExplanation()
                    == UnknownExplanation::REQUIRES_CHECK_AGAIN)
         {
-          // finish init to construct new theory/prop engine
+          // finish init to construct new theory/prop engine, which must not
+          // be aborted half way
+          ResourceManager::ThrowScope disarm(*rm, false);
           d_smt.finishInit();
         }
         else
@@ -109,7 +130,48 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     d_smt.getPropEngine()->resetTrail();
     throw;
   }
-  if (d_ctx)
+  catch (const ResourceOutException& e)
+  {
+    // A resource or time limit was reached outside of the SAT search, e.g. in
+    // preprocessing. Backtrack to reset the decision level to the level
+    // expected after this method finishes.
+    d_smt.getPropEngine()->resetTrail();
+    // The assertions consumed by this call were not (fully) processed.
+    notifyResourceOut();
+    UnknownExplanation why = e.isTimeout() ? UnknownExplanation::TIMEOUT
+                                           : UnknownExplanation::RESOURCEOUT;
+    result = Result(Result::UNKNOWN, why);
+    if (isOutputOn(OutputTag::INCOMPLETE))
+    {
+      output(OutputTag::INCOMPLETE)
+          << "(incomplete " << why << ")" << std::endl;
+    }
+  }
+  // If an exception was thrown, even if it was absorbed before it reached us,
+  // the state left behind may be incomplete. See d_resourceOutTaint.
+  if (rm->abortedThisCall())
+  {
+    d_resourceOutTaint = true;
+  }
+  if (d_resourceOutTaint.get())
+  {
+    // Note that a global negation flips the roles of sat and unsat.
+    bool unsound = result.getStatus() == Result::SAT
+                   || (result.getStatus() == Result::UNSAT && d_ap.isNegated());
+    if (unsound)
+    {
+      Trace("smt") << "SmtDriver: ignoring " << result
+                   << " since a previous check-sat was aborted" << std::endl;
+      result = Result(Result::UNKNOWN, UnknownExplanation::INCOMPLETE);
+      if (isOutputOn(OutputTag::INCOMPLETE))
+      {
+        output(OutputTag::INCOMPLETE)
+            << "(incomplete " << UnknownExplanation::INCOMPLETE << ")"
+            << std::endl;
+      }
+    }
+  }
+  if (notifiedCtx)
   {
     d_ctx->notifyCheckSatResult(hasAssumptions);
   }
@@ -151,7 +213,9 @@ void SmtDriver::notifyPostSolve() { d_smt.resetTrail(); }
 SmtDriverSingleCall::SmtDriverSingleCall(Env& env,
                                          SmtSolver& smt,
                                          ContextManager* ctx)
-    : SmtDriver(env, smt, ctx), d_assertionListIndex(userContext(), 0)
+    : SmtDriver(env, smt, ctx),
+      d_assertionListIndex(userContext(), 0),
+      d_assertionListIndexAtStart(0)
 {
 }
 
@@ -212,6 +276,18 @@ void SmtDriverSingleCall::getNextAssertions(
     ap.push_back(al[i], true);
   }
   d_assertionListIndex = alsize;
+}
+
+void SmtDriverSingleCall::notifyCheckSatStart()
+{
+  d_assertionListIndexAtStart = d_assertionListIndex.get();
+}
+
+void SmtDriverSingleCall::notifyResourceOut()
+{
+  // The assertions fetched by getNextAssertions during this call were not
+  // (fully) processed, make them available to the next call.
+  d_assertionListIndex = d_assertionListIndexAtStart;
 }
 
 }  // namespace smt

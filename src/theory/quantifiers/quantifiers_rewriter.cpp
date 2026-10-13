@@ -39,6 +39,7 @@
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/rational.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 using namespace cvc5::internal::kind;
@@ -1922,6 +1923,8 @@ Node QuantifiersRewriter::computePrenex(Node q,
                                         bool pol,
                                         bool prenexAgg) const
 {
+  // This recursion can be deep and does not spend resources.
+  ResourceManager::checkpoint();
   NodeManager* nm = nodeManager();
   Kind k = body.getKind();
   if (k == Kind::FORALL)

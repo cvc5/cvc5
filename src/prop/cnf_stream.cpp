@@ -24,6 +24,7 @@
 #include "smt/env.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -506,6 +507,10 @@ SatLiteral CnfStream::toCNF(TNode node, bool negated)
   visit.push_back(node);
   while (!visit.empty())
   {
+    // This loop can be long running and does not spend resources. We only
+    // check the limits here, i.e. between the nodes, so that every node that
+    // has a literal also has all its definitional clauses.
+    ResourceManager::checkpoint();
     cur = visit.back();
     Assert(cur.getType().isBoolean());
 

@@ -26,6 +26,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "util/rational.h"
+#include "util/resource_manager.h"
 
 using namespace cvc5::internal::kind;
 
@@ -338,7 +339,47 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   Trace("nl-ext") << "NonlinearExtension::interceptModel begin" << std::endl;
   // run a last call effort check
   Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-  Result::Status res = modelBasedRefinement(termSet);
+  Result::Status res;
+  {
+    // Model-based refinement can run for a long time without observing
+    // resource limits (monomial registration, CDCAC), so we let the resource
+    // manager abort it with a ResourceOutException. This is a narrow boundary:
+    // only the code reachable from here, and not the linear arithmetic solver,
+    // whose state is not exception safe.
+    //
+    // Audit of the state modified by modelBasedRefinement:
+    // - ExtState, the monomial database and the solvers of the strategy are
+    //   re-initialized at the start of every run (see the NL_INIT and
+    //   *_INIT steps of runStrategy). The monomial database is only modified
+    //   atomically, see MonomialDb::registerMonomial, and this information is
+    //   only used to find lemmas. The CAC is reset by
+    //   CoveringsSolver::initLastCall, and CoveringsSolver::checkFull does
+    //   not leave the flag that allows to use it to build a model.
+    // - Lemmas are only buffered here (pending or waiting lemmas in d_im). They
+    //   are complete lemmas, and are either sent later or cleared by the next
+    //   full effort check, see TheoryArith::postCheck. They are never partially
+    //   sent, since sending a lemma disarms the resource manager.
+    // - The model d_model is reset at the start of the next check, and the
+    //   arithmetic model is not modified until modelBasedRefinement returns.
+    // Thus an abort loses lemmas only, i.e. we "forget" refinements, and the
+    // solver is not in an inconsistent state. The abort is recorded by the
+    // resource manager, which taints the solver conservatively.
+    ResourceManager::ThrowScope arm(*d_env.getResourceManager(), true);
+    try
+    {
+      res = modelBasedRefinement(termSet);
+    }
+    catch (const ResourceOutException&)
+    {
+      // The resource manager has notified its listeners, which interrupt the
+      // SAT solver and the theory engine. Return to the theory engine without
+      // modifying the arithmetic model; it stops checking since a limit was
+      // reached.
+      Trace("nl-ext") << "model-based refinement aborted by resource limit"
+                      << std::endl;
+      return;
+    }
+  }
   if (res == Result::SAT)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;

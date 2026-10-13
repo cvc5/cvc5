@@ -239,6 +239,34 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   deque<RewriteStackElement> rewriteStack;
   rewriteStack.push_back(RewriteStackElement(node, theoryId));
 
+#ifdef CVC5_ASSERTIONS
+  // If we are unwinded by an exception (e.g. ResourceOutException), the nodes
+  // that are being fully rewritten by this call must be removed from
+  // d_rewriteStack, or else a later rewrite of them is wrongly flagged as
+  // non-terminating.
+  struct RewriteStackCleaner
+  {
+    RewriteStackCleaner(std::unordered_set<Node>& rs,
+                        deque<RewriteStackElement>& stack)
+        : d_rs(rs), d_stack(stack)
+    {
+    }
+    ~RewriteStackCleaner()
+    {
+      for (const RewriteStackElement& e : d_stack)
+      {
+        if (!e.d_fullRewriteNode.isNull())
+        {
+          d_rs.erase(e.d_fullRewriteNode);
+        }
+      }
+    }
+    std::unordered_set<Node>& d_rs;
+    deque<RewriteStackElement>& d_stack;
+  };
+  RewriteStackCleaner rsCleaner(*d_rewriteStack, rewriteStack);
+#endif
+
   // Rewrite until the stack is empty
   for (;;)
   {

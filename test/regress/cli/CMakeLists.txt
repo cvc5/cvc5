@@ -1952,6 +1952,13 @@ set(regress_0_tests
   regress0/rels/relations-ops.smt2
   regress0/rels/rels-sharing-simp.cvc.smt2
   regress0/reset-i.smt2
+  regress0/resource/rlimit-per-bv-bitblast.smt2
+  regress0/resource/rlimit-per-get-model.smt2
+  regress0/resource/rlimit-per-incremental-base-unknown.smt2
+  regress0/resource/rlimit-per-incremental-sat-after-pop.smt2
+  regress0/resource/rlimit-per-incremental-unsat.smt2
+  regress0/resource/rlimit-per-nl-refinement.smt2
+  regress0/resource/rlimit-per-preprocess.smt2
   regress0/sep/dispose-1.smt2
   regress0/sep/dup-nemp.smt2
   regress0/sep/issue10213-empty-model.smt2

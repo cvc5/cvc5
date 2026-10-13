@@ -17,6 +17,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -89,8 +90,10 @@ class BBRegistrar : public prop::Registrar
         || n.getKind() == Kind::BITVECTOR_SLT
         || n.getKind() == Kind::BITVECTOR_SLE)
     {
-      d_registeredAtoms.insert(n);
+      // Bit-blast first: this may be aborted by a resource limit, in which case
+      // the atom must not be marked as registered.
       d_bitblaster->bbAtom(n);
+      d_registeredAtoms.insert(n);
     }
   }
 
@@ -167,59 +170,99 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
 
   NodeManager* nm = nodeManager();
 
-  /* Process input assertions bit-blast queue. */
-  while (!d_bbInputFacts.empty())
+  // Bit-blasting and converting to CNF can run for a long time without
+  // observing resource limits, so we let the resource manager abort it with a
+  // ResourceOutException. This is only done in the default configuration
+  // (lazy bit-blasting, no abstraction module).
+  //
+  // Audit of the state that is modified by the code below, which makes
+  // aborting it safe:
+  // - The facts in d_bbInputFacts and d_bbFacts are only dequeued after they
+  //   have been processed, so an aborted fact is processed by a later check.
+  // - The bit-blaster only caches terms and atoms once they have been
+  //   bit-blasted completely, and its work is otherwise local.
+  // - The CNF stream only checks the limits between nodes, and every node
+  //   that has a literal has all its definitional clauses (see
+  //   CnfStream::toCNF). Asserting a fact is idempotent, so re-doing a
+  //   partially asserted fact is fine.
+  // - d_factLiteralCache, d_literalFactCache, d_assumptions, d_assertions are
+  //   only updated after all of the above succeeded for the fact.
+  // Thus, an abort loses no information, and the subsequent checks are not
+  // affected. The abort is nevertheless recorded by the resource manager,
+  // which taints the solver conservatively.
+  //
+  // The solve call of the SAT solver below is not aborted by an exception, it
+  // is interrupted cooperatively by ResourceLimitTerminator.
+  try
   {
-    Node fact = d_bbInputFacts.front();
-    d_bbInputFacts.pop();
-    /* Bit-blast fact and cache literal. */
-    if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
-    {
-      if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
-      {
-        handleEagerAtom(fact, true);
-      }
-      else
-      {
-        // Abstract arithmetic subterms before bit-blasting; the fresh
-        // abstraction constants are bit-blasted as variables, so the
-        // multiplier/divider circuits are never built. The fact -> literal
-        // bookkeeping still keys on the original `fact`.
-        Node afact = d_am ? d_am->abstract(fact) : fact;
-        d_bitblaster->bbAtom(afact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(afact);
-        d_cnfStream->convertAndAssert(bb_fact, false, false);
-      }
-    }
-    d_assertions.push_back(fact);
-  }
+    ResourceManager::ThrowScope arm(
+        *d_env.getResourceManager(),
+        d_am == nullptr
+            && options().bv.bitblastMode == options::BitblastMode::LAZY);
 
-  /* Process bit-blast queue and store SAT literals. */
-  while (!d_bbFacts.empty())
-  {
-    Node fact = d_bbFacts.front();
-    d_bbFacts.pop();
-    /* Bit-blast fact and cache literal. */
-    if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
+    /* Process input assertions bit-blast queue. */
+    while (!d_bbInputFacts.empty())
     {
-      prop::SatLiteral lit;
-      if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
+      Node fact = d_bbInputFacts.front();
+      /* Bit-blast fact and cache literal. */
+      if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
       {
-        handleEagerAtom(fact, false);
-        lit = d_cnfStream->getLiteral(fact[0]);
+        if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
+        {
+          handleEagerAtom(fact, true);
+        }
+        else
+        {
+          // Abstract arithmetic subterms before bit-blasting; the fresh
+          // abstraction constants are bit-blasted as variables, so the
+          // multiplier/divider circuits are never built. The fact -> literal
+          // bookkeeping still keys on the original `fact`.
+          Node afact = d_am ? d_am->abstract(fact) : fact;
+          d_bitblaster->bbAtom(afact);
+          Node bb_fact = d_bitblaster->getStoredBBAtom(afact);
+          d_cnfStream->convertAndAssert(bb_fact, false, false);
+        }
       }
-      else
-      {
-        Node afact = d_am ? d_am->abstract(fact) : fact;
-        d_bitblaster->bbAtom(afact);
-        Node bb_fact = d_bitblaster->getStoredBBAtom(afact);
-        d_cnfStream->ensureLiteral(bb_fact);
-        lit = d_cnfStream->getLiteral(bb_fact);
-      }
-      d_factLiteralCache[fact] = lit;
-      d_literalFactCache[lit] = fact;
+      d_assertions.push_back(fact);
+      d_bbInputFacts.pop();
     }
-    d_assumptions.push_back(d_factLiteralCache[fact]);
+
+    /* Process bit-blast queue and store SAT literals. */
+    while (!d_bbFacts.empty())
+    {
+      Node fact = d_bbFacts.front();
+      /* Bit-blast fact and cache literal. */
+      if (d_factLiteralCache.find(fact) == d_factLiteralCache.end())
+      {
+        prop::SatLiteral lit;
+        if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
+        {
+          handleEagerAtom(fact, false);
+          lit = d_cnfStream->getLiteral(fact[0]);
+        }
+        else
+        {
+          Node afact = d_am ? d_am->abstract(fact) : fact;
+          d_bitblaster->bbAtom(afact);
+          Node bb_fact = d_bitblaster->getStoredBBAtom(afact);
+          d_cnfStream->ensureLiteral(bb_fact);
+          lit = d_cnfStream->getLiteral(bb_fact);
+        }
+        d_factLiteralCache[fact] = lit;
+        d_literalFactCache[lit] = fact;
+      }
+      d_assumptions.push_back(d_factLiteralCache[fact]);
+      d_bbFacts.pop();
+    }
+  }
+  catch (const ResourceOutException&)
+  {
+    // The resource manager has notified its listeners, which interrupt the
+    // SAT solver and the theory engine. Return to the theory engine, which
+    // stops checking since a limit has been reached.
+    Trace("bv-bitblast") << "bit-blasting aborted by resource limit"
+                         << std::endl;
+    return;
   }
 
   std::vector<prop::SatLiteral> assumptions(d_assumptions.begin(),

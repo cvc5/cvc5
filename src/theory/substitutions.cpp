@@ -14,6 +14,7 @@
 
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 
@@ -78,6 +79,10 @@ Node SubstitutionMap::internalSubstitute(TNode t,
 
   while (!toVisit.empty())
   {
+    // This loop can be long running and does not spend resources. Aborting
+    // here is safe: the cache and the (compressed) substitutions are only ever
+    // updated with correct entries.
+    ResourceManager::checkpoint();
     // The current node we are processing
     substitution_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.d_node;

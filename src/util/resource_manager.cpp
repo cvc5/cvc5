@@ -152,6 +152,9 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats,
                                  const Options& options)
     : d_options(options),
       d_enabled(true),
+      d_throwArmed(false),
+      d_abortedThisCall(false),
+      d_checkCount(0),
       d_perCallTimer(),
       d_cumulativeTimeUsed(0),
       d_cumulativeResourceUsed(0),
@@ -178,6 +181,19 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats,
 }
 
 ResourceManager::~ResourceManager() {}
+
+ResourceManager::ThrowScope::ThrowScope(ResourceManager& rm, bool armed)
+    : d_rm(rm), d_previous(rm.d_throwArmed), d_previousArmed(s_armed)
+{
+  d_rm.d_throwArmed = armed && d_rm.d_options.base.resourceLimitAbort;
+  s_armed = d_rm.d_throwArmed ? &d_rm : nullptr;
+}
+
+ResourceManager::ThrowScope::~ThrowScope()
+{
+  d_rm.d_throwArmed = d_previous;
+  s_armed = d_previousArmed;
+}
 
 uint64_t ResourceManager::getResourceUsage() const
 {
@@ -218,12 +234,35 @@ void ResourceManager::spendResource(uint64_t amount)
                      << d_perCallTimer.elapsed() << std::endl;
     }
 
-    for (Listener* l : d_listeners)
-    {
-      l->notify();
-    }
+    notifyAndAbort();
   }
 }
+
+void ResourceManager::notifyAndAbort()
+{
+  for (Listener* l : d_listeners)
+  {
+    l->notify();
+  }
+  if (d_throwArmed)
+  {
+    // The listeners above have already interrupted the SAT solver. Record
+    // that an abort happened and unwind to the nearest catching frame.
+    d_abortedThisCall = true;
+    throw ResourceOutException(outOfTime() && !outOfResources());
+  }
+}
+
+void ResourceManager::checkLimitSlow()
+{
+  if (out())
+  {
+    Trace("limit") << "ResourceManager::checkLimit: interrupt!" << std::endl;
+    notifyAndAbort();
+  }
+}
+
+thread_local ResourceManager* ResourceManager::s_armed = nullptr;
 
 void ResourceManager::spendResource(Resource r)
 {
@@ -253,6 +292,8 @@ void ResourceManager::beginCall()
   // begin call
   d_perCallTimer.set(d_options.base.perCallMillisecondLimit);
   d_thisCallResourceUsed = 0;
+  d_abortedThisCall = false;
+  d_checkCount = 0;
 
   if (d_options.base.cumulativeResourceLimit > 0)
   {
