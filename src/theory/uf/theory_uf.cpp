@@ -366,7 +366,8 @@ void TheoryUF::preRegisterTerm(TNode node)
       {
         // If node is a lambda, it must be marked as a shared term. This is to
         // ensure we split on the equality of lambdas with other functions when
-        // doing care graph based theory combination.
+        // doing care graph based theory combination. Note that the skolem of
+        // a lifted lambda is an ordinary function, and is not marked here.
         if (LambdaLift::isLambda(node))
         {
           addSharedTerm(node);

@@ -101,24 +101,45 @@ TrustNode LambdaLift::lift(Node node)
 
 TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
 {
+  // This method is called on the APPLY_UF, LAMBDA and FUNCTION_ARRAY_CONST
+  // terms visited by theory preprocessing (see HoExtension::ppRewrite). The
+  // theory preprocessor processes children before their parents, and never
+  // descends into the bodies of closures. Hence, when this method is called on
+  // an APPLY_UF, its arguments have already been processed by the lambda case
+  // below.
   if (node.getKind() == Kind::APPLY_UF)
   {
     if (!options().uf.ufHoLazyLambdaLift)
     {
-      // all lambdas were already lifted
+      // With eager lifting, every closed lambda argument was already replaced
+      // by its skolem when the children of node were processed.
       return TrustNode::null();
     }
     // If a lambda that needs lifting occurs as an argument to APPLY_UF, it
     // impacts model construction for the function, and thus must be lifted.
+    // For example, if g : Int x Int -> Int, then
+    //   (P (lambda ((x Int)) (g x x)))
+    // is rewritten to (P k), where k is the purification skolem of the lambda,
+    // and the lemma
+    //   (forall ((x Int)) (= (k x) ((lambda ((x Int)) (g x x)) x)))
+    // is added. Only the arguments of this application are replaced. Other
+    // occurrences of the same lambda, e.g. in (= h (lambda ...)), are kept,
+    // and are lifted lazily if necessary (see HoExtension::checkLazyLambda).
     std::vector<Node> children;
     children.push_back(node.getOperator());
     bool childChanged = false;
     for (const Node& nc : node)
     {
+      // nc may be a lambda or a function array constant. The latter never
+      // needs lifting, since its body has no free symbols. If nc was purified
+      // by the lambda case below, it no longer needs lifting either.
       Node lam = FunctionConst::toLambda(nc);
       Node skolem;
       if (!lam.isNull() && needsLift(lam))
       {
+        // This returns the same skolem for every occurrence of lam, and adds
+        // its defining lemma once per user context. It returns null if lam
+        // has free variables, in which case nc is kept.
         skolem = liftToSkolem(lam, lems);
       }
       childChanged = childChanged || !skolem.isNull();
@@ -131,8 +152,12 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     Node ret = nodeManager()->mkNode(Kind::APPLY_UF, children);
     Trace("uf-lazy-ll") << "Lift arguments: " << node << " -> " << ret
                         << std::endl;
+    // The preprocessor revisits ret. Its arguments that were lambdas are now
+    // skolems, so no further rewrite applies.
     return mkTrustedRewrite(node, ret);
   }
+  // Otherwise, node is a lambda or a function array constant, and lam is its
+  // lambda form. Any other node is not rewritten.
   Node lam = FunctionConst::toLambda(node);
   if (lam.isNull())
   {
@@ -144,6 +169,10 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     // when they impact model construction, that is, when they occur as
     // arguments to APPLY_UF (see above), or are equated to ordinary functions
     // (see HoExtension::checkLazyLambda).
+    //
+    // A lambda that does not need lifting stays in the term. Its applications
+    // are beta-reduced by the rewriter, and it can be used directly as the
+    // model value of its equivalence class.
     if (!needsLift(lam))
     {
       return TrustNode::null();
@@ -152,6 +181,10 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     // and add purification lemmas to lems.
     PurifyGroundNodeConverter pgnc(nodeManager());
     Node clam = pgnc.convert(lam);
+    // If purification does not help, the lambda also stays in the term. It is
+    // lifted later if it occurs as an argument to APPLY_UF (see above), or if
+    // it is equated to an ordinary function (see
+    // HoExtension::checkLazyLambda).
     if (needsLift(clam))
     {
       return TrustNode::null();
@@ -167,9 +200,13 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
           << "- purify lemma: " << k.eqNode(t) << std::endl;
       lems.push_back(SkolemLemma(trnk, k));
     }
+    // We return the purified lambda itself, not a skolem for it. The
+    // preprocessor revisits clam, which does not need lifting, so no further
+    // rewrite applies. Note that this rewrite has no proof generator.
     return TrustNode::mkTrustRewrite(node, clam);
   }
-  // otherwise, we lift all lambdas eagerly
+  // Otherwise, we lift all lambdas eagerly (--no-uf-lazy-ll): node is replaced
+  // by its skolem, and the lemma defining the skolem is added.
   Node skolem = liftToSkolem(lam, lems);
   if (skolem.isNull())
   {
@@ -254,6 +291,12 @@ bool LambdaLift::needsLift(const Node& lam)
 
 Node LambdaLift::getLiftLemma(const Node& f, const Node& n) const
 {
+  // Unlike the lemma of lift, which defines a fresh skolem, this lemma is
+  // stated for a term f that already has a meaning, and hence it must be
+  // conditioned on (= f n). It is valid by congruence. Note that f is any
+  // ordinary function in the equivalence class of n, and need not be a
+  // variable, e.g. it may be a partial application (@ g t), in which case the
+  // rewriter turns (f x) into a full application of g.
   Node lam = getLambdaFor(n);
   Assert(!lam.isNull());
   NodeManager* nm = nodeManager();
@@ -261,6 +304,8 @@ Node LambdaLift::getLiftLemma(const Node& f, const Node& n) const
   std::vector<Node> lapp;
   fapp.push_back(f);
   lapp.push_back(lam);
+  // We use the bound variables of lam as the variables of the quantified
+  // formula, as in getAssertionFor.
   fapp.insert(fapp.end(), lam[0].begin(), lam[0].end());
   lapp.insert(lapp.end(), lam[0].begin(), lam[0].end());
   // We use (lam x) instead of the body of lam as the right hand side, since
