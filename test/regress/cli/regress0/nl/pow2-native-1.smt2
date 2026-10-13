@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic QF_NIA)
 (set-info :status sat)

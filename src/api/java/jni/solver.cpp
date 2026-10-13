@@ -1029,10 +1029,11 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
   std::string cSymbol(s);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
   std::vector<Sort> sorts = getObjectsFromPointers<Sort>(env, sortPointers);
+  JavaVM* vm = nullptr;
+  env->GetJavaVM(&vm);
   std::function<Term(std::vector<Term>)> fn =
-      [env, oracleReference](std::vector<Term> input) {
-        Term term = applyOracle(env, oracleReference, input);
-        return term;
+      [vm, oracleReference](std::vector<Term> input) {
+        return applyOracle(vm, oracleReference, input);
       };
   Term* retPointer =
       new Term(api_solver->declareOracleFun(cSymbol, sorts, *sort, fn));
@@ -1056,7 +1057,9 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
   ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
   TermManager* tm = reinterpret_cast<TermManager*>(termManagerPointer);
   jobject pluginReference = api_solver->addGlobalReference(env, plugin);
-  ApiPlugin* p = new ApiPlugin(*tm, env, pluginReference);
+  JavaVM* vm = nullptr;
+  env->GetJavaVM(&vm);
+  ApiPlugin* p = new ApiPlugin(*tm, vm, pluginReference);
   api_solver->addPluginPointer(reinterpret_cast<jlong>(p));
   api_solver->addPlugin(*p);
 

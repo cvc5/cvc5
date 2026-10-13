@@ -475,20 +475,6 @@ bool Smt2State::hasCardinalityConstraints() const
 
 bool Smt2State::logicIsSet() { return d_logicSet; }
 
-bool Smt2State::getTesterName(Term cons, std::string& name)
-{
-  if (strictModeEnabled())
-  {
-    // 2.6 or above uses indexed tester symbols, if we are in strict mode,
-    // we do not automatically define is-cons for constructor cons.
-    return false;
-  }
-  std::stringstream ss;
-  ss << "is-" << cons;
-  name = ss.str();
-  return true;
-}
-
 Term Smt2State::mkIndexedConstant(const std::string& name,
                                   const std::vector<uint32_t>& numerals)
 {
@@ -619,8 +605,10 @@ Term Smt2State::mkIndexedOp(Kind k,
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
       Datatype d = sf.getDatatype();
-      // lookup by name
-      DatatypeConstructor dc = d.getConstructor(f.toString());
+      // lookup by name, using the raw symbol since toString() may print
+      // the name as a quoted symbol, e.g. |C,|
+      DatatypeConstructor dc =
+          d.getConstructor(f.hasSymbol() ? f.getSymbol() : f.toString());
       return dc.getTesterTerm();
     }
     else
@@ -630,12 +618,14 @@ Term Smt2State::mkIndexedOp(Kind k,
       {
         parseError("Bad syntax for (_ update X), X must be a selector.");
       }
-      std::string sname = f.toString();
+      // use the raw symbol since toString() may print the name as a quoted
+      // symbol, e.g. |fst,|
+      std::string sname = f.hasSymbol() ? f.getSymbol() : f.toString();
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeSelectorDomainSort();
       Datatype d = sf.getDatatype();
       // find the selector
-      DatatypeSelector ds = d.getSelector(f.toString());
+      DatatypeSelector ds = d.getSelector(sname);
       // get the updater term
       return ds.getUpdaterTerm();
     }
@@ -741,7 +731,13 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
       parseError(ss.str());
     }
 
-    terms.push_back(getVariable(name));
+    Term t = getVariable(name);
+    // getVariable returns null if the symbol is overloaded
+    if (t.isNull())
+    {
+      parseError("Overloaded constants must be type cast.");
+    }
+    terms.push_back(t);
   }
 
   return std::unique_ptr<Cmd>(new SygusInvConstraintCommand(terms));
@@ -1185,28 +1181,6 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
   p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
-Term Smt2State::parseOpToExpr(ParseOp& p)
-{
-  Trace("parser") << "parseOpToExpr: " << p << std::endl;
-  Term expr;
-  if (p.d_kind != Kind::NULL_TERM)
-  {
-    parseError(
-        "Bad syntax for qualified identifier operator in term position.");
-  }
-  else if (!p.d_expr.isNull())
-  {
-    expr = p.d_expr;
-  }
-  else
-  {
-    checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-    expr = getVariable(p.d_name);
-  }
-  Assert(!expr.isNull());
-  return expr;
-}
-
 Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
 {
   bool isBuiltinOperator = false;
@@ -1232,6 +1206,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // output: (nullable.lift f x y)
       ParserState::checkDeclaration(p.d_name, DeclarationCheck::CHECK_DECLARED);
       Term function = getVariable(p.d_name);
+      // getVariable returns null if the symbol is overloaded
+      if (function.isNull())
+      {
+        parseError("Overloaded constants must be type cast.");
+      }
       args.insert(args.begin(), function);
       return d_tm.mkTerm(Kind::NULLABLE_LIFT, args);
     }

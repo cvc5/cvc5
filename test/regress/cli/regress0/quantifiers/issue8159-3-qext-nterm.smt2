@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: sat
 (set-logic NIA)
 (set-option :ext-rewrite-quant true)

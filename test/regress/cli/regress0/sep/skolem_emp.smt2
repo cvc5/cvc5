@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sep-pre-skolem-emp
 ; EXPECT: sat
 ; DISABLE-TESTER: model

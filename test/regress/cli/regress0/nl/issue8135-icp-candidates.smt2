@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; REQUIRES: poly
 ; COMMAND-LINE: --nl-icp
 ; EXPECT: sat

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: dump
 ; REQUIRES: no-competition
 ; EXPECT: (error "Fatal error in option parsing: expert option global-negate cannot be set in safe mode.")

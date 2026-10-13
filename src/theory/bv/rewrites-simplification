@@ -115,7 +115,7 @@
   ))
 (define-cond-rule bv-ashr-by-const-2
   ((x ?BitVec) (amount Int) (sz Int) (nm1 Int) (rn Int))
-  (and (>= amount (@bvsize x)) (= nm1 (- (@bvsize x) 1)) (= rn (@bvsize x)))
+  (and (>= amount (@bvsize x)) (< amount (int.pow2 (@bvsize x))) (= nm1 (- (@bvsize x) 1)) (= rn (@bvsize x)))
   (bvashr x (@bv amount sz))
   (repeat rn (extract nm1 nm1 x)))
 
@@ -339,7 +339,14 @@
     (x0n (ite (= x1i 0) x1in (- x1in (+ 1 (int.log2 x1i)))))
     (y0n (ite (= y1i 0) y1in (- y1in (+ 1 (int.log2 y1i)))))
   )
-  (and (> n 64) (<= (- (* 2 n) (+ x0n y0n)) low) (= w (+ 1 (- high low))))
+  (and
+    (> n 64)
+    (>= x1i 0)
+    (< x1i (int.pow2 x1in))
+    (>= y1i 0)
+    (< y1i (int.pow2 y1in))
+    (<= (- (* 2 n) (+ x0n y0n)) low)
+    (= w (+ 1 (- high low))))
   (extract high low (bvmul
     (concat (@bv x1i x1in) x2)
     (concat (@bv y1i y1in) y2)))

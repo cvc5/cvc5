@@ -961,8 +961,8 @@ public class Term extends AbstractPointer implements Comparable<Term>, Iterable<
   @Override
   public int hashCode()
   {
-    return hashCode(pointer);
+    return Long.hashCode(hashCode(pointer));
   }
 
-  private native int hashCode(long pointer);
+  private native long hashCode(long pointer);
 }

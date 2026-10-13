@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegis-sample=use

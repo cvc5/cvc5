@@ -134,15 +134,22 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{F_1 \dots F_n \mid t, ids?}{t = t \circ \sigma_{ids}(F_n)
-   *   \circ \cdots \circ \sigma_{ids}(F_1)}
+   *   \inferrule{F_1 \dots F_n \mid t, ids?, ida?}{t =
+   *   \texttt{apply}_{ida}(t, \sigma_{ids}(F_1), \dots, \sigma_{ids}(F_n))}
    *
-   * where :math:`\sigma_{ids}(F_i)` are substitutions, which notice are applied
-   * in reverse order. Notice that :math:`ids` is a MethodId identifier, which
-   * determines how to convert the formulas :math:`F_1 \dots F_n` into
-   * substitutions. It is an optional argument, where by default the premises
-   * are equalities of the form `(= x y)` and converted into substitutions
-   * :math:`x\mapsto y`.
+   * where :math:`\sigma_{ids}(F_i)` are substitutions. The optional MethodId
+   * identifier :math:`ids` determines how to convert the formulas
+   * :math:`F_1 \dots F_n` into substitutions. It defaults to ``SB_DEFAULT``,
+   * where the premises are equalities of the form `(= x y)` and converted into
+   * substitutions :math:`x\mapsto y`.
+   *
+   * The optional MethodId identifier :math:`ida` determines how
+   * :math:`\texttt{apply}_{ida}` applies these substitutions to :math:`t`.
+   * It defaults to ``SBA_SEQUENTIAL``, which applies them in reverse order,
+   * yielding :math:`t \circ \sigma_{ids}(F_n) \circ \cdots \circ \sigma_{ids}(F_1)`.
+   * Alternatively, ``SBA_SIMUL`` applies the substitutions simultaneously, and
+   * ``SBA_FIXPOINT`` applies them to a fixpoint. For ``SBA_FIXPOINT``, the
+   * substitutions must form a terminating rewrite system.
    * \endverbatim
    */
   EVALUE(SUBS),
@@ -1568,6 +1575,18 @@ enum ENUM(ProofRule)
   EVALUE(SETS_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets choose membership**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \mathit{set.choose}(a)}
+   *   {a = \emptyset \vee \mathit{set.member}(\mathit{set.choose}(a),a)}
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_CHOOSE_MEMBER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Sets filter up**
    *
    * .. math::
@@ -2153,7 +2172,7 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid m, l \diamond r}{(m > 0 \land l \diamond r) \rightarrow m \cdot l \diamond m \cdot r}
    *
-   * where :math:`\diamond \in \{=, \neq, <, \leq, >, \geq\}`.
+   * where :math:`\diamond \in \{=, <, \leq, >, \geq\}`.
    * \endverbatim
    */
   EVALUE(ARITH_MULT_POS),
@@ -2165,9 +2184,9 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid m, l \diamond r}{(m < 0 \land l \diamond r) \rightarrow m \cdot l \diamond_{inv} m \cdot r}
    *
-   * where :math:`\diamond \in \{=, \neq, <, \leq, >, \geq\}` and
+   * where :math:`\diamond \in \{=, <, \leq, >, \geq\}` and
    * :math:`\diamond_{inv}` is the inverted relation symbol. The inverse of
-   * :math:`\neq` is itself.
+   * :math:`=` is itself.
    * \endverbatim
    */
   EVALUE(ARITH_MULT_NEG),
@@ -2187,7 +2206,61 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(ARITH_MULT_TANGENT),
-
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Initial refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t}{
+   *     ((t \geq 0) \rightarrow (\texttt{pow2}(t) > 0))
+   *     \land ((t \neq 0) \rightarrow (\texttt{pow2}(t) \bmod 2 = 0))
+   *     \land (t < 0) \rightarrow (\texttt{pow2}(t) = 0)}
+   *
+   * where :math:`t` is an integer term.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_INIT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Monotonicity refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid x, y}{
+   *     (0 \leq x \land x < y) \rightarrow
+   *     (\texttt{pow2}(x) < \texttt{pow2}(y))}
+   *
+   * where :math:`x,y` are integer terms.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_MONOTONE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Division refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t}{(t \geq 0) \rightarrow ((t \mathbin{\texttt{div}} \texttt{pow2}(t)) = 0)}
+   *
+   * where :math:`t` is an integer term. This is sound because for non-negative
+   * :math:`t` we have :math:`t < \texttt{pow2}(t)`.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_DIV0),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Arithmetic -- Pow2 -- Lower bound refinement**
+   *
+   * .. math::
+   *
+   *   \inferrule{- \mid t, k}{(t \geq k \land k \geq 7) \rightarrow
+   *     (\texttt{pow2}(t) > k \cdot t + k \cdot k)}
+   *
+   * where :math:`t` is an integer term and :math:`k` is an integer constant.
+   * \endverbatim
+   */
+  EVALUE(ARITH_POW2_LOWER_BOUND),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **Arithmetic -- Transcendentals -- Assert bounds on Pi**
@@ -2268,7 +2341,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */
@@ -2284,14 +2357,19 @@ enum ENUM(ProofRule)
    *   \leq \texttt{secant-pos}(\exp, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term
-   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p^*` be
-   * a modification of the :math:`d`'th taylor polynomial at zero (also called
-   * the Maclaurin series) of the exponential function as follows where
-   * :math:`p(d-1)` is the regular Maclaurin series of degree :math:`d-1`:
+   * and :math:`l,u` are lower and upper bounds on :math:`t` with
+   * :math:`0 \leq l \leq u`. Let :math:`p^*` be a modification of the
+   * :math:`d`'th taylor polynomial at zero (also called the Maclaurin series)
+   * of the exponential function as follows where :math:`p(d-1)` is the regular
+   * Maclaurin series of degree :math:`d-1` and :math:`n = d`:
    *
    * .. math::
    *
-   *   p^* := p(d-1) \cdot (\frac{1 - t^n}{n!})^{-1}
+   *   p^* := p(d-1) \cdot (1 - \frac{t^n}{n!})^{-1}
+   *
+   * Note that :math:`p^*` is an upper bound for :math:`\exp` on
+   * :math:`[l,u]` only if its denominator is positive there, hence this rule
+   * additionally requires that :math:`\frac{u^n}{n!} < 1`.
    *
    * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
    * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
@@ -2302,7 +2380,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */
@@ -2498,50 +2576,65 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields - Polynomial Conversion**
+   * **Finite Fields -- Polynomial normalization**
    *
    * .. math::
    *
-   *   \inferrule{- \mid \ell_1, \dots, \ell_n, G}
-   *   {(\ell_1 \land \dots \land \ell_n) \iff \mathcal V(\langle G \rangle) \neq \emptyset}
+   *   \inferrule{- \mid t = s}{t = s}
    *
-   * where each :math:`\ell_i` is a literal in the Finite Fields theory, :math:`G = (g_1, \dots, g_m)`
-   * in which each :math:`g_i` is a polynomial that represents the literal :math:`\ell_i`.
+   * where :math:`\texttt{arith::PolyNorm::isArithPolyNorm(t, s)} = \top`. This
+   * method normalizes polynomials :math:`s` and :math:`t` over finite fields.
+   * \endverbatim
+   */
+  EVALUE(FF_POLY_NORM),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Polynomial normalization for equalities**
+   *
+   * .. math::
+   *
+   *  \inferrule{c_x \cdot (x_1 + -x_2) = c_y \cdot (y_1 + -y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
+   *            {(x_1 = x_2) = (y_1 = y_2)}
+   *
+   * where :math:`c_x` and :math:`c_y` are scaling factors.
+   * \endverbatim
+   */
+  EVALUE(FF_POLY_NORM_EQ),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Finite Fields -- Polynomial conversion**
+   *
+   * .. math::
+   *
+   *   \inferrule{(\ell_1 \land \dots \land l_n)  \mid (\ell_1, \dots, \ell_n), G}
+   *   {\mathcal V(\langle G \rangle) \neq \emptyset}
+   *
+   * where each :math:`\ell_i = (g_i = 0)` is an equality literal in the Finite
+   * Fields theory, :math:`G = (g_1, \dots, g_m)`, and :math:`\mathcal V(\langle
+   * G \rangle)` denotes the variety of the ideal generated by :math:`G`.
    * \endverbatim
    */
   EVALUE(FF_POLY_CONVERSION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Field Polynomial Inclusion**
+   * **Finite Fields -- Field polynomial inclusion**
    *
    * .. math::
    *
    *   \inferrule{\mathcal V(\langle G \rangle) \mid F}
    *   {\mathcal V(\langle G \cup F \rangle) \neq \emptyset}
    *
-   * where each :math:`G, F` are a set of polynomials. In particular, F contains only field polynomials.
+   * where each :math:`G, F` are sets of polynomials. In particular, F contains only field polynomials.
    * \endverbatim
    */
   EVALUE(FF_FIELD_POLYS),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Ideal Membership: Zero**
+   * **Finite Fields -- Ideal membership: generators**
    *
    * .. math::
    *
-   *   \inferrule{- \mid G}{0 \in \langle G \rangle}
-   *
-   * where :math:`G` is a set of polynomials.
-   * \endverbatim
-   */
-  EVALUE(FF_IDEAL_ZERO),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Ideal Membership: Generators**
-   *
-   * .. math::
-   *
-   *   \inferrule{- \mid p, G}{p \in \langle G \rangle}{\text{if } p \in G}
+   *   \inferrule{- \mid p, G}{p \in \langle G \rangle}
    *
    * where :math:`G` is a set of polynomials and :math:`p \in G`.
    * \endverbatim
@@ -2549,97 +2642,86 @@ enum ENUM(ProofRule)
   EVALUE(FF_IDEAL_GENERATOR),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Ideal Membership: Result of reduction**
+   * **Finite Fields -- Ideal membership: polynomial combination**
    *
    * .. math::
    *
-   *   \inferrule{p \in \langle G \rangle, r_1 \in \langle G \rangle, \dots, \langle r_k \in \langle G \rangle \mid \mathtt{Seq}_m, \mathtt{Seq}_r, \mathtt{reduce}(p, R)}
-   *   {\mathtt{reduce}(p, R) \in \langle G \rangle}
+   *   \inferrule{r_1 \in \langle G \rangle, \dots, r_k \in \langle G \rangle \mid \mathtt{Seq}_r, \mathtt{Seq}_m, p}
+   *   {\sum_{i = 0}^k m_i * r_i \in \langle G \rangle}
    *
-   * where :math:`G` is a set of polynomials, :math:`R = \{r_1, \dots, r_k\}`
-   * :math:`\mathtt{reduce}(p, R)` is the result of reducing the polynomial :math:`\mathtt{p}` by elements in the set :math:`R`.
-   * :math:`\mathtt{Seq}_m` is the sequence of multipliers used in a :math:`\mathtt{reduce}` operation and 
-   * :math:`\mathtt{Seq}_r` is the sequence of reductors used in a :math:`\mathtt{reduce}` operation.
+   * where :math:`G` is a set of polynomials, and :math:`\mathtt{Seq}_r = (r_1,
+   * \dots, r_k)` and :math:`\mathtt{Seq}_m = (m_1, \dots, m_k)` are a sequence
+   * of polynomials, such that :math:`p = \sum_i^k m_i * r_i`.
    * \endverbatim
    */
-  EVALUE(FF_IDEAL_REDUCE_DOWN),
+  EVALUE(FF_POLY_COMBINATION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Ideal Membership: Membership Test**
+   * **Finite Fields -- Ideal membership: macro polynomial combination**
    *
    * .. math::
    *
-   *   \inferrule{0 \in \langle G \rangle, r_1 \in \langle G \rangle, \dots, \langle r_m \in \langle G \rangle \mid \mathtt{Seq}_m \mathtt{Seq}_r, p}
-   *   {p \in \langle G \rangle}{\text{if} \mathtt{reduce}(p, R) = 0}
+   *   \inferrule{r_1 \in \langle G \rangle, \dots, r_k \in \langle G \rangle \mid \mathtt{Seq}_r, \mathtt{Seq}_m, p}
+   *   {p \in \langle G \rangle}
    *
-   * where :math:`G` is a set of polynomials, :math:`R = \{r_1, \dots, r_m\}`
-   * :math:`p` is the polynomial we are testing the membership
-   * :math:`\mathtt{reduce}(p, R)` is the result of reducing the polynomial :math:`\mathtt{p}` by elements in the set \(R\),
-   * such that :math:`\mathtt{reduce}(p, R) = 0`.
-   * :math:`\mathtt{Seq}_m` is the sequence of multipliers used in a :math:`\mathtt{reduce}` operation and 
-   * :math:`\mathtt{Seq}_r` is the sequence of reductors used in a :math:`\mathtt{reduce}` operation.
+   * where :math:`G` is a set of polynomials, and :math:`\mathtt{Seq}_r = (r_1,
+   * \dots, r_k)` and :math:`\mathtt{Seq}_m = (m_1, \dots, m_k)` are a sequence
+   * of polynomials, such that :math:`p = \sum_i^k m_i * r_i`.
+   * This macro is elaborated by applications of :cpp:enumerator:`FF_POLY_COMBINATION <cvc5::ProofRule::FF_POLY_COMBINATION>`,
+   * :cpp:enumerator:`FF_ARITH_POLY_NORM <cvc5::ProofRule::ARITH_POLY_NORM>`,
+   * :cpp:enumerator:`REFL <cvc5::ProofRule::REFL>`,
+   * :cpp:enumerator:`CONG <cvc5::ProofRule::CONG>`,
+   * :cpp:enumerator:`EQ_RESOLVE <cvc5::ProofRule::EQ_RESOLVE>`.
    * \endverbatim
    */
-  EVALUE(FF_IDEAL_REDUCE_UP),
+  EVALUE(MACRO_FF_POLY_COMBINATION),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Ideal Membership: S-Polynomials**
+   * **Finite Fields -- Disequalities conversion**
    *
    * .. math::
    *
-   *   \inferrule{p \in \langle G \rangle, q \in \langle G \rangle \mid c_1, c_2, \mathtt{spoly}(p, q)}
-   *   {\mathtt{spoly}(p, q) \in \langle G \rangle}
+   *   \inferrule{- \mid l, r, k}
+   *   {l \neq r = ((l + -r) * k + -1 = 0)}
    *
-   * where :math:`G` is a set of polynomials and \(c_1, c_2\) are polynomials such that
-   * :math:`\mathtt{spoly}(p, q) = c_1 * p + c_2* q`.
+   * where :math:`k` is the :math:`\texttt{FF_DISEQ_WITNESS}` skolem for
+   * :math:`(l, r)`, representing the multiplicative inverse :math:`(l - r)^{-1}`
+   * that witnesses the disequality :math:`l \neq r`.
    * \endverbatim
    */
-  EVALUE(FF_IDEAL_SPOLY),
+  EVALUE(FF_DISEQ),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Ideal Membership: Monic Polynomials**
+   * **Finite Fields -- Branch on roots of a univariate polynomial**
    *
    * .. math::
    *
-   *   \inferrule{p \in \langle G \rangle \mid c, \mathtt{monic}(p)}
-   *   {\mathtt{monic}(p) \in \langle G \rangle }
+   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset, p \in \langle G
+   *   \rangle \mid N, G, x, \mathtt{Roots}(p), p, r, (d, A, B)?}
+   *   {\lor_{v \in \mathtt{Roots}(p)} \mathcal V(\langle G \cup \{x + -v\}\rangle)
+   *   \neq \emptyset}
    *
-   * where :math:`G` is a set of polynomials, and :math:`c` is a constant in the field such that
-   * :math:`\mathtt{monic}(p) = c * p` and :math:`\mathtt{monic}(p)` is a monic polynomial. 
-   * \endverbatim
-   */
-  EVALUE(FF_IDEAL_MONIC),  
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Branch on Roots of a univariate polynomial**
-   *
-   * .. math::
-   *
-   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset, p \in \langle G \rangle \mid N, \mathtt{Roots} (p)}
-   *   {\lor_{v \in \mathtt{Roots}(p)} \mathcal V(\langle G \cup \{x - v \}\rangle) \neq \emptyset}
-   *
-   * where :math:`p` is an univariate polynomial in variable :math:`x`, G is a set of polynomials and
-   * N is the set of non-assigned variables, such that  :math:`x \not \in N`.
-   *
-   * This rule states that when there is a univariate polynomial in the ideal generated by :math:`G` then
-   * during common root search, it is enough to branch on the roots of such polynomial.
+   * where :math:`p` is a univariate polynomial in :math:`x`, :math:`G` is a set
+   * of polynomials, :math:`N` is the set of non-assigned variables,
+   * :math:`r = (x^q \bmod p) - x` is the reduced field polynomial, and the
+   * optional :math:`(d, A, B)` is a Bezout witness satisfying
+   * :math:`A p + B r = d`. When provided, since :math:`\gcd(p, x^q - x) =
+   * \gcd(p, r) = d`, this establishes that :math:`\mathtt{Roots}(p)` are
+   * exactly the roots of :math:`p` in :math:`\mathbb{F}_q`.
    * \endverbatim
    */
   EVALUE(FF_ROOT_BRANCH),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Finite Fields -- Exhaustive search through all elements of a finite field**
+   * **Finite Fields -- Exhaustive branching on a single variable**
    *
    * .. math::
    *
-   *   \inferrule{\mathcal{V}(\langle G \rangle) \neq \emptyset \mid N}
-   *   {\lor_{x \in N} \lor_{v \in F_p} \mathcal V(\langle G \cup \{x - v \}\rangle) \neq \emptyset}
+   *   \inferrule{\mathcal V(\langle G \rangle) \neq \emptyset \mid x, G}
+   *   {\bigvee_{v \in F_p} \mathcal V(\langle G \cup \{x + -v\}\rangle) \neq \emptyset}
    *
-   * where :math:`N` is the set of unassigned variables, :math:`F_p` is the fixed prime field
-   * and :math:`G` is a set of polynomials.
-   * 
-   * This rule is an analogue of FF_ROOT_BRANCH where instead of branching on the
-   * roots of a univariate polynomial, it branches on all possible values in the field.
+   * Branches on a single variable :math:`x`, producing the disjunction over
+   * all field values.
    * \endverbatim
    */
   EVALUE(FF_EXHAUST_BRANCH),
@@ -2656,21 +2738,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(FF_ONE_UNSAT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- LFSC**
-   *
-   * Place holder for LFSC rules.
-   *
-   * .. math::
-   *
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external LFSC calculus.
-   * \endverbatim
-   */
-  EVALUE(LFSC_RULE),
   /**
    * \verbatim embed:rst:leading-asterisk
    * **External -- Alethe**
@@ -4143,17 +4210,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(SETS_EVAL_OP),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets insert elimination**
-   *
-   * .. math::
-   *
-   *   \mathit{set.insert}(t_1, \ldots, t_n, S) = \texttt{set.union}(\texttt{sets.singleton}(t_1), \ldots, \texttt{sets.singleton}(t_n), S)
-   *
-   * \endverbatim
-   */
-  EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-div-total-zero-real */
@@ -4614,6 +4670,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_MEMBER_EMP),
   /** Auto-generated from RARE rule sets-subset-elim */
   EVALUE(SETS_SUBSET_ELIM),
+  /** Auto-generated from RARE rule sets-insert-elim */
+  EVALUE(SETS_INSERT_ELIM),
   /** Auto-generated from RARE rule sets-union-comm */
   EVALUE(SETS_UNION_COMM),
   /** Auto-generated from RARE rule sets-inter-comm */
@@ -4674,6 +4732,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEN_REPLACE_ALL_INV),
   /** Auto-generated from RARE rule str-len-update-inv */
   EVALUE(STR_LEN_UPDATE_INV),
+  /** Auto-generated from RARE rule str-update-oob */
+  EVALUE(STR_UPDATE_OOB),
+  /** Auto-generated from RARE rule str-update-rev */
+  EVALUE(STR_UPDATE_REV),
+  /** Auto-generated from RARE rule str-update-fit */
+  EVALUE(STR_UPDATE_FIT),
+  /** Auto-generated from RARE rule str-update-concat-fit0 */
+  EVALUE(STR_UPDATE_CONCAT_FIT0),
+  /** Auto-generated from RARE rule str-update-concat-fit */
+  EVALUE(STR_UPDATE_CONCAT_FIT),
   /** Auto-generated from RARE rule str-update-in-first-concat */
   EVALUE(STR_UPDATE_IN_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-len-substr-in-range */
@@ -4746,6 +4814,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_ID),
   /** Auto-generated from RARE rule str-replace-prefix */
   EVALUE(STR_REPLACE_PREFIX),
+  /** Auto-generated from RARE rule str-replace-prefix-concat */
+  EVALUE(STR_REPLACE_PREFIX_CONCAT),
   /** Auto-generated from RARE rule str-replace-no-contains */
   EVALUE(STR_REPLACE_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-find-base */
@@ -4760,6 +4830,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_FIND_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-all-find-pre */
+  EVALUE(STR_REPLACE_ALL_FIND_PRE),
+  /** Auto-generated from RARE rule str-replace-all-find */
+  EVALUE(STR_REPLACE_ALL_FIND),
   /** Auto-generated from RARE rule str-replace-all-empty */
   EVALUE(STR_REPLACE_ALL_EMPTY),
   /** Auto-generated from RARE rule str-replace-all-id */
@@ -4788,6 +4862,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
   EVALUE(STR_INDEXOF_CONTAINS_CONCAT_PRE),
+  /** Auto-generated from RARE rule str-indexof-prefix-concat */
+  EVALUE(STR_INDEXOF_PREFIX_CONCAT),
+  /** Auto-generated from RARE rule str-indexof-len-oob */
+  EVALUE(STR_INDEXOF_LEN_OOB),
+  /** Auto-generated from RARE rule str-indexof-len-oob2 */
+  EVALUE(STR_INDEXOF_LEN_OOB2),
   /** Auto-generated from RARE rule str-indexof-find-emp */
   EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-eq-irr */
@@ -4802,8 +4882,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_UPPER_CONCAT),
   /** Auto-generated from RARE rule str-to-lower-upper */
   EVALUE(STR_TO_LOWER_UPPER),
+  /** Auto-generated from RARE rule str-to-lower-idem */
+  EVALUE(STR_TO_LOWER_IDEM),
   /** Auto-generated from RARE rule str-to-upper-lower */
   EVALUE(STR_TO_UPPER_LOWER),
+  /** Auto-generated from RARE rule str-to-upper-idem */
+  EVALUE(STR_TO_UPPER_IDEM),
   /** Auto-generated from RARE rule str-to-lower-len */
   EVALUE(STR_TO_LOWER_LEN),
   /** Auto-generated from RARE rule str-to-upper-len */
@@ -4892,10 +4976,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_CONCAT_STAR_SWAP),
   /** Auto-generated from RARE rule re-concat-star-repeat */
   EVALUE(RE_CONCAT_STAR_REPEAT),
-  /** Auto-generated from RARE rule re-concat-star-subsume1 */
-  EVALUE(RE_CONCAT_STAR_SUBSUME1),
-  /** Auto-generated from RARE rule re-concat-star-subsume2 */
-  EVALUE(RE_CONCAT_STAR_SUBSUME2),
+  /** Auto-generated from RARE rule re-concat-star-nullable1 */
+  EVALUE(RE_CONCAT_STAR_NULLABLE1),
+  /** Auto-generated from RARE rule re-concat-star-nullable2 */
+  EVALUE(RE_CONCAT_STAR_NULLABLE2),
   /** Auto-generated from RARE rule re-concat-merge */
   EVALUE(RE_CONCAT_MERGE),
   /** Auto-generated from RARE rule re-union-all */
@@ -4924,6 +5008,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_STAR_UNION_DROP_EMP),
   /** Auto-generated from RARE rule re-loop-neg */
   EVALUE(RE_LOOP_NEG),
+  /** Auto-generated from RARE rule re-loop-star */
+  EVALUE(RE_LOOP_STAR),
   /** Auto-generated from RARE rule re-inter-cstring */
   EVALUE(RE_INTER_CSTRING),
   /** Auto-generated from RARE rule re-inter-cstring-neg */
@@ -4958,6 +5044,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_LEN_UNIT),
   /** Auto-generated from RARE rule seq-nth-unit */
   EVALUE(SEQ_NTH_UNIT),
+  /** Auto-generated from RARE rule seq-nth-concat-unit */
+  EVALUE(SEQ_NTH_CONCAT_UNIT),
+  /** Auto-generated from RARE rule seq-nth-concat-unit-gen */
+  EVALUE(SEQ_NTH_CONCAT_UNIT_GEN),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
   /** Auto-generated from RARE rule re-in-empty */

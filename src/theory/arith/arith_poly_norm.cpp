@@ -499,6 +499,10 @@ bool PolyNorm::isArithPolyNormRel(TNode a, TNode b, Rational& ca, Rational& cb)
   Assert(a.getType().isBoolean());
   if (a == b)
   {
+    // must set the coefficients, since they may be used by the caller to
+    // construct the premise of ARITH_POLY_NORM_REL
+    ca = Rational(1);
+    cb = Rational(1);
     return true;
   }
   Kind k = a.getKind();

@@ -22,7 +22,6 @@
 #include "smt/env.h"
 #include "smt/term_formula_removal.h"
 #include "theory/evaluator.h"
-#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
@@ -65,7 +64,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   // trusted rules
   pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
   // external proof rules
-  pc->registerChecker(ProofRule::LFSC_RULE, this);
   pc->registerChecker(ProofRule::ALETHE_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
@@ -473,7 +471,7 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == ProofRule::LFSC_RULE || id == ProofRule::ALETHE_RULE)
+  else if (id == ProofRule::ALETHE_RULE)
   {
     Assert(args.size() > 1);
     Assert(args[0].getType().isInteger());
@@ -509,15 +507,20 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
+    // Note that we fold applications of indexed operators whose indices are
+    // given as explicit arguments, which is a no-op for the (common) case of
+    // rules that do not mention indexed operators.
     for (size_t i = 0, nchildren = children.size(); i < nchildren; i++)
     {
       Node scond = expr::narySubstitute(conds[i], varList, subs);
+      scond = rewriter::IndexedOpFoldNodeConverter::fold(nm, scond);
       if (scond != children[i])
       {
         return Node::null();
       }
     }
-    return rpr.getConclusionFor(subs);
+    Node conc = rpr.getConclusionFor(subs);
+    return rewriter::IndexedOpFoldNodeConverter::fold(nm, conc);
   }
   else if (id == ProofRule::THEORY_REWRITE)
   {

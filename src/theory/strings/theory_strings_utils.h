@@ -17,11 +17,15 @@
 
 #include <vector>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace strings {
+
+class SkolemCache;
+
 namespace utils {
 
 /** get the default cardinality of the alphabet used */
@@ -238,6 +242,108 @@ Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
  * Make the formula (and (>= t 0) (< t alphaCard)).
  */
 Node mkCodeRange(Node t, uint32_t alphaCard);
+
+/** The eager reduce routine
+ *
+ * Constructs a lemma for t that is incomplete, but communicates pertinent
+ * information about t. This is analogous to StringsPreprocess::reduce.
+ *
+ * In practice, we send this lemma eagerly, as soon as t is registered.
+ *
+ * @param t The node to reduce,
+ * @param sc The Skolem cache to use for new variables,
+ * @param alphaCard The cardinality of the alphabet we are assuming
+ * @return The eager reduction for t.
+ */
+Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
+/**
+ * Returns a lemma indicating that the length of a term t whose type is
+ * string-like has positive length. The exact form of this lemma depends
+ * on what works best in practice, currently:
+ *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+ *
+ * @param t The node to reduce,
+ * @return The positive length lemma for t.
+ */
+Node lengthPositive(Node t);
+/**
+ * This returns the conclusion of the proof rule corresponding to splitting
+ * on the arrangement of terms x and y appearing in an equation of the form
+ *   x ++ x' = y ++ y' or x' ++ x = y' ++ y
+ * where we are in the second case if isRev is true. This method is called
+ * both by the core solver and by the strings proof checker.
+ *
+ * @param nm Pointer to the node manager
+ * @param x The first term
+ * @param y The second term
+ * @param rule The proof rule whose conclusion we are asking for
+ * @param isRev Whether the equation is in a reverse direction
+ * @param skc The skolem cache (to allocate fresh variables if necessary)
+ * @param newSkolems The vector to add new variables to
+ * @return The conclusion of the inference.
+ */
+Node getConcatConclusion(NodeManager* nm,
+                         Node x,
+                         Node y,
+                         ProofRule rule,
+                         bool isRev,
+                         SkolemCache* skc,
+                         std::vector<Node>& newSkolems);
+/**
+ * Get sufficient non-empty overlap of string constants c and d.
+ *
+ * This is called when handling equations of the form:
+ *   x ++ d ++ ... = c ++ ...
+ * when x is non-empty and non-constant.
+ *
+ * This returns the maximal index in c which x must have as a prefix, which
+ * notice is an integer >= 1 since x is non-empty.
+ *
+ * @param c The first constant
+ * @param d The second constant
+ * @param isRev Whether the equation is in the reverse direction
+ * @return The position in c.
+ */
+size_t getSufficientNonEmptyOverlap(Node c, Node d, bool isRev);
+/**
+ * This returns the conclusion of the decompose proof rule. This returns
+ * a conjunction of splitting string x into pieces based on length l, e.g.:
+ *   x = k_1 ++ k_2
+ * where k_1 (resp. k_2) is a skolem corresponding to a substring of x of
+ * length l if isRev is false (resp. true). The function also adds a
+ * length constraint len(k_1) = l (resp. len(k_2) = l). Note that adding this
+ * constraint to the conclusion is *not* optional, since the skolems k_1 and
+ * k_2 may be shared, hence their length constraint must be guarded by the
+ * premises of this inference.
+ *
+ * @param nm Pointer to the node manager
+ * @param x The string term
+ * @param l The length term
+ * @param isRev Whether the equation is in a reverse direction
+ * @param skc The skolem cache (to allocate fresh variables if necessary)
+ * @param newSkolems The vector to add new variables to
+ * @return The conclusion of the inference.
+ */
+Node getDecomposeConclusion(NodeManager* nm,
+                            Node x,
+                            Node l,
+                            bool isRev,
+                            SkolemCache* skc,
+                            std::vector<Node>& newSkolems);
+/**
+ * This returns the conclusion of the extensionality rule, see
+ * ProofRule::STRING_EXT.
+ *
+ * @param nm Pointer to the node manager
+ * @param a The first string term
+ * @param b The second string term
+ * @param skc The skolem cache (to allocate fresh variables if necessary)
+ * @return The conclusion of the inference.
+ */
+Node getExtensionalityConclusion(NodeManager* nm,
+                                 const Node& a,
+                                 const Node& b,
+                                 SkolemCache* skc);
 
 }  // namespace utils
 }  // namespace strings

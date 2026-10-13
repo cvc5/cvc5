@@ -2331,6 +2331,7 @@ class PluginUnsat(Plugin):
         return "PluginUnsat"
 
 def test_plugin_unsat(tm, solver):
+    solver.setOption("sat-solver", "minisat")
     p = PluginUnsat(tm)
     solver.addPlugin(p)
     assert solver.checkSat().isUnsat()
@@ -2360,7 +2361,8 @@ class PluginListen(Plugin):
         return "PluginListen"
 
 def test_plugin_listen(tm, solver):
-    # NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    solver.setOption("sat-solver", "minisat")
+    # Allow notifications for unit clauses added before the main solve.
     solver.setOption("plugin-notify-sat-clause-in-solve", "false")
     pl = PluginListen(tm)
     solver.addPlugin(pl)

@@ -13,6 +13,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__SINE_SOLVER_H
 #define CVC5__THEORY__ARITH__NL__TRANSCENDENTAL__SINE_SOLVER_H
 
+#include <cstddef>
 #include <map>
 
 #include "expr/node.h"
@@ -93,8 +94,11 @@ class SineSolver : protected EnvObj
   void checkMonotonic();
 
   /** Sent tangent lemma around c for e */
-  void doTangentLemma(
-      TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d);
+  void doTangentLemma(TNode e,
+                      TNode c,
+                      TNode poly_approx,
+                      TranscendentalRegion region,
+                      std::uint64_t d);
 
   /** Sent secant lemmas around c for e */
   void doSecantLemmas(TNode e,
@@ -103,7 +107,7 @@ class SineSolver : protected EnvObj
                       TNode poly_approx_c,
                       unsigned d,
                       unsigned actual_d,
-                      int region);
+                      TranscendentalRegion region);
 
   /**
    * Does n of the form sin(x) have an exact model value? This is true if
@@ -125,7 +129,7 @@ class SineSolver : protected EnvObj
   std::pair<Node, Node> getSecantBounds(TNode e,
                                         TNode c,
                                         unsigned d,
-                                        int region);
+                                        TranscendentalRegion region);
 
   /** region to lower bound
    *
@@ -135,14 +139,18 @@ class SineSolver : protected EnvObj
    * is invalid, or there is no lower bound for the
    * region.
    */
-  Node regionToLowerBound(int region) const
+  Node regionToLowerBound(TranscendentalRegion region) const
   {
-    if (region >= 1 && region <= 4)
+    switch (region)
     {
-      size_t index = static_cast<size_t>(region);
-      return d_mpoints[index];
+      case TranscendentalRegion::SINE_PI_OVER_TWO_TO_PI: return d_mpoints[1];
+      case TranscendentalRegion::SINE_ZERO_TO_PI_OVER_TWO: return d_mpoints[2];
+      case TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO:
+        return d_mpoints[3];
+      case TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO:
+        return d_mpoints[4];
+      default: return Node();
     }
-    return Node();
   }
 
   /** region to upper bound
@@ -153,36 +161,57 @@ class SineSolver : protected EnvObj
    * is invalid, or there is no upper bound for the
    * region.
    */
-  Node regionToUpperBound(int region) const
+  Node regionToUpperBound(TranscendentalRegion region) const
   {
-    if (region >= 1 && region <= 4)
+    switch (region)
     {
-      size_t index = static_cast<size_t>(region - 1);
-      return d_mpoints[index];
+      case TranscendentalRegion::SINE_PI_OVER_TWO_TO_PI: return d_mpoints[0];
+      case TranscendentalRegion::SINE_ZERO_TO_PI_OVER_TWO: return d_mpoints[1];
+      case TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO:
+        return d_mpoints[2];
+      case TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO:
+        return d_mpoints[3];
+      default: return Node();
     }
-    return Node();
   }
 
-  int regionToMonotonicityDir(int region) const
+  MonotonicityDirection regionToMonotonicityDir(
+      TranscendentalRegion region) const
   {
     switch (region)
     {
-      case 1:
-      case 4: return -1;
-      case 2:
-      case 3: return 1;
-      default: return 0;
+      case TranscendentalRegion::SINE_PI_OVER_TWO_TO_PI:
+      case TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO:
+        return MonotonicityDirection::DECREASING;
+      case TranscendentalRegion::SINE_ZERO_TO_PI_OVER_TWO:
+      case TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO:
+        return MonotonicityDirection::INCREASING;
+      default: return MonotonicityDirection::NONE;
     }
   }
-  Convexity regionToConvexity(int region) const
+  Convexity regionToConvexity(TranscendentalRegion region) const
   {
     switch (region)
     {
-      case 1:
-      case 2: return Convexity::CONCAVE;
-      case 3:
-      case 4: return Convexity::CONVEX;
+      case TranscendentalRegion::SINE_PI_OVER_TWO_TO_PI:
+      case TranscendentalRegion::SINE_ZERO_TO_PI_OVER_TWO:
+        return Convexity::CONCAVE;
+      case TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO:
+      case TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO:
+        return Convexity::CONVEX;
       default: return Convexity::UNKNOWN;
+    }
+  }
+
+  TranscendentalRegion indexToRegion(std::size_t index) const
+  {
+    switch (index)
+    {
+      case 1: return TranscendentalRegion::SINE_PI_OVER_TWO_TO_PI;
+      case 2: return TranscendentalRegion::SINE_ZERO_TO_PI_OVER_TWO;
+      case 3: return TranscendentalRegion::SINE_NEG_PI_OVER_TWO_TO_ZERO;
+      case 4: return TranscendentalRegion::SINE_NEG_PI_TO_NEG_PI_OVER_TWO;
+      default: return TranscendentalRegion::INVALID;
     }
   }
 

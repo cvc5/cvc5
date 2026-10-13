@@ -30,39 +30,74 @@ namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
 
-class Cvc5CApiAbortStream
-{
- public:
-  Cvc5CApiAbortStream(const std::string& msg_prefix)
-  {
-    stream() << msg_prefix << " ";
-  }
-  ~Cvc5CApiAbortStream()
-  {
-    std::cerr << d_stream.str() << std::endl;
-    exit(EXIT_FAILURE);
-  }
-  std::ostream& stream() { return d_stream; }
+/**
+ * Record an error that occurred during a cvc5 C API call.
+ *
+ * This sets the thread-local error flag and stores `msg` as the associated
+ * error message. It is invoked by #CVC5_CAPI_TRY_CATCH_END whenever a C API
+ * function catches an exception, instead of terminating the process. The
+ * recorded state can be queried via `cvc5_has_error()` and
+ * `cvc5_get_error_message()`.
+ *
+ * @param msg The error message to store.
+ *
+ * @note Exported for linkage of the parser library, which uses the
+ *       #CVC5_CAPI_TRY_CATCH_END macro.
+ */
+CVC5_EXPORT void cvc5_capi_set_error(const std::string& msg);
+/**
+ * Clear the thread-local error state.
+ *
+ * This is invoked by #CVC5_CAPI_TRY_CATCH_BEGIN on entry of each guarded C API
+ * function so that the error state always reflects the most recent call. It is
+ * also exposed to users via `cvc5_reset_error()`.
+ */
+CVC5_EXPORT void cvc5_capi_reset_error();
+/**
+ * @return True if an error occurred during the most recent guarded C API call
+ *         on the current thread.
+ */
+CVC5_EXPORT bool cvc5_capi_has_error();
+/**
+ * @return The message associated with the most recent error on the current
+ *         thread, or the empty string if no error occurred. The returned
+ *         pointer is valid until the next guarded C API call on this thread.
+ */
+CVC5_EXPORT const char* cvc5_capi_get_error_message();
 
- private:
-  void flush()
-  {
-    stream() << std::endl;
-    stream().flush();
-  }
-  std::stringstream d_stream;
-};
-
-#define CVC5_CAPI_ABORT           \
-  cvc5::internal::OstreamVoider() \
-      & cvc5::Cvc5CApiAbortStream("cvc5: error:").stream()
-
+/**
+ * Reset the thread-local error state on entry of a guarded C API function.
+ *
+ * @note We do not start the `try` block here so that the reset is performed
+ *       unconditionally, even for functions that perform work before their
+ *       #CVC5_CAPI_TRY_CATCH_BEGIN.
+ */
 #define CVC5_CAPI_TRY_CATCH_BEGIN \
+  cvc5::cvc5_capi_reset_error();  \
   try                             \
   {
-#define CVC5_CAPI_TRY_CATCH_END \
-  }                             \
-  catch (cvc5::CVC5ApiException & e) { CVC5_CAPI_ABORT << e.getMessage(); }
+/**
+ * Capture any exception thrown by a guarded C API function as a thread-local
+ * error instead of terminating the process. On error, the function falls
+ * through and returns its default-initialized return value; the caller is
+ * expected to check `cvc5_has_error()`.
+ *
+ * @note The trailing `catch (...)` ensures that no exception can escape the
+ *       `extern "C"` boundary, which would call `std::terminate`. This is not
+ *       merely theoretical: cvc5 links third-party libraries whose exception
+ *       types do not derive from `std::exception` (e.g. CoCoALib's
+ *       `CoCoA::ErrorInfo`, used by the finite-field theory). Should such an
+ *       exception ever reach the C API uncaught (e.g. via a missed catch on
+ *       some C++ code path), the catch-all records it instead of aborting.
+ */
+#define CVC5_CAPI_TRY_CATCH_END                                            \
+  }                                                                        \
+  catch (const cvc5::CVC5ApiException& e)                                  \
+  {                                                                        \
+    cvc5::cvc5_capi_set_error(e.getMessage());                             \
+  }                                                                        \
+  catch (const std::exception& e) { cvc5::cvc5_capi_set_error(e.what()); } \
+  catch (...) { cvc5::cvc5_capi_set_error("unknown C++ exception"); }
 
 #endif
 

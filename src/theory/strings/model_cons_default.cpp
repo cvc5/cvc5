@@ -53,14 +53,42 @@ void ModelConsDefault::separateByLength(TheoryModel* m,
   // look up the values of each length term
   for (Node& ll : lts)
   {
+    if (ll.isNull() || ll.isConst())
+    {
+      continue;
+    }
     // Previously we called Valuation::getCandidateModelValue for this purpose,
     // which relied on the arithmetic theory solver to confirm the value of ll.
     // However, it is better to simply ask the model object (which the
     // arithmetic solver has already populated for us). Moreover this
     // avoids assertion failures when using ee-mode=central.
-    if (!ll.isConst() && m->hasTerm(ll))
+    if (m->hasTerm(ll))
     {
       ll = m->getRepresentative(ll);
+      continue;
+    }
+    // Note that ll is the representative of the length in the equality engine
+    // of this theory, which the model may not know. This is possible when
+    // using ee-mode=central, where the representative may e.g. be a polynomial
+    // (+ (str.len x) (str.len y)) that the arithmetic solver treats as an
+    // auxiliary term and thus does not assign a value to. In this case, we
+    // look for a term in the equivalence class of ll whose value is known to
+    // the model, e.g. the length term (str.len z) itself.
+    eq::EqualityEngine* ee = d_state.getEqualityEngine();
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(ll, ee);
+    while (!eqc_i.isFinished())
+    {
+      Node n = *eqc_i;
+      if (m->hasTerm(n))
+      {
+        Node nv = m->getRepresentative(n);
+        if (nv.isConst())
+        {
+          ll = nv;
+          break;
+        }
+      }
+      ++eqc_i;
     }
   }
 }

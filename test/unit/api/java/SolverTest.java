@@ -26,6 +26,7 @@ import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.function.Executable;
@@ -46,6 +47,15 @@ class SolverTest
   void tearDown()
   {
     Context.deletePointers();
+  }
+
+  @Test
+  void equalHash()
+  {
+    Solver solver = new Solver(d_tm);
+    assertEquals(d_solver, d_solver);
+    assertNotEquals(d_solver, solver);
+    assertEquals(d_solver.hashCode(), d_solver.hashCode());
   }
 
   @Test
@@ -2400,6 +2410,7 @@ class SolverTest
   @Test
   void pluginUnsat()
   {
+    d_solver.setOption("sat-solver", "minisat");
     PluginUnsat pu = new PluginUnsat(d_tm);
     d_solver.addPlugin(pu);
     assertTrue(pu.getName().equals("PluginUnsat"));
@@ -2453,7 +2464,8 @@ class SolverTest
   @Test
   void pluginListen()
   {
-    // NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    d_solver.setOption("sat-solver", "minisat");
+    // Allow notifications for unit clauses added before the main solve.
     d_solver.setOption("plugin-notify-sat-clause-in-solve", "false");
     PluginListen pl = new PluginListen(d_tm);
     d_solver.addPlugin(pl);
@@ -2527,5 +2539,56 @@ class SolverTest
       Term value3 = s3.getValue(function2);
       assertEquals(value1, value3);
     }
+  }
+
+  @Test
+  void pluginFromAnotherThread() throws Exception
+  {
+    // A plugin registered on one thread is invoked on the thread that uses
+    // the solver afterwards.
+    AtomicInteger checks = new AtomicInteger();
+    List<Solver> handover = new ArrayList<>();
+    Thread producer = new Thread(() -> {
+      Solver solver = new Solver(d_tm);
+      solver.addPlugin(new AbstractPlugin(d_tm) {
+        @Override
+        public Term[] check()
+        {
+          checks.incrementAndGet();
+          return new Term[0];
+        }
+        @Override
+        public String getName()
+        {
+          return "counting";
+        }
+      });
+      handover.add(solver);
+    });
+    producer.start();
+    producer.join();
+    Solver solver = handover.get(0);
+    solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
+    assertTrue(solver.checkSat().isSat());
+    assertTrue(checks.get() > 0);
+  }
+
+  @Test
+  void pluginException()
+  {
+    d_solver.addPlugin(new AbstractPlugin(d_tm) {
+      @Override
+      public Term[] check()
+      {
+        throw new IllegalStateException("plugin failure");
+      }
+      @Override
+      public String getName()
+      {
+        return "throwing";
+      }
+    });
+    d_solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSat());
   }
 }

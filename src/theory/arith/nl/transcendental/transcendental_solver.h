@@ -187,12 +187,12 @@ class TranscendentalSolver : protected EnvObj
 
   /** get concavity
    *
-   * Returns whether we are concave (+1) or convex (-1)
+   * Returns whether we are convex or concave
    * in region of transcendental function with kind k,
    * where region is defined above.
-   * Returns 0 if region is invalid.
+   * Returns UNKNOWN if the region is invalid.
    */
-  int regionToConcavity(Kind k, int region);
+  Convexity regionToConcavity(Kind k, TranscendentalRegion region);
 
   /** A reference to the arithmetic state object */
   TheoryState& d_astate;

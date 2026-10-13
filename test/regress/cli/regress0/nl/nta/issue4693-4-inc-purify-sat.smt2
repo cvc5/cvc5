@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i --no-debug-check-models
 ; EXPECT: sat
 ; EXPECT: sat

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-out=status --sygus-enum=smart --no-sygus-repair-const -q
 ; EXPECT: fail
 (set-logic ALL)

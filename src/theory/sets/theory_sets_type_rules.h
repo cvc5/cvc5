@@ -176,8 +176,8 @@ struct IsSetTypeRule
 };
 
 /**
- * Type rule for (set.insert e1 ... en A) that checks the sorts of e1, ..., en
- * match the element sort of the set A
+ * Type rule for (set.insert e A) that checks the sort of e matches the element
+ * sort of the set A
  */
 struct InsertTypeRule
 {

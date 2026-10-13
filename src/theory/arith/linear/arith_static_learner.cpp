@@ -385,8 +385,9 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
   CDProof cdp(d_env);
   Node cond = conc[0][0];
   Node truen = nm->mkConst(true);
+  bool isRelCond = isRelationOperator(cond.getKind());
   // if we are (<rel1> (ite (<rel2> s t) t s) r) where r is s|t.
-  if (cond.getNumChildren() == 2 && cond[0] == conc[0][2]
+  if (isRelCond && cond.getNumChildren() == 2 && cond[0] == conc[0][2]
       && cond[1] == conc[0][1]
       && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
   {
@@ -450,7 +451,7 @@ std::shared_ptr<ProofNode> ArithStaticLearner::getProofFor(Node fact)
       return cdp.getProofFor(fact);
     }
   }
-  else if (cond.getNumChildren() == 2 && cond[0] == conc[0][1]
+  else if (isRelCond && cond.getNumChildren() == 2 && cond[0] == conc[0][1]
            && cond[1] == conc[0][2]
            && (conc[1] == conc[0][1] || conc[1] == conc[0][2]))
   {

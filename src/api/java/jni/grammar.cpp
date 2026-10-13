@@ -166,14 +166,14 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Grammar_toString(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Grammar
  * Method:    hashCode
- * Signature: (J)I
+ * Signature: (J)J
  */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_Grammar_hashCode(JNIEnv* env,
-                                                            jobject,
-                                                            jlong pointer)
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Grammar_hashCode(JNIEnv* env,
+                                                             jobject,
+                                                             jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Grammar* grammar = reinterpret_cast<Grammar*>(pointer);
-  return static_cast<jint>(std::hash<cvc5::Grammar>()(*grammar));
+  return static_cast<jlong>(std::hash<cvc5::Grammar>()(*grammar));
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

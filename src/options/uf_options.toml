@@ -45,14 +45,6 @@ name   = "Uninterpreted Functions Theory"
   help       = "use fair strategy for finite model finding multiple sorts"
 
 [[option]]
-  name       = "ufssFairnessMonotone"
-  category   = "expert"
-  long       = "uf-ss-fair-monotone"
-  type       = "bool"
-  default    = "false"
-  help       = "group monotone sorts when enforcing fairness for finite model finding"
-
-[[option]]
   name       = "ufHoExt"
   category   = "expert"
   long       = "uf-ho-ext"

@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE:
 ; COMMAND-LINE: --var-ent-eq-elim-quant
 ; EXPECT: unsat

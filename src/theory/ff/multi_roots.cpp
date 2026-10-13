@@ -114,6 +114,17 @@ bool isUnsat(const CoCoA::ideal& ideal)
          && CoCoA::deg(gens[0]) <= 0;
 }
 
+// True if a Groebner basis for `ideal` is available without (re)computation.
+//
+// Since CoCoALib 0.99850, computing the GBasis of the zero ideal no longer
+// marks it as stored (CoCoA::GBasis returns the trivially empty basis but
+// CoCoA::HasGBasis stays false); 0.99800 did mark it. The empty basis is always
+// available for the zero ideal, so treat that case as "has GBasis" too.
+bool hasGBasis(const CoCoA::ideal& ideal)
+{
+  return CoCoA::HasGBasis(ideal) || CoCoA::IsZero(ideal);
+}
+
 template <typename T>
 std::string ostring(const T& t)
 {
@@ -136,7 +147,7 @@ std::pair<size_t, CoCoA::RingElem> extractAssignment(
 std::unordered_set<std::string> assignedVars(const CoCoA::ideal& ideal)
 {
   std::unordered_set<std::string> ret{};
-  Assert(CoCoA::HasGBasis(ideal));
+  Assert(hasGBasis(ideal));
   for (const auto& g : CoCoA::GBasis(ideal))
   {
     if (CoCoA::deg(g) == 1)
@@ -163,7 +174,7 @@ std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal,
   CoCoA::PolyRing polyRing(ideal->myRing());
   Assert(!isUnsat(ideal));
   // first, we look for super-linear univariate polynomials.
-  Assert(CoCoA::HasGBasis(ideal));
+  Assert(hasGBasis(ideal));
   const auto& gens = CoCoA::GBasis(ideal);
   for (const auto& p : gens)
   {
@@ -259,7 +270,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
     const auto& ideal = ideals.back();
     // make sure we have a GBasis:
     GBasisTimeout(ideal, env.getResourceManager());
-    Assert(CoCoA::HasGBasis(ideal));
+    Assert(hasGBasis(ideal));
     // If the ideal is UNSAT, drop it.
     if (isUnsat(ideal))
     {
@@ -270,7 +281,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
     else if (allVarsAssigned(ideal))
     {
       std::unordered_map<size_t, CoCoA::RingElem> varNumToValue{};
-      Assert(CoCoA::HasGBasis(ideal));
+      Assert(hasGBasis(ideal));
       const auto& gens = CoCoA::GBasis(ideal);
       size_t numIndets = CoCoA::NumIndets(polyRing);
       Assert(gens.size() == numIndets);
@@ -313,7 +324,7 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
             << "level: " << branchers.size()
             << ", brancher: " << branchers.back()->name()
             << ", branch: " << choicePoly.value() << std::endl;
-        Assert(CoCoA::HasGBasis(ideal));
+        Assert(hasGBasis(ideal));
         std::vector<CoCoA::RingElem> newGens = CoCoA::GBasis(ideal);
         newGens.push_back(choicePoly.value());
         ideals.push_back(CoCoA::ideal(newGens));
