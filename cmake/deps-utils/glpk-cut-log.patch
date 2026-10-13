@@ -1,3 +1,104 @@
+@@ This patch is taken from https://github.com/timothy-king/glpk-cut-log
+@@ (Tim King's commits on top of GLPK 4.52, up to b420454e73), forward-ported
+@@ to GLPK 5.0, and has the following license:
+@@
+@@ GLPK is free software: you can redistribute it and/or modify it under the
+@@ terms of the GNU General Public License as published by the Free Software
+@@ Foundation, either version 3 of the License, or (at your option) any later
+@@ version.
+@@
+@@ What follows is adapted from the glpk-cut-log commit messages, corrected
+@@ for GLPK 5.0, followed by what the forward-port itself changes.
+@@
+
+Adding GLP_ICUTADDED callback:
+- Adds a new callback location that is called after every cut is added to the pool.
+- During this callback users can request a copy of this cut and query what kind of cut it is.
+- GMI cuts also support returning what row in the tableau it came from. Users can use this to replay how the cut was generated.
+
+Logging MIR Cuts
+- Changed the IOSAUX to be defined as a linear sum of input rows.
+  This is visible from the interface
+- Logging the multipliers used to create the aggregate row in MIR.
+- Logging the delta selected by final successful cmir_sep call.
+- Logging the cset selected by final successful cmir_sep call.
+
+The extra mir logging information is now user visible.
+
+Adding GLP_ICUTSELECT callback:
+- ios_process_cuts marks the cuts as selected after turning the cut into a row.
+- This callback happens after ios_process_cuts marks and before the pool is
+  cleared by ios_clear_pool.
+
+Branch logging
+- Adds to the integer interface a callback function for when branches are made.
+  This is called after branch_on.
+- Added a public function glp_ios_branch_log.
+  This returns the structural variable for the branch as well as the value
+  branched on, and the ids of the nodes for the down and up branches.
+  If both branches are infeasible, the ids are -1 for both dn and up.
+  If one branch is infeasible (and no branch is done), this returns -1 for
+  the infeasible branch and the current node id for the other branch.
+- Each node now has a unique ordinal associated with it.
+- Added a public function to convert the id of an active node to the unique
+  node ordinal.
+- Added a callback for when a node is closed due to being linearly infeasible.
+
+Improved the mir cut logging facilities to now include:
+- the rid id used for virtual lower/upper bound selection,
+- and the subst map,
+- Changed the size of the cset array to be the same as the new arrays (m+n)
+- Fixed a bug in returning the cset selected.
+
+Fixing a bug selecting the correct branch.
+
+Added a callback for tracking row deletion.
+
+Adding notes to node freeze and revive functions.
+
+Adding a stability failure limit to simplex.
+
+Adding subdir-objects to AM_INIT_AUTOMAKE, and cutlog01.c to the build.
+
+Not carried over, as GLPK 5.0 already provides them:
+- glp_get_it_cnt, for returning the iteration count (glpk.h still
+  declares it in the cut log section).
+- Skipping the application of the mir rule, rather than asserting, when
+  an assignment is outside of the bounds (mirgen.c, 06/III-2016).
+- Failing, rather than asserting, on a zero pivot in the dual simplex
+  (spydual.c, 26/V-2017).
+The commented-out debugging printfs in the 4.52 gomory and mir cut
+generators are not carried over either.
+
+Forward-port to GLPK 5.0:
+- Since 4.52, GLPK has moved its sources into subdirectories: glpios.h
+  is now draft/ios.h, the gomory and mir cut generators (glpios05.c,
+  glpios06.c) are intopt/gmigen.c and intopt/mirgen.c, clique cuts
+  (glpios08.c) are added by clq_gen in draft/glpios03.c, and the primal
+  and dual simplex (glpspx01.c, glpspx02.c) have been replaced by
+  simplex/spxprim.c and simplex/spydual.c.
+- GLPK 5.0's glp_gmi_gen and glp_mir_gen add cuts to a temporary
+  problem, which gmi_gen and mir_gen in glpios03.c then copy to the
+  local cut pool; by then, what the cut log needs has been lost.
+  Adding ios_gmi_gen and ios_mir_gen, which add each cut to the local
+  cut pool directly, record its aux, and call the callback with
+  GLP_ICUTADDED once the cut is in the pool. gmi_gen and mir_gen call
+  these; glp_gmi_gen and glp_mir_gen pass a NULL tree, and so behave
+  as in GLPK 5.0.
+- GLP_ICUTADDED is also reported for the cover cuts of glp_cov_gen1
+  (cov_gen in glpios03.c), as well as for those of ios_cov_gen.
+- NEW_LOCAL (02/II-2018), which makes the local cut pool a glp_prob, is
+  disabled: the cut log needs IOSPOOL/IOSCUT, and the aux of each cut.
+- glp_ios_pool_size may also be called for GLP_ICUTADDED and
+  GLP_ICUTSELECT.
+- ios_cut_set_aux_mir now translates the mir generator's arrays, which
+  are indexed against the number of rows when the generator was
+  created, to the current number of rows. The 4.52 patch read past the
+  end of them once cuts had been added as rows.
+- Commenting out the 0-1 knapsack messages that glp_cov_init prints
+  unconditionally.
+
+---
 diff --git a/configure.ac b/configure.ac
 --- a/configure.ac	2020-12-16 09:00:00.000000000 +0000
 +++ b/configure.ac	2026-07-23 18:18:32.824724818 +0100
