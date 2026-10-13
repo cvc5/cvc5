@@ -8,6 +8,11 @@ cvc5 1.4.3 prerelease
     the one that registered them, and an exception thrown by a callback is
     now reported as a `CVC5ApiException` instead of crashing the JVM.
 
+- Fixed a race in builds with CoCoA support when solvers are created
+  concurrently in different threads: the initialization of the CoCoA global
+  manager is now thread-safe. Previously, the losing thread crashed the
+  process with an uncaught `CoCoA::ErrorInfo` exception.
+
 cvc5 1.4.2
 ==========
 
