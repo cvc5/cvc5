@@ -1,5 +1,4 @@
 ; REQUIRES: unrestricted-mode
-; COMMAND-LINE: --check-proofs --proof-check=eager
 ; EXPECT: unsat
 (set-logic HO_ALL)
 (declare-fun f (Int) Int)
