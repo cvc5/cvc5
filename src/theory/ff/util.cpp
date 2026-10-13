@@ -35,8 +35,7 @@ FieldObj::FieldObj(NodeManager* nm, FfSize size)
 {
 }
 
-template <bool ref_count>
-Node FieldObj::mkAdd(const std::vector<NodeTemplate<ref_count>>& summands)
+Node FieldObj::mkAdd(const std::vector<Node>& summands)
 {
   if (summands.empty())
   {
@@ -52,8 +51,7 @@ Node FieldObj::mkAdd(const std::vector<NodeTemplate<ref_count>>& summands)
   }
 }
 
-template <bool ref_count>
-Node FieldObj::mkMul(const std::vector<NodeTemplate<ref_count>>& factors)
+Node FieldObj::mkMul(const std::vector<Node>& factors)
 {
   if (factors.empty())
   {
@@ -67,6 +65,11 @@ Node FieldObj::mkMul(const std::vector<NodeTemplate<ref_count>>& factors)
   {
     return d_nm->mkNode(Kind::FINITE_FIELD_MULT, std::move(factors));
   }
+}
+
+Node FieldObj::mkConst(const FiniteFieldValue& value) const
+{
+  return d_nm->mkConst(value);
 }
 
 bool isFfLeaf(const Node& n)
