@@ -414,6 +414,62 @@ TEST_F(TestApiBlackSolver, defineFunGlobal)
   ASSERT_THROW(slv.defineFun("f", {}, d_bool, bTrue, true), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, defineFunAfterCheckSat)
+{
+  Sort bv = d_tm.mkBitVectorSort(4);
+  Term value = d_tm.mkBitVector(4, 15);
+  Term x = d_tm.mkVar(bv, "x");
+  for (bool global : {false, true})
+  {
+    Solver slv(d_tm);
+    slv.setOption("incremental", "true");
+    slv.setOption("produce-models", "true");
+    ASSERT_TRUE(slv.checkSat().isSat());
+
+    Term c = slv.defineFun("c", {}, bv, value, global);
+    ASSERT_THROW(slv.getValue(c), CVC5ApiRecoverableException);
+    ASSERT_THROW(slv.getModel({}, {c}), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(c), value);
+
+    Term f = slv.defineFun("f", {x}, bv, x, global);
+    Term app = d_tm.mkTerm(Kind::APPLY_UF, {f, value});
+    ASSERT_THROW(slv.getValue(app), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(app), value);
+  }
+}
+
+TEST_F(TestApiBlackSolver, defineFunRecAfterCheckSat)
+{
+  Term value = d_tm.mkBitVector(4, 15);
+  Sort bv = value.getSort();
+  for (bool global : {false, true})
+  {
+    Solver slv(d_tm);
+    slv.setOption("incremental", "true");
+    slv.setOption("produce-models", "true");
+    ASSERT_TRUE(slv.checkSat().isSat());
+
+    Term c = slv.defineFunRec("c", {}, bv, value, global);
+    ASSERT_THROW(slv.getValue(c), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(c), value);
+
+    Term d = d_tm.mkConst(bv, "d");
+    slv.defineFunRec(d, {}, value, global);
+    ASSERT_THROW(slv.getValue(d), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(d), value);
+
+    Term e = d_tm.mkConst(bv, "e");
+    slv.defineFunsRec({e}, {{}}, {value}, global);
+    ASSERT_THROW(slv.getValue(e), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(e), value);
+  }
+}
+
 TEST_F(TestApiBlackSolver, defineFunRec)
 {
   Sort bvSort = d_tm.mkBitVectorSort(32);
