@@ -344,7 +344,6 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
 
-
     TypeNode functionType = lambda.getType();
     if (!(functionType.isFunction()))
     {
