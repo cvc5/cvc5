@@ -107,7 +107,7 @@ if(NOT GLPK_FOUND_SYSTEM)
   ExternalProject_Add(
     GLPK-EP
     ${COMMON_EP_CONFIG}
-    URL "https://ftpmirror.gnu.org/glpk/glpk-${GLPK_VERSION}.tar.gz"
+    URL https://github.com/cvc5/cvc5-deps/blob/main/glpk-${GLPK_VERSION}.tar.gz?raw=true
     URL_HASH SHA256=4a1013eebb50f728fc601bdd833b0b2870333c3b3e5a816eeba921d95bec6f15
     PATCH_COMMAND ${Patch_EXECUTABLE} -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/glpk-cut-log.patch
