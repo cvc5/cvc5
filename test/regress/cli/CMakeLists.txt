@@ -1607,6 +1607,7 @@ set(regress_0_tests
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/alpha-eq-bv-reorder-1.smt2
   regress0/proofs/alpha-eq-bv-reorder-2.smt2
+  regress0/proofs/annotate-theory-lemmas-pp-merge.smt2
   regress0/proofs/arith-dio-lemma-diseq-tighten.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
