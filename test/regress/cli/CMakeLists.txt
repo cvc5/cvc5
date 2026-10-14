@@ -2959,6 +2959,8 @@ set(regress_1_tests
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
+  regress1/bags/table_join4.smt2
+  regress1/bags/table_join5.smt2
   regress1/bags/table_project1.smt2
   regress1/bags/table_project2.smt2
   regress1/bags/union_disjoint.smt2
@@ -3673,6 +3675,7 @@ set(regress_1_tests
   regress1/rels/rel_tc_9_1.cvc.smt2
   regress1/rels/rel_tp_2.cvc.smt2
   regress1/rels/relation_join1.smt2
+  regress1/rels/relation_join2.smt2
   regress1/rels/rel_tp_join_2_1.cvc.smt2
   regress1/rels/set-strat.cvc.smt2
   regress1/rels/strat.cvc.smt2
