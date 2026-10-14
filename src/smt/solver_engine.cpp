@@ -568,6 +568,8 @@ void SolverEngine::defineFunction(Node func,
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(def));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  // Definitions invalidate the previous check-sat result.
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunction(Node func, Node lambda, bool global)
@@ -579,6 +581,7 @@ void SolverEngine::defineFunction(Node func, Node lambda, bool global)
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(lambda));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionsRec(
@@ -652,6 +655,7 @@ void SolverEngine::defineFunctionsRec(
     lem = eliminateSubtypesForProof(lem);
     d_smtSolver->getAssertions().addDefineFunDefinition(lem, global);
   }
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionRec(Node func,
