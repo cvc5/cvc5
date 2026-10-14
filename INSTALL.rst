@@ -191,7 +191,7 @@ versions; more recent versions should be compatible.
 - `GMP >= v6.3 (GNU Multi-Precision arithmetic library) <https://gmplib.org>`_
 - `MPFR >= v4.2.1 (GNU Multiple Precision Floating-Point Reliable Library) <https://www.mpfr.org>`_
 - `CaDiCaL >= 2.1.0 (SAT solver) <https://github.com/arminbiere/cadical>`_
-- `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_
+- `SymFPU >= v1.2.0 <https://github.com/martin-cs/symfpu/tree/main>`_
 
 If ``--auto-download`` is given, the Python modules will be installed automatically in
 a virtual environment if they are missing. To install the modules globally and skip
@@ -227,7 +227,9 @@ SymFPU (Support for the Theory of Floating Point Numbers)
 `SymFPU <https://github.com/martin-cs/symfpu/tree/main>`_ is an implementation
 of SMT-LIB/IEEE-754 floating-point operations in terms of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and can be
-downloaded and built automatically.
+downloaded and built automatically. Note that SymFPU does not expose its
+version, cvc5 therefore determines whether a system installation is recent
+enough by probing for an API change introduced in SymFPU 1.2.0.
 
 
 Optional Dependencies

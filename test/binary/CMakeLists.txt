@@ -51,13 +51,16 @@ if (USE_EDITLINE)
     WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
   )
   set_tests_properties(interactive_shell_parser_inc PROPERTIES LABELS "binary")
-  add_test(
-    NAME interactive_shell_define_fun_rec_multiline
-    COMMAND
-    "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/test/binary/interactive_shell_define_fun_rec_multiline.py"
-    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
-  )
-  set_tests_properties(interactive_shell_define_fun_rec_multiline PROPERTIES LABELS "binary")
+  # define-fun-rec is not supported in safe mode.
+  if (NOT ENABLE_SAFE_MODE)
+    add_test(
+      NAME interactive_shell_define_fun_rec_multiline
+      COMMAND
+      "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/test/binary/interactive_shell_define_fun_rec_multiline.py"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+    )
+    set_tests_properties(interactive_shell_define_fun_rec_multiline PROPERTIES LABELS "binary")
+  endif()
   add_test(
     NAME issue_10258
     COMMAND

@@ -19,6 +19,7 @@
 (define bv2nat () ubv_to_int)
 
 ; Symbolic BV constant.
-; note: We use this as an alias for int_to_bv, as the two have the same semantics.
+; note: We use this as an alias for int_to_bv, as the two have the same
+; semantics.
 ; note: The order of arguments swaps.
 (define @bv ((value Int) (w Int)) (int_to_bv w value))

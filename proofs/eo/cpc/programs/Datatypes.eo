@@ -9,13 +9,16 @@
 ;   constructor. Parametric datatypes must reference the type constructor to
 ;   extract their constructors, which generates a list of *unannotated*
 ;   datatype constructors.
-(program $dt_get_constructors ((D Type) (T Type) (T1 Type) (T2 Type :list) (U Type) (DC (-> Type Type)))
+(program $dt_get_constructors
+  ((D Type) (T Type) (T1 Type) (T2 Type :list) (U Type) (DC (-> Type Type)))
   :signature (U) eo::List
   (
-    (($dt_get_constructors (Tuple T1 T2)) (_ eo::List::cons tuple eo::List::nil))
-    (($dt_get_constructors UnitTuple)     (_ eo::List::cons tuple.unit eo::List::nil))
-    (($dt_get_constructors (DC T))        ($dt_get_constructors DC))   ; user-defined parameteric datatypes, traverse
-    (($dt_get_constructors D)             (eo::dt_constructors D))     ; ordinary user-defined datatypes
+  (($dt_get_constructors (Tuple T1 T2)) (_ eo::List::cons tuple eo::List::nil))
+  (($dt_get_constructors UnitTuple) (_ eo::List::cons tuple.unit eo::List::nil))
+  ; user-defined parameteric datatypes, traverse
+  (($dt_get_constructors (DC T))  ($dt_get_constructors DC))
+  ; ordinary user-defined datatypes
+  (($dt_get_constructors D) (eo::dt_constructors D))
   )
 )
 
@@ -27,12 +30,12 @@
 ;   The version of c that has been annotated with its type, if necessary. For
 ;   example, given (List Int) and nil, this returns (_ nil (List Int)).
 (define $dt_inst_cons_of ((D Type) (T Type :implicit) (c T))
-  ; we construct two lists here: eo::dt_constructors with and without the annotations
-  ; and rely on the fact that the constructor appears unannotated at the same index
+  ; we construct two lists here: eo::dt_constructors with and without the
+  ; annotations
+  ; and rely on the fact that the constructor appears unannotated at the same
+  ; index
   ; as it appears annotated in the instantiated list.
-  ($assoc_nil_nth
-    eo::List::cons
-    (eo::dt_constructors D)
+  ($assoc_nil_nth eo::List::cons (eo::dt_constructors D)
     (eo::list_find eo::List::cons ($dt_get_constructors D) c)))
 
 ; program: $tuple_get_selectors_rec
@@ -46,8 +49,10 @@
 (program $tuple_get_selectors_rec ((T1 Type) (T2 Type :list) (n Int))
   :signature (Type Int) eo::List
   (
-    (($tuple_get_selectors_rec UnitTuple n)     eo::List::nil)
-    (($tuple_get_selectors_rec (Tuple T1 T2) n) (_ eo::List::cons (tuple.select n) ($tuple_get_selectors_rec T2 (eo::add n 1))))
+  (($tuple_get_selectors_rec UnitTuple n) eo::List::nil)
+  (($tuple_get_selectors_rec (Tuple T1 T2) n)
+    (_ eo::List::cons (tuple.select n)
+      ($tuple_get_selectors_rec T2 (eo::add n 1))))
   )
 )
 
@@ -59,12 +64,14 @@
 ; note: >
 ;   (Unit) tuples are treated as a special case of datatypes whose selectors are
 ;   tuple.select indexed by an integer, which requires the above method.
-(program $dt_get_selectors ((D Type) (T Type) (c Type) (T1 Type) (T2 Type :list))
+(program $dt_get_selectors
+  ((D Type) (T Type) (c Type) (T1 Type) (T2 Type :list))
   :signature (Type T) eo::List
   (
-    (($dt_get_selectors (Tuple T1 T2) tuple)  ($tuple_get_selectors_rec (Tuple T1 T2) 0))
-    (($dt_get_selectors UnitTuple tuple.unit) eo::List::nil)
-    (($dt_get_selectors D c)                  (eo::dt_selectors c)) ; user-defined datatypes
+  (($dt_get_selectors (Tuple T1 T2) tuple)
+    ($tuple_get_selectors_rec (Tuple T1 T2) 0))
+  (($dt_get_selectors UnitTuple tuple.unit) eo::List::nil)
+  (($dt_get_selectors D c)  (eo::dt_selectors c)) ; user-defined datatypes
   )
 )
 
@@ -76,8 +83,8 @@
 (program $dt_get_selectors_of_app ((T Type) (U Type) (f (-> U T)) (a U))
   :signature (Type T) eo::List
   (
-    (($dt_get_selectors_of_app T (f a))  ($dt_get_selectors_of_app T f))
-    (($dt_get_selectors_of_app T a)      ($dt_get_selectors T a))
+  (($dt_get_selectors_of_app T (f a)) ($dt_get_selectors_of_app T f))
+  (($dt_get_selectors_of_app T a)     ($dt_get_selectors T a))
   )
 )
 
@@ -86,21 +93,21 @@
 ; - t T: The term in question.
 ; return: true iff t is a constructor symbol.
 (define $dt_is_cons ((T Type :implicit) (t T))
-  (eo::ite (eo::is_eq t tuple)    ; must check this first
+  (eo::ite (eo::is_eq t tuple) ; must check this first
+    ; if it has selectors, then it is a constructor
     true
-    (eo::ite (eo::is_eq t tuple.unit)
-      true
-      (eo::is_ok (eo::dt_selectors t))))) ; if it has selectors, then it is a constructor
+    (eo::ite (eo::is_eq t tuple.unit) true (eo::is_ok (eo::dt_selectors t)))))
 
 ; program: $is_cons_app
 ; args:
 ; - t S: The term to inspect.
-; return: True iff t has a constructor symbol at its head, including bare/nullary constructors.
+; return: True iff t has a constructor symbol at its head, including
+; bare/nullary constructors.
 (program $is_cons_app ((T Type) (S Type) (g (-> T S)) (x T) (y S))
   :signature (S) Bool
   (
-    (($is_cons_app (g x))  ($is_cons_app g))
-    (($is_cons_app y)      ($dt_is_cons y))
+  (($is_cons_app (g x)) ($is_cons_app g))
+  (($is_cons_app y)     ($dt_is_cons y))
   )
 )
 
@@ -126,9 +133,9 @@
   :signature (T) eo::List
   (
   ; for tuples, we manually accumulate the list.
-  (($dt_arg_list (tuple t1 t2))  ($tuple_arg_list (tuple t1 t2)))
+  (($dt_arg_list (tuple t1 t2)) ($tuple_arg_list (tuple t1 t2)))
   ; otherwise we get the argument list using the utility method
-  (($dt_arg_list t)              ($get_arg_list t))
+  (($dt_arg_list t) ($get_arg_list t))
   )
 )
 
@@ -149,14 +156,14 @@
 ;   True if the constructors of t and s are the same, false if the constructors
 ;   of t and s are different, and does not evaluate if at least one of t and s
 ;   is not an application of a constructor.
-(program $dt_eq_cons ((T Type) (U Type) (V Type) (W Type) (ct T) (cs V) (f (-> U W)) (a U))
+(program $dt_eq_cons
+  ((T Type) (U Type) (V Type) (W Type) (ct T) (cs V) (f (-> U W)) (a U))
   :signature (T V) Bool
   (
-    (($dt_eq_cons (f a) cs) ($dt_eq_cons f cs))
-    (($dt_eq_cons ct (f a)) ($dt_eq_cons ct f))
-    (($dt_eq_cons ct cs)    (eo::requires ($dt_is_cons ct) true
-                              (eo::ite (eo::eq ct cs)
-                                true
-                                (eo::requires ($dt_is_cons cs) true false))))
+  (($dt_eq_cons (f a) cs) ($dt_eq_cons f cs))
+  (($dt_eq_cons ct (f a)) ($dt_eq_cons ct f))
+  (($dt_eq_cons ct cs)
+    (eo::requires ($dt_is_cons ct) true
+      (eo::ite (eo::eq ct cs) true (eo::requires ($dt_is_cons cs) true false))))
   )
 )

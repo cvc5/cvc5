@@ -22,7 +22,7 @@
 (declare-fun k1 () Bool)
 (declare-fun k2 () Bool)
 (assert (and 
-(is-Vec ex) 
+((_ is Vec) ex)
 (not 
   (and 
     (not (= ex E)) 

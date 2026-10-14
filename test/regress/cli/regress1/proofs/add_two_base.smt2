@@ -1,5 +1,3 @@
-; REQUIRES: unrestricted-mode
-; COMMAND-LINE: --lfsc-flatten --lfsc-expand-trust
 ; EXPECT: unsat
 
 (set-logic QF_UFLIRA)
