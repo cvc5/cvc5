@@ -12,6 +12,7 @@
 
 # Add unit tests.
 cvc5_add_unit_test_black(theory_uf_ho_black theory)
+cvc5_add_unit_test_black(theory_uf_lambda_lift_black theory)
 cvc5_add_unit_test_black(regexp_operation_black theory)
 cvc5_add_unit_test_black(theory_black theory)
 cvc5_add_unit_test_white(evaluator_white theory)
