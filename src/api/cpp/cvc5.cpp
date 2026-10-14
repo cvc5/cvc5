@@ -5124,9 +5124,9 @@ Statistics::Statistics(const internal::StatisticsRegistry& reg)
 std::string Statistics::toString() const
 {
   std::stringstream ss;
-  for (const auto& stat : *this)
+  for (auto it = begin(true, true); it != end(); ++it)
   {
-    ss << stat.first << " = " << stat.second << std::endl;
+    ss << it->first << " = " << it->second << std::endl;
   }
   return ss.str();
 }

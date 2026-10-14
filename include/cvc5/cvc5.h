@@ -3594,7 +3594,7 @@ class CVC5_EXPORT Statistics
    * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool internal = true, bool defaulted = true) const;
+  iterator begin(bool internal = false, bool defaulted = false) const;
   /** End iteration */
   iterator end() const;
 
