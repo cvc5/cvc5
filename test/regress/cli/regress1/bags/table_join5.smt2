@@ -1,4 +1,5 @@
 ; REQUIRES: unrestricted-mode
+; REQUIRES: no-competition
 ; DISABLE-TESTER: dump
 ; EXIT: 1
 ; SCRUBBER: sed -e 's/Parse Error: [^:]*:[0-9][0-9]*\.[0-9][0-9]*: /Parse Error: /'
