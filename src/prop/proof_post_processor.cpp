@@ -18,8 +18,8 @@
 namespace cvc5::internal {
 namespace prop {
 
-ProofPostprocessCallback::ProofPostprocessCallback(
-    Env& env, ProofGenerator* proofCnfStream)
+ProofPostprocessCallback::ProofPostprocessCallback(Env& env,
+                                                   LazyCDProof* proofCnfStream)
     : EnvObj(env), d_pg(proofCnfStream), d_blocked(userContext())
 {
 }
@@ -31,11 +31,16 @@ bool ProofPostprocessCallback::shouldUpdate(
     CVC5_UNUSED const std::vector<Node>& fa,
     bool& continueUpdate)
 {
-  bool result =
-      pn->getRule() == ProofRule::ASSUME && d_pg->hasProofFor(pn->getResult());
+  bool result = pn->getRule() == ProofRule::ASSUME
+                && (d_pg->hasStep(pn->getResult())
+                    || d_pg->hasGenerator(pn->getResult()));
   if (TraceIsOn("prop-proof-pp") && !result
       && pn->getRule() == ProofRule::ASSUME)
   {
+    // Note this is expected for the clausified preprocessed assertions, which
+    // are connected to the preprocessing proof rather than here. For anything
+    // else it means the proof of the clause was lost, e.g. because the SAT
+    // solver kept the clause past the user level its proof was stored in.
     Trace("prop-proof-pp") << "- Ignoring no-proof assumption "
                            << pn->getResult() << "\n";
   }
@@ -104,7 +109,7 @@ bool ProofPostprocessCallback::isBlocked(std::shared_ptr<ProofNode> pfn)
   return d_blocked.contains(pfn);
 }
 
-ProofPostprocess::ProofPostprocess(Env& env, ProofGenerator* pg)
+ProofPostprocess::ProofPostprocess(Env& env, LazyCDProof* pg)
     : EnvObj(env), d_cb(env, pg)
 {
 }
