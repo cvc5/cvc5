@@ -1535,7 +1535,8 @@ class Comparison : public NodeWrapper
 
 /**
  * A linear form  c_1 * x_1 + ... + c_n * x_n + k where each variable x_i
- * is identified by its node id, for the Diophantine solver's internal arithmetic.
+ * is identified by its node id, for the Diophantine solver's internal
+ * arithmetic.
  *
  * Unlike Polynomial and SumPair it is not backed by Nodes.
  *
@@ -1639,7 +1640,10 @@ class DioLinearForm
   Integer coefficientGcd() const;
   /** The gcd of the coefficients and the constant, like SumPair::gcd(). */
   Integer gcdWithConstant() const;
-  /** Divides every coefficient and the constant by g, which must divide all of them. */
+  /**
+   * Divides every coefficient and the constant by g, which must divide all
+   * of them.
+   */
   DioLinearForm exactDivide(const Integer& g) const;
   /**
    * The largest bit length of a coefficient or of the constant, as

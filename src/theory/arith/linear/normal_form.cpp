@@ -1592,7 +1592,7 @@ int absCmpCoeff(const Integer& a, const Integer& b)
 }
 int absCmpCoeff(const Rational& a, const Rational& b) { return a.absCmp(b); }
 
-/** Converts a coefficient read from a SumPair to the form's coefficient type. */
+/** Converts a SumPair coefficient to the form's coefficient type. */
 void coeffFromRational(const Rational& q, Integer& out)
 {
   Assert(q.isIntegral());
@@ -1722,7 +1722,7 @@ DioLinearForm<T> DioLinearForm<T>::combine(const T& q,
   {
     return a * q;
   }
-  // Multiplying by one is common (substitutions combine with q = 1), so skip it.
+  // Multiplying by one is common (substitutions use q = 1), so skip it.
   const bool qOne = q.isOne();
   const bool rOne = r.isOne();
   auto scaleA = [&](const T& x) { return qOne ? x : q * x; };
@@ -1919,7 +1919,8 @@ std::ostream& operator<<(std::ostream& out, const DioLinearForm<T>& f)
 template class DioLinearForm<Integer>;
 template class DioLinearForm<Rational>;
 template std::ostream& operator<<(std::ostream&, const DioLinearForm<Integer>&);
-template std::ostream& operator<<(std::ostream&, const DioLinearForm<Rational>&);
+template std::ostream& operator<<(std::ostream&,
+                                  const DioLinearForm<Rational>&);
 
 }  // namespace arith::linear
 }  // namespace theory

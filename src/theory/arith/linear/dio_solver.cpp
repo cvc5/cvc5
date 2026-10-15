@@ -135,7 +135,7 @@ Node DioSolver::nextPureSubstitution()
   Variable v(d_varNodes[d_subs[curr].d_eliminated]);
 
   SumPair sp = d_trail[d_subs[curr].d_constraint].d_eq.toSumPair(nodeManager(),
-                                                                d_varNodes);
+                                                                 d_varNodes);
   Polynomial p = sp.getPolynomial();
   Polynomial cancelV = p + Polynomial::mkPolynomial(v);
   Node eq = nodeManager()->mkNode(Kind::EQUAL, v.getNode(), cancelV.getNode());
@@ -249,8 +249,9 @@ bool DioSolver::anyCoefficientExceedsMaximum(TrailIndex j) const
     Trace("arith::dio::max") << "about to drop:" << std::endl;
     Trace("arith::dio::max")
         << "d_trail[" << j << "].d_eq = " << eq << std::endl;
-    Trace("arith::dio::max") << "d_trail[" << j << "].d_proof = "
-                             << d_trail[j].d_proof.toString("in") << std::endl;
+    Trace("arith::dio::max")
+        << "d_trail[" << j
+        << "].d_proof = " << d_trail[j].d_proof.toString("in") << std::endl;
   }
   return result;
 }
@@ -673,8 +674,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::solveIndex(
   SubIndex subBy = d_subs.size();
   d_subs.push_back(Substitution(false, 0, var, ci));
 
-  Trace("arith::dio") << "after solveIndex " << d_trail[ci].d_eq << " for "
-                      << a << "*v" << var << endl;
+  Trace("arith::dio") << "after solveIndex " << d_trail[ci].d_eq << " for " << a
+                      << "*v" << var << endl;
   Assert(d_trail[ci].d_eq.getCoefficient(var).isNegativeOne());
 
   return make_pair(subBy, i);
@@ -685,8 +686,8 @@ std::pair<DioSolver::SubIndex, DioSolver::TrailIndex> DioSolver::decomposeIndex(
 {
   d_usedDecomposeIndex = true;
 
-  Trace("arith::dio") << "before decomposeIndex(" << i << ":"
-                      << d_trail[i].d_eq << ")" << endl;
+  Trace("arith::dio") << "before decomposeIndex(" << i << ":" << d_trail[i].d_eq
+                      << ")" << endl;
 
   Assert(!d_trail[i].d_eq.isConstant());
   Assert(minimalTerm(d_trail[i].d_eq) == d_trail[i].d_minTerm);
