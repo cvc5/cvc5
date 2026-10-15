@@ -16,6 +16,7 @@
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "smt/env.h"
 #include "test_smt.h"
 #include "theory/arith/liastar/liastar_utils.h"
@@ -88,6 +89,21 @@ TEST_F(TestLiaStarUtils, getVectorPredicateAcceptsConstantLambda)
   auto [predicate, nonnegative] = LiaStarUtils::getVectorPredicate(star, nm);
 
   ASSERT_EQ(nm->mkConst<bool>(false), predicate);
+  ASSERT_EQ("(and true (>= x 0))", nonnegative.toString());
+}
+
+TEST_F(TestLiaStarUtils, getVectorPredicateAcceptsLiftedLambda)
+{
+  Node u = nm->mkBoundVar("u", intType);
+  // (int.star-contains k x), where lambda lifting replaced the lambda
+  // (lambda ((u Int)) (>= u 1)) by its purification skolem k
+  Node lifted =
+      SkolemManager::mkPurifySkolem(lambda({u}, nm->mkNode(Kind::GEQ, u, one)));
+  Node star = nm->mkNode(Kind::STAR_CONTAINS, lifted, x);
+
+  auto [predicate, nonnegative] = LiaStarUtils::getVectorPredicate(star, nm);
+
+  ASSERT_EQ(nm->mkNode(Kind::GEQ, x, one), predicate);
   ASSERT_EQ("(and true (>= x 0))", nonnegative.toString());
 }
 
