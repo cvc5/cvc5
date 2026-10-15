@@ -18,6 +18,10 @@
   (set.subset x y)
   (= (set.union x y) y))
 
+(define-rule sets-insert-elim ((x ?) (y ?Set))
+  (set.insert x y)
+  (set.union (set.singleton x) y))
+
 (define-rule sets-union-comm ((x ?Set) (y ?Set))
   (set.union x y)
   (set.union y x))

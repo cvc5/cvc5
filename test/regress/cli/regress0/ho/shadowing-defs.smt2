@@ -1,5 +1,6 @@
 ; REQUIRES: unrestricted-mode
-; EXPECT: unknown
+; COMMAND-LINE: --produce-models
+; EXPECT: sat
 (set-logic HO_ALL)
 (declare-sort $$unsorted 0)
 (declare-sort mu 0)

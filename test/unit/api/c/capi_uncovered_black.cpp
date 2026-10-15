@@ -165,7 +165,7 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   ss << cvc5::modes::FindSynthTarget::ENUM;
   ss << cvc5::modes::OptionCategory::EXPERT;
   ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
-  ss << cvc5::modes::ProofFormat::LFSC;
+  ss << cvc5::modes::ProofFormat::CPC;
   ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
   ss << cvc5::ProofRewriteRule::NONE;
   ss << cvc5::SkolemId::PURIFY;
@@ -381,6 +381,7 @@ TEST_F(TestCApiBlackUncovered, parser)
   Solver solver(d_tm);
   parser::InputParser parser(&solver);
   (void)parser.getSolver();
+  (void)parser.getSymbolManager();
   std::stringstream ss;
   ss << command << std::endl;
   parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");

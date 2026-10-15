@@ -143,13 +143,35 @@ jobject getDoubleObject(JNIEnv* env, double value);
 jobject getBooleanObject(JNIEnv* env, bool value);
 
 /**
- * @param env jni environment
- * @param solverRef a global reference to java Solver object
- * @param oracleRef a global reference to java IOracle object
- * @param terms a list of terms
- * @return the result of calling IOracle.compute(terms)
+ * The capacity of the JNI local frame that callbacks into Java (plugins,
+ * oracles) push for the local references they create. The callbacks hold only
+ * a few local references at a time, and 16 is the number of local references
+ * the JNI specification guarantees to every native method.
  */
-cvc5::Term applyOracle(JNIEnv* env,
+inline constexpr jint callbackLocalFrameCapacity = 16;
+
+/**
+ * Get the JNI environment of the current thread.
+ *
+ * A JNIEnv is only valid on the thread it was obtained from. Callbacks into
+ * Java (plugins, oracles) may run on a different thread than the one that
+ * registered them, so they must look up the environment of the calling
+ * thread.
+ *
+ * @param vm the Java VM
+ * @return the JNI environment of the current thread
+ */
+JNIEnv* getEnv(JavaVM* vm);
+
+/**
+ * Call a Java oracle.
+ *
+ * @param vm the Java VM
+ * @param oracleRef a global reference to a java IOracle object
+ * @param terms the arguments
+ * @return the result of applying the oracle to the arguments
+ */
+cvc5::Term applyOracle(JavaVM* vm,
                        jobject oracleRef,
                        const std::vector<cvc5::Term>& terms);
 

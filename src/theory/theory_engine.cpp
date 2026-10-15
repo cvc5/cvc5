@@ -38,6 +38,7 @@
 #include "theory/partition_generator.h"
 #include "theory/plugin_module.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
@@ -2216,6 +2217,17 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure)
             && relevantAssertions.find(assertion) == relevantAssertions.end())
         {
           // not relevant, skip
+          continue;
+        }
+        TNode atom =
+            assertion.getKind() == Kind::NOT ? assertion[0] : assertion;
+        if (atom.getKind() == Kind::FORALL
+            && quantifiers::TermUtil::hasInstConstAttr(atom))
+        {
+          // Quantified formulas with instantiation constants are internal to
+          // counterexample-guided quantifier instantiation, and need not be
+          // satisfied by the model, e.g. if the counterexample lemma they
+          // occur in is disabled.
           continue;
         }
         Node val = d_tc->getModel()->getValue(assertion);

@@ -99,7 +99,7 @@
 (declare-fun v38() a2)
 (declare-fun v39() Bool)
 (pop 1)
-(define-funs-rec ((fa((v38 a2)(v39 Bool))a2)(f9((v35 String)(v36 a1)(v37 a1))String)(f8((v2e a2)(v2f a1)(v30 a0)(v31 a2)(v32 String)(v33 Bool)(v34 Int))a0)(f7((v26 Bool)(v27 Bool)(v28 Int)(v29 a2)(v2a Int)(v2b Int)(v2c String)(v2d String))a0)(f6((v1c String)(v1d Int)(v1e a1)(v1f a0)(v20 Bool)(v21 Int)(v22 Int)(v23 String)(v24 a0)(v25 a0))Int)(f5((v14 Bool)(v15 a0)(v16 Bool)(v17 a1)(v18 a2)(v19 a0)(v1a Int)(v1b Bool))a0)(f4((v10 a1)(v11 a0)(v12 a1)(v13 Int))Bool)(f3((v9 a2)(va a1)(vb Int)(vc Bool)(vd Int)(ve Bool)(vf Bool))Int)(f2()Int)(f1((v0 a0)(v1 a2)(v2 a2)(v3 a0)(v4 Bool)(v5 a1)(v6 Bool)(v7 String)(v8 a2))Int)(f0()Bool))(v38 "\xea" (c0$3 c1$5 1 "\xc6\xff" (- 2)) c0$5 (- 9) (c0$3 c1$4 0 "" v1a) (str.< (ite (is-c0$4 v11) "\xe8" "") "\x19") 0 (- 1) 0 false))
+(define-funs-rec ((fa((v38 a2)(v39 Bool))a2)(f9((v35 String)(v36 a1)(v37 a1))String)(f8((v2e a2)(v2f a1)(v30 a0)(v31 a2)(v32 String)(v33 Bool)(v34 Int))a0)(f7((v26 Bool)(v27 Bool)(v28 Int)(v29 a2)(v2a Int)(v2b Int)(v2c String)(v2d String))a0)(f6((v1c String)(v1d Int)(v1e a1)(v1f a0)(v20 Bool)(v21 Int)(v22 Int)(v23 String)(v24 a0)(v25 a0))Int)(f5((v14 Bool)(v15 a0)(v16 Bool)(v17 a1)(v18 a2)(v19 a0)(v1a Int)(v1b Bool))a0)(f4((v10 a1)(v11 a0)(v12 a1)(v13 Int))Bool)(f3((v9 a2)(va a1)(vb Int)(vc Bool)(vd Int)(ve Bool)(vf Bool))Int)(f2()Int)(f1((v0 a0)(v1 a2)(v2 a2)(v3 a0)(v4 Bool)(v5 a1)(v6 Bool)(v7 String)(v8 a2))Int)(f0()Bool))(v38 "\xea" (c0$3 c1$5 1 "\xc6\xff" (- 2)) c0$5 (- 9) (c0$3 c1$4 0 "" v1a) (str.< (ite ((_ is c0$4) v11) "\xe8" "") "\x19") 0 (- 1) 0 false))
 (push 1)
 (assert true)
 (check-sat)

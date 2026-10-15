@@ -1318,12 +1318,11 @@ bool AletheProofPostprocessCallback::update(Node res,
     // * the corresponding proof node is false
     case ProofRule::CONTRA:
     {
-      return addAletheStep(AletheRule::RESOLUTION,
+      return addAletheStep(AletheRule::RESOLUTION_OR,
                            res,
                            nm->mkNode(Kind::SEXPR, d_cl),
                            children,
-                           d_resPivots ? std::vector<Node>{children[0], d_true}
-                                       : std::vector<Node>(),
+                           {children[0], d_true},
                            *cdp);
     }
     // ======== And elimination
@@ -3368,9 +3367,14 @@ bool AletheProofPostprocessCallback::updatePost(
       pivIdx = 3;
       // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
-      // only be equal to the pivot in the case the polarity is true.
+      // only be equal to the pivot in the case the polarity is true. Note
+      // that the pivot argument has been converted (in addAletheStep), while
+      // the child is the original node, so the comparison must be modulo
+      // conversion.
       if (children[0].getKind() == Kind::OR
-          && (args[polIdx] != d_true || args[pivIdx] != children[0]))
+          && (args[polIdx] != d_true
+              || !CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                             d_anc.convert(children[0]))))
       {
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
         bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
@@ -3413,7 +3417,9 @@ bool AletheProofPostprocessCallback::updatePost(
       // proof indeed concludes a singleton clause.
       else if (children[0].getKind() == Kind::OR)
       {
-        Assert(args[polIdx] == d_true && args[pivIdx] == children[0]);
+        Assert(args[polIdx] == d_true
+               && CVC5_EQUAL(d_anc.convert(args[pivIdx]),
+                             d_anc.convert(children[0])));
         if (maybeReplacePremiseProof(children[0], cdp))
         {
           hasUpdated = true;
