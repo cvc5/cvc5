@@ -62,6 +62,12 @@ class TheorySets : public Theory
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort level) override;
+  /**
+   * We need a last-call check whenever there is an open relation-acyclicity
+   * cycle obligation, so that it gets one more chance to catch up to a
+   * now-fixed cycle length before the model is accepted.
+   */
+  bool needsCheckLastEffort() override;
   /** Notify fact */
   void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
   //--------------------------------- end standard check

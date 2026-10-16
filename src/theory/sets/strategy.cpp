@@ -42,6 +42,9 @@ void Strategy::initializeStrategy()
   addStrategyStep(Step::SETS_CHECK_RESET);
   addStrategyStep(Step::SETS_CHECK_BASIC);
   addStrategyStep(Step::SETS_CHECK_RELATIONS);
+  // Relation acyclicity: unroll the cycle witnesses of the asserted
+  // (not (rel.acyclic R)) constraints collected by SETS_CHECK_RELATIONS.
+  addStrategyStep(Step::SETS_CHECK_ACYCLICITY);
   // The transitive-closure down and up rules share the closure graph the down
   // rule builds, so they run back-to-back in the same pass (no BREAK between
   // them), mirroring TheorySetsRels::check() before the strategy refactor.
@@ -55,6 +58,18 @@ void Strategy::initializeStrategy()
   addStrategyStep(Step::SETS_CHECK_CARDINALITY);
   addStrategyStep(Step::SETS_CHECK_COMPREHENSION);
   markEndEffort(Theory::EFFORT_FULL);
+  // the last-call effort strategy: give open relation-acyclicity cycle
+  // obligations one more chance to catch up to a now-fixed cycle length
+  // before the engine accepts the current model, and (under
+  // --rels-acyclic-hammer) confirm that transitive-closure and join
+  // memberships are grounded by base-relation memberships.
+  markStartEffort(Theory::EFFORT_LAST_CALL);
+  addStrategyStep(Step::SETS_CHECK_ACYCLICITY_LAST_CALL,
+                  Theory::EFFORT_LAST_CALL);
+  addStrategyStep(Step::SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL,
+                  Theory::EFFORT_LAST_CALL);
+  addStrategyStep(Step::SETS_CHECK_JOIN_LAST_CALL, Theory::EFFORT_LAST_CALL);
+  markEndEffort(Theory::EFFORT_LAST_CALL);
   // set the beginning/ending ranges and mark the strategy as initialized
   finishInit();
 }
@@ -70,6 +85,7 @@ void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
     case Step::SETS_CHECK_BASIC: d_setsSolver->checkBasic(); break;
     case Step::SETS_CHECK_CARDINALITY: d_setsSolver->checkCardinality(); break;
     case Step::SETS_CHECK_RELATIONS: d_setsSolver->checkRelations(); break;
+    case Step::SETS_CHECK_ACYCLICITY: d_setsSolver->checkAcyclicity(); break;
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN:
       d_setsSolver->checkTransitiveClosureDown();
       break;
@@ -84,6 +100,15 @@ void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
       break;
     case Step::SETS_CHECK_COMPREHENSION:
       d_setsSolver->checkReduceComprehensions();
+      break;
+    case Step::SETS_CHECK_ACYCLICITY_LAST_CALL:
+      d_setsSolver->checkAcyclicityLastCall();
+      break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL:
+      d_setsSolver->checkTransitiveClosureLastCall();
+      break;
+    case Step::SETS_CHECK_JOIN_LAST_CALL:
+      d_setsSolver->checkJoinLastCall();
       break;
 
     default: Unreachable(); break;

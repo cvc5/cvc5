@@ -49,6 +49,9 @@ enum class Step : uint32_t
   SETS_CHECK_CARDINALITY,
   // check basic relational operators
   SETS_CHECK_RELATIONS,
+  // check relation acyclicity: unroll the cycle witnesses of asserted
+  // (not (rel.acyclic R)) constraints
+  SETS_CHECK_ACYCLICITY,
   // check the transitive closure down rule, which introduces fresh elements
   SETS_CHECK_TRANSITIVE_CLOSURE_DOWN,
   // check the transitive closure up rule, which chains the closure graph built
@@ -64,6 +67,16 @@ enum class Step : uint32_t
   SETS_CHECK_DISEQUALITY,
   // check comprehension reductions
   SETS_CHECK_COMPREHENSION,
+  // last-call check that relation acyclicity cycle-sequences whose length
+  // has been fixed have had all applicable SplitCycleLen/UnrollCycle/
+  // ContrMinimal lemmas applied
+  SETS_CHECK_ACYCLICITY_LAST_CALL,
+  // last-call check (only relevant under --rels-acyclic-hammer) that every
+  // transitive-closure membership is grounded by known base-relation members
+  SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL,
+  // last-call check (only relevant under --rels-acyclic-hammer) that every
+  // membership in joined relations is grounded by known base-relation members
+  SETS_CHECK_JOIN_LAST_CALL,
   // unknown inference step
   UNKNOWN
 };
