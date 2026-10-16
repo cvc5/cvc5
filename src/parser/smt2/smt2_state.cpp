@@ -1035,7 +1035,7 @@ Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
                               const std::vector<Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
-      new Grammar(d_solver->mkGrammar(boundVars, ntSymbols)));
+      new Grammar(d_tm.mkGrammar(boundVars, ntSymbols)));
   return d_allocGrammars.back().get();
 }
 

@@ -7,6 +7,13 @@ cvc5 1.4.3 prerelease
   satisfiability query results, allowing access to stale models and other
   query-dependent information. (#13077)
 
+- **API**
+  * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
+    (Java, Python) for creating SyGuS grammars. A grammar is associated with
+    a term manager, not with a solver, and can be used with any solver
+    instance that uses this term manager. `Solver::mkGrammar()` is deprecated
+    and will be removed in a future release.
+
 - **Java API**
   * Plugin and oracle callbacks may now be invoked from a thread other than
     the one that registered them, and an exception thrown by a callback is

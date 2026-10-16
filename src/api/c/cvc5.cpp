@@ -5706,7 +5706,7 @@ Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
     CVC5_CAPI_CHECK_TERM_AT_IDX(symbols, i);
     csymbols.push_back(symbols[i]->d_term);
   }
-  res = cvc5->export_grammar(cvc5->d_solver.mkGrammar(cbound_vars, csymbols));
+  res = cvc5->export_grammar(cvc5->d_tm->d_tm.mkGrammar(cbound_vars, csymbols));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }

@@ -2590,13 +2590,13 @@ TEST_F(TestCApiBlackSolver, mk_grammar)
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           slv, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a term associated with the term manager of this solver");
+      "expected a term associated with this term manager");
   bvars = {bv};
   symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
   ASSERT_CVC5_ERROR(
       cvc5_mk_grammar(
           d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a term associated with the term manager of this solver");
+      "expected a term associated with this term manager");
   cvc5_delete(slv);
   cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);

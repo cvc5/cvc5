@@ -272,7 +272,7 @@ TEST_F(TestApiBlackUncovered, grammar)
   Term x = d_tm.mkVar(d_bool, "x");
   Term start1 = d_tm.mkVar(d_bool, "start");
   Term start2 = d_tm.mkVar(d_bool, "start");
-  Grammar g1 = d_solver->mkGrammar({}, {start1});
+  Grammar g1 = d_tm.mkGrammar({}, {start1});
   ASSERT_EQ(g1, g1);
   ASSERT_FALSE(g1 != g1);
   ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g1));

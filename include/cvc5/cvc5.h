@@ -3093,6 +3093,7 @@ class CVC5_EXPORT Grammar
 {
   friend class parser::Cmd;
   friend class Solver;
+  friend class TermManager;
   friend struct std::hash<Grammar>;
 
  public:
@@ -4453,6 +4454,19 @@ class CVC5_EXPORT TermManager
   DatatypeDecl mkDatatypeDecl(const std::string& name,
                               const std::vector<Sort>& params,
                               bool isCoDatatype = false);
+
+  /* SyGuS Grammar ------------------------------------------------------ */
+
+  /**
+   * Create a Sygus grammar. The first non-terminal is treated as the starting
+   * non-terminal, so the order of non-terminals matters.
+   *
+   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
+   * @param ntSymbols The pre-declaration of the non-terminal symbols.
+   * @return The grammar.
+   */
+  Grammar mkGrammar(const std::vector<Term>& boundVars,
+                    const std::vector<Term>& ntSymbols);
 
  private:
   /**
@@ -6760,9 +6774,13 @@ class CVC5_EXPORT Solver
    * @param boundVars The parameters to corresponding synth-fun/synth-inv.
    * @param ntSymbols The pre-declaration of the non-terminal symbols.
    * @return The grammar.
+   * @warning This function is deprecated and replaced by
+   *          `TermManager::mkGrammar()`. It will be removed in a future
+   *          release.
    */
-  Grammar mkGrammar(const std::vector<Term>& boundVars,
-                    const std::vector<Term>& ntSymbols) const;
+  [[deprecated("Use TermManager::mkGrammar() instead")]] Grammar mkGrammar(
+      const std::vector<Term>& boundVars,
+      const std::vector<Term>& ntSymbols) const;
 
   /**
    * Synthesize n-ary function.
