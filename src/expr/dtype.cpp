@@ -11,6 +11,7 @@
  */
 #include "expr/dtype.h"
 
+#include <algorithm>
 #include <sstream>
 
 #include "expr/dtype_cons.h"
@@ -40,7 +41,8 @@ DType::DType(std::string name, bool isCo)
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
-      d_nestedRecursion(0)
+      d_nestedRecursion(0),
+      d_simplyRegular(0)
 {
 }
 
@@ -60,7 +62,8 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
-      d_nestedRecursion(0)
+      d_nestedRecursion(0),
+      d_simplyRegular(0)
 {
 }
 
@@ -760,6 +763,136 @@ void DType::getAlienSubfieldTypes(std::unordered_set<TypeNode>& types,
       dt.getAlienSubfieldTypes(types, processed, true);
     }
   }
+}
+
+namespace {
+
+/** Does tn contain any of the types in tns? */
+bool containsAnyType(TypeNode tn,
+                     const std::vector<TypeNode>& tns,
+                     std::unordered_set<TypeNode>& visited)
+{
+  if (!visited.insert(tn).second)
+  {
+    return false;
+  }
+  if (std::find(tns.begin(), tns.end(), tn) != tns.end())
+  {
+    return true;
+  }
+  for (const TypeNode& tnc : tn)
+  {
+    if (containsAnyType(tnc, tns, visited))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Add to dts the datatypes occurring in the field types of dt, and,
+ * recursively, in the field types of those datatypes.
+ */
+void collectFieldDTypes(const DType& dt, std::unordered_set<const DType*>& dts)
+{
+  std::vector<TypeNode> toVisit;
+  for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+  {
+    for (size_t j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+    {
+      toVisit.push_back(dt[i].getArgType(j));
+    }
+  }
+  std::unordered_set<TypeNode> visited;
+  while (!toVisit.empty())
+  {
+    TypeNode tn = toVisit.back();
+    toVisit.pop_back();
+    if (!visited.insert(tn).second)
+    {
+      continue;
+    }
+    if (tn.isDatatype() && dts.insert(&tn.getDType()).second)
+    {
+      collectFieldDTypes(tn.getDType(), dts);
+    }
+    toVisit.insert(toVisit.end(), tn.begin(), tn.end());
+  }
+}
+
+}  // namespace
+
+bool DType::isSimplyRegular() const
+{
+  Assert(isResolved());
+  if (d_simplyRegular != 0)
+  {
+    return d_simplyRegular == 1;
+  }
+  d_simplyRegular = 1;
+  if (!isParametric())
+  {
+    // all arguments in field types are ground
+    return true;
+  }
+  std::vector<TypeNode> params = getParameters();
+  // whether each datatype is mutually recursive with this one
+  std::map<const DType*, bool> isMutRec;
+  isMutRec[this] = true;
+  std::unordered_set<TypeNode> visited;
+  std::vector<TypeNode> toVisit;
+  for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
+  {
+    for (size_t j = 0, nargs = ctor->getNumArgs(); j < nargs; j++)
+    {
+      toVisit.push_back(ctor->getArgType(j));
+    }
+  }
+  while (!toVisit.empty())
+  {
+    TypeNode tn = toVisit.back();
+    toVisit.pop_back();
+    if (!visited.insert(tn).second)
+    {
+      continue;
+    }
+    toVisit.insert(toVisit.end(), tn.begin(), tn.end());
+    if (!tn.isParametricDatatype())
+    {
+      continue;
+    }
+    const DType& dt = tn.getDType();
+    std::map<const DType*, bool>::iterator it = isMutRec.find(&dt);
+    if (it == isMutRec.end())
+    {
+      std::unordered_set<const DType*> dts;
+      collectFieldDTypes(dt, dts);
+      isMutRec[&dt] = dts.find(this) != dts.end();
+      it = isMutRec.find(&dt);
+    }
+    if (!it->second)
+    {
+      continue;
+    }
+    // note that tn may be the uninstantiated datatype, so we do not use
+    // TypeNode::getInstantiatedParamTypes here
+    for (size_t i = 1, nchild = tn.getNumChildren(); i < nchild; i++)
+    {
+      TypeNode arg = tn[i];
+      std::unordered_set<TypeNode> cvisited;
+      if (std::find(params.begin(), params.end(), arg) == params.end()
+          && containsAnyType(arg, params, cvisited))
+      {
+        Trace("datatypes-init")
+            << "DType::isSimplyRegular: false for " << getName() << " due to "
+            << arg << " in " << tn << std::endl;
+        d_simplyRegular = -1;
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 bool DType::hasNestedRecursion() const

@@ -304,6 +304,27 @@ class DType
    * has nested recursion.
    */
   bool hasNestedRecursion() const;
+  /**
+   * Is this datatype simply regular? This datatype must be resolved.
+   *
+   * We say a datatype D with type parameters X1 ... Xk is simply regular if
+   * for each field type T of a constructor of D, for each subterm of T of the
+   * form (D' T1 ... Tn) where D' is a parametric datatype that is mutually
+   * recursive with D (i.e. D' is D or the definition of D' depends on D), each
+   * Ti is either a type parameter Xj or a ground type, i.e. a type not
+   * containing X1 ... Xk. For example, (N X) whose constructors are nil and
+   * cons with fields of type X and (N (Option X)) is not simply regular,
+   * whereas it is simply regular if the latter field instead has type (N X)
+   * or (N (Option Int)). Non-parametric datatypes are always simply regular.
+   *
+   * Simply regular datatypes are regular, that is, instantiating them leads
+   * to finitely many instances of the datatypes they are mutually recursive
+   * with. In contrast, (N Int) in the example above depends on
+   * (N (Option Int)), (N (Option (Option Int))), and so on. We do not support
+   * datatypes that are not simply regular, since many procedures (e.g.
+   * computing cardinality) do not terminate on non-regular datatypes.
+   */
+  bool isSimplyRegular() const;
 
   /** is recursive singleton
    *
@@ -628,6 +649,8 @@ class DType
    * does not.
    */
   mutable int d_nestedRecursion;
+  /** cache for whether this datatype is simply regular */
+  mutable int d_simplyRegular;
   /** cache of ground term for this datatype */
   mutable std::map<TypeNode, Node> d_groundTerm;
   /** cache of ground values for this datatype */
