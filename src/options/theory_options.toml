@@ -84,6 +84,9 @@ name   = "Theory Layer"
 [[option.mode.CARE_GRAPH]]
   name = "care-graph"
   help = "Use care graphs for theory combination."
+[[option.mode.MODEL_BASED]]
+  name = "model-based"
+  help = "Use model-based theory combination."
 
 [[option]]
   name       = "conflictProcessMode"

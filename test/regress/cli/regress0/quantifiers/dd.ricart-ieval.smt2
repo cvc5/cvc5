@@ -1,5 +1,5 @@
 ; REQUIRES: unrestricted-mode
-; COMMAND-LINE: --ieval=use --term-db-mode=all
+; COMMAND-LINE: --ieval=use --term-db-mode=all --enum-inst
 ; EXPECT: unsat
 ;; Unary OR implicitly removed by cvc5
 ; DISABLE-TESTER: alethe
