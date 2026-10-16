@@ -1030,8 +1030,8 @@ class TermManagerTest
         CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
     assertThrows(
         CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {boolTerm}));
-    assertThrows(CVC5ApiException.class,
-        () -> d_tm.mkGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
 
     TermManager tm = new TermManager();
     Term boolVar2 = tm.mkVar(tm.getBooleanSort());
