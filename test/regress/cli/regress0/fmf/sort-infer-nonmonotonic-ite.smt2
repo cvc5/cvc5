@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --sort-inference
 ; EXPECT: unsat
 ; The equality between ITE terms forces U to be a singleton, so U is not

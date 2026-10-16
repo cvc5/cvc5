@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --sort-inference
 ; EXPECT: unsat
 ; The quantified formula Q occurs negatively before it occurs positively. The
