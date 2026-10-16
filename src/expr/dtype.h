@@ -320,10 +320,11 @@ class DType
    * A block of mutually recursive datatypes that are all simply regular is
    * regular, that is, instantiating them leads to finitely many instances of
    * the datatypes in the block. Note this requires checking each datatype in
-   * the block, as is done when constructing datatypes in the API. In contrast, (N Int) in the example above depends on
-   * (N (Option Int)), (N (Option (Option Int))), and so on. We do not support
-   * datatypes that are not simply regular, since many procedures (e.g.
-   * computing cardinality) do not terminate on non-regular datatypes.
+   * the block, as is done when constructing datatypes in the API. In contrast,
+   * (N Int) in the example above depends on (N (Option Int)), (N (Option
+   * (Option Int))), and so on. We do not support datatypes that are not simply
+   * regular, since many procedures (e.g. computing cardinality) do not
+   * terminate on non-regular datatypes.
    */
   bool isSimplyRegular() const;
 

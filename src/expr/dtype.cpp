@@ -849,8 +849,8 @@ bool DType::isSimplyRegular() const
         if (atypes.find(p) != atypes.end())
         {
           Trace("datatypes-init")
-              << "DType::isSimplyRegular: false for " << getName()
-              << " due to " << arg << " in " << ct << std::endl;
+              << "DType::isSimplyRegular: false for " << getName() << " due to "
+              << arg << " in " << ct << std::endl;
           d_simplyRegular = -1;
           return false;
         }
