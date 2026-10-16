@@ -1638,4 +1638,26 @@ public class TermManager extends AbstractPointer
 
   private native long mkDatatypeDecl(
       long pointer, String name, long[] paramPointers, boolean isCoDatatype);
+
+  /* SyGuS Grammar ------------------------------------------------------ */
+
+  /**
+   * Create a Sygus grammar.
+   *
+   * The first non-terminal is treated as the starting non-terminal, so the
+   * order of non-terminals matters.
+   *
+   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
+   * @param ntSymbols The pre-declaration of the non-terminal symbols.
+   * @return The grammar.
+   */
+  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols)
+  {
+    long[] boundVarPointers = Utils.getPointers(boundVars);
+    long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
+    long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
+    return new Grammar(grammarPointer);
+  }
+
+  private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
 }
