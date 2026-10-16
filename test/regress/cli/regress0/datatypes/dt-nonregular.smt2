@@ -1,6 +1,7 @@
 ; SCRUBBER: grep -o "is not simply regular"
 ; EXPECT: is not simply regular
 ; EXIT: 1
+; DISABLE-TESTER: dump
 (set-logic ALL)
 (declare-datatype Option (par (X) ((none) (some (val X)))))
 (declare-datatype N (par (X) ((nil) (cons (hd X) (tl (N (Option X)))))))
