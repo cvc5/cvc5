@@ -315,7 +315,10 @@ class DType
    * containing X1 ... Xk. For example, (N X) whose constructors are nil and
    * cons with fields of type X and (N (Option X)) is not simply regular,
    * whereas it is simply regular if the latter field instead has type (N X)
-   * or (N (Option Int)). Non-parametric datatypes are always simply regular.
+   * or (N (Option Int)). Moreover, all datatypes occurring in the field types
+   * of D (recursively) must be simply regular. In particular, a non-parametric
+   * datatype is simply regular if all datatypes occurring in its field types
+   * are simply regular.
    *
    * Simply regular datatypes are regular, that is, instantiating them leads
    * to finitely many instances of the datatypes they are mutually recursive

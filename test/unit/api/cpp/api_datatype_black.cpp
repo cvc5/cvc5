@@ -468,11 +468,7 @@ TEST_F(TestApiBlackDatatype, parametricDatatypeNonRegular)
   cons.addSelector("tl", unresN.instantiate({d_tm.mkSetSort(x)}));
   nSpec.addConstructor(cons);
   nSpec.addConstructor(d_tm.mkDatatypeConstructorDecl("nil"));
-  Sort nSort = d_tm.mkDatatypeSort(nSpec);
-  Term t = d_tm.mkConst(nSort.instantiate({d_int}), "t");
-  Term tester = nSort.getDatatype().getConstructor("cons").getTesterTerm();
-  d_solver->assertFormula(d_tm.mkTerm(Kind::APPLY_TESTER, {tester, t}));
-  ASSERT_THROW(d_solver->checkSat(), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkDatatypeSort(nSpec), CVC5ApiException);
 
   // N(X) = nil | cons(hd: X, tl: N(X), other: N(Set(Int))) is simply regular
   DatatypeDecl nSpec2 = d_tm.mkDatatypeDecl("N2", v);
@@ -483,12 +479,12 @@ TEST_F(TestApiBlackDatatype, parametricDatatypeNonRegular)
   cons2.addSelector("other2", unresN2.instantiate({d_tm.mkSetSort(d_int)}));
   nSpec2.addConstructor(cons2);
   nSpec2.addConstructor(d_tm.mkDatatypeConstructorDecl("nil2"));
-  Sort nSort2 = d_tm.mkDatatypeSort(nSpec2);
-  Solver slv(d_tm);
+  Sort nSort2;
+  ASSERT_NO_THROW(nSort2 = d_tm.mkDatatypeSort(nSpec2));
   Term t2 = d_tm.mkConst(nSort2.instantiate({d_int}), "t2");
   Term tester2 = nSort2.getDatatype().getConstructor("cons2").getTesterTerm();
-  slv.assertFormula(d_tm.mkTerm(Kind::APPLY_TESTER, {tester2, t2}));
-  ASSERT_TRUE(slv.checkSat().isSat());
+  d_solver->assertFormula(d_tm.mkTerm(Kind::APPLY_TESTER, {tester2, t2}));
+  ASSERT_TRUE(d_solver->checkSat().isSat());
 }
 
 TEST_F(TestApiBlackDatatype, isFinite)

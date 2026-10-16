@@ -1,5 +1,5 @@
-; SCRUBBER: grep -o "Cannot handle datatype [A-Z] that is not simply regular"
-; EXPECT: Cannot handle datatype P that is not simply regular
+; SCRUBBER: grep -o "is not simply regular"
+; EXPECT: is not simply regular
 ; EXIT: 1
 (set-logic ALL)
 (declare-datatypes ((P 1) (Q 1)) (
@@ -7,4 +7,5 @@
   (par (Y) ((q0) (q1 (q1a (Array Int (P (Array Y Y)))))))
 ))
 (declare-const x (P Int))
+(assert ((_ is p1) x))
 (check-sat)

@@ -1,5 +1,5 @@
-; SCRUBBER: grep -o "Cannot handle datatype [A-Z] that is not simply regular"
-; EXPECT: Cannot handle datatype N that is not simply regular
+; SCRUBBER: grep -o "is not simply regular"
+; EXPECT: is not simply regular
 ; EXIT: 1
 (set-logic ALL)
 (declare-datatype Option (par (X) ((none) (some (val X)))))

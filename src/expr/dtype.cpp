@@ -821,32 +821,29 @@ void collectFieldDTypes(const DType& dt, std::unordered_set<const DType*>& dts)
   }
 }
 
-}  // namespace
-
-bool DType::isSimplyRegular() const
+/**
+ * Do the field types of dt satisfy the condition of DType::isSimplyRegular,
+ * that is, are arguments of parametric datatypes that are mutually recursive
+ * with dt in its field types either type parameters of dt or ground types?
+ */
+bool hasSimplyRegularFields(const DType& dt)
 {
-  Assert(isResolved());
-  if (d_simplyRegular != 0)
-  {
-    return d_simplyRegular == 1;
-  }
-  d_simplyRegular = 1;
-  if (!isParametric())
+  if (!dt.isParametric())
   {
     // all arguments in field types are ground
     return true;
   }
-  std::vector<TypeNode> params = getParameters();
-  // whether each datatype is mutually recursive with this one
+  std::vector<TypeNode> params = dt.getParameters();
+  // whether each datatype is mutually recursive with dt
   std::map<const DType*, bool> isMutRec;
-  isMutRec[this] = true;
+  isMutRec[&dt] = true;
   std::unordered_set<TypeNode> visited;
   std::vector<TypeNode> toVisit;
-  for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
+  for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
-    for (size_t j = 0, nargs = ctor->getNumArgs(); j < nargs; j++)
+    for (size_t j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
-      toVisit.push_back(ctor->getArgType(j));
+      toVisit.push_back(dt[i].getArgType(j));
     }
   }
   while (!toVisit.empty())
@@ -862,14 +859,14 @@ bool DType::isSimplyRegular() const
     {
       continue;
     }
-    const DType& dt = tn.getDType();
-    std::map<const DType*, bool>::iterator it = isMutRec.find(&dt);
+    const DType& dtc = tn.getDType();
+    std::map<const DType*, bool>::iterator it = isMutRec.find(&dtc);
     if (it == isMutRec.end())
     {
       std::unordered_set<const DType*> dts;
-      collectFieldDTypes(dt, dts);
-      isMutRec[&dt] = dts.find(this) != dts.end();
-      it = isMutRec.find(&dt);
+      collectFieldDTypes(dtc, dts);
+      isMutRec[&dtc] = dts.find(&dt) != dts.end();
+      it = isMutRec.find(&dtc);
     }
     if (!it->second)
     {
@@ -885,14 +882,41 @@ bool DType::isSimplyRegular() const
           && containsAnyType(arg, params, cvisited))
       {
         Trace("datatypes-init")
-            << "DType::isSimplyRegular: false for " << getName() << " due to "
-            << arg << " in " << tn << std::endl;
-        d_simplyRegular = -1;
+            << "hasSimplyRegularFields: false for " << dt.getName()
+            << " due to " << arg << " in " << tn << std::endl;
         return false;
       }
     }
   }
   return true;
+}
+
+}  // namespace
+
+bool DType::isSimplyRegular() const
+{
+  Assert(isResolved());
+  if (d_simplyRegular != 0)
+  {
+    return d_simplyRegular == 1;
+  }
+  // this datatype and all datatypes in its field types must satisfy the
+  // condition on field types
+  std::unordered_set<const DType*> dts;
+  collectFieldDTypes(*this, dts);
+  dts.insert(this);
+  d_simplyRegular = 1;
+  for (const DType* dt : dts)
+  {
+    if (!hasSimplyRegularFields(*dt))
+    {
+      d_simplyRegular = -1;
+      break;
+    }
+  }
+  Trace("datatypes-init") << "DType::isSimplyRegular: " << d_simplyRegular
+                          << " for " << getName() << std::endl;
+  return d_simplyRegular == 1;
 }
 
 bool DType::hasNestedRecursion() const
