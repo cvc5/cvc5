@@ -361,7 +361,9 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
       return x.isInteger();
     });
 
-    if (!(allInt && functionType.getRangeType() == nodeManager->booleanType()))
+    if (!(allInt
+          && CVC5_EQUAL(functionType.getRangeType(),
+                        nodeManager->booleanType())))
     {
       if (errOut)
       {
