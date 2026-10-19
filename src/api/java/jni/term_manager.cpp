@@ -25,11 +25,13 @@ using namespace cvc5;
  * Method:    newTermManager
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
-                                                                       jclass)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_TermManager_newTermManager(JNIEnv* env, jclass)
 {
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
   TermManager* tm = new TermManager();
   return reinterpret_cast<jlong>(tm);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*

@@ -16,6 +16,8 @@
 #include <cvc5/cvc5_parser.h>
 #include <jni.h>
 
+#include <exception>
+#include <new>
 #include <string>
 #include <vector>
 
@@ -43,6 +45,17 @@
     env->ThrowNew(exceptionClass, e.what());                                   \
   }                                                                            \
   catch (const CVC5ApiException& e)                                            \
+  {                                                                            \
+    jclass exceptionClass = env->FindClass("io/github/cvc5/CVC5ApiException"); \
+    env->ThrowNew(exceptionClass, e.what());                                   \
+  }                                                                            \
+  /* No C++ exception may unwind through JVM frames. */                        \
+  catch (const std::bad_alloc& e)                                              \
+  {                                                                            \
+    jclass exceptionClass = env->FindClass("java/lang/OutOfMemoryError");      \
+    env->ThrowNew(exceptionClass, e.what());                                   \
+  }                                                                            \
+  catch (const std::exception& e)                                              \
   {                                                                            \
     jclass exceptionClass = env->FindClass("io/github/cvc5/CVC5ApiException"); \
     env->ThrowNew(exceptionClass, e.what());                                   \
