@@ -32,6 +32,8 @@ public class Solver extends AbstractPointer
    * valid after the term manager passed to the constructor has been released.
    */
   private TermManager d_tm;
+  /** The identity of the term manager this solver was created with. */
+  private final Object d_tmIdentity;
 
   static
   {
@@ -62,6 +64,7 @@ public class Solver extends AbstractPointer
   public Solver(TermManager tm)
   {
     super(Solver.newSolver(tm.getPointer()));
+    d_tmIdentity = tm.d_identity;
   }
   private static native long newSolver(long tmPointer);
 
@@ -114,7 +117,7 @@ public class Solver extends AbstractPointer
   {
     if (d_tm == null)
     {
-      d_tm = new TermManager(getTermManager(pointer));
+      d_tm = new TermManager(getTermManager(pointer), d_tmIdentity);
     }
     return d_tm;
   }
