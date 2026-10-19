@@ -32,7 +32,8 @@ class TheoryPreregistrarNotify;
 
 /**
  * Implements the policy for preregistration to TheoryEngine based on
- * notifications from the SAT solver.
+ * notifications from the SAT solver. Derived classes customize the policy for
+ * different preregistration modes.
  */
 class TheoryPreregistrar : protected EnvObj
 {
@@ -73,9 +74,11 @@ class TheoryPreregistrar : protected EnvObj
    */
   virtual bool notifyAsserted(TNode n);
 
- private:
+ protected:
   /** pre-register to theory */
   void preRegisterToTheory(const std::vector<TNode>& toPreregister);
+
+ private:
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
   /**
