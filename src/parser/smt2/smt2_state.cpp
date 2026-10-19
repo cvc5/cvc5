@@ -46,6 +46,7 @@ void Smt2State::addArithmeticOperators()
   addOperator(Kind::LEQ, "<=");
   addOperator(Kind::GT, ">");
   addOperator(Kind::GEQ, ">=");
+  addOperator(Kind::STAR_CONTAINS, "int.star-contains");
 
   if (!strictModeEnabled())
   {
@@ -731,7 +732,13 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
       parseError(ss.str());
     }
 
-    terms.push_back(getVariable(name));
+    Term t = getVariable(name);
+    // getVariable returns null if the symbol is overloaded
+    if (t.isNull())
+    {
+      parseError("Overloaded constants must be type cast.");
+    }
+    terms.push_back(t);
   }
 
   return std::unique_ptr<Cmd>(new SygusInvConstraintCommand(terms));
@@ -1175,28 +1182,6 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
   p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
-Term Smt2State::parseOpToExpr(ParseOp& p)
-{
-  Trace("parser") << "parseOpToExpr: " << p << std::endl;
-  Term expr;
-  if (p.d_kind != Kind::NULL_TERM)
-  {
-    parseError(
-        "Bad syntax for qualified identifier operator in term position.");
-  }
-  else if (!p.d_expr.isNull())
-  {
-    expr = p.d_expr;
-  }
-  else
-  {
-    checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-    expr = getVariable(p.d_name);
-  }
-  Assert(!expr.isNull());
-  return expr;
-}
-
 Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
 {
   bool isBuiltinOperator = false;
@@ -1222,6 +1207,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // output: (nullable.lift f x y)
       ParserState::checkDeclaration(p.d_name, DeclarationCheck::CHECK_DECLARED);
       Term function = getVariable(p.d_name);
+      // getVariable returns null if the symbol is overloaded
+      if (function.isNull())
+      {
+        parseError("Overloaded constants must be type cast.");
+      }
       args.insert(args.begin(), function);
       return d_tm.mkTerm(Kind::NULLABLE_LIFT, args);
     }

@@ -386,9 +386,6 @@ class TheorySetsPrivate : protected EnvObj
 
   void preRegisterTerm(TNode node);
 
-  /** ppRewrite, which expands is_singleton.  */
-  TrustNode ppRewrite(Node n);
-
   void presolve();
 
   /** get the valuation */
@@ -419,8 +416,6 @@ class TheorySetsPrivate : protected EnvObj
 
   bool isCareArg(Node n, unsigned a);
 
-  /** expand the definition of is_singleton operator */
-  TrustNode expandIsSingletonOperator(const Node& node);
   /** ensure that the set type is over first class type, throw logic exception
    * if not */
   void ensureFirstClassSetType(TypeNode tn) const;
@@ -462,9 +457,6 @@ class TheorySetsPrivate : protected EnvObj
    */
   bool d_higher_order_kinds_enabled;
 
-  /** a map that maps each set to an existential quantifier generated for
-   * operator is_singleton */
-  std::map<Node, Node> d_isSingletonNodes;
   /** Reference to care pair argument callback, used for theory combination */
   CarePairArgumentCallback& d_cpacb;
   /**

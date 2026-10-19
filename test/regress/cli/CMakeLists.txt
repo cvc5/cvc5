@@ -985,8 +985,12 @@ set(regress_0_tests
   regress0/fmf/quant_real_univ.cvc.smt2
   regress0/fmf/sat-logic.smt2
   regress0/fmf/sc_bad_model_1221.smt2
+  regress0/fmf/sort-infer-nonmonotonic-dt.smt2
+  regress0/fmf/sort-infer-nonmonotonic-ite.smt2
+  regress0/fmf/sort-infer-nonmonotonic-order.smt2
   regress0/fmf/sort-infer-nonmonotonic-orig.smt2
   regress0/fmf/sort-infer-original-injection.smt2
+  regress0/fmf/sort-infer-ramsey-gra121.smt2
   regress0/fmf/sort-infer-typed-082718.smt2
   regress0/fmf/syn002-si-real-int.smt2
   regress0/fmf/tail_rec.smt2
@@ -1441,6 +1445,10 @@ set(regress_0_tests
   regress0/parser/issue11991-nwf.smt2
   regress0/parser/issue12514-bitvec-width-overflow.smt2
   regress0/parser/issue12514-sign-extend-overflow.smt2
+  regress0/parser/issue13073-overloaded-inv-constraint.sy
+  regress0/parser/issue13073-overloaded-nullable-lift.smt2
+  regress0/parser/issue13073-overloaded-true-as.smt2
+  regress0/parser/issue13073-overloaded-true.smt2
   regress0/parser/issue12062-overflow.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
@@ -2265,6 +2273,7 @@ set(regress_0_tests
   regress0/smtlib/issue4866.smt2
   regress0/smtlib/issue7374.smt2
   regress0/smtlib/issue12663.smt2
+  regress0/smtlib/issue13077.smt2
   regress0/smtlib/reason-unknown.smt2
   regress0/smtlib/reset-assertions-global.smt2
   regress0/smtlib/reset-assertions1.smt2
@@ -2954,6 +2963,8 @@ set(regress_1_tests
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
+  regress1/bags/table_join4.smt2
+  regress1/bags/table_join5.smt2
   regress1/bags/table_project1.smt2
   regress1/bags/table_project2.smt2
   regress1/bags/union_disjoint.smt2
@@ -3668,6 +3679,7 @@ set(regress_1_tests
   regress1/rels/rel_tc_9_1.cvc.smt2
   regress1/rels/rel_tp_2.cvc.smt2
   regress1/rels/relation_join1.smt2
+  regress1/rels/relation_join2.smt2
   regress1/rels/rel_tp_join_2_1.cvc.smt2
   regress1/rels/set-strat.cvc.smt2
   regress1/rels/strat.cvc.smt2
@@ -4790,7 +4802,7 @@ macro(cvc5_add_regression_test level file)
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
-    --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
+    --carcara-rare ${PROJECT_SOURCE_DIR}/proofs/alethe/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
     --logos-binary ${PROJECT_SOURCE_DIR}/deps/bin/logos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
