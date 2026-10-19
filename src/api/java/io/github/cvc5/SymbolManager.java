@@ -30,16 +30,6 @@ import java.util.*;
 public class SymbolManager extends AbstractPointer
 {
   /**
-   * This is an internal constructor intended to be used only
-   * inside cvc5 package.
-   * @param pointer The cpp pointer to symbol manager.
-   */
-  SymbolManager(long pointer)
-  {
-    super(pointer);
-  }
-
-  /**
    * Create symbol manager instance.
    * @param tm The associated term manager.
    */

@@ -2591,4 +2591,20 @@ class SolverTest
     d_solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
     assertThrows(CVC5ApiException.class, () -> d_solver.checkSat());
   }
+
+  @Test
+  void getTermManagerSameInstance()
+  {
+    assertSame(d_solver.getTermManager(), d_solver.getTermManager());
+    assertEquals(d_tm.getBooleanSort(), d_solver.getTermManager().getBooleanSort());
+    // The returned term manager shares the node manager of d_tm.
+    assertEquals(d_tm, d_solver.getTermManager());
+    assertEquals(d_solver.getTermManager(), d_tm);
+    assertEquals(d_tm.hashCode(), d_solver.getTermManager().hashCode());
+    assertEquals(d_tm, new Solver(d_tm).getTermManager());
+    assertNotEquals(new TermManager(), d_solver.getTermManager());
+    TermManager tm = new TermManager();
+    assertNotEquals(d_tm, new Solver(tm).getTermManager());
+    assertEquals(tm, new Solver(tm).getTermManager());
+  }
 }

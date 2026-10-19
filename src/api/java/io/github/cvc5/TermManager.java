@@ -36,21 +36,32 @@ public class TermManager extends AbstractPointer
   }
 
   /**
+   * Identifies the underlying node manager. Native copies of a term manager
+   * (such as the one returned by {@link Solver#getTermManager()}) share the
+   * node manager of the original, and their wrappers share this object, so
+   * that they are equal to the original.
+   */
+  final Object d_identity;
+
+  /**
    * Create a term manager instance.
    */
   public TermManager()
   {
     super(TermManager.newTermManager());
+    d_identity = new Object();
   }
 
   /**
    * This is an internal constructor intended to be used only
    * inside cvc5 package
    * @param pointer The cpp pointer to TermManager
+   * @param identity The identity of the term manager this is a copy of.
    */
-  TermManager(long tmPointer)
+  TermManager(long tmPointer, Object identity)
   {
     super(tmPointer);
+    d_identity = identity;
   }
 
   @Override
@@ -64,27 +75,24 @@ public class TermManager extends AbstractPointer
     {
       return false;
     }
-    TermManager tm = (TermManager) o;
-    if (this.pointer == tm.pointer)
-    {
-      return true;
-    }
-    return false;
+    // Term managers are equal if they share the same node manager, e.g., a
+    // term manager and the copy returned by Solver.getTermManager().
+    return d_identity == ((TermManager) o).d_identity;
   }
 
   /**
    * Return a hash code value for this term manager.
    *
-   * The hash code is derived from the underlying native pointer, which is what
-   * {@link #equals(Object)} compares, so that instances that are equal have the
-   * same hash code.
+   * The hash code is derived from the identity of the underlying node manager,
+   * which is what {@link #equals(Object)} compares, so that instances that are
+   * equal have the same hash code.
    *
    * @return a hash code value for this term manager
    */
   @Override
   public int hashCode()
   {
-    return Long.hashCode(pointer);
+    return System.identityHashCode(d_identity);
   }
 
   /**
