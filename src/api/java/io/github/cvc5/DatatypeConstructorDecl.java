@@ -19,12 +19,12 @@ package io.github.cvc5;
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeConstructorDecl(long pointer)
+  DatatypeConstructorDecl(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, DatatypeConstructorDecl::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 

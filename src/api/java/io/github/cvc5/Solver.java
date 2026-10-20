@@ -32,8 +32,6 @@ public class Solver extends AbstractPointer
    * valid after the term manager passed to the constructor has been released.
    */
   private TermManager d_tm;
-  /** The identity of the term manager this solver was created with. */
-  private final Object d_tmIdentity;
 
   static
   {
@@ -63,12 +61,11 @@ public class Solver extends AbstractPointer
    */
   public Solver(TermManager tm)
   {
-    super(Solver.newSolver(tm.getPointer()));
-    d_tmIdentity = tm.d_identity;
+    super(tm.ctx, Solver.newSolver(tm.getPointer()), Solver::deletePointer);
   }
   private static native long newSolver(long tmPointer);
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   protected String toString(long pointer)
   {
@@ -117,7 +114,7 @@ public class Solver extends AbstractPointer
   {
     if (d_tm == null)
     {
-      d_tm = new TermManager(getTermManager(pointer), d_tmIdentity);
+      d_tm = new TermManager(ctx, getTermManager(pointer));
     }
     return d_tm;
   }
@@ -1998,7 +1995,7 @@ public class Solver extends AbstractPointer
   public Term simplify(Term t)
   {
     long termPointer = simplify(pointer, t.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long simplify(long pointer, long termPointer);
@@ -2019,7 +2016,7 @@ public class Solver extends AbstractPointer
   public Term simplify(Term t, boolean applySubs)
   {
     long termPointer = simplify(pointer, t.getPointer(), applySubs);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long simplify(long pointer, long termPointer, boolean applySubs);
@@ -2051,7 +2048,7 @@ public class Solver extends AbstractPointer
   public Result checkSat()
   {
     long resultPointer = checkSat(pointer);
-    return new Result(resultPointer);
+    return new Result(ctx, resultPointer);
   }
 
   private native long checkSat(long pointer);
@@ -2069,7 +2066,7 @@ public class Solver extends AbstractPointer
   public Result checkSatAssuming(Term assumption)
   {
     long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
-    return new Result(resultPointer);
+    return new Result(ctx, resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long assumptionPointer);
@@ -2089,7 +2086,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     long resultPointer = checkSatAssuming(pointer, pointers);
-    return new Result(resultPointer);
+    return new Result(ctx, resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
@@ -2110,7 +2107,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(ctors);
     long sortPointer = declareDatatype(pointer, symbol, pointers);
-    return new Sort(sortPointer);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareDatatype(long pointer, String symbol, long[] declPointers);
@@ -2132,7 +2129,7 @@ public class Solver extends AbstractPointer
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareFun(
@@ -2158,7 +2155,7 @@ public class Solver extends AbstractPointer
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer(), fresh);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareFun(
@@ -2183,7 +2180,7 @@ public class Solver extends AbstractPointer
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity);
-    return new Sort(sortPointer);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
@@ -2211,7 +2208,7 @@ public class Solver extends AbstractPointer
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity, fresh);
-    return new Sort(sortPointer);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity, boolean fresh);
@@ -2256,7 +2253,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFun(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFun(long pointer,
@@ -2306,7 +2303,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = defineFunRec(
         pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFunRec(long pointer,
@@ -2359,7 +2356,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFunRec(
@@ -2431,7 +2428,7 @@ public class Solver extends AbstractPointer
   public Term[] getLearnedLiterals()
   {
     long[] retPointers = getLearnedLiterals(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer);
@@ -2452,7 +2449,7 @@ public class Solver extends AbstractPointer
   public Term[] getLearnedLiterals(LearnedLitType type)
   {
     long[] retPointers = getLearnedLiterals(pointer, type.getValue());
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer, int type);
@@ -2470,7 +2467,7 @@ public class Solver extends AbstractPointer
   public Term[] getAssertions()
   {
     long[] retPointers = getAssertions(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getAssertions(long pointer);
@@ -2530,7 +2527,7 @@ public class Solver extends AbstractPointer
   public OptionInfo getOptionInfo(String option)
   {
     long optionPointer = getOptionInfo(pointer, option);
-    return new OptionInfo(optionPointer);
+    return new OptionInfo(ctx, optionPointer);
   }
 
   private native long getOptionInfo(long pointer, String option);
@@ -2550,7 +2547,7 @@ public class Solver extends AbstractPointer
   public Term[] getUnsatAssumptions()
   {
     long[] retPointers = getUnsatAssumptions(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatAssumptions(long pointer);
@@ -2574,7 +2571,7 @@ public class Solver extends AbstractPointer
   public Term[] getUnsatCore()
   {
     long[] retPointers = getUnsatCore(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatCore(long pointer);
@@ -2595,7 +2592,7 @@ public class Solver extends AbstractPointer
   public Term[] getUnsatCoreLemmas()
   {
     long[] retPointers = getUnsatCoreLemmas(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatCoreLemmas(long pointer);
@@ -2616,8 +2613,8 @@ public class Solver extends AbstractPointer
     Map<Term, Term> ret = new HashMap<>();
     for (Map.Entry<Long, Long> entry : map.entrySet())
     {
-      Term key = new Term(entry.getKey());
-      Term value = new Term(entry.getValue());
+      Term key = new Term(ctx, entry.getKey());
+      Term value = new Term(ctx, entry.getValue());
       ret.put(key, value);
     }
     return ret;
@@ -2653,8 +2650,8 @@ public class Solver extends AbstractPointer
   public Pair<Result, Term[]> getTimeoutCore()
   {
     Pair<Long, long[]> pair = getTimeoutCore(pointer);
-    Result result = new Result(pair.first);
-    Term[] terms = Utils.getTerms(pair.second);
+    Result result = new Result(ctx, pair.first);
+    Term[] terms = Utils.getTerms(ctx, pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
     return ret;
   }
@@ -2691,8 +2688,8 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     Pair<Long, long[]> pair = getTimeoutCoreAssuming(pointer, pointers);
-    Result result = new Result(pair.first);
-    Term[] terms = Utils.getTerms(pair.second);
+    Result result = new Result(ctx, pair.first);
+    Term[] terms = Utils.getTerms(ctx, pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
     return ret;
   }
@@ -2716,7 +2713,7 @@ public class Solver extends AbstractPointer
    */
   public Proof[] getProof()
   {
-    return Utils.getProofs(getProof(pointer));
+    return Utils.getProofs(ctx, getProof(pointer));
   }
 
   private native long[] getProof(long pointer);
@@ -2738,7 +2735,7 @@ public class Solver extends AbstractPointer
    */
   public Proof[] getProof(ProofComponent c)
   {
-    return Utils.getProofs(getProof(pointer, c.getValue()));
+    return Utils.getProofs(ctx, getProof(pointer, c.getValue()));
   }
 
   private native long[] getProof(long pointer, int c);
@@ -2813,7 +2810,7 @@ public class Solver extends AbstractPointer
   public Term getValue(Term term)
   {
     long termPointer = getValue(pointer, term.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -2833,7 +2830,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(terms);
     long[] retPointers = getValue(pointer, pointers);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -2850,7 +2847,7 @@ public class Solver extends AbstractPointer
   public Term[] getModelDomainElements(Sort s)
   {
     long[] pointers = getModelDomainElements(pointer, s.getPointer());
-    return Utils.getTerms(pointers);
+    return Utils.getTerms(ctx, pointers);
   }
 
   private native long[] getModelDomainElements(long pointer, long sortPointer);
@@ -2927,7 +2924,7 @@ public class Solver extends AbstractPointer
   public Term getQuantifierElimination(Term q)
   {
     long termPointer = getQuantifierElimination(pointer, q.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getQuantifierElimination(long pointer, long qPointer);
@@ -2971,7 +2968,7 @@ public class Solver extends AbstractPointer
   public Term getQuantifierEliminationDisjunct(Term q)
   {
     long termPointer = getQuantifierEliminationDisjunct(pointer, q.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
@@ -3003,7 +3000,7 @@ public class Solver extends AbstractPointer
   public Term getValueSepHeap()
   {
     long termPointer = getValueSepHeap(pointer);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getValueSepHeap(long pointer);
@@ -3018,7 +3015,7 @@ public class Solver extends AbstractPointer
   public Term getValueSepNil()
   {
     long termPointer = getValueSepNil(pointer);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getValueSepNil(long pointer);
@@ -3042,7 +3039,7 @@ public class Solver extends AbstractPointer
   {
     long[] termPointers = Utils.getPointers(initValue);
     long termPointer = declarePool(pointer, symbol, sort.getPointer(), termPointers);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declarePool(
@@ -3077,12 +3074,45 @@ public class Solver extends AbstractPointer
   {
     oracles.add(oracle);
     long[] sortPointers = Utils.getPointers(sorts);
-    long termPointer = declareOracleFun(pointer, symbol, sortPointers, sort.getPointer(), oracle);
-    return new Term(termPointer);
+    long termPointer = declareOracleFun(
+        pointer, symbol, sortPointers, sort.getPointer(), new OracleBridge(ctx, oracle));
+    return new Term(ctx, termPointer);
   }
 
   private native long declareOracleFun(
-      long pointer, String symbol, long[] sortPointers, long sortPointer, IOracle oracle);
+      long pointer, String symbol, long[] sortPointers, long sortPointer, OracleBridge oracle);
+
+  /**
+   * Bridges native oracle calls to an {@link IOracle}.
+   *
+   * <p>Native code exchanges raw pointers with this class, so that the
+   * {@link Term} wrappers are created here, in the context of the solver's
+   * term manager.</p>
+   */
+  private static final class OracleBridge
+  {
+    private final NativeContext ctx;
+    private final IOracle oracle;
+
+    OracleBridge(NativeContext ctx, IOracle oracle)
+    {
+      this.ctx = ctx;
+      this.oracle = oracle;
+    }
+
+    /**
+     * Called from native code.
+     *
+     * @param pointers The native pointers of the arguments; ownership is
+     *                 transferred to the created wrappers.
+     * @return The native pointer of the result, which native code copies
+     *         before any further Java code can run on this thread.
+     */
+    long apply(long[] pointers) throws CVC5ApiException
+    {
+      return oracle.apply(Utils.getTerms(ctx, pointers)).getPointer();
+    }
+  }
 
   /**
    * Add plugin to this solver. Its callbacks will be called throughout the
@@ -3162,7 +3192,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer());
-    return new Term(interpolPtr);
+    return new Term(ctx, interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer);
@@ -3200,7 +3230,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj, Grammar grammar)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(interpolPtr);
+    return new Term(ctx, interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
@@ -3232,7 +3262,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolantNext()
   {
     long interpolPtr = getInterpolantNext(pointer);
-    return new Term(interpolPtr);
+    return new Term(ctx, interpolPtr);
   }
 
   private native long getInterpolantNext(long pointer);
@@ -3257,7 +3287,7 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer());
-    return new Term(abdPtr);
+    return new Term(ctx, abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer);
@@ -3283,7 +3313,7 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj, Grammar grammar)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(abdPtr);
+    return new Term(ctx, abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
@@ -3308,7 +3338,7 @@ public class Solver extends AbstractPointer
   public Term getAbductNext()
   {
     long abdPtr = getAbductNext(pointer);
-    return new Term(abdPtr);
+    return new Term(ctx, abdPtr);
   }
 
   private native long getAbductNext(long pointer);
@@ -3521,7 +3551,7 @@ public class Solver extends AbstractPointer
   public Term declareSygusVar(String symbol, Sort sort)
   {
     long termPointer = declareSygusVar(pointer, symbol, sort.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareSygusVar(long pointer, String symbol, long sortPointer);
@@ -3541,7 +3571,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
     long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
-    return new Grammar(grammarPointer);
+    return new Grammar(ctx, grammarPointer);
   }
 
   private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
@@ -3563,7 +3593,7 @@ public class Solver extends AbstractPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = synthFun(pointer, symbol, boundVarPointers, sort.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long synthFun(
@@ -3588,7 +3618,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         synthFun(pointer, symbol, boundVarPointers, sort.getPointer(), grammar.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long synthFun(
@@ -3619,7 +3649,7 @@ public class Solver extends AbstractPointer
   public Term[] getSygusConstraints()
   {
     long[] retPointers = getSygusConstraints(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSygusConstraints(long pointer);
@@ -3649,7 +3679,7 @@ public class Solver extends AbstractPointer
   public Term[] getSygusAssumptions()
   {
     long[] retPointers = getSygusAssumptions(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSygusAssumptions(long pointer);
@@ -3695,7 +3725,7 @@ public class Solver extends AbstractPointer
   public SynthResult checkSynth()
   {
     long resultPointer = checkSynth(pointer);
-    return new SynthResult(resultPointer);
+    return new SynthResult(ctx, resultPointer);
   }
 
   private native long checkSynth(long pointer);
@@ -3721,7 +3751,7 @@ public class Solver extends AbstractPointer
   public SynthResult checkSynthNext()
   {
     long resultPointer = checkSynthNext(pointer);
-    return new SynthResult(resultPointer);
+    return new SynthResult(ctx, resultPointer);
   }
 
   private native long checkSynthNext(long pointer);
@@ -3738,7 +3768,7 @@ public class Solver extends AbstractPointer
   public Term getSynthSolution(Term term)
   {
     long termPointer = getSynthSolution(pointer, term.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getSynthSolution(long pointer, long termPointer);
@@ -3756,7 +3786,7 @@ public class Solver extends AbstractPointer
   {
     long[] termPointers = Utils.getPointers(terms);
     long[] retPointers = getSynthSolutions(pointer, termPointers);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
@@ -3782,7 +3812,7 @@ public class Solver extends AbstractPointer
   public Term findSynth(FindSynthTarget fst)
   {
     long termPointer = findSynth(pointer, fst.getValue());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
   private native long findSynth(long pointer, int fst);
 
@@ -3804,7 +3834,7 @@ public class Solver extends AbstractPointer
   public Term findSynth(FindSynthTarget fst, Grammar grammar)
   {
     long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
   private native long findSynth(long pointer, int fst, long grammarPointer);
 
@@ -3825,7 +3855,7 @@ public class Solver extends AbstractPointer
   public Term findSynthNext()
   {
     long termPointer = findSynthNext(pointer);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long findSynthNext(long pointer);
@@ -3839,7 +3869,7 @@ public class Solver extends AbstractPointer
   public Statistics getStatistics()
   {
     long statisticsPointer = getStatistics(pointer);
-    return new Statistics(statisticsPointer);
+    return new Statistics(ctx, statisticsPointer);
   }
 
   private native long getStatistics(long pointer);

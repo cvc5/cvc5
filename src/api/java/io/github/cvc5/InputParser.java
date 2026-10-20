@@ -63,7 +63,9 @@ public class InputParser extends AbstractPointer
    */
   public InputParser(Solver solver, SymbolManager sm)
   {
-    super(newInputParser(solver.getPointer(), sm.getPointer()));
+    super(solver.ctx,
+        newInputParser(solver.getPointer(), sm.getPointer()),
+        InputParser::deletePointer);
     d_solver = solver;
     d_sm = sm;
   }
@@ -82,7 +84,7 @@ public class InputParser extends AbstractPointer
     this(solver, new SymbolManager(solver.getTermManager()));
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   protected String toString(long pointer)
   {
@@ -173,7 +175,7 @@ public class InputParser extends AbstractPointer
    */
   public Command nextCommand()
   {
-    return new Command(nextCommand(pointer));
+    return new Command(ctx, nextCommand(pointer));
   }
 
   private native long nextCommand(long pointer);
@@ -185,7 +187,7 @@ public class InputParser extends AbstractPointer
    */
   public Term nextTerm()
   {
-    return new Term(nextTerm(pointer));
+    return new Term(ctx, nextTerm(pointer));
   }
 
   private native long nextTerm(long pointer);
