@@ -1592,10 +1592,31 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
                                      ? d_cardSolver->getOrderedSetsEqClasses()
                                      : d_state.getSetsEqClasses();
   Valuation& val = getValuation();
+  // The representative of a sets equivalence class may not be relevant even
+  // if other terms in it are. We map each representative to a relevant term
+  // in its equivalence class, if one exists, preferring the representative
+  // itself.
+  std::map<Node, Node> relTerm;
+  for (const Node& t : termSet)
+  {
+    if (t.getType().isSet())
+    {
+      Node r = d_state.getRepresentative(t);
+      if (r == t)
+      {
+        relTerm[r] = t;
+      }
+      else
+      {
+        relTerm.emplace(r, t);
+      }
+    }
+  }
   for (int i = (int)(sec.size() - 1); i >= 0; i--)
   {
     Node eqc = sec[i];
-    if (termSet.find(eqc) == termSet.end())
+    std::map<Node, Node>::iterator itr = relTerm.find(eqc);
+    if (itr == relTerm.end())
     {
       Trace("sets-model") << "* Do not assign value for " << eqc
                           << " since is not relevant." << std::endl;
@@ -1634,7 +1655,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
       Trace("sets-model") << "* Assign representative of " << eqc << " to "
                           << rep << std::endl;
       mvals[eqc] = rep;
-      if (!m->assertEquality(eqc, rep, true))
+      if (!m->assertEquality(itr->second, rep, true))
       {
         return false;
       }
