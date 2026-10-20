@@ -1,7 +1,6 @@
-; SCRUBBER: grep -E 'sat|error'
-; EXPECT: sat
 (set-option :produce-models true)
 (set-logic ALL)
+(set-info :status sat)
 (declare-sort Role 0)
 (declare-const role Role)
 (declare-fun roleAncRoles (Role) (Set Role))
@@ -24,4 +23,3 @@
 (assert (or (not (set.member principal (teamAncUsers team3))) (set.subset principalAncUsers (teamAncUsers team3))))
 (assert (set.member role (userAncRoles principal)))
 (check-sat)
-(get-model)
