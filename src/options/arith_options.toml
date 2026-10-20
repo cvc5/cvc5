@@ -225,6 +225,14 @@ name   = "Arithmetic Theory"
   help       = "attempt to use an approximate solver"
 
 [[option]]
+  name       = "approxRelaxFailureLimit"
+  category   = "expert"
+  long       = "approx-relax-failure-limit=N"
+  type       = "uint64_t"
+  default    = "4"
+  help       = "disable the approximate solver for a while after this many consecutive approximate LP relaxations whose solution could not be turned into an exact model (0 disables the check)"
+
+[[option]]
   name       = "maxApproxDepth"
   category   = "expert"
   long       = "approx-branch-depth=N"
