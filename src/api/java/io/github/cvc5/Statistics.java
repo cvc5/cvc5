@@ -23,12 +23,12 @@ import java.util.NoSuchElementException;
 public class Statistics extends AbstractPointer implements Iterable<Map.Entry<String, Stat>>
 {
   // region construction and destruction
-  Statistics(long pointer)
+  Statistics(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Statistics::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -47,7 +47,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
   public Stat get(String name)
   {
     long statPointer = get(pointer, name);
-    return new Stat(statPointer);
+    return new Stat(ctx, statPointer);
   }
 
   private native long get(long pointer, String name);
@@ -112,7 +112,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
       try
       {
         Pair<String, Long> pair = Statistics.this.getNext(pointer, iteratorPointer);
-        Stat stat = new Stat(pair.second);
+        Stat stat = new Stat(ctx, pair.second);
         this.iteratorPointer = Statistics.this.increment(pointer, iteratorPointer);
         return new AbstractMap.SimpleImmutableEntry<>(pair.first, stat);
       }

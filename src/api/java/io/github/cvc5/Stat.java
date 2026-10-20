@@ -26,12 +26,12 @@ import java.util.Map;
 public class Stat extends AbstractPointer
 {
   // region construction and destruction
-  Stat(long pointer)
+  Stat(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Stat::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 

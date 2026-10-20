@@ -37,7 +37,7 @@ Java_io_github_cvc5_DatatypeDecl_getNullDatatypeDecl(JNIEnv* env, jclass)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_DatatypeDecl_deletePointer(JNIEnv*, jobject, jlong pointer)
+Java_io_github_cvc5_DatatypeDecl_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
   delete ((DatatypeDecl*)pointer);
 }

@@ -85,7 +85,10 @@ PropPfManager::PropPfManager(Env& env,
   d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
 }
 
-void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
+void PropPfManager::ensureLiteral(TNode n, bool input)
+{
+  d_pfCnfStream.ensureLiteral(n, input);
+}
 
 void PropPfManager::convertAndAssert(theory::InferenceId id,
                                      TNode node,

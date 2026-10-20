@@ -50,9 +50,9 @@ import java.math.BigInteger;
 public class OptionInfo extends AbstractPointer
 {
   // region construction and destruction
-  OptionInfo(long pointer)
+  OptionInfo(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, OptionInfo::deletePointer);
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);
@@ -67,7 +67,7 @@ public class OptionInfo extends AbstractPointer
     this.baseInfo = getBaseInfo(pointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   public String toString()
   {

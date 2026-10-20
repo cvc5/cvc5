@@ -22,9 +22,9 @@ package io.github.cvc5;
 public class Grammar extends AbstractPointer
 {
   // region construction and destruction
-  Grammar(long pointer)
+  Grammar(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Grammar::deletePointer);
   }
 
   /**
@@ -35,12 +35,12 @@ public class Grammar extends AbstractPointer
    */
   public Grammar(Grammar grammar)
   {
-    super(copyGrammar(grammar.pointer));
+    super(grammar.ctx, copyGrammar(grammar.pointer), Grammar::deletePointer);
   }
 
   private static native long copyGrammar(long pointer);
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 

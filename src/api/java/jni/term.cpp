@@ -39,7 +39,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getNullTerm(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Term_deletePointer(JNIEnv*,
-                                                              jobject,
+                                                              jclass,
                                                               jlong pointer)
 {
   delete reinterpret_cast<Term*>(pointer);

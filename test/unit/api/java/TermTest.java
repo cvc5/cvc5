@@ -1235,4 +1235,23 @@ class TermTest
     Solver solver2;
     assertEquals(x.toString(), "x");
   }
+
+  @Test
+  void nullObjectsShareOneNativeObject()
+  {
+    Term t1 = new Term();
+    Term t2 = new Term();
+    assertTrue(t1.isNull());
+    assertEquals(t1, t2);
+    assertEquals(t1.getPointer(), t2.getPointer());
+    // Null objects are never freed, so they remain usable.
+    t1.deletePointer();
+    assertTrue(t1.isNull());
+    assertEquals(new Sort().getPointer(), new Sort().getPointer());
+    assertEquals(new Op().getPointer(), new Op().getPointer());
+    assertEquals(new Result().getPointer(), new Result().getPointer());
+    assertEquals(new SynthResult().getPointer(), new SynthResult().getPointer());
+    assertEquals(new Proof().getPointer(), new Proof().getPointer());
+    assertEquals(new DatatypeDecl().getPointer(), new DatatypeDecl().getPointer());
+  }
 }

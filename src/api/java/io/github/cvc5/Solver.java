@@ -26,6 +26,11 @@ import java.util.*;
  */
 public class Solver extends AbstractPointer
 {
+  /**
+   * The term manager of this solver: a wrapper of the solver's own copy of
+   * the term manager it was created with, created on first use. It remains
+   * valid after the term manager passed to the constructor has been released.
+   */
   private TermManager d_tm;
 
   static
@@ -52,26 +57,15 @@ public class Solver extends AbstractPointer
 
   /**
    * Create solver instance.
-   * @param d_tm The associated term manager.
+   * @param tm The associated term manager.
    */
-  public Solver(TermManager d_tm)
+  public Solver(TermManager tm)
   {
-    super(Solver.newSolver(d_tm.getPointer()));
-    this.d_tm = d_tm;
+    super(tm.ctx, Solver.newSolver(tm.getPointer()), Solver::deletePointer);
   }
   private static native long newSolver(long tmPointer);
 
-  /**
-   * This is an internal constructor intended to be used only
-   * inside cvc5 package
-   * @param pointer the cpp pointer to Solver
-   */
-  Solver(long solverPointer)
-  {
-    super(solverPointer);
-  }
-
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   protected String toString(long pointer)
   {
@@ -118,7 +112,11 @@ public class Solver extends AbstractPointer
    */
   public TermManager getTermManager()
   {
-    return new TermManager(getTermManager(pointer));
+    if (d_tm == null)
+    {
+      d_tm = new TermManager(ctx, getTermManager(pointer));
+    }
+    return d_tm;
   }
   private native long getTermManager(long pointer);
 
@@ -139,7 +137,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort getBooleanSort()
   {
-    return d_tm.getBooleanSort();
+    return getTermManager().getBooleanSort();
   }
 
   /**
@@ -155,7 +153,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort getIntegerSort()
   {
-    return d_tm.getIntegerSort();
+    return getTermManager().getIntegerSort();
   }
 
   /**
@@ -171,7 +169,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort getRealSort()
   {
-    return d_tm.getRealSort();
+    return getTermManager().getRealSort();
   }
 
   /**
@@ -187,7 +185,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort getRegExpSort()
   {
-    return d_tm.getRegExpSort();
+    return getTermManager().getRegExpSort();
   }
 
   /**
@@ -204,7 +202,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort getRoundingModeSort() throws CVC5ApiException
   {
-    return d_tm.getRoundingModeSort();
+    return getTermManager().getRoundingModeSort();
   }
 
   /**
@@ -220,7 +218,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort getStringSort()
   {
-    return d_tm.getStringSort();
+    return getTermManager().getStringSort();
   }
 
   /**
@@ -238,7 +236,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkArraySort(Sort indexSort, Sort elemSort)
   {
-    return d_tm.mkArraySort(indexSort, elemSort);
+    return getTermManager().mkArraySort(indexSort, elemSort);
   }
 
   /**
@@ -256,7 +254,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkBitVectorSort(int size) throws CVC5ApiException
   {
-    return d_tm.mkBitVectorSort(size);
+    return getTermManager().mkBitVectorSort(size);
   }
 
   /**
@@ -275,7 +273,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkFiniteFieldSort(String size, int base) throws CVC5ApiException
   {
-    return d_tm.mkFiniteFieldSort(size, base);
+    return getTermManager().mkFiniteFieldSort(size, base);
   }
 
   /**
@@ -294,7 +292,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPointSort(exp, sig);
+    return getTermManager().mkFloatingPointSort(exp, sig);
   }
 
   /**
@@ -312,7 +310,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
-    return d_tm.mkDatatypeSort(dtypedecl);
+    return getTermManager().mkDatatypeSort(dtypedecl);
   }
 
   /**
@@ -332,7 +330,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
-    return d_tm.mkDatatypeSorts(dtypedecls);
+    return getTermManager().mkDatatypeSorts(dtypedecls);
   }
 
   /**
@@ -350,7 +348,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkFunctionSort(Sort domain, Sort codomain)
   {
-    return d_tm.mkFunctionSort(domain, codomain);
+    return getTermManager().mkFunctionSort(domain, codomain);
   }
 
   /**
@@ -368,7 +366,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
   {
-    return d_tm.mkFunctionSort(sorts, codomain);
+    return getTermManager().mkFunctionSort(sorts, codomain);
   }
 
   /**
@@ -387,7 +385,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkParamSort(String symbol)
   {
-    return d_tm.mkParamSort(symbol);
+    return getTermManager().mkParamSort(symbol);
   }
 
   /**
@@ -405,7 +403,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkParamSort()
   {
-    return d_tm.mkParamSort();
+    return getTermManager().mkParamSort();
   }
 
   /**
@@ -422,7 +420,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkPredicateSort(Sort[] sorts)
   {
-    return d_tm.mkPredicateSort(sorts);
+    return getTermManager().mkPredicateSort(sorts);
   }
 
   /**
@@ -441,7 +439,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkRecordSort(Pair<String, Sort>[] fields)
   {
-    return d_tm.mkRecordSort(fields);
+    return getTermManager().mkRecordSort(fields);
   }
 
   /**
@@ -458,7 +456,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkSetSort(Sort elemSort)
   {
-    return d_tm.mkSetSort(elemSort);
+    return getTermManager().mkSetSort(elemSort);
   }
 
   /**
@@ -475,7 +473,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkBagSort(Sort elemSort)
   {
-    return d_tm.mkBagSort(elemSort);
+    return getTermManager().mkBagSort(elemSort);
   }
 
   /**
@@ -492,7 +490,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkSequenceSort(Sort elemSort)
   {
-    return d_tm.mkSequenceSort(elemSort);
+    return getTermManager().mkSequenceSort(elemSort);
   }
 
   /**
@@ -529,7 +527,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkAbstractSort(SortKind kind)
   {
-    return d_tm.mkAbstractSort(kind);
+    return getTermManager().mkAbstractSort(kind);
   }
 
   /**
@@ -546,7 +544,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkUninterpretedSort(String symbol)
   {
-    return d_tm.mkUninterpretedSort(symbol);
+    return getTermManager().mkUninterpretedSort(symbol);
   }
 
   /**
@@ -562,7 +560,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkUninterpretedSort()
   {
-    return d_tm.mkUninterpretedSort();
+    return getTermManager().mkUninterpretedSort();
   }
 
   /**
@@ -584,7 +582,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
   {
-    return d_tm.mkUnresolvedDatatypeSort(symbol, arity);
+    return getTermManager().mkUnresolvedDatatypeSort(symbol, arity);
   }
 
   /**
@@ -627,7 +625,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
   {
-    return d_tm.mkUninterpretedSortConstructorSort(arity, symbol);
+    return getTermManager().mkUninterpretedSortConstructorSort(arity, symbol);
   }
 
   /**
@@ -648,7 +646,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
   {
-    return d_tm.mkUninterpretedSortConstructorSort(arity);
+    return getTermManager().mkUninterpretedSortConstructorSort(arity);
   }
 
   /**
@@ -665,7 +663,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkTupleSort(Sort[] sorts)
   {
-    return d_tm.mkTupleSort(sorts);
+    return getTermManager().mkTupleSort(sorts);
   }
 
   /**
@@ -682,7 +680,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Sort mkNullableSort(Sort sort)
   {
-    return d_tm.mkNullableSort(sort);
+    return getTermManager().mkNullableSort(sort);
   }
 
   /* .................................................................... */
@@ -703,7 +701,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Kind kind)
   {
-    return d_tm.mkTerm(kind);
+    return getTermManager().mkTerm(kind);
   }
 
   /**
@@ -721,7 +719,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Kind kind, Term child)
   {
-    return d_tm.mkTerm(kind, child);
+    return getTermManager().mkTerm(kind, child);
   }
 
   /**
@@ -740,7 +738,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Kind kind, Term child1, Term child2)
   {
-    return d_tm.mkTerm(kind, child1, child2);
+    return getTermManager().mkTerm(kind, child1, child2);
   }
 
   /**
@@ -760,7 +758,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
   {
-    return d_tm.mkTerm(kind, child1, child2, child3);
+    return getTermManager().mkTerm(kind, child1, child2, child3);
   }
 
   /**
@@ -778,7 +776,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Kind kind, Term[] children)
   {
-    return d_tm.mkTerm(kind, children);
+    return getTermManager().mkTerm(kind, children);
   }
 
   /**
@@ -796,7 +794,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Op op)
   {
-    return d_tm.mkTerm(op);
+    return getTermManager().mkTerm(op);
   }
 
   /**
@@ -815,7 +813,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Op op, Term child)
   {
-    return d_tm.mkTerm(op, child);
+    return getTermManager().mkTerm(op, child);
   }
 
   /**
@@ -835,7 +833,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Op op, Term child1, Term child2)
   {
-    return d_tm.mkTerm(op, child1, child2);
+    return getTermManager().mkTerm(op, child1, child2);
   }
 
   /**
@@ -856,7 +854,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Op op, Term child1, Term child2, Term child3)
   {
-    return d_tm.mkTerm(op, child1, child2, child3);
+    return getTermManager().mkTerm(op, child1, child2, child3);
   }
 
   /**
@@ -875,7 +873,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTerm(Op op, Term[] children)
   {
-    return d_tm.mkTerm(op, children);
+    return getTermManager().mkTerm(op, children);
   }
 
   /**
@@ -893,7 +891,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTuple(Term[] terms)
   {
-    return d_tm.mkTuple(terms);
+    return getTermManager().mkTuple(terms);
   }
 
   /**
@@ -910,7 +908,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkNullableSome(Term term)
   {
-    return d_tm.mkNullableSome(term);
+    return getTermManager().mkNullableSome(term);
   }
 
   private native long mkNullableSome(long pointer, long termPointer);
@@ -929,7 +927,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkNullableVal(Term term)
   {
-    return d_tm.mkNullableVal(term);
+    return getTermManager().mkNullableVal(term);
   }
 
   /**
@@ -946,7 +944,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkNullableIsNull(Term term)
   {
-    return d_tm.mkNullableIsNull(term);
+    return getTermManager().mkNullableIsNull(term);
   }
 
   /**
@@ -963,7 +961,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkNullableIsSome(Term term)
   {
-    return d_tm.mkNullableIsSome(term);
+    return getTermManager().mkNullableIsSome(term);
   }
 
   /**
@@ -980,7 +978,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkNullableNull(Sort sort)
   {
-    return d_tm.mkNullableNull(sort);
+    return getTermManager().mkNullableNull(sort);
   }
 
   /**
@@ -1007,7 +1005,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkNullableLift(Kind kind, Term[] args)
   {
-    return d_tm.mkNullableLift(kind, args);
+    return getTermManager().mkNullableLift(kind, args);
   }
 
   /* .................................................................... */
@@ -1033,7 +1031,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Op mkOp(Kind kind)
   {
-    return d_tm.mkOp(kind);
+    return getTermManager().mkOp(kind);
   }
 
   /**
@@ -1057,7 +1055,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Op mkOp(Kind kind, String arg)
   {
-    return d_tm.mkOp(kind, arg);
+    return getTermManager().mkOp(kind, arg);
   }
 
   /**
@@ -1091,7 +1089,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
-    return d_tm.mkOp(kind, arg);
+    return getTermManager().mkOp(kind, arg);
   }
 
   /**
@@ -1120,7 +1118,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
   {
-    return d_tm.mkOp(kind, arg1, arg2);
+    return getTermManager().mkOp(kind, arg1, arg2);
   }
 
   /**
@@ -1143,7 +1141,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
-    return d_tm.mkOp(kind, args);
+    return getTermManager().mkOp(kind, args);
   }
 
   /* .................................................................... */
@@ -1163,7 +1161,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkTrue()
   {
-    return d_tm.mkTrue();
+    return getTermManager().mkTrue();
   }
 
   /**
@@ -1179,7 +1177,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFalse()
   {
-    return d_tm.mkFalse();
+    return getTermManager().mkFalse();
   }
 
   /**
@@ -1196,7 +1194,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkBoolean(boolean val)
   {
-    return d_tm.mkBoolean(val);
+    return getTermManager().mkBoolean(val);
   }
 
   /**
@@ -1212,7 +1210,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkPi()
   {
-    return d_tm.mkPi();
+    return getTermManager().mkPi();
   }
 
   /**
@@ -1232,7 +1230,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkInteger(String s) throws CVC5ApiException
   {
-    return d_tm.mkInteger(s);
+    return getTermManager().mkInteger(s);
   }
 
   /**
@@ -1249,7 +1247,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkInteger(long val)
   {
-    return d_tm.mkInteger(val);
+    return getTermManager().mkInteger(val);
   }
 
   /**
@@ -1269,7 +1267,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkReal(String s) throws CVC5ApiException
   {
-    return d_tm.mkReal(s);
+    return getTermManager().mkReal(s);
   }
 
   /**
@@ -1286,7 +1284,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkReal(long val)
   {
-    return d_tm.mkReal(val);
+    return getTermManager().mkReal(val);
   }
 
   /**
@@ -1304,7 +1302,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkReal(long num, long den)
   {
-    return d_tm.mkReal(num, den);
+    return getTermManager().mkReal(num, den);
   }
 
   /**
@@ -1320,7 +1318,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkRegexpNone()
   {
-    return d_tm.mkRegexpNone();
+    return getTermManager().mkRegexpNone();
   }
 
   /**
@@ -1336,7 +1334,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkRegexpAll()
   {
-    return d_tm.mkRegexpAll();
+    return getTermManager().mkRegexpAll();
   }
 
   /**
@@ -1352,7 +1350,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkRegexpAllchar()
   {
-    return d_tm.mkRegexpAllchar();
+    return getTermManager().mkRegexpAllchar();
   }
 
   /**
@@ -1369,7 +1367,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkEmptySet(Sort sort)
   {
-    return d_tm.mkEmptySet(sort);
+    return getTermManager().mkEmptySet(sort);
   }
 
   /**
@@ -1386,7 +1384,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkEmptyBag(Sort sort)
   {
-    return d_tm.mkEmptyBag(sort);
+    return getTermManager().mkEmptyBag(sort);
   }
 
   /**
@@ -1404,7 +1402,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkSepEmp()
   {
-    return d_tm.mkSepEmp();
+    return getTermManager().mkSepEmp();
   }
 
   /**
@@ -1423,7 +1421,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkSepNil(Sort sort)
   {
-    return d_tm.mkSepNil(sort);
+    return getTermManager().mkSepNil(sort);
   }
 
   /**
@@ -1440,7 +1438,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkString(String s)
   {
-    return d_tm.mkString(s);
+    return getTermManager().mkString(s);
   }
 
   /**
@@ -1461,7 +1459,7 @@ public class Solver extends AbstractPointer
   public Term mkString(String s, boolean useEscSequences)
   {
     // TODO: review unicode https://github.com/cvc5/cvc5-wishues/issues/150
-    return d_tm.mkString(s, useEscSequences);
+    return getTermManager().mkString(s, useEscSequences);
   }
 
   /**
@@ -1480,7 +1478,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkString(int[] s) throws CVC5ApiException
   {
-    return d_tm.mkString(s);
+    return getTermManager().mkString(s);
   }
 
   /**
@@ -1497,7 +1495,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkEmptySequence(Sort sort)
   {
-    return d_tm.mkEmptySequence(sort);
+    return getTermManager().mkEmptySequence(sort);
   }
 
   /**
@@ -1514,7 +1512,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkUniverseSet(Sort sort)
   {
-    return d_tm.mkUniverseSet(sort);
+    return getTermManager().mkUniverseSet(sort);
   }
 
   /**
@@ -1532,7 +1530,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkBitVector(int size) throws CVC5ApiException
   {
-    return d_tm.mkBitVector(size);
+    return getTermManager().mkBitVector(size);
   }
 
   /**
@@ -1553,7 +1551,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkBitVector(int size, long val) throws CVC5ApiException
   {
-    return d_tm.mkBitVector(size, val);
+    return getTermManager().mkBitVector(size, val);
   }
 
   /**
@@ -1576,7 +1574,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
   {
-    return d_tm.mkBitVector(size, s, base);
+    return getTermManager().mkBitVector(size, s, base);
   }
 
   /**
@@ -1598,7 +1596,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFiniteFieldElem(String val, Sort sort, int base) throws CVC5ApiException
   {
-    return d_tm.mkFiniteFieldElem(val, sort, base);
+    return getTermManager().mkFiniteFieldElem(val, sort, base);
   }
 
   /**
@@ -1618,7 +1616,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkConstArray(Sort sort, Term val)
   {
-    return d_tm.mkConstArray(sort, val);
+    return getTermManager().mkConstArray(sort, val);
   }
 
   /**
@@ -1637,7 +1635,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPointPosInf(exp, sig);
+    return getTermManager().mkFloatingPointPosInf(exp, sig);
   }
 
   /**
@@ -1656,7 +1654,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPointNegInf(exp, sig);
+    return getTermManager().mkFloatingPointNegInf(exp, sig);
   }
 
   /**
@@ -1675,7 +1673,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPointNaN(exp, sig);
+    return getTermManager().mkFloatingPointNaN(exp, sig);
   }
 
   /**
@@ -1694,7 +1692,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPointPosZero(exp, sig);
+    return getTermManager().mkFloatingPointPosZero(exp, sig);
   }
 
   /**
@@ -1713,7 +1711,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPointNegZero(exp, sig);
+    return getTermManager().mkFloatingPointNegZero(exp, sig);
   }
 
   /**
@@ -1730,7 +1728,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkRoundingMode(RoundingMode rm)
   {
-    return d_tm.mkRoundingMode(rm);
+    return getTermManager().mkRoundingMode(rm);
   }
 
   /**
@@ -1751,7 +1749,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPoint(exp, sig, val);
+    return getTermManager().mkFloatingPoint(exp, sig, val);
   }
 
   /**
@@ -1772,7 +1770,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
   {
-    return d_tm.mkFloatingPoint(sign, exp, sig);
+    return getTermManager().mkFloatingPoint(sign, exp, sig);
   }
 
   /**
@@ -1794,7 +1792,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
   {
-    return d_tm.mkCardinalityConstraint(sort, upperBound);
+    return getTermManager().mkCardinalityConstraint(sort, upperBound);
   }
 
   /* .................................................................... */
@@ -1822,7 +1820,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkConst(Sort sort, String symbol)
   {
-    return d_tm.mkConst(sort, symbol);
+    return getTermManager().mkConst(sort, symbol);
   }
 
   /**
@@ -1839,7 +1837,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkConst(Sort sort)
   {
-    return d_tm.mkConst(sort);
+    return getTermManager().mkConst(sort);
   }
 
   /**
@@ -1857,7 +1855,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkVar(Sort sort)
   {
-    return d_tm.mkVar(sort);
+    return getTermManager().mkVar(sort);
   }
 
   /**
@@ -1876,7 +1874,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public Term mkVar(Sort sort, String symbol)
   {
-    return d_tm.mkVar(sort, symbol);
+    return getTermManager().mkVar(sort, symbol);
   }
 
   /* .................................................................... */
@@ -1897,7 +1895,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
-    return d_tm.mkDatatypeConstructorDecl(name);
+    return getTermManager().mkDatatypeConstructorDecl(name);
   }
 
   /* .................................................................... */
@@ -1918,7 +1916,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name)
   {
-    return d_tm.mkDatatypeDecl(name);
+    return getTermManager().mkDatatypeDecl(name);
   }
 
   /**
@@ -1936,7 +1934,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
   {
-    return d_tm.mkDatatypeDecl(name, isCoDatatype);
+    return getTermManager().mkDatatypeDecl(name, isCoDatatype);
   }
 
   /**
@@ -1958,7 +1956,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params)
   {
-    return d_tm.mkDatatypeDecl(name, params);
+    return getTermManager().mkDatatypeDecl(name, params);
   }
 
   /**
@@ -1979,7 +1977,7 @@ public class Solver extends AbstractPointer
   @Deprecated
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params, boolean isCoDatatype)
   {
-    return d_tm.mkDatatypeDecl(name, params, isCoDatatype);
+    return getTermManager().mkDatatypeDecl(name, params, isCoDatatype);
   }
 
   /* .................................................................... */
@@ -1997,7 +1995,7 @@ public class Solver extends AbstractPointer
   public Term simplify(Term t)
   {
     long termPointer = simplify(pointer, t.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long simplify(long pointer, long termPointer);
@@ -2018,7 +2016,7 @@ public class Solver extends AbstractPointer
   public Term simplify(Term t, boolean applySubs)
   {
     long termPointer = simplify(pointer, t.getPointer(), applySubs);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long simplify(long pointer, long termPointer, boolean applySubs);
@@ -2050,7 +2048,7 @@ public class Solver extends AbstractPointer
   public Result checkSat()
   {
     long resultPointer = checkSat(pointer);
-    return new Result(resultPointer);
+    return new Result(ctx, resultPointer);
   }
 
   private native long checkSat(long pointer);
@@ -2068,7 +2066,7 @@ public class Solver extends AbstractPointer
   public Result checkSatAssuming(Term assumption)
   {
     long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
-    return new Result(resultPointer);
+    return new Result(ctx, resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long assumptionPointer);
@@ -2088,7 +2086,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     long resultPointer = checkSatAssuming(pointer, pointers);
-    return new Result(resultPointer);
+    return new Result(ctx, resultPointer);
   }
 
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
@@ -2109,7 +2107,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(ctors);
     long sortPointer = declareDatatype(pointer, symbol, pointers);
-    return new Sort(sortPointer);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareDatatype(long pointer, String symbol, long[] declPointers);
@@ -2131,7 +2129,7 @@ public class Solver extends AbstractPointer
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareFun(
@@ -2157,7 +2155,7 @@ public class Solver extends AbstractPointer
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer(), fresh);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareFun(
@@ -2182,7 +2180,7 @@ public class Solver extends AbstractPointer
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity);
-    return new Sort(sortPointer);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
@@ -2210,7 +2208,7 @@ public class Solver extends AbstractPointer
   {
     Utils.validateUnsigned(arity, "arity");
     long sortPointer = declareSort(pointer, symbol, arity, fresh);
-    return new Sort(sortPointer);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity, boolean fresh);
@@ -2255,7 +2253,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFun(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFun(long pointer,
@@ -2305,7 +2303,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = defineFunRec(
         pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFunRec(long pointer,
@@ -2358,7 +2356,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFunRec(
@@ -2430,7 +2428,7 @@ public class Solver extends AbstractPointer
   public Term[] getLearnedLiterals()
   {
     long[] retPointers = getLearnedLiterals(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer);
@@ -2451,7 +2449,7 @@ public class Solver extends AbstractPointer
   public Term[] getLearnedLiterals(LearnedLitType type)
   {
     long[] retPointers = getLearnedLiterals(pointer, type.getValue());
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer, int type);
@@ -2469,7 +2467,7 @@ public class Solver extends AbstractPointer
   public Term[] getAssertions()
   {
     long[] retPointers = getAssertions(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getAssertions(long pointer);
@@ -2529,7 +2527,7 @@ public class Solver extends AbstractPointer
   public OptionInfo getOptionInfo(String option)
   {
     long optionPointer = getOptionInfo(pointer, option);
-    return new OptionInfo(optionPointer);
+    return new OptionInfo(ctx, optionPointer);
   }
 
   private native long getOptionInfo(long pointer, String option);
@@ -2549,7 +2547,7 @@ public class Solver extends AbstractPointer
   public Term[] getUnsatAssumptions()
   {
     long[] retPointers = getUnsatAssumptions(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatAssumptions(long pointer);
@@ -2573,7 +2571,7 @@ public class Solver extends AbstractPointer
   public Term[] getUnsatCore()
   {
     long[] retPointers = getUnsatCore(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatCore(long pointer);
@@ -2594,7 +2592,7 @@ public class Solver extends AbstractPointer
   public Term[] getUnsatCoreLemmas()
   {
     long[] retPointers = getUnsatCoreLemmas(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatCoreLemmas(long pointer);
@@ -2615,8 +2613,8 @@ public class Solver extends AbstractPointer
     Map<Term, Term> ret = new HashMap<>();
     for (Map.Entry<Long, Long> entry : map.entrySet())
     {
-      Term key = new Term(entry.getKey());
-      Term value = new Term(entry.getValue());
+      Term key = new Term(ctx, entry.getKey());
+      Term value = new Term(ctx, entry.getValue());
       ret.put(key, value);
     }
     return ret;
@@ -2652,8 +2650,8 @@ public class Solver extends AbstractPointer
   public Pair<Result, Term[]> getTimeoutCore()
   {
     Pair<Long, long[]> pair = getTimeoutCore(pointer);
-    Result result = new Result(pair.first);
-    Term[] terms = Utils.getTerms(pair.second);
+    Result result = new Result(ctx, pair.first);
+    Term[] terms = Utils.getTerms(ctx, pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
     return ret;
   }
@@ -2690,8 +2688,8 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(assumptions);
     Pair<Long, long[]> pair = getTimeoutCoreAssuming(pointer, pointers);
-    Result result = new Result(pair.first);
-    Term[] terms = Utils.getTerms(pair.second);
+    Result result = new Result(ctx, pair.first);
+    Term[] terms = Utils.getTerms(ctx, pair.second);
     Pair<Result, Term[]> ret = new Pair<>(result, terms);
     return ret;
   }
@@ -2715,7 +2713,7 @@ public class Solver extends AbstractPointer
    */
   public Proof[] getProof()
   {
-    return Utils.getProofs(getProof(pointer));
+    return Utils.getProofs(ctx, getProof(pointer));
   }
 
   private native long[] getProof(long pointer);
@@ -2737,7 +2735,7 @@ public class Solver extends AbstractPointer
    */
   public Proof[] getProof(ProofComponent c)
   {
-    return Utils.getProofs(getProof(pointer, c.getValue()));
+    return Utils.getProofs(ctx, getProof(pointer, c.getValue()));
   }
 
   private native long[] getProof(long pointer, int c);
@@ -2812,7 +2810,7 @@ public class Solver extends AbstractPointer
   public Term getValue(Term term)
   {
     long termPointer = getValue(pointer, term.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -2832,7 +2830,7 @@ public class Solver extends AbstractPointer
   {
     long[] pointers = Utils.getPointers(terms);
     long[] retPointers = getValue(pointer, pointers);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -2849,7 +2847,7 @@ public class Solver extends AbstractPointer
   public Term[] getModelDomainElements(Sort s)
   {
     long[] pointers = getModelDomainElements(pointer, s.getPointer());
-    return Utils.getTerms(pointers);
+    return Utils.getTerms(ctx, pointers);
   }
 
   private native long[] getModelDomainElements(long pointer, long sortPointer);
@@ -2909,8 +2907,14 @@ public class Solver extends AbstractPointer
    * ( get-qe <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
+   *
+   * The formula {@code q} must not contain free variables, i.e., variables
+   * constructed via {@link TermManager#mkVar(Sort)} that are not bound by a
+   * quantifier in {@code q}. The symbols {@code y1...yn} should be free
+   * constants constructed via {@link TermManager#mkConst(Sort)}. An exception
+   * is thrown if {@code q} contains free variables.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2921,12 +2925,12 @@ public class Solver extends AbstractPointer
    *         {@code A} asserted to this solver:
    *         - {@code ( A && q )} and {@code ( A && ret )} are equivalent
    *         - {@code ret} is quantifier-free formula containing only free
-   *           variables in {@code y1...yn}.
+   *           constants in {@code y1...yn}.
    */
   public Term getQuantifierElimination(Term q)
   {
     long termPointer = getQuantifierElimination(pointer, q.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getQuantifierElimination(long pointer, long qPointer);
@@ -2940,8 +2944,14 @@ public class Solver extends AbstractPointer
    * ( get-qe-disjunct <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
+   *
+   * The formula {@code q} must not contain free variables, i.e., variables
+   * constructed via {@link TermManager#mkVar(Sort)} that are not bound by a
+   * quantifier in {@code q}. The symbols {@code y1...yn} should be free
+   * constants constructed via {@link TermManager#mkConst(Sort)}. An exception
+   * is thrown if {@code q} contains free variables.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2952,7 +2962,7 @@ public class Solver extends AbstractPointer
    *         asserted to this solver:
    *           - {@code (A ^ q) => (A ^ ret)} if {@code Q} is forall or
    *             {@code (A ^ ret) => (A ^ q)} if {@code Q} is exists,
-   *           - ret is quantifier-free formula containing only free variables
+   *           - ret is quantifier-free formula containing only free constants
    *             in {@code y1...yn},
    *           - If Q is exists, let {@code A && Q_n} be the formula
    *               {@code A && ~(ret && Q_1) && ... && ~(ret && Q_n)}
@@ -2970,7 +2980,7 @@ public class Solver extends AbstractPointer
   public Term getQuantifierEliminationDisjunct(Term q)
   {
     long termPointer = getQuantifierEliminationDisjunct(pointer, q.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
@@ -3002,7 +3012,7 @@ public class Solver extends AbstractPointer
   public Term getValueSepHeap()
   {
     long termPointer = getValueSepHeap(pointer);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getValueSepHeap(long pointer);
@@ -3017,7 +3027,7 @@ public class Solver extends AbstractPointer
   public Term getValueSepNil()
   {
     long termPointer = getValueSepNil(pointer);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getValueSepNil(long pointer);
@@ -3041,7 +3051,7 @@ public class Solver extends AbstractPointer
   {
     long[] termPointers = Utils.getPointers(initValue);
     long termPointer = declarePool(pointer, symbol, sort.getPointer(), termPointers);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declarePool(
@@ -3076,12 +3086,45 @@ public class Solver extends AbstractPointer
   {
     oracles.add(oracle);
     long[] sortPointers = Utils.getPointers(sorts);
-    long termPointer = declareOracleFun(pointer, symbol, sortPointers, sort.getPointer(), oracle);
-    return new Term(termPointer);
+    long termPointer = declareOracleFun(
+        pointer, symbol, sortPointers, sort.getPointer(), new OracleBridge(ctx, oracle));
+    return new Term(ctx, termPointer);
   }
 
   private native long declareOracleFun(
-      long pointer, String symbol, long[] sortPointers, long sortPointer, IOracle oracle);
+      long pointer, String symbol, long[] sortPointers, long sortPointer, OracleBridge oracle);
+
+  /**
+   * Bridges native oracle calls to an {@link IOracle}.
+   *
+   * <p>Native code exchanges raw pointers with this class, so that the
+   * {@link Term} wrappers are created here, in the context of the solver's
+   * term manager.</p>
+   */
+  private static final class OracleBridge
+  {
+    private final NativeContext ctx;
+    private final IOracle oracle;
+
+    OracleBridge(NativeContext ctx, IOracle oracle)
+    {
+      this.ctx = ctx;
+      this.oracle = oracle;
+    }
+
+    /**
+     * Called from native code.
+     *
+     * @param pointers The native pointers of the arguments; ownership is
+     *                 transferred to the created wrappers.
+     * @return The native pointer of the result, which native code copies
+     *         before any further Java code can run on this thread.
+     */
+    long apply(long[] pointers) throws CVC5ApiException
+    {
+      return oracle.apply(Utils.getTerms(ctx, pointers)).getPointer();
+    }
+  }
 
   /**
    * Add plugin to this solver. Its callbacks will be called throughout the
@@ -3161,7 +3204,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer());
-    return new Term(interpolPtr);
+    return new Term(ctx, interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer);
@@ -3199,7 +3242,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolant(Term conj, Grammar grammar)
   {
     long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(interpolPtr);
+    return new Term(ctx, interpolPtr);
   }
 
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
@@ -3231,7 +3274,7 @@ public class Solver extends AbstractPointer
   public Term getInterpolantNext()
   {
     long interpolPtr = getInterpolantNext(pointer);
-    return new Term(interpolPtr);
+    return new Term(ctx, interpolPtr);
   }
 
   private native long getInterpolantNext(long pointer);
@@ -3256,7 +3299,7 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer());
-    return new Term(abdPtr);
+    return new Term(ctx, abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer);
@@ -3282,7 +3325,7 @@ public class Solver extends AbstractPointer
   public Term getAbduct(Term conj, Grammar grammar)
   {
     long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(abdPtr);
+    return new Term(ctx, abdPtr);
   }
 
   private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
@@ -3307,7 +3350,7 @@ public class Solver extends AbstractPointer
   public Term getAbductNext()
   {
     long abdPtr = getAbductNext(pointer);
-    return new Term(abdPtr);
+    return new Term(ctx, abdPtr);
   }
 
   private native long getAbductNext(long pointer);
@@ -3520,7 +3563,7 @@ public class Solver extends AbstractPointer
   public Term declareSygusVar(String symbol, Sort sort)
   {
     long termPointer = declareSygusVar(pointer, symbol, sort.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareSygusVar(long pointer, String symbol, long sortPointer);
@@ -3540,7 +3583,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
     long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
-    return new Grammar(grammarPointer);
+    return new Grammar(ctx, grammarPointer);
   }
 
   private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
@@ -3562,7 +3605,7 @@ public class Solver extends AbstractPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = synthFun(pointer, symbol, boundVarPointers, sort.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long synthFun(
@@ -3587,7 +3630,7 @@ public class Solver extends AbstractPointer
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
         synthFun(pointer, symbol, boundVarPointers, sort.getPointer(), grammar.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long synthFun(
@@ -3618,7 +3661,7 @@ public class Solver extends AbstractPointer
   public Term[] getSygusConstraints()
   {
     long[] retPointers = getSygusConstraints(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSygusConstraints(long pointer);
@@ -3648,7 +3691,7 @@ public class Solver extends AbstractPointer
   public Term[] getSygusAssumptions()
   {
     long[] retPointers = getSygusAssumptions(pointer);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSygusAssumptions(long pointer);
@@ -3694,7 +3737,7 @@ public class Solver extends AbstractPointer
   public SynthResult checkSynth()
   {
     long resultPointer = checkSynth(pointer);
-    return new SynthResult(resultPointer);
+    return new SynthResult(ctx, resultPointer);
   }
 
   private native long checkSynth(long pointer);
@@ -3720,7 +3763,7 @@ public class Solver extends AbstractPointer
   public SynthResult checkSynthNext()
   {
     long resultPointer = checkSynthNext(pointer);
-    return new SynthResult(resultPointer);
+    return new SynthResult(ctx, resultPointer);
   }
 
   private native long checkSynthNext(long pointer);
@@ -3737,7 +3780,7 @@ public class Solver extends AbstractPointer
   public Term getSynthSolution(Term term)
   {
     long termPointer = getSynthSolution(pointer, term.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long getSynthSolution(long pointer, long termPointer);
@@ -3755,7 +3798,7 @@ public class Solver extends AbstractPointer
   {
     long[] termPointers = Utils.getPointers(terms);
     long[] retPointers = getSynthSolutions(pointer, termPointers);
-    return Utils.getTerms(retPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
@@ -3781,7 +3824,7 @@ public class Solver extends AbstractPointer
   public Term findSynth(FindSynthTarget fst)
   {
     long termPointer = findSynth(pointer, fst.getValue());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
   private native long findSynth(long pointer, int fst);
 
@@ -3803,7 +3846,7 @@ public class Solver extends AbstractPointer
   public Term findSynth(FindSynthTarget fst, Grammar grammar)
   {
     long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
   private native long findSynth(long pointer, int fst, long grammarPointer);
 
@@ -3824,7 +3867,7 @@ public class Solver extends AbstractPointer
   public Term findSynthNext()
   {
     long termPointer = findSynthNext(pointer);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long findSynthNext(long pointer);
@@ -3838,7 +3881,7 @@ public class Solver extends AbstractPointer
   public Statistics getStatistics()
   {
     long statisticsPointer = getStatistics(pointer);
-    return new Statistics(statisticsPointer);
+    return new Statistics(ctx, statisticsPointer);
   }
 
   private native long getStatistics(long pointer);
