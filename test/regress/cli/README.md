@@ -100,6 +100,12 @@ executing cvc5, for example:
 If multiple `COMMAND-LINE` directives are used, the regression is run with each
 set of options separately.
 
+Do not use `--safe-mode` or `--check-proofs` in `COMMAND-LINE` directives. The
+safe mode of a regression run is determined by the build configuration (see
+`REQUIRES: unrestricted-mode` below), and proof checking is done by the proof
+testers (e.g. the `proof` tester passes `--check-proofs`, which in safe builds
+also checks that proofs are complete).
+
 Sometimes, the expected output or error output may need some processing. This
 is done with the `SCRUBBER` and `ERROR-SCRUBBER` directives. The command
 specified by the `SCRUBBER`/`ERROR-SCRUBBER` directive is applied to the output

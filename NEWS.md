@@ -1,7 +1,34 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.4.2 prerelease
+cvc5 1.4.3 prerelease
 =====================
+
+    
+- Fixes a bug where function definitions did not invalidate previous
+  satisfiability query results, allowing access to stale models and other
+  query-dependent information. (#13077)
+  
+- **C++ API**
+  * `Statistics::begin()` now skips internal and defaulted statistics by
+    default, as documented. This also affects iterating over `Statistics` in
+    the Java API (`Statistics.iterator()`). Pass `true` for both arguments to
+    visit all statistics.
+    
+- **Java API**
+  * Plugin and oracle callbacks may now be invoked from a thread other than
+    the one that registered them, and an exception thrown by a callback is
+    now reported as a `CVC5ApiException` instead of crashing the JVM.
+  * The helper functions `Utils.getSorts()`, `Utils.getTerms()` and
+    `Utils.getProofs()`, which wrap raw native pointers, are no longer public.
+
+- Fixed a race in builds with CoCoA support when solvers are created
+  concurrently in different threads: the initialization of the CoCoA global
+  manager is now thread-safe. Previously, the losing thread crashed the
+  process with an uncaught `CoCoA::ErrorInfo` exception.
+
+
+cvc5 1.4.2
+==========
 
 - Adds techniques for returning "sat" when the returned candidate model
   happens to satisfy the set of input assertions (`--model-verify`).
@@ -11,6 +38,19 @@ cvc5 1.4.2 prerelease
   `(set.insert a b S)` is constructed as `(set.insert a (set.insert b S))`.
   This impacts the children of such terms when inspected via the API, as well
   as how they are printed.
+
+- The **bit-vector abstraction refinement strategy** (`--bv-abstraction`) now
+  also abstracts n-ary multiplications, i.e., `bvmul` with more than two
+  arguments, which were previously not abstracted. They are left-associated
+  into a chain of binary multiplications, each abstracted separately. (#12935)
+
+- Fixes a **refutation soundness** issue in the bit-vector rewrite rule for
+  signed comparisons of multiplications, which was incorrectly applied when
+  one operand was zero-extended and the other was sign-extended. (#13039)
+
+- Fixes a **model soundness** issue for arrays indexed by reals, where the
+  candidate model values of `to_real` terms had type Int, leading to missed
+  care pairs during theory combination. (#13040)
 
 cvc5 1.4.1
 ==========

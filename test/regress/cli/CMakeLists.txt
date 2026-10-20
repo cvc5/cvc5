@@ -985,8 +985,12 @@ set(regress_0_tests
   regress0/fmf/quant_real_univ.cvc.smt2
   regress0/fmf/sat-logic.smt2
   regress0/fmf/sc_bad_model_1221.smt2
+  regress0/fmf/sort-infer-nonmonotonic-dt.smt2
+  regress0/fmf/sort-infer-nonmonotonic-ite.smt2
+  regress0/fmf/sort-infer-nonmonotonic-order.smt2
   regress0/fmf/sort-infer-nonmonotonic-orig.smt2
   regress0/fmf/sort-infer-original-injection.smt2
+  regress0/fmf/sort-infer-ramsey-gra121.smt2
   regress0/fmf/sort-infer-typed-082718.smt2
   regress0/fmf/syn002-si-real-int.smt2
   regress0/fmf/tail_rec.smt2
@@ -1100,6 +1104,10 @@ set(regress_0_tests
   regress0/ho/fta0144-alpha-eq.smt2
   regress0/ho/fta0210.smt2
   regress0/ho/fun-subtyping.smt2
+  regress0/ho/ho-em-f-eq-ite.smt2
+  regress0/ho/ho-em-f-eq-nonbool.smt2
+  regress0/ho/ho-em-f-eq-twostep.smt2
+  regress0/ho/ho-em-f-eq.smt2
   regress0/ho/ho-exponential-model.smt2
   regress0/ho/ho-leibniz-rewrite.smt2
   regress0/ho/ho-match-fun-suffix.smt2
@@ -1315,6 +1323,7 @@ set(regress_0_tests
   regress0/nl/nta/issue8294-2-double-solve.smt2
   regress0/nl/nta/issue8415-embed-arg.smt2
   regress0/nl/nta/issue8773-phase-shift.smt2
+  regress0/nl/nta/issue13029-even-power-zero.smt2
   regress0/nl/nta/nta-dsl-rew.smt2
   regress0/nl/nta/pi-simplest.smt2
   regress0/nl/nta/proj-issue376.smt2
@@ -1413,6 +1422,7 @@ set(regress_0_tests
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/bv_nat.smt2
   regress0/parser/constraint.smt2
+  regress0/parser/datatype-tester-user-symbol.smt2
   regress0/parser/dd.define-named.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/define_sort.smt2
@@ -1435,6 +1445,10 @@ set(regress_0_tests
   regress0/parser/issue11991-nwf.smt2
   regress0/parser/issue12514-bitvec-width-overflow.smt2
   regress0/parser/issue12514-sign-extend-overflow.smt2
+  regress0/parser/issue13073-overloaded-inv-constraint.sy
+  regress0/parser/issue13073-overloaded-nullable-lift.smt2
+  regress0/parser/issue13073-overloaded-true-as.smt2
+  regress0/parser/issue13073-overloaded-true.smt2
   regress0/parser/issue12062-overflow.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2
@@ -1462,6 +1476,9 @@ set(regress_0_tests
   regress0/parser/issue10489.smt2
   regress0/parser/issue11763-quoted-dt-cons.smt2
   regress0/parser/issue12356.smt2
+  regress0/parser/legacy-datatype-tester.smt2
+  regress0/parser/legacy-datatype-tester-lenient.smt2
+  regress0/parser/legacy-datatype-tester-strict.smt2
   regress0/parser/linear_arithmetic_err1.smt2
   regress0/parser/linear_arithmetic_err2.smt2
   regress0/parser/linear_arithmetic_err3.smt2
@@ -2147,6 +2164,10 @@ set(regress_0_tests
   regress0/sets/card-3sets.cvc.smt2
   regress0/sets/card.smt2
   regress0/sets/card3-ground.smt2
+  regress0/sets/choose-cong-sat.smt2
+  regress0/sets/choose-cong.smt2
+  regress0/sets/choose-reduction-pf.smt2
+  regress0/sets/choose-set-of-sets.smt2
   regress0/sets/comp-qf-error.smt2
   regress0/sets/complement.cvc.smt2
   regress0/sets/complement2.cvc.smt2
@@ -2252,6 +2273,7 @@ set(regress_0_tests
   regress0/smtlib/issue4866.smt2
   regress0/smtlib/issue7374.smt2
   regress0/smtlib/issue12663.smt2
+  regress0/smtlib/issue13077.smt2
   regress0/smtlib/reason-unknown.smt2
   regress0/smtlib/reset-assertions-global.smt2
   regress0/smtlib/reset-assertions1.smt2
@@ -2961,6 +2983,8 @@ set(regress_1_tests
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
+  regress1/bags/table_join4.smt2
+  regress1/bags/table_join5.smt2
   regress1/bags/table_project1.smt2
   regress1/bags/table_project2.smt2
   regress1/bags/union_disjoint.smt2
@@ -3159,6 +3183,7 @@ set(regress_1_tests
   regress1/issue10788-refresh-a-interp.smt2
   regress1/issue11966-get-value-ss.smt2
   regress1/issue12339-bv-as-int-subtype-pf.smt2
+  regress1/issue13082-interpol-ensure-literal.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
@@ -3675,6 +3700,7 @@ set(regress_1_tests
   regress1/rels/rel_tc_9_1.cvc.smt2
   regress1/rels/rel_tp_2.cvc.smt2
   regress1/rels/relation_join1.smt2
+  regress1/rels/relation_join2.smt2
   regress1/rels/rel_tp_join_2_1.cvc.smt2
   regress1/rels/set-strat.cvc.smt2
   regress1/rels/strat.cvc.smt2
@@ -4076,7 +4102,6 @@ set(regress_1_tests
   regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
   regress1/strings/witness-model.smt2
-  regress1/sygus/proj-issue221-perf.sy
   regress1/sygus/proj-issue556-srr-fp-div.smt2
   regress1/sygus/issue12424-fp-add-order.sy
   regress1/sygus/issue12425-fp-const-grammar.sy
@@ -4656,6 +4681,8 @@ set(regression_disabled_tests
   regress0/sygus/c100.sy
   # timeout after ignoring sygus eval terms in model
   regress1/sygus/proj-issue264.smt2
+  # times out in nightly builds
+  regress1/sygus/proj-issue221-perf.sy
   # For the six regressions below, solution terms require rewrites not in
   # database and are too big to enumerate
   regress0/sygus/aig-si.sy
@@ -4796,7 +4823,7 @@ macro(cvc5_add_regression_test level file)
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
-    --carcara-rare ${PROJECT_SOURCE_DIR}/deps/rare/rewrites.eo
+    --carcara-rare ${PROJECT_SOURCE_DIR}/proofs/alethe/rewrites.eo
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
     --logos-binary ${PROJECT_SOURCE_DIR}/deps/bin/logos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo

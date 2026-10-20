@@ -31,17 +31,20 @@ public class DatatypeDecl extends AbstractPointer
    */
   public DatatypeDecl()
   {
-    super(getNullDatatypeDecl());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null DatatypeDecl instances. It is never freed. */
+  private static final long NULL_POINTER = getNullDatatypeDecl();
 
   private static native long getNullDatatypeDecl();
 
-  DatatypeDecl(long pointer)
+  DatatypeDecl(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, DatatypeDecl::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Syntactic equality operator.

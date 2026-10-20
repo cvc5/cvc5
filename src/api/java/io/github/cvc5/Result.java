@@ -25,17 +25,20 @@ public class Result extends AbstractPointer
    */
   public Result()
   {
-    super(getNullResult());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null result instances. It is never freed. */
+  private static final long NULL_POINTER = getNullResult();
 
   private static native long getNullResult();
 
-  Result(long pointer)
+  Result(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Result::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Determine if Result is empty, i.e., a nullary Result, and not an actual
