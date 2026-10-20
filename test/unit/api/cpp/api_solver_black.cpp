@@ -1246,6 +1246,8 @@ TEST_F(TestApiBlackSolver, getStatistics)
   {
     hasstats = true;
     ASSERT_FALSE(s.first.empty());
+    ASSERT_FALSE(s.second.isInternal());
+    ASSERT_FALSE(s.second.isDefault());
   }
   ASSERT_TRUE(hasstats);
   hasstats = false;

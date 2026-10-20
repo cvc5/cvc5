@@ -3,10 +3,17 @@ This file contains a summary of important user-visible changes.
 cvc5 1.4.3 prerelease
 =====================
 
+    
 - Fixes a bug where function definitions did not invalidate previous
   satisfiability query results, allowing access to stale models and other
   query-dependent information. (#13077)
-
+  
+- **C++ API**
+  * `Statistics::begin()` now skips internal and defaulted statistics by
+    default, as documented. This also affects iterating over `Statistics` in
+    the Java API (`Statistics.iterator()`). Pass `true` for both arguments to
+    visit all statistics.
+    
 - **Java API**
   * Plugin and oracle callbacks may now be invoked from a thread other than
     the one that registered them, and an exception thrown by a callback is
@@ -18,6 +25,7 @@ cvc5 1.4.3 prerelease
   concurrently in different threads: the initialization of the CoCoA global
   manager is now thread-safe. Previously, the losing thread crashed the
   process with an uncaught `CoCoA::ErrorInfo` exception.
+
 
 cvc5 1.4.2
 ==========
