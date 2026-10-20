@@ -42,7 +42,7 @@ DType::DType(std::string name, bool isCo)
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
       d_nestedRecursion(0),
-      d_simplyRegular(0)
+      d_regular(0)
 {
 }
 
@@ -63,7 +63,7 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
       d_nestedRecursion(0),
-      d_simplyRegular(0)
+      d_regular(0)
 {
 }
 
@@ -807,7 +807,7 @@ bool dependsOn(const DType& dt, const TypeNode& dself)
 
 }  // namespace
 
-bool DType::isSimplyRegular() const
+bool DType::isRegular() const
 {
   Assert(isResolved());
   if (!isParametric())
@@ -815,11 +815,11 @@ bool DType::isSimplyRegular() const
     // all arguments of datatypes in field types are ground
     return true;
   }
-  if (d_simplyRegular != 0)
+  if (d_regular != 0)
   {
-    return d_simplyRegular == 1;
+    return d_regular == 1;
   }
-  d_simplyRegular = 1;
+  d_regular = 1;
   std::vector<TypeNode> params = getParameters();
   std::unordered_set<TypeNode> ctypes;
   for (const TypeNode& st : getSubfieldTypes())
@@ -849,9 +849,9 @@ bool DType::isSimplyRegular() const
         if (atypes.find(p) != atypes.end())
         {
           Trace("datatypes-init")
-              << "DType::isSimplyRegular: false for " << getName() << " due to "
+              << "DType::isRegular: false for " << getName() << " due to "
               << arg << " in " << ct << std::endl;
-          d_simplyRegular = -1;
+          d_regular = -1;
           return false;
         }
       }

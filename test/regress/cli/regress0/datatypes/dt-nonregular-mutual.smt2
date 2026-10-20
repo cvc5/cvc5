@@ -1,5 +1,5 @@
-; SCRUBBER: grep -o "is not simply regular"
-; EXPECT: is not simply regular
+; SCRUBBER: grep -o "is not regular"
+; EXPECT: is not regular
 ; EXIT: 1
 ; DISABLE-TESTER: dump
 (set-logic ALL)

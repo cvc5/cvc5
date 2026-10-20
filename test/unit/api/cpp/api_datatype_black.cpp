@@ -460,7 +460,7 @@ TEST_F(TestApiBlackDatatype, parametricDatatypeNonRegular)
   Sort unresN = d_tm.mkUnresolvedDatatypeSort("N", 1);
   std::vector<Sort> v{x};
 
-  // N(X) = nil | cons(hd: X, tl: N(Set(X))) is not simply regular, since
+  // N(X) = nil | cons(hd: X, tl: N(Set(X))) is not regular, since
   // the argument of N in the field type is neither a parameter nor ground
   DatatypeDecl nSpec = d_tm.mkDatatypeDecl("N", v);
   DatatypeConstructorDecl cons = d_tm.mkDatatypeConstructorDecl("cons");
@@ -470,7 +470,7 @@ TEST_F(TestApiBlackDatatype, parametricDatatypeNonRegular)
   nSpec.addConstructor(d_tm.mkDatatypeConstructorDecl("nil"));
   ASSERT_THROW(d_tm.mkDatatypeSort(nSpec), CVC5ApiException);
 
-  // N(X) = nil | cons(hd: X, tl: N(X), other: N(Set(Int))) is simply regular
+  // N(X) = nil | cons(hd: X, tl: N(X), other: N(Set(Int))) is regular
   DatatypeDecl nSpec2 = d_tm.mkDatatypeDecl("N2", v);
   Sort unresN2 = d_tm.mkUnresolvedDatatypeSort("N2", 1);
   DatatypeConstructorDecl cons2 = d_tm.mkDatatypeConstructorDecl("cons2");
