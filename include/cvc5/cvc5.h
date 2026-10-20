@@ -6254,13 +6254,13 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @note Quantifier Elimination is is only complete for logics such as LRA,
-   * LIA and BV.
+   *       LIA and BV.
    *
    * @note The formula @f$q@f$ must not contain free variables, i.e.,
-   * variables constructed via TermManager::mkVar() that are not bound by a
-   * quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
-   * constants constructed via TermManager::mkConst(). An exception is thrown
-   * if @f$q@f$ contains free variables.
+   *       variables constructed via TermManager::mkVar() that are not bound
+   *       by a quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be
+   *       free constants constructed via TermManager::mkConst(). An
+   *       exception is thrown if @f$q@f$ contains free variables.
    *
    * @warning This function is experimental and may change in future versions.
    *
@@ -6291,13 +6291,13 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @note Quantifier Elimination is is only complete for logics such as LRA,
-   * LIA and BV.
+   *       LIA and BV.
    *
    * @note The formula @f$q@f$ must not contain free variables, i.e.,
-   * variables constructed via TermManager::mkVar() that are not bound by a
-   * quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
-   * constants constructed via TermManager::mkConst(). An exception is thrown
-   * if @f$q@f$ contains free variables.
+   *       variables constructed via TermManager::mkVar() that are not bound
+   *       by a quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be
+   *       free constants constructed via TermManager::mkConst(). An
+   *       exception is thrown if @f$q@f$ contains free variables.
    *
    * @warning This function is experimental and may change in future versions.
    *

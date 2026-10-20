@@ -4945,7 +4945,7 @@ CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *       @f$q@f$ contains free variables.
  *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
- * LIA and BV.
+ *       LIA and BV.
  *
  * @warning This function is experimental and may change in future versions.
  *
