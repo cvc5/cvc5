@@ -2907,8 +2907,14 @@ public class Solver extends AbstractPointer
    * ( get-qe <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
+   *
+   * The formula {@code q} must not contain free variables, i.e., variables
+   * constructed via {@link TermManager#mkVar(Sort)} that are not bound by a
+   * quantifier in {@code q}. The symbols {@code y1...yn} should be free
+   * constants constructed via {@link TermManager#mkConst(Sort)}. An exception
+   * is thrown if {@code q} contains free variables.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2919,7 +2925,7 @@ public class Solver extends AbstractPointer
    *         {@code A} asserted to this solver:
    *         - {@code ( A && q )} and {@code ( A && ret )} are equivalent
    *         - {@code ret} is quantifier-free formula containing only free
-   *           variables in {@code y1...yn}.
+   *           constants in {@code y1...yn}.
    */
   public Term getQuantifierElimination(Term q)
   {
@@ -2938,8 +2944,14 @@ public class Solver extends AbstractPointer
    * ( get-qe-disjunct <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
+   *
+   * The formula {@code q} must not contain free variables, i.e., variables
+   * constructed via {@link TermManager#mkVar(Sort)} that are not bound by a
+   * quantifier in {@code q}. The symbols {@code y1...yn} should be free
+   * constants constructed via {@link TermManager#mkConst(Sort)}. An exception
+   * is thrown if {@code q} contains free variables.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2950,7 +2962,7 @@ public class Solver extends AbstractPointer
    *         asserted to this solver:
    *           - {@code (A ^ q) => (A ^ ret)} if {@code Q} is forall or
    *             {@code (A ^ ret) => (A ^ q)} if {@code Q} is exists,
-   *           - ret is quantifier-free formula containing only free variables
+   *           - ret is quantifier-free formula containing only free constants
    *             in {@code y1...yn},
    *           - If Q is exists, let {@code A && Q_n} be the formula
    *               {@code A && ~(ret && Q_1) && ... && ~(ret && Q_n)}

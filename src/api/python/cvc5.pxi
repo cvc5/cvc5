@@ -4296,6 +4296,13 @@ cdef class Solver:
             Currently, the only logics supported by quantifier elimination
             are LRA and LIA.
 
+            The formula :math:`q` must not contain free variables, i.e.,
+            variables constructed via :py:meth:`TermManager.mkVar()` that are
+            not bound by a quantifier in :math:`q`. The symbols
+            :math:`y_1...y_j` should be free constants constructed via
+            :py:meth:`TermManager.mkConst()`. An exception is thrown if
+            :math:`q` contains free variables.
+
             .. warning::
 
                 This function is experimental and may change in future versions.
@@ -4313,7 +4320,7 @@ cdef class Solver:
                      - :math:`(A \\wedge q)` :math:`(A \\wedge \\phi)` are
                        equivalent
                      - :math:`\\phi` is quantifier-free formula containing only
-                       free variables in :math:`y_1...y_n`.
+                       free constants in :math:`y_1...y_j`.
         """
         return _term(self.tm, self.csolver.getQuantifierElimination(term.cterm))
 
@@ -4331,6 +4338,13 @@ cdef class Solver:
             Requires a logic that supports quantifier elimination.
             Currently, the only logics supported by quantifier elimination
             are LRA and LIA.
+
+            The formula :math:`q` must not contain free variables, i.e.,
+            variables constructed via :py:meth:`TermManager.mkVar()` that are
+            not bound by a quantifier in :math:`q`. The symbols
+            :math:`y_1...y_j` should be free constants constructed via
+            :py:meth:`TermManager.mkConst()`. An exception is thrown if
+            :math:`q` contains free variables.
 
           .. warning::
 
@@ -4350,7 +4364,7 @@ cdef class Solver:
                    :math:`(A \\wedge \\phi \\implies A \\wedge q)` if
                    :math:`Q` is :math:`\\exists`
                  - :math:`\\phi` is quantifier-free formula containing only
-                   free variables in :math:`y_1...y_n`
+                   free constants in :math:`y_1...y_j`
                  - If :math:`Q` is :math:`\\exists`, let :math:`(A \\wedge Q_n)`
                    be the formula
                    :math:`(A \\wedge \\neg (\\phi \\wedge Q_1) \\wedge ... \\wedge \\neg (\\phi \\wedge Q_n))`

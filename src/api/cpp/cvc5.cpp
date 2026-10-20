@@ -8259,6 +8259,7 @@ Term Solver::getQuantifierElimination(const Term& q) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
+  ensureWellFormedTerm(q);
   //////// all checks before this line
   return Term(d_tm.d_nm, d_slv->getQuantifierElimination(q.getNode(), true));
   ////////
@@ -8269,6 +8270,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
+  ensureWellFormedTerm(q);
   //////// all checks before this line
   return Term(d_tm.d_nm, d_slv->getQuantifierElimination(q.getNode(), false));
   ////////
@@ -8411,6 +8413,7 @@ Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "cannot get interpolant unless interpolants are enabled (try "
          "--"
@@ -8427,6 +8430,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "cannot get interpolant unless interpolants are enabled (try "
@@ -8468,6 +8472,7 @@ Term Solver::getAbduct(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "cannot get abduct unless abducts are enabled (try --"
       << internal::options::smt::longName::produceAbducts << ")";
@@ -8483,6 +8488,7 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "cannot get abduct unless abducts are enabled (try --"
