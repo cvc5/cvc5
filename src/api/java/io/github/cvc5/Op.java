@@ -26,17 +26,20 @@ public class Op extends AbstractPointer
    */
   public Op()
   {
-    super(getNullOp());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null op instances. It is never freed. */
+  private static final long NULL_POINTER = getNullOp();
 
   private static native long getNullOp();
 
-  Op(long pointer)
+  Op(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Op::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Syntactic equality operator.
@@ -126,7 +129,7 @@ public class Op extends AbstractPointer
   {
     Utils.validateUnsigned(i, "index");
     long termPointer = get(pointer, i);
-    return new Term(termPointer);
+    return new Term(ctx, termPointer);
   }
 
   private native long get(long pointer, int i);

@@ -27,29 +27,19 @@ std::vector<Term> ApiPlugin::check()
   // be called many times during a single native call.
   env->PushLocalFrame(callbackLocalFrameCapacity);
 
-  jclass termClass = env->FindClass("io/github/cvc5/Term");
-  jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
   jclass pluginClass = env->GetObjectClass(d_plugin);
-  jmethodID checkMethod =
-      env->GetMethodID(pluginClass, "check", "()[Lio/github/cvc5/Term;");
-  jobjectArray jTerms =
-      static_cast<jobjectArray>(env->CallObjectMethod(d_plugin, checkMethod));
-  if (env->ExceptionCheck() || jTerms == nullptr)
+  jmethodID checkMethod = env->GetMethodID(pluginClass, "checkNative", "()[J");
+  jlongArray jPointers =
+      static_cast<jlongArray>(env->CallObjectMethod(d_plugin, checkMethod));
+  if (env->ExceptionCheck())
   {
     env->ExceptionClear();
     env->PopLocalFrame(nullptr);
-    throw CVC5ApiException(
-        "The plugin threw an exception or returned null in check().");
+    throw CVC5ApiException("The plugin threw an exception in check().");
   }
-  jsize size = env->GetArrayLength(jTerms);
-  std::vector<Term> terms;
-  for (jsize i = 0; i < size; i++)
-  {
-    jobject jTerm = env->GetObjectArrayElement(jTerms, i);
-    jlong termPointer = env->GetLongField(jTerm, pointer);
-    terms.push_back(*reinterpret_cast<Term*>(termPointer));
-    env->DeleteLocalRef(jTerm);
-  }
+  // The lemmas are owned by their Java wrappers, which cannot be reclaimed
+  // before this native call returns to Java. Copy them now.
+  std::vector<Term> terms = getObjectsFromPointers<Term>(env, jPointers);
 
   env->PopLocalFrame(nullptr);
   return terms;
@@ -60,14 +50,12 @@ void ApiPlugin::notifyHelper(const char* functionName, const Term& cl)
   JNIEnv* env = getEnv(d_vm);
   env->PushLocalFrame(callbackLocalFrameCapacity);
 
-  jclass termClass = env->FindClass("io/github/cvc5/Term");
-  jmethodID termConstructor = env->GetMethodID(termClass, "<init>", "(J)V");
+  // Ownership of the copy is transferred to the Java wrapper created by the
+  // bridge.
   jlong termPointer = reinterpret_cast<jlong>(new Term(cl));
-  jobject jTerm = env->NewObject(termClass, termConstructor, termPointer);
   jclass pluginClass = env->GetObjectClass(d_plugin);
-  jmethodID method =
-      env->GetMethodID(pluginClass, functionName, "(Lio/github/cvc5/Term;)V");
-  env->CallVoidMethod(d_plugin, method, jTerm);
+  jmethodID method = env->GetMethodID(pluginClass, functionName, "(J)V");
+  env->CallVoidMethod(d_plugin, method, termPointer);
   if (env->ExceptionCheck())
   {
     env->ExceptionClear();
@@ -81,12 +69,12 @@ void ApiPlugin::notifyHelper(const char* functionName, const Term& cl)
 
 void ApiPlugin::notifySatClause(const Term& cl)
 {
-  notifyHelper("notifySatClause", cl);
+  notifyHelper("notifySatClauseNative", cl);
 }
 
 void ApiPlugin::notifyTheoryLemma(const Term& lem)
 {
-  notifyHelper("notifyTheoryLemma", lem);
+  notifyHelper("notifyTheoryLemmaNative", lem);
 }
 
 std::string ApiPlugin::getName()
