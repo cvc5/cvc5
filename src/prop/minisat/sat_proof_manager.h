@@ -23,7 +23,7 @@
 #include "proof/lazy_proof_chain.h"
 #include "proof/trust_node.h"
 #include "prop/minisat/core/SolverTypes.h"
-#include "prop/minisat/opt_clauses_manager.h"
+#include "prop/opt_clauses_manager.h"
 #include "prop/sat_solver_types.h"
 #include "smt/env_obj.h"
 
