@@ -6253,7 +6253,7 @@ class CVC5_EXPORT Solver
    *     (get-qe <q>)
    * \endverbatim
    *
-   * @note Quantifier Elimination is is only complete for logics such as LRA,
+   * @note Quantifier Elimination is only complete for logics such as LRA,
    *       LIA and BV.
    *
    * @note The formula @f$q@f$ must not contain free variables, i.e.,
@@ -6290,7 +6290,7 @@ class CVC5_EXPORT Solver
    *     (get-qe-disjunct <q>)
    * \endverbatim
    *
-   * @note Quantifier Elimination is is only complete for logics such as LRA,
+   * @note Quantifier Elimination is only complete for logics such as LRA,
    *       LIA and BV.
    *
    * @note The formula @f$q@f$ must not contain free variables, i.e.,

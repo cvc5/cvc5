@@ -2909,7 +2909,7 @@ public class Solver extends AbstractPointer
    * ( get-qe <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
    *
    * The formula {@code q} must not contain free variables, i.e., variables
@@ -2946,7 +2946,7 @@ public class Solver extends AbstractPointer
    * ( get-qe-disjunct <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
    *
    * The formula {@code q} must not contain free variables, i.e., variables
