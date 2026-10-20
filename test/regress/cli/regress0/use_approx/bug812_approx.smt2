@@ -1,5 +1,7 @@
 ; REQUIRES: glpk
 ; COMMAND-LINE: --use-approx
+; CPC checking was disabled in #11081 because cvc5 and the checker resolve
+; overloaded function names differently.
 ; DISABLE-TESTER: cpc
 ;; Overloading of functions not supported in Alethe
 ; DISABLE-TESTER: alethe

@@ -21,12 +21,12 @@ import java.util.NoSuchElementException;
 public class Datatype extends AbstractPointer implements Iterable<DatatypeConstructor>
 {
   // region construction and destruction
-  Datatype(long pointer)
+  Datatype(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Datatype::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -65,7 +65,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public DatatypeConstructor getConstructor(int idx)
   {
     long constructorPointer = getConstructor(pointer, idx);
-    return new DatatypeConstructor(constructorPointer);
+    return new DatatypeConstructor(ctx, constructorPointer);
   }
 
   private native long getConstructor(long pointer, int index);
@@ -80,7 +80,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public DatatypeConstructor getConstructor(String name)
   {
     long constructorPointer = getConstructor(pointer, name);
-    return new DatatypeConstructor(constructorPointer);
+    return new DatatypeConstructor(ctx, constructorPointer);
   }
 
   private native long getConstructor(long pointer, String name);
@@ -95,7 +95,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public DatatypeSelector getSelector(String name)
   {
     long selectorPointer = getSelector(pointer, name);
-    return new DatatypeSelector(selectorPointer);
+    return new DatatypeSelector(ctx, selectorPointer);
   }
 
   private native long getSelector(long pointer, String name);
@@ -135,7 +135,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   public Sort[] getParameters()
   {
     long[] sortPointers = getParameters(pointer);
-    Sort[] sorts = Utils.getSorts(sortPointers);
+    Sort[] sorts = Utils.getSorts(ctx, sortPointers);
     return sorts;
   }
 

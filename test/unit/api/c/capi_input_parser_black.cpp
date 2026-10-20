@@ -260,6 +260,34 @@ TEST_F(TestCApiBlackInputParser, next_term)
   cvc5_parser_delete(parser);
 }
 
+TEST_F(TestCApiBlackInputParser, next_non_parse_error_msg)
+{
+  // Non-parse errors must also be reported via the error_msg output parameter
+  // so that they can be distinguished from reaching the end of the input.
+  const char* error_msg = nullptr;
+  Cvc5InputParser* parser = cvc5_parser_new(d_solver, nullptr);
+  Cvc5Command cmd = cvc5_parser_next_command(parser, &error_msg);
+  ASSERT_EQ(cmd, nullptr);
+  ASSERT_TRUE(cvc5_has_error());
+  ASSERT_NE(error_msg, nullptr);
+  ASSERT_NE(std::string(error_msg).find("not initialized"), std::string::npos);
+  error_msg = nullptr;
+  Cvc5Term term = cvc5_parser_next_term(parser, &error_msg);
+  ASSERT_EQ(term, nullptr);
+  ASSERT_TRUE(cvc5_has_error());
+  ASSERT_NE(error_msg, nullptr);
+  ASSERT_NE(std::string(error_msg).find("not initialized"), std::string::npos);
+  // After a successful call, error_msg is reset.
+  cvc5_parser_set_str_input(
+      parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "", "parser_black");
+  cmd = cvc5_parser_next_command(parser, &error_msg);
+  ASSERT_EQ(cmd, nullptr);
+  ASSERT_FALSE(cvc5_has_error());
+  ASSERT_EQ(error_msg, nullptr);
+  cvc5_parser_release(parser);
+  cvc5_parser_delete(parser);
+}
+
 TEST_F(TestCApiBlackInputParser, next_term2)
 {
   const char* error_msg;
