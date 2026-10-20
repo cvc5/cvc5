@@ -3160,6 +3160,21 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_QUANT_ELIM_SHADOW),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Quantifiers -- Macro definition**
+   *
+   * .. math::
+   *
+   *   \forall X.\> F = (f = \lambda X.\> G)
+   *
+   * where :math:`f(X) = G` is equivalent to :math:`F`.
+   * The quantified formula has no free bound variables, and :math:`f` is not
+   * a bound variable.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_QUANT_MACRO_DEF),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Quantifiers -- Macro merge prenex**
    *
    * .. math::
