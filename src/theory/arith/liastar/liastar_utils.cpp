@@ -39,6 +39,26 @@ using namespace libnormaliz;
 // prints a std::vector<std::string>, see normalizCheckSat
 using libnormaliz::operator<<;
 
+void LiaStarUtils::traceEquivalenceCheck(const char* step,
+                                         Node before,
+                                         Node after)
+{
+  if (!TraceIsOn("liastar-ext-smt"))
+  {
+    return;
+  }
+  Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+  Trace("liastar-ext-smt") << "(echo \"" << step << "\")" << std::endl;
+  Trace("liastar-ext-smt") << "(assert " << std::endl
+                           << "  (distinct" << std::endl
+                           << "    " << before << std::endl
+                           << "    " << after << std::endl
+                           << "  )" << std::endl
+                           << ")" << std::endl;
+  Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+  Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+}
+
 std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
@@ -78,40 +98,16 @@ Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
   Node noItes = removeItes(n, e, stats);
   if (stats) stats->d_removeItesTime.stop();
   Trace("liastar-ext-debug") << "noItes: " << noItes << std::endl;
+  // each step prints a query that is unsat iff it preserved equivalence,
+  // e.g. (assert (distinct (not (>= x 1)) (< x 1))) for the nnf step, see
+  // traceEquivalenceCheck
+  traceEquivalenceCheck("noItes", n, noItes);
   // negation normal form with negated atoms flipped
   if (stats) stats->d_removeNotTime.start();
   Node nnf = removeNot(noItes, e);
   if (stats) stats->d_removeNotTime.stop();
   Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
-  // Trace liastar-ext-smt prints, for each step, an SMT-LIB query asserting
-  // that the step's input and output differ; the query must be unsat.
-  if (TraceIsOn("liastar-ext-smt"))
-  {
-    // noItes
-    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(echo \"noItes\")" << std::endl;
-    Trace("liastar-ext-smt") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-    Trace("liastar-ext-smt") << n << std::endl << "    ";
-    Trace("liastar-ext-smt") << noItes << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-    // nnf
-    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(echo \"nnf\")" << std::endl;
-    Trace("liastar-ext-smt") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-    Trace("liastar-ext-smt") << noItes << std::endl << "    ";
-    Trace("liastar-ext-smt") << nnf << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
-  }
+  traceEquivalenceCheck("nnf", noItes, nnf);
   // distribute conjunctions over disjunctions, then flatten the and/or
   // nesting the distribution leaves behind
   if (stats) stats->d_distributeTime.start();
@@ -119,20 +115,7 @@ Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
   Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
   dnf = recursiveFlatten(e->getNodeManager(), dnf);
   if (stats) stats->d_distributeTime.stop();
-  if (TraceIsOn("liastar-ext-smt"))
-  {
-    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(echo \"dnf\")" << std::endl;
-    Trace("liastar-ext-smt") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-    Trace("liastar-ext-smt") << nnf << std::endl << "    ";
-    Trace("liastar-ext-smt") << dnf << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
-  }
+  traceEquivalenceCheck("dnf", nnf, dnf);
   if (stats) stats->d_toDnfTime.stop();
   return dnf;
 }
@@ -162,12 +145,14 @@ Node LiaStarUtils::distribute(Node n,
       << "Expected " << n << " to be boolean" << std::endl;
   Trace("liastar-ext-dnf") << "distribute::n: " << n << std::endl;
   NodeManager* nm = e->getNodeManager();
-  Node falseConst = nm->mkConst<bool>(false);
-  Node trueConst = nm->mkConst<bool>(true);
 
   Kind k = n.getKind();
   switch (k)
   {
+    // atoms, including the negated Boolean variables that removeNot keeps:
+    //   (and (not p) (or (>= x 1) (<= x 0)))
+    //   --> (or (and (not p) (>= x 1)) (and (not p) (<= x 0)))
+    case Kind::NOT:
     case Kind::VARIABLE:
     case Kind::BOUND_VARIABLE:
     case Kind::CONST_BOOLEAN:
@@ -222,10 +207,14 @@ Node LiaStarUtils::distribute(Node n,
           disjunctions[0].push_back(conjunct);
         }
       }
+      // whether a disjunction extended the conjunctions, in which case each
+      // of them was checked by its last extension
+      bool extended = false;
       for (const Node& conjunct : conjunctions)
       {
         if (conjunct.getKind() == Kind::OR)
         {
+          extended = true;
           std::vector<std::vector<Node>> tmp;
           for (const Node& disjunct : conjunct)
           {
@@ -254,14 +243,22 @@ Node LiaStarUtils::distribute(Node n,
       std::vector<Node> final_disjuncts;
       for (std::vector<Node>& v : disjunctions)
       {
-        std::vector<Node> query = v;
-        query.insert(query.end(), context.begin(), context.end());
-        Result r = areAssertionsUnsat(query, e, stats);
-        if (r.getStatus() == Result::Status::UNSAT)
+        // Extended conjunctions were checked above, so they are not checked
+        // again. For (and (>= x 1) (or (<= x 0) (>= y 0))) the extensions
+        // check (and (>= x 1) (<= x 0)), which is dropped, and
+        // (and (>= x 1) (>= y 0)), which is kept. Without a disjunction
+        // among the conjuncts this is the only check:
+        //   (and (>= x 1) (<= x 0)) --> false
+        if (!extended)
         {
-          // when no conjunct is a disjunction, this is the only check
-          if (stats) ++stats->d_disjunctsPrunedUnsat;
-          continue;
+          std::vector<Node> query = v;
+          query.insert(query.end(), context.begin(), context.end());
+          Result r = areAssertionsUnsat(query, e, stats);
+          if (r.getStatus() == Result::Status::UNSAT)
+          {
+            if (stats) ++stats->d_disjunctsPrunedUnsat;
+            continue;
+          }
         }
         if (v.size() == 1)
         {
@@ -308,7 +305,6 @@ Node LiaStarUtils::distribute(Node n,
 Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
 {
   NodeManager* nm = e->getNodeManager();
-  Node falseConst = nm->mkConst<bool>(false);
   Node trueConst = nm->mkConst<bool>(true);
   Kind k = n.getKind();
   switch (k)
@@ -432,10 +428,13 @@ Node LiaStarUtils::removeNot(Node n, Env* e)
     case Kind::NOT:
     {
       // a negated atom: Normaliz constraints cannot be negated, so flip the
-      // relation
+      // relation. A Boolean variable has none and stays negated:
+      //   (not (or p (>= x 1))) --> (and (not p) (< x 1))
       Kind kind = nnf[0].getKind();
       switch (kind)
       {
+        case Kind::VARIABLE:
+        case Kind::BOUND_VARIABLE: return nnf;
         case Kind::LT:
         {
           // (not (< a b)) is rewritten as (>= a b)
@@ -498,8 +497,19 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
   {
     case Kind::VARIABLE:
     case Kind::BOUND_VARIABLE:
-    case Kind::NEG:
     case Kind::CONST_INTEGER: return {{trueConst, n}};
+    case Kind::NEG:
+    {
+      // the cases of the operand, with their terms negated and rewritten:
+      //   (- (ite c x y)) yields <c, (* (- 1) x)> and <(not c), (* (- 1) y)>
+      std::vector<std::pair<Node, Node>> operand =
+          removeIntegerItes(n[0], e, stats);
+      for (auto& pair : operand)
+      {
+        pair.second = rw->rewrite(nm->mkNode(Kind::NEG, pair.second));
+      }
+      return operand;
+    }
     case Kind::ADD:
     case Kind::SUB:
     case Kind::MULT:

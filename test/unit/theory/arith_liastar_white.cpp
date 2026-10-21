@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
 #include "smt/env.h"
@@ -396,6 +397,26 @@ TEST_F(TestLiaStarUtils, toDNF6)
       "(or (and a c p) (and b c p) (and a d p) (and b d p) (and a c q) (and b "
       "c q) (and a d q) (and b d q))",
       dnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, removeItesUnderUnaryMinus)
+{
+  Node c = boolVar("c");
+  // (>= (- (ite c x y)) 1): the ite below the unary minus is removed too
+  Node neg = nm->mkNode(Kind::NEG, nm->mkNode(Kind::ITE, c, x, y));
+  Node dnf = LiaStarUtils::toDNF(nm->mkNode(Kind::GEQ, neg, one), e);
+  ASSERT_FALSE(expr::hasSubtermKind(Kind::ITE, dnf)) << dnf;
+  // one disjunct per branch, guarded by c and (not c)
+  ASSERT_EQ(Kind::OR, dnf.getKind());
+  ASSERT_EQ(2, dnf.getNumChildren());
+}
+
+TEST_F(TestLiaStarUtils, removeNotKeepsNegatedBooleanVariables)
+{
+  Node p = boolVar("p"), q = boolVar("q");
+  // (not (and p q)): the literals have no relation to flip
+  Node dnf = LiaStarUtils::toDNF(p.andNode(q).notNode(), e);
+  ASSERT_EQ("(or (not p) (not q))", dnf.toString());
 }
 
 }  // namespace test

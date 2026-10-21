@@ -80,8 +80,9 @@ class LiaStarUtils
    * @param e the environment, used for its node manager, rewriter and options
    * @param stats optional statistics collector, may be nullptr
    * @return an equivalent node in DNF: a disjunction of conjunctions of
-   * atoms, or a single conjunction or atom, without ite and negation.
-   * Disjuncts the subsolver shows to be unsat are dropped, see distribute.
+   * atoms, or a single conjunction or atom, without ite and with negation
+   * only on Boolean variables. Disjuncts the subsolver shows to be unsat
+   * are dropped, see distribute.
    */
   static Node toDNF(Node n, Env* e, LiaStarStatistics* stats = nullptr);
 
@@ -114,7 +115,7 @@ class LiaStarUtils
    * produced. The result is still equivalent to n.
    *
    * @param n a node in negation normal form whose atoms are linear integer
-   * constraints or Boolean variables, see removeNot
+   * constraints or possibly negated Boolean variables, see removeNot
    * @param e the environment, used for its node manager and options
    * @param stats optional statistics collector, may be nullptr
    * @param context conjuncts known to hold wherever n occurs: the atoms of
@@ -212,7 +213,8 @@ class LiaStarUtils
    * removeItes. Each ite is split into its branches, and its condition, made
    * ite-free by removeItes, becomes a guard.
    *
-   * @param n an integer term built from variables, constants, +, -, * and ite
+   * @param n an integer term built from variables, constants, +, binary and
+   * unary -, * and ite
    * @param e the environment, used for its node manager and rewriter
    * @param stats optional statistics collector, may be nullptr
    * @return pairs <condition, term> where term is the ite-free value of n
@@ -220,21 +222,27 @@ class LiaStarUtils
    * cases, so k independent ites yield 2^k pairs:
    * (+ (ite c1 a b) (ite c2 c d)) yields <(and c1 c2), (+ a c)>,
    * <(and c1 (not c2)), (+ a d)>, <(and (not c1) c2), (+ b c)> and
-   * <(and (not c1) (not c2)), (+ b d)>. An ite-free term yields the single
-   * pair <true, n>.
+   * <(and (not c1) (not c2)), (+ b d)>. Unary minus negates the terms of
+   * its operand's pairs, which the rewriter normalizes:
+   * (- (ite c x y)) yields <c, (* (- 1) x)> and <(not c), (* (- 1) y)>.
+   * An ite-free term yields the single pair <true, n>.
    */
   static std::vector<std::pair<Node, Node>> removeIntegerItes(
       Node n, Env* e, LiaStarStatistics* stats = nullptr);
   /**
    * Convert a predicate to negation normal form and eliminate the negated
-   * atoms that remain, since a Normaliz constraint cannot be negated. The
-   * relation is flipped, e.g. (not (>= a b)) becomes (< a b), except that a
-   * negated equality becomes the disjunction (or (> a b) (< a b)); this is
-   * why removeNot runs before distribute.
+   * constraints that remain, since a Normaliz constraint cannot be negated.
+   * The relation is flipped, e.g. (not (>= a b)) becomes (< a b), except
+   * that a negated equality becomes the disjunction (or (> a b) (< a b));
+   * this is why removeNot runs before distribute. A negated Boolean variable
+   * has no relation to flip and is kept:
+   *   (not (or p (>= x 1))) --> (and (not p) (< x 1))
    *
    * @param n an ite-free Boolean combination of linear integer constraints
+   * and Boolean variables
    * @param e the environment, used for its node manager
-   * @return an equivalent node built from and, or and unnegated atoms
+   * @return an equivalent node built from and, or, unnegated constraints and
+   * possibly negated Boolean variables
    */
   static Node removeNot(Node n, Env* e);
   /**
@@ -248,6 +256,31 @@ class LiaStarUtils
    * @return the flattened node, or n itself if it has no children
    */
   static Node recursiveFlatten(NodeManager* nm, Node n);
+  /**
+   * Print, under trace tag liastar-ext-smt, an SMT-LIB query asserting that
+   * a step of toDNF changed the meaning of its input. For the step "nnf"
+   * with before (not (>= x 1)) and after (< x 1) it prints
+   *   (push 1)
+   *   (echo "nnf")
+   *   (assert
+   *     (distinct
+   *       (not (>= x 1))
+   *       (< x 1)
+   *     )
+   *   )
+   *   (check-sat)
+   *   (pop 1)
+   * The step preserved equivalence exactly when the query is unsat. The
+   * declarations of the free variables are not printed, so after adding
+   * them, e.g. (declare-const x Int), the traced output can be run with
+   * cvc5 --incremental to find the step that broke it. Does nothing when
+   * the trace tag is off.
+   *
+   * @param step the name of the step, echoed before its query
+   * @param before the input of the step
+   * @param after the output of the step
+   */
+  static void traceEquivalenceCheck(const char* step, Node before, Node after);
   /**
    * Print a linear polynomial as a Normaliz symbolic term, mapping the i-th
    * variable of `variables` to the Normaliz coordinate x[i + 1].
