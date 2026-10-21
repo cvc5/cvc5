@@ -12,6 +12,8 @@
 
 #include "theory/arith/theory_arith_type_rules.h"
 
+#include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "util/iand.h"
 #include "util/rational.h"
 
