@@ -411,6 +411,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node)
     case Kind::RELATION_JOIN:
     case Kind::RELATION_TCLOSURE:
     case Kind::RELATION_IDEN:
+    case Kind::RELATION_IS_FUNCTIONAL:
     case Kind::RELATION_JOIN_IMAGE:
     case Kind::RELATION_GROUP:
     case Kind::RELATION_AGGREGATE:
@@ -747,6 +748,32 @@ RewriteResponse TheorySetsRewriter::postRewriteRelations(TNode node)
       break;
     }
 
+    case Kind::RELATION_IS_FUNCTIONAL:
+    {
+      // the empty relation, a singleton and an identity relation are
+      // functional
+      Kind k0 = node[0].getKind();
+      if (k0 == Kind::SET_EMPTY || k0 == Kind::SET_SINGLETON
+          || k0 == Kind::RELATION_IDEN)
+      {
+        return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+      }
+      if (node[0].isConst())
+      {
+        // a constant relation is functional iff its tuples have pairwise
+        // distinct first components (the tuples themselves are distinct)
+        std::set<Node> firsts;
+        for (const Node& t : NormalForm::getElementsFromNormalConstant(node[0]))
+        {
+          if (!firsts.insert(TupleUtils::nthElementOfTuple(t, 0)).second)
+          {
+            return RewriteResponse(REWRITE_DONE, nm->mkConst(false));
+          }
+        }
+        return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+      }
+      return RewriteResponse(REWRITE_DONE, node);
+    }
     case Kind::RELATION_GROUP: return postRewriteGroup(node);
     case Kind::RELATION_AGGREGATE: return postRewriteAggregate(node);
     case Kind::RELATION_PROJECT: return postRewriteProject(node);
