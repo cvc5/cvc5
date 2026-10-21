@@ -70,116 +70,31 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Statistics_get(JNIEnv* env,
 
 /*
  * Class:     io_github_cvc5_Statistics
- * Method:    getIterator
- * Signature: (JZZ)J
+ * Method:    getEntries
+ * Signature: (JZZ)Lio/github/cvc5/Pair;
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Statistics_getIteratorOpts(
+JNIEXPORT jobject JNICALL Java_io_github_cvc5_Statistics_getEntries(
     JNIEnv* env, jobject, jlong pointer, jboolean internal, jboolean defaulted)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Statistics* current = reinterpret_cast<Statistics*>(pointer);
-  Statistics::iterator* it =
-      new Statistics::iterator(current->begin(internal, defaulted));
-  return reinterpret_cast<jlong>(it);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Statistics
- * Method:    getIterator
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Statistics_getIterator(JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Statistics* current = reinterpret_cast<Statistics*>(pointer);
-  Statistics::iterator* it = new Statistics::iterator(current->begin());
-  return reinterpret_cast<jlong>(it);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Statistics
- * Method:    hasNext
- * Signature: (JJ)Z
- */
-JNIEXPORT jboolean JNICALL Java_io_github_cvc5_Statistics_hasNext(
-    JNIEnv* env, jobject, jlong pointer, jlong iteratorPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Statistics* current = reinterpret_cast<Statistics*>(pointer);
-  Statistics::iterator it =
-      *reinterpret_cast<Statistics::iterator*>(iteratorPointer);
-  return static_cast<jboolean>(it != current->end());
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, static_cast<jboolean>(false));
-}
-
-/*
- * Class:     io_github_cvc5_Statistics
- * Method:    getNext
- * Signature: (JJ)Lio/github/cvc5/Pair;
- */
-JNIEXPORT jobject JNICALL Java_io_github_cvc5_Statistics_getNext(
-    JNIEnv* env, jobject, jlong, jlong iteratorPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Statistics::iterator it =
-      *reinterpret_cast<Statistics::iterator*>(iteratorPointer);
-  std::string cName = it->first;
-  jstring jName = env->NewStringUTF(cName.c_str());
-  Stat* stat = new Stat(it->second);
-  jlong statPointer = reinterpret_cast<jlong>(stat);
-
-  // Long longObject = new Long(statPointer)
-  jclass longClass = env->FindClass("Ljava/lang/Long;");
-  jmethodID longConstructor = env->GetMethodID(longClass, "<init>", "(J)V");
-  jobject longObject = env->NewObject(longClass, longConstructor, statPointer);
-
-  // Pair<String, Long> pair = new Pair<String, Long>(jName, longObject)
-  jclass pairClass = env->FindClass("Lio/github/cvc5/Pair;");
+  std::vector<std::string> names;
+  std::vector<jlong> stats;
+  for (Statistics::iterator it = current->begin(internal, defaulted);
+       it != current->end();
+       ++it)
+  {
+    names.push_back(it->first);
+    // Ownership is transferred to the Java wrapper.
+    stats.push_back(reinterpret_cast<jlong>(new Stat(it->second)));
+  }
+  jobjectArray jNames = getStringArrayFromStringVector(env, names);
+  jlongArray jStats = env->NewLongArray(stats.size());
+  env->SetLongArrayRegion(jStats, 0, stats.size(), stats.data());
+  // Pair<String[], long[]> pair = new Pair<>(jNames, jStats)
+  jclass pairClass = env->FindClass("io/github/cvc5/Pair");
   jmethodID pairConstructor = env->GetMethodID(
       pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
-  jobject pair = env->NewObject(pairClass, pairConstructor, jName, longObject);
-
-  it++;
-  return pair;
+  return env->NewObject(pairClass, pairConstructor, jNames, jStats);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
-}
-
-/*
- * Class:     io_github_cvc5_Statistics
- * Method:    increment
- * Signature: (JJ)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Statistics_increment(
-    JNIEnv* env, jobject, jlong pointer, jlong iteratorPointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Statistics* current = reinterpret_cast<Statistics*>(pointer);
-  Statistics::iterator* itPointer =
-      reinterpret_cast<Statistics::iterator*>(iteratorPointer);
-  Statistics::iterator it = *itPointer;
-  if (it == current->end())
-  {
-    delete itPointer;
-    std::string message = "Reached the end of Statistics::iterator";
-    throw CVC5ApiException(message);
-  }
-
-  Statistics::iterator* nextIt = new Statistics::iterator(it.operator++());
-  delete itPointer;
-  return reinterpret_cast<jlong>(nextIt);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Statistics
- * Method:    deleteIteratorPointer
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_io_github_cvc5_Statistics_deleteIteratorPointer(
-    JNIEnv*, jobject, jlong iteratorPointer)
-{
-  delete reinterpret_cast<Statistics::iterator*>(iteratorPointer);
 }
