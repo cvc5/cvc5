@@ -29,17 +29,20 @@ public class SynthResult extends AbstractPointer
    */
   public SynthResult()
   {
-    super(getNullSynthResult());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null SynthResult instances. It is never freed. */
+  private static final long NULL_POINTER = getNullSynthResult();
 
   private static native long getNullSynthResult();
 
-  SynthResult(long pointer)
+  SynthResult(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, SynthResult::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Operator overloading for equality of two synthesis results.

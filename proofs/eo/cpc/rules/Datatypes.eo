@@ -2,7 +2,6 @@
 (include "../programs/Datatypes.eo")
 
 ;;;;; ProofRule::DT_SPLIT
-
 ; program: $mk_dt_split
 ; args:
 ; - L eo::List: The list of a constructors yet to process.
@@ -11,8 +10,8 @@
 (program $mk_dt_split ((D Type) (x D) (T Type) (c T) (xs eo::List :list))
   :signature (eo::List D) Bool
   (
-    (($mk_dt_split eo::List::nil x)          false)
-    (($mk_dt_split (eo::List::cons c xs) x)  (_ or (is c x) ($mk_dt_split xs x)))
+  (($mk_dt_split eo::List::nil x)         false)
+  (($mk_dt_split (eo::List::cons c xs) x) (_ or (is c x) ($mk_dt_split xs x)))
   )
 )
 
@@ -26,22 +25,27 @@
 ;   $mk_dt_split method.
 (declare-rule dt_split ((D Type) (x D))
   :args (x)
-  :conclusion (eo::list_singleton_elim or ($mk_dt_split ($dt_get_constructors (eo::typeof x)) x))
+  :conclusion
+    (eo::list_singleton_elim or
+      ($mk_dt_split ($dt_get_constructors (eo::typeof x)) x))
 )
 
 ;;;;; ProofRewriteRule::DT_INST
-
 ; program: $mk_dt_inst_rec
 ; args:
 ; - L eo::List: The list of a selectors yet to process.
 ; - x D: The datatype term we applying dt-inst to.
-; - t T: The accumulated return value, which is a constructor applied to a list of testers applied to x.
+; - t T: The accumulated return value, which is a constructor applied to a list
+; of testers applied to x.
 ; return: The result of dt-inst for x, given t and the remaining selectors in x.
-(program $mk_dt_inst_rec ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (tb D) (s (-> D T)) (xs eo::List :list))
+(program $mk_dt_inst_rec
+  ((D Type) (x D) (T Type) (U Type) (t (-> T U)) (tb D) (s (-> D T))
+    (xs eo::List :list))
   :signature (eo::List D T) D
   (
-    (($mk_dt_inst_rec eo::List::nil x tb)         tb)
-    (($mk_dt_inst_rec (eo::List::cons s xs) x t)  ($mk_dt_inst_rec xs x (t (s x))))
+  (($mk_dt_inst_rec eo::List::nil x tb) tb)
+  (($mk_dt_inst_rec (eo::List::cons s xs) x t)
+    ($mk_dt_inst_rec xs x (t (s x))))
   )
 )
 
@@ -57,11 +61,13 @@
 ;   (tuple (tuple.select 0 x) (tuple (tuple.select 1 x) tuple.unit)), whereas
 ;   for an ordinary constructor C : (-> Int Int D) with selectors s1, s2,
 ;   $mk_dt_inst_rec above returns (C (s1 x) (s2 x)).
-(program $mk_dt_inst_tuple_rec ((D Type) (x D) (T1 Type) (T2 Type :list) (n Int) (U Type))
+(program $mk_dt_inst_tuple_rec
+  ((D Type) (x D) (T1 Type) (T2 Type :list) (n Int) (U Type))
   :signature ((eo::quote U) D Int) U
   (
-    (($mk_dt_inst_tuple_rec UnitTuple x n)     tuple.unit)
-    (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n) (_ tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
+  (($mk_dt_inst_tuple_rec UnitTuple x n)  tuple.unit)
+  (($mk_dt_inst_tuple_rec (Tuple T1 T2) x n)
+    (_ tuple (tuple.select n x) ($mk_dt_inst_tuple_rec T2 x (eo::add n 1))))
   )
 )
 
@@ -71,13 +77,18 @@
 ; - c C: The (unannotated) constructor of datatype D.
 ; - x D: The datatype term of type D we are applying dt-inst to.
 ; return: An equality that is equivalent to (is c x).
-(program $mk_dt_inst ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (xt (Tuple T1 T2)) (xu UnitTuple))
+(program $mk_dt_inst
+  ((C Type) (D Type) (x D) (c C) (T1 Type) (T2 Type :list) (xt (Tuple T1 T2))
+    (xu UnitTuple))
   :signature (Type C D) D
   (
-    (($mk_dt_inst (Tuple T1 T2) tuple xt)   ($mk_dt_inst_tuple_rec (Tuple T1 T2) xt 0))
-    (($mk_dt_inst UnitTuple tuple.unit xu)  tuple.unit)
-    ; user-defined datatypes, note that if c needs an annotation, we get it via $dt_inst_cons_of
-    (($mk_dt_inst D c x)                    ($mk_dt_inst_rec ($dt_get_selectors D c) x ($dt_inst_cons_of D c)))
+  (($mk_dt_inst (Tuple T1 T2) tuple xt)
+    ($mk_dt_inst_tuple_rec (Tuple T1 T2) xt 0))
+  (($mk_dt_inst UnitTuple tuple.unit xu)  tuple.unit)
+  ; user-defined datatypes, note that if c needs an annotation, we get it via
+  ; $dt_inst_cons_of
+  (($mk_dt_inst D c x)
+    ($mk_dt_inst_rec ($dt_get_selectors D c) x ($dt_inst_cons_of D c)))
   )
 )
 
@@ -96,7 +107,6 @@
 )
 
 ;;;;; ProofRewriteRule::DT_COLLAPSE_SELECTOR
-
 ; rule: dt-collapse-selector
 ; implements: ProofRewriteRule::DT_COLLAPSE_SELECTOR
 ; args:
@@ -108,17 +118,21 @@
 ; conclusion: The given equality.
 ; note: The type of the selector s in this rule is typically (-> D T), although
 ;       this is not the case for tuple selectors.
-(declare-rule dt-collapse-selector ((D Type) (T Type) (S1 Type) (S2 Type) (s (-> S1 S2)) (t D) (ti T))
+(declare-rule dt-collapse-selector
+  ((D Type) (T Type) (S1 Type) (S2 Type) (s (-> S1 S2)) (t D) (ti T))
   :args ((= (s t) ti))
-  :requires (((eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
-              ; note that s must be a selector of the constructor of t, or else index will not evaluate
-              (eo::define ((index (eo::list_find eo::List::cons ss s)))
-                ($dt_arg_nth t index))) ti))
+  :requires
+    (((eo::define
+          ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
+          ; note that s must be a selector of the constructor of t, or else
+          ; index will not evaluate
+          (eo::define ((index (eo::list_find eo::List::cons ss s)))
+            ($dt_arg_nth t index)))
+        ti))
   :conclusion (= (s t) ti)
 )
 
 ;;;;; ProofRewriteRule::DT_COLLAPSE_TESTER
-
 ; rule: dt-collapse-tester
 ; implements: ProofRewriteRule::DT_COLLAPSE_TESTER
 ; args:
@@ -136,7 +150,6 @@
 )
 
 ;;;;; ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON
-
 ; rule: dt-collapse-tester-singleton
 ; implements: ProofRewriteRule::DT_COLLAPSE_TESTER_SINGLETON.
 ; args:
@@ -146,24 +159,28 @@
 ; conclusion: The given equality.
 (declare-rule dt-collapse-tester-singleton ((D Type) (T Type) (c T) (t D))
   :args ((= (is c t) true))
-  :requires (((eo::list_len eo::List::cons ($dt_get_constructors (eo::typeof t))) 1))
+  :requires
+    (((eo::list_len eo::List::cons ($dt_get_constructors (eo::typeof t))) 1))
   :conclusion (= (is c t) true)
 )
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ
-
 ; program: $mk_dt_cons_eq
 ; args:
 ; - t T: The left hand side of the equality.
 ; - s T: The right hand side of the equality.
 ; return: >
 ;   The conjunction of equalities between the arguments of t and s.
-(program $mk_dt_cons_eq ((T Type) (U Type) (W Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U) (as W :list) (bs W :list))
+(program $mk_dt_cons_eq
+  ((T Type) (U Type) (W Type) (c T) (f (-> U T)) (g (-> U T)) (a U) (b U)
+    (as W :list) (bs W :list))
   :signature (T T) Bool
   (
-  (($mk_dt_cons_eq (tuple a as) (tuple b bs)) (_ and (= a b) ($mk_dt_cons_eq as bs)))
-  (($mk_dt_cons_eq (f a) (g b))               (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
-  (($mk_dt_cons_eq c c)                       (eo::requires ($dt_is_cons c) true true))
+  (($mk_dt_cons_eq (tuple a as) (tuple b bs))
+    (_ and (= a b) ($mk_dt_cons_eq as bs)))
+  (($mk_dt_cons_eq (f a) (g b))
+    (eo::list_concat and ($mk_dt_cons_eq f g) (and (= a b))))
+  (($mk_dt_cons_eq c c) (eo::requires ($dt_is_cons c) true true))
   )
 )
 
@@ -183,7 +200,6 @@
 )
 
 ;;;;; ProofRewriteRule::DT_CONS_EQ_CLASH
-
 ; rule: dt-cons-eq-clash
 ; implements: ProofRewriteRule::DT_CONS_EQ_CLASH
 ; args:
@@ -212,7 +228,6 @@
 )
 
 ;;;;; ProofRewriteRule::DT_CYCLE
-
 ; program: $dt_find_cycle
 ; args:
 ; - t T: The term.
@@ -223,19 +238,20 @@
 ;   True iff t contains s as a strict subterm beneath constructor applications.
 ; note: This program is the side-condition helper for the dt-cycle rule below.
 (program $dt_find_cycle
-  ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (isC Bool) (rec Bool))
+  ((T Type) (U Type) (V Type) (c T) (f (-> U T)) (a U) (s V) (isC Bool)
+    (rec Bool))
   :signature (T V Bool Bool) Bool
   (
-    ; if we found the term, then we are successful if we have recursed.
-    (($dt_find_cycle c c isC rec) rec)
-    ; if we are a constructor application, we look inside the current argument,
-    ; and additionally look inside further arguments of f.
-    (($dt_find_cycle (f a) s true rec)
-      (eo::ite ($dt_find_cycle a s ($is_cons_app a) true)
-        true
-        ($dt_find_cycle f s true rec)))
-    ; otherwise we fail.
-    (($dt_find_cycle c s isC rec) false)
+  ; if we found the term, then we are successful if we have recursed.
+  (($dt_find_cycle c c isC rec) rec)
+  ; if we are a constructor application, we look inside the current argument,
+  ; and additionally look inside further arguments of f.
+  (($dt_find_cycle (f a) s true rec)
+    (eo::ite ($dt_find_cycle a s ($is_cons_app a) true)
+      true
+      ($dt_find_cycle f s true rec)))
+  ; otherwise we fail.
+  (($dt_find_cycle c s isC rec) false)
   )
 )
 
@@ -255,7 +271,6 @@
 )
 
 ;;;;; ProofRewriteRule::DT_COLLAPSE_UPDATER
-
 ; program: $dt_collapse_updater_rhs
 ; args:
 ; - c U: The remaining term to process.
@@ -263,11 +278,13 @@
 ; - n Int: The argument position (from the end) which a should replace.
 ; return: >
 ;   The result of updating the n^th argument from the end in t.
-(program $dt_collapse_updater_rhs ((U Type) (T Type) (f (-> T U)) (x T) (a T) (n Int))
+(program $dt_collapse_updater_rhs
+  ((U Type) (T Type) (f (-> T U)) (x T) (a T) (n Int))
   :signature (U T Int) U
   (
-    (($dt_collapse_updater_rhs (f x) a 0)  (f a))
-    (($dt_collapse_updater_rhs (f x) a n)  (_ ($dt_collapse_updater_rhs f a (eo::add n -1)) x))
+  (($dt_collapse_updater_rhs (f x) a 0) (f a))
+  (($dt_collapse_updater_rhs (f x) a n)
+    (_ ($dt_collapse_updater_rhs f a (eo::add n -1)) x))
   )
 )
 
@@ -278,29 +295,35 @@
 ; - n Int: The argument position which a should replace.
 ; return: >
 ;   The result of updating the n^th argument in t.
-(program $tuple_collapse_updater_rhs ((U Type) (T Type) (W Type) (a T) (b T) (n Int) (ts W :list))
+(program $tuple_collapse_updater_rhs
+  ((U Type) (T Type) (W Type) (a T) (b T) (n Int) (ts W :list))
   :signature (U T Int) U
   (
-  (($tuple_collapse_updater_rhs (tuple b ts) a 0)   (tuple a ts))
-  (($tuple_collapse_updater_rhs (tuple b ts) a n)   (_ tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
-  (($tuple_collapse_updater_rhs tuple.unit a n)     tuple.unit)
+  (($tuple_collapse_updater_rhs (tuple b ts) a 0) (tuple a ts))
+  (($tuple_collapse_updater_rhs (tuple b ts) a n)
+    (_ tuple b ($tuple_collapse_updater_rhs ts a (eo::add n -1))))
+  (($tuple_collapse_updater_rhs tuple.unit a n) tuple.unit)
   )
 )
 
 ; program: $mk_dt_collapse_updater_rhs
 ; args:
-; - c U: The update term to process, expected to be an updater applied to a constructor application.
+; - c U: The update term to process, expected to be an updater applied to a
+; constructor application.
 ; return: >
 ;   The result of collapsing the update term.
-(program $mk_dt_collapse_updater_rhs ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a U) (n Int))
+(program $mk_dt_collapse_updater_rhs
+  ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a U) (n Int))
   :signature (D) D
   (
-  (($mk_dt_collapse_updater_rhs (update s t a))       (eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
-                                                      (eo::define ((index (eo::list_find eo::List::cons ss s)))
-                                                        (eo::ite (eo::is_neg index)
-                                                          t ; unchanged if not correct constructor
-                                                          ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1))))))
-  (($mk_dt_collapse_updater_rhs (tuple.update n t a)) ($tuple_collapse_updater_rhs t a n))
+  (($mk_dt_collapse_updater_rhs (update s t a))
+    (eo::define ((ss ($dt_get_selectors_of_app (eo::typeof t) t)))
+    (eo::define ((index (eo::list_find eo::List::cons ss s)))
+      (eo::ite (eo::is_neg index)
+        t ; unchanged if not correct constructor
+        ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1))))))
+  (($mk_dt_collapse_updater_rhs (tuple.update n t a))
+    ($tuple_collapse_updater_rhs t a n))
   )
 )
 
@@ -320,7 +343,6 @@
 )
 
 ;;;;; ProofRewriteRule::DT_UPDATER_ELIM
-
 ; program: $dt_updater_elim_rhs
 ; args:
 ; - u D: The application of update for a term t.
@@ -329,12 +351,15 @@
 ; return: >
 ;   The result of updating the argument specified by s in t.
 (program $dt_updater_elim_rhs
-  ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T)) (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
+  ((D Type) (T Type) (U Type) (W Type) (X Type) (s (-> D T)) (s1 (-> D T))
+    (t D) (a T) (ss eo::List :list) (c (-> U W)) (cd D))
   :signature (D eo::List X) D
   (
-    (($dt_updater_elim_rhs (update s t a) (eo::List::cons s ss) c)   ($dt_updater_elim_rhs (update s t a) ss (c a)))
-    (($dt_updater_elim_rhs (update s t a) (eo::List::cons s1 ss) c)  ($dt_updater_elim_rhs (update s t a) ss (c (s1 t))))
-    (($dt_updater_elim_rhs (update s t a) eo::List::nil cd)          cd)
+  (($dt_updater_elim_rhs (update s t a) (eo::List::cons s ss) c)
+    ($dt_updater_elim_rhs (update s t a) ss (c a)))
+  (($dt_updater_elim_rhs (update s t a) (eo::List::cons s1 ss) c)
+    ($dt_updater_elim_rhs (update s t a) ss (c (s1 t))))
+  (($dt_updater_elim_rhs (update s t a) eo::List::nil cd) cd)
   )
 )
 
@@ -345,15 +370,17 @@
 ; return: >
 ;   The result of updating the argument specified by s in t.
 (program $tuple_updater_elim_rhs
-  ((D Type) (T Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T) (ss eo::List :list))
+  ((D Type) (T Type) (n Int) (s (-> D T)) (t D) (tu UnitTuple) (a T)
+    (ss eo::List :list))
   :signature (D eo::List) D
   (
-    (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons (tuple.select n) ss))
-       (_ tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
-    (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons s ss))
-       (_ tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
-    (($tuple_updater_elim_rhs (tuple.update n tu a) eo::List::nil)
-       tuple.unit)
+  (($tuple_updater_elim_rhs
+      (tuple.update n t a)
+      (eo::List::cons (tuple.select n) ss))
+    (_ tuple a ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+  (($tuple_updater_elim_rhs (tuple.update n t a) (eo::List::cons s ss))
+    (_ tuple (s t) ($tuple_updater_elim_rhs (tuple.update n t a) ss)))
+  (($tuple_updater_elim_rhs (tuple.update n tu a) eo::List::nil)  tuple.unit)
   )
 )
 
@@ -365,15 +392,20 @@
 ; return: >
 ;   The right hand side is obtained by updating the proper argument of t.
 (program $mk_dt_updater_elim_rhs
-  ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (c U) (n Int) (ss eo::List))
+  ((D Type) (T Type) (U Type) (s (-> D T)) (t D) (a T) (c U) (n Int)
+    (ss eo::List))
   :signature (D U eo::List) D
   (
   (($mk_dt_updater_elim_rhs (update s t a) c ss)
     ; ensure the selector is in the list for this constructor
-    (eo::requires (eo::is_neg (eo::list_find @list ss s)) false
-      ($dt_updater_elim_rhs (update s t a) ss ($dt_inst_cons_of (eo::typeof t) c)))) ; ensure the constructor is annotated
+    ; ensure the constructor is annotated
+    (eo::requires
+      (eo::is_neg (eo::list_find @list ss s))
+      false
+      ($dt_updater_elim_rhs (update s t a) ss
+        ($dt_inst_cons_of (eo::typeof t) c))))
   (($mk_dt_updater_elim_rhs (tuple.update n t a) tuple ss)
-      ($tuple_updater_elim_rhs (tuple.update n t a) ss))
+    ($tuple_updater_elim_rhs (tuple.update n t a) ss))
   )
 )
 
@@ -383,14 +415,18 @@
 ; - eq Bool: The equality to prove.
 ; requires: >
 ;   We require that the right hand side is an ITE where the then branch is
-;   obtained by updating the proper argument of t, as implemented by $is_dt_updater_elim.
+; obtained by updating the proper argument of t, as implemented by
+; $is_dt_updater_elim.
 ; conclusion: The given equality.
-; note: The parameter u is expected to be an updater (either update or tuple.update). Its
+; note: The parameter u is expected to be an updater (either update or
+; tuple.update). Its
 ;       given type is U here (which is unconstrained). The parameter s is either
 ;       a selector or an integer.
 (declare-rule dt-updater-elim
   ((D Type) (T Type) (C Type) (t D) (a T) (u (-> D T D)) (tu D) (c C))
   :args ((= (u t a) (ite (is c t) tu t)))
-  :requires ((($mk_dt_updater_elim_rhs (u t a) c ($dt_get_selectors (eo::typeof t) c)) tu))
+  :requires
+    ((($mk_dt_updater_elim_rhs (u t a) c ($dt_get_selectors (eo::typeof t) c))
+        tu))
   :conclusion (= (u t a) (ite (is c t) tu t))
 )

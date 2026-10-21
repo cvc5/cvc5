@@ -266,17 +266,29 @@ class InferenceGenerator : protected EnvObj
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
    * (Bag E)
    * @param y is a node of Type T
-   * @return an inference that represents the following conjunction
-   * (=> (>= (bag.count y skolem) 1)
-   *   (and
-   *     (= (f x) y)
-   *     (= (bag.count x A) (bag.count y skolem))
+   * @return an inference that represents the following equality
+   * (= (bag.count y skolem)
+   *   (ite (= y (f x))
+   *     (bag.count x A)
+   *     0
    *   )
    * )
    * where skolem is a fresh variable equals (bag.map f A))
    * and x is a fresh variable unique per n, y.
    */
   InferInfo mapDownInjective(Node n, Node y);
+
+  /**
+   * @param n is (bag.map f A) where f is an injective function (-> E T),
+   * A a bag of type (Bag E)
+   * @param x is an element of type E
+   * @return an inference that represents the following implication
+   * (=
+   *   (bag.count x A)
+   *   (bag.count (f x) skolem)
+   * where skolem is a fresh variable equals (bag.map f A))
+   */
+  InferInfo mapUpInjective(Node n, Node x);
 
   /**
    * @param n is (bag.map f A) where f is a function (-> E T), A a bag of type
@@ -559,6 +571,18 @@ class InferenceGenerator : protected EnvObj
    * equality
    */
   Node registerAndAssertSkolemLemma(Node& n);
+  /**
+   * @param f a function of type (-> E T)
+   * @param x a term of type E
+   * @return the application of f to x, beta-reduced if f is defined by a
+   * lambda.
+   *
+   * The terms this class builds are asserted as internal facts and so never go
+   * through preprocessing. We therefore have to perform the beta reduction
+   * that HoExtension::ppRewrite would otherwise have performed, see
+   * FunctionConst::getDefinition.
+   */
+  Node mkApplyFunction(const Node& f, const Node& x);
 
   NodeManager* d_nm;
   SkolemManager* d_sm;
