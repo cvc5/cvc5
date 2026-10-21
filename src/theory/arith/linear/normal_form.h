@@ -1565,12 +1565,18 @@ class DioLinearForm
    */
   static DioLinearForm mkForm(std::vector<Term> terms, const T& c);
 
+  /**
+   * Return the list of (variable id, coefficient) pairs, where
+   * ids are strictly increasing
+   */
   const std::vector<Term>& getTerms() const { return d_terms; }
+  /** Return the constant term of the linear form */
   const T& getConstant() const { return d_constant; }
   /** The number of variable terms. */
   size_t size() const { return d_terms.size(); }
-  /** True if the form has no variable terms. */
+  /** Whether the linear form does not have variable terms */
   bool isConstant() const { return d_terms.empty(); }
+  /** Whether the linear form is zero */
   bool isZero() const { return isConstant() && d_constant.isZero(); }
 
   /** Returns the coefficient of v, or nullptr if v does not occur. */
@@ -1585,9 +1591,13 @@ class DioLinearForm
   /** The term at minAbsTermIndex(). The form must not be constant. */
   const Term& minAbsTerm() const { return d_terms[minAbsTermIndex()]; }
 
+  /** Multiplication of forms */
   DioLinearForm operator*(const T& c) const;
+  /** Addition of forms */
   DioLinearForm operator+(const DioLinearForm& other) const;
+  /** Subtraction of forms */
   DioLinearForm operator-(const DioLinearForm& other) const;
+  /** Negation of the form */
   DioLinearForm operator-() const;
   /** Returns q * a + r * b, merging the terms of a and b in one pass. */
   static DioLinearForm combine(const T& q,
@@ -1595,10 +1605,12 @@ class DioLinearForm
                                const T& r,
                                const DioLinearForm& b);
 
+  /** Check if two forms are equal */
   bool operator==(const DioLinearForm& other) const
   {
     return d_terms == other.d_terms && d_constant == other.d_constant;
   }
+  /** Check if two forms are unequal */
   bool operator!=(const DioLinearForm& other) const
   {
     return !(*this == other);
@@ -1641,8 +1653,7 @@ class DioLinearForm
   /** The gcd of the coefficients and the constant, like SumPair::gcd(). */
   Integer gcdWithConstant() const;
   /**
-   * Divides every coefficient and the constant by g, which must divide all
-   * of them.
+   * Divides every coefficient and the constant by g
    */
   DioLinearForm exactDivide(const Integer& g) const;
   /**
@@ -1658,7 +1669,10 @@ class DioLinearForm
   std::pair<DioLinearForm, DioLinearForm> computeQR(const Integer& div) const;
 
  private:
-  /** Sorted strictly by id, no zero coefficients. */
+  /**
+   * A list of (variable id, coefficient) pairs, where ids are
+   * strictly increasing, with no zero coefficients.
+   */
   std::vector<Term> d_terms;
   T d_constant;
 }; /* class DioLinearForm */
