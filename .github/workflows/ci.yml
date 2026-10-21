@@ -49,7 +49,7 @@ jobs:
         build:
           - name: ubuntu:unrestricted
             os: ubuntu-22.04
-            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --mimalloc --all-bindings --editline -DBUILD_GMP=1
             cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
@@ -86,7 +86,7 @@ jobs:
             os: ubuntu-24.04
             use-clang: true
             use-libcxx: true
-            config: unrestricted --auto-download -DBUILD_GMP=1
+            config: unrestricted --auto-download --mimalloc -DBUILD_GMP=1
             cache-key: unrestricted-libcxx
             strip-bin: strip
             check-examples: true
@@ -96,7 +96,7 @@ jobs:
 
           - name: ubuntu:unrestricted-arm64
             os: ubuntu-22.04-arm
-            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --mimalloc --all-bindings --editline -DBUILD_GMP=1
             cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
@@ -110,7 +110,7 @@ jobs:
             os: ubuntu-24.04-arm
             use-clang: true
             use-libcxx: true
-            config: unrestricted --auto-download -DBUILD_GMP=1
+            config: unrestricted --auto-download --mimalloc -DBUILD_GMP=1
             cache-key: unrestricted-arm64-libcxx
             strip-bin: strip
             check-examples: true
@@ -120,7 +120,7 @@ jobs:
 
           - name: macos:unrestricted
             os: macos-15-intel
-            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --mimalloc --all-bindings --editline -DBUILD_GMP=1
             cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
@@ -133,7 +133,7 @@ jobs:
 
           - name: macos:unrestricted-arm64
             os: macos-15
-            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --mimalloc --all-bindings --editline -DBUILD_GMP=1
             cache-key: unrestricted-arm64
             strip-bin: strip
             python-bindings: true
@@ -209,7 +209,7 @@ jobs:
           # GPL versions
           - name: ubuntu:unrestricted-gpl
             os: ubuntu-22.04
-            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --mimalloc --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-Linux-x86_64
@@ -217,7 +217,7 @@ jobs:
 
           - name: ubuntu:unrestricted-arm64-gpl
             os: ubuntu-22.04-arm
-            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --mimalloc --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-Linux-arm64
@@ -225,7 +225,7 @@ jobs:
 
           - name: macos:unrestricted-gpl
             os: macos-15-intel
-            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --mimalloc --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64
@@ -234,7 +234,7 @@ jobs:
 
           - name: macos:unrestricted-arm64-gpl
             os: macos-15
-            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --mimalloc --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
