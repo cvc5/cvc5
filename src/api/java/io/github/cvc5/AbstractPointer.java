@@ -59,11 +59,23 @@ abstract class AbstractPointer implements IPointer
   /**
    * Return the raw native pointer.
    *
+   * <p>Every native call obtains the pointers of the objects it uses through
+   * this method, so that using an object after its native resource has been
+   * released raises an exception instead of crashing the JVM.</p>
+   *
    * @return the pointer value
+   * @throws IllegalStateException if the native resource of this object has
+   *         been released, e.g., via {@link #deletePointer()}
    */
   public long getPointer()
   {
-    return pointer;
+    long p = pointer;
+    if (p == 0)
+    {
+      throw new IllegalStateException(
+          "This " + getClass().getSimpleName() + " has been released and cannot be used anymore");
+    }
+    return p;
   }
 
   /**
@@ -71,7 +83,8 @@ abstract class AbstractPointer implements IPointer
    * <p>
    * Native resources are freed automatically once the Java object is no
    * longer reachable. This method frees the native resource immediately
-   * instead; the object must not be used afterwards. It must be called from
+   * instead; afterwards, using the object raises an
+   * {@link IllegalStateException}. It must be called from
    * the thread that is using the associated term manager. Calling it more
    * than once has no further effect.
    * </p>
@@ -93,7 +106,7 @@ abstract class AbstractPointer implements IPointer
   @Override
   public String toString()
   {
-    return toString(pointer);
+    return toString(getPointer());
   }
 
   /**

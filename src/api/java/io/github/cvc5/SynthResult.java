@@ -65,7 +65,7 @@ public class SynthResult extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, result.getPointer());
+    return equals(getPointer(), result.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -79,7 +79,7 @@ public class SynthResult extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -91,7 +91,7 @@ public class SynthResult extends AbstractPointer
    */
   public boolean hasSolution()
   {
-    return hasSolution(pointer);
+    return hasSolution(getPointer());
   }
 
   private native boolean hasSolution(long pointer);
@@ -104,7 +104,7 @@ public class SynthResult extends AbstractPointer
    */
   public boolean hasNoSolution()
   {
-    return hasNoSolution(pointer);
+    return hasNoSolution(getPointer());
   }
 
   private native boolean hasNoSolution(long pointer);
@@ -116,7 +116,7 @@ public class SynthResult extends AbstractPointer
    */
   public boolean isUnknown()
   {
-    return isUnknown(pointer);
+    return isUnknown(getPointer());
   }
 
   private native boolean isUnknown(long pointer);
@@ -133,7 +133,7 @@ public class SynthResult extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

@@ -68,7 +68,7 @@ public class DatatypeDecl extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, decl.getPointer());
+    return equals(getPointer(), decl.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -79,7 +79,7 @@ public class DatatypeDecl extends AbstractPointer
    */
   public void addConstructor(DatatypeConstructorDecl ctor)
   {
-    addConstructor(pointer, ctor.getPointer());
+    addConstructor(getPointer(), ctor.getPointer());
   }
 
   private native void addConstructor(long pointer, long declPointer);
@@ -90,7 +90,7 @@ public class DatatypeDecl extends AbstractPointer
    */
   public int getNumConstructors()
   {
-    return getNumConstructors(pointer);
+    return getNumConstructors(getPointer());
   }
 
   private native int getNumConstructors(long pointer);
@@ -103,7 +103,7 @@ public class DatatypeDecl extends AbstractPointer
    */
   public boolean isParametric()
   {
-    return isParametric(pointer);
+    return isParametric(getPointer());
   }
 
   private native boolean isParametric(long pointer);
@@ -115,7 +115,7 @@ public class DatatypeDecl extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -132,7 +132,7 @@ public class DatatypeDecl extends AbstractPointer
    */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
@@ -144,7 +144,7 @@ public class DatatypeDecl extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

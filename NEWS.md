@@ -24,6 +24,9 @@ cvc5 1.4.3 prerelease
     released deterministically via `deletePointer()`; `TermManager`, `Solver`,
     `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
     `Context.deletePointers()` is deprecated.
+  * Using an object after its native memory has been released, via
+    `deletePointer()`, `close()` or `Context.deletePointers()`, now raises an
+    `IllegalStateException` instead of crashing the JVM.
   * `Solver.getTermManager()` now returns the same `TermManager` object on
     every call, which is equal to the term manager the solver was created
     with, and `InputParser.getSolver()` and `InputParser.getSymbolManager()`

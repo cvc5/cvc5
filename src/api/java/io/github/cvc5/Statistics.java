@@ -46,7 +46,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    */
   public Stat get(String name)
   {
-    long statPointer = get(pointer, name);
+    long statPointer = get(getPointer(), name);
     return new Stat(ctx, statPointer);
   }
 
@@ -89,7 +89,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
      */
     public ConstIterator(boolean internal, boolean defaulted)
     {
-      iteratorPointer = getIteratorOpts(pointer, internal, defaulted);
+      iteratorPointer = getIteratorOpts(getPointer(), internal, defaulted);
     }
     /**
      * Constructs a new iterator over the statistics using default visibility options.
@@ -97,13 +97,13 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
      */
     public ConstIterator()
     {
-      iteratorPointer = getIterator(pointer);
+      iteratorPointer = getIterator(getPointer());
     }
 
     @Override
     public boolean hasNext()
     {
-      return Statistics.this.hasNext(pointer, iteratorPointer);
+      return Statistics.this.hasNext(getPointer(), iteratorPointer);
     }
 
     @Override
@@ -111,9 +111,9 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
     {
       try
       {
-        Pair<String, Long> pair = Statistics.this.getNext(pointer, iteratorPointer);
+        Pair<String, Long> pair = Statistics.this.getNext(getPointer(), iteratorPointer);
         Stat stat = new Stat(ctx, pair.second);
-        this.iteratorPointer = Statistics.this.increment(pointer, iteratorPointer);
+        this.iteratorPointer = Statistics.this.increment(getPointer(), iteratorPointer);
         return new AbstractMap.SimpleImmutableEntry<>(pair.first, stat);
       }
       catch (CVC5ApiException e)

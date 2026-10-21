@@ -71,7 +71,7 @@ public class OptionInfo extends AbstractPointer
 
   public String toString()
   {
-    return toString(pointer);
+    return toString(getPointer());
   }
 
   /**
@@ -284,7 +284,7 @@ public class OptionInfo extends AbstractPointer
    */
   public boolean booleanValue()
   {
-    return booleanValue(pointer);
+    return booleanValue(getPointer());
   }
 
   private native boolean booleanValue(long pointer);
@@ -296,7 +296,7 @@ public class OptionInfo extends AbstractPointer
    */
   public String stringValue()
   {
-    return stringValue(pointer);
+    return stringValue(getPointer());
   }
 
   private native String stringValue(long pointer);
@@ -308,7 +308,7 @@ public class OptionInfo extends AbstractPointer
    */
   public BigInteger intValue()
   {
-    return intValue(pointer);
+    return intValue(getPointer());
   }
 
   private native BigInteger intValue(long pointer);
@@ -320,7 +320,7 @@ public class OptionInfo extends AbstractPointer
    */
   public double doubleValue()
   {
-    return doubleValue(pointer);
+    return doubleValue(getPointer());
   }
 
   private native double doubleValue(long pointer);
