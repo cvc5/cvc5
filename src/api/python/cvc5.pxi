@@ -63,6 +63,7 @@ from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
+from cvc5proofrules cimport AnnotationId as c_AnnotationId
 from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
@@ -6194,6 +6195,18 @@ cdef class Proof:
                      `DSL_REWRITE` or `THEORY_REWRITE`.
         """
         return ProofRewriteRule(<int> self.cproof.getRewriteRule())
+
+    def getAnnotationId(self):
+        """
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            :return: The annotation identifier used by the root step of the
+                     proof. Raises an exception if `getRule()` does not return
+                     `ANNOTATE`.
+        """
+        return AnnotationId(<int> self.cproof.getAnnotationId())
 
     def getResult(self):
         """

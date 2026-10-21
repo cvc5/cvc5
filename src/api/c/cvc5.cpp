@@ -199,6 +199,25 @@ size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5AnnotationId                                                           */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_annotation_id_to_string(Cvc5AnnotationId id)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_ANNOTATION_ID(id);
+  str = std::to_string(static_cast<cvc5::AnnotationId>(id));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_annotation_id_hash(Cvc5AnnotationId id)
+{
+  return std::hash<cvc5::AnnotationId>{}(static_cast<cvc5::AnnotationId>(id));
+}
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5FindSynthTarget                                                        */
 /* -------------------------------------------------------------------------- */
 
@@ -4001,6 +4020,16 @@ Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_PROOF(proof);
   res = static_cast<Cvc5ProofRewriteRule>(proof->d_proof.getRewriteRule());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
+Cvc5AnnotationId cvc5_proof_get_annotation_id(Cvc5Proof proof)
+{
+  Cvc5AnnotationId res = CVC5_ANNOTATION_ID_LAST;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  res = static_cast<Cvc5AnnotationId>(proof->d_proof.getAnnotationId());
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }

@@ -3837,6 +3837,18 @@ CVC5_EXPORT Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
 CVC5_EXPORT Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof);
 
 /**
+ * Get the annotation identifier used by the root step of the proof.
+ *
+ * Requires that `cvc5_proof_get_rule()` returns #CVC5_PROOF_RULE_ANNOTATE.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @return The annotation identifier.
+ */
+CVC5_EXPORT Cvc5AnnotationId cvc5_proof_get_annotation_id(Cvc5Proof proof);
+
+/**
  * Get the conclusion of the root step of a given proof.
  * @param proof The proof.
  * @return The conclusion term.

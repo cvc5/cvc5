@@ -142,6 +142,27 @@ class ProofTest
   }
 
   @Test
+  void getAnnotationId() throws CVC5ApiException
+  {
+    d_solver.setOption("proof-annotate-theory-lemmas", "true");
+    Proof proof = createProof();
+    assertThrows(CVC5ApiException.class, () -> proof.getAnnotationId());
+    ProofRule rule;
+    List<Proof> stack = new ArrayList<Proof>();
+    stack.add(proof);
+    Proof curr;
+    do
+    {
+      curr = stack.get(stack.size() - 1);
+      stack.remove(stack.size() - 1);
+      rule = curr.getRule();
+      Proof[] children = curr.getChildren();
+      stack.addAll(Arrays.asList(children));
+    } while (rule != ProofRule.ANNOTATE);
+    assertEquals(AnnotationId.THEORY_LEMMA, curr.getAnnotationId());
+  }
+
+  @Test
   void getResult() throws CVC5ApiException
   {
     Proof proof = createProof();

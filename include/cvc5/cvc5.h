@@ -3701,6 +3701,17 @@ class CVC5_EXPORT Proof
    */
   ProofRewriteRule getRewriteRule() const;
 
+  /**
+   * Get the annotation identifier used by the root step of the proof.
+   *
+   * Requires that `getRule()` returns #ANNOTATE.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return The annotation identifier.
+   */
+  AnnotationId getAnnotationId() const;
+
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
 

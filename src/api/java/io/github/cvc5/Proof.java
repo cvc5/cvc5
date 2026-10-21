@@ -80,6 +80,21 @@ public class Proof extends AbstractPointer
   private native int getRewriteRule(long pointer);
 
   /**
+   * Get the annotation identifier used by the root step of the proof.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   * @return The annotation identifier used by the root step of the proof.
+   * @throws CVC5ApiException if `getRule()` does not return `ANNOTATE`.
+   */
+  public AnnotationId getAnnotationId() throws CVC5ApiException
+  {
+    int value = getAnnotationId(pointer);
+    return AnnotationId.fromInt(value);
+  }
+
+  private native int getAnnotationId(long pointer);
+
+  /**
    * Get the conclusion of the root step of the proof.
    *
    * @return The conclusion of the root step of the proof.

@@ -14,7 +14,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Kind, ProofRule
+from cvc5 import AnnotationId, Kind, ProofRule
 
 
 @pytest.fixture
@@ -95,6 +95,21 @@ def test_get_rewrite_rule(tm, solver):
         children = proof.getChildren()
         stack.extend(children)
     assert proof.getRewriteRule() is not None
+
+
+def test_get_annotation_id(tm, solver):
+    solver.setOption("proof-annotate-theory-lemmas", "true")
+    proof = create_proof(tm, solver)
+    with pytest.raises(RuntimeError):
+        proof.getAnnotationId()
+    rule = None
+    stack = [proof]
+    while rule != ProofRule.ANNOTATE:
+        proof = stack.pop()
+        rule = proof.getRule()
+        children = proof.getChildren()
+        stack.extend(children)
+    assert proof.getAnnotationId() == AnnotationId.THEORY_LEMMA
 
 
 def test_get_result(tm, solver):

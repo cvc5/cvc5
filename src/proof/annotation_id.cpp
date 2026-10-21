@@ -7,7 +7,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of proof annotation identifier enumeration.
+ * Implementation of utilities for proof annotation identifiers.
  */
 
 #include "proof/annotation_id.h"
@@ -16,22 +16,6 @@
 #include "util/rational.h"
 
 namespace cvc5::internal {
-
-const char* toString(AnnotationId id)
-{
-  switch (id)
-  {
-    case AnnotationId::NONE: return "NONE";
-    case AnnotationId::THEORY_LEMMA: return "THEORY_LEMMA";
-    default: return "AnnotationId::Unknown";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, AnnotationId id)
-{
-  out << toString(id);
-  return out;
-}
 
 Node mkAnnotationId(NodeManager* nm, AnnotationId id)
 {

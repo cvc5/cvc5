@@ -7,7 +7,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Proof annotation identifier enumeration.
+ * Utilities for proof annotation identifiers.
  */
 
 #include "cvc5_private.h"
@@ -15,36 +15,11 @@
 #ifndef CVC5__PROOF__ANNOTATION_ID_H
 #define CVC5__PROOF__ANNOTATION_ID_H
 
+#include <cvc5/cvc5_proof_rule.h>
+
 #include "expr/node.h"
 
 namespace cvc5::internal {
-
-/**
- * Identifiers for annotation steps in proofs.
- */
-enum class AnnotationId : uint32_t
-{
-  NONE,
-  /** Annotation used for theory lemmas. */
-  THEORY_LEMMA,
-};
-
-/**
- * Converts an annotation identifier to a string.
- *
- * @param id The annotation identifier
- * @return The name of the annotation identifier
- */
-const char* toString(AnnotationId id);
-
-/**
- * Writes an annotation identifier to a stream.
- *
- * @param out The stream to write to
- * @param id The annotation identifier to write
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, AnnotationId id);
 
 /** Make a node from an annotation identifier. */
 Node mkAnnotationId(NodeManager* nm, AnnotationId id);

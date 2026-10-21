@@ -121,6 +121,7 @@ TEST_F(TestApiBlackProof, annotateTheoryLemmas)
 {
   d_solver->setOption("proof-annotate-theory-lemmas", "true");
   Proof proof = createProof();
+  ASSERT_THROW(proof.getAnnotationId(), CVC5ApiException);
   std::vector<Proof> stack{proof};
   bool foundAnnotate = false;
   while (!stack.empty())
@@ -132,6 +133,7 @@ TEST_F(TestApiBlackProof, annotateTheoryLemmas)
       foundAnnotate = true;
       ASSERT_EQ(cur.getChildren().size(), 1);
       ASSERT_GE(cur.getArguments().size(), 2);
+      ASSERT_EQ(cur.getAnnotationId(), AnnotationId::THEORY_LEMMA);
       break;
     }
     std::vector<Proof> children = cur.getChildren();

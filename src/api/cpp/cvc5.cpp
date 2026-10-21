@@ -5187,6 +5187,19 @@ ProofRewriteRule Proof::getRewriteRule() const
   CVC5_API_TRY_CATCH_END;
 }
 
+AnnotationId Proof::getAnnotationId() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_proofNode->getRule() == ProofRule::ANNOTATE)
+      << "expected `getRule()` to return `ANNOTATE`, got "
+      << d_proofNode->getRule() << " instead.";
+  //////// all checks before this line
+  return static_cast<AnnotationId>(
+      detail::getInteger(d_proofNode->getArguments()[0]).getUnsignedInt());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Proof::getResult() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
