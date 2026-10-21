@@ -112,9 +112,9 @@ class LiaStarStatistics
   /** Number of star literals reduced with a star reduction lemma. */
   IntStat d_starTermsReduced;
   /**
-   * Number of ITE eliminations performed during ITE removal. An ITE nested
-   * in a condition is duplicated into both branches and hence may be
-   * eliminated (and counted) more than once.
+   * Number of ITE eliminations performed during ITE removal. Each distinct
+   * ITE of a predicate is eliminated (and counted) once per call to
+   * LiaStarUtils::removeItes, even when it occurs several times.
    */
   IntStat d_itesRemoved;
   /** Number of predicates converted to DNF. */

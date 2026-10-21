@@ -84,7 +84,7 @@ class LiaStarUtils
    * only on Boolean variables. Disjuncts the subsolver shows to be unsat
    * are dropped, see distribute.
    */
-  static Node toDNF(Node n, Env* e, LiaStarStatistics* stats = nullptr);
+  static Node toDNF(Node n, Env& e, LiaStarStatistics* stats = nullptr);
 
   /**
    * Eliminate ite from a LIA predicate. cvc5's ite removal would introduce
@@ -92,17 +92,26 @@ class LiaStarUtils
    * coordinate, so instead each ite is expanded into a disjunction over its
    * branches, guarded by its condition:
    *   (>= (ite c x y) 1) --> (or (and (>= x 1) c) (and (>= y 1) (not c)))
-   *   (ite c p q)        --> (or (and c p) (and (not c) q))
-   * A constraint with k ites thus yields up to 2^k disjuncts, see
-   * removeIntegerItes.
+   *   (ite c p q)        --> (or (and p c) (and q (not c)))
+   * The ites of an atom are expanded together, so an atom with k ites
+   * yields up to 2^k disjuncts, each guarded by the conditions of all of
+   * them:
+   *   (>= (ite c1 x y) (ite c2 1 2))
+   *   --> (or (and (>= x 1) c1 c2) (and (>= x 2) c1 (not c2))
+   *           (and (>= y 1) (not c1) c2) (and (>= y 2) (not c1) (not c2)))
    *
-   * @param n a Boolean combination of linear integer constraints and Boolean
-   * variables whose integer terms may contain ite
+   * The traversal is iterative and independent of kinds other than ite:
+   * every other term is rebuilt from its children, and rebuilt integer
+   * terms are rewritten to stay in the arithmetic normal form getMatrices
+   * expects. Closures are not entered.
+   *
+   * @param n a Boolean term, e.g. a Boolean combination of linear integer
+   * constraints whose integer terms may contain ite
    * @param e the environment, used for its node manager and rewriter
    * @param stats optional statistics collector, may be nullptr
    * @return an equivalent node without ite
    */
-  static Node removeItes(Node n, Env* e, LiaStarStatistics* stats = nullptr);
+  static Node removeItes(Node n, Env& e, LiaStarStatistics* stats = nullptr);
 
   /**
    * Distribute conjunctions over disjunctions, turning a predicate in
@@ -126,7 +135,7 @@ class LiaStarUtils
    * disjunctions are not flattened, see recursiveFlatten.
    */
   static Node distribute(Node n,
-                         Env* e,
+                         Env& e,
                          LiaStarStatistics* stats = nullptr,
                          const std::vector<Node>& context = {});
 
@@ -146,7 +155,7 @@ class LiaStarUtils
    * status other than unsat as "not known to be unsat".
    */
   static Result areAssertionsUnsat(const std::vector<Node>& assertions,
-                                   Env* e,
+                                   Env& e,
                                    LiaStarStatistics* stats = nullptr);
 
   /**
@@ -164,7 +173,7 @@ class LiaStarUtils
    */
   static Result cvc5CheckSat(const std::vector<Node>& freeVariables,
                              Node assertion,
-                             Env* e,
+                             Env& e,
                              LiaStarStatistics* stats = nullptr);
   /**
    * Check satisfiability of a conjunction of LIA constraints by computing its
@@ -209,27 +218,6 @@ class LiaStarUtils
 
  private:
   /**
-   * Enumerate the ite-free forms of an integer term, the term-level step of
-   * removeItes. Each ite is split into its branches, and its condition, made
-   * ite-free by removeItes, becomes a guard.
-   *
-   * @param n an integer term built from variables, constants, +, binary and
-   * unary -, * and ite
-   * @param e the environment, used for its node manager and rewriter
-   * @param stats optional statistics collector, may be nullptr
-   * @return pairs <condition, term> where term is the ite-free value of n
-   * under condition. The conditions are pairwise disjoint and cover all
-   * cases, so k independent ites yield 2^k pairs:
-   * (+ (ite c1 a b) (ite c2 c d)) yields <(and c1 c2), (+ a c)>,
-   * <(and c1 (not c2)), (+ a d)>, <(and (not c1) c2), (+ b c)> and
-   * <(and (not c1) (not c2)), (+ b d)>. Unary minus negates the terms of
-   * its operand's pairs, which the rewriter normalizes:
-   * (- (ite c x y)) yields <c, (* (- 1) x)> and <(not c), (* (- 1) y)>.
-   * An ite-free term yields the single pair <true, n>.
-   */
-  static std::vector<std::pair<Node, Node>> removeIntegerItes(
-      Node n, Env* e, LiaStarStatistics* stats = nullptr);
-  /**
    * Convert a predicate to negation normal form and eliminate the negated
    * constraints that remain, since a Normaliz constraint cannot be negated.
    * The relation is flipped, e.g. (not (>= a b)) becomes (< a b), except
@@ -244,7 +232,7 @@ class LiaStarUtils
    * @return an equivalent node built from and, or, unnegated constraints and
    * possibly negated Boolean variables
    */
-  static Node removeNot(Node n, Env* e);
+  static Node removeNot(Node n, Env& e);
   /**
    * Flatten a node and, one level down, each of its children by their own
    * kinds. expr::algorithm::flatten only merges nesting of the node's own

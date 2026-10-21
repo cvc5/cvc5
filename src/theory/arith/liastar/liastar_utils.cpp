@@ -16,6 +16,7 @@
 
 #include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_builder.h"
 #include "libnormaliz/input.h"
 #include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
@@ -90,7 +91,7 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
   return std::make_pair(substitute, nonnegativeConstraints);
 }
 
-Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
+Node LiaStarUtils::toDNF(Node n, Env& e, LiaStarStatistics* stats)
 {
   if (stats) stats->d_toDnfTime.start();
   // eliminate ites
@@ -113,7 +114,7 @@ Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
   if (stats) stats->d_distributeTime.start();
   Node dnf = distribute(nnf, e, stats);
   Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
-  dnf = recursiveFlatten(e->getNodeManager(), dnf);
+  dnf = recursiveFlatten(e.getNodeManager(), dnf);
   if (stats) stats->d_distributeTime.stop();
   traceEquivalenceCheck("dnf", nnf, dnf);
   if (stats) stats->d_toDnfTime.stop();
@@ -137,14 +138,14 @@ Node LiaStarUtils::recursiveFlatten(NodeManager* nm, Node n)
 }
 
 Node LiaStarUtils::distribute(Node n,
-                              Env* e,
+                              Env& e,
                               LiaStarStatistics* stats,
                               const std::vector<Node>& context)
 {
   Assert(n.getType().isBoolean())
       << "Expected " << n << " to be boolean" << std::endl;
   Trace("liastar-ext-dnf") << "distribute::n: " << n << std::endl;
-  NodeManager* nm = e->getNodeManager();
+  NodeManager* nm = e.getNodeManager();
 
   Kind k = n.getKind();
   switch (k)
@@ -302,97 +303,132 @@ Node LiaStarUtils::distribute(Node n,
                   << " has kind: " << n.getKind() << std::endl;
 }
 
-Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
+Node LiaStarUtils::removeItes(Node n, Env& e, LiaStarStatistics* stats)
 {
-  NodeManager* nm = e->getNodeManager();
-  Node trueConst = nm->mkConst<bool>(true);
-  Kind k = n.getKind();
-  switch (k)
+  Assert(n.getType().isBoolean())
+      << "Expected " << n << " to be boolean" << std::endl;
+  NodeManager* nm = e.getNodeManager();
+  Rewriter* rw = e.getRewriter();
+  // A case <guards, value> of a term says that the term equals the ite-free
+  // value whenever all guards hold. The cases of a term have pairwise
+  // disjoint guards that cover all models:
+  //   (ite c x y)       has the cases <{c}, x> and <{(not c)}, y>
+  //   (+ (ite c x y) z) has the cases <{c}, (+ x z)> and <{(not c)}, (+ y z)>
+  // A Boolean term folds its cases into a single unguarded case, so cases
+  // multiply only within an atom:
+  //   (>= (+ (ite c x y) z) 0) has the single case <{},
+  //     (or (and (>= (+ x z) 0) c) (and (>= (+ y z) 0) (not c)))>
+  using Case = std::pair<std::vector<Node>, Node>;
+  // the cases of each visited term, empty while its children are visited
+  std::unordered_map<TNode, std::vector<Case>> cases;
+  std::vector<TNode> visit{n};
+  do
   {
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::CONST_BOOLEAN: return n;
-    case Kind::LT:
-    case Kind::GT:
-    case Kind::LEQ:
-    case Kind::GEQ:
-    case Kind::EQUAL:
+    TNode cur = visit.back();
+    visit.pop_back();
+    auto it = cases.find(cur);
+    if (it == cases.end())
     {
-      std::vector<std::pair<Node, Node>> left =
-          removeIntegerItes(n[0], e, stats);
-      std::vector<std::pair<Node, Node>> right =
-          removeIntegerItes(n[1], e, stats);
-      if (left.size() == 1 && right.size() == 1)
+      // visit the children first. Closures are kept as they are, since an
+      // ite below a binder may depend on its bound variables.
+      cases[cur];
+      visit.push_back(cur);
+      if (!cur.isClosure())
       {
-        // no ite on either side
-        return n;
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-
-      // one disjunct per pair of ite-free forms, guarded by the conditions
-      // of both sides: (>= (ite c x y) 1) becomes
-      // (or (and (>= x 1) c) (and (>= y 1) (not c)))
-      std::vector<Node> disjunctions;
-      for (const auto& l : left)
+      continue;
+    }
+    if (!it->second.empty())
+    {
+      // a shared subterm whose cases are known
+      continue;
+    }
+    std::vector<Case> curCases;
+    if (cur.getNumChildren() == 0 || cur.isClosure())
+    {
+      curCases.push_back({{}, cur});
+    }
+    else if (cur.getKind() == Kind::ITE)
+    {
+      // the cases of the branches, guarded by the condition and its
+      // negation. The condition is Boolean, so it has a single unguarded
+      // case: (ite c x y) has the cases <{c}, x> and <{(not c)}, y>
+      if (stats) ++stats->d_itesRemoved;
+      Node condition = cases[cur[0]][0].second;
+      for (size_t branch : {1, 2})
       {
-        for (const auto& r : right)
+        Node guard = branch == 1 ? condition : condition.notNode();
+        for (const Case& c : cases[cur[branch]])
         {
-          Node result = nm->mkNode(k, l.second, r.second);
-          Node combined = result;
-          if (r.first != trueConst)
-          {
-            combined = combined.andNode(r.first);
-          }
-          else if (l.first != trueConst)
-          {
-            combined = combined.andNode(l.first);
-          }
-          disjunctions.push_back(combined);
+          std::vector<Node> guards{guard};
+          guards.insert(guards.end(), c.first.begin(), c.first.end());
+          curCases.push_back({guards, c.second});
         }
       }
-      return nm->mkNode(Kind::OR, disjunctions);
     }
-    case Kind::ITE:
+    else
     {
-      // (ite c p q) --> (or (and c p) (and (not c) q))
-      if (stats) ++stats->d_itesRemoved;
-      Node l = removeItes(n[0].andNode(n[1]), e, stats);
-      Node r = removeItes(n[0].notNode().andNode(n[2]), e, stats);
-      return l.orNode(r);
-    }
-    case Kind::AND:
-    {
-      std::vector<Node> conjuncts;
-      for (Node child : n)
+      // One case per combination of the cases of the children, guarded by
+      // all of their guards: (+ (ite c1 a b) (ite c2 c d)) has the cases
+      //   <{c1, c2}, (+ a c)>,       <{c1, (not c2)}, (+ a d)>,
+      //   <{(not c1), c2}, (+ b c)>, <{(not c1), (not c2)}, (+ b d)>
+      // where each pair holds the guards and the children of a case.
+      std::vector<std::pair<std::vector<Node>, std::vector<Node>>> partial(1);
+      for (const Node& child : cur)
       {
-        conjuncts.push_back(removeItes(child, e, stats));
+        std::vector<std::pair<std::vector<Node>, std::vector<Node>>> next;
+        for (const auto& [guards, children] : partial)
+        {
+          for (const Case& c : cases[child])
+          {
+            next.push_back({guards, children});
+            next.back().first.insert(
+                next.back().first.end(), c.first.begin(), c.first.end());
+            next.back().second.push_back(c.second);
+          }
+        }
+        partial = std::move(next);
       }
-      return nm->mkNode(Kind::AND, conjuncts);
+      for (const auto& [guards, children] : partial)
+      {
+        NodeBuilder nb(nm, cur.getKind());
+        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          nb << cur.getOperator();
+        }
+        nb.append(children);
+        Node value = nb.constructNode();
+        // getMatrices expects integer terms in arithmetic normal form, so a
+        // rebuilt one is rewritten: (+ (ite c x 0) x) --> (* 2 x) under c
+        if (value != cur && !value.getType().isBoolean())
+        {
+          value = rw->rewrite(value);
+        }
+        curCases.push_back({guards, value});
+      }
     }
-    case Kind::OR:
+    if (cur.getType().isBoolean()
+        && (curCases.size() > 1 || !curCases[0].first.empty()))
     {
+      // fold: (or (and value_1 guards_1) ... (and value_k guards_k))
       std::vector<Node> disjuncts;
-      for (Node child : n)
+      for (const Case& c : curCases)
       {
-        disjuncts.push_back(removeItes(child, e, stats));
+        std::vector<Node> conjuncts{c.second};
+        conjuncts.insert(conjuncts.end(), c.first.begin(), c.first.end());
+        disjuncts.push_back(nm->mkAnd(conjuncts));
       }
-      return nm->mkNode(Kind::OR, disjuncts);
+      curCases = {{{}, nm->mkOr(disjuncts)}};
     }
-    case Kind::NOT:
-    {
-      return removeItes(n[0], e, stats).notNode();
-    }
-    default:
-    {
-      break;
-    }
-  }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
+    cases[cur] = std::move(curCases);
+  } while (!visit.empty());
+  return cases[n][0].second;
 }
 
-Node LiaStarUtils::removeNot(Node n, Env* e)
+Node LiaStarUtils::removeNot(Node n, Env& e)
 {
-  NodeManager* nm = e->getNodeManager();
+  NodeManager* nm = e.getNodeManager();
   // push negations down to the atoms:
   // (not (and p q)) --> (or (not p) (not q))
   Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, n);
@@ -480,113 +516,12 @@ Node LiaStarUtils::removeNot(Node n, Env* e)
                   << " has kind: " << n.getKind() << std::endl;
 }
 
-std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
-    Node n, Env* e, LiaStarStatistics* stats)
-{
-  Assert(n.getType().isInteger());
-  // (+ (ite c1 a b) (ite c2 c d)) yields the four pairs
-  //   <(and c1 c2),             (+ a c)>
-  //   <(and c1 (not c2)),       (+ a d)>
-  //   <(and (not c1) c2),       (+ b c)>
-  //   <(and (not c1) (not c2)), (+ b d)>
-  NodeManager* nm = e->getNodeManager();
-  Node trueConst = nm->mkConst<bool>(true);
-  auto rw = e->getRewriter();
-  Kind k = n.getKind();
-  switch (k)
-  {
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::CONST_INTEGER: return {{trueConst, n}};
-    case Kind::NEG:
-    {
-      // the cases of the operand, with their terms negated and rewritten:
-      //   (- (ite c x y)) yields <c, (* (- 1) x)> and <(not c), (* (- 1) y)>
-      std::vector<std::pair<Node, Node>> operand =
-          removeIntegerItes(n[0], e, stats);
-      for (auto& pair : operand)
-      {
-        pair.second = rw->rewrite(nm->mkNode(Kind::NEG, pair.second));
-      }
-      return operand;
-    }
-    case Kind::ADD:
-    case Kind::SUB:
-    case Kind::MULT:
-    {
-      std::vector<std::pair<Node, Node>> left =
-          removeIntegerItes(n[0], e, stats);
-      std::vector<std::pair<Node, Node>> right =
-          removeIntegerItes(n[1], e, stats);
-      std::vector<std::pair<Node, Node>> combined;
-      // one case per pair of cases of the operands; rewriting simplifies
-      // guards such as (and true c) and the combined terms
-      for (const auto& l : left)
-      {
-        for (const auto& r : right)
-        {
-          Node condition = rw->rewrite(l.first.andNode(r.first));
-          Node result = rw->rewrite(nm->mkNode(k, l.second, r.second));
-          combined.push_back({condition, result});
-        }
-      }
-      return combined;
-    }
-    case Kind::ITE:
-    {
-      if (stats) ++stats->d_itesRemoved;
-      std::vector<std::pair<Node, Node>> iteResult;
-      // the condition is a predicate and may itself contain ite
-      Node condition = removeItes(n[0], e, stats);
-      std::vector<std::pair<Node, Node>> thenPart =
-          removeIntegerItes(n[1], e, stats);
-      for (const auto& pair : thenPart)
-      {
-        Node newCondition;
-        if (pair.first == trueConst)
-        {
-          newCondition = condition;
-        }
-        else
-        {
-          newCondition = pair.first.andNode(condition);
-        }
-        iteResult.push_back({newCondition, pair.second});
-      }
-      Node notCondition = condition.notNode();
-      std::vector<std::pair<Node, Node>> elsePart =
-          removeIntegerItes(n[2], e, stats);
-      for (const auto& pair : elsePart)
-      {
-        Node newCondition;
-        if (pair.first == trueConst)
-        {
-          newCondition = notCondition;
-        }
-        else
-        {
-          newCondition = pair.first.andNode(notCondition);
-        }
-        iteResult.push_back({newCondition, pair.second});
-      }
-      return iteResult;
-    }
-
-    default:
-    {
-      break;
-    }
-  }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
-}
-
 Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
-                                        Env* e,
+                                        Env& e,
                                         LiaStarStatistics* stats)
 {
   // pruning is disabled: report "not known to be unsat"
-  if (!e->getOptions().arith.arithLiaStarSubSolver)
+  if (!e.getOptions().arith.arithLiaStarSubSolver)
   {
     return Result();
   }
@@ -595,7 +530,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
     ++stats->d_subSolverCalls;
     stats->d_subSolverTime.start();
   }
-  NodeManager* nm = e->getNodeManager();
+  NodeManager* nm = e.getNodeManager();
   // {(>= x 1), (<= x 0)} --> (and (>= x 1) (<= x 0))
   Node assertion;
   if (assertions.size() == 1)
@@ -612,7 +547,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   std::vector<Node> freeVariables(fvs.begin(), fvs.end());
   Result result;
   // Normaliz needs at least one coordinate, so ground assertions go to cvc5
-  if (fvs.size() > 0 && e->getOptions().arith.arithLiaStarNormalizAsSubSolver)
+  if (fvs.size() > 0 && e.getOptions().arith.arithLiaStarNormalizAsSubSolver)
   {
     // the coordinates of the Normaliz space: x is x[1]
     Node variables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
@@ -622,7 +557,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
     result =
         normalizCheckSat(variables,
                          assertion,
-                         e->getOptions().arith.arithLiaStarAssumeNonnegative,
+                         e.getOptions().arith.arithLiaStarAssumeNonnegative,
                          stats);
   }
   else
@@ -644,13 +579,13 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
 
 Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
                                   Node assertion,
-                                  Env* e,
+                                  Env& e,
                                   LiaStarStatistics* stats)
 {
   if (stats) stats->d_cvc5SubSolverTime.start();
   // default options rather than e's; the logic is still e's
   Options subOptions;
-  SubsolverSetupInfo ssi(*e, subOptions);
+  SubsolverSetupInfo ssi(e, subOptions);
 
   Result result;
   if (freeVariables.size() == 0)
@@ -659,11 +594,11 @@ Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
   }
   else
   {
-    NodeManager* nm = e->getNodeManager();
+    NodeManager* nm = e.getNodeManager();
     // by default nonnegativity is not assumed: the star-contains lambda
     // body (part of `assertion`) carries the user's constraints.
     // With the option: (and (and A (>= x 0)) (>= y 0)).
-    if (e->getOptions().arith.arithLiaStarAssumeNonnegative)
+    if (e.getOptions().arith.arithLiaStarAssumeNonnegative)
     {
       Node zero = nm->mkConstInt(Rational(0));
       for (Node var : freeVariables)
