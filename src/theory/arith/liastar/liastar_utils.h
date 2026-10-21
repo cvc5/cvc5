@@ -65,42 +65,64 @@ class LiaStarUtils
    */
   static std::pair<Node, Node> getVectorPredicate(Node n, NodeManager* nm);
   /**
-   * Convert a LIA predicate to disjunctive normal form, by eliminating ite
-   * terms, converting to negation normal form, and distributing conjunctions
-   * over disjunctions.
+   * Convert a LIA predicate to disjunctive normal form. Normaliz takes one
+   * conjunction of linear constraints per cone, see getMatrices, so the
+   * predicate of a star-contains atom is first brought into the form
+   * (or (and a_1 a_2 ...) (and b_1 b_2 ...) ...) whose atoms are unnegated,
+   * ite-free linear constraints.
    *
-   * @param n a node in LIA that only contains =, >=, ite in its tree
+   * The steps are removeItes, removeNot and distribute, followed by
+   * flattening; no new variables are introduced.
+   *
+   * @param n a Boolean combination (and, or, not) of linear integer
+   * constraints (<, <=, =, >=, >) and Boolean variables, whose integer terms
+   * may contain ite
    * @param e the environment, used for its node manager, rewriter and options
    * @param stats optional statistics collector, may be nullptr
-   * @return an equivalent node in DNF where ite and = are eliminated
+   * @return an equivalent node in DNF: a disjunction of conjunctions of
+   * atoms, or a single conjunction or atom, without ite and negation.
+   * Disjuncts the subsolver shows to be unsat are dropped, see distribute.
    */
   static Node toDNF(Node n, Env* e, LiaStarStatistics* stats = nullptr);
 
   /**
-   * Eliminate ite terms from a LIA predicate. An integer ite is replaced by a
-   * disjunction over its branches, each guarded by the ite condition, so no
-   * new variables are introduced.
+   * Eliminate ite from a LIA predicate. cvc5's ite removal would introduce
+   * fresh variables, and every variable of the predicate becomes a Normaliz
+   * coordinate, so instead each ite is expanded into a disjunction over its
+   * branches, guarded by its condition:
+   *   (>= (ite c x y) 1) --> (or (and (>= x 1) c) (and (>= y 1) (not c)))
+   *   (ite c p q)        --> (or (and c p) (and (not c) q))
+   * A constraint with k ites thus yields up to 2^k disjuncts, see
+   * removeIntegerItes.
    *
-   * @param n a node in LIA that only contains =, >=, ite in its tree
-   * @param e the environment, used for its node manager, rewriter and options
+   * @param n a Boolean combination of linear integer constraints and Boolean
+   * variables whose integer terms may contain ite
+   * @param e the environment, used for its node manager and rewriter
    * @param stats optional statistics collector, may be nullptr
-   * @return an equivalent node that does not contain ite expressions
-   * without introducing new variables
+   * @return an equivalent node without ite
    */
   static Node removeItes(Node n, Env* e, LiaStarStatistics* stats = nullptr);
 
   /**
-   * Distribute conjunctions over disjunctions, turning a negation-normal-form
-   * predicate into DNF. Disjuncts that the subsolver shows to be unsat are
-   * dropped, which keeps the result small enough for the cone computation.
+   * Distribute conjunctions over disjunctions, turning a predicate in
+   * negation normal form into DNF:
+   *   (and (or a b) (or c d)) --> (or (and a c) (and b c) (and a d) (and b d))
+   * The number of disjuncts is the product of the sizes of the disjunctions
+   * and each disjunct later costs a cone computation. Partial conjunctions
+   * are therefore checked with areAssertionsUnsat while the product is built,
+   * and an unsat one is dropped together with all disjuncts it would have
+   * produced. The result is still equivalent to n.
    *
-   * @param n a node in negation normal form whose atoms are LIA constraints
-   * @param e the environment, used for its node manager, rewriter and options
+   * @param n a node in negation normal form whose atoms are linear integer
+   * constraints or Boolean variables, see removeNot
+   * @param e the environment, used for its node manager and options
    * @param stats optional statistics collector, may be nullptr
-   * @param context conjuncts known to hold wherever n occurs (the accumulated
-   * non-OR conjuncts of ancestor conjunctions). Used only to strengthen the
-   * pruning subsolver checks; it is never part of the returned DNF.
-   * @return an equivalent node in DNF
+   * @param context conjuncts known to hold wherever n occurs: the atoms of
+   * the enclosing conjunctions, passed down by the recursive calls. They only
+   * strengthen the pruning checks and are not part of the result.
+   * @return an equivalent node in DNF, which may be a single conjunction or
+   * atom, or false if every disjunct was dropped. Disjunctions nested in
+   * disjunctions are not flattened, see recursiveFlatten.
    */
   static Node distribute(Node n,
                          Env* e,
@@ -186,38 +208,40 @@ class LiaStarUtils
 
  private:
   /**
-   * Enumerate the ite-free forms of an integer term. Each ite is expanded
-   * into its two branches, so a term with k (independent) ites yields 2^k
-   * cases.
+   * Enumerate the ite-free forms of an integer term, the term-level step of
+   * removeItes. Each ite is split into its branches, and its condition, made
+   * ite-free by removeItes, becomes a guard.
    *
-   * @param n an integer term
+   * @param n an integer term built from variables, constants, +, -, * and ite
    * @param e the environment, used for its node manager and rewriter
    * @param stats optional statistics collector, may be nullptr
-   * @return pairs <condition, term> whose conditions are pairwise disjoint
-   * and cover all cases, where `term` is the value of n under `condition` and
-   * contains no ite. For example (+ (ite c1 a b) (ite c2 c d)) yields
-   * <(and c1 c2), (+ a c)>, <(and c1 (not c2)), (+ a d)>,
-   * <(and (not c1) c2), (+ b c)> and <(and (not c1) (not c2)), (+ b d)>.
+   * @return pairs <condition, term> where term is the ite-free value of n
+   * under condition. The conditions are pairwise disjoint and cover all
+   * cases, so k independent ites yield 2^k pairs:
+   * (+ (ite c1 a b) (ite c2 c d)) yields <(and c1 c2), (+ a c)>,
+   * <(and c1 (not c2)), (+ a d)>, <(and (not c1) c2), (+ b c)> and
+   * <(and (not c1) (not c2)), (+ b d)>. An ite-free term yields the single
+   * pair <true, n>.
    */
   static std::vector<std::pair<Node, Node>> removeIntegerItes(
       Node n, Env* e, LiaStarStatistics* stats = nullptr);
   /**
-   * Convert a predicate to negation normal form and eliminate the negations
-   * of LIA atoms by flipping their relation, e.g. (not (>= a b)) becomes
-   * (< a b), so that the result is a conjunction/disjunction structure over
-   * unnegated atoms.
+   * Convert a predicate to negation normal form and eliminate the negated
+   * atoms that remain, since a Normaliz constraint cannot be negated. The
+   * relation is flipped, e.g. (not (>= a b)) becomes (< a b), except that a
+   * negated equality becomes the disjunction (or (> a b) (< a b)); this is
+   * why removeNot runs before distribute.
    *
-   * @param n a Boolean node whose atoms are LIA constraints
+   * @param n an ite-free Boolean combination of linear integer constraints
    * @param e the environment, used for its node manager
-   * @return an equivalent node in negation normal form with no negated atoms
+   * @return an equivalent node built from and, or and unnegated atoms
    */
   static Node removeNot(Node n, Env* e);
   /**
    * Flatten a node and, one level down, each of its children by their own
-   * kinds. A single expr::algorithm::flatten call only flattens nesting of
-   * the node's own kind, so for an alternating structure this additionally
-   * flattens the children: (or (and a (and b c)) d) becomes
-   * (or (and a b c) d).
+   * kinds. expr::algorithm::flatten only merges nesting of the node's own
+   * kind, so the alternating and/or structure left by distribute needs both
+   * levels: (or (and a (and b c)) (or d e)) becomes (or (and a b c) d e).
    *
    * @param nm the node manager
    * @param n the node to flatten

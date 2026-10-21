@@ -78,11 +78,13 @@ Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
   Node noItes = removeItes(n, e, stats);
   if (stats) stats->d_removeItesTime.stop();
   Trace("liastar-ext-debug") << "noItes: " << noItes << std::endl;
-  // eliminate negation
+  // negation normal form with negated atoms flipped
   if (stats) stats->d_removeNotTime.start();
   Node nnf = removeNot(noItes, e);
   if (stats) stats->d_removeNotTime.stop();
   Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
+  // Trace liastar-ext-smt prints, for each step, an SMT-LIB query asserting
+  // that the step's input and output differ; the query must be unsat.
   if (TraceIsOn("liastar-ext-smt"))
   {
     // noItes
@@ -110,7 +112,8 @@ Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
     Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
     Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
   }
-  // distributes conjunctions over disjunctions
+  // distribute conjunctions over disjunctions, then flatten the and/or
+  // nesting the distribution leaves behind
   if (stats) stats->d_distributeTime.start();
   Node dnf = distribute(nnf, e, stats);
   Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
@@ -178,8 +181,8 @@ Node LiaStarUtils::distribute(Node n,
     }
     case Kind::AND:
     {
-      // the non-OR conjuncts of this conjunction hold in every branch
-      // below it: make them part of the pruning context up front
+      // the atoms of this conjunction hold in every branch below it, so
+      // they strengthen the pruning checks of the recursive calls
       std::vector<Node> childContext = context;
       for (Node child : n)
       {
@@ -201,17 +204,17 @@ Node LiaStarUtils::distribute(Node n,
       {
         return conjunctions[0];
       }
-      // basically we compute the cartesian product
+      // The DNF of a conjunction is the cartesian product of the disjuncts
+      // of its conjuncts. For the conjuncts {(or a b), c, (or d e)},
+      // `disjunctions` holds one partial conjunction per future disjunct
+      // and grows as follows:
+      //   {c}                                   the non-OR conjuncts
+      //   {c a}, {c b}                          times (or a b)
+      //   {c a d}, {c b d}, {c a e}, {c b e}    times (or d e)
+      // Every extension is checked with the subsolver, so an unsat partial
+      // conjunction is dropped before it is multiplied further.
       std::vector<std::vector<Node>> disjunctions;
       disjunctions.push_back({});
-      // {a, b}
-      // {c}
-      // {d, e}
-      // ****
-      // disjunctions: {}
-      // disjunctions: {a}, {b}
-      // disjunctions: {a, c}, {b, c}
-      // disjunctions: {a,c, d},{b, d, d},{a, c, e},{b, c, e}
       for (const Node& conjunct : conjunctions)
       {
         if (conjunct.getKind() != Kind::OR)
@@ -235,7 +238,7 @@ Node LiaStarUtils::distribute(Node n,
               Result r = areAssertionsUnsat(query, e, stats);
               if (r.getStatus() == Result::Status::UNSAT)
               {
-                // we can discard unsat conjunctions
+                // unsat under the context: no disjunct can come from it
                 if (stats) ++stats->d_disjunctsPrunedUnsat;
                 continue;
               }
@@ -256,7 +259,7 @@ Node LiaStarUtils::distribute(Node n,
         Result r = areAssertionsUnsat(query, e, stats);
         if (r.getStatus() == Result::Status::UNSAT)
         {
-          // we can discard unsat conjunctions
+          // when no conjunct is a disjunction, this is the only check
           if (stats) ++stats->d_disjunctsPrunedUnsat;
           continue;
         }
@@ -325,10 +328,13 @@ Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
           removeIntegerItes(n[1], e, stats);
       if (left.size() == 1 && right.size() == 1)
       {
+        // no ite on either side
         return n;
       }
 
-      // combine the conditions of left and right
+      // one disjunct per pair of ite-free forms, guarded by the conditions
+      // of both sides: (>= (ite c x y) 1) becomes
+      // (or (and (>= x 1) c) (and (>= y 1) (not c)))
       std::vector<Node> disjunctions;
       for (const auto& l : left)
       {
@@ -351,6 +357,7 @@ Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
     }
     case Kind::ITE:
     {
+      // (ite c p q) --> (or (and c p) (and (not c) q))
       if (stats) ++stats->d_itesRemoved;
       Node l = removeItes(n[0].andNode(n[1]), e, stats);
       Node r = removeItes(n[0].notNode().andNode(n[2]), e, stats);
@@ -390,7 +397,8 @@ Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
 Node LiaStarUtils::removeNot(Node n, Env* e)
 {
   NodeManager* nm = e->getNodeManager();
-  // eliminate negation nodes of the form (not (or ...)), (not (and ...))
+  // push negations down to the atoms:
+  // (not (and p q)) --> (or (not p) (not q))
   Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, n);
   Kind k = nnf.getKind();
   switch (k)
@@ -423,32 +431,35 @@ Node LiaStarUtils::removeNot(Node n, Env* e)
     }
     case Kind::NOT:
     {
+      // a negated atom: Normaliz constraints cannot be negated, so flip the
+      // relation
       Kind kind = nnf[0].getKind();
       switch (kind)
       {
         case Kind::LT:
         {
-          //(not (< a b)) is rewritten as (>= a b)
+          // (not (< a b)) is rewritten as (>= a b)
           return nm->mkNode(Kind::GEQ, nnf[0][0], nnf[0][1]);
         }
         case Kind::GT:
         {
-          //(not (> a b)) is rewritten as (<= a b)
+          // (not (> a b)) is rewritten as (<= a b)
           return nm->mkNode(Kind::LEQ, nnf[0][0], nnf[0][1]);
         }
         case Kind::LEQ:
         {
-          //(not (<= a b)) is rewritten as (> a b)
+          // (not (<= a b)) is rewritten as (> a b)
           return nm->mkNode(Kind::GT, nnf[0][0], nnf[0][1]);
         }
         case Kind::GEQ:
         {
-          //(not (>= a b)) is rewritten as (< a b)
+          // (not (>= a b)) is rewritten as (< a b)
           return nm->mkNode(Kind::LT, nnf[0][0], nnf[0][1]);
         }
         case Kind::EQUAL:
         {
-          // (not (= a b)) is rewritten as (or (> a b) (< a b))
+          // (not (= a b)) is rewritten as (or (> a b) (< a b)): a
+          // disequality is not a single constraint
           Node a = nnf[0][0];
           Node b = nnf[0][1];
           Node gt = nm->mkNode(Kind::GT, a, b);
@@ -474,14 +485,11 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
     Node n, Env* e, LiaStarStatistics* stats)
 {
   Assert(n.getType().isInteger());
-  // (+
-  //    (ite c1 a b)
-  //    (ite c2 c d))
-  // should return 4 pairs:
-  // <(and c1 c2)           ,(+ a c)>
-  // <(and c1 (not c2)      ,(+ a d)>
-  // <(and (not c1) c2)     ,(+ b c)>
-  // <(and (not c1) (not c2),(+ b d)>
+  // (+ (ite c1 a b) (ite c2 c d)) yields the four pairs
+  //   <(and c1 c2),             (+ a c)>
+  //   <(and c1 (not c2)),       (+ a d)>
+  //   <(and (not c1) c2),       (+ b c)>
+  //   <(and (not c1) (not c2)), (+ b d)>
   NodeManager* nm = e->getNodeManager();
   Node trueConst = nm->mkConst<bool>(true);
   auto rw = e->getRewriter();
@@ -501,7 +509,8 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
       std::vector<std::pair<Node, Node>> right =
           removeIntegerItes(n[1], e, stats);
       std::vector<std::pair<Node, Node>> combined;
-      // combine the conditions of left and right
+      // one case per pair of cases of the operands; rewriting simplifies
+      // guards such as (and true c) and the combined terms
       for (const auto& l : left)
       {
         for (const auto& r : right)
@@ -517,6 +526,7 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
     {
       if (stats) ++stats->d_itesRemoved;
       std::vector<std::pair<Node, Node>> iteResult;
+      // the condition is a predicate and may itself contain ite
       Node condition = removeItes(n[0], e, stats);
       std::vector<std::pair<Node, Node>> thenPart =
           removeIntegerItes(n[1], e, stats);
@@ -533,9 +543,6 @@ std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
         }
         iteResult.push_back({newCondition, pair.second});
       }
-
-      // todo: restore this line Node notCondition =
-      // rw->rewrite(condition.notNode());
       Node notCondition = condition.notNode();
       std::vector<std::pair<Node, Node>> elsePart =
           removeIntegerItes(n[2], e, stats);
