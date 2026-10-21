@@ -140,7 +140,9 @@ public class Proof extends AbstractPointer
    * The string is computed by the internal proof printer, which takes into
    * account how the argument is used by the proof rule. For example, an
    * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
-   * is converted to the name of that identifier.
+   * is converted to the name of that identifier. All other arguments are
+   * converted to the string representation of the corresponding term returned
+   * by {@link #getArguments()}.
    *
    * @api.note This method is experimental and may change in future versions.
    * @param i The index of the argument.
