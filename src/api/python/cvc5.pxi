@@ -6233,6 +6233,25 @@ cdef class Proof:
             args.append(_term(self.tm, a))
         return args
 
+    def getArgumentToString(self, i):
+        """
+            Get a string representation of an argument of the root step of
+            the proof.
+
+            The string is computed by the internal proof printer, which takes
+            into account how the argument is used by the proof rule. For
+            example, an argument that encodes an identifier (e.g., of a theory
+            or a rewrite rule) is converted to the name of that identifier.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            :param i: The index of the argument.
+            :return: The string representation of the argument.
+        """
+        return self.cproof.getArgumentToString(i).decode()
+
 
 cdef public api:
     string cy_call_string_func(object self, string method, string *error):

@@ -128,6 +128,30 @@ def test_get_arguments(tm, solver):
     proof.getArguments()
 
 
+def test_get_argument_to_string(tm, solver):
+    solver.setOption("proof-annotate-theory-lemmas", "true")
+    proof = create_proof(tm, solver)
+    with pytest.raises(RuntimeError):
+        proof.getArgumentToString(len(proof.getArguments()))
+    found_assume = False
+    found_annotate = False
+    stack = [proof]
+    while stack:
+        proof = stack.pop()
+        args = proof.getArguments()
+        for i in range(len(args)):
+            proof.getArgumentToString(i)
+        if proof.getRule() == ProofRule.ASSUME:
+            found_assume = True
+            assert proof.getArgumentToString(0) == str(args[0])
+        elif proof.getRule() == ProofRule.ANNOTATE:
+            found_annotate = True
+            assert proof.getArgumentToString(0) == "THEORY_LEMMA"
+            assert proof.getArgumentToString(1).startswith("THEORY_")
+        stack.extend(proof.getChildren())
+    assert found_assume
+    assert found_annotate
+
 def test_eq(tm, solver):
     x = create_proof(tm, solver)
     y = x.getChildren()[0]

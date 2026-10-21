@@ -185,6 +185,44 @@ class ProofTest
   }
 
   @Test
+  void getArgumentToString() throws CVC5ApiException
+  {
+    d_solver.setOption("proof-annotate-theory-lemmas", "true");
+    Proof proof = createProof();
+    int nargs = proof.getArguments().length;
+    assertThrows(CVC5ApiException.class, () -> proof.getArgumentToString(nargs));
+    assertThrows(CVC5ApiException.class, () -> proof.getArgumentToString(-1));
+    boolean foundAssume = false;
+    boolean foundAnnotate = false;
+    List<Proof> stack = new ArrayList<Proof>();
+    stack.add(proof);
+    while (!stack.isEmpty())
+    {
+      Proof curr = stack.remove(stack.size() - 1);
+      Term[] args = curr.getArguments();
+      for (int i = 0; i < args.length; i++)
+      {
+        final int j = i;
+        assertDoesNotThrow(() -> curr.getArgumentToString(j));
+      }
+      if (curr.getRule() == ProofRule.ASSUME)
+      {
+        foundAssume = true;
+        assertEquals(args[0].toString(), curr.getArgumentToString(0));
+      }
+      else if (curr.getRule() == ProofRule.ANNOTATE)
+      {
+        foundAnnotate = true;
+        assertEquals("THEORY_LEMMA", curr.getArgumentToString(0));
+        assertTrue(curr.getArgumentToString(1).startsWith("THEORY_"));
+      }
+      stack.addAll(Arrays.asList(curr.getChildren()));
+    }
+    assertTrue(foundAssume);
+    assertTrue(foundAnnotate);
+  }
+
+  @Test
   void eq() throws CVC5ApiException
   {
     Proof x = createProof();

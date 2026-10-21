@@ -4078,6 +4078,16 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
   return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
 }
 
+const char* cvc5_proof_get_argument_to_string(Cvc5Proof proof, size_t i)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  str = proof->d_proof.getArgumentToString(i);
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
 bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b)
 {
   bool res = false;

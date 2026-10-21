@@ -3725,6 +3725,21 @@ class CVC5_EXPORT Proof
   const std::vector<Term> getArguments() const;
 
   /**
+   * Get a string representation of an argument of the root step of the proof.
+   *
+   * The string is computed by the internal proof printer, which takes into
+   * account how the argument is used by the proof rule. For example, an
+   * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+   * is converted to the name of that identifier.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param i The index of the argument.
+   * @return The string representation of the argument.
+   */
+  std::string getArgumentToString(size_t i) const;
+
+  /**
    * Operator overloading for referential equality of two proofs.
    * @param p The proof to compare to for equality.
    * @return True if both proofs point to the same internal proof object.

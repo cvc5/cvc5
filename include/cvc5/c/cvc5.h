@@ -3882,6 +3882,26 @@ CVC5_EXPORT const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof,
                                                      size_t* size);
 
 /**
+ * Get a string representation of an argument of the root step of a given
+ * proof.
+ *
+ * The string is computed by the internal proof printer, which takes into
+ * account how the argument is used by the proof rule. For example, an
+ * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+ * is converted to the name of that identifier.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @param i     The index of the argument.
+ * @return The string representation of the argument.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_proof_get_argument_to_string(Cvc5Proof proof,
+                                                          size_t i);
+
+/**
  * Compare two proofs for referential equality.
  * @param a The first proof.
  * @param b The second proof.

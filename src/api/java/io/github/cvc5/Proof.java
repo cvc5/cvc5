@@ -135,6 +135,27 @@ public class Proof extends AbstractPointer
   private native long[] getArguments(long pointer);
 
   /**
+   * Get a string representation of an argument of the root step of the proof.
+   *
+   * The string is computed by the internal proof printer, which takes into
+   * account how the argument is used by the proof rule. For example, an
+   * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+   * is converted to the name of that identifier.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   * @param i The index of the argument.
+   * @return The string representation of the argument.
+   * @throws CVC5ApiException on error
+   */
+  public String getArgumentToString(int i) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(i, "i");
+    return getArgumentToString(pointer, i);
+  }
+
+  private native String getArgumentToString(long pointer, int i);
+
+  /**
    * Referential equality operator.
    *
    * @param p The proof to compare to for equality.
