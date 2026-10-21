@@ -283,13 +283,14 @@ TEST_F(TestApiBlackUncovered, Statistics)
   Stat stat;
   stat = Stat();
   Statistics stats = d_solver->getStatistics();
-  auto it = stats.begin();
+  auto it = stats.begin(true, true);
+  ASSERT_TRUE(it != stats.end());
   it++;
   it--;
   ++it;
   --it;
   std::stringstream ss;
-  ss << it->first;
+  ss << it->first << (*it).first;
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
   d_tm.printStatisticsSafe(STDOUT_FILENO);
@@ -375,6 +376,8 @@ TEST_F(TestApiBlackUncovered, Parser)
   parser::Command command;
   Solver solver(d_tm);
   parser::InputParser inputParser(&solver);
+  ASSERT_EQ(inputParser.getSolver(), &solver);
+  ASSERT_NE(inputParser.getSymbolManager(), nullptr);
   std::stringstream ss;
   ss << command << std::endl;
   inputParser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");
