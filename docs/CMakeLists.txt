@@ -22,6 +22,28 @@ set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 if(BUILD_DOCS_GA)
   check_python_module(sphinxcontrib.googleanalytics sphinxcontrib-googleanalytics)
+  # sphinxcontrib-googleanalytics <= 0.5 installs a sphinxcontrib/__init__.py
+  # that declares the namespace via pkg_resources, which was removed in
+  # setuptools 82. This breaks the import of every sphinxcontrib.* extension.
+  # Remove that file from our venv so that sphinxcontrib is treated as an
+  # implicit namespace package. This is fixed upstream but not yet released
+  # (see https://github.com/sphinx-contrib/googleanalytics/pull/22).
+  if(DEFINED VENV_PATH)
+    execute_process(
+      COMMAND
+        ${Python_EXECUTABLE} -c "print(__import__('sysconfig').get_path('purelib'))"
+      OUTPUT_VARIABLE Python_PURELIB
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(SPHINXCONTRIB_INIT "${Python_PURELIB}/sphinxcontrib/__init__.py")
+    if(EXISTS "${SPHINXCONTRIB_INIT}")
+      file(READ "${SPHINXCONTRIB_INIT}" SPHINXCONTRIB_INIT_CONTENTS)
+      if(SPHINXCONTRIB_INIT_CONTENTS MATCHES "pkg_resources")
+        message(STATUS "Removing obsolete ${SPHINXCONTRIB_INIT}")
+        file(REMOVE "${SPHINXCONTRIB_INIT}")
+      endif()
+    endif()
+  endif()
   set(GOOGLE_ANALYTICS_ENABLE "True")
 else()
   set(GOOGLE_ANALYTICS_ENABLE "False")
