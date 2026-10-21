@@ -18,8 +18,7 @@ public class FiniteField
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("QF_FF"); // Set the logic
 
@@ -55,6 +54,5 @@ public class FiniteField
       r = slv.checkSat();
       System.out.println("is sat: " + r.isSat());
     }
-    Context.deletePointers();
   }
 }

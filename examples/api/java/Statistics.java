@@ -20,8 +20,7 @@ public class Statistics
 {
   public static void main(String[] args)
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       // Get the statistics from the `Solver` and iterate over them. The
       // `Statistics` class implements the `Iterable<Pair<String, Stat>>` interface.
@@ -62,6 +61,5 @@ public class Statistics
         }
       }
     }
-    Context.deletePointers();
   }
 }
