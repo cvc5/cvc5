@@ -121,6 +121,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/InputParser.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IOracle.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/NativeContext.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Pair.java
