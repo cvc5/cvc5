@@ -24,17 +24,10 @@ import static io.github.cvc5.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class LifetimeTest
 {
-  @AfterEach
-  void tearDown()
-  {
-    Context.deletePointers();
-  }
-
   @Test
   void sortOutlivesTermManager()
   {

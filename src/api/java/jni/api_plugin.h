@@ -22,7 +22,7 @@
 class ApiPlugin : public cvc5::Plugin
 {
  public:
-  ApiPlugin(cvc5::TermManager& tm, JavaVM* vm, jobject plugin);
+  ApiPlugin(cvc5::TermManager& tm, JavaVM* vm, jweak plugin);
   /**
    * Call to check, return vector of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
@@ -56,8 +56,12 @@ class ApiPlugin : public cvc5::Plugin
 
   /** The Java VM, used to look up the environment of the calling thread */
   JavaVM* d_vm;
-  /** Global reference to the java plugin object */
-  jobject d_plugin;
+  /**
+   * Weak global reference to the java plugin object. The Java solver keeps
+   * the plugin alive for as long as it exists, see
+   * ApiSolver::addWeakGlobalReference().
+   */
+  jweak d_plugin;
 };
 
 #endif  // CVC5__API_PLUGIN_H

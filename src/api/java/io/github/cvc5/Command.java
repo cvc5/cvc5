@@ -11,6 +11,8 @@
  */
 package io.github.cvc5;
 
+import java.lang.ref.Reference;
+
 /**
  * Encapsulation of a command.
  *
@@ -41,7 +43,18 @@ public class Command extends AbstractPointer
    */
   public String invoke(Solver solver, SymbolManager symbolManager)
   {
-    return invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+    try
+    {
+      return invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+    }
+    finally
+    {
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable. Keep the
+      // solver and symbol manager reachable until the call has returned.
+      Reference.reachabilityFence(solver);
+      Reference.reachabilityFence(symbolManager);
+    }
   }
 
   private native String invoke(long pointer, long solverPointer, long symbolManagerPointer);

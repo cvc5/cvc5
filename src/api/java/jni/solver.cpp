@@ -1024,7 +1024,7 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
-  jobject oracleReference = api_solver->addGlobalReference(env, oracle);
+  jweak oracleReference = api_solver->addWeakGlobalReference(env, oracle);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
@@ -1056,7 +1056,7 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
   TermManager* tm = reinterpret_cast<TermManager*>(termManagerPointer);
-  jobject pluginReference = api_solver->addGlobalReference(env, plugin);
+  jweak pluginReference = api_solver->addWeakGlobalReference(env, plugin);
   JavaVM* vm = nullptr;
   env->GetJavaVM(&vm);
   ApiPlugin* p = new ApiPlugin(*tm, vm, pluginReference);
