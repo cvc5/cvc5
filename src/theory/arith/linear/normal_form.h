@@ -1653,7 +1653,8 @@ class DioLinearForm
   /** The gcd of the coefficients and the constant, like SumPair::gcd(). */
   Integer gcdWithConstant() const;
   /**
-   * Divides every coefficient and the constant by g
+   * Divides every coefficient and the constant by g. All coefficients
+   * must be divisible by g, and the constant must be divisible by g.
    */
   DioLinearForm exactDivide(const Integer& g) const;
   /**
