@@ -1069,4 +1069,28 @@ class TermManagerTest
       }
     }
   }
+
+  @Test
+  void getStatisticsIterator()
+  {
+    d_tm.mkConst(d_tm.getIntegerSort(), "i");
+    Statistics stats = d_tm.getStatistics();
+    Statistics.ConstIterator it = stats.iterator(true, true);
+    assertTrue(it.hasNext());
+    // The iterator keeps no native state, so it remains usable after the
+    // statistics object has been released.
+    stats.deletePointer();
+    int count = 0;
+    while (it.hasNext())
+    {
+      Map.Entry<String, Stat> entry = it.next();
+      assertFalse(entry.getKey().isEmpty());
+      assertDoesNotThrow(() -> entry.getValue().toString());
+      count++;
+    }
+    assertTrue(count > 0);
+    assertThrows(NoSuchElementException.class, () -> it.next());
+    // A new iterator cannot be created from the released statistics object.
+    assertThrows(IllegalStateException.class, () -> stats.iterator());
+  }
 }
