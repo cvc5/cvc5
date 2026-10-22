@@ -53,6 +53,57 @@ class NegatedConstraintConverter : public NodeConverter
 };
 
 /**
+ * Eliminates the ites of a LIA predicate without introducing variables, see
+ * LiaStarUtils::removeItes. A Boolean ite is expanded where it occurs:
+ *   (ite c p q) --> (or (and p c) (and q (not c)))
+ * An integer ite is kept until the atom containing it is converted, and the
+ * atom is then split on its ites one at a time:
+ *   (>= (ite c x y) 1) --> (or (and (>= x 1) c) (and (>= y 1) (not c)))
+ * Terms are converted bottom-up, so by the time an atom is split the
+ * conditions of its ites are ite-free.
+ */
+class IteEliminationConverter : public NodeConverter
+{
+ public:
+  /**
+   * @param e the environment, used for its node manager and rewriter
+   * @param stats optional statistics collector, may be nullptr
+   */
+  IteEliminationConverter(Env& e, LiaStarStatistics* stats);
+  /**
+   * @param n a term whose children are already converted
+   * @return an ite-free equivalent of n if n is Boolean, otherwise n itself
+   */
+  Node postConvert(Node n) override;
+
+ private:
+  /**
+   * Split an atom on its ites: each split substitutes an ite by its branches
+   * and guards them with its condition and its negation, until no ite is
+   * left. Every occurrence of an ite is substituted at once, so a repeated
+   * ite is split once:
+   *   (>= (+ (ite c x y) (ite c x y)) 0)
+   *   --> (or (and (>= (* 2 x) 0) c) (and (>= (* 2 y) 0) (not c)))
+   * The changed integer children of the atom are rewritten to stay in the
+   * arithmetic normal form getMatrices expects.
+   *
+   * @param atom a Boolean term with a non-Boolean child, whose ites have
+   * ite-free conditions
+   * @return the disjunction of the split atoms, each conjoined with its
+   * guards
+   */
+  Node splitAtom(Node atom);
+  /** Count ite in d_stats, once per ite eliminated by this converter. */
+  void countEliminated(Node ite);
+  /** The rewriter, used to normalize the changed integer terms */
+  Rewriter* d_rewriter;
+  /** Optional statistics collector, may be nullptr */
+  LiaStarStatistics* d_stats;
+  /** The ites counted so far */
+  std::unordered_set<Node> d_eliminated;
+};
+
+/**
  * Utilities shared by the liastar extension: destructuring star-contains
  * atoms, converting their predicates to DNF, deciding satisfiability of
  * candidate disjuncts with a subsolver, and translating disjuncts into the
@@ -114,20 +165,17 @@ class LiaStarUtils
    * branches, guarded by its condition:
    *   (>= (ite c x y) 1) --> (or (and (>= x 1) c) (and (>= y 1) (not c)))
    *   (ite c p q)        --> (or (and p c) (and q (not c)))
-   * The ites of an atom are expanded together, so an atom with k ites
-   * yields up to 2^k disjuncts, each guarded by the conditions of all of
-   * them:
+   * An atom with k distinct ites yields up to 2^k disjuncts, each guarded by
+   * the conditions of all of them:
    *   (>= (ite c1 x y) (ite c2 1 2))
    *   --> (or (and (>= x 1) c1 c2) (and (>= x 2) c1 (not c2))
    *           (and (>= y 1) (not c1) c2) (and (>= y 2) (not c1) (not c2)))
    *
-   * The traversal is iterative and independent of kinds other than ite:
-   * every other term is rebuilt from its children, and rebuilt integer
-   * terms are rewritten to stay in the arithmetic normal form getMatrices
-   * expects. Closures are not entered.
+   * The conversion is done by IteEliminationConverter, so the traversal is
+   * iterative and the only kind it treats specially is ite.
    *
-   * @param n a Boolean term, e.g. a Boolean combination of linear integer
-   * constraints whose integer terms may contain ite
+   * @param n a Boolean term without binders, e.g. a Boolean combination of
+   * linear integer constraints whose integer terms may contain ite
    * @param e the environment, used for its node manager and rewriter
    * @param stats optional statistics collector, may be nullptr
    * @return an equivalent node without ite

@@ -450,10 +450,12 @@ TEST_F(TestLiaStarUtils, removeNotFlipsNegatedConstraints)
 TEST_F(TestLiaStarUtils, removeItesGuardsWithTheConditionsOfBothSides)
 {
   Node c1 = boolVar("c1"), c2 = boolVar("c2");
-  // (>= (ite c1 x y) (ite c2 1 2)): each disjunct needs both conditions
-  Node geq = nm->mkNode(Kind::GEQ,
-                        nm->mkNode(Kind::ITE, c1, x, y),
-                        nm->mkNode(Kind::ITE, c2, one, two));
+  // (>= (ite c1 x y) (ite c2 1 2)): each disjunct needs both conditions.
+  // The ites are created in order, so (ite c1 x y) has the smaller id and
+  // is split first, which fixes the order of the disjuncts.
+  Node lhs = nm->mkNode(Kind::ITE, c1, x, y);
+  Node rhs = nm->mkNode(Kind::ITE, c2, one, two);
+  Node geq = nm->mkNode(Kind::GEQ, lhs, rhs);
 
   Node noItes = LiaStarUtils::removeItes(geq, *e);
 
@@ -461,6 +463,20 @@ TEST_F(TestLiaStarUtils, removeItesGuardsWithTheConditionsOfBothSides)
       "(or (and (>= x 1) c1 c2) (and (>= x 2) c1 (not c2)) (and (>= y 1) "
       "(not c1) c2) (and (>= y 2) (not c1) (not c2)))",
       noItes.toString());
+  ASSERT_TRUE(isEquivalent(geq, noItes));
+}
+
+TEST_F(TestLiaStarUtils, removeItesSplitsARepeatedIteOnce)
+{
+  Node c = boolVar("c");
+  Node ite = nm->mkNode(Kind::ITE, c, x, y);
+  // (>= (+ (ite c x y) (ite c x y)) 0): both occurrences take the same branch
+  Node geq = nm->mkNode(Kind::GEQ, nm->mkNode(Kind::ADD, ite, ite), zero);
+
+  Node noItes = LiaStarUtils::removeItes(geq, *e);
+
+  ASSERT_EQ("(or (and (>= (* 2 x) 0) c) (and (>= (* 2 y) 0) (not c)))",
+            noItes.toString());
   ASSERT_TRUE(isEquivalent(geq, noItes));
 }
 
@@ -482,10 +498,9 @@ TEST_F(TestLiaStarUtils, removeItesExpandsBooleanItes)
 {
   Node c = boolVar("c");
   // (ite c (>= x 1) (<= x 0))
-  Node ite = nm->mkNode(Kind::ITE,
-                        c,
-                        nm->mkNode(Kind::GEQ, x, one),
-                        nm->mkNode(Kind::LEQ, x, zero));
+  Node geq = nm->mkNode(Kind::GEQ, x, one);
+  Node leq = nm->mkNode(Kind::LEQ, x, zero);
+  Node ite = nm->mkNode(Kind::ITE, c, geq, leq);
 
   Node noItes = LiaStarUtils::removeItes(ite, *e);
 

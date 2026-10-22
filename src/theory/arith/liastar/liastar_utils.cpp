@@ -16,7 +16,6 @@
 
 #include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
-#include "expr/node_builder.h"
 #include "libnormaliz/input.h"
 #include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
@@ -44,20 +43,20 @@ void LiaStarUtils::traceEquivalenceCheck(const char* step,
                                          Node before,
                                          Node after)
 {
-  if (!TraceIsOn("liastar-ext-smt"))
+  // TraceIsOn cannot be negated in builds without tracing
+  if (TraceIsOn("liastar-ext-smt"))
   {
-    return;
+    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+    Trace("liastar-ext-smt") << "(echo \"" << step << "\")" << std::endl;
+    Trace("liastar-ext-smt") << "(assert " << std::endl
+                             << "  (distinct" << std::endl
+                             << "    " << before << std::endl
+                             << "    " << after << std::endl
+                             << "  )" << std::endl
+                             << ")" << std::endl;
+    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
   }
-  Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-  Trace("liastar-ext-smt") << "(echo \"" << step << "\")" << std::endl;
-  Trace("liastar-ext-smt") << "(assert " << std::endl
-                           << "  (distinct" << std::endl
-                           << "    " << before << std::endl
-                           << "    " << after << std::endl
-                           << "  )" << std::endl
-                           << ")" << std::endl;
-  Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-  Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
 }
 
 std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
@@ -289,127 +288,118 @@ Node LiaStarUtils::distribute(Node n,
   }
 }
 
+IteEliminationConverter::IteEliminationConverter(Env& e,
+                                                 LiaStarStatistics* stats)
+    : NodeConverter(e.getNodeManager()),
+      d_rewriter(e.getRewriter()),
+      d_stats(stats)
+{
+}
+
+Node IteEliminationConverter::postConvert(Node n)
+{
+  if (!n.getType().isBoolean())
+  {
+    // an integer ite is eliminated when the atom containing it is split
+    return n;
+  }
+  if (n.getKind() == Kind::ITE)
+  {
+    // (ite c p q) --> (or (and p c) (and q (not c))). The nodes are created
+    // one per statement: the evaluation order of function arguments is
+    // unspecified, and node ids follow the creation order.
+    countEliminated(n);
+    Node thenCase = d_nm->mkNode(Kind::AND, n[1], n[0]);
+    Node notCondition = n[0].notNode();
+    Node elseCase = d_nm->mkNode(Kind::AND, n[2], notCondition);
+    return d_nm->mkNode(Kind::OR, thenCase, elseCase);
+  }
+  // An atom such as (>= t 0) has a non-Boolean child. The children of any
+  // other Boolean term are converted already, hence ite-free.
+  bool isAtom = std::any_of(
+      n.begin(), n.end(), [](TNode c) { return !c.getType().isBoolean(); });
+  if (!isAtom || !expr::hasSubtermKind(Kind::ITE, n))
+  {
+    return n;
+  }
+  return splitAtom(n);
+}
+
+Node IteEliminationConverter::splitAtom(Node atom)
+{
+  // Depth first over the splits, each a pair of an atom and its guards. The
+  // then-branch is split first so that the disjuncts follow the branches:
+  //   (>= (ite c1 x y) (ite c2 1 2))
+  //   --> (or (and (>= x 1) c1 c2) (and (>= x 2) c1 (not c2))
+  //           (and (>= y 1) (not c1) c2) (and (>= y 2) (not c1) (not c2)))
+  std::vector<Node> disjuncts;
+  std::vector<std::pair<Node, std::vector<Node>>> splits{{atom, {}}};
+  while (!splits.empty())
+  {
+    auto [current, guards] = std::move(splits.back());
+    splits.pop_back();
+    std::unordered_set<Node> ites;
+    expr::getKindSubterms(current, Kind::ITE, true, ites);
+    if (ites.empty())
+    {
+      // getMatrices expects integer terms in arithmetic normal form, so the
+      // changed ones are rewritten: (+ x x) --> (* 2 x)
+      std::vector<Node> children;
+      if (current.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        children.push_back(current.getOperator());
+      }
+      for (size_t i = 0; i < current.getNumChildren(); i++)
+      {
+        Node child = current[i];
+        if (child != atom[i] && !child.getType().isBoolean())
+        {
+          child = d_rewriter->rewrite(child);
+        }
+        children.push_back(child);
+      }
+      std::vector<Node> conjuncts{d_nm->mkNode(current.getKind(), children)};
+      conjuncts.insert(conjuncts.end(), guards.begin(), guards.end());
+      disjuncts.push_back(d_nm->mkAnd(conjuncts));
+      continue;
+    }
+    // split on the ite with the smallest id, which keeps the result
+    // independent of the order of the set
+    Node ite = *std::min_element(
+        ites.begin(), ites.end(), [](const Node& a, const Node& b) {
+          return a.getId() < b.getId();
+        });
+    countEliminated(ite);
+    // Substitution replaces every occurrence of the ite, so a repeated ite
+    // is split once: (>= (+ (ite c x y) (ite c x y)) 0) has two disjuncts.
+    // The else-branch is pushed first so that the then-branch is split first.
+    for (size_t branch : {2, 1})
+    {
+      std::vector<Node> branchGuards = guards;
+      branchGuards.push_back(branch == 1 ? ite[0] : ite[0].notNode());
+      splits.push_back(
+          {current.substitute(TNode(ite), TNode(ite[branch])), branchGuards});
+    }
+  }
+  return d_nm->mkOr(disjuncts);
+}
+
+void IteEliminationConverter::countEliminated(Node ite)
+{
+  if (d_stats && d_eliminated.insert(ite).second)
+  {
+    ++d_stats->d_itesRemoved;
+  }
+}
+
 Node LiaStarUtils::removeItes(Node n, Env& e, LiaStarStatistics* stats)
 {
   Assert(n.getType().isBoolean())
       << "Expected " << n << " to be boolean" << std::endl;
-  NodeManager* nm = e.getNodeManager();
-  Rewriter* rw = e.getRewriter();
-  // A case <guards, value> of a term says that the term equals the ite-free
-  // value whenever all guards hold. The cases of a term have pairwise
-  // disjoint guards that cover all models:
-  //   (ite c x y)       has the cases <{c}, x> and <{(not c)}, y>
-  //   (+ (ite c x y) z) has the cases <{c}, (+ x z)> and <{(not c)}, (+ y z)>
-  // A Boolean term folds its cases into a single unguarded case, so cases
-  // multiply only within an atom:
-  //   (>= (+ (ite c x y) z) 0) has the single case <{},
-  //     (or (and (>= (+ x z) 0) c) (and (>= (+ y z) 0) (not c)))>
-  using Case = std::pair<std::vector<Node>, Node>;
-  // the cases of each visited term, empty while its children are visited
-  std::unordered_map<TNode, std::vector<Case>> cases;
-  std::vector<TNode> visit{n};
-  do
-  {
-    TNode cur = visit.back();
-    visit.pop_back();
-    auto it = cases.find(cur);
-    if (it == cases.end())
-    {
-      // visit the children first. Closures are kept as they are, since an
-      // ite below a binder may depend on its bound variables.
-      cases[cur];
-      visit.push_back(cur);
-      if (!cur.isClosure())
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-      continue;
-    }
-    if (!it->second.empty())
-    {
-      // a shared subterm whose cases are known
-      continue;
-    }
-    std::vector<Case> curCases;
-    if (cur.getNumChildren() == 0 || cur.isClosure())
-    {
-      curCases.push_back({{}, cur});
-    }
-    else if (cur.getKind() == Kind::ITE)
-    {
-      // the cases of the branches, guarded by the condition and its
-      // negation. The condition is Boolean, so it has a single unguarded
-      // case: (ite c x y) has the cases <{c}, x> and <{(not c)}, y>
-      if (stats) ++stats->d_itesRemoved;
-      Node condition = cases[cur[0]][0].second;
-      for (size_t branch : {1, 2})
-      {
-        Node guard = branch == 1 ? condition : condition.notNode();
-        for (const Case& c : cases[cur[branch]])
-        {
-          std::vector<Node> guards{guard};
-          guards.insert(guards.end(), c.first.begin(), c.first.end());
-          curCases.push_back({guards, c.second});
-        }
-      }
-    }
-    else
-    {
-      // One case per combination of the cases of the children, guarded by
-      // all of their guards: (+ (ite c1 a b) (ite c2 c d)) has the cases
-      //   <{c1, c2}, (+ a c)>,       <{c1, (not c2)}, (+ a d)>,
-      //   <{(not c1), c2}, (+ b c)>, <{(not c1), (not c2)}, (+ b d)>
-      // where each pair holds the guards and the children of a case.
-      std::vector<std::pair<std::vector<Node>, std::vector<Node>>> partial(1);
-      for (const Node& child : cur)
-      {
-        std::vector<std::pair<std::vector<Node>, std::vector<Node>>> next;
-        for (const auto& [guards, children] : partial)
-        {
-          for (const Case& c : cases[child])
-          {
-            next.push_back({guards, children});
-            next.back().first.insert(
-                next.back().first.end(), c.first.begin(), c.first.end());
-            next.back().second.push_back(c.second);
-          }
-        }
-        partial = std::move(next);
-      }
-      for (const auto& [guards, children] : partial)
-      {
-        NodeBuilder nb(nm, cur.getKind());
-        if (cur.getMetaKind() == metakind::PARAMETERIZED)
-        {
-          nb << cur.getOperator();
-        }
-        nb.append(children);
-        Node value = nb.constructNode();
-        // getMatrices expects integer terms in arithmetic normal form, so a
-        // rebuilt one is rewritten: (+ (ite c x 0) x) --> (* 2 x) under c
-        if (value != cur && !value.getType().isBoolean())
-        {
-          value = rw->rewrite(value);
-        }
-        curCases.push_back({guards, value});
-      }
-    }
-    if (cur.getType().isBoolean()
-        && (curCases.size() > 1 || !curCases[0].first.empty()))
-    {
-      // fold: (or (and value_1 guards_1) ... (and value_k guards_k))
-      std::vector<Node> disjuncts;
-      for (const Case& c : curCases)
-      {
-        std::vector<Node> conjuncts{c.second};
-        conjuncts.insert(conjuncts.end(), c.first.begin(), c.first.end());
-        disjuncts.push_back(nm->mkAnd(conjuncts));
-      }
-      curCases = {{{}, nm->mkOr(disjuncts)}};
-    }
-    cases[cur] = std::move(curCases);
-  } while (!visit.empty());
-  return cases[n][0].second;
+  Assert(!expr::hasClosure(n))
+      << "Expected " << n << " to have no binders" << std::endl;
+  IteEliminationConverter converter(e, stats);
+  return converter.convert(n);
 }
 
 NegatedConstraintConverter::NegatedConstraintConverter(NodeManager* nm)
@@ -440,9 +430,11 @@ Node NegatedConstraintConverter::postConvert(Node n)
       // single constraint. Only arithmetic equalities have an order.
       if (atom[0].getType().isRealOrInt())
       {
-        return d_nm->mkNode(Kind::OR,
-                            d_nm->mkNode(Kind::GT, atom[0], atom[1]),
-                            d_nm->mkNode(Kind::LT, atom[0], atom[1]));
+        // one node per statement, since the evaluation order of function
+        // arguments is unspecified
+        Node gt = d_nm->mkNode(Kind::GT, atom[0], atom[1]);
+        Node lt = d_nm->mkNode(Kind::LT, atom[0], atom[1]);
+        return d_nm->mkNode(Kind::OR, gt, lt);
       }
       return n;
     }
