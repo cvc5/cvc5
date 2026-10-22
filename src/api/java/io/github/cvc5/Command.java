@@ -31,7 +31,10 @@ public class Command extends AbstractPointer
     super(ctx, pointer, Command::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_cmd_release(pointer);
+  }
 
   /**
    * Invoke the command on the solver and symbol manager sm and return any
@@ -57,12 +60,23 @@ public class Command extends AbstractPointer
     }
   }
 
-  private native String invoke(long pointer, long solverPointer, long symbolManagerPointer);
+  private String invoke(long pointer, long solverPointer, long symbolManagerPointer)
+  {
+    return Native.string(CApi.cvc5_cmd_invoke(pointer, solverPointer, symbolManagerPointer));
+  }
 
   /**
    * @return A string representation of this result.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // like Command::toString() of the C++ API on a null command
+      return "null";
+    }
+    return Native.string(CApi.cvc5_cmd_to_string(pointer));
+  }
 
   /**
    * Get the name for this command, e.g. "assert".
@@ -74,7 +88,10 @@ public class Command extends AbstractPointer
     return getCommandName(getPointer());
   }
 
-  private native String getCommandName(long pointer);
+  private String getCommandName(long pointer)
+  {
+    return Native.string(CApi.cvc5_cmd_get_name(pointer));
+  }
 
   /**
    * Determine if this command is null.
@@ -85,5 +102,9 @@ public class Command extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    // The C API represents the null command as NULL.
+    return pointer == 0;
+  }
 }

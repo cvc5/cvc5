@@ -25,20 +25,18 @@ public class Result extends AbstractPointer
    */
   public Result()
   {
-    super(null, NULL_POINTER, null);
+    super(null, 0, null);
   }
-
-  /** The native null object shared by all null result instances. It is never freed. */
-  private static final long NULL_POINTER = getNullResult();
-
-  private static native long getNullResult();
 
   Result(NativeContext ctx, long pointer)
   {
     super(ctx, pointer, Result::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_result_release(pointer);
+  }
 
   /**
    * Determine if Result is empty, i.e., a nullary Result, and not an actual
@@ -52,7 +50,10 @@ public class Result extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0 || CApi.cvc5_result_is_null(pointer);
+  }
 
   /**
    * Determine if query was a satisfiable checkSat() or checkSatAssuming()
@@ -66,7 +67,10 @@ public class Result extends AbstractPointer
     return isSat(getPointer());
   }
 
-  private native boolean isSat(long pointer);
+  private boolean isSat(long pointer)
+  {
+    return pointer != 0 && CApi.cvc5_result_is_sat(pointer);
+  }
 
   /**
    * Determine if if query was an unsatisfiable checkSat() or
@@ -80,7 +84,10 @@ public class Result extends AbstractPointer
     return isUnsat(getPointer());
   }
 
-  private native boolean isUnsat(long pointer);
+  private boolean isUnsat(long pointer)
+  {
+    return pointer != 0 && CApi.cvc5_result_is_unsat(pointer);
+  }
 
   /**
    * Determine if query was a checkSat() or checkSatAssuming() query and
@@ -94,7 +101,10 @@ public class Result extends AbstractPointer
     return isUnknown(getPointer());
   }
 
-  private native boolean isUnknown(long pointer);
+  private boolean isUnknown(long pointer)
+  {
+    return pointer != 0 && CApi.cvc5_result_is_unknown(pointer);
+  }
 
   /**
    * Operator overloading for equality of two results.
@@ -120,7 +130,15 @@ public class Result extends AbstractPointer
     return equals(getPointer(), result.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    if (pointer1 == 0 || pointer2 == 0)
+    {
+      // A null result is equal to the results without a status.
+      return isNull(pointer1) && isNull(pointer2);
+    }
+    return CApi.cvc5_result_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Get an explanation for an unknown query result.
@@ -140,12 +158,28 @@ public class Result extends AbstractPointer
     }
   }
 
-  private native int getUnknownExplanation(long pointer);
+  private int getUnknownExplanation(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null results, which have no explanation.
+      return UnknownExplanation.UNKNOWN_REASON.getValue();
+    }
+    return CApi.cvc5_result_get_unknown_explanation(pointer);
+  }
 
   /**
    * @return A string representation of this result.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null results.
+      return "none";
+    }
+    return Native.string(CApi.cvc5_result_to_string(pointer));
+  }
 
   /**
    * Get the hash value of a result.
@@ -157,5 +191,14 @@ public class Result extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null results. The C++ API hashes the string
+      // representation of a result; any fixed value is consistent with equals.
+      return toString(pointer).hashCode();
+    }
+    return CApi.cvc5_result_hash(pointer);
+  }
 }

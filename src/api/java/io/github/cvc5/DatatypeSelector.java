@@ -23,7 +23,10 @@ public class DatatypeSelector extends AbstractPointer
     super(ctx, pointer, DatatypeSelector::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_dt_sel_release(pointer);
+  }
 
   // endregion
 
@@ -52,7 +55,10 @@ public class DatatypeSelector extends AbstractPointer
     return equals(getPointer(), sel.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    return CApi.cvc5_dt_sel_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Get the Name of this Datatype selector.
@@ -64,7 +70,10 @@ public class DatatypeSelector extends AbstractPointer
     return getName(getPointer());
   }
 
-  private native String getName(long pointer);
+  private String getName(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_sel_get_name(pointer));
+  }
 
   /**
    * Get the selector term of this datatype selector.
@@ -81,7 +90,10 @@ public class DatatypeSelector extends AbstractPointer
     return new Term(ctx, termPointer);
   }
 
-  private native long getTerm(long pointer);
+  private long getTerm(long pointer)
+  {
+    return CApi.cvc5_dt_sel_get_term(pointer);
+  }
 
   /**
    * Get the updater term of this datatype selector.
@@ -98,7 +110,10 @@ public class DatatypeSelector extends AbstractPointer
     return new Term(ctx, termPointer);
   }
 
-  private native long getUpdaterTerm(long pointer);
+  private long getUpdaterTerm(long pointer)
+  {
+    return CApi.cvc5_dt_sel_get_updater_term(pointer);
+  }
 
   /**
    * Get the Codomain sort of this selector.
@@ -111,7 +126,10 @@ public class DatatypeSelector extends AbstractPointer
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getCodomainSort(long pointer);
+  private long getCodomainSort(long pointer)
+  {
+    return CApi.cvc5_dt_sel_get_codomain_sort(pointer);
+  }
 
   /**
    * Determine if this DatatypeSelector is a null object.
@@ -123,12 +141,18 @@ public class DatatypeSelector extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0;
+  }
 
   /**
    * @return A String representation of this datatype selector.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_sel_to_string(pointer));
+  }
 
   /**
    * Get the hash value of a datatype selector.
@@ -140,5 +164,12 @@ public class DatatypeSelector extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return 0;
+    }
+    return CApi.cvc5_dt_sel_hash(pointer);
+  }
 }

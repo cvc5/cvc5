@@ -260,11 +260,40 @@ public final class Utils
         }
         catch (UnsatisfiedLinkError jni_ex)
         {
-          throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
+          // The cvc5 libraries themselves provide the C API that the Java API
+          // calls, e.g., in a build with shared libraries.
+          if (!loadAnyLibrary("cvc5", "libcvc5") || !loadAnyLibrary("cvc5parser", "libcvc5parser"))
+          {
+            throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
+          }
         }
       }
       areLibrariesLoaded = true;
     }
+  }
+
+  /**
+   * Load the first of the given native libraries that can be found on the
+   * library path.
+   *
+   * @param names The names of the libraries.
+   * @return True if one of the libraries was loaded.
+   */
+  private static boolean loadAnyLibrary(String... names)
+  {
+    for (String name : names)
+    {
+      try
+      {
+        System.loadLibrary(name);
+        return true;
+      }
+      catch (UnsatisfiedLinkError e)
+      {
+        // try the next name
+      }
+    }
+    return false;
   }
 
   /**

@@ -69,7 +69,8 @@ macro(cvc5_add_java_api_test name)
     COMMAND
       ${ENV_PATH_CMD}
       ${Java_JAVA_EXECUTABLE}
-      -Djava.library.path=${CVC5_JNI_LIBDIR}
+      --enable-native-access=ALL-UNNAMED
+      "-Djava.library.path=${CVC5_JNI_LIBDIR}${PATH_SEP}$<TARGET_FILE_DIR:cvc5>${PATH_SEP}$<TARGET_FILE_DIR:cvc5parser>"
       -jar ${JUnit_JAR}
       -cp "${JUnit_JAR}${PATH_SEP}${CVC5_JAR_PATH}${PATH_SEP}."
       -select-package tests

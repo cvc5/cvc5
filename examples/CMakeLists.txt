@@ -74,7 +74,7 @@ if(TARGET cvc5::cvc5jar)
   find_package(Java REQUIRED)
   include(UseJava)
 
-  # get directory build/install/lib where libcvc5jni.so is installed
+  # get directory build/install/lib where the native libraries are installed
   get_target_property(CVC5_LIB_FILE cvc5::cvc5 LOCATION)
   get_filename_component(CVC5_JNI_PATH ${CVC5_LIB_FILE} DIRECTORY)
   message(STATUS "CVC5_JNI_PATH: ${CVC5_JNI_PATH}")
@@ -94,6 +94,7 @@ if(TARGET cvc5::cvc5jar)
     NAME java/SimpleVC
     COMMAND
       ${Java_JAVA_EXECUTABLE}
+        --enable-native-access=ALL-UNNAMED
         -cp "${CVC5_JAR}${PATH_SEP}${PROJECT_BINARY_DIR}/SimpleVC.jar"
         -Djava.library.path=${CVC5_JNI_PATH}
         SimpleVC

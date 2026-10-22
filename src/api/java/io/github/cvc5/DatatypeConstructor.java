@@ -12,6 +12,7 @@
 
 package io.github.cvc5;
 
+import java.lang.foreign.Arena;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -26,7 +27,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     super(ctx, pointer, DatatypeConstructor::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_dt_cons_release(pointer);
+  }
 
   // endregion
 
@@ -55,7 +59,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return equals(getPointer(), cons.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    return CApi.cvc5_dt_cons_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Get the name of this Datatype constructor.
@@ -67,7 +74,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return getName(getPointer());
   }
 
-  private native String getName(long pointer);
+  private String getName(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_cons_get_name(pointer));
+  }
 
   /**
    * Get the constructor term of this datatype constructor.
@@ -92,7 +102,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return new Term(ctx, termPointer);
   }
 
-  private native long getTerm(long pointer);
+  private long getTerm(long pointer)
+  {
+    return CApi.cvc5_dt_cons_get_term(pointer);
+  }
 
   /**
    * Get the constructor term of this datatype constructor whose return
@@ -128,7 +141,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return new Term(ctx, termPointer);
   }
 
-  private native long getInstantiatedTerm(long pointer, long retSortPointer);
+  private long getInstantiatedTerm(long pointer, long retSortPointer)
+  {
+    return CApi.cvc5_dt_cons_get_instantiated_term(pointer, retSortPointer);
+  }
 
   /**
    * Get the tester term of this datatype constructor.
@@ -144,7 +160,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     long termPointer = getTesterTerm(getPointer());
     return new Term(ctx, termPointer);
   }
-  private native long getTesterTerm(long pointer);
+  private long getTesterTerm(long pointer)
+  {
+    return CApi.cvc5_dt_cons_get_tester_term(pointer);
+  }
 
   /**
    * Get the number of selectors (so far) of this Datatype constructor.
@@ -155,7 +174,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   {
     return getNumSelectors(getPointer());
   }
-  private native int getNumSelectors(long pointer);
+  private int getNumSelectors(long pointer)
+  {
+    return (int) CApi.cvc5_dt_cons_get_num_selectors(pointer);
+  }
 
   /**
    * Get the DatatypeSelector at the given index
@@ -167,7 +189,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     long selectorPointer = getSelector(getPointer(), index);
     return new DatatypeSelector(ctx, selectorPointer);
   }
-  private native long getSelector(long pointer, int index);
+  private long getSelector(long pointer, int index)
+  {
+    return CApi.cvc5_dt_cons_get_selector(pointer, index);
+  }
 
   /**
    * Get the datatype selector with the given name.
@@ -181,7 +206,13 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     long selectorPointer = getSelector(getPointer(), name);
     return new DatatypeSelector(ctx, selectorPointer);
   }
-  private native long getSelector(long pointer, String name);
+  private long getSelector(long pointer, String name)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_dt_cons_get_selector_by_name(pointer, Native.cstring(arena, name));
+    }
+  }
 
   /**
    * Determine if this DatatypeConstructor is a null object.
@@ -193,7 +224,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0;
+  }
 
   /**
    * Provide a string representation of the native datatype constructor.
@@ -201,7 +235,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    * @param pointer The native memory address pointing to the datatype constructor.
    * @return A string representation of this datatype constructor.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_cons_to_string(pointer));
+  }
 
   /**
    * ConstIterator is an implementation of the {@link Iterator} interface for iterating over
@@ -257,5 +294,12 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return 0;
+    }
+    return CApi.cvc5_dt_cons_hash(pointer);
+  }
 }

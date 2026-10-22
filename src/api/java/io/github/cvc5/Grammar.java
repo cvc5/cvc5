@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import java.lang.foreign.Arena;
+
 /**
  * A Sygus Grammar.
  *
@@ -38,9 +40,15 @@ public class Grammar extends AbstractPointer
     super(grammar.ctx, copyGrammar(grammar.getPointer()), Grammar::deletePointer);
   }
 
-  private static native long copyGrammar(long pointer);
+  private static long copyGrammar(long pointer)
+  {
+    return CApi.cvc5_grammar_copy(pointer);
+  }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_grammar_release(pointer);
+  }
 
   // endregion
 
@@ -53,7 +61,10 @@ public class Grammar extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0;
+  }
 
   /**
    * Referential equality operator.
@@ -80,7 +91,10 @@ public class Grammar extends AbstractPointer
     return equals(getPointer(), grammar.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    return CApi.cvc5_grammar_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Add {@code rule} to the set of rules corresponding to {@code ntSymbol}.
@@ -92,7 +106,10 @@ public class Grammar extends AbstractPointer
     addRule(getPointer(), ntSymbol.getPointer(), rule.getPointer());
   }
 
-  private native void addRule(long pointer, long ntSymbolPointer, long rulePointer);
+  private void addRule(long pointer, long ntSymbolPointer, long rulePointer)
+  {
+    CApi.cvc5_grammar_add_rule(pointer, ntSymbolPointer, rulePointer);
+  }
 
   /**
    * Add {@code rules} to the set of rules corresponding to {@code ntSymbol}.
@@ -105,7 +122,14 @@ public class Grammar extends AbstractPointer
     addRules(getPointer(), ntSymbol.getPointer(), pointers);
   }
 
-  private native void addRules(long pointer, long ntSymbolPointer, long[] rulePointers);
+  private void addRules(long pointer, long ntSymbolPointer, long[] rulePointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_grammar_add_rules(
+          pointer, ntSymbolPointer, rulePointers.length, Native.longs(arena, rulePointers));
+    }
+  }
 
   /**
    * Allow {@code ntSymbol} to be an arbitrary constant.
@@ -116,7 +140,10 @@ public class Grammar extends AbstractPointer
     addAnyConstant(getPointer(), ntSymbol.getPointer());
   }
 
-  private native void addAnyConstant(long pointer, long ntSymbolPointer);
+  private void addAnyConstant(long pointer, long ntSymbolPointer)
+  {
+    CApi.cvc5_grammar_add_any_constant(pointer, ntSymbolPointer);
+  }
 
   /**
    * Allow {@code ntSymbol} to be any input variable to corresponding
@@ -129,12 +156,22 @@ public class Grammar extends AbstractPointer
     addAnyVariable(getPointer(), ntSymbol.getPointer());
   }
 
-  private native void addAnyVariable(long pointer, long ntSymbolPointer);
+  private void addAnyVariable(long pointer, long ntSymbolPointer)
+  {
+    CApi.cvc5_grammar_add_any_variable(pointer, ntSymbolPointer);
+  }
 
   /**
    * @return A String representation of this grammar.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return "";
+    }
+    return Native.string(CApi.cvc5_grammar_to_string(pointer));
+  }
 
   /**
    * Get the hash value of a grammar.
@@ -146,5 +183,12 @@ public class Grammar extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return 0;
+    }
+    return CApi.cvc5_grammar_hash(pointer);
+  }
 }

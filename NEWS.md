@@ -14,7 +14,20 @@ cvc5 1.4.3 prerelease
     the Java API (`Statistics.iterator()`). Pass `true` for both arguments to
     visit all statistics.
     
+- **C API**
+  * New function `cvc5_get_error_kind()`, which returns the kind of the most
+    recent error (`Cvc5ErrorKind`), corresponding to the exception types of
+    the C++ API.
+  * New function `cvc5_set_callback_error()`, which allows plugin and oracle
+    callbacks to report that they failed. An oracle callback that returns NULL
+    now raises an error instead of crashing.
+
 - **Java API**
+  * The Java API is now implemented on top of the C API through the Foreign
+    Function & Memory API (`java.lang.foreign`), instead of on top of the C++
+    API through JNI. Its public interface is unchanged. Like JNI, this API is
+    restricted: run applications with `--enable-native-access=ALL-UNNAMED` (or
+    the name of the module that uses cvc5) to avoid warnings.
   * Native memory is now released automatically: the native object behind a
     Java object (term manager, solver, term, sort, ...) is freed once the Java
     object is no longer reachable. Native objects are no longer kept alive by a
@@ -38,7 +51,7 @@ cvc5 1.4.3 prerelease
     now reported as a `CVC5ApiException` instead of crashing the JVM.
   * The helper functions `Utils.getSorts()`, `Utils.getTerms()` and
     `Utils.getProofs()`, which wrap raw native pointers, are no longer public.
-  * The minimum required Java version is now 11 (previously 8).
+  * The minimum required Java version is now 25 (previously 8).
 
 - Fixed a race in builds with CoCoA support when solvers are created
   concurrently in different threads: the initialization of the CoCoA global

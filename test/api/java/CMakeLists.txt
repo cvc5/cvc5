@@ -42,10 +42,12 @@ macro(cvc5_add_java_api_test name dir)
   else()
     set(testname api/java/${dir}/${name})
   endif()
-  add_test(${testname}
+  add_test(NAME ${testname}
+    COMMAND
       ${ENV_PATH_CMD}
       ${Java_JAVA_EXECUTABLE}
-        -Djava.library.path=${CVC5_JNI_LIBDIR}
+        --enable-native-access=ALL-UNNAMED
+        "-Djava.library.path=${CVC5_JNI_LIBDIR}${PATH_SEP}$<TARGET_FILE_DIR:cvc5>${PATH_SEP}$<TARGET_FILE_DIR:cvc5parser>"
         -cp "${CVC5_JAR_PATH}${PATH_SEP}${test_bin_dir}/${name}.jar" ${name}
     )
   set_tests_properties(${testname} PROPERTIES LABELS "api japi")

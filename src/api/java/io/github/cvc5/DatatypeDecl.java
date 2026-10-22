@@ -31,20 +31,18 @@ public class DatatypeDecl extends AbstractPointer
    */
   public DatatypeDecl()
   {
-    super(null, NULL_POINTER, null);
+    super(null, 0, null);
   }
-
-  /** The native null object shared by all null DatatypeDecl instances. It is never freed. */
-  private static final long NULL_POINTER = getNullDatatypeDecl();
-
-  private static native long getNullDatatypeDecl();
 
   DatatypeDecl(NativeContext ctx, long pointer)
   {
     super(ctx, pointer, DatatypeDecl::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_dt_decl_release(pointer);
+  }
 
   /**
    * Syntactic equality operator.
@@ -71,7 +69,10 @@ public class DatatypeDecl extends AbstractPointer
     return equals(getPointer(), decl.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    return CApi.cvc5_dt_decl_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Add datatype constructor declaration.
@@ -82,7 +83,10 @@ public class DatatypeDecl extends AbstractPointer
     addConstructor(getPointer(), ctor.getPointer());
   }
 
-  private native void addConstructor(long pointer, long declPointer);
+  private void addConstructor(long pointer, long declPointer)
+  {
+    CApi.cvc5_dt_decl_add_constructor(pointer, declPointer);
+  }
 
   /**
    * Get the number of constructors (so far) for this Datatype declaration.
@@ -93,7 +97,10 @@ public class DatatypeDecl extends AbstractPointer
     return getNumConstructors(getPointer());
   }
 
-  private native int getNumConstructors(long pointer);
+  private int getNumConstructors(long pointer)
+  {
+    return (int) CApi.cvc5_dt_decl_get_num_constructors(pointer);
+  }
 
   /**
    * Determine if this datatype declaration is parametric.
@@ -106,7 +113,10 @@ public class DatatypeDecl extends AbstractPointer
     return isParametric(getPointer());
   }
 
-  private native boolean isParametric(long pointer);
+  private boolean isParametric(long pointer)
+  {
+    return CApi.cvc5_dt_decl_is_parametric(pointer);
+  }
 
   /**
    * Determine if this DatatypeDecl is a null object.
@@ -118,12 +128,18 @@ public class DatatypeDecl extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0;
+  }
 
   /**
    * @return A string representation of this datatype declaration.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_decl_to_string(pointer));
+  }
 
   /**
    * Get the name of this datatype declaration.
@@ -135,7 +151,10 @@ public class DatatypeDecl extends AbstractPointer
     return getName(getPointer());
   }
 
-  private native String getName(long pointer);
+  private String getName(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_decl_get_name(pointer));
+  }
 
   /**
    * Get the hash value of a datatype declaration.
@@ -147,5 +166,12 @@ public class DatatypeDecl extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return 0;
+    }
+    return CApi.cvc5_dt_decl_hash(pointer);
+  }
 }

@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG;
+
 import io.github.cvc5.TermManager;
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
@@ -19,6 +21,8 @@ import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.lang.ref.Reference;
 import java.util.*;
 
@@ -28,9 +32,10 @@ import java.util.*;
 public class Solver extends AbstractPointer implements AutoCloseable
 {
   /**
-   * The term manager of this solver: a wrapper of the solver's own copy of
-   * the term manager it was created with, created on first use. It remains
-   * valid after the term manager passed to the constructor has been released.
+   * The term manager of this solver, created on first use. It does not own a
+   * reference to the native term manager, which the solver's context keeps
+   * alive, so it remains valid after the term manager passed to the
+   * constructor has been released.
    */
   private TermManager d_tm;
 
@@ -47,6 +52,23 @@ public class Solver extends AbstractPointer implements AutoCloseable
    * the solver from ever being reclaimed automatically.
    */
   private final List<Object> callbacks = new ArrayList<>();
+
+  /**
+   * The size of the buffer for a {@code Cvc5OptionInfo} struct of the C API,
+   * which takes 240 bytes on 64-bit platforms. The buffer leaves room for
+   * fields added in the future.
+   */
+  private static final long OPTION_INFO_SIZE = 512;
+
+  /**
+   * A per-thread {@code Cvc5OptionInfo} struct that
+   * {@link #getOptionInfo(long, String)} fills and passes to the
+   * {@link OptionInfo} constructor. Like the data it points to, which the C
+   * API keeps in thread-local storage, it is only valid until the next call of
+   * {@code getOptionInfo} on the same thread.
+   */
+  private static final ThreadLocal<MemorySegment> OPTION_INFO =
+      ThreadLocal.withInitial(() -> Arena.ofAuto().allocate(OPTION_INFO_SIZE, 8));
 
   /**
    * Create solver instance.
@@ -70,9 +92,22 @@ public class Solver extends AbstractPointer implements AutoCloseable
   {
     super(tm.ctx, Solver.newSolver(tm.getPointer()), Solver::deletePointer);
   }
-  private static native long newSolver(long tmPointer);
+  private static long newSolver(long tmPointer)
+  {
+    return CApi.cvc5_new(tmPointer);
+  }
 
-  private static native void deletePointer(long pointer);
+  /*
+   * Results, synthesis results, proofs and grammars are released together
+   * with the solver that created them (see cvc5_delete()). The methods that
+   * return them therefore pass an additional reference (cvc5_*_copy()) to the
+   * Java wrapper, which thus remains valid after this solver has been deleted,
+   * as in the C++ API.
+   */
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_delete(pointer);
+  }
 
   /**
    * Free the native solver, see {@code deletePointer()}.
@@ -130,11 +165,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
   {
     if (d_tm == null)
     {
-      d_tm = new TermManager(ctx, getTermManager(getPointer()));
+      d_tm = new TermManager(ctx);
     }
     return d_tm;
   }
-  private native long getTermManager(long pointer);
 
   /* .................................................................... */
   /* Sorts Handling                                                       */
@@ -927,7 +961,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getTermManager().mkNullableSome(term);
   }
 
-  private native long mkNullableSome(long pointer, long termPointer);
+  private long mkNullableSome(long pointer, long termPointer)
+  {
+    return CApi.cvc5_mk_nullable_some(CApi.cvc5_get_tm(pointer), termPointer);
+  }
 
   /**
    * Create a selector for nullable term.
@@ -2014,7 +2051,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long simplify(long pointer, long termPointer);
+  private long simplify(long pointer, long termPointer)
+  {
+    return CApi.cvc5_simplify(pointer, termPointer, false);
+  }
 
   /**
    * Simplify a term or formula based on rewriting and (optionally) applying
@@ -2035,7 +2075,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long simplify(long pointer, long termPointer, boolean applySubs);
+  private long simplify(long pointer, long termPointer, boolean applySubs)
+  {
+    return CApi.cvc5_simplify(pointer, termPointer, applySubs);
+  }
   /**
    * Assert a formula.
    * SMT-LIB:
@@ -2049,7 +2092,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     assertFormula(getPointer(), term.getPointer());
   }
 
-  private native void assertFormula(long pointer, long termPointer);
+  private void assertFormula(long pointer, long termPointer)
+  {
+    CApi.cvc5_assert_formula(pointer, termPointer);
+  }
 
   /**
    * Check satisfiability.
@@ -2067,7 +2113,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Result(ctx, resultPointer);
   }
 
-  private native long checkSat(long pointer);
+  private long checkSat(long pointer)
+  {
+    return CApi.cvc5_result_copy(CApi.cvc5_check_sat(pointer));
+  }
   /**
    * Check satisfiability assuming the given formula.
    *
@@ -2088,7 +2137,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Result(ctx, resultPointer);
   }
 
-  private native long checkSatAssuming(long pointer, long assumptionPointer);
+  private long checkSatAssuming(long pointer, long assumptionPointer)
+  {
+    return checkSatAssuming(pointer, new long[] {assumptionPointer});
+  }
 
   /**
    * Check satisfiability assuming the given formulas.
@@ -2111,7 +2163,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Result(ctx, resultPointer);
   }
 
-  private native long checkSatAssuming(long pointer, long[] assumptionPointers);
+  private long checkSatAssuming(long pointer, long[] assumptionPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      long result = CApi.cvc5_check_sat_assuming(
+          pointer, assumptionPointers.length, Native.longs(arena, assumptionPointers));
+      return CApi.cvc5_result_copy(result);
+    }
+  }
 
   /**
    * Create datatype sort.
@@ -2132,7 +2192,16 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long declareDatatype(long pointer, String symbol, long[] declPointers);
+  private long declareDatatype(long pointer, String symbol, long[] declPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_declare_dt(pointer,
+          Native.cstring(arena, symbol),
+          declPointers.length,
+          Native.longs(arena, declPointers));
+    }
+  }
 
   /**
    * Declare n-ary function symbol.
@@ -2154,8 +2223,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long declareFun(
-      long pointer, String symbol, long[] sortPointers, long sortPointer);
+  private long declareFun(long pointer, String symbol, long[] sortPointers, long sortPointer)
+  {
+    return declareFun(pointer, symbol, sortPointers, sortPointer, true);
+  }
 
   /**
    * Declare n-ary function symbol.
@@ -2180,8 +2251,19 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long declareFun(
-      long pointer, String symbol, long[] sortPointers, long sortPointer, boolean fresh);
+  private long declareFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, boolean fresh)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_declare_fun(pointer,
+          Native.cstring(arena, symbol),
+          sortPointers.length,
+          Native.longs(arena, sortPointers),
+          sortPointer,
+          fresh);
+    }
+  }
   /**
    * Declare uninterpreted sort.
    *
@@ -2205,7 +2287,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long declareSort(long pointer, String symbol, int arity);
+  private long declareSort(long pointer, String symbol, int arity)
+  {
+    return declareSort(pointer, symbol, arity, true);
+  }
 
   /**
    * Declare uninterpreted sort.
@@ -2233,7 +2318,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long declareSort(long pointer, String symbol, int arity, boolean fresh);
+  private long declareSort(long pointer, String symbol, int arity, boolean fresh)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_declare_sort(pointer, Native.cstring(arena, symbol), arity, fresh);
+    }
+  }
 
   /**
    * Define n-ary function in the current context.
@@ -2278,12 +2369,24 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long defineFun(long pointer,
+  private long defineFun(long pointer,
       String symbol,
       long[] boundVarPointers,
       long sortPointer,
       long termPointer,
-      boolean global);
+      boolean global)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_define_fun(pointer,
+          Native.cstring(arena, symbol),
+          boundVarPointers.length,
+          Native.longs(arena, boundVarPointers),
+          sortPointer,
+          termPointer,
+          global);
+    }
+  }
 
   /**
    * Define recursive function in the current context.
@@ -2328,12 +2431,24 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long defineFunRec(long pointer,
+  private long defineFunRec(long pointer,
       String symbol,
       long[] boundVarPointers,
       long sortPointer,
       long termPointer,
-      boolean global);
+      boolean global)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_define_fun_rec(pointer,
+          Native.cstring(arena, symbol),
+          boundVarPointers.length,
+          Native.longs(arena, boundVarPointers),
+          sortPointer,
+          termPointer,
+          global);
+    }
+  }
 
   /**
    * Define recursive function in the current context.
@@ -2381,8 +2496,19 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long defineFunRec(
-      long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global);
+  private long defineFunRec(
+      long pointer, long funPointer, long[] boundVarPointers, long termPointer, boolean global)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_define_fun_rec_from_const(pointer,
+          funPointer,
+          boundVarPointers.length,
+          Native.longs(arena, boundVarPointers),
+          termPointer,
+          global);
+    }
+  }
 
   /**
    * Define recursive functions in the current context.
@@ -2428,11 +2554,41 @@ public class Solver extends AbstractPointer implements AutoCloseable
     defineFunsRec(getPointer(), funPointers, boundVarPointers, termPointers, global);
   }
 
-  private native void defineFunsRec(long pointer,
+  private void defineFunsRec(long pointer,
       long[] funPointers,
       long[][] boundVarPointers,
       long[] termPointers,
-      boolean global);
+      boolean global)
+  {
+    int nfuns = funPointers.length;
+    // The C API reads one list of bound variables and one body per function.
+    // Check the sizes as the C++ API does, instead of reading out of bounds.
+    if (boundVarPointers.length != nfuns)
+    {
+      throw new CVC5ApiException("invalid size of argument 'bound_vars', expected '" + nfuns + "'");
+    }
+    if (termPointers.length != nfuns)
+    {
+      throw new CVC5ApiException("invalid size of argument 'terms', expected '" + nfuns + "'");
+    }
+    try (Arena arena = Arena.ofConfined())
+    {
+      long[] nvars = new long[nfuns];
+      long[] vars = new long[nfuns];
+      for (int i = 0; i < nfuns; i++)
+      {
+        nvars[i] = boundVarPointers[i].length;
+        vars[i] = Native.longs(arena, boundVarPointers[i]);
+      }
+      CApi.cvc5_define_funs_rec(pointer,
+          nfuns,
+          Native.longs(arena, funPointers),
+          Native.longs(arena, nvars),
+          Native.longs(arena, vars),
+          Native.longs(arena, termPointers),
+          global);
+    }
+  }
 
   /**
    * Get a list of input literals that are entailed by the current set of
@@ -2453,7 +2609,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getLearnedLiterals(long pointer);
+  private long[] getLearnedLiterals(long pointer)
+  {
+    return getLearnedLiterals(pointer, LearnedLitType.INPUT.getValue());
+  }
 
   /**
    * Get a list of literals that are entailed by the current set of assertions.
@@ -2474,7 +2633,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getLearnedLiterals(long pointer, int type);
+  private long[] getLearnedLiterals(long pointer, int type)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_learned_literals(pointer, type, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get the list of asserted formulas.
@@ -2492,7 +2659,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getAssertions(long pointer);
+  private long[] getAssertions(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_assertions(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get info from the solver.
@@ -2505,7 +2680,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getInfo(getPointer(), flag);
   }
 
-  private native String getInfo(long pointer, String flag);
+  private String getInfo(long pointer, String flag)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.string(CApi.cvc5_get_info(pointer, Native.cstring(arena, flag)));
+    }
+  }
 
   /**
    * Get the value of a given option.
@@ -2521,7 +2702,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getOption(getPointer(), option);
   }
 
-  private native String getOption(long pointer, String option);
+  private String getOption(long pointer, String option)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.string(CApi.cvc5_get_option(pointer, Native.cstring(arena, option)));
+    }
+  }
 
   /**
    * Get all option names that can be used with
@@ -2535,7 +2722,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getOptionNames(getPointer());
   }
 
-  private native String[] getOptionNames(long pointer);
+  private String[] getOptionNames(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long names = CApi.cvc5_get_option_names(pointer, size.address());
+      return Native.strings(names, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get some information about the given option.
@@ -2552,7 +2747,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new OptionInfo(ctx, optionPointer);
   }
 
-  private native long getOptionInfo(long pointer, String option);
+  private long getOptionInfo(long pointer, String option)
+  {
+    MemorySegment info = OPTION_INFO.get();
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_get_option_info(pointer, Native.cstring(arena, option), info.address());
+    }
+    return info.address();
+  }
 
   /**
    * Get the set of unsat ("failed") assumptions.
@@ -2572,7 +2775,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getUnsatAssumptions(long pointer);
+  private long[] getUnsatAssumptions(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_unsat_assumptions(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get the unsatisfiable core.
@@ -2596,7 +2807,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getUnsatCore(long pointer);
+  private long[] getUnsatCore(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_unsat_core(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get the lemmas used to derive unsatisfiability.
@@ -2617,7 +2836,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getUnsatCoreLemmas(long pointer);
+  private long[] getUnsatCoreLemmas(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_unsat_core_lemmas(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get a difficulty estimate for an asserted formula. This method is
@@ -2642,7 +2869,25 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return ret;
   }
 
-  private native Map<Long, Long> getDifficulty(long pointer);
+  private Map<Long, Long> getDifficulty(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      MemorySegment inputs = Native.outLong(arena);
+      MemorySegment values = Native.outLong(arena);
+      CApi.cvc5_get_difficulty(pointer, size.address(), inputs.address(), values.address());
+      long n = size.get(JAVA_LONG, 0);
+      long[] keys = Native.longs(inputs.get(JAVA_LONG, 0), n);
+      long[] vals = Native.longs(values.get(JAVA_LONG, 0), n);
+      Map<Long, Long> map = new HashMap<>();
+      for (int i = 0; i < keys.length; i++)
+      {
+        map.put(keys[i], vals[i]);
+      }
+      return map;
+    }
+  }
 
   /**
    * Get a timeout core, which computes a subset of the current assertions that
@@ -2678,7 +2923,17 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return ret;
   }
 
-  private native Pair<Long, long[]> getTimeoutCore(long pointer);
+  private Pair<Long, long[]> getTimeoutCore(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment result = Native.outLong(arena);
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_timeout_core(pointer, result.address(), size.address());
+      long[] termPointers = Native.longs(terms, size.get(JAVA_LONG, 0));
+      return new Pair<>(CApi.cvc5_result_copy(result.get(JAVA_LONG, 0)), termPointers);
+    }
+  }
 
   /**
    * Get a timeout core, which computes a subset of the given assumptions that
@@ -2719,7 +2974,21 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return ret;
   }
 
-  private native Pair<Long, long[]> getTimeoutCoreAssuming(long pointer, long[] assumptionPointers);
+  private Pair<Long, long[]> getTimeoutCoreAssuming(long pointer, long[] assumptionPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment result = Native.outLong(arena);
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_timeout_core_assuming(pointer,
+          assumptionPointers.length,
+          Native.longs(arena, assumptionPointers),
+          result.address(),
+          size.address());
+      long[] termPointers = Native.longs(terms, size.get(JAVA_LONG, 0));
+      return new Pair<>(CApi.cvc5_result_copy(result.get(JAVA_LONG, 0)), termPointers);
+    }
+  }
 
   /**
    * Get refutation proof for the most recent call to checkSat.
@@ -2741,7 +3010,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getProofs(ctx, getProof(getPointer()));
   }
 
-  private native long[] getProof(long pointer);
+  private long[] getProof(long pointer)
+  {
+    return getProof(pointer, ProofComponent.FULL.getValue());
+  }
 
   /**
    * Get a proof associated with the most recent call to checkSat.
@@ -2763,7 +3035,20 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getProofs(ctx, getProof(getPointer(), c.getValue()));
   }
 
-  private native long[] getProof(long pointer, int c);
+  private long[] getProof(long pointer, int c)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long proofs = CApi.cvc5_get_proof(pointer, c, size.address());
+      long[] res = Native.longs(proofs, size.get(JAVA_LONG, 0));
+      for (int i = 0; i < res.length; i++)
+      {
+        res[i] = CApi.cvc5_proof_copy(res[i]);
+      }
+      return res;
+    }
+  }
 
   /**
    * Prints a proof into a string with a slected proof format mode.
@@ -2779,7 +3064,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return proofToString(getPointer(), proof.getPointer());
   }
 
-  private native String proofToString(long pointer, long proofs);
+  private String proofToString(long pointer, long proofs)
+  {
+    return proofToString(pointer, proofs, ProofFormat.DEFAULT.getValue());
+  }
 
   /**
    * Prints a proof into a string with a slected proof format mode.
@@ -2798,7 +3086,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return proofToString(getPointer(), proof.getPointer(), format.getValue());
   }
 
-  private native String proofToString(long pointer, long proofs, int format);
+  private String proofToString(long pointer, long proofs, int format)
+  {
+    return Native.string(CApi.cvc5_proof_to_string(pointer, proofs, format, 0, 0, 0));
+  }
 
   /**
    * Prints a proof into a string with a slected proof format mode.
@@ -2819,7 +3110,28 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return proofToString(getPointer(), proof.getPointer(), format.getValue(), assertionNames);
   }
 
-  private native String proofToString(long pointer, long proofs, int format, Map assertionNames);
+  private String proofToString(long pointer, long proofs, int format, Map assertionNames)
+  {
+    int size = assertionNames.size();
+    long[] assertions = new long[size];
+    String[] names = new String[size];
+    int i = 0;
+    for (Map.Entry<?, ?> entry : ((Map<?, ?>) assertionNames).entrySet())
+    {
+      assertions[i] = ((Term) entry.getKey()).getPointer();
+      names[i] = (String) entry.getValue();
+      i++;
+    }
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.string(CApi.cvc5_proof_to_string(pointer,
+          proofs,
+          format,
+          size,
+          Native.longs(arena, assertions),
+          Native.cstrings(arena, names)));
+    }
+  }
 
   /**
    * Get the value of the given term in the current model.
@@ -2838,7 +3150,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long getValue(long pointer, long termPointer);
+  private long getValue(long pointer, long termPointer)
+  {
+    return CApi.cvc5_get_value(pointer, termPointer);
+  }
 
   /**
    * Get the values of the given terms in the current model.
@@ -2858,7 +3173,16 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getValue(long pointer, long[] termPointers);
+  private long[] getValue(long pointer, long[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long values = CApi.cvc5_get_values(
+          pointer, termPointers.length, Native.longs(arena, termPointers), size.address());
+      return Native.longs(values, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get the domain elements of uninterpreted sort s in the current model.
@@ -2875,7 +3199,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, pointers);
   }
 
-  private native long[] getModelDomainElements(long pointer, long sortPointer);
+  private long[] getModelDomainElements(long pointer, long sortPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_model_domain_elements(pointer, sortPointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * This returns false if the model value of free constant {@code v} was not
@@ -2894,7 +3226,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return isModelCoreSymbol(getPointer(), v.getPointer());
   }
 
-  private native boolean isModelCoreSymbol(long pointer, long termPointer);
+  private boolean isModelCoreSymbol(long pointer, long termPointer)
+  {
+    if (termPointer == 0)
+    {
+      // The C API returns false for a null term, the C++ API raises an error.
+      throw new CVC5ApiException("invalid null argument for 'v'");
+    }
+    return CApi.cvc5_is_model_core_symbol(pointer, termPointer);
+  }
 
   /**
    * Get the model
@@ -2922,7 +3262,17 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getModel(getPointer(), sortPointers, varPointers);
   }
 
-  private native String getModel(long pointer, long[] sortPointers, long[] varPointers);
+  private String getModel(long pointer, long[] sortPointers, long[] varPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.string(CApi.cvc5_get_model(pointer,
+          sortPointers.length,
+          Native.longs(arena, sortPointers),
+          varPointers.length,
+          Native.longs(arena, varPointers)));
+    }
+  }
 
   /**
    * Do quantifier elimination.
@@ -2958,7 +3308,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long getQuantifierElimination(long pointer, long qPointer);
+  private long getQuantifierElimination(long pointer, long qPointer)
+  {
+    return CApi.cvc5_get_quantifier_elimination(pointer, qPointer);
+  }
 
   /**
    * Do partial quantifier elimination, which can be used for incrementally
@@ -3008,7 +3361,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
+  private long getQuantifierEliminationDisjunct(long pointer, long qPointer)
+  {
+    return CApi.cvc5_get_quantifier_elimination_disjunct(pointer, qPointer);
+  }
 
   /**
    * When using separation logic, this sets the location sort and the
@@ -3025,7 +3381,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     declareSepHeap(getPointer(), locSort.getPointer(), dataSort.getPointer());
   }
 
-  private native void declareSepHeap(long pointer, long locSortPointer, long dataSortPointer);
+  private void declareSepHeap(long pointer, long locSortPointer, long dataSortPointer)
+  {
+    CApi.cvc5_declare_sep_heap(pointer, locSortPointer, dataSortPointer);
+  }
 
   /**
    * When using separation logic, obtain the term for the heap.
@@ -3040,7 +3399,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long getValueSepHeap(long pointer);
+  private long getValueSepHeap(long pointer)
+  {
+    return CApi.cvc5_get_value_sep_heap(pointer);
+  }
 
   /**
    * When using separation logic, obtain the term for nil.
@@ -3055,7 +3417,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long getValueSepNil(long pointer);
+  private long getValueSepNil(long pointer)
+  {
+    return CApi.cvc5_get_value_sep_nil(pointer);
+  }
 
   /**
    * Declare a symbolic pool of terms with the given initial value.
@@ -3079,8 +3444,17 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long declarePool(
-      long pointer, String symbol, long sortPointer, long[] termPointers);
+  private long declarePool(long pointer, String symbol, long sortPointer, long[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_declare_pool(pointer,
+          Native.cstring(arena, symbol),
+          sortPointer,
+          termPointers.length,
+          Native.longs(arena, termPointers));
+    }
+  }
 
   /**
    * Declare an oracle function with reference to an implementation.
@@ -3110,45 +3484,25 @@ public class Solver extends AbstractPointer implements AutoCloseable
   public Term declareOracleFun(String symbol, Sort[] sorts, Sort sort, IOracle oracle)
   {
     long[] sortPointers = Utils.getPointers(sorts);
-    OracleBridge bridge = new OracleBridge(ctx, oracle);
+    Callbacks.Oracle bridge = new Callbacks.Oracle(ctx, oracle);
     callbacks.add(bridge);
     long termPointer =
         declareOracleFun(getPointer(), symbol, sortPointers, sort.getPointer(), bridge);
     return new Term(ctx, termPointer);
   }
 
-  private native long declareOracleFun(
-      long pointer, String symbol, long[] sortPointers, long sortPointer, OracleBridge oracle);
-
-  /**
-   * Bridges native oracle calls to an {@link IOracle}.
-   *
-   * <p>Native code exchanges raw pointers with this class, so that the
-   * {@link Term} wrappers are created here, in the context of the solver's
-   * term manager.</p>
-   */
-  private static final class OracleBridge
+  private long declareOracleFun(
+      long pointer, String symbol, long[] sortPointers, long sortPointer, Callbacks.Oracle oracle)
   {
-    private final NativeContext ctx;
-    private final IOracle oracle;
-
-    OracleBridge(NativeContext ctx, IOracle oracle)
+    try (Arena arena = Arena.ofConfined())
     {
-      this.ctx = ctx;
-      this.oracle = oracle;
-    }
-
-    /**
-     * Called from native code.
-     *
-     * @param pointers The native pointers of the arguments; ownership is
-     *                 transferred to the created wrappers.
-     * @return The native pointer of the result, which native code copies
-     *         before any further Java code can run on this thread.
-     */
-    long apply(long[] pointers) throws CVC5ApiException
-    {
-      return oracle.apply(Utils.getTerms(ctx, pointers)).getPointer();
+      return CApi.cvc5_declare_oracle_fun(pointer,
+          Native.cstring(arena, symbol),
+          sortPointers.length,
+          Native.longs(arena, sortPointers),
+          sortPointer,
+          0,
+          oracle.function);
     }
   }
 
@@ -3164,7 +3518,12 @@ public class Solver extends AbstractPointer implements AutoCloseable
     addPlugin(getPointer(), p.getTermManager().getPointer(), p);
   }
 
-  private native void addPlugin(long pointer, long termManagerPointer, AbstractPlugin p);
+  private void addPlugin(long pointer, long termManagerPointer, AbstractPlugin p)
+  {
+    Callbacks.Plugin plugin = new Callbacks.Plugin(p);
+    callbacks.add(plugin);
+    CApi.cvc5_add_plugin(pointer, plugin.struct);
+  }
 
   /**
    * Pop a level from the assertion stack.
@@ -3198,7 +3557,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     pop(getPointer(), nscopes);
   }
 
-  private native void pop(long pointer, int nscopes);
+  private void pop(long pointer, int nscopes)
+  {
+    CApi.cvc5_pop(pointer, nscopes);
+  }
 
   /**
    * Get an interpolant.
@@ -3237,7 +3599,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, interpolPtr);
   }
 
-  private native long getInterpolant(long pointer, long conjPointer);
+  private long getInterpolant(long pointer, long conjPointer)
+  {
+    return CApi.cvc5_get_interpolant(pointer, conjPointer);
+  }
 
   /**
    * Get an interpolant.
@@ -3279,7 +3644,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, interpolPtr);
   }
 
-  private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
+  private long getInterpolant(long pointer, long conjPointer, long grammarPointer)
+  {
+    return CApi.cvc5_get_interpolant_with_grammar(pointer, conjPointer, grammarPointer);
+  }
 
   /**
    * Get the next interpolant.
@@ -3311,7 +3679,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, interpolPtr);
   }
 
-  private native long getInterpolantNext(long pointer);
+  private long getInterpolantNext(long pointer)
+  {
+    return CApi.cvc5_get_interpolant_next(pointer);
+  }
 
   /**
    * Get an abduct.
@@ -3339,7 +3710,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, abdPtr);
   }
 
-  private native long getAbduct(long pointer, long conjPointer);
+  private long getAbduct(long pointer, long conjPointer)
+  {
+    return CApi.cvc5_get_abduct(pointer, conjPointer);
+  }
   /**
    * Get an abduct.
    *
@@ -3369,7 +3743,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, abdPtr);
   }
 
-  private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
+  private long getAbduct(long pointer, long conjPointer, long grammarPointer)
+  {
+    return CApi.cvc5_get_abduct_with_grammar(pointer, conjPointer, grammarPointer);
+  }
 
   /**
    * Get the next abduct. Can only be called immediately after a successful
@@ -3394,7 +3771,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, abdPtr);
   }
 
-  private native long getAbductNext(long pointer);
+  private long getAbductNext(long pointer)
+  {
+    return CApi.cvc5_get_abduct_next(pointer);
+  }
 
   /**
    * Block the current model.
@@ -3417,7 +3797,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     blockModel(getPointer(), mode.getValue());
   }
 
-  private native void blockModel(long pointer, int modeValue);
+  private void blockModel(long pointer, int modeValue)
+  {
+    CApi.cvc5_block_model(pointer, modeValue);
+  }
 
   /**
    * Block the current model values of (at least) the values in terms.
@@ -3441,7 +3824,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     blockModelValues(getPointer(), pointers);
   }
 
-  private native void blockModelValues(long pointer, long[] termPointers);
+  private void blockModelValues(long pointer, long[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_block_model_values(pointer, termPointers.length, Native.longs(arena, termPointers));
+    }
+  }
 
   /**
    * Get a string that contains information about all instantiations made by
@@ -3456,7 +3845,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getInstantiations(getPointer());
   }
 
-  private native String getInstantiations(long pointer);
+  private String getInstantiations(long pointer)
+  {
+    return Native.string(CApi.cvc5_get_instantiations(pointer));
+  }
 
   /**
    * Push a level to the assertion stack.
@@ -3490,7 +3882,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     push(getPointer(), nscopes);
   }
 
-  private native void push(long pointer, int nscopes);
+  private void push(long pointer, int nscopes)
+  {
+    CApi.cvc5_push(pointer, nscopes);
+  }
 
   /**
    * Remove all assertions.
@@ -3505,7 +3900,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     resetAssertions(getPointer());
   }
 
-  private native void resetAssertions(long pointer);
+  private void resetAssertions(long pointer)
+  {
+    CApi.cvc5_reset_assertions(pointer);
+  }
 
   /**
    * Set info.
@@ -3524,7 +3922,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     setInfo(getPointer(), keyword, value);
   }
 
-  private native void setInfo(long pointer, String keyword, String value) throws CVC5ApiException;
+  private void setInfo(long pointer, String keyword, String value) throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_set_info(pointer, Native.cstring(arena, keyword), Native.cstring(arena, value));
+    }
+  }
 
   /**
    * Set logic.
@@ -3542,7 +3946,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     setLogic(getPointer(), logic);
   }
 
-  private native void setLogic(long pointer, String logic) throws CVC5ApiException;
+  private void setLogic(long pointer, String logic) throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_set_logic(pointer, Native.cstring(arena, logic));
+    }
+  }
 
   /**
    * Is logic set? Returns whether we called setLogic yet for this solver.
@@ -3554,7 +3964,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return isLogicSet(getPointer());
   }
 
-  private native boolean isLogicSet(long pointer);
+  private boolean isLogicSet(long pointer)
+  {
+    return CApi.cvc5_is_logic_set(pointer);
+  }
 
   /**
    * Get the logic set the solver.
@@ -3569,7 +3982,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getLogic(getPointer());
   }
 
-  private native String getLogic(long pointer) throws CVC5ApiException;
+  private String getLogic(long pointer) throws CVC5ApiException
+  {
+    return Native.string(CApi.cvc5_get_logic(pointer));
+  }
 
   /**
    * Set option.
@@ -3587,7 +4003,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     setOption(getPointer(), option, value);
   }
 
-  private native void setOption(long pointer, String option, String value);
+  private void setOption(long pointer, String option, String value)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_set_option(pointer, Native.cstring(arena, option), Native.cstring(arena, value));
+    }
+  }
 
   /**
    * Append {@code symbol} to the current list of universal variables.
@@ -3607,7 +4029,13 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long declareSygusVar(long pointer, String symbol, long sortPointer);
+  private long declareSygusVar(long pointer, String symbol, long sortPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_declare_sygus_var(pointer, Native.cstring(arena, symbol), sortPointer);
+    }
+  }
 
   /**
    * Create a Sygus grammar.
@@ -3627,7 +4055,18 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Grammar(ctx, grammarPointer);
   }
 
-  private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
+  private long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      long grammar = CApi.cvc5_mk_grammar(pointer,
+          boundVarPointers.length,
+          Native.longs(arena, boundVarPointers),
+          ntSymbolPointers.length,
+          Native.longs(arena, ntSymbolPointers));
+      return CApi.cvc5_grammar_copy(grammar);
+    }
+  }
 
   /**
    * Synthesize n-ary function.
@@ -3649,8 +4088,17 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long synthFun(
-      long pointer, String symbol, long[] boundVarPointers, long sortPointer);
+  private long synthFun(long pointer, String symbol, long[] boundVarPointers, long sortPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_synth_fun(pointer,
+          Native.cstring(arena, symbol),
+          boundVarPointers.length,
+          Native.longs(arena, boundVarPointers),
+          sortPointer);
+    }
+  }
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
@@ -3674,8 +4122,19 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long synthFun(
-      long pointer, String symbol, long[] boundVarPointers, long sortPointer, long grammarPointer);
+  private long synthFun(
+      long pointer, String symbol, long[] boundVarPointers, long sortPointer, long grammarPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_synth_fun_with_grammar(pointer,
+          Native.cstring(arena, symbol),
+          boundVarPointers.length,
+          Native.longs(arena, boundVarPointers),
+          sortPointer,
+          grammarPointer);
+    }
+  }
 
   /**
    * Add a forumla to the set of Sygus constraints.
@@ -3692,7 +4151,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     addSygusConstraint(getPointer(), term.getPointer());
   }
 
-  private native void addSygusConstraint(long pointer, long termPointer);
+  private void addSygusConstraint(long pointer, long termPointer)
+  {
+    CApi.cvc5_add_sygus_constraint(pointer, termPointer);
+  }
 
   /**
    * Get the list of sygus constraints.
@@ -3705,7 +4167,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getSygusConstraints(long pointer);
+  private long[] getSygusConstraints(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_sygus_constraints(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Add a forumla to the set of Sygus assumptions.
@@ -3722,7 +4192,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     addSygusAssume(getPointer(), term.getPointer());
   }
 
-  private native void addSygusAssume(long pointer, long termPointer);
+  private void addSygusAssume(long pointer, long termPointer)
+  {
+    CApi.cvc5_add_sygus_assume(pointer, termPointer);
+  }
 
   /**
    * Get the list of sygus assumptions.
@@ -3735,7 +4208,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getSygusAssumptions(long pointer);
+  private long[] getSygusAssumptions(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_get_sygus_assumptions(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Add a set of Sygus constraints to the current state that correspond to an
@@ -3757,8 +4238,11 @@ public class Solver extends AbstractPointer implements AutoCloseable
         getPointer(), inv.getPointer(), pre.getPointer(), trans.getPointer(), post.getPointer());
   }
 
-  private native void addSygusInvConstraint(
-      long pointer, long invPointer, long prePointer, long transPointer, long postPointer);
+  private void addSygusInvConstraint(
+      long pointer, long invPointer, long prePointer, long transPointer, long postPointer)
+  {
+    CApi.cvc5_add_sygus_inv_constraint(pointer, invPointer, prePointer, transPointer, postPointer);
+  }
 
   /**
    * Try to find a solution for the synthesis conjecture corresponding to the
@@ -3781,7 +4265,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new SynthResult(ctx, resultPointer);
   }
 
-  private native long checkSynth(long pointer);
+  private long checkSynth(long pointer)
+  {
+    return CApi.cvc5_synth_result_copy(CApi.cvc5_check_synth(pointer));
+  }
 
   /**
    * Try to find a next solution for the synthesis conjecture corresponding to
@@ -3807,7 +4294,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new SynthResult(ctx, resultPointer);
   }
 
-  private native long checkSynthNext(long pointer);
+  private long checkSynthNext(long pointer)
+  {
+    return CApi.cvc5_synth_result_copy(CApi.cvc5_check_synth_next(pointer));
+  }
 
   /**
    * Get the synthesis solution of the given term.
@@ -3824,7 +4314,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long getSynthSolution(long pointer, long termPointer);
+  private long getSynthSolution(long pointer, long termPointer)
+  {
+    return CApi.cvc5_get_synth_solution(pointer, termPointer);
+  }
 
   /**
    * Get the synthesis solutions of the given terms.
@@ -3842,7 +4335,16 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getSynthSolutions(long pointer, long[] termPointers);
+  private long[] getSynthSolutions(long pointer, long[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      // The solutions correspond one-to-one to the given terms.
+      long solutions = CApi.cvc5_get_synth_solutions(
+          pointer, termPointers.length, Native.longs(arena, termPointers));
+      return Native.longs(solutions, termPointers.length);
+    }
+  }
 
   /**
    * Find a target term of interest using sygus enumeration, with no provided
@@ -3867,7 +4369,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     long termPointer = findSynth(getPointer(), fst.getValue());
     return new Term(ctx, termPointer);
   }
-  private native long findSynth(long pointer, int fst);
+  private long findSynth(long pointer, int fst)
+  {
+    return CApi.cvc5_find_synth(pointer, fst);
+  }
 
   /**
    * Find a target term of interest using sygus enumeration with a provided
@@ -3892,7 +4397,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     Reference.reachabilityFence(grammar);
     return new Term(ctx, termPointer);
   }
-  private native long findSynth(long pointer, int fst, long grammarPointer);
+  private long findSynth(long pointer, int fst, long grammarPointer)
+  {
+    return CApi.cvc5_find_synth_with_grammar(pointer, fst, grammarPointer);
+  }
 
   /**
    * Try to find a next target term of interest using sygus enumeration. Must
@@ -3914,7 +4422,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long findSynthNext(long pointer);
+  private long findSynthNext(long pointer)
+  {
+    return CApi.cvc5_find_synth_next(pointer);
+  }
 
   /**
    * Get a snapshot of the current state of the statistic values of this
@@ -3928,7 +4439,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return new Statistics(ctx, statisticsPointer);
   }
 
-  private native long getStatistics(long pointer);
+  private long getStatistics(long pointer)
+  {
+    return CApi.cvc5_get_statistics(pointer);
+  }
 
   /**
    * Get a string representation of the version of this solver.
@@ -3939,5 +4453,8 @@ public class Solver extends AbstractPointer implements AutoCloseable
     return getVersion(getPointer());
   }
 
-  private native String getVersion(long pointer);
+  private String getVersion(long pointer)
+  {
+    return Native.string(CApi.cvc5_get_version(pointer));
+  }
 }

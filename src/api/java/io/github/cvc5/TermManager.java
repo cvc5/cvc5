@@ -13,6 +13,7 @@
 package io.github.cvc5;
 
 import java.io.IOException;
+import java.lang.foreign.Arena;
 import java.util.*;
 
 /**
@@ -25,9 +26,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     Utils.loadLibraries();
   }
 
-  private static native long newTermManager();
+  private static long newTermManager()
+  {
+    return CApi.cvc5_term_manager_new();
+  }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_term_manager_delete(pointer);
+  }
 
   protected String toString(long pointer)
   {
@@ -40,18 +47,23 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public TermManager()
   {
-    super(new NativeContext(), TermManager.newTermManager(), TermManager::deletePointer);
+    this(TermManager.newTermManager());
+  }
+
+  private TermManager(long pointer)
+  {
+    super(new NativeContext(pointer), pointer, TermManager::deletePointer);
   }
 
   /**
    * This is an internal constructor intended to be used only
-   * inside cvc5 package
+   * inside cvc5 package. It wraps the term manager of a context without
+   * owning a reference to it; the context keeps it alive.
    * @param ctx The context of the term manager.
-   * @param pointer The cpp pointer to TermManager
    */
-  TermManager(NativeContext ctx, long pointer)
+  TermManager(NativeContext ctx)
   {
-    super(ctx, pointer, TermManager::deletePointer);
+    super(ctx, ctx.tm, null);
   }
 
   /**
@@ -114,7 +126,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Statistics(ctx, statisticsPointer);
   }
 
-  private native long getStatistics(long pointer);
+  private long getStatistics(long pointer)
+  {
+    return CApi.cvc5_term_manager_get_statistics(pointer);
+  }
 
   /* .................................................................... */
   /* Sorts Handling                                                       */
@@ -130,7 +145,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getBooleanSort(long pointer);
+  private long getBooleanSort(long pointer)
+  {
+    return CApi.cvc5_get_boolean_sort(pointer);
+  }
 
   /**
    * Get the integer sort.
@@ -142,7 +160,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getIntegerSort(long pointer);
+  private long getIntegerSort(long pointer)
+  {
+    return CApi.cvc5_get_integer_sort(pointer);
+  }
   /**
    * Get the real sort.
    * @return Sort Real.
@@ -153,7 +174,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getRealSort(long pointer);
+  private long getRealSort(long pointer)
+  {
+    return CApi.cvc5_get_real_sort(pointer);
+  }
   /**
    * Get the regular expression sort.
    * @return Sort RegExp.
@@ -164,7 +188,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getRegExpSort(long pointer);
+  private long getRegExpSort(long pointer)
+  {
+    return CApi.cvc5_get_regexp_sort(pointer);
+  }
   /**
    * Get the floating-point rounding mode sort.
    * @return Sort RoundingMode.
@@ -176,7 +203,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
+  private long getRoundingModeSort(long pointer) throws CVC5ApiException
+  {
+    return CApi.cvc5_get_rm_sort(pointer);
+  }
 
   /**
    * Get the string sort.
@@ -188,7 +218,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getStringSort(long solverPointer);
+  private long getStringSort(long solverPointer)
+  {
+    return CApi.cvc5_get_string_sort(solverPointer);
+  }
   /**
    * Create an array sort.
    * @param indexSort The array index sort.
@@ -201,7 +234,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkArraySort(long pointer, long indexSortPointer, long elementSortPointer);
+  private long mkArraySort(long pointer, long indexSortPointer, long elementSortPointer)
+  {
+    return CApi.cvc5_mk_array_sort(pointer, indexSortPointer, elementSortPointer);
+  }
 
   /**
    * Create a bit-vector sort.
@@ -216,7 +252,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkBitVectorSort(long pointer, int size);
+  private long mkBitVectorSort(long pointer, int size)
+  {
+    return CApi.cvc5_mk_bv_sort(pointer, size);
+  }
 
   /**
    * Create a finite field sort.
@@ -231,7 +270,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkFiniteFieldSort(long pointer, String size, int base);
+  private long mkFiniteFieldSort(long pointer, String size, int base)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_ff_sort(pointer, Native.cstring(arena, size), base);
+    }
+  }
 
   /**
    * Create a floating-point sort.
@@ -248,7 +293,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkFloatingPointSort(long solverPointer, int exp, int sig);
+  private long mkFloatingPointSort(long solverPointer, int exp, int sig)
+  {
+    return CApi.cvc5_mk_fp_sort(solverPointer, exp, sig);
+  }
 
   /**
    * Create a datatype sort.
@@ -262,8 +310,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, pointer);
   }
 
-  private native long mkDatatypeSort(long pointer, long datatypeDeclPointer)
-      throws CVC5ApiException;
+  private long mkDatatypeSort(long pointer, long datatypeDeclPointer) throws CVC5ApiException
+  {
+    return CApi.cvc5_mk_dt_sort(pointer, datatypeDeclPointer);
+  }
 
   /**
    * Create a vector of datatype sorts.
@@ -282,7 +332,16 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return sorts;
   }
 
-  private native long[] mkDatatypeSorts(long pointer, long[] declPointers) throws CVC5ApiException;
+  private long[] mkDatatypeSorts(long pointer, long[] declPointers) throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      long sorts =
+          CApi.cvc5_mk_dt_sorts(pointer, declPointers.length, Native.longs(arena, declPointers));
+      // one sort per datatype declaration
+      return Native.longs(sorts, declPointers.length);
+    }
+  }
 
   /**
    * Create function sort.
@@ -308,7 +367,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkFunctionSort(long pointer, long[] sortPointers, long codomainPointer);
+  private long mkFunctionSort(long pointer, long[] sortPointers, long codomainPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_fun_sort(
+          pointer, sortPointers.length, Native.longs(arena, sortPointers), codomainPointer);
+    }
+  }
 
   /**
    * Create a sort parameter.
@@ -324,7 +390,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkParamSort(long pointer, String symbol);
+  private long mkParamSort(long pointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_param_sort(pointer, Native.cstring(arena, symbol));
+    }
+  }
 
   /**
    * Create a sort parameter.
@@ -339,7 +411,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkParamSort(long pointer);
+  private long mkParamSort(long pointer)
+  {
+    // cvc5_mk_param_sort() requires a symbol. Without a symbol, the C++ API
+    // creates a parameter sort exactly like an uninterpreted sort without a
+    // symbol (NodeManager::mkSort()), which is what this C function does.
+    return CApi.cvc5_mk_uninterpreted_sort(pointer, 0);
+  }
 
   /**
    * Create a skolem
@@ -356,7 +434,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, skolemPointer);
   }
 
-  private native long mkSkolem(long pointer, int skolemId, long[] indices);
+  private long mkSkolem(long pointer, int skolemId, long[] indices)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_skolem(pointer, skolemId, indices.length, Native.longs(arena, indices));
+    }
+  }
 
   /**
    * Get the number of indices for a given skolem id.
@@ -373,7 +457,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return numIndices;
   }
 
-  private native int getNumIndicesForSkolemId(long pointer, int skolemId);
+  private int getNumIndicesForSkolemId(long pointer, int skolemId)
+  {
+    return (int) CApi.cvc5_get_num_idxs_for_skolem_id(pointer, skolemId);
+  }
 
   /**
    * Create a predicate sort.
@@ -386,7 +473,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkPredicateSort(long pointer, long[] sortPointers);
+  private long mkPredicateSort(long pointer, long[] sortPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_predicate_sort(
+          pointer, sortPointers.length, Native.longs(arena, sortPointers));
+    }
+  }
 
   /**
    * Create a record sort
@@ -402,7 +496,21 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkRecordSort(long pointer, Pair<String, Long>[] fields);
+  private long mkRecordSort(long pointer, Pair<String, Long>[] fields)
+  {
+    String[] names = new String[fields.length];
+    long[] sortPointers = new long[fields.length];
+    for (int i = 0; i < fields.length; i++)
+    {
+      names[i] = fields[i].first;
+      sortPointers[i] = fields[i].second;
+    }
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_record_sort(
+          pointer, fields.length, Native.cstrings(arena, names), Native.longs(arena, sortPointers));
+    }
+  }
 
   /**
    * Create a set sort.
@@ -415,7 +523,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkSetSort(long pointer, long elemSortPointer);
+  private long mkSetSort(long pointer, long elemSortPointer)
+  {
+    return CApi.cvc5_mk_set_sort(pointer, elemSortPointer);
+  }
   /**
    * Create a bag sort.
    * @param elemSort The sort of the bag elements.
@@ -427,7 +538,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkBagSort(long pointer, long elemSortPointer);
+  private long mkBagSort(long pointer, long elemSortPointer)
+  {
+    return CApi.cvc5_mk_bag_sort(pointer, elemSortPointer);
+  }
 
   /**
    * Create a sequence sort.
@@ -440,7 +554,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkSequenceSort(long pointer, long elemSortPointer);
+  private long mkSequenceSort(long pointer, long elemSortPointer)
+  {
+    return CApi.cvc5_mk_sequence_sort(pointer, elemSortPointer);
+  }
 
   /**
    * Create an abstract sort. An abstract sort represents a sort for a given
@@ -474,7 +591,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkAbstractSort(long pointer, int kindValue);
+  private long mkAbstractSort(long pointer, int kindValue)
+  {
+    return CApi.cvc5_mk_abstract_sort(pointer, kindValue);
+  }
 
   /**
    * Create an uninterpreted sort.
@@ -487,7 +607,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSort(long pointer, String symbol);
+  private long mkUninterpretedSort(long pointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_uninterpreted_sort(pointer, Native.cstring(arena, symbol));
+    }
+  }
 
   /**
    * Create an uninterpreted sort.
@@ -499,7 +625,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSort(long pointer);
+  private long mkUninterpretedSort(long pointer)
+  {
+    return CApi.cvc5_mk_uninterpreted_sort(pointer, 0);
+  }
 
   /**
    * Create an unresolved datatype sort.
@@ -519,7 +648,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUnresolvedDatatypeSort(long pointer, String symbol, int arity);
+  private long mkUnresolvedDatatypeSort(long pointer, String symbol, int arity)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_unresolved_dt_sort(pointer, Native.cstring(arena, symbol), arity);
+    }
+  }
 
   /**
    * Create an unresolved datatype sort.
@@ -554,7 +689,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSortConstructorSort(long pointer, int arity, String symbol);
+  private long mkUninterpretedSortConstructorSort(long pointer, int arity, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_uninterpreted_sort_constructor_sort(
+          pointer, arity, Native.cstring(arena, symbol));
+    }
+  }
 
   /**
    * Create a sort constructor sort.
@@ -573,7 +715,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSortConstructorSort(long pointer, int arity);
+  private long mkUninterpretedSortConstructorSort(long pointer, int arity)
+  {
+    return CApi.cvc5_mk_uninterpreted_sort_constructor_sort(pointer, arity, 0);
+  }
 
   /**
    * Create a tuple sort.
@@ -587,7 +732,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkTupleSort(long pointer, long[] sortPointers);
+  private long mkTupleSort(long pointer, long[] sortPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_tuple_sort(
+          pointer, sortPointers.length, Native.longs(arena, sortPointers));
+    }
+  }
 
   /**
    * Create a nullable sort.
@@ -601,7 +753,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkNullableSort(long pointer, long sortPointer);
+  private long mkNullableSort(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_nullable_sort(pointer, sortPointer);
+  }
 
   /* .................................................................... */
   /* Create Terms */
@@ -618,7 +773,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue);
+  private long mkTerm(long pointer, int kindValue)
+  {
+    return CApi.cvc5_mk_term(pointer, kindValue, 0, 0);
+  }
 
   /**
    * Create a unary term of given kind.
@@ -632,7 +790,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue, long childPointer);
+  private long mkTerm(long pointer, int kindValue, long childPointer)
+  {
+    return mkTerm(pointer, kindValue, new long[] {childPointer});
+  }
 
   /**
    * Create binary term of given kind.
@@ -648,7 +809,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue, long child1Pointer, long child2Pointer);
+  private long mkTerm(long pointer, int kindValue, long child1Pointer, long child2Pointer)
+  {
+    return mkTerm(pointer, kindValue, new long[] {child1Pointer, child2Pointer});
+  }
 
   /**
    * Create ternary term of given kind.
@@ -668,8 +832,11 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(
-      long pointer, int kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
+  private long mkTerm(
+      long pointer, int kindValue, long child1Pointer, long child2Pointer, long child3Pointer)
+  {
+    return mkTerm(pointer, kindValue, new long[] {child1Pointer, child2Pointer, child3Pointer});
+  }
   /**
    * Create n-ary term of given kind.
    * @param kind The kind of the term.
@@ -683,7 +850,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue, long[] childrenPointers);
+  private long mkTerm(long pointer, int kindValue, long[] childrenPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_term(
+          pointer, kindValue, childrenPointers.length, Native.longs(arena, childrenPointers));
+    }
+  }
 
   /**
    * Create nullary term of given kind from a given operator.
@@ -698,7 +872,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer);
+  private long mkTerm(long pointer, long opPointer)
+  {
+    return CApi.cvc5_mk_term_from_op(pointer, opPointer, 0, 0);
+  }
   /**
    * Create unary term of given kind from a given operator.
    * Create operators with {@link TermManager#mkOp(Kind)},
@@ -713,7 +890,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer, long childPointer);
+  private long mkTerm(long pointer, long opPointer, long childPointer)
+  {
+    return mkTerm(pointer, opPointer, new long[] {childPointer});
+  }
 
   /**
    * Create binary term of given kind from a given operator.
@@ -731,7 +911,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer, long child1Pointer, long child2Pointer);
+  private long mkTerm(long pointer, long opPointer, long child1Pointer, long child2Pointer)
+  {
+    return mkTerm(pointer, opPointer, new long[] {child1Pointer, child2Pointer});
+  }
   /**
    * Create ternary term of given kind from a given operator.
    * Create operators with {@link TermManager#mkOp(Kind)},
@@ -752,8 +935,11 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(
-      long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer);
+  private long mkTerm(
+      long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer)
+  {
+    return mkTerm(pointer, opPointer, new long[] {child1Pointer, child2Pointer, child3Pointer});
+  }
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -770,7 +956,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer, long[] childrenPointers);
+  private long mkTerm(long pointer, long opPointer, long[] childrenPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_term_from_op(
+          pointer, opPointer, childrenPointers.length, Native.longs(arena, childrenPointers));
+    }
+  }
 
   /**
    * Create a tuple term.
@@ -785,7 +978,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTuple(long pointer, long[] termPointers);
+  private long mkTuple(long pointer, long[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_tuple(pointer, termPointers.length, Native.longs(arena, termPointers));
+    }
+  }
 
   /**
    * Create a nullable some term.
@@ -798,7 +997,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableSome(long pointer, long termPointer);
+  private long mkNullableSome(long pointer, long termPointer)
+  {
+    return CApi.cvc5_mk_nullable_some(pointer, termPointer);
+  }
 
   /**
    * Create a selector for nullable term.
@@ -811,7 +1013,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableVal(long pointer, long termPointer);
+  private long mkNullableVal(long pointer, long termPointer)
+  {
+    return CApi.cvc5_mk_nullable_val(pointer, termPointer);
+  }
 
   /**
    * Create a null tester for a nullable term.
@@ -824,7 +1029,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableIsNull(long pointer, long termPointer);
+  private long mkNullableIsNull(long pointer, long termPointer)
+  {
+    return CApi.cvc5_mk_nullable_is_null(pointer, termPointer);
+  }
 
   /**
    * Create a some tester for a nullable term.
@@ -837,7 +1045,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableIsSome(long pointer, long termPointer);
+  private long mkNullableIsSome(long pointer, long termPointer)
+  {
+    return CApi.cvc5_mk_nullable_is_some(pointer, termPointer);
+  }
 
   /**
    * Create a constant representing a null value of the given sort.
@@ -850,7 +1061,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableNull(long pointer, long sortPointer);
+  private long mkNullableNull(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_nullable_null(pointer, sortPointer);
+  }
   /**
    * Create a term that lifts kind to nullable terms.
    * Example:
@@ -872,7 +1086,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableLift(long pointer, int kindValue, long[] termPointers);
+  private long mkNullableLift(long pointer, int kindValue, long[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_nullable_lift(
+          pointer, kindValue, termPointers.length, Native.longs(arena, termPointers));
+    }
+  }
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -895,7 +1116,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue);
+  private long mkOp(long pointer, int kindValue)
+  {
+    return CApi.cvc5_mk_op(pointer, kindValue, 0, 0);
+  }
   /**
    * Create operator of kind:
    * <ul>
@@ -914,7 +1138,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, String arg);
+  private long mkOp(long pointer, int kindValue, String arg)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_op_from_str(pointer, kindValue, Native.cstring(arena, arg));
+    }
+  }
 
   /**
    * Create operator of kind:
@@ -945,7 +1175,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, int arg);
+  private long mkOp(long pointer, int kindValue, int arg)
+  {
+    return mkOp(pointer, kindValue, new int[] {arg});
+  }
 
   /**
    * Create operator of Kind:
@@ -972,7 +1205,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, int arg1, int arg2);
+  private long mkOp(long pointer, int kindValue, int arg1, int arg2)
+  {
+    return mkOp(pointer, kindValue, new int[] {arg1, arg2});
+  }
 
   /**
    * Create operator of Kind:
@@ -992,7 +1228,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, int[] args);
+  private long mkOp(long pointer, int kindValue, int[] args)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_op(pointer, kindValue, args.length, Native.ints(arena, args));
+    }
+  }
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -1008,7 +1250,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTrue(long pointer);
+  private long mkTrue(long pointer)
+  {
+    return CApi.cvc5_mk_true(pointer);
+  }
   /**
    * Create a Boolean {@code false} constant.
    * @return The false constant.
@@ -1019,7 +1264,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFalse(long pointer);
+  private long mkFalse(long pointer)
+  {
+    return CApi.cvc5_mk_false(pointer);
+  }
   /**
    * Create a Boolean constant.
    * @param val The value of the constant.
@@ -1031,7 +1279,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkBoolean(long pointer, boolean val);
+  private long mkBoolean(long pointer, boolean val)
+  {
+    return CApi.cvc5_mk_boolean(pointer, val);
+  }
   /**
    * Create a constant representing the number Pi.
    * @return A constant representing Pi.
@@ -1042,7 +1293,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkPi(long pointer);
+  private long mkPi(long pointer)
+  {
+    return CApi.cvc5_mk_pi(pointer);
+  }
   /**
    * Create an integer constant from a string.
    * @param s The string representation of the constant, may represent an.
@@ -1057,7 +1311,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkInteger(long pointer, String s) throws CVC5ApiException;
+  private long mkInteger(long pointer, String s) throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_integer(pointer, Native.cstring(arena, s));
+    }
+  }
 
   /**
    * Create an integer constant from a C++ {@code int}.
@@ -1070,7 +1330,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkInteger(long pointer, long val);
+  private long mkInteger(long pointer, long val)
+  {
+    return CApi.cvc5_mk_integer_int64(pointer, val);
+  }
   /**
    * Create a real constant from a string.
    * @param s The string representation of the constant, may represent an.
@@ -1085,7 +1348,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkReal(long pointer, String s) throws CVC5ApiException;
+  private long mkReal(long pointer, String s) throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_real(pointer, Native.cstring(arena, s));
+    }
+  }
   /**
    * Create a real constant from an integer.
    * @param val The value of the constant.
@@ -1097,7 +1366,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRealValue(long pointer, long val);
+  private long mkRealValue(long pointer, long val)
+  {
+    return CApi.cvc5_mk_real_int64(pointer, val);
+  }
   /**
    * Create a real constant from a rational.
    * @param num The value of the numerator.
@@ -1110,7 +1382,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkReal(long pointer, long num, long den);
+  private long mkReal(long pointer, long num, long den)
+  {
+    return CApi.cvc5_mk_real_num_den(pointer, num, den);
+  }
 
   /**
    * Create a regular expression none ({@code re.none}) term.
@@ -1122,7 +1397,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRegexpNone(long pointer);
+  private long mkRegexpNone(long pointer)
+  {
+    return CApi.cvc5_mk_regexp_none(pointer);
+  }
 
   /**
    * Create a regular expression all ({@code re.all}) term.
@@ -1134,7 +1412,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRegexpAll(long pointer);
+  private long mkRegexpAll(long pointer)
+  {
+    return CApi.cvc5_mk_regexp_all(pointer);
+  }
 
   /**
    * Create a regular expression allchar ({@code re.allchar}) term.
@@ -1146,7 +1427,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRegexpAllchar(long pointer);
+  private long mkRegexpAllchar(long pointer)
+  {
+    return CApi.cvc5_mk_regexp_allchar(pointer);
+  }
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -1159,7 +1443,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkEmptySet(long pointer, long sortPointer);
+  private long mkEmptySet(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_empty_set(pointer, sortPointer);
+  }
   /**
    * Create a constant representing an empty bag of the given sort.
    * @param sort The sort of the bag elements.
@@ -1171,7 +1458,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkEmptyBag(long pointer, long sortPointer);
+  private long mkEmptyBag(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_empty_bag(pointer, sortPointer);
+  }
 
   /**
    * Create a separation logic empty term.
@@ -1186,7 +1476,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkSepEmp(long pointer);
+  private long mkSepEmp(long pointer)
+  {
+    return CApi.cvc5_mk_sep_emp(pointer);
+  }
 
   /**
    * Create a separation logic nil term.
@@ -1202,7 +1495,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkSepNil(long pointer, long sortPointer);
+  private long mkSepNil(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_sep_nil(pointer, sortPointer);
+  }
 
   /**
    * Create a String constant.
@@ -1229,7 +1525,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkString(long pointer, String s, boolean useEscSequences);
+  private long mkString(long pointer, String s, boolean useEscSequences)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_string(pointer, Native.cstring(arena, s), useEscSequences);
+    }
+  }
 
   /**
    * Create a String constant.
@@ -1245,7 +1547,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkString(long pointer, int[] s);
+  private long mkString(long pointer, int[] s)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      // a NUL-terminated UTF-32 string
+      long chars = Native.ints(arena, Arrays.copyOf(s, s.length + 1));
+      return CApi.cvc5_mk_string_from_char32(pointer, chars);
+    }
+  }
 
   /**
    * Create an empty sequence of the given element sort.
@@ -1258,7 +1568,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkEmptySequence(long pointer, long sortPointer);
+  private long mkEmptySequence(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_empty_sequence(pointer, sortPointer);
+  }
 
   /**
    * Create a universe set of the given sort.
@@ -1271,7 +1584,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkUniverseSet(long pointer, long sortPointer);
+  private long mkUniverseSet(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_universe_set(pointer, sortPointer);
+  }
 
   /**
    * Create a bit-vector constant of given size and value = 0.
@@ -1302,7 +1618,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkBitVector(long pointer, int size, long val);
+  private long mkBitVector(long pointer, int size, long val)
+  {
+    return CApi.cvc5_mk_bv_uint64(pointer, size, val);
+  }
 
   /**
    * Create a bit-vector constant of a given bit-width from a given string of
@@ -1324,7 +1643,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkBitVector(long pointer, int size, String s, int base);
+  private long mkBitVector(long pointer, int size, String s, int base)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_bv(pointer, size, Native.cstring(arena, s), base);
+    }
+  }
 
   /**
    * Create a finite field constant in a given field and for a given value.
@@ -1343,7 +1668,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFiniteFieldElem(long pointer, String val, long sortPointer, int base);
+  private long mkFiniteFieldElem(long pointer, String val, long sortPointer, int base)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_ff_elem(pointer, Native.cstring(arena, val), sortPointer, base);
+    }
+  }
 
   /**
    * Create a constant array with the provided constant value stored at
@@ -1359,7 +1690,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkConstArray(long pointer, long sortPointer, long valPointer);
+  private long mkConstArray(long pointer, long sortPointer, long valPointer)
+  {
+    return CApi.cvc5_mk_const_array(pointer, sortPointer, valPointer);
+  }
   /**
    * Create a positive infinity floating-point constant (SMT-LIB: {@code +oo}).
    * @param exp Number of bits in the exponent.
@@ -1375,7 +1709,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointPosInf(long pointer, int exp, int sig);
+  private long mkFloatingPointPosInf(long pointer, int exp, int sig)
+  {
+    return CApi.cvc5_mk_fp_pos_inf(pointer, exp, sig);
+  }
   /**
    * Create a negative infinity floating-point constant (SMT-LIB: {@code -oo}).
    * @param exp Number of bits in the exponent.
@@ -1391,7 +1728,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointNegInf(long pointer, int exp, int sig);
+  private long mkFloatingPointNegInf(long pointer, int exp, int sig)
+  {
+    return CApi.cvc5_mk_fp_neg_inf(pointer, exp, sig);
+  }
   /**
    * Create a not-a-number floating-point constant (SMT-LIB: {@code NaN}).
    * @param exp Number of bits in the exponent.
@@ -1407,7 +1747,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointNaN(long pointer, int exp, int sig);
+  private long mkFloatingPointNaN(long pointer, int exp, int sig)
+  {
+    return CApi.cvc5_mk_fp_nan(pointer, exp, sig);
+  }
 
   /**
    * Create a positive zero floating-point constant (SMT-LIB: {@code +zero}).
@@ -1424,7 +1767,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointPosZero(long pointer, int exp, int sig);
+  private long mkFloatingPointPosZero(long pointer, int exp, int sig)
+  {
+    return CApi.cvc5_mk_fp_pos_zero(pointer, exp, sig);
+  }
 
   /**
    * Create a negative zero floating-point constant (SMT-LIB: {@code -zero}).
@@ -1441,7 +1787,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointNegZero(long pointer, int exp, int sig);
+  private long mkFloatingPointNegZero(long pointer, int exp, int sig)
+  {
+    return CApi.cvc5_mk_fp_neg_zero(pointer, exp, sig);
+  }
 
   /**
    * Create a rounding mode constant.
@@ -1454,7 +1803,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRoundingMode(long pointer, int rm);
+  private long mkRoundingMode(long pointer, int rm)
+  {
+    return CApi.cvc5_mk_rm(pointer, rm);
+  }
 
   /**
    * Create a floating-point value from a bit-vector given in IEEE-754
@@ -1473,7 +1825,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
+  private long mkFloatingPoint(long pointer, int exp, int sig, long valPointer)
+  {
+    return CApi.cvc5_mk_fp(pointer, exp, sig, valPointer);
+  }
 
   /**
    * Create a floating-point value from its three IEEE-754 bit-vector value
@@ -1491,8 +1846,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointX(
-      long pointer, long signPointer, long expPointer, long sigPointer);
+  private long mkFloatingPointX(long pointer, long signPointer, long expPointer, long sigPointer)
+  {
+    return CApi.cvc5_mk_fp_from_ieee(pointer, signPointer, expPointer, sigPointer);
+  }
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
@@ -1511,7 +1868,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkCardinalityConstraint(long pointer, long sortPointer, int upperBound);
+  private long mkCardinalityConstraint(long pointer, long sortPointer, int upperBound)
+  {
+    return CApi.cvc5_mk_cardinality_constraint(pointer, sortPointer, upperBound);
+  }
 
   /* .................................................................... */
   /* Create Variables                                                     */
@@ -1536,7 +1896,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkConst(long pointer, long sortPointer, String symbol);
+  private long mkConst(long pointer, long sortPointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_const(pointer, sortPointer, Native.cstring(arena, symbol));
+    }
+  }
 
   /**
    * Create a free constant with a default symbol name.
@@ -1550,7 +1916,10 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkConst(long pointer, long sortPointer);
+  private long mkConst(long pointer, long sortPointer)
+  {
+    return CApi.cvc5_mk_const(pointer, sortPointer, 0);
+  }
 
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
@@ -1576,7 +1945,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new Term(ctx, termPointer);
   }
 
-  private native long mkVar(long pointer, long sortPointer, String symbol);
+  private long mkVar(long pointer, long sortPointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_var(pointer, sortPointer, Native.cstring(arena, symbol));
+    }
+  }
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
@@ -1593,7 +1968,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new DatatypeConstructorDecl(ctx, declPointer);
   }
 
-  private native long mkDatatypeConstructorDecl(long pointer, String name);
+  private long mkDatatypeConstructorDecl(long pointer, String name)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_dt_cons_decl(pointer, Native.cstring(arena, name));
+    }
+  }
 
   /* .................................................................... */
   /* Create datatype declarations                                         */
@@ -1621,7 +2002,13 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new DatatypeDecl(ctx, declPointer);
   }
 
-  private native long mkDatatypeDecl(long pointer, String name, boolean isCoDatatype);
+  private long mkDatatypeDecl(long pointer, String name, boolean isCoDatatype)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_dt_decl(pointer, Native.cstring(arena, name), isCoDatatype);
+    }
+  }
 
   /**
    * Create a datatype declaration.
@@ -1656,6 +2043,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     return new DatatypeDecl(ctx, declPointer);
   }
 
-  private native long mkDatatypeDecl(
-      long pointer, String name, long[] paramPointers, boolean isCoDatatype);
+  private long mkDatatypeDecl(long pointer, String name, long[] paramPointers, boolean isCoDatatype)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_mk_dt_decl_with_params(pointer,
+          Native.cstring(arena, name),
+          paramPointers.length,
+          Native.longs(arena, paramPointers),
+          isCoDatatype);
+    }
+  }
 }

@@ -26,20 +26,18 @@ public class Op extends AbstractPointer
    */
   public Op()
   {
-    super(null, NULL_POINTER, null);
+    super(null, 0, null);
   }
-
-  /** The native null object shared by all null op instances. It is never freed. */
-  private static final long NULL_POINTER = getNullOp();
-
-  private static native long getNullOp();
 
   Op(NativeContext ctx, long pointer)
   {
     super(ctx, pointer, Op::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_op_release(pointer);
+  }
 
   /**
    * Syntactic equality operator.
@@ -60,7 +58,10 @@ public class Op extends AbstractPointer
     return equals(getPointer(), ((Op) t).getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    return CApi.cvc5_op_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Get the kind of this operator.
@@ -81,7 +82,10 @@ public class Op extends AbstractPointer
     }
   }
 
-  private native int getKind(long pointer);
+  private int getKind(long pointer)
+  {
+    return CApi.cvc5_op_get_kind(pointer);
+  }
 
   /**
    * Determine if this operator is a null term.
@@ -93,7 +97,10 @@ public class Op extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0;
+  }
 
   /**
    * Determine if this operator is indexed.
@@ -105,7 +112,15 @@ public class Op extends AbstractPointer
     return isIndexed(getPointer());
   }
 
-  private native boolean isIndexed(long pointer);
+  private boolean isIndexed(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null operators, which are not indexed.
+      return false;
+    }
+    return CApi.cvc5_op_is_indexed(pointer);
+  }
 
   /**
    * Get the number of indices of this op.
@@ -117,7 +132,10 @@ public class Op extends AbstractPointer
     return getNumIndices(getPointer());
   }
 
-  private native int getNumIndices(long pointer);
+  private int getNumIndices(long pointer)
+  {
+    return (int) CApi.cvc5_op_get_num_indices(pointer);
+  }
 
   /**
    * Get the index at position {@code i}.
@@ -132,12 +150,24 @@ public class Op extends AbstractPointer
     return new Term(ctx, termPointer);
   }
 
-  private native long get(long pointer, int i);
+  private long get(long pointer, int i)
+  {
+    return CApi.cvc5_op_get_index(pointer, i);
+  }
 
   /**
    * @return A string representation of this operator.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null operators, whose string representation is the
+      // name of their kind.
+      return Kind.NULL_TERM.name();
+    }
+    return Native.string(CApi.cvc5_op_to_string(pointer));
+  }
 
   /**
    * Get the hash value of an operator.
@@ -149,5 +179,14 @@ public class Op extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null operators, whose hash value is the value of their
+      // kind.
+      return Kind.NULL_TERM.getValue();
+    }
+    return CApi.cvc5_op_hash(pointer);
+  }
 }

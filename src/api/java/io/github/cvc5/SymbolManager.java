@@ -12,6 +12,10 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG;
+
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.*;
 
 /**
@@ -52,14 +56,20 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     this(solver.getTermManager());
   }
 
-  private static native long newSymbolManager(long solverPointer);
+  private static long newSymbolManager(long solverPointer)
+  {
+    return CApi.cvc5_symbol_manager_new(solverPointer);
+  }
 
   protected String toString(long pointer)
   {
     throw new UnsupportedOperationException(
         "SymbolManager.toString() is not supported in the cpp api");
   }
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_symbol_manager_delete(pointer);
+  }
 
   /**
    * Free the native symbol manager, see {@code deletePointer()}.
@@ -114,7 +124,10 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     return isLogicSet(getPointer());
   }
 
-  private native boolean isLogicSet(long pointer);
+  private boolean isLogicSet(long pointer)
+  {
+    return CApi.cvc5_sm_is_logic_set(pointer);
+  }
 
   /**
    * Get the logic used by this symbol manager.
@@ -127,7 +140,10 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     return getLogic(getPointer());
   }
 
-  private native String getLogic(long pointer);
+  private String getLogic(long pointer)
+  {
+    return Native.string(CApi.cvc5_sm_get_logic(pointer));
+  }
 
   /**
    * Get the list of sorts that have been declared via `declare-sort` commands.
@@ -142,7 +158,15 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     return Utils.getSorts(ctx, pointers);
   }
 
-  private native long[] getDeclaredSorts(long pointer);
+  private long[] getDeclaredSorts(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long sorts = CApi.cvc5_sm_get_declared_sorts(pointer, size.address());
+      return Native.longs(sorts, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get the list of terms that have been declared via `declare-fun` and
@@ -157,7 +181,15 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getDeclaredTerms(long pointer);
+  private long[] getDeclaredTerms(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_sm_get_declared_terms(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get a mapping from terms to names that have been given to them via the
@@ -178,5 +210,23 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     return ret;
   }
 
-  private native Map<Long, String> getNamedTerms(long pointer);
+  private Map<Long, String> getNamedTerms(long pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      MemorySegment terms = Native.outLong(arena);
+      MemorySegment names = Native.outLong(arena);
+      CApi.cvc5_sm_get_named_terms(pointer, size.address(), terms.address(), names.address());
+      long n = size.get(JAVA_LONG, 0);
+      long[] termPointers = Native.longs(terms.get(JAVA_LONG, 0), n);
+      String[] termNames = Native.strings(names.get(JAVA_LONG, 0), n);
+      Map<Long, String> map = new HashMap<>();
+      for (int i = 0; i < termPointers.length; i++)
+      {
+        map.put(termPointers[i], termNames[i]);
+      }
+      return map;
+    }
+  }
 }

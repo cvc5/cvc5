@@ -138,7 +138,6 @@ jobs:
             strip-bin: strip
             python-bindings: true
             java-bindings: true
-            java-version: 11
             check-examples: true
             package-name: cvc5-macOS-arm64
             macos-target: 11.0
@@ -166,7 +165,6 @@ jobs:
             strip-bin: strip
             python-bindings: true
             java-bindings: true
-            java-version: 21
             windows-build: true
             shell: 'msys2 {0}'
             check-examples: true
@@ -191,7 +189,7 @@ jobs:
               --cocoa --normaliz --gpl --all-bindings --docs --docs-ga -DBUILD_GMP=1
             cache-key: dbg
             python-bindings: true
-            java-version: 21 # Use Javadoc from this Java version
+            java-version: 25 # Use Javadoc from this Java version
             build-documentation: true
             upload-maven-doc: true
             exclude_regress: 3-4
@@ -238,7 +236,6 @@ jobs:
             cache-key: unrestricted-arm64-gpl
             strip-bin: strip
             package-name: cvc5-macOS-arm64
-            java-version: 11
             macos-target: 11.0
             gpl-tag: -gpl
 
@@ -258,7 +255,6 @@ jobs:
             config: unrestricted --auto-download --gpl --cocoa --normaliz
             cache-key: unrestricted-win64-native-arm64-gpl
             strip-bin: strip
-            java-version: 21
             windows-build: true
             shell: 'msys2 {0}'
             gpl-tag: -gpl
@@ -308,11 +304,11 @@ jobs:
     - uses: actions/checkout@v6
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
-    # with the minimum required Java version (currently Java 11).
+    # with the minimum required Java version (currently Java 25).
     - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
-        java-version: ${{ matrix.build.java-version || '11' }}
+        java-version: ${{ matrix.build.java-version || '25' }}
 
     - name: Setup CMake
       uses: ./.github/actions/setup-cmake
@@ -442,7 +438,7 @@ jobs:
       uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
-        java-version: '11'
+        java-version: '25'
         server-id: central
         server-username: MAVEN_USERNAME
         server-password: MAVEN_TOKEN

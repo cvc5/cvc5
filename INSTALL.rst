@@ -372,7 +372,7 @@ Dependencies for Language Bindings
 
 - Java
 
-  - `JDK >= 11 <https://www.java.com>`_
+  - `JDK >= 25 <https://www.java.com>`_
 
 - Python
 

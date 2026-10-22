@@ -12,7 +12,12 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG;
+
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.List;
+import java.util.function.LongBinaryOperator;
 
 /**
  * The sort of a cvc5 term.
@@ -24,20 +29,53 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort()
   {
-    super(null, NULL_POINTER, null);
+    super(null, 0, null);
   }
-
-  /** The native null object shared by all null sort instances. It is never freed. */
-  private static final long NULL_POINTER = getNullSort();
-
-  private static native long getNullSort();
 
   Sort(NativeContext ctx, long pointer)
   {
     super(ctx, pointer, Sort::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_sort_release(pointer);
+  }
+
+  /**
+   * Call a function of the C API that returns an array of sorts, such as
+   * {@code cvc5_sort_fun_get_domain}, and copy the result.
+   *
+   * @param pointer The sort to pass to the function.
+   * @param function The function, which takes the sort and the address of the
+   *                 {@code size_t} output parameter for the size of the array,
+   *                 and returns the address of the array.
+   * @return The sorts of the array, which are owned by the caller.
+   */
+  private static long[] sortArray(long pointer, LongBinaryOperator function)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long sorts = function.applyAsLong(pointer, size.address());
+      return Native.longs(sorts, size.get(JAVA_LONG, 0));
+    }
+  }
+
+  /**
+   * Throw a {@link CVC5ApiException}, even where it is not declared, like the
+   * errors of the C API. For errors that the C++ API reports but the C API
+   * does not check.
+   *
+   * @param message The error message.
+   * @return Never returns normally.
+   */
+  @SuppressWarnings("unchecked")
+  private static <T extends Throwable> T apiError(String message) throws T
+  {
+    T error = (T) new CVC5ApiException(message);
+    throw error;
+  }
 
   // endregion
 
@@ -65,7 +103,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return equals(getPointer(), sort.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    return CApi.cvc5_sort_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Comparison for ordering on sorts.
@@ -80,7 +121,16 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return this.compareTo(getPointer(), s.getPointer());
   }
 
-  private native int compareTo(long pointer1, long pointer2);
+  private int compareTo(long pointer1, long pointer2)
+  {
+    if (pointer1 == 0 || pointer2 == 0)
+    {
+      // The C API rejects null sorts, which the C++ API orders before all
+      // other sorts.
+      return Boolean.compare(pointer1 != 0, pointer2 != 0);
+    }
+    return (int) CApi.cvc5_sort_compare(pointer1, pointer2);
+  }
 
   /**
    * Get the kind of this sort.
@@ -95,7 +145,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return SortKind.fromInt(value);
   }
 
-  private native int getKind(long pointer);
+  private int getKind(long pointer)
+  {
+    return CApi.cvc5_sort_get_kind(pointer);
+  }
 
   /**
    * Determine if the sort has a symbol.
@@ -106,7 +159,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return hasSymbol(getPointer());
   }
 
-  private native boolean hasSymbol(long pointer);
+  private boolean hasSymbol(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API returns false for the null sort, which the C++ API rejects.
+      throw apiError("invalid sort");
+    }
+    return CApi.cvc5_sort_has_symbol(pointer);
+  }
 
   /**
    * Get the raw symbol of the symbol.
@@ -119,7 +180,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getSymbol(getPointer());
   }
 
-  private native String getSymbol(long pointer);
+  private String getSymbol(long pointer)
+  {
+    return Native.string(CApi.cvc5_sort_get_symbol(pointer));
+  }
 
   /**
    * Determine if this is the null sort.
@@ -130,7 +194,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0;
+  }
 
   /**
    * Determine if this is the Boolean sort (SMT-LIB: {@code Bool}).
@@ -141,7 +208,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isBoolean(getPointer());
   }
 
-  private native boolean isBoolean(long pointer);
+  private boolean isBoolean(long pointer)
+  {
+    return CApi.cvc5_sort_is_boolean(pointer);
+  }
 
   /**
    * Determine if this is the integer sort (SMT-LIB: {@code Int}).
@@ -152,7 +222,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isInteger(getPointer());
   }
 
-  private native boolean isInteger(long pointer);
+  private boolean isInteger(long pointer)
+  {
+    return CApi.cvc5_sort_is_integer(pointer);
+  }
 
   /**
    * Determine if this is the real sort (SMT-LIB: {@code Real}).
@@ -163,7 +236,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isReal(getPointer());
   }
 
-  private native boolean isReal(long pointer);
+  private boolean isReal(long pointer)
+  {
+    return CApi.cvc5_sort_is_real(pointer);
+  }
 
   /**
    * Determine if this is the string sort (SMT-LIB: {@code String})..
@@ -174,7 +250,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isString(getPointer());
   }
 
-  private native boolean isString(long pointer);
+  private boolean isString(long pointer)
+  {
+    return CApi.cvc5_sort_is_string(pointer);
+  }
 
   /**
    * Determine if this is the regular expression sort (SMT-LIB: {@code RegLan}).
@@ -185,7 +264,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isRegExp(getPointer());
   }
 
-  private native boolean isRegExp(long pointer);
+  private boolean isRegExp(long pointer)
+  {
+    return CApi.cvc5_sort_is_regexp(pointer);
+  }
 
   /**
    * Determine if this is the rounding mode sort (SMT-LIB: {@code RoundingMode}).
@@ -196,7 +278,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isRoundingMode(getPointer());
   }
 
-  private native boolean isRoundingMode(long pointer);
+  private boolean isRoundingMode(long pointer)
+  {
+    return CApi.cvc5_sort_is_rm(pointer);
+  }
 
   /**
    * Determine if this is a bit-vector sort (SMT-LIB: {@code (_ BitVec i)}).
@@ -207,7 +292,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isBitVector(getPointer());
   }
 
-  private native boolean isBitVector(long pointer);
+  private boolean isBitVector(long pointer)
+  {
+    return CApi.cvc5_sort_is_bv(pointer);
+  }
 
   /**
    * Determine if this is a finite field sort (SMT-LIB: {@code (_ FiniteField i)}).
@@ -218,7 +306,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isFiniteField(getPointer());
   }
 
-  private native boolean isFiniteField(long pointer);
+  private boolean isFiniteField(long pointer)
+  {
+    return CApi.cvc5_sort_is_ff(pointer);
+  }
 
   /**
    * Determine if this is a floatingpoint sort
@@ -230,7 +321,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isFloatingPoint(getPointer());
   }
 
-  private native boolean isFloatingPoint(long pointer);
+  private boolean isFloatingPoint(long pointer)
+  {
+    return CApi.cvc5_sort_is_fp(pointer);
+  }
 
   /**
    * Determine if this is a datatype sort.
@@ -241,7 +335,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isDatatype(getPointer());
   }
 
-  private native boolean isDatatype(long pointer);
+  private boolean isDatatype(long pointer)
+  {
+    return CApi.cvc5_sort_is_dt(pointer);
+  }
 
   /**
    * Determine if this is a datatype constructor sort.
@@ -252,7 +349,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isDatatypeConstructor(getPointer());
   }
 
-  private native boolean isDatatypeConstructor(long pointer);
+  private boolean isDatatypeConstructor(long pointer)
+  {
+    return CApi.cvc5_sort_is_dt_constructor(pointer);
+  }
 
   /**
    * Determine if this is a datatype selector sort.
@@ -263,7 +363,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isDatatypeSelector(getPointer());
   }
 
-  private native boolean isDatatypeSelector(long pointer);
+  private boolean isDatatypeSelector(long pointer)
+  {
+    return CApi.cvc5_sort_is_dt_selector(pointer);
+  }
 
   /**
    * Determine if this is a datatype tester sort.
@@ -274,7 +377,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isDatatypeTester(getPointer());
   }
 
-  private native boolean isDatatypeTester(long pointer);
+  private boolean isDatatypeTester(long pointer)
+  {
+    return CApi.cvc5_sort_is_dt_tester(pointer);
+  }
 
   /**
    * Determine if this is a datatype updater sort.
@@ -285,7 +391,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isDatatypeUpdater(getPointer());
   }
 
-  private native boolean isDatatypeUpdater(long pointer);
+  private boolean isDatatypeUpdater(long pointer)
+  {
+    return CApi.cvc5_sort_is_dt_updater(pointer);
+  }
 
   /**
    * Determine if this is a function sort.
@@ -296,7 +405,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isFunction(getPointer());
   }
 
-  private native boolean isFunction(long pointer);
+  private boolean isFunction(long pointer)
+  {
+    return CApi.cvc5_sort_is_fun(pointer);
+  }
 
   /**
    * Determine if this is a predicate sort.
@@ -311,7 +423,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isPredicate(getPointer());
   }
 
-  private native boolean isPredicate(long pointer);
+  private boolean isPredicate(long pointer)
+  {
+    return CApi.cvc5_sort_is_predicate(pointer);
+  }
 
   /**
    * Determine if this a tuple sort.
@@ -322,7 +437,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isTuple(getPointer());
   }
 
-  private native boolean isTuple(long pointer);
+  private boolean isTuple(long pointer)
+  {
+    return CApi.cvc5_sort_is_tuple(pointer);
+  }
 
   /**
    * Determine if this a nullable sort.
@@ -333,7 +451,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isNullable(getPointer());
   }
 
-  private native boolean isNullable(long pointer);
+  private boolean isNullable(long pointer)
+  {
+    return CApi.cvc5_sort_is_nullable(pointer);
+  }
 
   /**
    * Determine if this is a record sort.
@@ -345,7 +466,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isRecord(getPointer());
   }
 
-  private native boolean isRecord(long pointer);
+  private boolean isRecord(long pointer)
+  {
+    return CApi.cvc5_sort_is_record(pointer);
+  }
 
   /**
    * Determine if this is an array sort.
@@ -356,7 +480,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isArray(getPointer());
   }
 
-  private native boolean isArray(long pointer);
+  private boolean isArray(long pointer)
+  {
+    return CApi.cvc5_sort_is_array(pointer);
+  }
 
   /**
    * Determine if this is a Set sort.
@@ -367,7 +494,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isSet(getPointer());
   }
 
-  private native boolean isSet(long pointer);
+  private boolean isSet(long pointer)
+  {
+    return CApi.cvc5_sort_is_set(pointer);
+  }
 
   /**
    * Determine if this is a Bag sort.
@@ -378,7 +508,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isBag(getPointer());
   }
 
-  private native boolean isBag(long pointer);
+  private boolean isBag(long pointer)
+  {
+    return CApi.cvc5_sort_is_bag(pointer);
+  }
 
   /**
    * Determine if this is a Sequence sort.
@@ -389,7 +522,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isSequence(getPointer());
   }
 
-  private native boolean isSequence(long pointer);
+  private boolean isSequence(long pointer)
+  {
+    return CApi.cvc5_sort_is_sequence(pointer);
+  }
 
   /**
    * Determine if this is an abstract sort.
@@ -402,7 +538,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isAbstract(getPointer());
   }
 
-  private native boolean isAbstract(long pointer);
+  private boolean isAbstract(long pointer)
+  {
+    return CApi.cvc5_sort_is_abstract(pointer);
+  }
 
   /**
    * Determine if this is an uninterpreted sort.
@@ -413,7 +552,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isUninterpretedSort(getPointer());
   }
 
-  private native boolean isUninterpretedSort(long pointer);
+  private boolean isUninterpretedSort(long pointer)
+  {
+    return CApi.cvc5_sort_is_uninterpreted_sort(pointer);
+  }
 
   /**
    * Determine if this is an uninterpreted sort constructor.
@@ -428,7 +570,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isUninterpretedSortConstructor(getPointer());
   }
 
-  private native boolean isUninterpretedSortConstructor(long pointer);
+  private boolean isUninterpretedSortConstructor(long pointer)
+  {
+    return CApi.cvc5_sort_is_uninterpreted_sort_constructor(pointer);
+  }
 
   /**
    * Determine if this is an instantiated (parametric datatype or uninterpreted
@@ -445,7 +590,15 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return isInstantiated(getPointer());
   }
 
-  private native boolean isInstantiated(long pointer);
+  private boolean isInstantiated(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API returns false for the null sort, which the C++ API rejects.
+      throw apiError("invalid sort");
+    }
+    return CApi.cvc5_sort_is_instantiated(pointer);
+  }
 
   /**
    * Get the associated uninterpreted sort constructor of an instantiated
@@ -459,7 +612,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getUninterpretedSortConstructor(long pointer);
+  private long getUninterpretedSortConstructor(long pointer)
+  {
+    return CApi.cvc5_sort_get_uninterpreted_sort_constructor(pointer);
+  }
 
   /**
    * Get the underlying datatype of a datatype sort.
@@ -472,7 +628,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Datatype(ctx, datatypePointer);
   }
 
-  private native long getDatatype(long pointer);
+  private long getDatatype(long pointer)
+  {
+    return CApi.cvc5_sort_get_datatype(pointer);
+  }
 
   /**
    * Instantiate a parameterized datatype sort or uninterpreted sort
@@ -492,7 +651,14 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long instantiate(long pointer, long[] paramsPointers);
+  private long instantiate(long pointer, long[] paramsPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_sort_instantiate(
+          pointer, paramsPointers.length, Native.longs(arena, paramsPointers));
+    }
+  }
 
   /**
    * Get the sorts used to instantiate the sort parameters of a parametric
@@ -508,7 +674,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return Utils.getSorts(ctx, pointers);
   }
 
-  private native long[] getInstantiatedParameters(long pointer);
+  private long[] getInstantiatedParameters(long pointer)
+  {
+    return sortArray(pointer, CApi::cvc5_sort_get_instantiated_parameters);
+  }
 
   /**
    * Substitution of Sorts.
@@ -529,7 +698,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long substitute(long pointer, long sortPointer, long replacementPointer);
+  private long substitute(long pointer, long sortPointer, long replacementPointer)
+  {
+    return CApi.cvc5_sort_substitute(pointer, sortPointer, replacementPointer);
+  }
 
   /**
    * Simultaneous substitution of Sorts.
@@ -558,12 +730,33 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long substitute(long pointer, long[] sortPointers, long[] replacementPointers);
+  private long substitute(long pointer, long[] sortPointers, long[] replacementPointers)
+  {
+    if (sortPointers.length != replacementPointers.length)
+    {
+      // The C API takes a single size for both arrays.
+      throw apiError("expected vectors of the same arity in substitute");
+    }
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_sort_substitute_sorts(pointer,
+          sortPointers.length,
+          Native.longs(arena, sortPointers),
+          Native.longs(arena, replacementPointers));
+    }
+  }
 
   /**
    * @return A string representation of this sort.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return "null";
+    }
+    return Native.string(CApi.cvc5_sort_to_string(pointer));
+  }
 
   /* Constructor sort ------------------------------------------------------- */
 
@@ -577,7 +770,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getDatatypeConstructorArity(getPointer());
   }
 
-  private native int getDatatypeConstructorArity(long pointer);
+  private int getDatatypeConstructorArity(long pointer)
+  {
+    return (int) CApi.cvc5_sort_dt_constructor_get_arity(pointer);
+  }
 
   /**
    * Get the domain sorts of a datatype constructor sort.
@@ -590,7 +786,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return Utils.getSorts(ctx, pointers);
   }
 
-  private native long[] getDatatypeConstructorDomainSorts(long pointer);
+  private long[] getDatatypeConstructorDomainSorts(long pointer)
+  {
+    return sortArray(pointer, CApi::cvc5_sort_dt_constructor_get_domain);
+  }
 
   /**
    * Get the codomain sort of a datatype constructor sort.
@@ -603,7 +802,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getDatatypeConstructorCodomainSort(long pointer);
+  private long getDatatypeConstructorCodomainSort(long pointer)
+  {
+    return CApi.cvc5_sort_dt_constructor_get_codomain(pointer);
+  }
 
   /* Selector sort ------------------------------------------------------- */
 
@@ -617,7 +819,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getDatatypeSelectorDomainSort(long pointer);
+  private long getDatatypeSelectorDomainSort(long pointer)
+  {
+    return CApi.cvc5_sort_dt_selector_get_domain(pointer);
+  }
 
   /**
    * Get the codomain sort of a datatype selector sort.
@@ -630,7 +835,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getDatatypeSelectorCodomainSort(long pointer);
+  private long getDatatypeSelectorCodomainSort(long pointer)
+  {
+    return CApi.cvc5_sort_dt_selector_get_codomain(pointer);
+  }
 
   /* Tester sort ------------------------------------------------------- */
 
@@ -645,7 +853,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getDatatypeTesterDomainSort(long pointer);
+  private long getDatatypeTesterDomainSort(long pointer)
+  {
+    return CApi.cvc5_sort_dt_tester_get_domain(pointer);
+  }
 
   /**
    * Get the codomain sort of a datatype tester sort, which is the Boolean sort.
@@ -659,7 +870,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getDatatypeTesterCodomainSort(long pointer);
+  private long getDatatypeTesterCodomainSort(long pointer)
+  {
+    return CApi.cvc5_sort_dt_tester_get_codomain(pointer);
+  }
 
   /* Function sort ------------------------------------------------------- */
 
@@ -673,7 +887,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getFunctionArity(getPointer());
   }
 
-  private native int getFunctionArity(long pointer);
+  private int getFunctionArity(long pointer)
+  {
+    return (int) CApi.cvc5_sort_fun_get_arity(pointer);
+  }
 
   /**
    * Get the domain sorts of a function sort.
@@ -686,7 +903,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return Utils.getSorts(ctx, pointers);
   }
 
-  private native long[] getFunctionDomainSorts(long pointer);
+  private long[] getFunctionDomainSorts(long pointer)
+  {
+    return sortArray(pointer, CApi::cvc5_sort_fun_get_domain);
+  }
 
   /**
    * Get the codomain sort of a function sort.
@@ -699,7 +919,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getFunctionCodomainSort(long pointer);
+  private long getFunctionCodomainSort(long pointer)
+  {
+    return CApi.cvc5_sort_fun_get_codomain(pointer);
+  }
 
   /* Array sort ---------------------------------------------------------- */
 
@@ -713,7 +936,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getArrayIndexSort(long pointer);
+  private long getArrayIndexSort(long pointer)
+  {
+    return CApi.cvc5_sort_array_get_index_sort(pointer);
+  }
 
   /**
    * Get the array element sort of an array element sort.
@@ -726,7 +952,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getArrayElementSort(long pointer);
+  private long getArrayElementSort(long pointer)
+  {
+    return CApi.cvc5_sort_array_get_element_sort(pointer);
+  }
 
   /* Set sort ------------------------------------------------------------ */
 
@@ -741,7 +970,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getSetElementSort(long pointer);
+  private long getSetElementSort(long pointer)
+  {
+    return CApi.cvc5_sort_set_get_element_sort(pointer);
+  }
 
   /* Bag sort ------------------------------------------------------------ */
 
@@ -756,7 +988,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getBagElementSort(long pointer);
+  private long getBagElementSort(long pointer)
+  {
+    return CApi.cvc5_sort_bag_get_element_sort(pointer);
+  }
 
   /* Sequence sort ------------------------------------------------------- */
 
@@ -771,7 +1006,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getSequenceElementSort(long pointer);
+  private long getSequenceElementSort(long pointer)
+  {
+    return CApi.cvc5_sort_sequence_get_element_sort(pointer);
+  }
 
   /* Abstract sort ------------------------------------------------------- */
 
@@ -791,7 +1029,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return SortKind.fromInt(value);
   }
 
-  private native int getAbstractedKind(long pointer);
+  private int getAbstractedKind(long pointer)
+  {
+    return CApi.cvc5_sort_abstract_get_kind(pointer);
+  }
 
   /* Sort constructor sort ----------------------------------------------- */
 
@@ -805,7 +1046,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getUninterpretedSortConstructorArity(getPointer());
   }
 
-  private native int getUninterpretedSortConstructorArity(long pointer);
+  private int getUninterpretedSortConstructorArity(long pointer)
+  {
+    return (int) CApi.cvc5_sort_uninterpreted_sort_constructor_get_arity(pointer);
+  }
 
   /* Bit-vector sort ----------------------------------------------------- */
 
@@ -819,7 +1063,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getBitVectorSize(getPointer());
   }
 
-  private native int getBitVectorSize(long pointer);
+  private int getBitVectorSize(long pointer)
+  {
+    return CApi.cvc5_sort_bv_get_size(pointer);
+  }
 
   /* Finite field sort --------------------------------------------------- */
 
@@ -833,7 +1080,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getFiniteFieldSize(getPointer());
   }
 
-  private native String getFiniteFieldSize(long pointer);
+  private String getFiniteFieldSize(long pointer)
+  {
+    return Native.string(CApi.cvc5_sort_ff_get_size(pointer));
+  }
 
   /* Floating-point sort ------------------------------------------------- */
 
@@ -847,7 +1097,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getFloatingPointExponentSize(getPointer());
   }
 
-  private native int getFloatingPointExponentSize(long pointer);
+  private int getFloatingPointExponentSize(long pointer)
+  {
+    return CApi.cvc5_sort_fp_get_exp_size(pointer);
+  }
 
   /**
    * Get the width of the significand of the floating-point sort.
@@ -859,7 +1112,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getFloatingPointSignificandSize(getPointer());
   }
 
-  private native int getFloatingPointSignificandSize(long pointer);
+  private int getFloatingPointSignificandSize(long pointer)
+  {
+    return CApi.cvc5_sort_fp_get_sig_size(pointer);
+  }
 
   /* Datatype sort ------------------------------------------------------- */
 
@@ -873,7 +1129,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getDatatypeArity(getPointer());
   }
 
-  private native int getDatatypeArity(long pointer);
+  private int getDatatypeArity(long pointer)
+  {
+    return (int) CApi.cvc5_sort_dt_get_arity(pointer);
+  }
 
   /* Tuple sort ---------------------------------------------------------- */
 
@@ -887,7 +1146,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return getTupleLength(getPointer());
   }
 
-  private native int getTupleLength(long pointer);
+  private int getTupleLength(long pointer)
+  {
+    return (int) CApi.cvc5_sort_tuple_get_length(pointer);
+  }
 
   /**
    * Get the element sorts of a tuple sort.
@@ -900,7 +1162,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return Utils.getSorts(ctx, pointers);
   }
 
-  private native long[] getTupleSorts(long pointer);
+  private long[] getTupleSorts(long pointer)
+  {
+    return sortArray(pointer, CApi::cvc5_sort_tuple_get_element_sorts);
+  }
 
   /**
    * Get the element sort of a nullable sort.
@@ -913,7 +1178,10 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getNullableElementSort(long pointer);
+  private long getNullableElementSort(long pointer)
+  {
+    return CApi.cvc5_sort_nullable_get_element_sort(pointer);
+  }
 
   /**
    * Get the hash value of a sort.
@@ -925,5 +1193,12 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return 0;
+    }
+    return CApi.cvc5_sort_hash(pointer);
+  }
 }

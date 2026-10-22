@@ -24,14 +24,15 @@ import java.util.function.LongConsumer;
 abstract class AbstractPointer implements IPointer
 {
   /**
-   * The raw native pointer value.
+   * The raw native pointer value: the handle of the native object in the cvc5
+   * C API, or 0 for null objects (e.g., {@code new Term()}) and for objects
+   * whose native object has been released.
    */
   protected long pointer;
 
   /**
    * The context of the term manager this object belongs to, or {@code null}
-   * for null objects, which are not associated with any term manager and
-   * share a single, static native object per class.
+   * for null objects, which are not associated with any term manager.
    */
   final NativeContext ctx;
 
@@ -43,17 +44,24 @@ abstract class AbstractPointer implements IPointer
   /**
    * Construct an {@code AbstractPointer} with the given native pointer.
    *
+   * <p>The wrapper owns one reference to the native object, which the C API
+   * returned to it, and releases it once the wrapper is unreachable or
+   * {@link #deletePointer()} is called. A null pointer represents a null
+   * object, which is not tracked.</p>
+   *
    * @param ctx the context of the term manager the native object belongs to,
-   *            or {@code null} if the native object is a static null object
-   *            that is never freed
-   * @param pointer the native pointer to wrap
-   * @param deleter the function that frees the native object
+   *            or {@code null} for a null object
+   * @param pointer the handle of the native object, or 0 for a null object
+   * @param deleter the function that releases the native object, or
+   *                {@code null} if this wrapper does not own a reference to
+   *                it (e.g., {@link Solver#getTermManager()})
    */
   AbstractPointer(NativeContext ctx, long pointer, LongConsumer deleter)
   {
     this.pointer = pointer;
-    this.ctx = ctx;
-    this.ref = ctx == null ? null : ctx.register(this, pointer, deleter);
+    this.ctx = pointer == 0 ? null : ctx;
+    this.ref =
+        this.ctx == null || deleter == null ? null : this.ctx.register(this, pointer, deleter);
   }
 
   /**
@@ -63,14 +71,14 @@ abstract class AbstractPointer implements IPointer
    * this method, so that using an object after its native resource has been
    * released raises an exception instead of crashing the JVM.</p>
    *
-   * @return the pointer value
+   * @return the pointer value, which is 0 for null objects
    * @throws IllegalStateException if the native resource of this object has
    *         been released, e.g., via {@link #deletePointer()}
    */
   public long getPointer()
   {
     long p = pointer;
-    if (p == 0)
+    if (p == 0 && ref != null)
     {
       throw new IllegalStateException(
           "This " + getClass().getSimpleName() + " has been released and cannot be used anymore");

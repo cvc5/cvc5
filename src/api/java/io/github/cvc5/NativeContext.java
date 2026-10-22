@@ -216,15 +216,47 @@ final class NativeContext
     public void run()
     {
       releaseAll();
+      if (anchor != 0)
+      {
+        // Releases the term manager if nothing else references it anymore.
+        CApi.cvc5_sort_release(anchor);
+        anchor = 0;
+      }
       RELEASED_CONTEXTS.incrementAndGet();
     }
+
+    /**
+     * A handle owned by this registry that keeps the term manager alive, see
+     * {@link NativeContext#tm}.
+     */
+    private long anchor;
   }
 
   private final Registry registry = new Registry();
 
-  /** Create the context of a new term manager. */
-  NativeContext()
+  /**
+   * The term manager of this context ({@code Cvc5TermManager*} in the C API).
+   *
+   * <p>A term manager of the C API is reference counted: it stays alive as
+   * long as any object created via it (or a solver or symbol manager using
+   * it) does. The context owns such an object (its anchor), so the term
+   * manager remains valid for as long as the context, and thus every object
+   * of the context, is reachable, even after the {@link TermManager} it was
+   * created with has been released. This is needed for operations that the C
+   * API only provides on the term manager (e.g., {@link Term#notTerm()}) and
+   * for {@link Solver#getTermManager()}.</p>
+   */
+  final long tm;
+
+  /**
+   * Create the context of a new term manager.
+   *
+   * @param tm The term manager ({@code Cvc5TermManager*}).
+   */
+  NativeContext(long tm)
   {
+    this.tm = tm;
+    registry.anchor = CApi.cvc5_get_boolean_sort(tm);
     CLEANER.register(this, registry);
     synchronized (LIVE)
     {

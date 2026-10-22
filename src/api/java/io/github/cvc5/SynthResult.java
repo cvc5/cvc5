@@ -29,20 +29,18 @@ public class SynthResult extends AbstractPointer
    */
   public SynthResult()
   {
-    super(null, NULL_POINTER, null);
+    super(null, 0, null);
   }
-
-  /** The native null object shared by all null SynthResult instances. It is never freed. */
-  private static final long NULL_POINTER = getNullSynthResult();
-
-  private static native long getNullSynthResult();
 
   SynthResult(NativeContext ctx, long pointer)
   {
     super(ctx, pointer, SynthResult::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_synth_result_release(pointer);
+  }
 
   /**
    * Operator overloading for equality of two synthesis results.
@@ -68,7 +66,16 @@ public class SynthResult extends AbstractPointer
     return equals(getPointer(), result.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    if (pointer1 == 0 || pointer2 == 0)
+    {
+      // A null synthesis result is equal to the synthesis results without a
+      // status.
+      return isNull(pointer1) && isNull(pointer2);
+    }
+    return CApi.cvc5_synth_result_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Determine if SynthResult is empty, i.e., a nullary SynthResult, and not
@@ -82,7 +89,10 @@ public class SynthResult extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0 || CApi.cvc5_synth_result_is_null(pointer);
+  }
 
   /**
    * Determine if the synthesis query has a solution.
@@ -94,7 +104,10 @@ public class SynthResult extends AbstractPointer
     return hasSolution(getPointer());
   }
 
-  private native boolean hasSolution(long pointer);
+  private boolean hasSolution(long pointer)
+  {
+    return pointer != 0 && CApi.cvc5_synth_result_has_solution(pointer);
+  }
 
   /**
    * Determine if the synthesis query has no solution.
@@ -107,7 +120,10 @@ public class SynthResult extends AbstractPointer
     return hasNoSolution(getPointer());
   }
 
-  private native boolean hasNoSolution(long pointer);
+  private boolean hasNoSolution(long pointer)
+  {
+    return pointer != 0 && CApi.cvc5_synth_result_has_no_solution(pointer);
+  }
 
   /**
    * Determine if the result of the synthesis query could not be determined.
@@ -119,12 +135,23 @@ public class SynthResult extends AbstractPointer
     return isUnknown(getPointer());
   }
 
-  private native boolean isUnknown(long pointer);
+  private boolean isUnknown(long pointer)
+  {
+    return pointer != 0 && CApi.cvc5_synth_result_is_unknown(pointer);
+  }
 
   /**
    * @return A string representation of this result.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null synthesis results.
+      return "(NONE)";
+    }
+    return Native.string(CApi.cvc5_synth_result_to_string(pointer));
+  }
 
   /**
    * Get the hash value of a synthesis result.
@@ -136,5 +163,15 @@ public class SynthResult extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // The C API rejects null synthesis results. The C++ API hashes the string
+      // representation of a synthesis result; any fixed value is consistent
+      // with equals.
+      return toString(pointer).hashCode();
+    }
+    return CApi.cvc5_synth_result_hash(pointer);
+  }
 }

@@ -47,6 +47,7 @@ function(add_java_example example)
     NAME ${EXAMPLE_TEST_NAME}
     COMMAND
       ${Java_JAVA_EXECUTABLE}
+        --enable-native-access=ALL-UNNAMED
         -cp "${CVC5_JAR}${PATH_SEP}${PROJECT_BINARY_DIR}/bin/api/java/${example}.jar"
         -Djava.library.path=${CVC5_JNI_PATH}
         ${example}

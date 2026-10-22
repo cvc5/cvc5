@@ -12,6 +12,10 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG;
+
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.math.BigInteger;
 
 /**
@@ -24,11 +28,8 @@ public class Proof extends AbstractPointer
    */
   public Proof()
   {
-    super(null, NULL_POINTER, null);
+    super(null, 0, null);
   }
-
-  /** The native null object shared by all null proof instances. It is never freed. */
-  private static final long NULL_POINTER = getNullProof();
 
   /**
    * This is an internal constructor intended to be used only
@@ -41,9 +42,10 @@ public class Proof extends AbstractPointer
     super(ctx, pointer, Proof::deletePointer);
   }
 
-  private static native long getNullProof();
-
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_proof_release(pointer);
+  }
 
   protected String toString(long pointer)
   {
@@ -62,7 +64,15 @@ public class Proof extends AbstractPointer
     return ProofRule.fromInt(value);
   }
 
-  private native int getRule(long pointer);
+  private int getRule(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // like Proof::getRule() of the C++ API on a null proof
+      return ProofRule.UNKNOWN.getValue();
+    }
+    return CApi.cvc5_proof_get_rule(pointer);
+  }
 
   /**
    * Get the proof rewrite rule used by the root step of the proof.
@@ -77,7 +87,10 @@ public class Proof extends AbstractPointer
     return ProofRewriteRule.fromInt(value);
   }
 
-  private native int getRewriteRule(long pointer);
+  private int getRewriteRule(long pointer)
+  {
+    return CApi.cvc5_proof_get_rewrite_rule(pointer);
+  }
 
   /**
    * Get the conclusion of the root step of the proof.
@@ -90,7 +103,15 @@ public class Proof extends AbstractPointer
     return new Term(ctx, termPointer);
   }
 
-  private native long getResult(long pointer);
+  private long getResult(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // like Proof::getResult() of the C++ API on a null proof: the null term
+      return 0;
+    }
+    return CApi.cvc5_proof_get_result(pointer);
+  }
 
   /**
    * Get the premises of the root step of the proof.
@@ -103,7 +124,30 @@ public class Proof extends AbstractPointer
     return Utils.getProofs(ctx, proofPointers);
   }
 
-  private native long[] getChildren(long pointer);
+  private long[] getChildren(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // like Proof::getChildren() of the C++ API on a null proof
+      return new long[0];
+    }
+    long[] children;
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long proofs = CApi.cvc5_proof_get_children(pointer, size.address());
+      children = Native.longs(proofs, size.get(JAVA_LONG, 0));
+    }
+    // The returned proofs are owned by the solver that created this proof
+    // (or by this proof, once that solver has been deleted). Acquire a
+    // reference to each of them for its wrapper, so that it remains valid
+    // after the solver and this proof have been released.
+    for (int i = 0; i < children.length; i++)
+    {
+      children[i] = CApi.cvc5_proof_copy(children[i]);
+    }
+    return children;
+  }
 
   /**
    * Get the arguments of the root step of the proof as a vector of terms.
@@ -117,7 +161,20 @@ public class Proof extends AbstractPointer
     return Utils.getTerms(ctx, termPointers);
   }
 
-  private native long[] getArguments(long pointer);
+  private long[] getArguments(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // like Proof::getArguments() of the C++ API on a null proof
+      return new long[0];
+    }
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = Native.outLong(arena);
+      long terms = CApi.cvc5_proof_get_arguments(pointer, size.address());
+      return Native.longs(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Referential equality operator.
@@ -144,7 +201,11 @@ public class Proof extends AbstractPointer
     return equals(getPointer(), proof.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    // supports null proofs
+    return CApi.cvc5_proof_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Get the hash value of a proof.
@@ -156,5 +217,13 @@ public class Proof extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // like std::hash<Proof> of the C++ API on a null proof
+      return 0;
+    }
+    return CApi.cvc5_proof_hash(pointer);
+  }
 }

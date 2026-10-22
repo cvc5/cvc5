@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import java.lang.foreign.Arena;
+
 /**
  * A cvc5 datatype constructor declaration. A datatype constructor declaration
  * is a specification used for creating a datatype constructor.
@@ -24,7 +26,10 @@ public class DatatypeConstructorDecl extends AbstractPointer
     super(ctx, pointer, DatatypeConstructorDecl::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_dt_cons_decl_release(pointer);
+  }
 
   // endregion
 
@@ -53,7 +58,10 @@ public class DatatypeConstructorDecl extends AbstractPointer
     return equals(getPointer(), decl.getPointer());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(long pointer1, long pointer2)
+  {
+    return CApi.cvc5_dt_cons_decl_is_equal(pointer1, pointer2);
+  }
 
   /**
    * Add datatype selector declaration.
@@ -65,7 +73,13 @@ public class DatatypeConstructorDecl extends AbstractPointer
     addSelector(getPointer(), name, sort.getPointer());
   }
 
-  private native void addSelector(long pointer, String name, long sortPointer);
+  private void addSelector(long pointer, String name, long sortPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_dt_cons_decl_add_selector(pointer, Native.cstring(arena, name), sortPointer);
+    }
+  }
 
   /**
    * Add datatype selector declaration whose codomain type is the datatype
@@ -77,7 +91,13 @@ public class DatatypeConstructorDecl extends AbstractPointer
     addSelectorSelf(getPointer(), name);
   }
 
-  private native void addSelectorSelf(long pointer, String name);
+  private void addSelectorSelf(long pointer, String name)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_dt_cons_decl_add_selector_self(pointer, Native.cstring(arena, name));
+    }
+  }
 
   /**
    * Add datatype selector declaration whose codomain sort is an unresolved
@@ -92,7 +112,14 @@ public class DatatypeConstructorDecl extends AbstractPointer
     addSelectorUnresolved(getPointer(), name, unresDataypeName);
   }
 
-  private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
+  private void addSelectorUnresolved(long pointer, String name, String unresDataypeName)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_dt_cons_decl_add_selector_unresolved(
+          pointer, Native.cstring(arena, name), Native.cstring(arena, unresDataypeName));
+    }
+  }
 
   /**
    * Determine if this DatatypeConstructorDecl is a null declaration.
@@ -104,12 +131,18 @@ public class DatatypeConstructorDecl extends AbstractPointer
     return isNull(getPointer());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(long pointer)
+  {
+    return pointer == 0;
+  }
 
   /**
    * @return A String representation of this datatype constructor declaration
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_cons_decl_to_string(pointer));
+  }
 
   /**
    * Get the hash value of a datatype constructor declaration.
@@ -121,5 +154,12 @@ public class DatatypeConstructorDecl extends AbstractPointer
     return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(long pointer)
+  {
+    if (pointer == 0)
+    {
+      return 0;
+    }
+    return CApi.cvc5_dt_cons_decl_hash(pointer);
+  }
 }

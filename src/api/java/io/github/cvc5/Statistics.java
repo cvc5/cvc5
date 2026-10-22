@@ -12,8 +12,15 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.JAVA_LONG;
+
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -28,14 +35,20 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
     super(ctx, pointer, Statistics::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(long pointer)
+  {
+    CApi.cvc5_stats_release(pointer);
+  }
 
   // endregion
 
   /**
    * @return A string representation of this Statistics.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_stats_to_string(pointer));
+  }
 
   /**
    * Retrieve the statistic with the given name.
@@ -50,7 +63,13 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
     return new Stat(ctx, statPointer);
   }
 
-  private native long get(long pointer, String name);
+  private long get(long pointer, String name)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return CApi.cvc5_stats_get(pointer, Native.cstring(arena, name));
+    }
+  }
 
   /**
    * Begin iteration over the statistics values.
@@ -64,6 +83,9 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    * Get the names and the native pointers of the statistics visited by an
    * iterator over this object.
    *
+   * <p>The C API supports only one iteration at a time per statistics
+   * object, so the iteration is completed here, in one go.</p>
+   *
    * @param pointer The native pointer of this object.
    * @param internal Whether to visit internal statistics.
    * @param defaulted Whether to visit statistics that still have their
@@ -71,8 +93,28 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    * @return The names and the native pointers of the statistics. Ownership of
    *         the latter is transferred to the caller.
    */
-  private native Pair<String[], long[]> getEntries(
-      long pointer, boolean internal, boolean defaulted);
+  private Pair<String[], long[]> getEntries(long pointer, boolean internal, boolean defaulted)
+  {
+    List<String> names = new ArrayList<>();
+    long[] stats = new long[16];
+    int size = 0;
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment name = Native.outLong(arena);
+      CApi.cvc5_stats_iter_init(pointer, internal, defaulted);
+      while (CApi.cvc5_stats_iter_has_next(pointer))
+      {
+        long stat = CApi.cvc5_stats_iter_next(pointer, name.address());
+        if (size == stats.length)
+        {
+          stats = Arrays.copyOf(stats, 2 * size);
+        }
+        stats[size++] = stat;
+        names.add(Native.string(name.get(JAVA_LONG, 0)));
+      }
+    }
+    return new Pair<>(names.toArray(new String[0]), Arrays.copyOf(stats, size));
+  }
 
   /**
    * An iterator over the statistics entries maintained by the {@code Statistics} class.
@@ -111,6 +153,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
      */
     public ConstIterator()
     {
+      // the defaults of Statistics::begin() in the C++ API
       this(false, false);
     }
 
