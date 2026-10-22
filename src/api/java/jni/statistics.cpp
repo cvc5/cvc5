@@ -91,7 +91,6 @@ JNIEXPORT jobject JNICALL Java_io_github_cvc5_Statistics_getEntries(
   jobjectArray jNames = getStringArrayFromStringVector(env, names);
   jlongArray jStats = env->NewLongArray(stats.size());
   env->SetLongArrayRegion(jStats, 0, stats.size(), stats.data());
-  // Pair<String[], long[]> pair = new Pair<>(jNames, jStats)
   jclass pairClass = env->FindClass("io/github/cvc5/Pair");
   jmethodID pairConstructor = env->GetMethodID(
       pairClass, "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
