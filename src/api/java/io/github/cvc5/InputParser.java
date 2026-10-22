@@ -12,8 +12,9 @@
 
 package io.github.cvc5;
 
-import static java.lang.foreign.ValueLayout.JAVA_LONG;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 
+import io.github.cvc5.capi.CApi;
 import io.github.cvc5.modes.InputLanguage;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
@@ -67,16 +68,15 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public InputParser(Solver solver, SymbolManager sm)
   {
-    super(solver.ctx,
-        newInputParser(solver.getPointer(), sm.getPointer()),
-        InputParser::deletePointer);
+    super(solver.ctx, newInputParser(solver.handle(), sm.handle()), InputParser::deletePointer);
     d_solver = solver;
     d_sm = sm;
   }
 
-  private static long newInputParser(long solverPointer, long symbolManagerPointer)
+  private static MemorySegment newInputParser(
+      MemorySegment solverPointer, MemorySegment symbolManagerPointer)
   {
-    return CApi.cvc5_parser_new(solverPointer, symbolManagerPointer);
+    return Native.handle(CApi.cvc5_parser_new(solverPointer, symbolManagerPointer));
   }
 
   /**
@@ -91,7 +91,7 @@ public class InputParser extends AbstractPointer implements AutoCloseable
     this(solver, new SymbolManager(solver.getTermManager()));
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     // Not cvc5_parser_release(), which would invalidate the commands that are
     // still in use. Commands keep the native parser alive until they are
@@ -142,14 +142,15 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public void setFileInput(InputLanguage lang, String fileName)
   {
-    setFileInput(getPointer(), lang.getValue(), fileName);
+    setFileInput(handle(), lang.getValue(), fileName);
   }
 
-  private void setFileInput(long pointer, int langValue, String fileName)
+  private void setFileInput(MemorySegment pointer, int langValue, String fileName)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      CApi.cvc5_parser_set_file_input(pointer, langValue, Native.cstring(arena, fileName));
+      CApi.cvc5_parser_set_file_input(pointer, langValue, arena.allocateFrom(fileName));
+      Native.check();
     }
   }
 
@@ -162,14 +163,15 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public void setStringInput(InputLanguage lang, String input, String name)
   {
-    setStringInput(getPointer(), lang.getValue(), input, name);
+    setStringInput(handle(), lang.getValue(), input, name);
   }
-  private void setStringInput(long pointer, int langValue, String input, String name)
+  private void setStringInput(MemorySegment pointer, int langValue, String input, String name)
   {
     try (Arena arena = Arena.ofConfined())
     {
       CApi.cvc5_parser_set_str_input(
-          pointer, langValue, Native.cstring(arena, input), Native.cstring(arena, name));
+          pointer, langValue, arena.allocateFrom(input), arena.allocateFrom(name));
+      Native.check();
     }
   }
 
@@ -182,14 +184,15 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public void setIncrementalStringInput(InputLanguage lang, String name)
   {
-    setIncrementalStringInput(getPointer(), lang.getValue(), name);
+    setIncrementalStringInput(handle(), lang.getValue(), name);
   }
 
-  private void setIncrementalStringInput(long pointer, int langValue, String name)
+  private void setIncrementalStringInput(MemorySegment pointer, int langValue, String name)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      CApi.cvc5_parser_set_inc_str_input(pointer, langValue, Native.cstring(arena, name));
+      CApi.cvc5_parser_set_inc_str_input(pointer, langValue, arena.allocateFrom(name));
+      Native.check();
     }
   }
 
@@ -201,14 +204,15 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public void appendIncrementalStringInput(String input)
   {
-    appendIncrementalStringInput(getPointer(), input);
+    appendIncrementalStringInput(handle(), input);
   }
 
-  private void appendIncrementalStringInput(long pointer, String input)
+  private void appendIncrementalStringInput(MemorySegment pointer, String input)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      CApi.cvc5_parser_append_inc_str_input(pointer, Native.cstring(arena, input));
+      CApi.cvc5_parser_append_inc_str_input(pointer, arena.allocateFrom(input));
+      Native.check();
     }
   }
 
@@ -222,15 +226,15 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public Command nextCommand()
   {
-    return new Command(ctx, nextCommand(getPointer()));
+    return new Command(ctx, nextCommand(handle()));
   }
 
-  private long nextCommand(long pointer)
+  private MemorySegment nextCommand(MemorySegment pointer)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      MemorySegment errorMsg = Native.outLong(arena);
-      long cmd = CApi.cvc5_parser_next_command(pointer, errorMsg.address());
+      MemorySegment errorMsg = arena.allocate(ADDRESS);
+      MemorySegment cmd = Native.handle(CApi.cvc5_parser_next_command(pointer, errorMsg));
       checkParseError(errorMsg);
       return cmd;
     }
@@ -243,15 +247,15 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public Term nextTerm()
   {
-    return new Term(ctx, nextTerm(getPointer()));
+    return new Term(ctx, nextTerm(handle()));
   }
 
-  private long nextTerm(long pointer)
+  private MemorySegment nextTerm(MemorySegment pointer)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      MemorySegment errorMsg = Native.outLong(arena);
-      long term = CApi.cvc5_parser_next_term(pointer, errorMsg.address());
+      MemorySegment errorMsg = arena.allocate(ADDRESS);
+      MemorySegment term = Native.handle(CApi.cvc5_parser_next_term(pointer, errorMsg));
       checkParseError(errorMsg);
       return term;
     }
@@ -263,19 +267,20 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    *
    * <p>These functions report parse errors through their {@code error_msg}
    * output parameter rather than the error state of the C API (other errors
-   * are reported through both, and {@link CApi} raises them). A parse error
-   * raises a {@link CVC5ParserException}, which is a checked exception,
-   * regardless of whether the calling method declares it, as the native
-   * methods did when the Java API was based on JNI.</p>
+   * are reported through both, and {@link Native#handle} raises them). A
+   * parse error raises a {@link CVC5ParserException}, which is a checked
+   * exception, regardless of whether the calling method declares it, as the
+   * native methods did when the Java API was based on JNI.</p>
    *
    * @param errorMsg The {@code error_msg} output parameter.
    */
   private static void checkParseError(MemorySegment errorMsg)
   {
-    long msg = errorMsg.get(JAVA_LONG, 0);
-    if (msg != 0)
+    MemorySegment msg = errorMsg.get(ADDRESS, 0);
+    if (msg.address() != 0)
     {
-      throw InputParser.<RuntimeException>sneakyThrow(new CVC5ParserException(Native.string(msg)));
+      throw InputParser.<RuntimeException>sneakyThrow(
+          new CVC5ParserException(Native.copyString(msg)));
     }
   }
 
@@ -292,11 +297,11 @@ public class InputParser extends AbstractPointer implements AutoCloseable
    */
   public boolean done()
   {
-    return done(getPointer());
+    return done(handle());
   }
 
-  private boolean done(long pointer)
+  private boolean done(MemorySegment pointer)
   {
-    return CApi.cvc5_parser_done(pointer);
+    return Native.check(CApi.cvc5_parser_done(pointer));
   }
 }

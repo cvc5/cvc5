@@ -12,7 +12,8 @@
 
 package io.github.cvc5;
 
-import java.util.function.LongConsumer;
+import java.lang.foreign.MemorySegment;
+import java.util.function.Consumer;
 
 /**
  * Abstract base class for handling native pointers in a managed way.
@@ -23,12 +24,20 @@ import java.util.function.LongConsumer;
  */
 abstract class AbstractPointer implements IPointer
 {
+  static
+  {
+    // The bindings look up each C function on its first call, and a failed
+    // lookup cannot be retried: load the libraries before any wrapper class
+    // can call the C API, even for null objects.
+    Utils.loadLibraries();
+  }
+
   /**
-   * The raw native pointer value: the handle of the native object in the cvc5
-   * C API, or 0 for null objects (e.g., {@code new Term()}) and for objects
-   * whose native object has been released.
+   * The handle of the native object in the cvc5 C API, or
+   * {@link MemorySegment#NULL} for null objects (e.g., {@code new Term()}) and
+   * for objects whose native object has been released.
    */
-  protected long pointer;
+  private MemorySegment handle;
 
   /**
    * The context of the term manager this object belongs to, or {@code null}
@@ -42,48 +51,77 @@ abstract class AbstractPointer implements IPointer
   private final NativeContext.Ref ref;
 
   /**
-   * Construct an {@code AbstractPointer} with the given native pointer.
+   * Construct an {@code AbstractPointer} with the given native handle.
    *
    * <p>The wrapper owns one reference to the native object, which the C API
    * returned to it, and releases it once the wrapper is unreachable or
-   * {@link #deletePointer()} is called. A null pointer represents a null
+   * {@link #deletePointer()} is called. A NULL handle represents a null
    * object, which is not tracked.</p>
    *
    * @param ctx the context of the term manager the native object belongs to,
    *            or {@code null} for a null object
-   * @param pointer the handle of the native object, or 0 for a null object
+   * @param handle the handle of the native object, or NULL for a null object
    * @param deleter the function that releases the native object, or
    *                {@code null} if this wrapper does not own a reference to
    *                it (e.g., {@link Solver#getTermManager()})
    */
-  AbstractPointer(NativeContext ctx, long pointer, LongConsumer deleter)
+  AbstractPointer(NativeContext ctx, MemorySegment handle, Consumer<MemorySegment> deleter)
   {
-    this.pointer = pointer;
-    this.ctx = pointer == 0 ? null : ctx;
+    this.handle = handle;
+    this.ctx = handle.address() == 0 ? null : ctx;
     this.ref =
-        this.ctx == null || deleter == null ? null : this.ctx.register(this, pointer, deleter);
+        this.ctx == null || deleter == null ? null : this.ctx.register(this, handle, deleter);
+  }
+
+  /**
+   * Return the handle of the native object, to be passed to the C API.
+   *
+   * <p>Every native call obtains the handles of the objects it uses through
+   * this method, so that using an object after its native resource has been
+   * released raises an exception instead of crashing the JVM.</p>
+   *
+   * @return the handle, which is NULL for null objects
+   * @throws IllegalStateException if the native resource of this object has
+   *         been released, e.g., via {@link #deletePointer()}
+   */
+  final MemorySegment handle()
+  {
+    MemorySegment h = handle;
+    if (h.address() == 0 && ref != null)
+    {
+      throw new IllegalStateException(
+          "This " + getClass().getSimpleName() + " has been released and cannot be used anymore");
+    }
+    return h;
+  }
+
+  /**
+   * Return the address of the native object, without checking whether it has
+   * been released (e.g., for comparisons).
+   *
+   * @return the address, which is 0 for null and released objects
+   */
+  final long address()
+  {
+    return handle.address();
   }
 
   /**
    * Return the raw native pointer.
    *
-   * <p>Every native call obtains the pointers of the objects it uses through
-   * this method, so that using an object after its native resource has been
-   * released raises an exception instead of crashing the JVM.</p>
-   *
-   * @return the pointer value, which is 0 for null objects
+   * @return the address of the native object, which is 0 for null objects
    * @throws IllegalStateException if the native resource of this object has
    *         been released, e.g., via {@link #deletePointer()}
    */
   public long getPointer()
   {
-    long p = pointer;
-    if (p == 0 && ref != null)
-    {
-      throw new IllegalStateException(
-          "This " + getClass().getSimpleName() + " has been released and cannot be used anymore");
-    }
-    return p;
+    return handle().address();
+  }
+
+  /** Mark the native object as released. */
+  final void clear()
+  {
+    handle = MemorySegment.NULL;
   }
 
   /**
@@ -101,7 +139,7 @@ abstract class AbstractPointer implements IPointer
   {
     if (ref != null)
     {
-      pointer = 0;
+      clear();
       ref.release();
     }
   }

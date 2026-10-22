@@ -33,6 +33,8 @@ cvc5 1.4.3 prerelease
     library (`cvc5jni`) anymore: the Java API loads `libcvc5` and
     `libcvc5parser`, or, with a static build (and from the native JARs), a
     self-contained `libcvc5`, which is installed into `lib/cvc5-java`.
+    Building the Java API requires jextract 25, which generates the bindings
+    of the C API; `--auto-download` downloads it.
   * Native memory is now released automatically: the native object behind a
     Java object (term manager, solver, term, sort, ...) is freed once the Java
     object is no longer reachable. Native objects are no longer kept alive by a

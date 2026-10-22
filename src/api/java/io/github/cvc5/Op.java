@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
 /**
  * A cvc5 operator.
  *
@@ -26,15 +28,15 @@ public class Op extends AbstractPointer
    */
   public Op()
   {
-    super(null, 0, null);
+    super(null, MemorySegment.NULL, null);
   }
 
-  Op(NativeContext ctx, long pointer)
+  Op(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, Op::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_op_release(pointer);
   }
@@ -55,12 +57,12 @@ public class Op extends AbstractPointer
     {
       return false;
     }
-    return equals(getPointer(), ((Op) t).getPointer());
+    return equals(handle(), ((Op) t).handle());
   }
 
-  private boolean equals(long pointer1, long pointer2)
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
   {
-    return CApi.cvc5_op_is_equal(pointer1, pointer2);
+    return Native.check(CApi.cvc5_op_is_equal(pointer1, pointer2));
   }
 
   /**
@@ -72,7 +74,7 @@ public class Op extends AbstractPointer
   {
     try
     {
-      int value = getKind(getPointer());
+      int value = getKind(handle());
       return Kind.fromInt(value);
     }
     catch (CVC5ApiException e)
@@ -82,9 +84,9 @@ public class Op extends AbstractPointer
     }
   }
 
-  private int getKind(long pointer)
+  private int getKind(MemorySegment pointer)
   {
-    return CApi.cvc5_op_get_kind(pointer);
+    return Native.check(CApi.cvc5_op_get_kind(pointer));
   }
 
   /**
@@ -94,12 +96,12 @@ public class Op extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private boolean isNull(long pointer)
+  private boolean isNull(MemorySegment pointer)
   {
-    return pointer == 0;
+    return pointer.address() == 0;
   }
 
   /**
@@ -109,17 +111,17 @@ public class Op extends AbstractPointer
    */
   public boolean isIndexed()
   {
-    return isIndexed(getPointer());
+    return isIndexed(handle());
   }
 
-  private boolean isIndexed(long pointer)
+  private boolean isIndexed(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // The C API rejects null operators, which are not indexed.
       return false;
     }
-    return CApi.cvc5_op_is_indexed(pointer);
+    return Native.check(CApi.cvc5_op_is_indexed(pointer));
   }
 
   /**
@@ -129,12 +131,12 @@ public class Op extends AbstractPointer
    */
   public int getNumIndices()
   {
-    return getNumIndices(getPointer());
+    return getNumIndices(handle());
   }
 
-  private int getNumIndices(long pointer)
+  private int getNumIndices(MemorySegment pointer)
   {
-    return (int) CApi.cvc5_op_get_num_indices(pointer);
+    return (int) Native.check(CApi.cvc5_op_get_num_indices(pointer));
   }
 
   /**
@@ -146,13 +148,13 @@ public class Op extends AbstractPointer
   public Term get(int i) throws CVC5ApiException
   {
     Utils.validateUnsigned(i, "index");
-    long termPointer = get(getPointer(), i);
+    MemorySegment termPointer = get(handle(), i);
     return new Term(ctx, termPointer);
   }
 
-  private long get(long pointer, int i)
+  private MemorySegment get(MemorySegment pointer, int i)
   {
-    return CApi.cvc5_op_get_index(pointer, i);
+    return Native.handle(CApi.cvc5_op_get_index(pointer, i));
   }
 
   /**
@@ -166,7 +168,7 @@ public class Op extends AbstractPointer
       // name of their kind.
       return Kind.NULL_TERM.name();
     }
-    return Native.string(CApi.cvc5_op_to_string(pointer));
+    return Native.string(CApi.cvc5_op_to_string(MemorySegment.ofAddress(pointer)));
   }
 
   /**
@@ -176,17 +178,17 @@ public class Op extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private long hashCode(long pointer)
+  private long hashCode(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // The C API rejects null operators, whose hash value is the value of their
       // kind.
       return Kind.NULL_TERM.getValue();
     }
-    return CApi.cvc5_op_hash(pointer);
+    return Native.check(CApi.cvc5_op_hash(pointer));
   }
 }

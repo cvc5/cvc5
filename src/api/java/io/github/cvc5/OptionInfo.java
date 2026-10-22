@@ -12,17 +12,10 @@
 
 package io.github.cvc5;
 
-import static java.lang.foreign.ValueLayout.ADDRESS;
-import static java.lang.foreign.ValueLayout.JAVA_BOOLEAN;
-import static java.lang.foreign.ValueLayout.JAVA_DOUBLE;
-import static java.lang.foreign.ValueLayout.JAVA_INT;
-import static java.lang.foreign.ValueLayout.JAVA_LONG;
-
+import io.github.cvc5.capi.CApi;
+import io.github.cvc5.capi.Cvc5OptionInfo;
 import io.github.cvc5.modes.OptionCategory;
-import java.lang.foreign.MemoryLayout;
 import java.lang.foreign.MemorySegment;
-import java.lang.foreign.StructLayout;
-import java.lang.foreign.ValueLayout;
 import java.math.BigInteger;
 
 /**
@@ -70,28 +63,28 @@ public class OptionInfo extends AbstractPointer
    * The object thus owns no native object (its pointer is 0).</p>
    *
    * @param ctx The context of the solver (unused).
-   * @param pointer The address of a {@code Cvc5OptionInfo} struct filled in
-   *                by {@code cvc5_get_option_info()}, which must remain
-   *                valid during this call.
+   * @param info A {@code Cvc5OptionInfo} struct filled in by
+   *             {@code cvc5_get_option_info()}, which must remain valid
+   *             during this call.
    */
-  OptionInfo(NativeContext ctx, long pointer)
+  OptionInfo(NativeContext ctx, MemorySegment info)
   {
-    super(ctx, 0, null);
-    MemorySegment info = MemorySegment.ofAddress(pointer).reinterpret(LAYOUT.byteSize());
-    this.name = Native.string(address(info, NAME));
-    this.aliases = Native.strings(address(info, ALIASES), info.get(JAVA_LONG, NUM_ALIASES));
-    this.setByUser = info.get(JAVA_BOOLEAN, IS_SET_BY_USER);
+    super(ctx, MemorySegment.NULL, null);
+    info = info.reinterpret(Cvc5OptionInfo.sizeof());
+    this.name = Native.copyString(Cvc5OptionInfo.name(info));
+    this.aliases = Native.strings(Cvc5OptionInfo.aliases(info), Cvc5OptionInfo.num_aliases(info));
+    this.setByUser = Cvc5OptionInfo.is_set_by_user(info);
     try
     {
-      this.category = OptionCategory.fromInt(info.get(JAVA_INT, CATEGORY));
+      this.category = OptionCategory.fromInt(Cvc5OptionInfo.category(info));
     }
     catch (CVC5ApiException e)
     {
       throw new RuntimeException("Invalid OptionCategory value", e);
     }
-    this.kind = info.get(JAVA_INT, KIND);
+    this.kind = Cvc5OptionInfo.kind(info);
     this.baseInfo = getBaseInfo(info);
-    this.str = Native.string(CApi.cvc5_option_info_to_string(pointer));
+    this.str = Native.string(CApi.cvc5_option_info_to_string(info));
   }
 
   public String toString()
@@ -109,96 +102,7 @@ public class OptionInfo extends AbstractPointer
 
   // endregion
 
-  // region layout of struct Cvc5OptionInfo of the C API
-
-  /**
-   * The layout of {@code struct IntInfo}, {@code struct UIntInfo} and
-   * {@code struct DoubleInfo} in {@code struct Cvc5OptionInfo}.
-   *
-   * @param value The layout of the values.
-   * @return The layout.
-   */
-  private static StructLayout numberInfoLayout(ValueLayout value)
-  {
-    return MemoryLayout.structLayout(value.withName("dflt"),
-        value.withName("cur"),
-        value.withName("min"),
-        value.withName("max"),
-        JAVA_BOOLEAN.withName("has_min"),
-        JAVA_BOOLEAN.withName("has_max"),
-        MemoryLayout.paddingLayout(6));
-  }
-
-  /** The layout of {@code struct Cvc5OptionInfo}. */
-  private static final StructLayout LAYOUT =
-      MemoryLayout.structLayout(JAVA_INT.withName("kind"), // Cvc5OptionInfoKind
-          MemoryLayout.paddingLayout(4),
-          ADDRESS.withName("name"),
-          JAVA_LONG.withName("num_aliases"), // size_t
-          ADDRESS.withName("aliases"),
-          JAVA_LONG.withName("num_no_supports"), // size_t
-          ADDRESS.withName("no_supports"),
-          JAVA_BOOLEAN.withName("is_set_by_user"),
-          JAVA_BOOLEAN.withName("is_expert"),
-          JAVA_BOOLEAN.withName("is_regular"),
-          MemoryLayout.paddingLayout(1),
-          JAVA_INT.withName("category"), // Cvc5OptionCategory
-          MemoryLayout.structLayout(JAVA_BOOLEAN.withName("dflt"), JAVA_BOOLEAN.withName("cur"))
-              .withName("info_bool"),
-          MemoryLayout.paddingLayout(6),
-          MemoryLayout.structLayout(ADDRESS.withName("dflt"), ADDRESS.withName("cur"))
-              .withName("info_str"),
-          numberInfoLayout(JAVA_LONG).withName("info_int"), // int64_t
-          numberInfoLayout(JAVA_LONG).withName("info_uint"), // uint64_t
-          numberInfoLayout(JAVA_DOUBLE).withName("info_double"),
-          MemoryLayout
-              .structLayout(ADDRESS.withName("dflt"),
-                  ADDRESS.withName("cur"),
-                  JAVA_LONG.withName("num_modes"), // size_t
-                  ADDRESS.withName("modes"))
-              .withName("info_mode"),
-          ADDRESS.withName("d_cpp_info"));
-
-  /**
-   * Get the offset of a field of {@code struct Cvc5OptionInfo}.
-   *
-   * @param path The names of the field and of the structs containing it.
-   * @return The offset in bytes.
-   */
-  private static long offset(String... path)
-  {
-    MemoryLayout.PathElement[] elements = new MemoryLayout.PathElement[path.length];
-    for (int i = 0; i < path.length; i++)
-    {
-      elements[i] = MemoryLayout.PathElement.groupElement(path[i]);
-    }
-    return LAYOUT.byteOffset(elements);
-  }
-
-  private static final long KIND = offset("kind");
-  private static final long NAME = offset("name");
-  private static final long NUM_ALIASES = offset("num_aliases");
-  private static final long ALIASES = offset("aliases");
-  private static final long IS_SET_BY_USER = offset("is_set_by_user");
-  private static final long CATEGORY = offset("category");
-  private static final long BOOL_DFLT = offset("info_bool", "dflt");
-  private static final long BOOL_CUR = offset("info_bool", "cur");
-  private static final long STR_DFLT = offset("info_str", "dflt");
-  private static final long STR_CUR = offset("info_str", "cur");
-  private static final long INT_INFO = offset("info_int");
-  private static final long UINT_INFO = offset("info_uint");
-  private static final long DOUBLE_INFO = offset("info_double");
-  // offsets in struct IntInfo, UIntInfo and DoubleInfo
-  private static final long NUM_DFLT = offset("info_int", "dflt") - INT_INFO;
-  private static final long NUM_CUR = offset("info_int", "cur") - INT_INFO;
-  private static final long NUM_MIN = offset("info_int", "min") - INT_INFO;
-  private static final long NUM_MAX = offset("info_int", "max") - INT_INFO;
-  private static final long NUM_HAS_MIN = offset("info_int", "has_min") - INT_INFO;
-  private static final long NUM_HAS_MAX = offset("info_int", "has_max") - INT_INFO;
-  private static final long MODE_DFLT = offset("info_mode", "dflt");
-  private static final long MODE_CUR = offset("info_mode", "cur");
-  private static final long MODE_NUM_MODES = offset("info_mode", "num_modes");
-  private static final long MODE_MODES = offset("info_mode", "modes");
+  // region reading struct Cvc5OptionInfo of the C API
 
   /** Values of {@code Cvc5OptionInfoKind}. */
   private static final int KIND_VOID = 0;
@@ -208,18 +112,6 @@ public class OptionInfo extends AbstractPointer
   private static final int KIND_UINT64 = 4;
   private static final int KIND_DOUBLE = 5;
   private static final int KIND_MODES = 6;
-
-  /**
-   * Read a pointer.
-   *
-   * @param segment The memory to read from.
-   * @param offset The offset of the pointer.
-   * @return The pointer.
-   */
-  private static long address(MemorySegment segment, long offset)
-  {
-    return segment.get(ADDRESS, offset).address();
-  }
 
   /**
    * Convert a {@code uint64_t} value to a {@code BigInteger}.
@@ -383,41 +275,55 @@ public class OptionInfo extends AbstractPointer
     switch (kind)
     {
       case KIND_BOOL:
+      {
+        MemorySegment b = Cvc5OptionInfo.info_bool(info);
         return new ValueInfo<Boolean>(
-            info.get(JAVA_BOOLEAN, BOOL_DFLT), info.get(JAVA_BOOLEAN, BOOL_CUR));
+            Cvc5OptionInfo.BoolInfo.dflt(b), Cvc5OptionInfo.BoolInfo.cur(b));
+      }
       case KIND_STR:
-        return new ValueInfo<String>(
-            Native.string(address(info, STR_DFLT)), Native.string(address(info, STR_CUR)));
+      {
+        MemorySegment s = Cvc5OptionInfo.info_str(info);
+        return new ValueInfo<String>(Native.copyString(Cvc5OptionInfo.StringInfo.dflt(s)),
+            Native.copyString(Cvc5OptionInfo.StringInfo.cur(s)));
+      }
       case KIND_INT64:
       {
-        MemorySegment num = info.asSlice(INT_INFO);
-        return new NumberInfo<BigInteger>(BigInteger.valueOf(num.get(JAVA_LONG, NUM_DFLT)),
-            BigInteger.valueOf(num.get(JAVA_LONG, NUM_CUR)),
-            num.get(JAVA_BOOLEAN, NUM_HAS_MIN) ? BigInteger.valueOf(num.get(JAVA_LONG, NUM_MIN))
-                                               : null,
-            num.get(JAVA_BOOLEAN, NUM_HAS_MAX) ? BigInteger.valueOf(num.get(JAVA_LONG, NUM_MAX))
-                                               : null);
+        MemorySegment num = Cvc5OptionInfo.info_int(info);
+        return new NumberInfo<BigInteger>(BigInteger.valueOf(Cvc5OptionInfo.IntInfo.dflt(num)),
+            BigInteger.valueOf(Cvc5OptionInfo.IntInfo.cur(num)),
+            Cvc5OptionInfo.IntInfo.has_min(num)
+                ? BigInteger.valueOf(Cvc5OptionInfo.IntInfo.min(num))
+                : null,
+            Cvc5OptionInfo.IntInfo.has_max(num)
+                ? BigInteger.valueOf(Cvc5OptionInfo.IntInfo.max(num))
+                : null);
       }
       case KIND_UINT64:
       {
-        MemorySegment num = info.asSlice(UINT_INFO);
-        return new NumberInfo<BigInteger>(unsigned(num.get(JAVA_LONG, NUM_DFLT)),
-            unsigned(num.get(JAVA_LONG, NUM_CUR)),
-            num.get(JAVA_BOOLEAN, NUM_HAS_MIN) ? unsigned(num.get(JAVA_LONG, NUM_MIN)) : null,
-            num.get(JAVA_BOOLEAN, NUM_HAS_MAX) ? unsigned(num.get(JAVA_LONG, NUM_MAX)) : null);
+        MemorySegment num = Cvc5OptionInfo.info_uint(info);
+        return new NumberInfo<BigInteger>(unsigned(Cvc5OptionInfo.UIntInfo.dflt(num)),
+            unsigned(Cvc5OptionInfo.UIntInfo.cur(num)),
+            Cvc5OptionInfo.UIntInfo.has_min(num) ? unsigned(Cvc5OptionInfo.UIntInfo.min(num))
+                                                 : null,
+            Cvc5OptionInfo.UIntInfo.has_max(num) ? unsigned(Cvc5OptionInfo.UIntInfo.max(num))
+                                                 : null);
       }
       case KIND_DOUBLE:
       {
-        MemorySegment num = info.asSlice(DOUBLE_INFO);
-        return new NumberInfo<Double>(num.get(JAVA_DOUBLE, NUM_DFLT),
-            num.get(JAVA_DOUBLE, NUM_CUR),
-            num.get(JAVA_BOOLEAN, NUM_HAS_MIN) ? num.get(JAVA_DOUBLE, NUM_MIN) : null,
-            num.get(JAVA_BOOLEAN, NUM_HAS_MAX) ? num.get(JAVA_DOUBLE, NUM_MAX) : null);
+        MemorySegment num = Cvc5OptionInfo.info_double(info);
+        return new NumberInfo<Double>(Cvc5OptionInfo.DoubleInfo.dflt(num),
+            Cvc5OptionInfo.DoubleInfo.cur(num),
+            Cvc5OptionInfo.DoubleInfo.has_min(num) ? Cvc5OptionInfo.DoubleInfo.min(num) : null,
+            Cvc5OptionInfo.DoubleInfo.has_max(num) ? Cvc5OptionInfo.DoubleInfo.max(num) : null);
       }
       case KIND_MODES:
-        return new ModeInfo(Native.string(address(info, MODE_DFLT)),
-            Native.string(address(info, MODE_CUR)),
-            Native.strings(address(info, MODE_MODES), info.get(JAVA_LONG, MODE_NUM_MODES)));
+      {
+        MemorySegment mode = Cvc5OptionInfo.info_mode(info);
+        return new ModeInfo(Native.copyString(Cvc5OptionInfo.ModeInfo.dflt(mode)),
+            Native.copyString(Cvc5OptionInfo.ModeInfo.cur(mode)),
+            Native.strings(
+                Cvc5OptionInfo.ModeInfo.modes(mode), Cvc5OptionInfo.ModeInfo.num_modes(mode)));
+      }
       default: return new VoidInfo();
     }
   }

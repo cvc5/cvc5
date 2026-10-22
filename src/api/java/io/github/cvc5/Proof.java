@@ -14,6 +14,7 @@ package io.github.cvc5;
 
 import static java.lang.foreign.ValueLayout.JAVA_LONG;
 
+import io.github.cvc5.capi.CApi;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.math.BigInteger;
@@ -28,7 +29,7 @@ public class Proof extends AbstractPointer
    */
   public Proof()
   {
-    super(null, 0, null);
+    super(null, MemorySegment.NULL, null);
   }
 
   /**
@@ -37,12 +38,12 @@ public class Proof extends AbstractPointer
    *
    * @param pointer the cpp pointer to Proof
    */
-  Proof(NativeContext ctx, long pointer)
+  Proof(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, Proof::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_proof_release(pointer);
   }
@@ -60,18 +61,18 @@ public class Proof extends AbstractPointer
    */
   public ProofRule getRule() throws CVC5ApiException
   {
-    int value = getRule(getPointer());
+    int value = getRule(handle());
     return ProofRule.fromInt(value);
   }
 
-  private int getRule(long pointer)
+  private int getRule(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // like Proof::getRule() of the C++ API on a null proof
       return ProofRule.UNKNOWN.getValue();
     }
-    return CApi.cvc5_proof_get_rule(pointer);
+    return Native.check(CApi.cvc5_proof_get_rule(pointer));
   }
 
   /**
@@ -83,13 +84,13 @@ public class Proof extends AbstractPointer
    */
   public ProofRewriteRule getRewriteRule() throws CVC5ApiException
   {
-    int value = getRewriteRule(getPointer());
+    int value = getRewriteRule(handle());
     return ProofRewriteRule.fromInt(value);
   }
 
-  private int getRewriteRule(long pointer)
+  private int getRewriteRule(MemorySegment pointer)
   {
-    return CApi.cvc5_proof_get_rewrite_rule(pointer);
+    return Native.check(CApi.cvc5_proof_get_rewrite_rule(pointer));
   }
 
   /**
@@ -99,18 +100,18 @@ public class Proof extends AbstractPointer
    */
   public Term getResult()
   {
-    long termPointer = getResult(getPointer());
+    MemorySegment termPointer = getResult(handle());
     return new Term(ctx, termPointer);
   }
 
-  private long getResult(long pointer)
+  private MemorySegment getResult(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // like Proof::getResult() of the C++ API on a null proof: the null term
-      return 0;
+      return MemorySegment.NULL;
     }
-    return CApi.cvc5_proof_get_result(pointer);
+    return Native.handle(CApi.cvc5_proof_get_result(pointer));
   }
 
   /**
@@ -120,23 +121,23 @@ public class Proof extends AbstractPointer
    */
   public Proof[] getChildren()
   {
-    long[] proofPointers = getChildren(getPointer());
+    MemorySegment[] proofPointers = getChildren(handle());
     return Utils.getProofs(ctx, proofPointers);
   }
 
-  private long[] getChildren(long pointer)
+  private MemorySegment[] getChildren(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // like Proof::getChildren() of the C++ API on a null proof
-      return new long[0];
+      return new MemorySegment[0];
     }
-    long[] children;
+    MemorySegment[] children;
     try (Arena arena = Arena.ofConfined())
     {
-      MemorySegment size = Native.outLong(arena);
-      long proofs = CApi.cvc5_proof_get_children(pointer, size.address());
-      children = Native.longs(proofs, size.get(JAVA_LONG, 0));
+      MemorySegment size = arena.allocate(JAVA_LONG);
+      MemorySegment proofs = Native.check(CApi.cvc5_proof_get_children(pointer, size));
+      children = Native.handles(proofs, size.get(JAVA_LONG, 0));
     }
     // The returned proofs are owned by the solver that created this proof
     // (or by this proof, once that solver has been deleted). Acquire a
@@ -144,7 +145,7 @@ public class Proof extends AbstractPointer
     // after the solver and this proof have been released.
     for (int i = 0; i < children.length; i++)
     {
-      children[i] = CApi.cvc5_proof_copy(children[i]);
+      children[i] = Native.handle(CApi.cvc5_proof_copy(children[i]));
     }
     return children;
   }
@@ -157,22 +158,22 @@ public class Proof extends AbstractPointer
    */
   public Term[] getArguments()
   {
-    long[] termPointers = getArguments(getPointer());
+    MemorySegment[] termPointers = getArguments(handle());
     return Utils.getTerms(ctx, termPointers);
   }
 
-  private long[] getArguments(long pointer)
+  private MemorySegment[] getArguments(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // like Proof::getArguments() of the C++ API on a null proof
-      return new long[0];
+      return new MemorySegment[0];
     }
     try (Arena arena = Arena.ofConfined())
     {
-      MemorySegment size = Native.outLong(arena);
-      long terms = CApi.cvc5_proof_get_arguments(pointer, size.address());
-      return Native.longs(terms, size.get(JAVA_LONG, 0));
+      MemorySegment size = arena.allocate(JAVA_LONG);
+      MemorySegment terms = Native.check(CApi.cvc5_proof_get_arguments(pointer, size));
+      return Native.handles(terms, size.get(JAVA_LONG, 0));
     }
   }
 
@@ -194,17 +195,17 @@ public class Proof extends AbstractPointer
       return false;
     }
     Proof proof = (Proof) p;
-    if (pointer == proof.pointer)
+    if (address() == proof.address())
     {
       return true;
     }
-    return equals(getPointer(), proof.getPointer());
+    return equals(handle(), proof.handle());
   }
 
-  private boolean equals(long pointer1, long pointer2)
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
   {
     // supports null proofs
-    return CApi.cvc5_proof_is_equal(pointer1, pointer2);
+    return Native.check(CApi.cvc5_proof_is_equal(pointer1, pointer2));
   }
 
   /**
@@ -214,16 +215,16 @@ public class Proof extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private long hashCode(long pointer)
+  private long hashCode(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // like std::hash<Proof> of the C++ API on a null proof
       return 0;
     }
-    return CApi.cvc5_proof_hash(pointer);
+    return Native.check(CApi.cvc5_proof_hash(pointer));
   }
 }

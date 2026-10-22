@@ -12,7 +12,9 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 
 /**
  * A cvc5 datatype constructor declaration. A datatype constructor declaration
@@ -21,12 +23,12 @@ import java.lang.foreign.Arena;
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeConstructorDecl(NativeContext ctx, long pointer)
+  DatatypeConstructorDecl(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, DatatypeConstructorDecl::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_dt_cons_decl_release(pointer);
   }
@@ -51,16 +53,16 @@ public class DatatypeConstructorDecl extends AbstractPointer
       return false;
     }
     DatatypeConstructorDecl decl = (DatatypeConstructorDecl) d;
-    if (this.pointer == decl.pointer)
+    if (address() == decl.address())
     {
       return true;
     }
-    return equals(getPointer(), decl.getPointer());
+    return equals(handle(), decl.handle());
   }
 
-  private boolean equals(long pointer1, long pointer2)
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
   {
-    return CApi.cvc5_dt_cons_decl_is_equal(pointer1, pointer2);
+    return Native.check(CApi.cvc5_dt_cons_decl_is_equal(pointer1, pointer2));
   }
 
   /**
@@ -70,14 +72,15 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelector(String name, Sort sort)
   {
-    addSelector(getPointer(), name, sort.getPointer());
+    addSelector(handle(), name, sort.handle());
   }
 
-  private void addSelector(long pointer, String name, long sortPointer)
+  private void addSelector(MemorySegment pointer, String name, MemorySegment sortPointer)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      CApi.cvc5_dt_cons_decl_add_selector(pointer, Native.cstring(arena, name), sortPointer);
+      CApi.cvc5_dt_cons_decl_add_selector(pointer, arena.allocateFrom(name), sortPointer);
+      Native.check();
     }
   }
 
@@ -88,14 +91,15 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorSelf(String name)
   {
-    addSelectorSelf(getPointer(), name);
+    addSelectorSelf(handle(), name);
   }
 
-  private void addSelectorSelf(long pointer, String name)
+  private void addSelectorSelf(MemorySegment pointer, String name)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      CApi.cvc5_dt_cons_decl_add_selector_self(pointer, Native.cstring(arena, name));
+      CApi.cvc5_dt_cons_decl_add_selector_self(pointer, arena.allocateFrom(name));
+      Native.check();
     }
   }
 
@@ -109,15 +113,16 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorUnresolved(String name, String unresDataypeName)
   {
-    addSelectorUnresolved(getPointer(), name, unresDataypeName);
+    addSelectorUnresolved(handle(), name, unresDataypeName);
   }
 
-  private void addSelectorUnresolved(long pointer, String name, String unresDataypeName)
+  private void addSelectorUnresolved(MemorySegment pointer, String name, String unresDataypeName)
   {
     try (Arena arena = Arena.ofConfined())
     {
       CApi.cvc5_dt_cons_decl_add_selector_unresolved(
-          pointer, Native.cstring(arena, name), Native.cstring(arena, unresDataypeName));
+          pointer, arena.allocateFrom(name), arena.allocateFrom(unresDataypeName));
+      Native.check();
     }
   }
 
@@ -128,12 +133,12 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private boolean isNull(long pointer)
+  private boolean isNull(MemorySegment pointer)
   {
-    return pointer == 0;
+    return pointer.address() == 0;
   }
 
   /**
@@ -141,7 +146,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   protected String toString(long pointer)
   {
-    return Native.string(CApi.cvc5_dt_cons_decl_to_string(pointer));
+    return Native.string(CApi.cvc5_dt_cons_decl_to_string(MemorySegment.ofAddress(pointer)));
   }
 
   /**
@@ -151,15 +156,15 @@ public class DatatypeConstructorDecl extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private long hashCode(long pointer)
+  private long hashCode(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       return 0;
     }
-    return CApi.cvc5_dt_cons_decl_hash(pointer);
+    return Native.check(CApi.cvc5_dt_cons_decl_hash(pointer));
   }
 }

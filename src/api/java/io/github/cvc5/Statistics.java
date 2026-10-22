@@ -12,8 +12,9 @@
 
 package io.github.cvc5;
 
-import static java.lang.foreign.ValueLayout.JAVA_LONG;
+import static java.lang.foreign.ValueLayout.ADDRESS;
 
+import io.github.cvc5.capi.CApi;
 import java.lang.foreign.Arena;
 import java.lang.foreign.MemorySegment;
 import java.util.AbstractMap;
@@ -30,12 +31,12 @@ import java.util.NoSuchElementException;
 public class Statistics extends AbstractPointer implements Iterable<Map.Entry<String, Stat>>
 {
   // region construction and destruction
-  Statistics(NativeContext ctx, long pointer)
+  Statistics(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, Statistics::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_stats_release(pointer);
   }
@@ -47,7 +48,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    */
   protected String toString(long pointer)
   {
-    return Native.string(CApi.cvc5_stats_to_string(pointer));
+    return Native.string(CApi.cvc5_stats_to_string(MemorySegment.ofAddress(pointer)));
   }
 
   /**
@@ -59,15 +60,15 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    */
   public Stat get(String name)
   {
-    long statPointer = get(getPointer(), name);
+    MemorySegment statPointer = get(handle(), name);
     return new Stat(ctx, statPointer);
   }
 
-  private long get(long pointer, String name)
+  private MemorySegment get(MemorySegment pointer, String name)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      return CApi.cvc5_stats_get(pointer, Native.cstring(arena, name));
+      return Native.handle(CApi.cvc5_stats_get(pointer, arena.allocateFrom(name)));
     }
   }
 
@@ -93,24 +94,26 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    * @return The names and the native pointers of the statistics. Ownership of
    *         the latter is transferred to the caller.
    */
-  private Pair<String[], long[]> getEntries(long pointer, boolean internal, boolean defaulted)
+  private Pair<String[], MemorySegment[]> getEntries(
+      MemorySegment pointer, boolean internal, boolean defaulted)
   {
     List<String> names = new ArrayList<>();
-    long[] stats = new long[16];
+    MemorySegment[] stats = new MemorySegment[16];
     int size = 0;
     try (Arena arena = Arena.ofConfined())
     {
-      MemorySegment name = Native.outLong(arena);
+      MemorySegment name = arena.allocate(ADDRESS);
       CApi.cvc5_stats_iter_init(pointer, internal, defaulted);
-      while (CApi.cvc5_stats_iter_has_next(pointer))
+      Native.check();
+      while (Native.check(CApi.cvc5_stats_iter_has_next(pointer)))
       {
-        long stat = CApi.cvc5_stats_iter_next(pointer, name.address());
+        MemorySegment stat = Native.handle(CApi.cvc5_stats_iter_next(pointer, name));
         if (size == stats.length)
         {
           stats = Arrays.copyOf(stats, 2 * size);
         }
         stats[size++] = stat;
-        names.add(Native.string(name.get(JAVA_LONG, 0)));
+        names.add(Native.copyString(name.get(ADDRESS, 0)));
       }
     }
     return new Pair<>(names.toArray(new String[0]), Arrays.copyOf(stats, size));
@@ -138,7 +141,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
      */
     public ConstIterator(boolean internal, boolean defaulted)
     {
-      Pair<String[], long[]> entries = getEntries(getPointer(), internal, defaulted);
+      Pair<String[], MemorySegment[]> entries = getEntries(handle(), internal, defaulted);
       d_names = entries.first;
       d_stats = new Stat[entries.second.length];
       for (int i = 0; i < d_stats.length; i++)

@@ -96,23 +96,105 @@ add_custom_command(
 )
 add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 
-# Generate CApi.java, the bindings of the cvc5 C API for the Foreign Function &
-# Memory API
-set(JAVA_CAPI_FILE "${CMAKE_CURRENT_BINARY_DIR}/io/github/cvc5/CApi.java")
-add_custom_command(
-  OUTPUT
-    ${JAVA_CAPI_FILE}
-  COMMAND
-    "${Python_EXECUTABLE}"
-    "${CMAKE_CURRENT_LIST_DIR}/genffm.py"
-    --include-dir "${PROJECT_SOURCE_DIR}/include"
-    --java-api-path "${CMAKE_CURRENT_BINARY_DIR}"
-  DEPENDS
-    "${CMAKE_CURRENT_LIST_DIR}/genffm.py"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/c/cvc5.h"
-    "${PROJECT_SOURCE_DIR}/include/cvc5/c/cvc5_parser.h"
+# Generate the Java bindings of the cvc5 C API (package io.github.cvc5.capi)
+# with jextract, at configure time, since the Java sources depend on them.
+find_package(Jextract REQUIRED)
+set(JEXTRACT_HEADER "${CMAKE_CURRENT_LIST_DIR}/cvc5_capi.h")
+set(JEXTRACT_DIR "${CMAKE_CURRENT_BINARY_DIR}/jextract")
+set(JEXTRACT_INCLUDES
+  -I "${PROJECT_SOURCE_DIR}/include"
+  -I "${PROJECT_BINARY_DIR}/include"
 )
-add_custom_target(generate-java-capi DEPENDS ${JAVA_CAPI_FILE})
+file(REMOVE_RECURSE "${JEXTRACT_DIR}")
+file(MAKE_DIRECTORY "${JEXTRACT_DIR}")
+# List the symbols of the headers, ...
+execute_process(
+  COMMAND ${JEXTRACT_EXECUTABLE}
+    --dump-includes "${JEXTRACT_DIR}/includes.txt"
+    ${JEXTRACT_INCLUDES}
+    "${JEXTRACT_HEADER}"
+  RESULT_VARIABLE JEXTRACT_RESULT
+  OUTPUT_VARIABLE JEXTRACT_OUTPUT
+  ERROR_VARIABLE JEXTRACT_OUTPUT
+)
+if(JEXTRACT_RESULT)
+  message(FATAL_ERROR "jextract --dump-includes failed:\n${JEXTRACT_OUTPUT}")
+endif()
+# ... keep the functions and structs that the C API declares, ...
+file(STRINGS "${JEXTRACT_DIR}/includes.txt" JEXTRACT_SYMBOLS
+  REGEX "^--include-(function|struct) .*cvc5[/\\\\]c[/\\\\]cvc5(_parser)?\\.h")
+set(JEXTRACT_SYMBOL_ARGS "")
+foreach(SYMBOL ${JEXTRACT_SYMBOLS})
+  string(REGEX REPLACE "^(--include-[a-z]+) +([A-Za-z0-9_]+).*" "\\1 \\2"
+    SYMBOL "${SYMBOL}")
+  string(APPEND JEXTRACT_SYMBOL_ARGS "${SYMBOL}\n")
+endforeach()
+file(WRITE "${JEXTRACT_DIR}/symbols.txt" "${JEXTRACT_SYMBOL_ARGS}")
+# ... and generate their bindings.
+execute_process(
+  COMMAND ${JEXTRACT_EXECUTABLE}
+    --output "${JEXTRACT_DIR}/src"
+    --target-package io.github.cvc5.capi
+    --header-class-name CApi
+    ${JEXTRACT_INCLUDES}
+    "@${JEXTRACT_DIR}/symbols.txt"
+    "${JEXTRACT_HEADER}"
+  RESULT_VARIABLE JEXTRACT_RESULT
+  OUTPUT_VARIABLE JEXTRACT_OUTPUT
+  ERROR_VARIABLE JEXTRACT_OUTPUT
+)
+if(JEXTRACT_RESULT)
+  message(FATAL_ERROR "jextract failed:\n${JEXTRACT_OUTPUT}")
+endif()
+file(GLOB JAVA_CAPI_FILES "${JEXTRACT_DIR}/src/io/github/cvc5/capi/*.java")
+if(NOT JAVA_CAPI_FILES)
+  message(FATAL_ERROR "jextract generated no bindings:\n${JEXTRACT_OUTPUT}")
+endif()
+# jextract generates bindings for the platform it runs on. cvc5.jar is built
+# on one platform and used on all of them (e.g., from Maven Central), so the
+# bindings must be the same on all platforms. The C API uses fixed-size types
+# only, except for size_t and, on Linux, int64_t and uint64_t: jextract maps
+# them to C long on Linux and macOS, and to C long long on Windows, where long
+# has 32 bits. They have 64 bits on all platforms that cvc5 supports, so the
+# bindings use long long for all of them. This requires that the C API does
+# not use long itself, and that every function has a prototype (in C, f()
+# declares a function with unspecified parameters, use f(void)).
+foreach(FILE ${JAVA_CAPI_FILES})
+  file(STRINGS "${FILE}" LINES REGEX "^ +\\* .*[^A-Za-z0-9_]long[^A-Za-z0-9_]")
+  foreach(LINE ${LINES})
+    string(REPLACE "long long" "" LINE_WITHOUT_LONG_LONG "${LINE}")
+    if(LINE_WITHOUT_LONG_LONG MATCHES "[^A-Za-z0-9_]long[^A-Za-z0-9_]")
+      message(FATAL_ERROR "The C API must not use long, found:\n${LINE}")
+    endif()
+  endforeach()
+  file(STRINGS "${FILE}" LINES REGEX " makeInvoker\\(")
+  if(LINES)
+    message(FATAL_ERROR "jextract generated variadic bindings in ${FILE}:\n"
+      "${LINES}\nDeclare C functions without parameters with (void).")
+  endif()
+  file(READ "${FILE}" CONTENT)
+  string(REGEX REPLACE "\n[^\n]* C_LONG = [^\n]*get\\(\"long\"\\);" ""
+    CONTENT "${CONTENT}")
+  string(REGEX REPLACE "C_LONG([^A-Za-z0-9_])" "C_LONG_LONG\\1"
+    CONTENT "${CONTENT}")
+  file(WRITE "${FILE}" "${CONTENT}")
+endforeach()
+# Some of the generated files have a $ in their names (e.g., CApi$shared.java),
+# which the Makefile generator of older versions of CMake does not escape in
+# dependencies. They are therefore passed to javac in an argument file, which
+# is written along with them, and dependencies use that file.
+set(JAVA_CAPI_SOURCES_FILE "${JEXTRACT_DIR}/sources.txt")
+set(JAVA_CAPI_SOURCES "")
+foreach(FILE ${JAVA_CAPI_FILES})
+  string(APPEND JAVA_CAPI_SOURCES "\"${FILE}\"\n")
+endforeach()
+file(WRITE "${JAVA_CAPI_SOURCES_FILE}" "${JAVA_CAPI_SOURCES}")
+# Regenerate the bindings when the C API changes.
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+  "${JEXTRACT_HEADER}"
+  "${PROJECT_SOURCE_DIR}/include/cvc5/c/cvc5.h"
+  "${PROJECT_SOURCE_DIR}/include/cvc5/c/cvc5_parser.h"
+)
 
 # find java: the Foreign Function & Memory API requires Java 22, and we
 # require the LTS release that follows it
@@ -158,7 +240,6 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/TermManager.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Triplet.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Utils.java
-  ${JAVA_CAPI_FILE}
   ${JAVA_KIND_FILE}
   ${JAVA_PROOF_RULE_FILE}
   ${JAVA_SKOLEM_FUN_ID_FILE}
@@ -240,18 +321,20 @@ if (WIN32)
   add_jar(cvc5jar
     SOURCES
     ${JAVA_FILES}
+    "@${JAVA_CAPI_SOURCES_FILE}"
     OUTPUT_NAME cvc5
   )
 else()
   add_jar(cvc5jar
     SOURCES
     ${JAVA_FILES}
+    "@${JAVA_CAPI_SOURCES_FILE}"
     VERSION ${CVC5_MAVEN_VERSION}
     OUTPUT_NAME cvc5
   )
 endif()
 
-add_dependencies(cvc5jar generate-java-capi generate-java-kinds cvc5 cvc5parser)
+add_dependencies(cvc5jar generate-java-kinds cvc5 cvc5parser)
 if(TARGET cvc5-java-native)
   add_dependencies(cvc5jar cvc5-java-native)
 endif()
@@ -268,7 +351,8 @@ if(BUILD_DOCS)
       COMMAND ${Java_JAR_EXECUTABLE} cf ${SOURCES_JAR}
               -C ${CMAKE_CURRENT_LIST_DIR} io/github/cvc5
               -C ${CMAKE_CURRENT_BINARY_DIR} io/github/cvc5
-      DEPENDS ${JAVA_FILES}
+              -C ${JEXTRACT_DIR}/src io/github/cvc5/capi
+      DEPENDS ${JAVA_FILES} ${JAVA_CAPI_SOURCES_FILE}
       COMMENT "Generating sources JAR"
   )
   add_custom_target(cvc5-sources-jar ALL DEPENDS ${SOURCES_JAR})

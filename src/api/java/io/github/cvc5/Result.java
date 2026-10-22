@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,15 +27,15 @@ public class Result extends AbstractPointer
    */
   public Result()
   {
-    super(null, 0, null);
+    super(null, MemorySegment.NULL, null);
   }
 
-  Result(NativeContext ctx, long pointer)
+  Result(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, Result::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_result_release(pointer);
   }
@@ -47,12 +49,12 @@ public class Result extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private boolean isNull(long pointer)
+  private boolean isNull(MemorySegment pointer)
   {
-    return pointer == 0 || CApi.cvc5_result_is_null(pointer);
+    return pointer.address() == 0 || Native.check(CApi.cvc5_result_is_null(pointer));
   }
 
   /**
@@ -64,12 +66,12 @@ public class Result extends AbstractPointer
    */
   public boolean isSat()
   {
-    return isSat(getPointer());
+    return isSat(handle());
   }
 
-  private boolean isSat(long pointer)
+  private boolean isSat(MemorySegment pointer)
   {
-    return pointer != 0 && CApi.cvc5_result_is_sat(pointer);
+    return pointer.address() != 0 && Native.check(CApi.cvc5_result_is_sat(pointer));
   }
 
   /**
@@ -81,12 +83,12 @@ public class Result extends AbstractPointer
    */
   public boolean isUnsat()
   {
-    return isUnsat(getPointer());
+    return isUnsat(handle());
   }
 
-  private boolean isUnsat(long pointer)
+  private boolean isUnsat(MemorySegment pointer)
   {
-    return pointer != 0 && CApi.cvc5_result_is_unsat(pointer);
+    return pointer.address() != 0 && Native.check(CApi.cvc5_result_is_unsat(pointer));
   }
 
   /**
@@ -98,12 +100,12 @@ public class Result extends AbstractPointer
    */
   public boolean isUnknown()
   {
-    return isUnknown(getPointer());
+    return isUnknown(handle());
   }
 
-  private boolean isUnknown(long pointer)
+  private boolean isUnknown(MemorySegment pointer)
   {
-    return pointer != 0 && CApi.cvc5_result_is_unknown(pointer);
+    return pointer.address() != 0 && Native.check(CApi.cvc5_result_is_unknown(pointer));
   }
 
   /**
@@ -123,21 +125,21 @@ public class Result extends AbstractPointer
       return false;
     }
     Result result = (Result) r;
-    if (this.pointer == result.pointer)
+    if (this.address() == result.address())
     {
       return true;
     }
-    return equals(getPointer(), result.getPointer());
+    return equals(handle(), result.handle());
   }
 
-  private boolean equals(long pointer1, long pointer2)
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
   {
-    if (pointer1 == 0 || pointer2 == 0)
+    if (pointer1.address() == 0 || pointer2.address() == 0)
     {
       // A null result is equal to the results without a status.
       return isNull(pointer1) && isNull(pointer2);
     }
-    return CApi.cvc5_result_is_equal(pointer1, pointer2);
+    return Native.check(CApi.cvc5_result_is_equal(pointer1, pointer2));
   }
 
   /**
@@ -148,7 +150,7 @@ public class Result extends AbstractPointer
   {
     try
     {
-      int explanation = getUnknownExplanation(getPointer());
+      int explanation = getUnknownExplanation(handle());
       return UnknownExplanation.fromInt(explanation);
     }
     catch (CVC5ApiException e)
@@ -158,14 +160,14 @@ public class Result extends AbstractPointer
     }
   }
 
-  private int getUnknownExplanation(long pointer)
+  private int getUnknownExplanation(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // The C API rejects null results, which have no explanation.
       return UnknownExplanation.UNKNOWN_REASON.getValue();
     }
-    return CApi.cvc5_result_get_unknown_explanation(pointer);
+    return Native.check(CApi.cvc5_result_get_unknown_explanation(pointer));
   }
 
   /**
@@ -178,7 +180,7 @@ public class Result extends AbstractPointer
       // The C API rejects null results.
       return "none";
     }
-    return Native.string(CApi.cvc5_result_to_string(pointer));
+    return Native.string(CApi.cvc5_result_to_string(MemorySegment.ofAddress(pointer)));
   }
 
   /**
@@ -188,17 +190,17 @@ public class Result extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private long hashCode(long pointer)
+  private long hashCode(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // The C API rejects null results. The C++ API hashes the string
       // representation of a result; any fixed value is consistent with equals.
-      return toString(pointer).hashCode();
+      return toString(pointer.address()).hashCode();
     }
-    return CApi.cvc5_result_hash(pointer);
+    return Native.check(CApi.cvc5_result_hash(pointer));
   }
 }

@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
 /**
  * Encapsulation of a solver synth result.
  *
@@ -29,15 +31,15 @@ public class SynthResult extends AbstractPointer
    */
   public SynthResult()
   {
-    super(null, 0, null);
+    super(null, MemorySegment.NULL, null);
   }
 
-  SynthResult(NativeContext ctx, long pointer)
+  SynthResult(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, SynthResult::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_synth_result_release(pointer);
   }
@@ -59,22 +61,22 @@ public class SynthResult extends AbstractPointer
       return false;
     }
     SynthResult result = (SynthResult) r;
-    if (this.pointer == result.pointer)
+    if (this.address() == result.address())
     {
       return true;
     }
-    return equals(getPointer(), result.getPointer());
+    return equals(handle(), result.handle());
   }
 
-  private boolean equals(long pointer1, long pointer2)
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
   {
-    if (pointer1 == 0 || pointer2 == 0)
+    if (pointer1.address() == 0 || pointer2.address() == 0)
     {
       // A null synthesis result is equal to the synthesis results without a
       // status.
       return isNull(pointer1) && isNull(pointer2);
     }
-    return CApi.cvc5_synth_result_is_equal(pointer1, pointer2);
+    return Native.check(CApi.cvc5_synth_result_is_equal(pointer1, pointer2));
   }
 
   /**
@@ -86,12 +88,12 @@ public class SynthResult extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private boolean isNull(long pointer)
+  private boolean isNull(MemorySegment pointer)
   {
-    return pointer == 0 || CApi.cvc5_synth_result_is_null(pointer);
+    return pointer.address() == 0 || Native.check(CApi.cvc5_synth_result_is_null(pointer));
   }
 
   /**
@@ -101,12 +103,12 @@ public class SynthResult extends AbstractPointer
    */
   public boolean hasSolution()
   {
-    return hasSolution(getPointer());
+    return hasSolution(handle());
   }
 
-  private boolean hasSolution(long pointer)
+  private boolean hasSolution(MemorySegment pointer)
   {
-    return pointer != 0 && CApi.cvc5_synth_result_has_solution(pointer);
+    return pointer.address() != 0 && Native.check(CApi.cvc5_synth_result_has_solution(pointer));
   }
 
   /**
@@ -117,12 +119,12 @@ public class SynthResult extends AbstractPointer
    */
   public boolean hasNoSolution()
   {
-    return hasNoSolution(getPointer());
+    return hasNoSolution(handle());
   }
 
-  private boolean hasNoSolution(long pointer)
+  private boolean hasNoSolution(MemorySegment pointer)
   {
-    return pointer != 0 && CApi.cvc5_synth_result_has_no_solution(pointer);
+    return pointer.address() != 0 && Native.check(CApi.cvc5_synth_result_has_no_solution(pointer));
   }
 
   /**
@@ -132,12 +134,12 @@ public class SynthResult extends AbstractPointer
    */
   public boolean isUnknown()
   {
-    return isUnknown(getPointer());
+    return isUnknown(handle());
   }
 
-  private boolean isUnknown(long pointer)
+  private boolean isUnknown(MemorySegment pointer)
   {
-    return pointer != 0 && CApi.cvc5_synth_result_is_unknown(pointer);
+    return pointer.address() != 0 && Native.check(CApi.cvc5_synth_result_is_unknown(pointer));
   }
 
   /**
@@ -150,7 +152,7 @@ public class SynthResult extends AbstractPointer
       // The C API rejects null synthesis results.
       return "(NONE)";
     }
-    return Native.string(CApi.cvc5_synth_result_to_string(pointer));
+    return Native.string(CApi.cvc5_synth_result_to_string(MemorySegment.ofAddress(pointer)));
   }
 
   /**
@@ -160,18 +162,18 @@ public class SynthResult extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private long hashCode(long pointer)
+  private long hashCode(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       // The C API rejects null synthesis results. The C++ API hashes the string
       // representation of a synthesis result; any fixed value is consistent
       // with equals.
-      return toString(pointer).hashCode();
+      return toString(pointer.address()).hashCode();
     }
-    return CApi.cvc5_synth_result_hash(pointer);
+    return Native.check(CApi.cvc5_synth_result_hash(pointer));
   }
 }

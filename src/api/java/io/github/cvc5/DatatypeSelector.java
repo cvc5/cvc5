@@ -12,18 +12,21 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
+
 /**
  * A cvc5 datatype selector.
  */
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeSelector(NativeContext ctx, long pointer)
+  DatatypeSelector(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, DatatypeSelector::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_dt_sel_release(pointer);
   }
@@ -48,16 +51,16 @@ public class DatatypeSelector extends AbstractPointer
       return false;
     }
     DatatypeSelector sel = (DatatypeSelector) s;
-    if (this.pointer == sel.pointer)
+    if (address() == sel.address())
     {
       return true;
     }
-    return equals(getPointer(), sel.getPointer());
+    return equals(handle(), sel.handle());
   }
 
-  private boolean equals(long pointer1, long pointer2)
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
   {
-    return CApi.cvc5_dt_sel_is_equal(pointer1, pointer2);
+    return Native.check(CApi.cvc5_dt_sel_is_equal(pointer1, pointer2));
   }
 
   /**
@@ -67,10 +70,10 @@ public class DatatypeSelector extends AbstractPointer
    */
   public String getName()
   {
-    return getName(getPointer());
+    return getName(handle());
   }
 
-  private String getName(long pointer)
+  private String getName(MemorySegment pointer)
   {
     return Native.string(CApi.cvc5_dt_sel_get_name(pointer));
   }
@@ -86,13 +89,13 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getTerm()
   {
-    long termPointer = getTerm(getPointer());
+    MemorySegment termPointer = getTerm(handle());
     return new Term(ctx, termPointer);
   }
 
-  private long getTerm(long pointer)
+  private MemorySegment getTerm(MemorySegment pointer)
   {
-    return CApi.cvc5_dt_sel_get_term(pointer);
+    return Native.handle(CApi.cvc5_dt_sel_get_term(pointer));
   }
 
   /**
@@ -106,13 +109,13 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getUpdaterTerm()
   {
-    long termPointer = getUpdaterTerm(getPointer());
+    MemorySegment termPointer = getUpdaterTerm(handle());
     return new Term(ctx, termPointer);
   }
 
-  private long getUpdaterTerm(long pointer)
+  private MemorySegment getUpdaterTerm(MemorySegment pointer)
   {
-    return CApi.cvc5_dt_sel_get_updater_term(pointer);
+    return Native.handle(CApi.cvc5_dt_sel_get_updater_term(pointer));
   }
 
   /**
@@ -122,13 +125,13 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Sort getCodomainSort()
   {
-    long sortPointer = getCodomainSort(getPointer());
+    MemorySegment sortPointer = getCodomainSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private long getCodomainSort(long pointer)
+  private MemorySegment getCodomainSort(MemorySegment pointer)
   {
-    return CApi.cvc5_dt_sel_get_codomain_sort(pointer);
+    return Native.handle(CApi.cvc5_dt_sel_get_codomain_sort(pointer));
   }
 
   /**
@@ -138,12 +141,12 @@ public class DatatypeSelector extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private boolean isNull(long pointer)
+  private boolean isNull(MemorySegment pointer)
   {
-    return pointer == 0;
+    return pointer.address() == 0;
   }
 
   /**
@@ -151,7 +154,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   protected String toString(long pointer)
   {
-    return Native.string(CApi.cvc5_dt_sel_to_string(pointer));
+    return Native.string(CApi.cvc5_dt_sel_to_string(MemorySegment.ofAddress(pointer)));
   }
 
   /**
@@ -161,15 +164,15 @@ public class DatatypeSelector extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private long hashCode(long pointer)
+  private long hashCode(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       return 0;
     }
-    return CApi.cvc5_dt_sel_hash(pointer);
+    return Native.check(CApi.cvc5_dt_sel_hash(pointer));
   }
 }

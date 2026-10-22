@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.foreign.MemorySegment;
 import java.lang.foreign.SymbolLookup;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -301,52 +302,104 @@ public final class Utils
   }
 
   /**
-   * Construct an array of {@link Sort} objects from an array of native pointers.
+   * Get the handles of the given objects, see {@link AbstractPointer#handle()}.
    *
-   * @return Sorts array from array of Sort pointers.
-   * @param ctx The context of the term manager the objects belong to.
-   * @param pointers The array of pointers.
+   * @param objects The objects.
+   * @return The handles of the objects.
    */
-  static Sort[] getSorts(NativeContext ctx, long[] pointers)
+  static MemorySegment[] getHandles(AbstractPointer[] objects)
   {
-    Sort[] sorts = new Sort[pointers.length];
-    for (int i = 0; i < pointers.length; i++)
+    MemorySegment[] handles = new MemorySegment[objects.length];
+    for (int i = 0; i < handles.length; i++)
     {
-      sorts[i] = new Sort(ctx, pointers[i]);
+      handles[i] = objects[i].handle();
+    }
+    return handles;
+  }
+
+  /**
+   * Get the handles of the objects of a two-dimensional array, see
+   * {@link #getHandles(AbstractPointer[])}.
+   *
+   * @param objects The objects.
+   * @return The handles of the objects.
+   */
+  static MemorySegment[][] getHandles(AbstractPointer[][] objects)
+  {
+    MemorySegment[][] handles = new MemorySegment[objects.length][];
+    for (int i = 0; i < handles.length; i++)
+    {
+      handles[i] = getHandles(objects[i]);
+    }
+    return handles;
+  }
+
+  /**
+   * Get the handles of the second elements of the given pairs, see
+   * {@link #getHandles(AbstractPointer[])}.
+   *
+   * @param <K> The type of the first elements of the pairs.
+   * @param pairs The pairs.
+   * @return The pairs of the first elements and the handles.
+   */
+  @SuppressWarnings("unchecked")
+  static <K> Pair<K, MemorySegment>[] getHandlePairs(Pair<K, ? extends AbstractPointer>[] pairs)
+  {
+    Pair<K, MemorySegment>[] handles = new Pair[pairs.length];
+    for (int i = 0; i < handles.length; i++)
+    {
+      handles[i] = new Pair<>(pairs[i].first, pairs[i].second.handle());
+    }
+    return handles;
+  }
+
+  /**
+   * Construct an array of {@link Sort} objects from an array of handles.
+   *
+   * @param ctx The context of the term manager the objects belong to.
+   * @param handles The handles, each a reference that the created object owns.
+   * @return The sorts.
+   */
+  static Sort[] getSorts(NativeContext ctx, MemorySegment[] handles)
+  {
+    Sort[] sorts = new Sort[handles.length];
+    for (int i = 0; i < handles.length; i++)
+    {
+      sorts[i] = new Sort(ctx, handles[i]);
     }
     return sorts;
   }
 
   /**
-   * Construct an array of {@link Term} objects from an array of native pointers.
+   * Construct an array of {@link Term} objects from an array of handles.
    *
-   * @return Terms array from array of Term pointers.
    * @param ctx The context of the term manager the objects belong to.
-   * @param pointers The array of pointers.
+   * @param handles The handles, each a reference that the created object owns.
+   * @return The terms.
    */
-  static Term[] getTerms(NativeContext ctx, long[] pointers)
+  static Term[] getTerms(NativeContext ctx, MemorySegment[] handles)
   {
-    Term[] terms = new Term[pointers.length];
-    for (int i = 0; i < pointers.length; i++)
+    Term[] terms = new Term[handles.length];
+    for (int i = 0; i < handles.length; i++)
     {
-      terms[i] = new Term(ctx, pointers[i]);
+      terms[i] = new Term(ctx, handles[i]);
     }
     return terms;
   }
 
   /**
-   * Construct an array of {@link Proof} objects from an array of native pointers.
+   * Construct an array of {@link Proof} objects from an array of handles.
    *
-   * @return proofs array from array of Proof pointers
    * @param ctx The context of the term manager the objects belong to.
-   * @param pointers The array of pointers.
+   * @param handles The handles, each a reference that the created object owns.
+   * @return The proofs.
    */
-  static Proof[] getProofs(NativeContext ctx, long[] pointers)
+  static Proof[] getProofs(NativeContext ctx, MemorySegment[] handles)
   {
-    Proof[] proofs = new Proof[pointers.length];
-    for (int i = 0; i < pointers.length; i++)
+    Proof[] proofs = new Proof[handles.length];
+    for (int i = 0; i < handles.length; i++)
     {
-      proofs[i] = new Proof(ctx, pointers[i]);
+      proofs[i] = new Proof(ctx, handles[i]);
     }
     return proofs;
   }

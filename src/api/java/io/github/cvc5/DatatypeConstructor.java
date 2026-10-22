@@ -12,7 +12,9 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
 import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -22,12 +24,12 @@ import java.util.NoSuchElementException;
 public class DatatypeConstructor extends AbstractPointer implements Iterable<DatatypeSelector>
 {
   // region construction and destruction
-  DatatypeConstructor(NativeContext ctx, long pointer)
+  DatatypeConstructor(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, DatatypeConstructor::deletePointer);
   }
 
-  private static void deletePointer(long pointer)
+  private static void deletePointer(MemorySegment pointer)
   {
     CApi.cvc5_dt_cons_release(pointer);
   }
@@ -52,16 +54,16 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
       return false;
     }
     DatatypeConstructor cons = (DatatypeConstructor) c;
-    if (this.pointer == cons.pointer)
+    if (address() == cons.address())
     {
       return true;
     }
-    return equals(getPointer(), cons.getPointer());
+    return equals(handle(), cons.handle());
   }
 
-  private boolean equals(long pointer1, long pointer2)
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
   {
-    return CApi.cvc5_dt_cons_is_equal(pointer1, pointer2);
+    return Native.check(CApi.cvc5_dt_cons_is_equal(pointer1, pointer2));
   }
 
   /**
@@ -71,10 +73,10 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public String getName()
   {
-    return getName(getPointer());
+    return getName(handle());
   }
 
-  private String getName(long pointer)
+  private String getName(MemorySegment pointer)
   {
     return Native.string(CApi.cvc5_dt_cons_get_name(pointer));
   }
@@ -98,13 +100,13 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public Term getTerm()
   {
-    long termPointer = getTerm(getPointer());
+    MemorySegment termPointer = getTerm(handle());
     return new Term(ctx, termPointer);
   }
 
-  private long getTerm(long pointer)
+  private MemorySegment getTerm(MemorySegment pointer)
   {
-    return CApi.cvc5_dt_cons_get_term(pointer);
+    return Native.handle(CApi.cvc5_dt_cons_get_term(pointer));
   }
 
   /**
@@ -137,13 +139,13 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public Term getInstantiatedTerm(Sort retSort)
   {
-    long termPointer = getInstantiatedTerm(getPointer(), retSort.getPointer());
+    MemorySegment termPointer = getInstantiatedTerm(handle(), retSort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private long getInstantiatedTerm(long pointer, long retSortPointer)
+  private MemorySegment getInstantiatedTerm(MemorySegment pointer, MemorySegment retSortPointer)
   {
-    return CApi.cvc5_dt_cons_get_instantiated_term(pointer, retSortPointer);
+    return Native.handle(CApi.cvc5_dt_cons_get_instantiated_term(pointer, retSortPointer));
   }
 
   /**
@@ -157,12 +159,12 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public Term getTesterTerm()
   {
-    long termPointer = getTesterTerm(getPointer());
+    MemorySegment termPointer = getTesterTerm(handle());
     return new Term(ctx, termPointer);
   }
-  private long getTesterTerm(long pointer)
+  private MemorySegment getTesterTerm(MemorySegment pointer)
   {
-    return CApi.cvc5_dt_cons_get_tester_term(pointer);
+    return Native.handle(CApi.cvc5_dt_cons_get_tester_term(pointer));
   }
 
   /**
@@ -172,11 +174,11 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public int getNumSelectors()
   {
-    return getNumSelectors(getPointer());
+    return getNumSelectors(handle());
   }
-  private int getNumSelectors(long pointer)
+  private int getNumSelectors(MemorySegment pointer)
   {
-    return (int) CApi.cvc5_dt_cons_get_num_selectors(pointer);
+    return (int) Native.check(CApi.cvc5_dt_cons_get_num_selectors(pointer));
   }
 
   /**
@@ -186,12 +188,12 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public DatatypeSelector getSelector(int index)
   {
-    long selectorPointer = getSelector(getPointer(), index);
+    MemorySegment selectorPointer = getSelector(handle(), index);
     return new DatatypeSelector(ctx, selectorPointer);
   }
-  private long getSelector(long pointer, int index)
+  private MemorySegment getSelector(MemorySegment pointer, int index)
   {
-    return CApi.cvc5_dt_cons_get_selector(pointer, index);
+    return Native.handle(CApi.cvc5_dt_cons_get_selector(pointer, index));
   }
 
   /**
@@ -203,14 +205,15 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public DatatypeSelector getSelector(String name)
   {
-    long selectorPointer = getSelector(getPointer(), name);
+    MemorySegment selectorPointer = getSelector(handle(), name);
     return new DatatypeSelector(ctx, selectorPointer);
   }
-  private long getSelector(long pointer, String name)
+  private MemorySegment getSelector(MemorySegment pointer, String name)
   {
     try (Arena arena = Arena.ofConfined())
     {
-      return CApi.cvc5_dt_cons_get_selector_by_name(pointer, Native.cstring(arena, name));
+      return Native.handle(
+          CApi.cvc5_dt_cons_get_selector_by_name(pointer, arena.allocateFrom(name)));
     }
   }
 
@@ -221,12 +224,12 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private boolean isNull(long pointer)
+  private boolean isNull(MemorySegment pointer)
   {
-    return pointer == 0;
+    return pointer.address() == 0;
   }
 
   /**
@@ -237,7 +240,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   protected String toString(long pointer)
   {
-    return Native.string(CApi.cvc5_dt_cons_to_string(pointer));
+    return Native.string(CApi.cvc5_dt_cons_to_string(MemorySegment.ofAddress(pointer)));
   }
 
   /**
@@ -291,15 +294,15 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private long hashCode(long pointer)
+  private long hashCode(MemorySegment pointer)
   {
-    if (pointer == 0)
+    if (pointer.address() == 0)
     {
       return 0;
     }
-    return CApi.cvc5_dt_cons_hash(pointer);
+    return Native.check(CApi.cvc5_dt_cons_hash(pointer));
   }
 }
