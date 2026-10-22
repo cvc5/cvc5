@@ -17,10 +17,12 @@
 #ifndef CVC5__CAPI__CHECKS_H
 #define CVC5__CAPI__CHECKS_H
 
+#include <cvc5/c/cvc5.h>
 #include <cvc5/cvc5.h>
 
 #include <cstdlib>
 #include <iostream>
+#include <new>
 #include <sstream>
 
 #include "api/cpp/cvc5_checks.h"
@@ -33,18 +35,20 @@ namespace cvc5 {
 /**
  * Record an error that occurred during a cvc5 C API call.
  *
- * This sets the thread-local error flag and stores `msg` as the associated
- * error message. It is invoked by #CVC5_CAPI_TRY_CATCH_END whenever a C API
- * function catches an exception, instead of terminating the process. The
- * recorded state can be queried via `cvc5_has_error()` and
- * `cvc5_get_error_message()`.
+ * This sets the thread-local error flag and stores `msg` and `kind` as the
+ * associated error message and kind. It is invoked by #CVC5_CAPI_TRY_CATCH_END
+ * whenever a C API function catches an exception, instead of terminating the
+ * process. The recorded state can be queried via `cvc5_has_error()`,
+ * `cvc5_get_error_message()` and `cvc5_get_error_kind()`.
  *
  * @param msg The error message to store.
+ * @param kind The kind of the error.
  *
  * @note Exported for linkage of the parser library, which uses the
  *       #CVC5_CAPI_TRY_CATCH_END macro.
  */
-CVC5_EXPORT void cvc5_capi_set_error(const std::string& msg);
+CVC5_EXPORT void cvc5_capi_set_error(const std::string& msg,
+                                     Cvc5ErrorKind kind = CVC5_ERROR_KIND_API);
 /**
  * Clear the thread-local error state.
  *
@@ -64,6 +68,28 @@ CVC5_EXPORT bool cvc5_capi_has_error();
  *         pointer is valid until the next guarded C API call on this thread.
  */
 CVC5_EXPORT const char* cvc5_capi_get_error_message();
+/**
+ * @return The kind of the most recent error on the current thread, or
+ *         `CVC5_ERROR_KIND_NONE` if no error occurred.
+ */
+CVC5_EXPORT Cvc5ErrorKind cvc5_capi_get_error_kind();
+
+/**
+ * Record that a plugin or oracle callback failed, see
+ * `cvc5_set_callback_error()`.
+ *
+ * @param msg The error message.
+ */
+void cvc5_capi_set_callback_error(const char* msg);
+/**
+ * Raise the error reported by the most recent callback on the current thread
+ * via `cvc5_set_callback_error()`, if any, and clear it.
+ *
+ * Invoked by cvc5 right after each call to a plugin or oracle callback.
+ *
+ * @throw CVC5ApiException If the callback reported an error.
+ */
+void cvc5_capi_check_callback_error();
 
 /**
  * Reset the thread-local error state on entry of a guarded C API function.
@@ -90,14 +116,40 @@ CVC5_EXPORT const char* cvc5_capi_get_error_message();
  *       exception ever reach the C API uncaught (e.g. via a missed catch on
  *       some C++ code path), the catch-all records it instead of aborting.
  */
-#define CVC5_CAPI_TRY_CATCH_END                                            \
-  }                                                                        \
-  catch (const cvc5::CVC5ApiException& e)                                  \
-  {                                                                        \
-    cvc5::cvc5_capi_set_error(e.getMessage());                             \
-  }                                                                        \
-  catch (const std::exception& e) { cvc5::cvc5_capi_set_error(e.what()); } \
-  catch (...) { cvc5::cvc5_capi_set_error("unknown C++ exception"); }
+#define CVC5_CAPI_TRY_CATCH_END \
+  }                             \
+  CVC5_CAPI_CATCH_ALL
+
+/**
+ * The handlers of #CVC5_CAPI_TRY_CATCH_END, which record the kind of each
+ * error along with its message. Exceptions are caught from the most to the
+ * least derived type.
+ */
+#define CVC5_CAPI_CATCH_ALL                                                    \
+  catch (const cvc5::CVC5ApiOptionException& e)                                \
+  {                                                                            \
+    cvc5::cvc5_capi_set_error(e.getMessage(), CVC5_ERROR_KIND_OPTION);         \
+  }                                                                            \
+  catch (const cvc5::CVC5ApiRecoverableException& e)                           \
+  {                                                                            \
+    cvc5::cvc5_capi_set_error(e.getMessage(), CVC5_ERROR_KIND_RECOVERABLE);    \
+  }                                                                            \
+  catch (const cvc5::CVC5ApiException& e)                                      \
+  {                                                                            \
+    cvc5::cvc5_capi_set_error(e.getMessage(), CVC5_ERROR_KIND_API);            \
+  }                                                                            \
+  catch (const std::bad_alloc& e)                                              \
+  {                                                                            \
+    cvc5::cvc5_capi_set_error(e.what(), CVC5_ERROR_KIND_OUT_OF_MEMORY);        \
+  }                                                                            \
+  catch (const std::exception& e)                                              \
+  {                                                                            \
+    cvc5::cvc5_capi_set_error(e.what(), CVC5_ERROR_KIND_OTHER);                \
+  }                                                                            \
+  catch (...)                                                                  \
+  {                                                                            \
+    cvc5::cvc5_capi_set_error("unknown C++ exception", CVC5_ERROR_KIND_OTHER); \
+  }
 
 #endif
 

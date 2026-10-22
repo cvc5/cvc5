@@ -37,6 +37,13 @@ const char* cvc5_get_error_message()
 
 void cvc5_reset_error() { cvc5::cvc5_capi_reset_error(); }
 
+Cvc5ErrorKind cvc5_get_error_kind() { return cvc5::cvc5_capi_get_error_kind(); }
+
+void cvc5_set_callback_error(const char* msg)
+{
+  cvc5::cvc5_capi_set_callback_error(msg);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Kind                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -5453,7 +5460,10 @@ cvc5::Term call_oracle(Cvc5* cvc5,
   {
     cterms.push_back(cvc5->d_tm->export_term(t));
   }
-  return fun(cterms.size(), cterms.data(), state)->d_term;
+  Cvc5Term res = fun(cterms.size(), cterms.data(), state);
+  cvc5::cvc5_capi_check_callback_error();
+  CVC5_API_CHECK(res != nullptr) << "oracle function returned NULL";
+  return res->d_term;
 }
 }  // namespace
 
