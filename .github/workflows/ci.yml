@@ -162,6 +162,8 @@ jobs:
             os: windows-11-arm
             config: unrestricted --auto-download --all-bindings
             cache-key: unrestricted-win64-native-arm64
+            # Temurin does not provide Java 25 for Windows on ARM64
+            java-distribution: microsoft
             strip-bin: strip
             python-bindings: true
             java-bindings: true
@@ -254,6 +256,8 @@ jobs:
             os: windows-11-arm
             config: unrestricted --auto-download --gpl --cocoa --normaliz
             cache-key: unrestricted-win64-native-arm64-gpl
+            # Temurin does not provide Java 25 for Windows on ARM64
+            java-distribution: microsoft
             strip-bin: strip
             windows-build: true
             shell: 'msys2 {0}'
@@ -307,7 +311,7 @@ jobs:
     # with the minimum required Java version (currently Java 25).
     - uses: actions/setup-java@v5
       with:
-        distribution: 'temurin'
+        distribution: ${{ matrix.build.java-distribution || 'temurin' }}
         java-version: ${{ matrix.build.java-version || '25' }}
 
     - name: Setup CMake
