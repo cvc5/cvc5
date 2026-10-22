@@ -21,6 +21,8 @@ cvc5 1.4.3 prerelease
   * New function `cvc5_set_callback_error()`, which allows plugin and oracle
     callbacks to report that they failed. An oracle callback that returns NULL
     now raises an error instead of crashing.
+  * `cvc5_term_manager_new()` and the `get_name` callback of `Cvc5Plugin` are
+    now declared with `(void)`, as C prototypes without parameters.
 
 - **Java API**
   * The Java API is now implemented on top of the C API through the Foreign

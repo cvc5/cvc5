@@ -2646,7 +2646,7 @@ CVC5_EXPORT void cvc5_grammar_release(Cvc5Grammar grammar);
  * Construct a new instance of a cvc5 term manager.
  * @return The cvc5 term manager.
  */
-CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
+CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new(void);
 
 /**
  * Delete a cvc5 term manager instance.
@@ -3857,7 +3857,7 @@ struct Cvc5Plugin
    * @return The name of the plugin.
    * @note This function pointer may NOT be NULL.
    */
-  const char* (*get_name)();
+  const char* (*get_name)(void);
 
   /** The state to pass into `check`. */
   void* d_check_state;
