@@ -2873,6 +2873,7 @@ Cvc5Sort cvc5_mk_fun_sort(Cvc5TermManager* tm,
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
   CVC5_CAPI_CHECK_NOT_NULL(sorts);
+  CVC5_CAPI_CHECK_SORT(codomain);
   std::vector<cvc5::Sort> csorts;
   for (size_t i = 0; i < size; ++i)
   {
