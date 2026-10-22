@@ -10,6 +10,12 @@ The :doc:`quickstart guide <quickstart>` gives a short introduction,
 and more examples can be found `here <../../examples/examples.html>`_.
 
 
+The Java API requires Java 25 or later. It calls the
+:doc:`C API <../c/c>` through the Foreign Function & Memory API
+(``java.lang.foreign``), which is restricted: run applications with
+``--enable-native-access=ALL-UNNAMED`` (or the name of the module that uses
+cvc5) to avoid warnings about native access.
+
 For most applications, the `Solver <io/github/cvc5/Solver.html>`_ class is the
 main entry point to cvc5.
 The class hierarchy of `cvc5 package <io/github/cvc5/package-summary.html>`_
@@ -77,7 +83,7 @@ add the following dependencies to your POM file:
       <version>${cvc5.version}</version>
     </dependency>
 
-    <!-- cvc5 native JNI library for the target platform -->
+    <!-- cvc5 native library for the target platform -->
     <dependency>
       <groupId>io.github.cvc5</groupId>
       <artifactId>cvc5</artifactId>
@@ -157,7 +163,7 @@ After compilation, execute the example with:
 
 .. code-block:: bash
 
-     $ java -cp "cvc5-Linux-x86_64-java-api.jar:." QuickStart # Replace : with ; on Windows
+     $ java --enable-native-access=ALL-UNNAMED -cp "cvc5-Linux-x86_64-java-api.jar:." QuickStart # Replace : with ; on Windows
        expected: sat
        result: sat
        value for x: 1/6
@@ -177,10 +183,13 @@ Building cvc5 Java API
 ^^^^^^^^^^^^^^^^^^^^^^
 
 This section describes how to build the cvc5 Java bindings from source.
-If you want to create a single JNI native library file that includes
+If you want to create a single native library file that includes
 all required library dependencies, pass the ``--static`` option to ``configure.sh``
-in the steps below. This option also generates a JAR file that bundles the JNI library,
-which can be installed into a Maven repository.
+in the steps below. This option also generates a JAR file that bundles the native library,
+which can be installed into a Maven repository. The native library is a
+self-contained ``libcvc5``, which is installed into ``install/lib/cvc5-java``
+(pass ``-Djava.library.path=install/lib/cvc5-java`` to use it from the
+installation).
 When using ``--static``, you may need to recompile some external cvc5 dependencies from
 source rather than relying on the static versions
 provided by your operating system. This ensures that all dependencies are compiled as
@@ -207,9 +216,10 @@ build artifacts.
      $ make install
 
      $ ls install/lib
-       cmake             libcvc5parser.so.1  libpoly.so        libpolyxx.so
-       libcvc5jni.so     libcvc5.so          libpoly.so.0      libpolyxx.so.0
-       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.1  libpolyxx.so.0.2.1
+       cmake               libcvc5.so.1      libpoly.so.0.2.1  libpolyxx.so.0.2.1
+       libcvc5parser.so    libpoly.so        libpolyxx.so
+       libcvc5parser.so.1  libpoly.so.0      libpolyxx.so.0
+       libcvc5.so
      $ ls install/share/java/
        cvc5-1.3.2-SNAPSHOT.jar  cvc5.jar
 
@@ -217,7 +227,7 @@ build artifacts.
      $ javac -cp "install/share/java/cvc5.jar" ../examples/api/java/QuickStart.java -d .
 
      # run example QuickStart with cvc5 jar file and cvc5 shared libraries
-     $ java -cp "install/share/java/cvc5.jar:." "-Djava.library.path=install/lib" QuickStart
+     $ java --enable-native-access=ALL-UNNAMED -cp "install/share/java/cvc5.jar:." "-Djava.library.path=install/lib" QuickStart
        expected: sat
        result: sat
        value for x: 1/6

@@ -25,6 +25,18 @@ extern "C" {
 #include "api/c/cvc5_c_structs.h"
 #include "api/c/cvc5_checks.h"
 
+/**
+ * Like #CVC5_CAPI_TRY_CATCH_END, but records parser exceptions as errors of
+ * kind `CVC5_ERROR_KIND_PARSER`.
+ */
+#define CVC5_CAPI_PARSER_TRY_CATCH_END                                 \
+  }                                                                    \
+  catch (const cvc5::parser::ParserException& e)                       \
+  {                                                                    \
+    cvc5::cvc5_capi_set_error(e.getMessage(), CVC5_ERROR_KIND_PARSER); \
+  }                                                                    \
+  CVC5_CAPI_CATCH_ALL
+
 /* -------------------------------------------------------------------------- */
 
 /** Wrapper for cvc5 C++ command. */
@@ -301,7 +313,7 @@ Cvc5SymbolManager* cvc5_symbol_manager_new(Cvc5TermManager* tm)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(tm);
   res = new Cvc5SymbolManager(tm);
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return res;
 }
 
@@ -314,7 +326,7 @@ void cvc5_symbol_manager_delete(Cvc5SymbolManager* sm)
   // them are still alive here, the symbol manager is not freed yet, but only
   // once the last of them is freed (see `cvc5_parser_delete()`).
   sm->dec_ref();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 bool cvc5_sm_is_logic_set(Cvc5SymbolManager* sm)
@@ -323,7 +335,7 @@ bool cvc5_sm_is_logic_set(Cvc5SymbolManager* sm)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(sm);
   res = sm->d_sm.isLogicSet();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return res;
 }
 
@@ -333,7 +345,7 @@ const char* cvc5_sm_get_logic(Cvc5SymbolManager* sm)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(sm);
   str = sm->d_sm.getLogic();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return str.c_str();
 }
 
@@ -351,7 +363,7 @@ const Cvc5Sort* cvc5_sm_get_declared_sorts(Cvc5SymbolManager* sm, size_t* size)
     res.push_back(tm->export_sort(s));
   }
   *size = res.size();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
   // so we must not dereference `size` here; gate on the error state instead.
   return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
@@ -371,7 +383,7 @@ const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm, size_t* size)
     res.push_back(tm->export_term(t));
   }
   *size = res.size();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   // On error, `size` may be invalid (e.g. NULL) and `res` may hold stale data,
   // so we must not dereference `size` here; gate on the error state instead.
   return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
@@ -410,7 +422,7 @@ void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
   *size = rterms.size();
   *terms = rterms.data();
   *names = rnames.data();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -425,7 +437,7 @@ const char* cvc5_cmd_invoke(Cvc5Command cmd, Cvc5* cvc5, Cvc5SymbolManager* sm)
   std::stringstream ss;
   cmd->d_cmd.invoke(&cvc5->d_solver, &sm->d_sm, ss);
   str = ss.str();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return str.c_str();
 }
 
@@ -435,7 +447,7 @@ Cvc5Command cvc5_cmd_copy(Cvc5Command cmd)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_CMD(cmd);
   res = cmd->d_parser->copy(cmd);
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return res;
 }
 
@@ -444,7 +456,7 @@ void cvc5_cmd_release(Cvc5Command cmd)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_CMD(cmd);
   cmd->d_parser->release(cmd);
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 const char* cvc5_cmd_to_string(const Cvc5Command cmd)
@@ -453,7 +465,7 @@ const char* cvc5_cmd_to_string(const Cvc5Command cmd)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_CMD(cmd);
   str = cmd->d_cmd.toString();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return str.c_str();
 }
 
@@ -463,7 +475,7 @@ const char* cvc5_cmd_get_name(const Cvc5Command cmd)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_CMD(cmd);
   str = cmd->d_cmd.getCommandName();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return str.c_str();
 }
 
@@ -482,7 +494,7 @@ Cvc5InputParser* cvc5_parser_new(Cvc5* cvc5, Cvc5SymbolManager* sm)
   {
     res = new Cvc5InputParser(cvc5);
   }
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return res;
 }
 
@@ -493,7 +505,7 @@ void cvc5_parser_delete(Cvc5InputParser* parser)
   // Commands allocated by this parser keep it alive, it is only freed once
   // all of them have been released.
   parser->dec_ref();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 void cvc5_parser_release(Cvc5InputParser* parser)
@@ -501,7 +513,7 @@ void cvc5_parser_release(Cvc5InputParser* parser)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(parser);
   parser->release();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 Cvc5* cvc5_parser_get_solver(Cvc5InputParser* parser)
@@ -510,7 +522,7 @@ Cvc5* cvc5_parser_get_solver(Cvc5InputParser* parser)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(parser);
   res = parser->d_cvc5;
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return res;
 }
 
@@ -520,7 +532,7 @@ Cvc5SymbolManager* cvc5_parser_get_sm(Cvc5InputParser* parser)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(parser);
   res = parser->d_sm;
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return res;
 }
 
@@ -534,7 +546,7 @@ void cvc5_parser_set_file_input(Cvc5InputParser* parser,
   CVC5_CAPI_CHECK_NOT_NULL(filename);
   parser->d_parser->setFileInput(static_cast<cvc5::modes::InputLanguage>(lang),
                                  filename);
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 void cvc5_parser_set_str_input(Cvc5InputParser* parser,
@@ -549,7 +561,7 @@ void cvc5_parser_set_str_input(Cvc5InputParser* parser,
   CVC5_CAPI_CHECK_NOT_NULL(name);
   parser->d_parser->setStringInput(
       static_cast<cvc5::modes::InputLanguage>(lang), input, name);
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 void cvc5_parser_set_inc_str_input(Cvc5InputParser* parser,
@@ -562,7 +574,7 @@ void cvc5_parser_set_inc_str_input(Cvc5InputParser* parser,
   CVC5_CAPI_CHECK_NOT_NULL(name);
   parser->d_parser->setIncrementalStringInput(
       static_cast<cvc5::modes::InputLanguage>(lang), name);
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 void cvc5_parser_append_inc_str_input(Cvc5InputParser* parser,
@@ -573,7 +585,7 @@ void cvc5_parser_append_inc_str_input(Cvc5InputParser* parser,
   CVC5_CAPI_CHECK_NOT_NULL(parser);
   CVC5_CAPI_CHECK_NOT_NULL(input);
   parser->d_parser->appendIncrementalStringInput(input);
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
 }
 
 Cvc5Command cvc5_parser_next_command(Cvc5InputParser* parser,
@@ -596,7 +608,7 @@ Cvc5Command cvc5_parser_next_command(Cvc5InputParser* parser,
     error = e.getMessage();
     *error_msg = error.c_str();
   }
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   // Also report non-parse errors via the output parameter, so that it alone
   // suffices to distinguish errors from reaching the end of the input.
   if (error_msg != nullptr && cvc5::cvc5_capi_has_error())
@@ -626,7 +638,7 @@ Cvc5Term cvc5_parser_next_term(Cvc5InputParser* parser, const char** error_msg)
     error = e.getMessage();
     *error_msg = error.c_str();
   }
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   // Also report non-parse errors via the output parameter, so that it alone
   // suffices to distinguish errors from reaching the end of the input.
   if (error_msg != nullptr && cvc5::cvc5_capi_has_error())
@@ -643,6 +655,6 @@ bool cvc5_parser_done(Cvc5InputParser* parser)
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_NOT_NULL(parser);
   res = parser->d_parser->done();
-  CVC5_CAPI_TRY_CATCH_END;
+  CVC5_CAPI_PARSER_TRY_CATCH_END;
   return res;
 }

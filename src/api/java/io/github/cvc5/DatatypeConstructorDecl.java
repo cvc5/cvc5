@@ -12,6 +12,10 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+
 /**
  * A cvc5 datatype constructor declaration. A datatype constructor declaration
  * is a specification used for creating a datatype constructor.
@@ -19,12 +23,15 @@ package io.github.cvc5;
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeConstructorDecl(NativeContext ctx, long pointer)
+  DatatypeConstructorDecl(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, DatatypeConstructorDecl::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_dt_cons_decl_release(pointer);
+  }
 
   // endregion
 
@@ -46,14 +53,17 @@ public class DatatypeConstructorDecl extends AbstractPointer
       return false;
     }
     DatatypeConstructorDecl decl = (DatatypeConstructorDecl) d;
-    if (this.pointer == decl.pointer)
+    if (address() == decl.address())
     {
       return true;
     }
-    return equals(getPointer(), decl.getPointer());
+    return equals(handle(), decl.handle());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
+  {
+    return Native.check(CApi.cvc5_dt_cons_decl_is_equal(pointer1, pointer2));
+  }
 
   /**
    * Add datatype selector declaration.
@@ -62,10 +72,17 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelector(String name, Sort sort)
   {
-    addSelector(getPointer(), name, sort.getPointer());
+    addSelector(handle(), name, sort.handle());
   }
 
-  private native void addSelector(long pointer, String name, long sortPointer);
+  private void addSelector(MemorySegment pointer, String name, MemorySegment sortPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_dt_cons_decl_add_selector(pointer, arena.allocateFrom(name), sortPointer);
+      Native.check();
+    }
+  }
 
   /**
    * Add datatype selector declaration whose codomain type is the datatype
@@ -74,10 +91,17 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorSelf(String name)
   {
-    addSelectorSelf(getPointer(), name);
+    addSelectorSelf(handle(), name);
   }
 
-  private native void addSelectorSelf(long pointer, String name);
+  private void addSelectorSelf(MemorySegment pointer, String name)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_dt_cons_decl_add_selector_self(pointer, arena.allocateFrom(name));
+      Native.check();
+    }
+  }
 
   /**
    * Add datatype selector declaration whose codomain sort is an unresolved
@@ -89,10 +113,18 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorUnresolved(String name, String unresDataypeName)
   {
-    addSelectorUnresolved(getPointer(), name, unresDataypeName);
+    addSelectorUnresolved(handle(), name, unresDataypeName);
   }
 
-  private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
+  private void addSelectorUnresolved(MemorySegment pointer, String name, String unresDataypeName)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      CApi.cvc5_dt_cons_decl_add_selector_unresolved(
+          pointer, arena.allocateFrom(name), arena.allocateFrom(unresDataypeName));
+      Native.check();
+    }
+  }
 
   /**
    * Determine if this DatatypeConstructorDecl is a null declaration.
@@ -101,15 +133,21 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(MemorySegment pointer)
+  {
+    return pointer.address() == 0;
+  }
 
   /**
    * @return A String representation of this datatype constructor declaration
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_cons_decl_to_string(MemorySegment.ofAddress(pointer)));
+  }
 
   /**
    * Get the hash value of a datatype constructor declaration.
@@ -118,8 +156,15 @@ public class DatatypeConstructorDecl extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(MemorySegment pointer)
+  {
+    if (pointer.address() == 0)
+    {
+      return 0;
+    }
+    return Native.check(CApi.cvc5_dt_cons_decl_hash(pointer));
+  }
 }

@@ -12,7 +12,10 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
 import java.io.IOException;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.*;
 
 /**
@@ -25,9 +28,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
     Utils.loadLibraries();
   }
 
-  private static native long newTermManager();
+  private static MemorySegment newTermManager()
+  {
+    return Native.handle(CApi.cvc5_term_manager_new());
+  }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_term_manager_delete(pointer);
+  }
 
   protected String toString(long pointer)
   {
@@ -40,18 +49,23 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public TermManager()
   {
-    super(new NativeContext(), TermManager.newTermManager(), TermManager::deletePointer);
+    this(TermManager.newTermManager());
+  }
+
+  private TermManager(MemorySegment pointer)
+  {
+    super(new NativeContext(pointer), pointer, TermManager::deletePointer);
   }
 
   /**
    * This is an internal constructor intended to be used only
-   * inside cvc5 package
+   * inside cvc5 package. It wraps the term manager of a context without
+   * owning a reference to it; the context keeps it alive.
    * @param ctx The context of the term manager.
-   * @param pointer The cpp pointer to TermManager
    */
-  TermManager(NativeContext ctx, long pointer)
+  TermManager(NativeContext ctx)
   {
-    super(ctx, pointer, TermManager::deletePointer);
+    super(ctx, ctx.tm, null);
   }
 
   /**
@@ -110,11 +124,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Statistics getStatistics()
   {
-    long statisticsPointer = getStatistics(getPointer());
+    MemorySegment statisticsPointer = getStatistics(handle());
     return new Statistics(ctx, statisticsPointer);
   }
 
-  private native long getStatistics(long pointer);
+  private MemorySegment getStatistics(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_term_manager_get_statistics(pointer));
+  }
 
   /* .................................................................... */
   /* Sorts Handling                                                       */
@@ -126,11 +143,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort getBooleanSort()
   {
-    long sortPointer = getBooleanSort(getPointer());
+    MemorySegment sortPointer = getBooleanSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getBooleanSort(long pointer);
+  private MemorySegment getBooleanSort(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_get_boolean_sort(pointer));
+  }
 
   /**
    * Get the integer sort.
@@ -138,33 +158,42 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort getIntegerSort()
   {
-    long sortPointer = getIntegerSort(getPointer());
+    MemorySegment sortPointer = getIntegerSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getIntegerSort(long pointer);
+  private MemorySegment getIntegerSort(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_get_integer_sort(pointer));
+  }
   /**
    * Get the real sort.
    * @return Sort Real.
    */
   public Sort getRealSort()
   {
-    long sortPointer = getRealSort(getPointer());
+    MemorySegment sortPointer = getRealSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getRealSort(long pointer);
+  private MemorySegment getRealSort(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_get_real_sort(pointer));
+  }
   /**
    * Get the regular expression sort.
    * @return Sort RegExp.
    */
   public Sort getRegExpSort()
   {
-    long sortPointer = getRegExpSort(getPointer());
+    MemorySegment sortPointer = getRegExpSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getRegExpSort(long pointer);
+  private MemorySegment getRegExpSort(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_get_regexp_sort(pointer));
+  }
   /**
    * Get the floating-point rounding mode sort.
    * @return Sort RoundingMode.
@@ -172,11 +201,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort getRoundingModeSort() throws CVC5ApiException
   {
-    long sortPointer = getRoundingModeSort(getPointer());
+    MemorySegment sortPointer = getRoundingModeSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getRoundingModeSort(long pointer) throws CVC5ApiException;
+  private MemorySegment getRoundingModeSort(MemorySegment pointer) throws CVC5ApiException
+  {
+    return Native.handle(CApi.cvc5_get_rm_sort(pointer));
+  }
 
   /**
    * Get the string sort.
@@ -184,11 +216,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort getStringSort()
   {
-    long sortPointer = getStringSort(getPointer());
+    MemorySegment sortPointer = getStringSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getStringSort(long solverPointer);
+  private MemorySegment getStringSort(MemorySegment solverPointer)
+  {
+    return Native.handle(CApi.cvc5_get_string_sort(solverPointer));
+  }
   /**
    * Create an array sort.
    * @param indexSort The array index sort.
@@ -197,11 +232,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkArraySort(Sort indexSort, Sort elemSort)
   {
-    long sortPointer = mkArraySort(getPointer(), indexSort.getPointer(), elemSort.getPointer());
+    MemorySegment sortPointer = mkArraySort(handle(), indexSort.handle(), elemSort.handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkArraySort(long pointer, long indexSortPointer, long elementSortPointer);
+  private MemorySegment mkArraySort(
+      MemorySegment pointer, MemorySegment indexSortPointer, MemorySegment elementSortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_array_sort(pointer, indexSortPointer, elementSortPointer));
+  }
 
   /**
    * Create a bit-vector sort.
@@ -212,11 +251,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Sort mkBitVectorSort(int size) throws CVC5ApiException
   {
     Utils.validateUnsigned(size, "size");
-    long sortPointer = mkBitVectorSort(getPointer(), size);
+    MemorySegment sortPointer = mkBitVectorSort(handle(), size);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkBitVectorSort(long pointer, int size);
+  private MemorySegment mkBitVectorSort(MemorySegment pointer, int size)
+  {
+    return Native.handle(CApi.cvc5_mk_bv_sort(pointer, size));
+  }
 
   /**
    * Create a finite field sort.
@@ -227,11 +269,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkFiniteFieldSort(String size, int base) throws CVC5ApiException
   {
-    long sortPointer = mkFiniteFieldSort(getPointer(), size, base);
+    MemorySegment sortPointer = mkFiniteFieldSort(handle(), size, base);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkFiniteFieldSort(long pointer, String size, int base);
+  private MemorySegment mkFiniteFieldSort(MemorySegment pointer, String size, int base)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_ff_sort(pointer, arena.allocateFrom(size), base));
+    }
+  }
 
   /**
    * Create a floating-point sort.
@@ -244,11 +292,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long sortPointer = mkFloatingPointSort(getPointer(), exp, sig);
+    MemorySegment sortPointer = mkFloatingPointSort(handle(), exp, sig);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkFloatingPointSort(long solverPointer, int exp, int sig);
+  private MemorySegment mkFloatingPointSort(MemorySegment solverPointer, int exp, int sig)
+  {
+    return Native.handle(CApi.cvc5_mk_fp_sort(solverPointer, exp, sig));
+  }
 
   /**
    * Create a datatype sort.
@@ -258,12 +309,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
-    long pointer = mkDatatypeSort(getPointer(), dtypedecl.getPointer());
+    MemorySegment pointer = mkDatatypeSort(handle(), dtypedecl.handle());
     return new Sort(ctx, pointer);
   }
 
-  private native long mkDatatypeSort(long pointer, long datatypeDeclPointer)
-      throws CVC5ApiException;
+  private MemorySegment mkDatatypeSort(MemorySegment pointer, MemorySegment datatypeDeclPointer)
+      throws CVC5ApiException
+  {
+    return Native.handle(CApi.cvc5_mk_dt_sort(pointer, datatypeDeclPointer));
+  }
 
   /**
    * Create a vector of datatype sorts.
@@ -276,13 +330,23 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
-    long[] declPointers = Utils.getPointers(dtypedecls);
-    long[] sortPointers = mkDatatypeSorts(getPointer(), declPointers);
+    MemorySegment[] declPointers = Utils.getHandles(dtypedecls);
+    MemorySegment[] sortPointers = mkDatatypeSorts(handle(), declPointers);
     Sort[] sorts = Utils.getSorts(ctx, sortPointers);
     return sorts;
   }
 
-  private native long[] mkDatatypeSorts(long pointer, long[] declPointers) throws CVC5ApiException;
+  private MemorySegment[] mkDatatypeSorts(MemorySegment pointer, MemorySegment[] declPointers)
+      throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment sorts = Native.check(CApi.cvc5_mk_dt_sorts(
+          pointer, declPointers.length, Native.allocateHandles(arena, declPointers)));
+      // one sort per datatype declaration
+      return Native.handles(sorts, declPointers.length);
+    }
+  }
 
   /**
    * Create function sort.
@@ -303,12 +367,22 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
   {
-    long sortPointer =
-        mkFunctionSort(getPointer(), Utils.getPointers(sorts), codomain.getPointer());
+    MemorySegment sortPointer =
+        mkFunctionSort(handle(), Utils.getHandles(sorts), codomain.handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkFunctionSort(long pointer, long[] sortPointers, long codomainPointer);
+  private MemorySegment mkFunctionSort(
+      MemorySegment pointer, MemorySegment[] sortPointers, MemorySegment codomainPointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_fun_sort(pointer,
+          sortPointers.length,
+          Native.allocateHandles(arena, sortPointers),
+          codomainPointer));
+    }
+  }
 
   /**
    * Create a sort parameter.
@@ -320,11 +394,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkParamSort(String symbol)
   {
-    long sortPointer = mkParamSort(getPointer(), symbol);
+    MemorySegment sortPointer = mkParamSort(handle(), symbol);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkParamSort(long pointer, String symbol);
+  private MemorySegment mkParamSort(MemorySegment pointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_param_sort(pointer, arena.allocateFrom(symbol)));
+    }
+  }
 
   /**
    * Create a sort parameter.
@@ -335,11 +415,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkParamSort()
   {
-    long sortPointer = mkParamSort(getPointer());
+    MemorySegment sortPointer = mkParamSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkParamSort(long pointer);
+  private MemorySegment mkParamSort(MemorySegment pointer)
+  {
+    // cvc5_mk_param_sort() requires a symbol. Without a symbol, the C++ API
+    // creates a parameter sort exactly like an uninterpreted sort without a
+    // symbol (NodeManager::mkSort()), which is what this C function does.
+    return Native.handle(CApi.cvc5_mk_uninterpreted_sort(pointer, MemorySegment.NULL));
+  }
 
   /**
    * Create a skolem
@@ -352,11 +438,19 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkSkolem(SkolemId skolemId, Term[] indices)
   {
-    long skolemPointer = mkSkolem(getPointer(), skolemId.getValue(), Utils.getPointers(indices));
+    MemorySegment skolemPointer =
+        mkSkolem(handle(), skolemId.getValue(), Utils.getHandles(indices));
     return new Term(ctx, skolemPointer);
   }
 
-  private native long mkSkolem(long pointer, int skolemId, long[] indices);
+  private MemorySegment mkSkolem(MemorySegment pointer, int skolemId, MemorySegment[] indices)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_skolem(
+          pointer, skolemId, indices.length, Native.allocateHandles(arena, indices)));
+    }
+  }
 
   /**
    * Get the number of indices for a given skolem id.
@@ -369,11 +463,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
 
   public int getNumIndicesForSkolemId(SkolemId id)
   {
-    int numIndices = getNumIndicesForSkolemId(getPointer(), id.getValue());
+    int numIndices = getNumIndicesForSkolemId(handle(), id.getValue());
     return numIndices;
   }
 
-  private native int getNumIndicesForSkolemId(long pointer, int skolemId);
+  private int getNumIndicesForSkolemId(MemorySegment pointer, int skolemId)
+  {
+    return (int) Native.check(CApi.cvc5_get_num_idxs_for_skolem_id(pointer, skolemId));
+  }
 
   /**
    * Create a predicate sort.
@@ -382,11 +479,18 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkPredicateSort(Sort[] sorts)
   {
-    long sortPointer = mkPredicateSort(getPointer(), Utils.getPointers(sorts));
+    MemorySegment sortPointer = mkPredicateSort(handle(), Utils.getHandles(sorts));
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkPredicateSort(long pointer, long[] sortPointers);
+  private MemorySegment mkPredicateSort(MemorySegment pointer, MemorySegment[] sortPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_predicate_sort(
+          pointer, sortPointers.length, Native.allocateHandles(arena, sortPointers)));
+    }
+  }
 
   /**
    * Create a record sort
@@ -398,11 +502,27 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkRecordSort(Pair<String, Sort>[] fields)
   {
-    long sortPointer = mkRecordSort(getPointer(), Utils.getPairs(fields));
+    MemorySegment sortPointer = mkRecordSort(handle(), Utils.getHandlePairs(fields));
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkRecordSort(long pointer, Pair<String, Long>[] fields);
+  private MemorySegment mkRecordSort(MemorySegment pointer, Pair<String, MemorySegment>[] fields)
+  {
+    String[] names = new String[fields.length];
+    MemorySegment[] sortPointers = new MemorySegment[fields.length];
+    for (int i = 0; i < fields.length; i++)
+    {
+      names[i] = fields[i].first;
+      sortPointers[i] = fields[i].second;
+    }
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_record_sort(pointer,
+          fields.length,
+          Native.allocateStrings(arena, names),
+          Native.allocateHandles(arena, sortPointers)));
+    }
+  }
 
   /**
    * Create a set sort.
@@ -411,11 +531,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkSetSort(Sort elemSort)
   {
-    long sortPointer = mkSetSort(getPointer(), elemSort.getPointer());
+    MemorySegment sortPointer = mkSetSort(handle(), elemSort.handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkSetSort(long pointer, long elemSortPointer);
+  private MemorySegment mkSetSort(MemorySegment pointer, MemorySegment elemSortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_set_sort(pointer, elemSortPointer));
+  }
   /**
    * Create a bag sort.
    * @param elemSort The sort of the bag elements.
@@ -423,11 +546,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkBagSort(Sort elemSort)
   {
-    long sortPointer = mkBagSort(getPointer(), elemSort.getPointer());
+    MemorySegment sortPointer = mkBagSort(handle(), elemSort.handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkBagSort(long pointer, long elemSortPointer);
+  private MemorySegment mkBagSort(MemorySegment pointer, MemorySegment elemSortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_bag_sort(pointer, elemSortPointer));
+  }
 
   /**
    * Create a sequence sort.
@@ -436,11 +562,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkSequenceSort(Sort elemSort)
   {
-    long sortPointer = mkSequenceSort(getPointer(), elemSort.getPointer());
+    MemorySegment sortPointer = mkSequenceSort(handle(), elemSort.handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkSequenceSort(long pointer, long elemSortPointer);
+  private MemorySegment mkSequenceSort(MemorySegment pointer, MemorySegment elemSortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_sequence_sort(pointer, elemSortPointer));
+  }
 
   /**
    * Create an abstract sort. An abstract sort represents a sort for a given
@@ -470,11 +599,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkAbstractSort(SortKind kind)
   {
-    long sortPointer = mkAbstractSort(getPointer(), kind.getValue());
+    MemorySegment sortPointer = mkAbstractSort(handle(), kind.getValue());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkAbstractSort(long pointer, int kindValue);
+  private MemorySegment mkAbstractSort(MemorySegment pointer, int kindValue)
+  {
+    return Native.handle(CApi.cvc5_mk_abstract_sort(pointer, kindValue));
+  }
 
   /**
    * Create an uninterpreted sort.
@@ -483,11 +615,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkUninterpretedSort(String symbol)
   {
-    long sortPointer = mkUninterpretedSort(getPointer(), symbol);
+    MemorySegment sortPointer = mkUninterpretedSort(handle(), symbol);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSort(long pointer, String symbol);
+  private MemorySegment mkUninterpretedSort(MemorySegment pointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_uninterpreted_sort(pointer, arena.allocateFrom(symbol)));
+    }
+  }
 
   /**
    * Create an uninterpreted sort.
@@ -495,11 +633,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkUninterpretedSort()
   {
-    long sortPointer = mkUninterpretedSort(getPointer());
+    MemorySegment sortPointer = mkUninterpretedSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSort(long pointer);
+  private MemorySegment mkUninterpretedSort(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_uninterpreted_sort(pointer, MemorySegment.NULL));
+  }
 
   /**
    * Create an unresolved datatype sort.
@@ -515,11 +656,18 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUnresolvedDatatypeSort(getPointer(), symbol, arity);
+    MemorySegment sortPointer = mkUnresolvedDatatypeSort(handle(), symbol, arity);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUnresolvedDatatypeSort(long pointer, String symbol, int arity);
+  private MemorySegment mkUnresolvedDatatypeSort(MemorySegment pointer, String symbol, int arity)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(
+          CApi.cvc5_mk_unresolved_dt_sort(pointer, arena.allocateFrom(symbol), arity));
+    }
+  }
 
   /**
    * Create an unresolved datatype sort.
@@ -550,11 +698,19 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUninterpretedSortConstructorSort(getPointer(), arity, symbol);
+    MemorySegment sortPointer = mkUninterpretedSortConstructorSort(handle(), arity, symbol);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSortConstructorSort(long pointer, int arity, String symbol);
+  private MemorySegment mkUninterpretedSortConstructorSort(
+      MemorySegment pointer, int arity, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_uninterpreted_sort_constructor_sort(
+          pointer, arity, arena.allocateFrom(symbol)));
+    }
+  }
 
   /**
    * Create a sort constructor sort.
@@ -569,11 +725,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUninterpretedSortConstructorSort(getPointer(), arity);
+    MemorySegment sortPointer = mkUninterpretedSortConstructorSort(handle(), arity);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkUninterpretedSortConstructorSort(long pointer, int arity);
+  private MemorySegment mkUninterpretedSortConstructorSort(MemorySegment pointer, int arity)
+  {
+    return Native.handle(
+        CApi.cvc5_mk_uninterpreted_sort_constructor_sort(pointer, arity, MemorySegment.NULL));
+  }
 
   /**
    * Create a tuple sort.
@@ -582,12 +742,19 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkTupleSort(Sort[] sorts)
   {
-    long[] sortPointers = Utils.getPointers(sorts);
-    long sortPointer = mkTupleSort(getPointer(), sortPointers);
+    MemorySegment[] sortPointers = Utils.getHandles(sorts);
+    MemorySegment sortPointer = mkTupleSort(handle(), sortPointers);
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkTupleSort(long pointer, long[] sortPointers);
+  private MemorySegment mkTupleSort(MemorySegment pointer, MemorySegment[] sortPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_tuple_sort(
+          pointer, sortPointers.length, Native.allocateHandles(arena, sortPointers)));
+    }
+  }
 
   /**
    * Create a nullable sort.
@@ -597,11 +764,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Sort mkNullableSort(Sort sort)
   {
-    long sortPointer = mkNullableSort(getPointer(), sort.getPointer());
+    MemorySegment sortPointer = mkNullableSort(handle(), sort.handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long mkNullableSort(long pointer, long sortPointer);
+  private MemorySegment mkNullableSort(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_nullable_sort(pointer, sortPointer));
+  }
 
   /* .................................................................... */
   /* Create Terms */
@@ -614,11 +784,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Kind kind)
   {
-    long termPointer = mkTerm(getPointer(), kind.getValue());
+    MemorySegment termPointer = mkTerm(handle(), kind.getValue());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue);
+  private MemorySegment mkTerm(MemorySegment pointer, int kindValue)
+  {
+    return Native.handle(CApi.cvc5_mk_term(pointer, kindValue, 0, MemorySegment.NULL));
+  }
 
   /**
    * Create a unary term of given kind.
@@ -628,11 +801,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Kind kind, Term child)
   {
-    long termPointer = mkTerm(getPointer(), kind.getValue(), child.getPointer());
+    MemorySegment termPointer = mkTerm(handle(), kind.getValue(), child.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue, long childPointer);
+  private MemorySegment mkTerm(MemorySegment pointer, int kindValue, MemorySegment childPointer)
+  {
+    return mkTerm(pointer, kindValue, new MemorySegment[] {childPointer});
+  }
 
   /**
    * Create binary term of given kind.
@@ -643,12 +819,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Kind kind, Term child1, Term child2)
   {
-    long termPointer =
-        mkTerm(getPointer(), kind.getValue(), child1.getPointer(), child2.getPointer());
+    MemorySegment termPointer = mkTerm(handle(), kind.getValue(), child1.handle(), child2.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue, long child1Pointer, long child2Pointer);
+  private MemorySegment mkTerm(MemorySegment pointer,
+      int kindValue,
+      MemorySegment child1Pointer,
+      MemorySegment child2Pointer)
+  {
+    return mkTerm(pointer, kindValue, new MemorySegment[] {child1Pointer, child2Pointer});
+  }
 
   /**
    * Create ternary term of given kind.
@@ -660,16 +841,20 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
   {
-    long termPointer = mkTerm(getPointer(),
-        kind.getValue(),
-        child1.getPointer(),
-        child2.getPointer(),
-        child3.getPointer());
+    MemorySegment termPointer =
+        mkTerm(handle(), kind.getValue(), child1.handle(), child2.handle(), child3.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(
-      long pointer, int kindValue, long child1Pointer, long child2Pointer, long child3Pointer);
+  private MemorySegment mkTerm(MemorySegment pointer,
+      int kindValue,
+      MemorySegment child1Pointer,
+      MemorySegment child2Pointer,
+      MemorySegment child3Pointer)
+  {
+    return mkTerm(
+        pointer, kindValue, new MemorySegment[] {child1Pointer, child2Pointer, child3Pointer});
+  }
   /**
    * Create n-ary term of given kind.
    * @param kind The kind of the term.
@@ -678,12 +863,22 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Kind kind, Term[] children)
   {
-    long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(getPointer(), kind.getValue(), childPointers);
+    MemorySegment[] childPointers = Utils.getHandles(children);
+    MemorySegment termPointer = mkTerm(handle(), kind.getValue(), childPointers);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, int kindValue, long[] childrenPointers);
+  private MemorySegment mkTerm(
+      MemorySegment pointer, int kindValue, MemorySegment[] childrenPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_term(pointer,
+          kindValue,
+          childrenPointers.length,
+          Native.allocateHandles(arena, childrenPointers)));
+    }
+  }
 
   /**
    * Create nullary term of given kind from a given operator.
@@ -694,11 +889,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Op op)
   {
-    long termPointer = mkTerm(getPointer(), op.getPointer());
+    MemorySegment termPointer = mkTerm(handle(), op.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer);
+  private MemorySegment mkTerm(MemorySegment pointer, MemorySegment opPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_term_from_op(pointer, opPointer, 0, MemorySegment.NULL));
+  }
   /**
    * Create unary term of given kind from a given operator.
    * Create operators with {@link TermManager#mkOp(Kind)},
@@ -709,11 +907,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Op op, Term child)
   {
-    long termPointer = mkTerm(getPointer(), op.getPointer(), child.getPointer());
+    MemorySegment termPointer = mkTerm(handle(), op.handle(), child.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer, long childPointer);
+  private MemorySegment mkTerm(
+      MemorySegment pointer, MemorySegment opPointer, MemorySegment childPointer)
+  {
+    return mkTerm(pointer, opPointer, new MemorySegment[] {childPointer});
+  }
 
   /**
    * Create binary term of given kind from a given operator.
@@ -726,12 +928,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Op op, Term child1, Term child2)
   {
-    long termPointer =
-        mkTerm(getPointer(), op.getPointer(), child1.getPointer(), child2.getPointer());
+    MemorySegment termPointer = mkTerm(handle(), op.handle(), child1.handle(), child2.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer, long child1Pointer, long child2Pointer);
+  private MemorySegment mkTerm(MemorySegment pointer,
+      MemorySegment opPointer,
+      MemorySegment child1Pointer,
+      MemorySegment child2Pointer)
+  {
+    return mkTerm(pointer, opPointer, new MemorySegment[] {child1Pointer, child2Pointer});
+  }
   /**
    * Create ternary term of given kind from a given operator.
    * Create operators with {@link TermManager#mkOp(Kind)},
@@ -744,16 +951,20 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Op op, Term child1, Term child2, Term child3)
   {
-    long termPointer = mkTerm(getPointer(),
-        op.getPointer(),
-        child1.getPointer(),
-        child2.getPointer(),
-        child3.getPointer());
+    MemorySegment termPointer =
+        mkTerm(handle(), op.handle(), child1.handle(), child2.handle(), child3.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(
-      long pointer, long opPointer, long child1Pointer, long child2Pointer, long child3Pointer);
+  private MemorySegment mkTerm(MemorySegment pointer,
+      MemorySegment opPointer,
+      MemorySegment child1Pointer,
+      MemorySegment child2Pointer,
+      MemorySegment child3Pointer)
+  {
+    return mkTerm(
+        pointer, opPointer, new MemorySegment[] {child1Pointer, child2Pointer, child3Pointer});
+  }
 
   /**
    * Create n-ary term of given kind from a given operator.
@@ -765,12 +976,22 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTerm(Op op, Term[] children)
   {
-    long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(getPointer(), op.getPointer(), childPointers);
+    MemorySegment[] childPointers = Utils.getHandles(children);
+    MemorySegment termPointer = mkTerm(handle(), op.handle(), childPointers);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTerm(long pointer, long opPointer, long[] childrenPointers);
+  private MemorySegment mkTerm(
+      MemorySegment pointer, MemorySegment opPointer, MemorySegment[] childrenPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_term_from_op(pointer,
+          opPointer,
+          childrenPointers.length,
+          Native.allocateHandles(arena, childrenPointers)));
+    }
+  }
 
   /**
    * Create a tuple term.
@@ -780,12 +1001,19 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTuple(Term[] terms)
   {
-    long[] termPointers = Utils.getPointers(terms);
-    long termPointer = mkTuple(getPointer(), termPointers);
+    MemorySegment[] termPointers = Utils.getHandles(terms);
+    MemorySegment termPointer = mkTuple(handle(), termPointers);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTuple(long pointer, long[] termPointers);
+  private MemorySegment mkTuple(MemorySegment pointer, MemorySegment[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_tuple(
+          pointer, termPointers.length, Native.allocateHandles(arena, termPointers)));
+    }
+  }
 
   /**
    * Create a nullable some term.
@@ -794,11 +1022,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkNullableSome(Term term)
   {
-    long termPointer = mkNullableSome(getPointer(), term.getPointer());
+    MemorySegment termPointer = mkNullableSome(handle(), term.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableSome(long pointer, long termPointer);
+  private MemorySegment mkNullableSome(MemorySegment pointer, MemorySegment termPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_nullable_some(pointer, termPointer));
+  }
 
   /**
    * Create a selector for nullable term.
@@ -807,11 +1038,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkNullableVal(Term term)
   {
-    long termPointer = mkNullableVal(getPointer(), term.getPointer());
+    MemorySegment termPointer = mkNullableVal(handle(), term.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableVal(long pointer, long termPointer);
+  private MemorySegment mkNullableVal(MemorySegment pointer, MemorySegment termPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_nullable_val(pointer, termPointer));
+  }
 
   /**
    * Create a null tester for a nullable term.
@@ -820,11 +1054,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkNullableIsNull(Term term)
   {
-    long termPointer = mkNullableIsNull(getPointer(), term.getPointer());
+    MemorySegment termPointer = mkNullableIsNull(handle(), term.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableIsNull(long pointer, long termPointer);
+  private MemorySegment mkNullableIsNull(MemorySegment pointer, MemorySegment termPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_nullable_is_null(pointer, termPointer));
+  }
 
   /**
    * Create a some tester for a nullable term.
@@ -833,11 +1070,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkNullableIsSome(Term term)
   {
-    long termPointer = mkNullableIsSome(getPointer(), term.getPointer());
+    MemorySegment termPointer = mkNullableIsSome(handle(), term.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableIsSome(long pointer, long termPointer);
+  private MemorySegment mkNullableIsSome(MemorySegment pointer, MemorySegment termPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_nullable_is_some(pointer, termPointer));
+  }
 
   /**
    * Create a constant representing a null value of the given sort.
@@ -846,11 +1086,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkNullableNull(Sort sort)
   {
-    long termPointer = mkNullableNull(getPointer(), sort.getPointer());
+    MemorySegment termPointer = mkNullableNull(handle(), sort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableNull(long pointer, long sortPointer);
+  private MemorySegment mkNullableNull(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_nullable_null(pointer, sortPointer));
+  }
   /**
    * Create a term that lifts kind to nullable terms.
    * Example:
@@ -867,12 +1110,20 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkNullableLift(Kind kind, Term[] args)
   {
-    long[] termPointers = Utils.getPointers(args);
-    long termPointer = mkNullableLift(getPointer(), kind.getValue(), termPointers);
+    MemorySegment[] termPointers = Utils.getHandles(args);
+    MemorySegment termPointer = mkNullableLift(handle(), kind.getValue(), termPointers);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkNullableLift(long pointer, int kindValue, long[] termPointers);
+  private MemorySegment mkNullableLift(
+      MemorySegment pointer, int kindValue, MemorySegment[] termPointers)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_nullable_lift(
+          pointer, kindValue, termPointers.length, Native.allocateHandles(arena, termPointers)));
+    }
+  }
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -891,11 +1142,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Op mkOp(Kind kind)
   {
-    long opPointer = mkOp(getPointer(), kind.getValue());
+    MemorySegment opPointer = mkOp(handle(), kind.getValue());
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue);
+  private MemorySegment mkOp(MemorySegment pointer, int kindValue)
+  {
+    return Native.handle(CApi.cvc5_mk_op(pointer, kindValue, 0, MemorySegment.NULL));
+  }
   /**
    * Create operator of kind:
    * <ul>
@@ -910,11 +1164,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Op mkOp(Kind kind, String arg)
   {
-    long opPointer = mkOp(getPointer(), kind.getValue(), arg);
+    MemorySegment opPointer = mkOp(handle(), kind.getValue(), arg);
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, String arg);
+  private MemorySegment mkOp(MemorySegment pointer, int kindValue, String arg)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_op_from_str(pointer, kindValue, arena.allocateFrom(arg)));
+    }
+  }
 
   /**
    * Create operator of kind:
@@ -941,11 +1201,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
     Utils.validateUnsigned(arg, "arg");
-    long opPointer = mkOp(getPointer(), kind.getValue(), arg);
+    MemorySegment opPointer = mkOp(handle(), kind.getValue(), arg);
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, int arg);
+  private MemorySegment mkOp(MemorySegment pointer, int kindValue, int arg)
+  {
+    return mkOp(pointer, kindValue, new int[] {arg});
+  }
 
   /**
    * Create operator of Kind:
@@ -968,11 +1231,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(arg1, "arg1");
     Utils.validateUnsigned(arg2, "arg2");
-    long opPointer = mkOp(getPointer(), kind.getValue(), arg1, arg2);
+    MemorySegment opPointer = mkOp(handle(), kind.getValue(), arg1, arg2);
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, int arg1, int arg2);
+  private MemorySegment mkOp(MemorySegment pointer, int kindValue, int arg1, int arg2)
+  {
+    return mkOp(pointer, kindValue, new int[] {arg1, arg2});
+  }
 
   /**
    * Create operator of Kind:
@@ -988,11 +1254,18 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
     Utils.validateUnsigned(args, "args");
-    long opPointer = mkOp(getPointer(), kind.getValue(), args);
+    MemorySegment opPointer = mkOp(handle(), kind.getValue(), args);
     return new Op(ctx, opPointer);
   }
 
-  private native long mkOp(long pointer, int kindValue, int[] args);
+  private MemorySegment mkOp(MemorySegment pointer, int kindValue, int[] args)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(
+          CApi.cvc5_mk_op(pointer, kindValue, args.length, Native.allocateInts(arena, args)));
+    }
+  }
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -1004,22 +1277,28 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkTrue()
   {
-    long termPointer = mkTrue(getPointer());
+    MemorySegment termPointer = mkTrue(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkTrue(long pointer);
+  private MemorySegment mkTrue(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_true(pointer));
+  }
   /**
    * Create a Boolean {@code false} constant.
    * @return The false constant.
    */
   public Term mkFalse()
   {
-    long termPointer = mkFalse(getPointer());
+    MemorySegment termPointer = mkFalse(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFalse(long pointer);
+  private MemorySegment mkFalse(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_false(pointer));
+  }
   /**
    * Create a Boolean constant.
    * @param val The value of the constant.
@@ -1027,22 +1306,28 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkBoolean(boolean val)
   {
-    long termPointer = mkBoolean(getPointer(), val);
+    MemorySegment termPointer = mkBoolean(handle(), val);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkBoolean(long pointer, boolean val);
+  private MemorySegment mkBoolean(MemorySegment pointer, boolean val)
+  {
+    return Native.handle(CApi.cvc5_mk_boolean(pointer, val));
+  }
   /**
    * Create a constant representing the number Pi.
    * @return A constant representing Pi.
    */
   public Term mkPi()
   {
-    long termPointer = mkPi(getPointer());
+    MemorySegment termPointer = mkPi(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkPi(long pointer);
+  private MemorySegment mkPi(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_pi(pointer));
+  }
   /**
    * Create an integer constant from a string.
    * @param s The string representation of the constant, may represent an.
@@ -1053,11 +1338,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkInteger(String s) throws CVC5ApiException
   {
-    long termPointer = mkInteger(getPointer(), s);
+    MemorySegment termPointer = mkInteger(handle(), s);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkInteger(long pointer, String s) throws CVC5ApiException;
+  private MemorySegment mkInteger(MemorySegment pointer, String s) throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_integer(pointer, arena.allocateFrom(s)));
+    }
+  }
 
   /**
    * Create an integer constant from a C++ {@code int}.
@@ -1066,11 +1357,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkInteger(long val)
   {
-    long termPointer = mkInteger(getPointer(), val);
+    MemorySegment termPointer = mkInteger(handle(), val);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkInteger(long pointer, long val);
+  private MemorySegment mkInteger(MemorySegment pointer, long val)
+  {
+    return Native.handle(CApi.cvc5_mk_integer_int64(pointer, val));
+  }
   /**
    * Create a real constant from a string.
    * @param s The string representation of the constant, may represent an.
@@ -1081,11 +1375,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkReal(String s) throws CVC5ApiException
   {
-    long termPointer = mkReal(getPointer(), s);
+    MemorySegment termPointer = mkReal(handle(), s);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkReal(long pointer, String s) throws CVC5ApiException;
+  private MemorySegment mkReal(MemorySegment pointer, String s) throws CVC5ApiException
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_real(pointer, arena.allocateFrom(s)));
+    }
+  }
   /**
    * Create a real constant from an integer.
    * @param val The value of the constant.
@@ -1093,11 +1393,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkReal(long val)
   {
-    long termPointer = mkRealValue(getPointer(), val);
+    MemorySegment termPointer = mkRealValue(handle(), val);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRealValue(long pointer, long val);
+  private MemorySegment mkRealValue(MemorySegment pointer, long val)
+  {
+    return Native.handle(CApi.cvc5_mk_real_int64(pointer, val));
+  }
   /**
    * Create a real constant from a rational.
    * @param num The value of the numerator.
@@ -1106,11 +1409,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkReal(long num, long den)
   {
-    long termPointer = mkReal(getPointer(), num, den);
+    MemorySegment termPointer = mkReal(handle(), num, den);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkReal(long pointer, long num, long den);
+  private MemorySegment mkReal(MemorySegment pointer, long num, long den)
+  {
+    return Native.handle(CApi.cvc5_mk_real_num_den(pointer, num, den));
+  }
 
   /**
    * Create a regular expression none ({@code re.none}) term.
@@ -1118,11 +1424,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkRegexpNone()
   {
-    long termPointer = mkRegexpNone(getPointer());
+    MemorySegment termPointer = mkRegexpNone(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRegexpNone(long pointer);
+  private MemorySegment mkRegexpNone(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_regexp_none(pointer));
+  }
 
   /**
    * Create a regular expression all ({@code re.all}) term.
@@ -1130,11 +1439,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkRegexpAll()
   {
-    long termPointer = mkRegexpAll(getPointer());
+    MemorySegment termPointer = mkRegexpAll(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRegexpAll(long pointer);
+  private MemorySegment mkRegexpAll(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_regexp_all(pointer));
+  }
 
   /**
    * Create a regular expression allchar ({@code re.allchar}) term.
@@ -1142,11 +1454,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkRegexpAllchar()
   {
-    long termPointer = mkRegexpAllchar(getPointer());
+    MemorySegment termPointer = mkRegexpAllchar(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRegexpAllchar(long pointer);
+  private MemorySegment mkRegexpAllchar(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_regexp_allchar(pointer));
+  }
 
   /**
    * Create a constant representing an empty set of the given sort.
@@ -1155,11 +1470,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkEmptySet(Sort sort)
   {
-    long termPointer = mkEmptySet(getPointer(), sort.getPointer());
+    MemorySegment termPointer = mkEmptySet(handle(), sort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkEmptySet(long pointer, long sortPointer);
+  private MemorySegment mkEmptySet(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_empty_set(pointer, sortPointer));
+  }
   /**
    * Create a constant representing an empty bag of the given sort.
    * @param sort The sort of the bag elements.
@@ -1167,11 +1485,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkEmptyBag(Sort sort)
   {
-    long termPointer = mkEmptyBag(getPointer(), sort.getPointer());
+    MemorySegment termPointer = mkEmptyBag(handle(), sort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkEmptyBag(long pointer, long sortPointer);
+  private MemorySegment mkEmptyBag(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_empty_bag(pointer, sortPointer));
+  }
 
   /**
    * Create a separation logic empty term.
@@ -1182,11 +1503,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkSepEmp()
   {
-    long termPointer = mkSepEmp(getPointer());
+    MemorySegment termPointer = mkSepEmp(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkSepEmp(long pointer);
+  private MemorySegment mkSepEmp(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_mk_sep_emp(pointer));
+  }
 
   /**
    * Create a separation logic nil term.
@@ -1198,11 +1522,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkSepNil(Sort sort)
   {
-    long termPointer = mkSepNil(getPointer(), sort.getPointer());
+    MemorySegment termPointer = mkSepNil(handle(), sort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkSepNil(long pointer, long sortPointer);
+  private MemorySegment mkSepNil(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_sep_nil(pointer, sortPointer));
+  }
 
   /**
    * Create a String constant.
@@ -1225,11 +1552,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Term mkString(String s, boolean useEscSequences)
   {
     // TODO: review unicode https://github.com/cvc5/cvc5-wishues/issues/150
-    long termPointer = mkString(getPointer(), s, useEscSequences);
+    MemorySegment termPointer = mkString(handle(), s, useEscSequences);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkString(long pointer, String s, boolean useEscSequences);
+  private MemorySegment mkString(MemorySegment pointer, String s, boolean useEscSequences)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_string(pointer, arena.allocateFrom(s), useEscSequences));
+    }
+  }
 
   /**
    * Create a String constant.
@@ -1241,11 +1574,19 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Term mkString(int[] s) throws CVC5ApiException
   {
     Utils.validateUnsigned(s, "s");
-    long termPointer = mkString(getPointer(), s);
+    MemorySegment termPointer = mkString(handle(), s);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkString(long pointer, int[] s);
+  private MemorySegment mkString(MemorySegment pointer, int[] s)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      // a NUL-terminated UTF-32 string
+      MemorySegment chars = Native.allocateInts(arena, Arrays.copyOf(s, s.length + 1));
+      return Native.handle(CApi.cvc5_mk_string_from_char32(pointer, chars));
+    }
+  }
 
   /**
    * Create an empty sequence of the given element sort.
@@ -1254,11 +1595,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkEmptySequence(Sort sort)
   {
-    long termPointer = mkEmptySequence(getPointer(), sort.getPointer());
+    MemorySegment termPointer = mkEmptySequence(handle(), sort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkEmptySequence(long pointer, long sortPointer);
+  private MemorySegment mkEmptySequence(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_empty_sequence(pointer, sortPointer));
+  }
 
   /**
    * Create a universe set of the given sort.
@@ -1267,11 +1611,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkUniverseSet(Sort sort)
   {
-    long termPointer = mkUniverseSet(getPointer(), sort.getPointer());
+    MemorySegment termPointer = mkUniverseSet(handle(), sort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkUniverseSet(long pointer, long sortPointer);
+  private MemorySegment mkUniverseSet(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_universe_set(pointer, sortPointer));
+  }
 
   /**
    * Create a bit-vector constant of given size and value = 0.
@@ -1298,11 +1645,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(val, "val");
-    long termPointer = mkBitVector(getPointer(), size, val);
+    MemorySegment termPointer = mkBitVector(handle(), size, val);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkBitVector(long pointer, int size, long val);
+  private MemorySegment mkBitVector(MemorySegment pointer, int size, long val)
+  {
+    return Native.handle(CApi.cvc5_mk_bv_uint64(pointer, size, val));
+  }
 
   /**
    * Create a bit-vector constant of a given bit-width from a given string of
@@ -1320,11 +1670,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(base, "base");
-    long termPointer = mkBitVector(getPointer(), size, s, base);
+    MemorySegment termPointer = mkBitVector(handle(), size, s, base);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkBitVector(long pointer, int size, String s, int base);
+  private MemorySegment mkBitVector(MemorySegment pointer, int size, String s, int base)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_bv(pointer, size, arena.allocateFrom(s), base));
+    }
+  }
 
   /**
    * Create a finite field constant in a given field and for a given value.
@@ -1339,11 +1695,19 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkFiniteFieldElem(String val, Sort sort, int base) throws CVC5ApiException
   {
-    long termPointer = mkFiniteFieldElem(getPointer(), val, sort.getPointer(), base);
+    MemorySegment termPointer = mkFiniteFieldElem(handle(), val, sort.handle(), base);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFiniteFieldElem(long pointer, String val, long sortPointer, int base);
+  private MemorySegment mkFiniteFieldElem(
+      MemorySegment pointer, String val, MemorySegment sortPointer, int base)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(
+          CApi.cvc5_mk_ff_elem(pointer, arena.allocateFrom(val), sortPointer, base));
+    }
+  }
 
   /**
    * Create a constant array with the provided constant value stored at
@@ -1355,11 +1719,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkConstArray(Sort sort, Term val)
   {
-    long termPointer = mkConstArray(getPointer(), sort.getPointer(), val.getPointer());
+    MemorySegment termPointer = mkConstArray(handle(), sort.handle(), val.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkConstArray(long pointer, long sortPointer, long valPointer);
+  private MemorySegment mkConstArray(
+      MemorySegment pointer, MemorySegment sortPointer, MemorySegment valPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_const_array(pointer, sortPointer, valPointer));
+  }
   /**
    * Create a positive infinity floating-point constant (SMT-LIB: {@code +oo}).
    * @param exp Number of bits in the exponent.
@@ -1371,11 +1739,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointPosInf(getPointer(), exp, sig);
+    MemorySegment termPointer = mkFloatingPointPosInf(handle(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointPosInf(long pointer, int exp, int sig);
+  private MemorySegment mkFloatingPointPosInf(MemorySegment pointer, int exp, int sig)
+  {
+    return Native.handle(CApi.cvc5_mk_fp_pos_inf(pointer, exp, sig));
+  }
   /**
    * Create a negative infinity floating-point constant (SMT-LIB: {@code -oo}).
    * @param exp Number of bits in the exponent.
@@ -1387,11 +1758,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointNegInf(getPointer(), exp, sig);
+    MemorySegment termPointer = mkFloatingPointNegInf(handle(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointNegInf(long pointer, int exp, int sig);
+  private MemorySegment mkFloatingPointNegInf(MemorySegment pointer, int exp, int sig)
+  {
+    return Native.handle(CApi.cvc5_mk_fp_neg_inf(pointer, exp, sig));
+  }
   /**
    * Create a not-a-number floating-point constant (SMT-LIB: {@code NaN}).
    * @param exp Number of bits in the exponent.
@@ -1403,11 +1777,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointNaN(getPointer(), exp, sig);
+    MemorySegment termPointer = mkFloatingPointNaN(handle(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointNaN(long pointer, int exp, int sig);
+  private MemorySegment mkFloatingPointNaN(MemorySegment pointer, int exp, int sig)
+  {
+    return Native.handle(CApi.cvc5_mk_fp_nan(pointer, exp, sig));
+  }
 
   /**
    * Create a positive zero floating-point constant (SMT-LIB: {@code +zero}).
@@ -1420,11 +1797,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointPosZero(getPointer(), exp, sig);
+    MemorySegment termPointer = mkFloatingPointPosZero(handle(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointPosZero(long pointer, int exp, int sig);
+  private MemorySegment mkFloatingPointPosZero(MemorySegment pointer, int exp, int sig)
+  {
+    return Native.handle(CApi.cvc5_mk_fp_pos_zero(pointer, exp, sig));
+  }
 
   /**
    * Create a negative zero floating-point constant (SMT-LIB: {@code -zero}).
@@ -1437,11 +1817,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointNegZero(getPointer(), exp, sig);
+    MemorySegment termPointer = mkFloatingPointNegZero(handle(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointNegZero(long pointer, int exp, int sig);
+  private MemorySegment mkFloatingPointNegZero(MemorySegment pointer, int exp, int sig)
+  {
+    return Native.handle(CApi.cvc5_mk_fp_neg_zero(pointer, exp, sig));
+  }
 
   /**
    * Create a rounding mode constant.
@@ -1450,11 +1833,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkRoundingMode(RoundingMode rm)
   {
-    long termPointer = mkRoundingMode(getPointer(), rm.getValue());
+    MemorySegment termPointer = mkRoundingMode(handle(), rm.getValue());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkRoundingMode(long pointer, int rm);
+  private MemorySegment mkRoundingMode(MemorySegment pointer, int rm)
+  {
+    return Native.handle(CApi.cvc5_mk_rm(pointer, rm));
+  }
 
   /**
    * Create a floating-point value from a bit-vector given in IEEE-754
@@ -1469,11 +1855,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPoint(getPointer(), exp, sig, val.getPointer());
+    MemorySegment termPointer = mkFloatingPoint(handle(), exp, sig, val.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPoint(long pointer, int exp, int sig, long valPointer);
+  private MemorySegment mkFloatingPoint(
+      MemorySegment pointer, int exp, int sig, MemorySegment valPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_fp(pointer, exp, sig, valPointer));
+  }
 
   /**
    * Create a floating-point value from its three IEEE-754 bit-vector value
@@ -1486,13 +1876,18 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
   {
-    long termPointer =
-        mkFloatingPointX(getPointer(), sign.getPointer(), exp.getPointer(), sig.getPointer());
+    MemorySegment termPointer =
+        mkFloatingPointX(handle(), sign.handle(), exp.handle(), sig.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkFloatingPointX(
-      long pointer, long signPointer, long expPointer, long sigPointer);
+  private MemorySegment mkFloatingPointX(MemorySegment pointer,
+      MemorySegment signPointer,
+      MemorySegment expPointer,
+      MemorySegment sigPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_fp_from_ieee(pointer, signPointer, expPointer, sigPointer));
+  }
 
   /**
    * Create a cardinality constraint for an uninterpreted sort.
@@ -1507,11 +1902,15 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
   {
     Utils.validateUnsigned(upperBound, "upperBound");
-    long termPointer = mkCardinalityConstraint(getPointer(), sort.getPointer(), upperBound);
+    MemorySegment termPointer = mkCardinalityConstraint(handle(), sort.handle(), upperBound);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkCardinalityConstraint(long pointer, long sortPointer, int upperBound);
+  private MemorySegment mkCardinalityConstraint(
+      MemorySegment pointer, MemorySegment sortPointer, int upperBound)
+  {
+    return Native.handle(CApi.cvc5_mk_cardinality_constraint(pointer, sortPointer, upperBound));
+  }
 
   /* .................................................................... */
   /* Create Variables                                                     */
@@ -1532,11 +1931,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkConst(Sort sort, String symbol)
   {
-    long termPointer = mkConst(getPointer(), sort.getPointer(), symbol);
+    MemorySegment termPointer = mkConst(handle(), sort.handle(), symbol);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkConst(long pointer, long sortPointer, String symbol);
+  private MemorySegment mkConst(MemorySegment pointer, MemorySegment sortPointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_const(pointer, sortPointer, arena.allocateFrom(symbol)));
+    }
+  }
 
   /**
    * Create a free constant with a default symbol name.
@@ -1546,11 +1951,14 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkConst(Sort sort)
   {
-    long termPointer = mkConst(getPointer(), sort.getPointer());
+    MemorySegment termPointer = mkConst(handle(), sort.handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long mkConst(long pointer, long sortPointer);
+  private MemorySegment mkConst(MemorySegment pointer, MemorySegment sortPointer)
+  {
+    return Native.handle(CApi.cvc5_mk_const(pointer, sortPointer, MemorySegment.NULL));
+  }
 
   /**
    * Create a bound variable to be used in a binder (i.e., a quantifier, a
@@ -1572,11 +1980,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public Term mkVar(Sort sort, String symbol)
   {
-    long termPointer = mkVar(getPointer(), sort.getPointer(), symbol);
+    MemorySegment termPointer = mkVar(handle(), sort.handle(), symbol);
     return new Term(ctx, termPointer);
   }
 
-  private native long mkVar(long pointer, long sortPointer, String symbol);
+  private MemorySegment mkVar(MemorySegment pointer, MemorySegment sortPointer, String symbol)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_var(pointer, sortPointer, arena.allocateFrom(symbol)));
+    }
+  }
 
   /* .................................................................... */
   /* Create datatype constructor declarations                             */
@@ -1589,11 +2003,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
-    long declPointer = mkDatatypeConstructorDecl(getPointer(), name);
+    MemorySegment declPointer = mkDatatypeConstructorDecl(handle(), name);
     return new DatatypeConstructorDecl(ctx, declPointer);
   }
 
-  private native long mkDatatypeConstructorDecl(long pointer, String name);
+  private MemorySegment mkDatatypeConstructorDecl(MemorySegment pointer, String name)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_dt_cons_decl(pointer, arena.allocateFrom(name)));
+    }
+  }
 
   /* .................................................................... */
   /* Create datatype declarations                                         */
@@ -1617,11 +2037,17 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
   {
-    long declPointer = mkDatatypeDecl(getPointer(), name, isCoDatatype);
+    MemorySegment declPointer = mkDatatypeDecl(handle(), name, isCoDatatype);
     return new DatatypeDecl(ctx, declPointer);
   }
 
-  private native long mkDatatypeDecl(long pointer, String name, boolean isCoDatatype);
+  private MemorySegment mkDatatypeDecl(MemorySegment pointer, String name, boolean isCoDatatype)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_dt_decl(pointer, arena.allocateFrom(name), isCoDatatype));
+    }
+  }
 
   /**
    * Create a datatype declaration.
@@ -1651,11 +2077,21 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    */
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params, boolean isCoDatatype)
   {
-    long[] paramPointers = Utils.getPointers(params);
-    long declPointer = mkDatatypeDecl(getPointer(), name, paramPointers, isCoDatatype);
+    MemorySegment[] paramPointers = Utils.getHandles(params);
+    MemorySegment declPointer = mkDatatypeDecl(handle(), name, paramPointers, isCoDatatype);
     return new DatatypeDecl(ctx, declPointer);
   }
 
-  private native long mkDatatypeDecl(
-      long pointer, String name, long[] paramPointers, boolean isCoDatatype);
+  private MemorySegment mkDatatypeDecl(
+      MemorySegment pointer, String name, MemorySegment[] paramPointers, boolean isCoDatatype)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_mk_dt_decl_with_params(pointer,
+          arena.allocateFrom(name),
+          paramPointers.length,
+          Native.allocateHandles(arena, paramPointers),
+          isCoDatatype));
+    }
+  }
 }

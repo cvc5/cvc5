@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
 import java.lang.ref.Cleaner;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -21,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.LongConsumer;
+import java.util.function.Consumer;
 
 /**
  * Tracks the native objects that belong to one term manager and releases
@@ -41,7 +43,7 @@ import java.util.function.LongConsumer;
  * <ul>
  * <li>Every wrapper is tracked by a {@link Ref}, a weak reference enqueued by
  *     the garbage collector once the wrapper is unreachable. The queue is
- *     drained by {@link #register(AbstractPointer, long, LongConsumer)}, i.e.,
+ *     drained by {@link #register(AbstractPointer, MemorySegment, Consumer)}, i.e.,
  *     whenever a new wrapper of the same context is created. This happens on
  *     the thread that is using the term manager at that moment, so no other
  *     thread can be using the node manager (any concurrent use would already
@@ -87,16 +89,23 @@ final class NativeContext
   static final class Ref extends WeakReference<AbstractPointer>
   {
     private final Registry registry;
-    private final LongConsumer deleter;
-    private long pointer;
+    private final Consumer<MemorySegment> deleter;
+    /**
+     * The address of the native object, or 0 once it is freed. The handle
+     * itself is not kept, so that it can be reclaimed with the wrapper.
+     */
+    private long address;
     private Ref prev;
     private Ref next;
 
-    private Ref(AbstractPointer wrapper, long pointer, LongConsumer deleter, Registry registry)
+    private Ref(AbstractPointer wrapper,
+        MemorySegment handle,
+        Consumer<MemorySegment> deleter,
+        Registry registry)
     {
       super(wrapper, registry.queue);
       this.registry = registry;
-      this.pointer = pointer;
+      this.address = handle.address();
       this.deleter = deleter;
     }
 
@@ -107,18 +116,18 @@ final class NativeContext
      */
     boolean release()
     {
-      long p;
+      long a;
       synchronized (this)
       {
-        p = pointer;
-        pointer = 0;
+        a = address;
+        address = 0;
       }
-      if (p == 0)
+      if (a == 0)
       {
         return false;
       }
       registry.unlink(this);
-      deleter.accept(p);
+      deleter.accept(MemorySegment.ofAddress(a));
       registry.freed++;
       return true;
     }
@@ -137,10 +146,10 @@ final class NativeContext
     /** Number of native objects freed so far, see {@link #freedObjects(AbstractPointer)}. */
     private long freed;
 
-    Ref register(AbstractPointer wrapper, long pointer, LongConsumer deleter)
+    Ref register(AbstractPointer wrapper, MemorySegment handle, Consumer<MemorySegment> deleter)
     {
       reap();
-      Ref ref = new Ref(wrapper, pointer, deleter, this);
+      Ref ref = new Ref(wrapper, handle, deleter, this);
       synchronized (this)
       {
         ref.next = head;
@@ -205,7 +214,7 @@ final class NativeContext
         AbstractPointer wrapper = ref.get();
         if (wrapper != null)
         {
-          wrapper.pointer = 0;
+          wrapper.clear();
         }
         ref.release();
       }
@@ -216,15 +225,47 @@ final class NativeContext
     public void run()
     {
       releaseAll();
+      if (anchor.address() != 0)
+      {
+        // Releases the term manager if nothing else references it anymore.
+        CApi.cvc5_sort_release(anchor);
+        anchor = MemorySegment.NULL;
+      }
       RELEASED_CONTEXTS.incrementAndGet();
     }
+
+    /**
+     * A handle owned by this registry that keeps the term manager alive, see
+     * {@link NativeContext#tm}.
+     */
+    private MemorySegment anchor = MemorySegment.NULL;
   }
 
   private final Registry registry = new Registry();
 
-  /** Create the context of a new term manager. */
-  NativeContext()
+  /**
+   * The term manager of this context ({@code Cvc5TermManager*} in the C API).
+   *
+   * <p>A term manager of the C API is reference counted: it stays alive as
+   * long as any object created via it (or a solver or symbol manager using
+   * it) does. The context owns such an object (its anchor), so the term
+   * manager remains valid for as long as the context, and thus every object
+   * of the context, is reachable, even after the {@link TermManager} it was
+   * created with has been released. This is needed for operations that the C
+   * API only provides on the term manager (e.g., {@link Term#notTerm()}) and
+   * for {@link Solver#getTermManager()}.</p>
+   */
+  final MemorySegment tm;
+
+  /**
+   * Create the context of a new term manager.
+   *
+   * @param tm The term manager ({@code Cvc5TermManager*}).
+   */
+  NativeContext(MemorySegment tm)
   {
+    this.tm = tm;
+    registry.anchor = Native.handle(CApi.cvc5_get_boolean_sort(tm));
     CLEANER.register(this, registry);
     synchronized (LIVE)
     {
@@ -239,13 +280,13 @@ final class NativeContext
    * it also frees the native objects of previously collected wrappers.</p>
    *
    * @param wrapper The Java wrapper of the native object.
-   * @param pointer The native pointer.
+   * @param handle The handle of the native object.
    * @param deleter The function that frees the native object.
    * @return The ref tracking the native object.
    */
-  Ref register(AbstractPointer wrapper, long pointer, LongConsumer deleter)
+  Ref register(AbstractPointer wrapper, MemorySegment handle, Consumer<MemorySegment> deleter)
   {
-    return registry.register(wrapper, pointer, deleter);
+    return registry.register(wrapper, handle, deleter);
   }
 
   /**

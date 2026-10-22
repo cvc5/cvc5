@@ -12,7 +12,10 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import io.github.cvc5.capi.Cvc5OptionInfo;
 import io.github.cvc5.modes.OptionCategory;
+import java.lang.foreign.MemorySegment;
 import java.math.BigInteger;
 
 /**
@@ -50,34 +53,76 @@ import java.math.BigInteger;
 public class OptionInfo extends AbstractPointer
 {
   // region construction and destruction
-  OptionInfo(NativeContext ctx, long pointer)
+
+  /**
+   * Construct from the information about an option filled in by
+   * {@code cvc5_get_option_info()}, see {@link Solver#getOptionInfo(String)}.
+   *
+   * <p>The information is only valid until the next call to
+   * {@code cvc5_get_option_info()} on this thread, so it is copied right away.
+   * The object thus owns no native object (its pointer is 0).</p>
+   *
+   * @param ctx The context of the solver (unused).
+   * @param info A {@code Cvc5OptionInfo} struct filled in by
+   *             {@code cvc5_get_option_info()}, which must remain valid
+   *             during this call.
+   */
+  OptionInfo(NativeContext ctx, MemorySegment info)
   {
-    super(ctx, pointer, OptionInfo::deletePointer);
-    this.name = getName(pointer);
-    this.aliases = getAliases(pointer);
-    this.setByUser = getSetByUser(pointer);
+    super(ctx, MemorySegment.NULL, null);
+    info = info.reinterpret(Cvc5OptionInfo.sizeof());
+    this.name = Native.copyString(Cvc5OptionInfo.name(info));
+    this.aliases = Native.strings(Cvc5OptionInfo.aliases(info), Cvc5OptionInfo.num_aliases(info));
+    this.setByUser = Cvc5OptionInfo.is_set_by_user(info);
     try
     {
-      this.category = OptionCategory.fromInt(getCategory(pointer));
+      this.category = OptionCategory.fromInt(Cvc5OptionInfo.category(info));
     }
     catch (CVC5ApiException e)
     {
       throw new RuntimeException("Invalid OptionCategory value", e);
     }
-    this.baseInfo = getBaseInfo(pointer);
+    this.kind = Cvc5OptionInfo.kind(info);
+    this.baseInfo = getBaseInfo(info);
+    this.str = Native.string(CApi.cvc5_option_info_to_string(info));
   }
-
-  private static native void deletePointer(long pointer);
 
   public String toString()
   {
-    return toString(getPointer());
+    return str;
   }
 
   /**
    * @return A string representation of this OptionInfo.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return str;
+  }
+
+  // endregion
+
+  // region reading struct Cvc5OptionInfo of the C API
+
+  /** Values of {@code Cvc5OptionInfoKind}. */
+  private static final int KIND_VOID = 0;
+  private static final int KIND_BOOL = 1;
+  private static final int KIND_STR = 2;
+  private static final int KIND_INT64 = 3;
+  private static final int KIND_UINT64 = 4;
+  private static final int KIND_DOUBLE = 5;
+  private static final int KIND_MODES = 6;
+
+  /**
+   * Convert a {@code uint64_t} value to a {@code BigInteger}.
+   *
+   * @param value The value, as the same bits in a {@code long}.
+   * @return The value.
+   */
+  private static BigInteger unsigned(long value)
+  {
+    return new BigInteger(Long.toUnsignedString(value));
+  }
 
   // endregion
 
@@ -219,13 +264,75 @@ public class OptionInfo extends AbstractPointer
     }
   }
 
-  private native String getName(long pointer);
+  /**
+   * Get the value information of an option.
+   *
+   * @param info The {@code Cvc5OptionInfo} struct.
+   * @return The value information.
+   */
+  private BaseInfo getBaseInfo(MemorySegment info)
+  {
+    switch (kind)
+    {
+      case KIND_BOOL:
+      {
+        MemorySegment b = Cvc5OptionInfo.info_bool(info);
+        return new ValueInfo<Boolean>(
+            Cvc5OptionInfo.BoolInfo.dflt(b), Cvc5OptionInfo.BoolInfo.cur(b));
+      }
+      case KIND_STR:
+      {
+        MemorySegment s = Cvc5OptionInfo.info_str(info);
+        return new ValueInfo<String>(Native.copyString(Cvc5OptionInfo.StringInfo.dflt(s)),
+            Native.copyString(Cvc5OptionInfo.StringInfo.cur(s)));
+      }
+      case KIND_INT64:
+      {
+        MemorySegment num = Cvc5OptionInfo.info_int(info);
+        return new NumberInfo<BigInteger>(BigInteger.valueOf(Cvc5OptionInfo.IntInfo.dflt(num)),
+            BigInteger.valueOf(Cvc5OptionInfo.IntInfo.cur(num)),
+            Cvc5OptionInfo.IntInfo.has_min(num)
+                ? BigInteger.valueOf(Cvc5OptionInfo.IntInfo.min(num))
+                : null,
+            Cvc5OptionInfo.IntInfo.has_max(num)
+                ? BigInteger.valueOf(Cvc5OptionInfo.IntInfo.max(num))
+                : null);
+      }
+      case KIND_UINT64:
+      {
+        MemorySegment num = Cvc5OptionInfo.info_uint(info);
+        return new NumberInfo<BigInteger>(unsigned(Cvc5OptionInfo.UIntInfo.dflt(num)),
+            unsigned(Cvc5OptionInfo.UIntInfo.cur(num)),
+            Cvc5OptionInfo.UIntInfo.has_min(num) ? unsigned(Cvc5OptionInfo.UIntInfo.min(num))
+                                                 : null,
+            Cvc5OptionInfo.UIntInfo.has_max(num) ? unsigned(Cvc5OptionInfo.UIntInfo.max(num))
+                                                 : null);
+      }
+      case KIND_DOUBLE:
+      {
+        MemorySegment num = Cvc5OptionInfo.info_double(info);
+        return new NumberInfo<Double>(Cvc5OptionInfo.DoubleInfo.dflt(num),
+            Cvc5OptionInfo.DoubleInfo.cur(num),
+            Cvc5OptionInfo.DoubleInfo.has_min(num) ? Cvc5OptionInfo.DoubleInfo.min(num) : null,
+            Cvc5OptionInfo.DoubleInfo.has_max(num) ? Cvc5OptionInfo.DoubleInfo.max(num) : null);
+      }
+      case KIND_MODES:
+      {
+        MemorySegment mode = Cvc5OptionInfo.info_mode(info);
+        return new ModeInfo(Native.copyString(Cvc5OptionInfo.ModeInfo.dflt(mode)),
+            Native.copyString(Cvc5OptionInfo.ModeInfo.cur(mode)),
+            Native.strings(
+                Cvc5OptionInfo.ModeInfo.modes(mode), Cvc5OptionInfo.ModeInfo.num_modes(mode)));
+      }
+      default: return new VoidInfo();
+    }
+  }
 
-  private native String[] getAliases(long pointer);
+  /** The kind of the value information ({@code Cvc5OptionInfoKind}) */
+  private final int kind;
 
-  private native boolean getSetByUser(long pointer);
-
-  private native BaseInfo getBaseInfo(long pointer);
+  /** The string representation */
+  private final String str;
 
   /** The option name */
   private final String name;
@@ -284,10 +391,12 @@ public class OptionInfo extends AbstractPointer
    */
   public boolean booleanValue()
   {
-    return booleanValue(getPointer());
+    if (kind != KIND_BOOL)
+    {
+      throw new CVC5ApiRecoverableException(name + " is not a bool option");
+    }
+    return (Boolean) ((ValueInfo<?>) baseInfo).getCurrentValue();
   }
-
-  private native boolean booleanValue(long pointer);
 
   /**
    * Obtain the current value as a string.
@@ -296,10 +405,12 @@ public class OptionInfo extends AbstractPointer
    */
   public String stringValue()
   {
-    return stringValue(getPointer());
+    if (kind != KIND_STR)
+    {
+      throw new CVC5ApiRecoverableException(name + " is not a string option");
+    }
+    return (String) ((ValueInfo<?>) baseInfo).getCurrentValue();
   }
-
-  private native String stringValue(long pointer);
 
   /**
    * Obtain the current value as as int.
@@ -308,10 +419,12 @@ public class OptionInfo extends AbstractPointer
    */
   public BigInteger intValue()
   {
-    return intValue(getPointer());
+    if (kind != KIND_INT64 && kind != KIND_UINT64)
+    {
+      throw new CVC5ApiRecoverableException("Option is neither int64_t nor uint64_t");
+    }
+    return (BigInteger) ((ValueInfo<?>) baseInfo).getCurrentValue();
   }
-
-  private native BigInteger intValue(long pointer);
 
   /**
    * Obtain the current value as a double.
@@ -320,10 +433,12 @@ public class OptionInfo extends AbstractPointer
    */
   public double doubleValue()
   {
-    return doubleValue(getPointer());
+    if (kind != KIND_DOUBLE)
+    {
+      throw new CVC5ApiRecoverableException(name + " is not a double option");
+    }
+    return (Double) ((ValueInfo<?>) baseInfo).getCurrentValue();
   }
-
-  private native double doubleValue(long pointer);
 
   /** The option category */
   private final OptionCategory category;
@@ -337,6 +452,4 @@ public class OptionInfo extends AbstractPointer
   {
     return category;
   }
-
-  private native int getCategory(long pointer);
 }

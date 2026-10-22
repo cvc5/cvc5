@@ -25,23 +25,50 @@ namespace {
 thread_local bool s_error_flag = false;
 /** The message associated with the most recent error (if any). */
 thread_local std::string s_error_msg;
+/** The kind of the most recent error (if any). */
+thread_local Cvc5ErrorKind s_error_kind = CVC5_ERROR_KIND_NONE;
+/** Whether the most recent callback reported an error. */
+thread_local bool s_callback_error_flag = false;
+/** The message of the error reported by the most recent callback (if any). */
+thread_local std::string s_callback_error_msg;
 }  // namespace
 
-void cvc5_capi_set_error(const std::string& msg)
+void cvc5_capi_set_error(const std::string& msg, Cvc5ErrorKind kind)
 {
   s_error_flag = true;
   s_error_msg = msg;
+  s_error_kind = kind;
 }
 
 void cvc5_capi_reset_error()
 {
   s_error_flag = false;
   s_error_msg.clear();
+  s_error_kind = CVC5_ERROR_KIND_NONE;
 }
 
 bool cvc5_capi_has_error() { return s_error_flag; }
 
 const char* cvc5_capi_get_error_message() { return s_error_msg.c_str(); }
+
+Cvc5ErrorKind cvc5_capi_get_error_kind() { return s_error_kind; }
+
+void cvc5_capi_set_callback_error(const char* msg)
+{
+  s_callback_error_flag = true;
+  s_callback_error_msg = msg == nullptr ? "" : msg;
+}
+
+void cvc5_capi_check_callback_error()
+{
+  if (s_callback_error_flag)
+  {
+    s_callback_error_flag = false;
+    std::string msg;
+    msg.swap(s_callback_error_msg);
+    throw CVC5ApiException(msg);
+  }
+}
 
 }  // namespace cvc5
 
@@ -691,6 +718,7 @@ std::vector<cvc5::Term> Cvc5::PluginCpp::check()
   {
     size_t size = 0;
     const Cvc5Term* terms = d_plugin->check(&size, d_plugin->d_check_state);
+    cvc5::cvc5_capi_check_callback_error();
     for (size_t i = 0; i < size; ++i)
     {
       res.push_back(terms[i]->d_term);
@@ -706,6 +734,7 @@ void Cvc5::PluginCpp::notifySatClause(const cvc5::Term& clause)
   {
     d_plugin->notify_sat_clause(d_cvc5->d_tm->export_term(clause),
                                 d_plugin->d_notify_sat_clause_state);
+    cvc5::cvc5_capi_check_callback_error();
   }
 }
 
@@ -716,6 +745,7 @@ void Cvc5::PluginCpp::notifyTheoryLemma(const cvc5::Term& lemma)
   {
     d_plugin->notify_theory_lemma(d_cvc5->d_tm->export_term(lemma),
                                   d_plugin->d_notify_theory_lemma_state);
+    cvc5::cvc5_capi_check_callback_error();
   }
 }
 

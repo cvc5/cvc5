@@ -203,6 +203,64 @@ CVC5_EXPORT const char* cvc5_get_error_message(void);
  */
 CVC5_EXPORT void cvc5_reset_error(void);
 
+/**
+ * The kind of an error recorded by the C API, see `cvc5_get_error_kind()`.
+ *
+ * The kinds correspond to the exception types of the C++ API, so that
+ * bindings for other languages can map errors to corresponding exception
+ * types.
+ */
+typedef enum
+{
+  /** No error occurred. */
+  CVC5_ERROR_KIND_NONE,
+  /**
+   * An error raised by the API, e.g., due to an invalid argument
+   * (`cvc5::CVC5ApiException` in the C++ API).
+   */
+  CVC5_ERROR_KIND_API,
+  /**
+   * A recoverable error, after which the solver can still be used
+   * (`cvc5::CVC5ApiRecoverableException` in the C++ API).
+   */
+  CVC5_ERROR_KIND_RECOVERABLE,
+  /**
+   * An error when setting or querying an option
+   * (`cvc5::CVC5ApiOptionException` in the C++ API).
+   */
+  CVC5_ERROR_KIND_OPTION,
+  /** A parse error (`cvc5::parser::ParserException` in the C++ API). */
+  CVC5_ERROR_KIND_PARSER,
+  /** cvc5 ran out of memory. */
+  CVC5_ERROR_KIND_OUT_OF_MEMORY,
+  /** Any other error. */
+  CVC5_ERROR_KIND_OTHER,
+} Cvc5ErrorKind;
+
+/**
+ * Retrieve the kind of the most recent error on the current thread.
+ *
+ * @note This function does not itself modify the error state.
+ *
+ * @return The kind of the most recent error, or `CVC5_ERROR_KIND_NONE` if no
+ *         error has occurred (i.e., if `cvc5_has_error()` returns false).
+ */
+CVC5_EXPORT Cvc5ErrorKind cvc5_get_error_kind(void);
+
+/**
+ * Report that a plugin or oracle callback failed.
+ *
+ * Callbacks (see `Cvc5Plugin` and `cvc5_declare_oracle_fun()`) cannot report
+ * failure through their return value. Instead, a callback may call this
+ * function before it returns. cvc5 then ignores the return value of the
+ * callback and aborts the operation that invoked it with an error of kind
+ * `CVC5_ERROR_KIND_API` and the given message, which is reported by the C API
+ * function that started the operation (e.g., `cvc5_check_sat()`).
+ *
+ * @param msg The error message.
+ */
+CVC5_EXPORT void cvc5_set_callback_error(const char* msg);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -2588,7 +2646,7 @@ CVC5_EXPORT void cvc5_grammar_release(Cvc5Grammar grammar);
  * Construct a new instance of a cvc5 term manager.
  * @return The cvc5 term manager.
  */
-CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
+CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new(void);
 
 /**
  * Delete a cvc5 term manager instance.
@@ -3799,7 +3857,7 @@ struct Cvc5Plugin
    * @return The name of the plugin.
    * @note This function pointer may NOT be NULL.
    */
-  const char* (*get_name)();
+  const char* (*get_name)(void);
 
   /** The state to pass into `check`. */
   void* d_check_state;

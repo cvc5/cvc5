@@ -12,6 +12,12 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.ADDRESS;
+import static java.lang.foreign.ValueLayout.JAVA_LONG;
+
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.*;
 
 /**
@@ -35,7 +41,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public SymbolManager(TermManager tm)
   {
-    super(tm.ctx, newSymbolManager(tm.getPointer()), SymbolManager::deletePointer);
+    super(tm.ctx, newSymbolManager(tm.handle()), SymbolManager::deletePointer);
   }
 
   /**
@@ -52,14 +58,20 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     this(solver.getTermManager());
   }
 
-  private static native long newSymbolManager(long solverPointer);
+  private static MemorySegment newSymbolManager(MemorySegment solverPointer)
+  {
+    return Native.handle(CApi.cvc5_symbol_manager_new(solverPointer));
+  }
 
   protected String toString(long pointer)
   {
     throw new UnsupportedOperationException(
         "SymbolManager.toString() is not supported in the cpp api");
   }
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_symbol_manager_delete(pointer);
+  }
 
   /**
    * Free the native symbol manager, see {@code deletePointer()}.
@@ -82,7 +94,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
       return false;
     }
     SymbolManager symbolManager = (SymbolManager) s;
-    if (this.pointer == symbolManager.pointer)
+    if (address() == symbolManager.address())
     {
       return true;
     }
@@ -101,7 +113,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
   @Override
   public int hashCode()
   {
-    return Long.hashCode(getPointer());
+    return Long.hashCode(handle().address());
   }
 
   /**
@@ -111,10 +123,13 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public boolean isLogicSet()
   {
-    return isLogicSet(getPointer());
+    return isLogicSet(handle());
   }
 
-  private native boolean isLogicSet(long pointer);
+  private boolean isLogicSet(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_sm_is_logic_set(pointer));
+  }
 
   /**
    * Get the logic used by this symbol manager.
@@ -124,10 +139,13 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public String getLogic()
   {
-    return getLogic(getPointer());
+    return getLogic(handle());
   }
 
-  private native String getLogic(long pointer);
+  private String getLogic(MemorySegment pointer)
+  {
+    return Native.string(CApi.cvc5_sm_get_logic(pointer));
+  }
 
   /**
    * Get the list of sorts that have been declared via `declare-sort` commands.
@@ -138,11 +156,19 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public Sort[] getDeclaredSorts()
   {
-    long[] pointers = getDeclaredSorts(getPointer());
+    MemorySegment[] pointers = getDeclaredSorts(handle());
     return Utils.getSorts(ctx, pointers);
   }
 
-  private native long[] getDeclaredSorts(long pointer);
+  private MemorySegment[] getDeclaredSorts(MemorySegment pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = arena.allocate(JAVA_LONG);
+      MemorySegment sorts = Native.check(CApi.cvc5_sm_get_declared_sorts(pointer, size));
+      return Native.handles(sorts, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get the list of terms that have been declared via `declare-fun` and
@@ -153,11 +179,19 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public Term[] getDeclaredTerms()
   {
-    long[] retPointers = getDeclaredTerms(getPointer());
+    MemorySegment[] retPointers = getDeclaredTerms(handle());
     return Utils.getTerms(ctx, retPointers);
   }
 
-  private native long[] getDeclaredTerms(long pointer);
+  private MemorySegment[] getDeclaredTerms(MemorySegment pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = arena.allocate(JAVA_LONG);
+      MemorySegment terms = Native.check(CApi.cvc5_sm_get_declared_terms(pointer, size));
+      return Native.handles(terms, size.get(JAVA_LONG, 0));
+    }
+  }
 
   /**
    * Get a mapping from terms to names that have been given to them via the
@@ -167,9 +201,9 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public Map<Term, String> getNamedTerms()
   {
-    Map<Long, String> map = getNamedTerms(getPointer());
+    Map<MemorySegment, String> map = getNamedTerms(handle());
     Map<Term, String> ret = new HashMap<>();
-    for (Map.Entry<Long, String> entry : map.entrySet())
+    for (Map.Entry<MemorySegment, String> entry : map.entrySet())
     {
       Term key = new Term(ctx, entry.getKey());
       String value = entry.getValue();
@@ -178,5 +212,24 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     return ret;
   }
 
-  private native Map<Long, String> getNamedTerms(long pointer);
+  private Map<MemorySegment, String> getNamedTerms(MemorySegment pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment size = arena.allocate(JAVA_LONG);
+      MemorySegment terms = arena.allocate(ADDRESS);
+      MemorySegment names = arena.allocate(ADDRESS);
+      CApi.cvc5_sm_get_named_terms(pointer, size, terms, names);
+      Native.check();
+      long n = size.get(JAVA_LONG, 0);
+      MemorySegment[] termPointers = Native.handles(terms.get(ADDRESS, 0), n);
+      String[] termNames = Native.strings(names.get(ADDRESS, 0), n);
+      Map<MemorySegment, String> map = new HashMap<>();
+      for (int i = 0; i < termPointers.length; i++)
+      {
+        map.put(termPointers[i], termNames[i]);
+      }
+      return map;
+    }
+  }
 }

@@ -372,7 +372,11 @@ Dependencies for Language Bindings
 
 - Java
 
-  - `JDK >= 11 <https://www.java.com>`_
+  - `JDK >= 25 <https://www.java.com>`_
+  - `jextract 25 <https://jdk.java.net/jextract/>`_, to generate the bindings of
+    the C API (building only). If ``--auto-download`` is given, it is
+    downloaded automatically if it is missing. Otherwise, add its ``bin``
+    directory to the ``PATH``, or set ``JEXTRACT_HOME`` to its directory.
 
 - Python
 

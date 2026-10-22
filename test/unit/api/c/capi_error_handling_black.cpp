@@ -199,4 +199,111 @@ TEST_F(TestCApiBlackErrorHandling, error_macro)
   ASSERT_CVC5_ERROR(cvc5_sort_array_get_index_sort(nullptr), "invalid sort");
 }
 
+TEST_F(TestCApiBlackErrorHandling, error_kind)
+{
+  cvc5_reset_error();
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_NONE);
+
+  cvc5_sort_array_get_index_sort(nullptr);
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_API);
+  // Queries do not modify the error state.
+  ASSERT_TRUE(cvc5_has_error());
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_API);
+
+  // An unknown option is a recoverable error, an invalid value of a known
+  // option an option error.
+  cvc5_set_option(d_solver, "no-such-option", "true");
+  ASSERT_TRUE(cvc5_has_error());
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_RECOVERABLE);
+  cvc5_set_option(d_solver, "produce-models", "maybe");
+  ASSERT_TRUE(cvc5_has_error());
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_OPTION);
+
+  // Getting a value after an unsat answer is a recoverable error.
+  cvc5_set_option(d_solver, "produce-models", "true");
+  Cvc5Term x = cvc5_mk_const(d_tm, cvc5_get_boolean_sort(d_tm), "x");
+  cvc5_assert_formula(d_solver, cvc5_mk_false(d_tm));
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  cvc5_get_value(d_solver, x);
+  ASSERT_TRUE(cvc5_has_error());
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_RECOVERABLE);
+
+  // A successful call resets the error kind.
+  cvc5_get_integer_sort(d_tm);
+  ASSERT_FALSE(cvc5_has_error());
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_NONE);
+
+  cvc5_sort_array_get_index_sort(nullptr);
+  cvc5_reset_error();
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_NONE);
+}
+
+namespace {
+/** An oracle that reports an error and returns NULL. */
+Cvc5Term oracle_failing(size_t, const Cvc5Term*, void*)
+{
+  cvc5_set_callback_error("the oracle failed");
+  return nullptr;
+}
+/** An oracle that returns NULL without reporting an error. */
+Cvc5Term oracle_null(size_t, const Cvc5Term*, void*) { return nullptr; }
+/** A plugin check that reports an error. */
+const Cvc5Term* plugin_failing_check(size_t* size, void*)
+{
+  *size = 0;
+  cvc5_set_callback_error("the plugin failed");
+  return nullptr;
+}
+const char* plugin_failing_get_name() { return "PluginFailing"; }
+}  // namespace
+
+TEST_F(TestCApiBlackErrorHandling, callback_error_oracle)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  Cvc5Sort int_sort = cvc5_get_integer_sort(d_tm);
+  Cvc5Term f = cvc5_declare_oracle_fun(
+      d_solver, "f", 1, &int_sort, int_sort, nullptr, &oracle_failing);
+  std::vector<Cvc5Term> args = {f, cvc5_mk_integer_int64(d_tm, 3)};
+  Cvc5Term app =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {app, cvc5_mk_integer_int64(d_tm, 5)};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  ASSERT_CVC5_ERROR(cvc5_check_sat(d_solver), "the oracle failed");
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_API);
+  // The callback error does not persist beyond the failed call.
+  cvc5_get_integer_sort(d_tm);
+  ASSERT_FALSE(cvc5_has_error());
+}
+
+TEST_F(TestCApiBlackErrorHandling, callback_error_oracle_null)
+{
+  cvc5_set_option(d_solver, "oracles", "true");
+  Cvc5Sort int_sort = cvc5_get_integer_sort(d_tm);
+  Cvc5Term f = cvc5_declare_oracle_fun(
+      d_solver, "f", 1, &int_sort, int_sort, nullptr, &oracle_null);
+  std::vector<Cvc5Term> args = {f, cvc5_mk_integer_int64(d_tm, 3)};
+  Cvc5Term app =
+      cvc5_mk_term(d_tm, CVC5_KIND_APPLY_UF, args.size(), args.data());
+  args = {app, cvc5_mk_integer_int64(d_tm, 5)};
+  cvc5_assert_formula(
+      d_solver, cvc5_mk_term(d_tm, CVC5_KIND_EQUAL, args.size(), args.data()));
+  ASSERT_CVC5_ERROR(cvc5_check_sat(d_solver), "oracle function returned NULL");
+}
+
+TEST_F(TestCApiBlackErrorHandling, callback_error_plugin)
+{
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  Cvc5Plugin plugin{&plugin_failing_check,
+                    nullptr,
+                    nullptr,
+                    &plugin_failing_get_name,
+                    nullptr,
+                    nullptr,
+                    nullptr};
+  cvc5_add_plugin(d_solver, &plugin);
+  ASSERT_CVC5_ERROR(cvc5_check_sat(d_solver), "the plugin failed");
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_API);
+}
+
 }  // namespace cvc5::internal::test

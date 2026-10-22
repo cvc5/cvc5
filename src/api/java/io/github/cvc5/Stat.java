@@ -12,6 +12,13 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.ADDRESS;
+import static java.lang.foreign.ValueLayout.JAVA_LONG;
+
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,19 +33,25 @@ import java.util.Map;
 public class Stat extends AbstractPointer
 {
   // region construction and destruction
-  Stat(NativeContext ctx, long pointer)
+  Stat(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, Stat::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_stat_release(pointer);
+  }
 
   // endregion
 
   /**
    * @return A string representation of this Stat.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_stat_to_string(MemorySegment.ofAddress(pointer)));
+  }
 
   /**
    * Is this value intended for internal use only?
@@ -46,10 +59,13 @@ public class Stat extends AbstractPointer
    */
   public boolean isInternal()
   {
-    return isInternal(getPointer());
+    return isInternal(handle());
   }
 
-  private native boolean isInternal(long pointer);
+  private boolean isInternal(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_is_internal(pointer));
+  }
 
   /**
    * Does this value hold the default value?
@@ -57,10 +73,13 @@ public class Stat extends AbstractPointer
    */
   public boolean isDefault()
   {
-    return isDefault(getPointer());
+    return isDefault(handle());
   }
 
-  private native boolean isDefault(long pointer);
+  private boolean isDefault(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_is_default(pointer));
+  }
 
   /**
    * Is this value an integer?
@@ -68,10 +87,13 @@ public class Stat extends AbstractPointer
    */
   public boolean isInt()
   {
-    return isInt(getPointer());
+    return isInt(handle());
   }
 
-  private native boolean isInt(long pointer);
+  private boolean isInt(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_is_int(pointer));
+  }
 
   /**
    * Return the integer value.
@@ -79,10 +101,13 @@ public class Stat extends AbstractPointer
    */
   public long getInt()
   {
-    return getInt(getPointer());
+    return getInt(handle());
   }
 
-  private native long getInt(long pointer);
+  private long getInt(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_get_int(pointer));
+  }
 
   /**
    * Is this value a double?
@@ -90,10 +115,13 @@ public class Stat extends AbstractPointer
    */
   public boolean isDouble()
   {
-    return isDouble(getPointer());
+    return isDouble(handle());
   }
 
-  private native boolean isDouble(long pointer);
+  private boolean isDouble(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_is_double(pointer));
+  }
 
   /**
    * Return the double value.
@@ -101,10 +129,13 @@ public class Stat extends AbstractPointer
    */
   public double getDouble()
   {
-    return getDouble(getPointer());
+    return getDouble(handle());
   }
 
-  private native double getDouble(long pointer);
+  private double getDouble(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_get_double(pointer));
+  }
 
   /**
    * Is this value a string?
@@ -112,10 +143,13 @@ public class Stat extends AbstractPointer
    */
   public boolean isString()
   {
-    return isString(getPointer());
+    return isString(handle());
   }
 
-  private native boolean isString(long pointer);
+  private boolean isString(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_is_string(pointer));
+  }
 
   /**
    * Return the string value.
@@ -123,10 +157,13 @@ public class Stat extends AbstractPointer
    */
   public String getString()
   {
-    return getString(getPointer());
+    return getString(handle());
   }
 
-  private native String getString(long pointer);
+  private String getString(MemorySegment pointer)
+  {
+    return Native.string(CApi.cvc5_stat_get_string(pointer));
+  }
 
   /**
    * Is this value a histogram?
@@ -134,10 +171,13 @@ public class Stat extends AbstractPointer
    */
   public boolean isHistogram()
   {
-    return isHistogram(getPointer());
+    return isHistogram(handle());
   }
 
-  private native boolean isHistogram(long pointer);
+  private boolean isHistogram(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_stat_is_histogram(pointer));
+  }
 
   /**
    * Return the histogram value.
@@ -145,8 +185,28 @@ public class Stat extends AbstractPointer
    */
   public Map<String, Long> getHistogram()
   {
-    return getHistogram(getPointer());
+    return getHistogram(handle());
   }
 
-  private native Map<String, Long> getHistogram(long pointer);
-};
+  private Map<String, Long> getHistogram(MemorySegment pointer)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment keys = arena.allocate(ADDRESS);
+      MemorySegment values = arena.allocate(ADDRESS);
+      MemorySegment size = arena.allocate(JAVA_LONG);
+      CApi.cvc5_stat_get_histogram(pointer, keys, values, size);
+      Native.check();
+      long n = size.get(JAVA_LONG, 0);
+      String[] names = Native.strings(keys.get(ADDRESS, 0), n);
+      // uint64_t values, as the same bits in a long (like the JNI implementation)
+      long[] counts = Native.longs(values.get(ADDRESS, 0), n);
+      Map<String, Long> histogram = new HashMap<>();
+      for (int i = 0; i < names.length; i++)
+      {
+        histogram.put(names[i], counts[i]);
+      }
+      return histogram;
+    }
+  }
+}

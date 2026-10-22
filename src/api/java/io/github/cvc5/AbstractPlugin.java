@@ -12,6 +12,8 @@
 
 package io.github.cvc5;
 
+import java.lang.foreign.MemorySegment;
+
 /**
  * A cvc5 plugin abstract class.
  */
@@ -72,42 +74,42 @@ public abstract class AbstractPlugin
   public abstract String getName();
 
   /*
-   * Bridges called from native code. They exchange raw native pointers so
-   * that Term wrappers are created here, in the context of the plugin's term
-   * manager.
+   * Bridges called from native code (see Callbacks). They exchange native
+   * handles so that Term wrappers are created here, in the context of the
+   * plugin's term manager.
    */
 
   /**
    * Called from native code, see {@link #check()}.
    *
-   * @return The native pointers of the lemmas, which native code copies
+   * @return The native handles of the lemmas, which native code copies
    *         before any further Java code can run on this thread.
    */
-  final long[] checkNative()
+  final MemorySegment[] checkNative()
   {
     Term[] lemmas = check();
-    return lemmas == null ? new long[0] : Utils.getPointers(lemmas);
+    return lemmas == null ? new MemorySegment[0] : Utils.getHandles(lemmas);
   }
 
   /**
    * Called from native code, see {@link #notifySatClause(Term)}.
    *
-   * @param pointer The native pointer of the clause; ownership is transferred
-   *                to the created wrapper.
+   * @param handle The native handle of the clause; ownership is transferred
+   *               to the created wrapper.
    */
-  final void notifySatClauseNative(long pointer)
+  final void notifySatClauseNative(MemorySegment handle)
   {
-    notifySatClause(new Term(termManager.ctx, pointer));
+    notifySatClause(new Term(termManager.ctx, handle));
   }
 
   /**
    * Called from native code, see {@link #notifyTheoryLemma(Term)}.
    *
-   * @param pointer The native pointer of the lemma; ownership is transferred
-   *                to the created wrapper.
+   * @param handle The native handle of the lemma; ownership is transferred
+   *               to the created wrapper.
    */
-  final void notifyTheoryLemmaNative(long pointer)
+  final void notifyTheoryLemmaNative(MemorySegment handle)
   {
-    notifyTheoryLemma(new Term(termManager.ctx, pointer));
+    notifyTheoryLemma(new Term(termManager.ctx, handle));
   }
 }

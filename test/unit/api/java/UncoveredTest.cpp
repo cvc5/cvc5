@@ -197,6 +197,36 @@ TEST_F(TestApiBlackUncovered, term_native_types)
   t.getReal64Value();
 }
 
+TEST_F(TestApiBlackUncovered, term_construction)
+{
+  // The Java API creates these terms via cvc5_mk_term() of the C API.
+  Term b = d_tm.mkConst(d_tm.getBooleanSort(), "b");
+  (void)b.notTerm();
+  (void)b.andTerm(b);
+  (void)b.orTerm(b);
+  (void)b.xorTerm(b);
+  (void)b.eqTerm(b);
+  (void)b.impTerm(b);
+  (void)b.iteTerm(b, b);
+}
+
+TEST_F(TestApiBlackUncovered, OptionInfo)
+{
+  // The Java API reads the values of options from the Cvc5OptionInfo struct of
+  // the C API.
+  (void)d_solver->getOptionInfo("print-success").boolValue();
+  (void)d_solver->getOptionInfo("verbosity").intValue();
+  (void)d_solver->getOptionInfo("rlimit").uintValue();
+  (void)d_solver->getOptionInfo("random-freq").doubleValue();
+  (void)d_solver->getOptionInfo("force-logic").stringValue();
+}
+
+TEST_F(TestApiBlackUncovered, getTermManager)
+{
+  // The Java API gets the term manager of a solver from its context.
+  (void)d_solver->getTermManager();
+}
+
 TEST_F(TestApiBlackUncovered, term_iterators)
 {
   Term t = d_tm.mkInteger(0);

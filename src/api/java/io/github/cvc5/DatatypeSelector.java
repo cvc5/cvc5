@@ -12,18 +12,24 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
+
 /**
  * A cvc5 datatype selector.
  */
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeSelector(NativeContext ctx, long pointer)
+  DatatypeSelector(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, DatatypeSelector::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_dt_sel_release(pointer);
+  }
 
   // endregion
 
@@ -45,14 +51,17 @@ public class DatatypeSelector extends AbstractPointer
       return false;
     }
     DatatypeSelector sel = (DatatypeSelector) s;
-    if (this.pointer == sel.pointer)
+    if (address() == sel.address())
     {
       return true;
     }
-    return equals(getPointer(), sel.getPointer());
+    return equals(handle(), sel.handle());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
+  {
+    return Native.check(CApi.cvc5_dt_sel_is_equal(pointer1, pointer2));
+  }
 
   /**
    * Get the Name of this Datatype selector.
@@ -61,10 +70,13 @@ public class DatatypeSelector extends AbstractPointer
    */
   public String getName()
   {
-    return getName(getPointer());
+    return getName(handle());
   }
 
-  private native String getName(long pointer);
+  private String getName(MemorySegment pointer)
+  {
+    return Native.string(CApi.cvc5_dt_sel_get_name(pointer));
+  }
 
   /**
    * Get the selector term of this datatype selector.
@@ -77,11 +89,14 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getTerm()
   {
-    long termPointer = getTerm(getPointer());
+    MemorySegment termPointer = getTerm(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long getTerm(long pointer);
+  private MemorySegment getTerm(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_dt_sel_get_term(pointer));
+  }
 
   /**
    * Get the updater term of this datatype selector.
@@ -94,11 +109,14 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getUpdaterTerm()
   {
-    long termPointer = getUpdaterTerm(getPointer());
+    MemorySegment termPointer = getUpdaterTerm(handle());
     return new Term(ctx, termPointer);
   }
 
-  private native long getUpdaterTerm(long pointer);
+  private MemorySegment getUpdaterTerm(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_dt_sel_get_updater_term(pointer));
+  }
 
   /**
    * Get the Codomain sort of this selector.
@@ -107,11 +125,14 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Sort getCodomainSort()
   {
-    long sortPointer = getCodomainSort(getPointer());
+    MemorySegment sortPointer = getCodomainSort(handle());
     return new Sort(ctx, sortPointer);
   }
 
-  private native long getCodomainSort(long pointer);
+  private MemorySegment getCodomainSort(MemorySegment pointer)
+  {
+    return Native.handle(CApi.cvc5_dt_sel_get_codomain_sort(pointer));
+  }
 
   /**
    * Determine if this DatatypeSelector is a null object.
@@ -120,15 +141,21 @@ public class DatatypeSelector extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(MemorySegment pointer)
+  {
+    return pointer.address() == 0;
+  }
 
   /**
    * @return A String representation of this datatype selector.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_sel_to_string(MemorySegment.ofAddress(pointer)));
+  }
 
   /**
    * Get the hash value of a datatype selector.
@@ -137,8 +164,15 @@ public class DatatypeSelector extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(MemorySegment pointer)
+  {
+    if (pointer.address() == 0)
+    {
+      return 0;
+    }
+    return Native.check(CApi.cvc5_dt_sel_hash(pointer));
+  }
 }

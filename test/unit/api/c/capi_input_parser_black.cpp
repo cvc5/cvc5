@@ -85,6 +85,7 @@ TEST_F(TestCApiBlackInputParser, set_file_input)
   ASSERT_CVC5_ERROR(cvc5_parser_set_file_input(
                         parser, CVC5_INPUT_LANGUAGE_SMT_LIB_2_6, "parse.smt2"),
                     "Couldn't open file");
+  ASSERT_EQ(cvc5_get_error_kind(), CVC5_ERROR_KIND_PARSER);
   cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
 }

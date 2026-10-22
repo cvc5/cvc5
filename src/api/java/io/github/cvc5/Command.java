@@ -11,6 +11,8 @@
  */
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
 import java.lang.ref.Reference;
 
 /**
@@ -26,12 +28,15 @@ public class Command extends AbstractPointer
    * inside cvc5 package.
    * @param pointer The cpp pointer to command.
    */
-  Command(NativeContext ctx, long pointer)
+  Command(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, Command::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_cmd_release(pointer);
+  }
 
   /**
    * Invoke the command on the solver and symbol manager sm and return any
@@ -45,7 +50,7 @@ public class Command extends AbstractPointer
   {
     try
     {
-      return invoke(getPointer(), solver.getPointer(), symbolManager.getPointer());
+      return invoke(handle(), solver.handle(), symbolManager.handle());
     }
     finally
     {
@@ -57,12 +62,24 @@ public class Command extends AbstractPointer
     }
   }
 
-  private native String invoke(long pointer, long solverPointer, long symbolManagerPointer);
+  private String invoke(
+      MemorySegment pointer, MemorySegment solverPointer, MemorySegment symbolManagerPointer)
+  {
+    return Native.string(CApi.cvc5_cmd_invoke(pointer, solverPointer, symbolManagerPointer));
+  }
 
   /**
    * @return A string representation of this result.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    if (pointer == 0)
+    {
+      // like Command::toString() of the C++ API on a null command
+      return "null";
+    }
+    return Native.string(CApi.cvc5_cmd_to_string(MemorySegment.ofAddress(pointer)));
+  }
 
   /**
    * Get the name for this command, e.g. "assert".
@@ -71,10 +88,13 @@ public class Command extends AbstractPointer
    */
   public String getCommandName()
   {
-    return getCommandName(getPointer());
+    return getCommandName(handle());
   }
 
-  private native String getCommandName(long pointer);
+  private String getCommandName(MemorySegment pointer)
+  {
+    return Native.string(CApi.cvc5_cmd_get_name(pointer));
+  }
 
   /**
    * Determine if this command is null.
@@ -82,8 +102,12 @@ public class Command extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(MemorySegment pointer)
+  {
+    // The C API represents the null command as NULL.
+    return pointer.address() == 0;
+  }
 }

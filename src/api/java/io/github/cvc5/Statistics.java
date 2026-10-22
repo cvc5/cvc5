@@ -12,8 +12,16 @@
 
 package io.github.cvc5;
 
+import static java.lang.foreign.ValueLayout.ADDRESS;
+
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.Arena;
+import java.lang.foreign.MemorySegment;
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -23,19 +31,25 @@ import java.util.NoSuchElementException;
 public class Statistics extends AbstractPointer implements Iterable<Map.Entry<String, Stat>>
 {
   // region construction and destruction
-  Statistics(NativeContext ctx, long pointer)
+  Statistics(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, Statistics::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_stats_release(pointer);
+  }
 
   // endregion
 
   /**
    * @return A string representation of this Statistics.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_stats_to_string(MemorySegment.ofAddress(pointer)));
+  }
 
   /**
    * Retrieve the statistic with the given name.
@@ -46,11 +60,17 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    */
   public Stat get(String name)
   {
-    long statPointer = get(getPointer(), name);
+    MemorySegment statPointer = get(handle(), name);
     return new Stat(ctx, statPointer);
   }
 
-  private native long get(long pointer, String name);
+  private MemorySegment get(MemorySegment pointer, String name)
+  {
+    try (Arena arena = Arena.ofConfined())
+    {
+      return Native.handle(CApi.cvc5_stats_get(pointer, arena.allocateFrom(name)));
+    }
+  }
 
   /**
    * Begin iteration over the statistics values.
@@ -64,6 +84,9 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    * Get the names and the native pointers of the statistics visited by an
    * iterator over this object.
    *
+   * <p>The C API supports only one iteration at a time per statistics
+   * object, so the iteration is completed here, in one go.</p>
+   *
    * @param pointer The native pointer of this object.
    * @param internal Whether to visit internal statistics.
    * @param defaulted Whether to visit statistics that still have their
@@ -71,8 +94,30 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
    * @return The names and the native pointers of the statistics. Ownership of
    *         the latter is transferred to the caller.
    */
-  private native Pair<String[], long[]> getEntries(
-      long pointer, boolean internal, boolean defaulted);
+  private Pair<String[], MemorySegment[]> getEntries(
+      MemorySegment pointer, boolean internal, boolean defaulted)
+  {
+    List<String> names = new ArrayList<>();
+    MemorySegment[] stats = new MemorySegment[16];
+    int size = 0;
+    try (Arena arena = Arena.ofConfined())
+    {
+      MemorySegment name = arena.allocate(ADDRESS);
+      CApi.cvc5_stats_iter_init(pointer, internal, defaulted);
+      Native.check();
+      while (Native.check(CApi.cvc5_stats_iter_has_next(pointer)))
+      {
+        MemorySegment stat = Native.handle(CApi.cvc5_stats_iter_next(pointer, name));
+        if (size == stats.length)
+        {
+          stats = Arrays.copyOf(stats, 2 * size);
+        }
+        stats[size++] = stat;
+        names.add(Native.copyString(name.get(ADDRESS, 0)));
+      }
+    }
+    return new Pair<>(names.toArray(new String[0]), Arrays.copyOf(stats, size));
+  }
 
   /**
    * An iterator over the statistics entries maintained by the {@code Statistics} class.
@@ -96,7 +141,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
      */
     public ConstIterator(boolean internal, boolean defaulted)
     {
-      Pair<String[], long[]> entries = getEntries(getPointer(), internal, defaulted);
+      Pair<String[], MemorySegment[]> entries = getEntries(handle(), internal, defaulted);
       d_names = entries.first;
       d_stats = new Stat[entries.second.length];
       for (int i = 0; i < d_stats.length; i++)
@@ -111,6 +156,7 @@ public class Statistics extends AbstractPointer implements Iterable<Map.Entry<St
      */
     public ConstIterator()
     {
+      // the defaults of Statistics::begin() in the C++ API
       this(false, false);
     }
 

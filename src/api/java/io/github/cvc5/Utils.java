@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.foreign.MemorySegment;
+import java.lang.foreign.SymbolLookup;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -226,6 +228,12 @@ public final class Utils
 
   /**
    * Load cvc5 native libraries.
+   *
+   * <p>The Java API calls the C API of the cvc5 libraries: libcvc5 and
+   * libcvc5parser. The native JAR of a static build bundles a self-contained
+   * libcvc5, which also contains the parser; it is loaded if it is on the
+   * class path. Otherwise, the libraries are loaded from the library path
+   * ({@code java.library.path}).</p>
    */
   public static void loadLibraries()
   {
@@ -236,12 +244,12 @@ public final class Utils
         String filename;
         switch (OS.CURRENT)
         {
-          case WINDOWS: filename = "cvc5jni.dll"; break;
-          case OSX: filename = "libcvc5jni.dylib"; break;
+          case WINDOWS: filename = "cvc5.dll"; break;
+          case OSX: filename = "libcvc5.dylib"; break;
           default:
             // We assume it is Linux or a Unix-based system.
             // If not, there's nothing more we can do anyway.
-            filename = "libcvc5jni.so";
+            filename = "libcvc5.so";
         }
 
         String subdir = "/" + OS.CURRENT.name() + "/" + CPUArchitecture.CURRENT.name();
@@ -254,66 +262,144 @@ public final class Utils
       }
       catch (Exception ex)
       {
-        try
-        {
-          System.loadLibrary("cvc5jni");
-        }
-        catch (UnsatisfiedLinkError jni_ex)
+        if (!loadAnyLibrary("cvc5", "libcvc5"))
         {
           throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
         }
+      }
+      // The parser is a separate library, except in a self-contained libcvc5.
+      if (SymbolLookup.loaderLookup().find("cvc5_parser_new").isEmpty()
+          && !loadAnyLibrary("cvc5parser", "libcvc5parser"))
+      {
+        throw new UnsatisfiedLinkError("Couldn't load the cvc5 parser library");
       }
       areLibrariesLoaded = true;
     }
   }
 
   /**
-   * Construct an array of {@link Sort} objects from an array of native pointers.
+   * Load the first of the given native libraries that can be found on the
+   * library path.
    *
-   * @return Sorts array from array of Sort pointers.
-   * @param ctx The context of the term manager the objects belong to.
-   * @param pointers The array of pointers.
+   * @param names The names of the libraries.
+   * @return True if one of the libraries was loaded.
    */
-  static Sort[] getSorts(NativeContext ctx, long[] pointers)
+  private static boolean loadAnyLibrary(String... names)
   {
-    Sort[] sorts = new Sort[pointers.length];
-    for (int i = 0; i < pointers.length; i++)
+    for (String name : names)
     {
-      sorts[i] = new Sort(ctx, pointers[i]);
+      try
+      {
+        System.loadLibrary(name);
+        return true;
+      }
+      catch (UnsatisfiedLinkError e)
+      {
+        // try the next name
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get the handles of the given objects, see {@link AbstractPointer#handle()}.
+   *
+   * @param objects The objects.
+   * @return The handles of the objects.
+   */
+  static MemorySegment[] getHandles(AbstractPointer[] objects)
+  {
+    MemorySegment[] handles = new MemorySegment[objects.length];
+    for (int i = 0; i < handles.length; i++)
+    {
+      handles[i] = objects[i].handle();
+    }
+    return handles;
+  }
+
+  /**
+   * Get the handles of the objects of a two-dimensional array, see
+   * {@link #getHandles(AbstractPointer[])}.
+   *
+   * @param objects The objects.
+   * @return The handles of the objects.
+   */
+  static MemorySegment[][] getHandles(AbstractPointer[][] objects)
+  {
+    MemorySegment[][] handles = new MemorySegment[objects.length][];
+    for (int i = 0; i < handles.length; i++)
+    {
+      handles[i] = getHandles(objects[i]);
+    }
+    return handles;
+  }
+
+  /**
+   * Get the handles of the second elements of the given pairs, see
+   * {@link #getHandles(AbstractPointer[])}.
+   *
+   * @param <K> The type of the first elements of the pairs.
+   * @param pairs The pairs.
+   * @return The pairs of the first elements and the handles.
+   */
+  @SuppressWarnings("unchecked")
+  static <K> Pair<K, MemorySegment>[] getHandlePairs(Pair<K, ? extends AbstractPointer>[] pairs)
+  {
+    Pair<K, MemorySegment>[] handles = new Pair[pairs.length];
+    for (int i = 0; i < handles.length; i++)
+    {
+      handles[i] = new Pair<>(pairs[i].first, pairs[i].second.handle());
+    }
+    return handles;
+  }
+
+  /**
+   * Construct an array of {@link Sort} objects from an array of handles.
+   *
+   * @param ctx The context of the term manager the objects belong to.
+   * @param handles The handles, each a reference that the created object owns.
+   * @return The sorts.
+   */
+  static Sort[] getSorts(NativeContext ctx, MemorySegment[] handles)
+  {
+    Sort[] sorts = new Sort[handles.length];
+    for (int i = 0; i < handles.length; i++)
+    {
+      sorts[i] = new Sort(ctx, handles[i]);
     }
     return sorts;
   }
 
   /**
-   * Construct an array of {@link Term} objects from an array of native pointers.
+   * Construct an array of {@link Term} objects from an array of handles.
    *
-   * @return Terms array from array of Term pointers.
    * @param ctx The context of the term manager the objects belong to.
-   * @param pointers The array of pointers.
+   * @param handles The handles, each a reference that the created object owns.
+   * @return The terms.
    */
-  static Term[] getTerms(NativeContext ctx, long[] pointers)
+  static Term[] getTerms(NativeContext ctx, MemorySegment[] handles)
   {
-    Term[] terms = new Term[pointers.length];
-    for (int i = 0; i < pointers.length; i++)
+    Term[] terms = new Term[handles.length];
+    for (int i = 0; i < handles.length; i++)
     {
-      terms[i] = new Term(ctx, pointers[i]);
+      terms[i] = new Term(ctx, handles[i]);
     }
     return terms;
   }
 
   /**
-   * Construct an array of {@link Proof} objects from an array of native pointers.
+   * Construct an array of {@link Proof} objects from an array of handles.
    *
-   * @return proofs array from array of Proof pointers
    * @param ctx The context of the term manager the objects belong to.
-   * @param pointers The array of pointers.
+   * @param handles The handles, each a reference that the created object owns.
+   * @return The proofs.
    */
-  static Proof[] getProofs(NativeContext ctx, long[] pointers)
+  static Proof[] getProofs(NativeContext ctx, MemorySegment[] handles)
   {
-    Proof[] proofs = new Proof[pointers.length];
-    for (int i = 0; i < pointers.length; i++)
+    Proof[] proofs = new Proof[handles.length];
+    for (int i = 0; i < handles.length; i++)
     {
-      proofs[i] = new Proof(ctx, pointers[i]);
+      proofs[i] = new Proof(ctx, handles[i]);
     }
     return proofs;
   }

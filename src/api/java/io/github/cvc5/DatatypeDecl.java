@@ -12,6 +12,9 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.capi.CApi;
+import java.lang.foreign.MemorySegment;
+
 /**
  * A cvc5 datatype declaration. A datatype declaration is not itself a datatype
  * (see {@link Datatype}), but a specification for creating a datatype sort.
@@ -31,20 +34,18 @@ public class DatatypeDecl extends AbstractPointer
    */
   public DatatypeDecl()
   {
-    super(null, NULL_POINTER, null);
+    super(null, MemorySegment.NULL, null);
   }
 
-  /** The native null object shared by all null DatatypeDecl instances. It is never freed. */
-  private static final long NULL_POINTER = getNullDatatypeDecl();
-
-  private static native long getNullDatatypeDecl();
-
-  DatatypeDecl(NativeContext ctx, long pointer)
+  DatatypeDecl(NativeContext ctx, MemorySegment pointer)
   {
     super(ctx, pointer, DatatypeDecl::deletePointer);
   }
 
-  private static native void deletePointer(long pointer);
+  private static void deletePointer(MemorySegment pointer)
+  {
+    CApi.cvc5_dt_decl_release(pointer);
+  }
 
   /**
    * Syntactic equality operator.
@@ -64,14 +65,17 @@ public class DatatypeDecl extends AbstractPointer
       return false;
     }
     DatatypeDecl decl = (DatatypeDecl) d;
-    if (this.pointer == decl.pointer)
+    if (address() == decl.address())
     {
       return true;
     }
-    return equals(getPointer(), decl.getPointer());
+    return equals(handle(), decl.handle());
   }
 
-  private native boolean equals(long pointer1, long pointer2);
+  private boolean equals(MemorySegment pointer1, MemorySegment pointer2)
+  {
+    return Native.check(CApi.cvc5_dt_decl_is_equal(pointer1, pointer2));
+  }
 
   /**
    * Add datatype constructor declaration.
@@ -79,10 +83,14 @@ public class DatatypeDecl extends AbstractPointer
    */
   public void addConstructor(DatatypeConstructorDecl ctor)
   {
-    addConstructor(getPointer(), ctor.getPointer());
+    addConstructor(handle(), ctor.handle());
   }
 
-  private native void addConstructor(long pointer, long declPointer);
+  private void addConstructor(MemorySegment pointer, MemorySegment declPointer)
+  {
+    CApi.cvc5_dt_decl_add_constructor(pointer, declPointer);
+    Native.check();
+  }
 
   /**
    * Get the number of constructors (so far) for this Datatype declaration.
@@ -90,10 +98,13 @@ public class DatatypeDecl extends AbstractPointer
    */
   public int getNumConstructors()
   {
-    return getNumConstructors(getPointer());
+    return getNumConstructors(handle());
   }
 
-  private native int getNumConstructors(long pointer);
+  private int getNumConstructors(MemorySegment pointer)
+  {
+    return (int) Native.check(CApi.cvc5_dt_decl_get_num_constructors(pointer));
+  }
 
   /**
    * Determine if this datatype declaration is parametric.
@@ -103,10 +114,13 @@ public class DatatypeDecl extends AbstractPointer
    */
   public boolean isParametric()
   {
-    return isParametric(getPointer());
+    return isParametric(handle());
   }
 
-  private native boolean isParametric(long pointer);
+  private boolean isParametric(MemorySegment pointer)
+  {
+    return Native.check(CApi.cvc5_dt_decl_is_parametric(pointer));
+  }
 
   /**
    * Determine if this DatatypeDecl is a null object.
@@ -115,15 +129,21 @@ public class DatatypeDecl extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(getPointer());
+    return isNull(handle());
   }
 
-  private native boolean isNull(long pointer);
+  private boolean isNull(MemorySegment pointer)
+  {
+    return pointer.address() == 0;
+  }
 
   /**
    * @return A string representation of this datatype declaration.
    */
-  protected native String toString(long pointer);
+  protected String toString(long pointer)
+  {
+    return Native.string(CApi.cvc5_dt_decl_to_string(MemorySegment.ofAddress(pointer)));
+  }
 
   /**
    * Get the name of this datatype declaration.
@@ -132,10 +152,13 @@ public class DatatypeDecl extends AbstractPointer
    */
   public String getName()
   {
-    return getName(getPointer());
+    return getName(handle());
   }
 
-  private native String getName(long pointer);
+  private String getName(MemorySegment pointer)
+  {
+    return Native.string(CApi.cvc5_dt_decl_get_name(pointer));
+  }
 
   /**
    * Get the hash value of a datatype declaration.
@@ -144,8 +167,15 @@ public class DatatypeDecl extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(getPointer()));
+    return Long.hashCode(hashCode(handle()));
   }
 
-  private native long hashCode(long pointer);
+  private long hashCode(MemorySegment pointer)
+  {
+    if (pointer.address() == 0)
+    {
+      return 0;
+    }
+    return Native.check(CApi.cvc5_dt_decl_hash(pointer));
+  }
 }

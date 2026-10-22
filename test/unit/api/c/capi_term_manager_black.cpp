@@ -340,6 +340,9 @@ TEST_F(TestCApiBlackTermManager, mk_fun_sort)
       "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(d_tm, domain.size(), nullptr, d_int),
                     "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), nullptr),
+      "invalid sort");
   domain = {nullptr};
   ASSERT_CVC5_ERROR(cvc5_mk_fun_sort(d_tm, domain.size(), domain.data(), d_int),
                     "invalid sort at index 0");
