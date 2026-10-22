@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.foreign.SymbolLookup;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -226,6 +227,12 @@ public final class Utils
 
   /**
    * Load cvc5 native libraries.
+   *
+   * <p>The Java API calls the C API of the cvc5 libraries: libcvc5 and
+   * libcvc5parser. The native JAR of a static build bundles a self-contained
+   * libcvc5, which also contains the parser; it is loaded if it is on the
+   * class path. Otherwise, the libraries are loaded from the library path
+   * ({@code java.library.path}).</p>
    */
   public static void loadLibraries()
   {
@@ -236,12 +243,12 @@ public final class Utils
         String filename;
         switch (OS.CURRENT)
         {
-          case WINDOWS: filename = "cvc5jni.dll"; break;
-          case OSX: filename = "libcvc5jni.dylib"; break;
+          case WINDOWS: filename = "cvc5.dll"; break;
+          case OSX: filename = "libcvc5.dylib"; break;
           default:
             // We assume it is Linux or a Unix-based system.
             // If not, there's nothing more we can do anyway.
-            filename = "libcvc5jni.so";
+            filename = "libcvc5.so";
         }
 
         String subdir = "/" + OS.CURRENT.name() + "/" + CPUArchitecture.CURRENT.name();
@@ -254,19 +261,16 @@ public final class Utils
       }
       catch (Exception ex)
       {
-        try
+        if (!loadAnyLibrary("cvc5", "libcvc5"))
         {
-          System.loadLibrary("cvc5jni");
+          throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
         }
-        catch (UnsatisfiedLinkError jni_ex)
-        {
-          // The cvc5 libraries themselves provide the C API that the Java API
-          // calls, e.g., in a build with shared libraries.
-          if (!loadAnyLibrary("cvc5", "libcvc5") || !loadAnyLibrary("cvc5parser", "libcvc5parser"))
-          {
-            throw new UnsatisfiedLinkError("Couldn't load cvc5 native libraries");
-          }
-        }
+      }
+      // The parser is a separate library, except in a self-contained libcvc5.
+      if (SymbolLookup.loaderLookup().find("cvc5_parser_new").isEmpty()
+          && !loadAnyLibrary("cvc5parser", "libcvc5parser"))
+      {
+        throw new UnsatisfiedLinkError("Couldn't load the cvc5 parser library");
       }
       areLibrariesLoaded = true;
     }

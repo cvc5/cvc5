@@ -61,26 +61,7 @@ final class Native
     SymbolLookup lookup = SymbolLookup.loaderLookup();
     if (lookup.find(PROBE_SYMBOL).isEmpty())
     {
-      // With dynamic linking, the C API is defined by the cvc5 libraries that
-      // the cvc5jni library depends on. Depending on the platform, symbols of
-      // dependencies cannot be looked up through the dependent library, so
-      // load them explicitly.
-      for (String name : new String[] {"cvc5", "libcvc5", "cvc5parser", "libcvc5parser"})
-      {
-        try
-        {
-          System.loadLibrary(name);
-        }
-        catch (UnsatisfiedLinkError e)
-        {
-          // try the next name
-        }
-      }
-      lookup = SymbolLookup.loaderLookup();
-      if (lookup.find(PROBE_SYMBOL).isEmpty())
-      {
-        throw new UnsatisfiedLinkError("Couldn't find the cvc5 C API in the cvc5 native libraries");
-      }
+      throw new UnsatisfiedLinkError("Couldn't find the cvc5 C API in the cvc5 native libraries");
     }
     return lookup;
   }

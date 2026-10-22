@@ -186,7 +186,10 @@ This section describes how to build the cvc5 Java bindings from source.
 If you want to create a single native library file that includes
 all required library dependencies, pass the ``--static`` option to ``configure.sh``
 in the steps below. This option also generates a JAR file that bundles the native library,
-which can be installed into a Maven repository.
+which can be installed into a Maven repository. The native library is a
+self-contained ``libcvc5``, which is installed into ``install/lib/cvc5-java``
+(pass ``-Djava.library.path=install/lib/cvc5-java`` to use it from the
+installation).
 When using ``--static``, you may need to recompile some external cvc5 dependencies from
 source rather than relying on the static versions
 provided by your operating system. This ensures that all dependencies are compiled as
@@ -213,9 +216,10 @@ build artifacts.
      $ make install
 
      $ ls install/lib
-       cmake             libcvc5parser.so.1  libpoly.so        libpolyxx.so
-       libcvc5jni.so     libcvc5.so          libpoly.so.0      libpolyxx.so.0
-       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.1  libpolyxx.so.0.2.1
+       cmake               libcvc5.so.1      libpoly.so.0.2.1  libpolyxx.so.0.2.1
+       libcvc5parser.so    libpoly.so        libpolyxx.so
+       libcvc5parser.so.1  libpoly.so.0      libpolyxx.so.0
+       libcvc5.so
      $ ls install/share/java/
        cvc5-1.3.2-SNAPSHOT.jar  cvc5.jar
 

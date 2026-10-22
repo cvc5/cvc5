@@ -166,48 +166,15 @@ set(JAVA_FILES
   ${JAVA_TYPES_FILES}
 )
 
-# The native library of the Java API. The Java API calls the cvc5 C API through
-# the Foreign Function & Memory API and contains no native code of its own: this
-# library only provides the C API under the name that the Java API loads. In a
-# static build, it contains cvc5 and its parser, which export the C API; in a
-# shared build, it depends on them.
-add_library(cvc5jni SHARED cvc5jni.cpp)
-if(BUILD_SHARED_LIBS)
-  target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
-else()
-  # Include every object of cvc5 and its parser, so that the library defines
-  # all functions of the C API, not only those it references itself.
-  if(APPLE)
-    target_link_libraries(cvc5jni PRIVATE
-      "-Wl,-force_load,$<TARGET_FILE:cvc5>"
-      "-Wl,-force_load,$<TARGET_FILE:cvc5parser>"
-      cvc5 cvc5parser)
-  elseif(MSVC)
-    target_link_options(cvc5jni PRIVATE
-      "/WHOLEARCHIVE:$<TARGET_FILE:cvc5>"
-      "/WHOLEARCHIVE:$<TARGET_FILE:cvc5parser>")
-    target_link_libraries(cvc5jni PRIVATE cvc5 cvc5parser)
-  else()
-    target_link_libraries(cvc5jni PRIVATE
-      -Wl,--whole-archive cvc5parser cvc5 -Wl,--no-whole-archive)
-  endif()
-endif()
-
-if(WIN32 AND NOT BUILD_SHARED_LIBS)
-  # Ensure that cvc5jni does not expect DLL imports,
-  # but static linking
-  target_compile_definitions(cvc5jni PRIVATE CVC5_STATIC_DEFINE)
-endif()
-
 # Normalize the system name and CPU architecture according to the conventions of
 # the os-maven-plugin, so that the native library is built under the path
-# ${JNI_PREFIX}/${SYS_NAME}/${CPU_ARCH}. This enables the creation of
+# ${NATIVE_PREFIX}/${SYS_NAME}/${CPU_ARCH}. This enables the creation of
 # a single JAR that can contain native libraries for multiple OSes and
 # CPU architectures simultaneously.
 # Additionally, it prevents file collisions when multiple JARs containing
 # a native library for the same OS but different architectures are added to
 # the classpath at the same time.
-set(JNI_PREFIX "cvc5-libs")
+set(NATIVE_PREFIX "cvc5-libs")
 string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" CPU_ARCH)
 # Normalize supported CPU architectures
 if(CPU_ARCH MATCHES "x86_64|amd64")
@@ -220,24 +187,49 @@ string(TOLOWER "${CMAKE_SYSTEM_NAME}" SYS_NAME)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set(SYS_NAME "osx")
 endif()
+set(NATIVE_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/${NATIVE_PREFIX}/${SYS_NAME}/${CPU_ARCH}")
 
-set(JNI_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/${JNI_PREFIX}/${SYS_NAME}/${CPU_ARCH}")
-set_target_properties(cvc5jni PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY "${JNI_OUTPUT_DIR}"
-  RUNTIME_OUTPUT_DIRECTORY "${JNI_OUTPUT_DIR}"
-)
-
-if (WIN32 AND NOT BUILD_SHARED_LIBS)
-  # Statically link all libraries, including MinGW-w64 libraries
-  set_target_properties(cvc5jni PROPERTIES LINK_FLAGS -static)
-  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_START_STATIC ON)
-  set_target_properties(cvc5jni PROPERTIES LINK_SEARCH_END_STATIC ON)
+if(WIN32)
+  set(PATH_SEP ";")
+else()
+  set(PATH_SEP ":")
 endif()
 
-# Java on Windows expects native libraries without the prefix
-if (WIN32)
-  set_target_properties(cvc5jni PROPERTIES PREFIX "")
-  set_target_properties(cvc5jni PROPERTIES IMPORT_PREFIX "")
+# The Java API calls the C API of the cvc5 libraries through the Foreign
+# Function & Memory API and has no native library of its own.
+if(BUILD_SHARED_LIBS)
+  # It loads libcvc5 and libcvc5parser.
+  set(CVC5_JAVA_LIBRARY_PATH
+    "$<TARGET_FILE_DIR:cvc5>${PATH_SEP}$<TARGET_FILE_DIR:cvc5parser>")
+else()
+  # In a static build, it loads a self-contained shared libcvc5 instead, which
+  # contains cvc5, its parser and their dependencies. It is built from the
+  # objects of the static libraries, and bundled in the native JAR.
+  add_library(cvc5-java-native SHARED
+    $<TARGET_OBJECTS:cvc5-obj>
+    $<TARGET_OBJECTS:cvc5base>
+    $<TARGET_OBJECTS:cvc5context>
+    $<TARGET_OBJECTS:cvc5parser-objs>
+    $<TARGET_OBJECTS:cvc5parserapi-objs>
+  )
+  # Link the dependencies of cvc5 and its parser.
+  target_link_libraries(cvc5-java-native PRIVATE cvc5parser)
+  set_target_properties(cvc5-java-native PROPERTIES
+    OUTPUT_NAME cvc5
+    LIBRARY_OUTPUT_DIRECTORY "${NATIVE_OUTPUT_DIR}"
+    RUNTIME_OUTPUT_DIRECTORY "${NATIVE_OUTPUT_DIR}"
+  )
+  if(WIN32)
+    # Statically link all libraries, including MinGW-w64 libraries
+    set_target_properties(cvc5-java-native PROPERTIES
+      LINK_FLAGS -static
+      LINK_SEARCH_START_STATIC ON
+      LINK_SEARCH_END_STATIC ON
+    )
+    # Java on Windows expects native libraries without the prefix
+    set_target_properties(cvc5-java-native PROPERTIES PREFIX "" IMPORT_PREFIX "")
+  endif()
+  set(CVC5_JAVA_LIBRARY_PATH "${NATIVE_OUTPUT_DIR}")
 endif()
 
 # Create cvc5.jar file
@@ -259,7 +251,13 @@ else()
   )
 endif()
 
-add_dependencies(cvc5jar generate-java-capi generate-java-kinds cvc5jni cvc5 cvc5parser)
+add_dependencies(cvc5jar generate-java-capi generate-java-kinds cvc5 cvc5parser)
+if(TARGET cvc5-java-native)
+  add_dependencies(cvc5jar cvc5-java-native)
+endif()
+# The library path for running the Java API from the build directory (tests)
+set_target_properties(cvc5jar PROPERTIES
+  CVC5_JAVA_LIBRARY_PATH "${CVC5_JAVA_LIBRARY_PATH}")
 
 if(BUILD_DOCS)
   # Build cvc5-sources.jar to enable viewing, navigation, and debugging of the library source code
@@ -281,8 +279,8 @@ if(NOT BUILD_SHARED_LIBS)
   set(NATIVE_JAR ${CMAKE_CURRENT_BINARY_DIR}/cvc5-${SYS_NAME}-${CPU_ARCH}.jar)
   add_custom_command(
       OUTPUT ${NATIVE_JAR}
-      COMMAND ${Java_JAR_EXECUTABLE} cf ${NATIVE_JAR} -C ${CMAKE_CURRENT_BINARY_DIR} ${JNI_PREFIX}
-      DEPENDS cvc5jni
+      COMMAND ${Java_JAR_EXECUTABLE} cf ${NATIVE_JAR} -C ${CMAKE_CURRENT_BINARY_DIR} ${NATIVE_PREFIX}
+      DEPENDS cvc5-java-native
       COMMENT "Generating native JAR"
   )
   add_custom_target(cvc5-native-jar ALL DEPENDS ${NATIVE_JAR})
@@ -291,10 +289,15 @@ endif()
 # POM file for publishing cvc5 Java bindings to Maven Central
 configure_file(pom.xml.in ${PROJECT_BINARY_DIR}/pom.xml @ONLY)
 
-# Install in the same directory of cvc5-targets.
-# On Windows, CMake's default install action places
-# DLLs into the runtime path (by default "bin")
-install(TARGETS cvc5jni COMPONENT java-api)
+if(NOT BUILD_SHARED_LIBS)
+  # Install the self-contained libcvc5 in its own directory, so that it does
+  # not take the place of the static libraries when linking against cvc5.
+  install(TARGETS cvc5-java-native
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/cvc5-java COMPONENT java-api
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/cvc5-java COMPONENT java-api
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/cvc5-java COMPONENT java-api
+  )
+endif()
 
 install_jar(cvc5jar
   DESTINATION share/java

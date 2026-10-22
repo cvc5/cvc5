@@ -27,7 +27,10 @@ cvc5 1.4.3 prerelease
     Function & Memory API (`java.lang.foreign`), instead of on top of the C++
     API through JNI. Its public interface is unchanged. Like JNI, this API is
     restricted: run applications with `--enable-native-access=ALL-UNNAMED` (or
-    the name of the module that uses cvc5) to avoid warnings.
+    the name of the module that uses cvc5) to avoid warnings. There is no JNI
+    library (`cvc5jni`) anymore: the Java API loads `libcvc5` and
+    `libcvc5parser`, or, with a static build (and from the native JARs), a
+    self-contained `libcvc5`, which is installed into `lib/cvc5-java`.
   * Native memory is now released automatically: the native object behind a
     Java object (term manager, solver, term, sort, ...) is freed once the Java
     object is no longer reachable. Native objects are no longer kept alive by a
