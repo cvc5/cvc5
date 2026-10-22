@@ -58,7 +58,7 @@ public class Proof extends AbstractPointer
    */
   public ProofRule getRule() throws CVC5ApiException
   {
-    int value = getRule(pointer);
+    int value = getRule(getPointer());
     return ProofRule.fromInt(value);
   }
 
@@ -73,7 +73,7 @@ public class Proof extends AbstractPointer
    */
   public ProofRewriteRule getRewriteRule() throws CVC5ApiException
   {
-    int value = getRewriteRule(pointer);
+    int value = getRewriteRule(getPointer());
     return ProofRewriteRule.fromInt(value);
   }
 
@@ -86,7 +86,7 @@ public class Proof extends AbstractPointer
    */
   public Term getResult()
   {
-    long termPointer = getResult(pointer);
+    long termPointer = getResult(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -99,7 +99,7 @@ public class Proof extends AbstractPointer
    */
   public Proof[] getChildren()
   {
-    long[] proofPointers = getChildren(pointer);
+    long[] proofPointers = getChildren(getPointer());
     return Utils.getProofs(ctx, proofPointers);
   }
 
@@ -113,7 +113,7 @@ public class Proof extends AbstractPointer
    */
   public Term[] getArguments()
   {
-    long[] termPointers = getArguments(pointer);
+    long[] termPointers = getArguments(getPointer());
     return Utils.getTerms(ctx, termPointers);
   }
 
@@ -141,7 +141,7 @@ public class Proof extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, proof.getPointer());
+    return equals(getPointer(), proof.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -153,7 +153,7 @@ public class Proof extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

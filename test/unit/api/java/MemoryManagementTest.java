@@ -162,14 +162,14 @@ class MemoryManagementTest
     long freedBefore = freedObjects(tm);
     solver.deletePointer();
     assertEquals(freedBefore + 1, freedObjects(tm));
-    assertEquals(0, solver.getPointer());
+    assertThrows(IllegalStateException.class, () -> solver.getPointer());
     solver.deletePointer();
     solver.close();
     assertEquals(freedBefore + 1, freedObjects(tm));
     // Objects derived from a term manager survive its release.
     tm.close();
     assertEquals(freedBefore + 2, freedObjects(tm));
-    assertEquals(0, tm.getPointer());
+    assertThrows(IllegalStateException.class, () -> tm.getPointer());
     assertTrue(t.isBooleanValue());
     t.deletePointer();
     assertEquals(freedBefore + 3, freedObjects(tm));
@@ -249,9 +249,9 @@ class MemoryManagementTest
     long freedBefore = freedObjects(tm);
     Context.deletePointers();
     assertEquals(freedBefore + 3, freedObjects(tm));
-    assertEquals(0, tm.getPointer());
-    assertEquals(0, solver.getPointer());
-    assertEquals(0, t.getPointer());
+    assertThrows(IllegalStateException.class, () -> tm.getPointer());
+    assertThrows(IllegalStateException.class, () -> solver.getPointer());
+    assertThrows(IllegalStateException.class, () -> t.getPointer());
     // Idempotent, and new objects can still be created.
     Context.deletePointers();
     assertEquals(freedBefore + 3, freedObjects(tm));
@@ -344,5 +344,47 @@ class MemoryManagementTest
     Result r = solver.checkSat();
     assertTrue(solver.getValue(x).isIntegerValue());
     return r.isSat() ? 1 : 0;
+  }
+
+  @Test
+  void useAfterReleaseThrows() throws Exception
+  {
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
+    Term x = tm.mkConst(tm.getBooleanSort(), "x");
+    Term y = tm.mkConst(tm.getBooleanSort(), "y");
+
+    // A released object raises an exception when it is used ...
+    x.deletePointer();
+    assertThrows(IllegalStateException.class, () -> x.getKind());
+    assertThrows(IllegalStateException.class, () -> x.toString());
+    assertThrows(IllegalStateException.class, () -> x.notTerm());
+    // ... or passed as an argument, also within an array.
+    assertThrows(IllegalStateException.class, () -> tm.mkTerm(AND, x, y));
+    assertThrows(IllegalStateException.class, () -> tm.mkTerm(AND, new Term[] {x, y}));
+    assertThrows(IllegalStateException.class, () -> solver.assertFormula(x));
+    // Other objects are unaffected.
+    solver.assertFormula(y);
+    assertTrue(solver.checkSat().isSat());
+
+    solver.close();
+    assertThrows(IllegalStateException.class, () -> solver.checkSat());
+    tm.close();
+    assertThrows(IllegalStateException.class, () -> tm.getBooleanSort());
+    // Objects derived from a released term manager remain usable.
+    assertTrue(y.getSort().isBoolean());
+  }
+
+  @Test
+  @SuppressWarnings("deprecation")
+  void useAfterContextDeletePointersThrows() throws Exception
+  {
+    TermManager tm = new TermManager();
+    Term t = tm.mkTrue();
+    Context.deletePointers();
+    assertThrows(IllegalStateException.class, () -> t.isBooleanValue());
+    assertThrows(IllegalStateException.class, () -> tm.mkFalse());
+    // Null objects are never released.
+    assertTrue(new Term().isNull());
   }
 }

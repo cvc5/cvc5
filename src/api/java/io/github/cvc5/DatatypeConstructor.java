@@ -52,7 +52,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
     {
       return true;
     }
-    return equals(pointer, cons.getPointer());
+    return equals(getPointer(), cons.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -64,7 +64,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
@@ -88,7 +88,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public Term getTerm()
   {
-    long termPointer = getTerm(pointer);
+    long termPointer = getTerm(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -124,7 +124,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public Term getInstantiatedTerm(Sort retSort)
   {
-    long termPointer = getInstantiatedTerm(pointer, retSort.getPointer());
+    long termPointer = getInstantiatedTerm(getPointer(), retSort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -141,7 +141,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public Term getTesterTerm()
   {
-    long termPointer = getTesterTerm(pointer);
+    long termPointer = getTesterTerm(getPointer());
     return new Term(ctx, termPointer);
   }
   private native long getTesterTerm(long pointer);
@@ -153,7 +153,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public int getNumSelectors()
   {
-    return getNumSelectors(pointer);
+    return getNumSelectors(getPointer());
   }
   private native int getNumSelectors(long pointer);
 
@@ -164,7 +164,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public DatatypeSelector getSelector(int index)
   {
-    long selectorPointer = getSelector(pointer, index);
+    long selectorPointer = getSelector(getPointer(), index);
     return new DatatypeSelector(ctx, selectorPointer);
   }
   private native long getSelector(long pointer, int index);
@@ -178,7 +178,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public DatatypeSelector getSelector(String name)
   {
-    long selectorPointer = getSelector(pointer, name);
+    long selectorPointer = getSelector(getPointer(), name);
     return new DatatypeSelector(ctx, selectorPointer);
   }
   private native long getSelector(long pointer, String name);
@@ -190,7 +190,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -254,7 +254,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

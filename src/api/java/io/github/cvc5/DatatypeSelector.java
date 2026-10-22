@@ -49,7 +49,7 @@ public class DatatypeSelector extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, sel.getPointer());
+    return equals(getPointer(), sel.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -61,7 +61,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
@@ -77,7 +77,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getTerm()
   {
-    long termPointer = getTerm(pointer);
+    long termPointer = getTerm(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -94,7 +94,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getUpdaterTerm()
   {
-    long termPointer = getUpdaterTerm(pointer);
+    long termPointer = getUpdaterTerm(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -107,7 +107,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Sort getCodomainSort()
   {
-    long sortPointer = getCodomainSort(pointer);
+    long sortPointer = getCodomainSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -120,7 +120,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -137,7 +137,7 @@ public class DatatypeSelector extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);
