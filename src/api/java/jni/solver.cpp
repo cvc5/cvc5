@@ -518,21 +518,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getOptionInfo(
 
 /*
  * Class:     io_github_cvc5_Solver
- * Method:    getDriverOptions
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_getDriverOptions(JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  DriverOptions* ret = new DriverOptions(solver->getDriverOptions());
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
  * Method:    getUnsatAssumptions
  * Signature: (J)[J
  */
