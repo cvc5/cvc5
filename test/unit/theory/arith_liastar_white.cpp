@@ -431,6 +431,22 @@ TEST_F(TestLiaStarUtils, removeNotKeepsNegatedBooleanVariables)
   ASSERT_EQ("(or (not p) (not q))", dnf.toString());
 }
 
+TEST_F(TestLiaStarUtils, removeNotFlipsNegatedConstraints)
+{
+  // (not (and (< x y) (> x y) (<= x y) (>= x y) (= x y)))
+  Node conjunction = nm->mkNode(Kind::AND,
+                                {nm->mkNode(Kind::LT, x, y),
+                                 nm->mkNode(Kind::GT, x, y),
+                                 nm->mkNode(Kind::LEQ, x, y),
+                                 nm->mkNode(Kind::GEQ, x, y),
+                                 nm->mkNode(Kind::EQUAL, x, y)});
+
+  Node nnf = LiaStarUtils::removeNot(conjunction.notNode(), *e);
+
+  ASSERT_EQ("(or (>= x y) (<= x y) (> x y) (< x y) (or (> x y) (< x y)))",
+            nnf.toString());
+}
+
 TEST_F(TestLiaStarUtils, removeItesGuardsWithTheConditionsOfBothSides)
 {
   Node c1 = boolVar("c1"), c2 = boolVar("c2");

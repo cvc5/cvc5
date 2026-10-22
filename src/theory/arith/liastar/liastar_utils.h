@@ -16,6 +16,7 @@
 #define CVC5__THEORY__LIASTAR__UTILS_H
 
 #include "expr/node.h"
+#include "expr/node_converter.h"
 #include "smt/env.h"
 #include "theory/arith/liastar/liastar_stats.h"
 #include "theory/arith/linear/normal_form.h"
@@ -30,6 +31,26 @@ namespace liastar {
  * cvc5::internal::Integer within namespace liastar.
  */
 typedef mpz_class Integer;
+
+/**
+ * Converts the negated linear constraints of a predicate in negation normal
+ * form into unnegated ones, since a Normaliz constraint cannot be negated:
+ *   (not (>= a b)) --> (< a b)
+ *   (not (= a b))  --> (or (> a b) (< a b))
+ * Any other negation, e.g. (not p) for a Boolean variable p, is kept. Used
+ * by LiaStarUtils::removeNot.
+ */
+class NegatedConstraintConverter : public NodeConverter
+{
+ public:
+  NegatedConstraintConverter(NodeManager* nm);
+  /**
+   * @param n a term whose children are already converted
+   * @return the unnegated form of n if n is a negated constraint, otherwise
+   * n itself
+   */
+  Node postConvert(Node n) override;
+};
 
 /**
  * Utilities shared by the liastar extension: destructuring star-contains
@@ -123,8 +144,10 @@ class LiaStarUtils
    * and an unsat one is dropped together with all disjuncts it would have
    * produced. The result is still equivalent to n.
    *
-   * @param n a node in negation normal form whose atoms are linear integer
-   * constraints or possibly negated Boolean variables, see removeNot
+   * Only and and or are distributed; every other term is an atom, e.g. a
+   * constraint or a negated Boolean variable, see removeNot.
+   *
+   * @param n a node in negation normal form
    * @param e the environment, used for its node manager and options
    * @param stats optional statistics collector, may be nullptr
    * @param context conjuncts known to hold wherever n occurs: the atoms of
@@ -225,6 +248,10 @@ class LiaStarUtils
    * this is why removeNot runs before distribute. A negated Boolean variable
    * has no relation to flip and is kept:
    *   (not (or p (>= x 1))) --> (and (not p) (< x 1))
+   *
+   * Both steps are iterative: TheoryBoolRewriter::computeNnfNorm computes
+   * the negation normal form, and NegatedConstraintConverter flips the
+   * negated constraints.
    *
    * @param n an ite-free Boolean combination of linear integer constraints
    * and Boolean variables

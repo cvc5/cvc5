@@ -150,21 +150,6 @@ Node LiaStarUtils::distribute(Node n,
   Kind k = n.getKind();
   switch (k)
   {
-    // atoms, including the negated Boolean variables that removeNot keeps:
-    //   (and (not p) (or (>= x 1) (<= x 0)))
-    //   --> (or (and (not p) (>= x 1)) (and (not p) (<= x 0)))
-    case Kind::NOT:
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::CONST_BOOLEAN:
-    case Kind::LT:
-    case Kind::GT:
-    case Kind::LEQ:
-    case Kind::GEQ:
-    case Kind::EQUAL:
-    {
-      return n;
-    }
     case Kind::AND:
     {
       // the atoms of this conjunction hold in every branch below it, so
@@ -293,14 +278,15 @@ Node LiaStarUtils::distribute(Node n,
 
       return nm->mkNode(Kind::OR, disjuncts);
     }
-
     default:
     {
-      break;
+      // anything but and and or is an atom, e.g. a constraint or a negated
+      // Boolean variable that removeNot keeps:
+      //   (and (not p) (or (>= x 1) (<= x 0)))
+      //   --> (or (and (not p) (>= x 1)) (and (not p) (<= x 0)))
+      return n;
     }
   }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
 }
 
 Node LiaStarUtils::removeItes(Node n, Env& e, LiaStarStatistics* stats)
@@ -426,94 +412,55 @@ Node LiaStarUtils::removeItes(Node n, Env& e, LiaStarStatistics* stats)
   return cases[n][0].second;
 }
 
+NegatedConstraintConverter::NegatedConstraintConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
+
+Node NegatedConstraintConverter::postConvert(Node n)
+{
+  if (n.getKind() != Kind::NOT)
+  {
+    return n;
+  }
+  Node atom = n[0];
+  switch (atom.getKind())
+  {
+    // (not (< a b)) --> (>= a b)
+    case Kind::LT: return d_nm->mkNode(Kind::GEQ, atom[0], atom[1]);
+    // (not (> a b)) --> (<= a b)
+    case Kind::GT: return d_nm->mkNode(Kind::LEQ, atom[0], atom[1]);
+    // (not (<= a b)) --> (> a b)
+    case Kind::LEQ: return d_nm->mkNode(Kind::GT, atom[0], atom[1]);
+    // (not (>= a b)) --> (< a b)
+    case Kind::GEQ: return d_nm->mkNode(Kind::LT, atom[0], atom[1]);
+    case Kind::EQUAL:
+    {
+      // (not (= a b)) --> (or (> a b) (< a b)): a disequality is not a
+      // single constraint. Only arithmetic equalities have an order.
+      if (atom[0].getType().isRealOrInt())
+      {
+        return d_nm->mkNode(Kind::OR,
+                            d_nm->mkNode(Kind::GT, atom[0], atom[1]),
+                            d_nm->mkNode(Kind::LT, atom[0], atom[1]));
+      }
+      return n;
+    }
+    // any other negation, e.g. (not p) for a Boolean variable p, is kept
+    default: return n;
+  }
+}
+
 Node LiaStarUtils::removeNot(Node n, Env& e)
 {
   NodeManager* nm = e.getNodeManager();
   // push negations down to the atoms:
-  // (not (and p q)) --> (or (not p) (not q))
+  //   (not (or p (>= x 1))) --> (and (not p) (not (>= x 1)))
   Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, n);
-  Kind k = nnf.getKind();
-  switch (k)
-  {
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::CONST_BOOLEAN:
-    case Kind::LT:
-    case Kind::GT:
-    case Kind::LEQ:
-    case Kind::GEQ:
-    case Kind::EQUAL: return nnf;
-    case Kind::AND:
-    {
-      std::vector<Node> conjuncts;
-      for (Node child : nnf)
-      {
-        conjuncts.push_back(removeNot(child, e));
-      }
-      return nm->mkNode(Kind::AND, conjuncts);
-    }
-    case Kind::OR:
-    {
-      std::vector<Node> disjuncts;
-      for (Node child : nnf)
-      {
-        disjuncts.push_back(removeNot(child, e));
-      }
-      return nm->mkNode(Kind::OR, disjuncts);
-    }
-    case Kind::NOT:
-    {
-      // a negated atom: Normaliz constraints cannot be negated, so flip the
-      // relation. A Boolean variable has none and stays negated:
-      //   (not (or p (>= x 1))) --> (and (not p) (< x 1))
-      Kind kind = nnf[0].getKind();
-      switch (kind)
-      {
-        case Kind::VARIABLE:
-        case Kind::BOUND_VARIABLE: return nnf;
-        case Kind::LT:
-        {
-          // (not (< a b)) is rewritten as (>= a b)
-          return nm->mkNode(Kind::GEQ, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::GT:
-        {
-          // (not (> a b)) is rewritten as (<= a b)
-          return nm->mkNode(Kind::LEQ, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::LEQ:
-        {
-          // (not (<= a b)) is rewritten as (> a b)
-          return nm->mkNode(Kind::GT, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::GEQ:
-        {
-          // (not (>= a b)) is rewritten as (< a b)
-          return nm->mkNode(Kind::LT, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::EQUAL:
-        {
-          // (not (= a b)) is rewritten as (or (> a b) (< a b)): a
-          // disequality is not a single constraint
-          Node a = nnf[0][0];
-          Node b = nnf[0][1];
-          Node gt = nm->mkNode(Kind::GT, a, b);
-          Node lt = nm->mkNode(Kind::LT, a, b);
-          return gt.orNode(lt);
-        }
-        default:
-          InternalError() << "Unexpected negated kind. Node " << n
-                          << " has kind: " << n.getKind() << std::endl;
-      }
-      break;
-    }
-    default:
-    {
-      break;
-    }
-  }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
+  // then flip the negated constraints:
+  //   (and (not p) (not (>= x 1))) --> (and (not p) (< x 1))
+  NegatedConstraintConverter converter(nm);
+  return converter.convert(nnf);
 }
 
 Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
