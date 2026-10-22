@@ -115,10 +115,17 @@ PfManager::PfManager(Env& env)
   // be inferred from A, it was updated). This shape is problematic for
   // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
+  //
+  // We also disable it in incremental mode. Proof nodes are updated in place,
+  // and SCOPE subproofs (e.g. of theory lemmas) may be shared with proofs that
+  // outlive the current user context. Updating B1 with a proof from A, where A
+  // is an assertion of the current user context, would make these proofs
+  // depend on A after A is popped.
   d_pfpp = std::make_unique<ProofPostprocess>(
       env,
       d_rewriteDb.get(),
-      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE);
+      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+          && !options().base.incrementalSolving);
 
   // add rules to eliminate here
   if (options().proof.proofGranularityMode
