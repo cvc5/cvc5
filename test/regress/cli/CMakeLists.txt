@@ -2245,6 +2245,7 @@ set(regress_0_tests
   regress0/sets/sets-to-bags-datatype.smt2
   regress0/sets/sets-to-bags-ho.smt2
   regress0/sets/sets-to-bags-incremental.smt2
+  regress0/sets/sets-to-bags-mbqi.smt2
   regress0/sets/sets-to-bags-minus-relaxed.smt2
   regress0/sets/sets-to-bags-minus-setof.smt2
   regress0/sets/sets-to-bags-operators.smt2

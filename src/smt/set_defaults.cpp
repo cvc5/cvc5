@@ -1241,9 +1241,12 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
     reason << "arrays-weak-equiv";
     return true;
   }
-  else if (opts.sets.setsToBags != options::SetsToBagsMode::NONE)
+  else if (opts.sets.setsToBags != options::SetsToBagsMode::NONE
+           && !d_isInternalSubsolver)
   {
-    // there is no conversion from the model values of bags to sets
+    // There is no conversion from the model values of bags to sets. Internal
+    // subsolvers, e.g. for MBQI, are exempt: they inherit this option, but
+    // their queries are built from the converted assertions and have no sets.
     reason << "sets-to-bags";
     return true;
   }
