@@ -73,5 +73,31 @@ TEST_F(TestApiProofRewriteRule, ProofRewriteRuleHash)
             static_cast<size_t>(ProofRewriteRule::NONE));
 }
 
+class TestApiAnnotationId : public ::testing::Test
+{
+};
+
+TEST_F(TestApiAnnotationId, AnnotationIdToString)
+{
+  for (int32_t a = static_cast<int32_t>(AnnotationId::NONE);
+       a <= static_cast<int32_t>(AnnotationId::THEORY_LEMMA);
+       ++a)
+  {
+    // If this assertion fails, the switch is missing id a.
+    auto id = static_cast<AnnotationId>(a);
+    ASSERT_NE(toString(id), "?");
+    ASSERT_NE(std::to_string(id), "?");
+    std::stringstream ss;
+    ss << id;
+    ASSERT_NE(ss.str(), "?");
+  }
+}
+
+TEST_F(TestApiAnnotationId, AnnotationIdHash)
+{
+  ASSERT_EQ(std::hash<cvc5::AnnotationId>()(AnnotationId::THEORY_LEMMA),
+            static_cast<size_t>(AnnotationId::THEORY_LEMMA));
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
