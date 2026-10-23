@@ -92,31 +92,55 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 
 Node LiaStarUtils::toDNF(Node n, Env& e, LiaStarStatistics* stats)
 {
-  if (stats) stats->d_toDnfTime.start();
+  if (stats)
+  {
+    stats->d_toDnfTime.start();
+  }
   // eliminate ites
-  if (stats) stats->d_removeItesTime.start();
+  if (stats)
+  {
+    stats->d_removeItesTime.start();
+  }
   Node noItes = removeItes(n, e, stats);
-  if (stats) stats->d_removeItesTime.stop();
+  if (stats)
+  {
+    stats->d_removeItesTime.stop();
+  }
   Trace("liastar-ext-debug") << "noItes: " << noItes << std::endl;
   // each step prints a query that is unsat iff it preserved equivalence,
   // e.g. (assert (distinct (not (>= x 1)) (< x 1))) for the nnf step, see
   // traceEquivalenceCheck
   traceEquivalenceCheck("noItes", n, noItes);
   // negation normal form with negated atoms flipped
-  if (stats) stats->d_removeNotTime.start();
+  if (stats)
+  {
+    stats->d_removeNotTime.start();
+  }
   Node nnf = removeNot(noItes, e);
-  if (stats) stats->d_removeNotTime.stop();
+  if (stats)
+  {
+    stats->d_removeNotTime.stop();
+  }
   Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
   traceEquivalenceCheck("nnf", noItes, nnf);
   // distribute conjunctions over disjunctions, then flatten the and/or
   // nesting the distribution leaves behind
-  if (stats) stats->d_distributeTime.start();
+  if (stats)
+  {
+    stats->d_distributeTime.start();
+  }
   Node dnf = distribute(nnf, e, stats);
   Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
   dnf = recursiveFlatten(e.getNodeManager(), dnf);
-  if (stats) stats->d_distributeTime.stop();
+  if (stats)
+  {
+    stats->d_distributeTime.stop();
+  }
   traceEquivalenceCheck("dnf", nnf, dnf);
-  if (stats) stats->d_toDnfTime.stop();
+  if (stats)
+  {
+    stats->d_toDnfTime.stop();
+  }
   return dnf;
 }
 
@@ -213,7 +237,10 @@ Node LiaStarUtils::distribute(Node n,
               if (r.getStatus() == Result::Status::UNSAT)
               {
                 // unsat under the context: no disjunct can come from it
-                if (stats) ++stats->d_disjunctsPrunedUnsat;
+                if (stats)
+                {
+                  ++stats->d_disjunctsPrunedUnsat;
+                }
                 continue;
               }
               else
@@ -241,7 +268,10 @@ Node LiaStarUtils::distribute(Node n,
           Result r = areAssertionsUnsat(query, e, stats);
           if (r.getStatus() == Result::Status::UNSAT)
           {
-            if (stats) ++stats->d_disjunctsPrunedUnsat;
+            if (stats)
+            {
+              ++stats->d_disjunctsPrunedUnsat;
+            }
             continue;
           }
         }
