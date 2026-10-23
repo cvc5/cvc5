@@ -11,6 +11,7 @@
  */
 #include "expr/dtype.h"
 
+#include <algorithm>
 #include <sstream>
 
 #include "expr/dtype_cons.h"
@@ -40,7 +41,8 @@ DType::DType(std::string name, bool isCo)
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
-      d_nestedRecursion(0)
+      d_nestedRecursion(0),
+      d_regular(0)
 {
 }
 
@@ -60,7 +62,8 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_sygusAllowAll(false),
       d_card(CardinalityUnknown()),
       d_wellFounded(0),
-      d_nestedRecursion(0)
+      d_nestedRecursion(0),
+      d_regular(0)
 {
 }
 
@@ -760,6 +763,101 @@ void DType::getAlienSubfieldTypes(std::unordered_set<TypeNode>& types,
       dt.getAlienSubfieldTypes(types, processed, true);
     }
   }
+}
+
+namespace {
+
+/**
+ * Does the definition of datatype dt depend on the datatype whose type is
+ * dself? Note that we identify datatypes by their type, since a DType may be
+ * a copy of the one owned by the node manager.
+ */
+bool dependsOn(const DType& dt, const TypeNode& dself)
+{
+  std::unordered_set<TypeNode> visited;
+  std::vector<const DType*> toVisit{&dt};
+  while (!toVisit.empty())
+  {
+    const DType* curr = toVisit.back();
+    toVisit.pop_back();
+    TypeNode cself = curr->getTypeNode();
+    if (cself == dself)
+    {
+      return true;
+    }
+    if (!visited.insert(cself).second)
+    {
+      continue;
+    }
+    std::unordered_set<TypeNode> ctypes;
+    for (const TypeNode& st : curr->getSubfieldTypes())
+    {
+      expr::getComponentTypes(st, ctypes);
+    }
+    for (const TypeNode& ct : ctypes)
+    {
+      if (ct.isDatatype())
+      {
+        toVisit.push_back(&ct.getDType());
+      }
+    }
+  }
+  return false;
+}
+
+}  // namespace
+
+bool DType::isRegular() const
+{
+  Assert(isResolved());
+  if (!isParametric())
+  {
+    // all arguments of datatypes in field types are ground
+    return true;
+  }
+  if (d_regular != 0)
+  {
+    return d_regular == 1;
+  }
+  d_regular = 1;
+  std::vector<TypeNode> params = getParameters();
+  std::unordered_set<TypeNode> ctypes;
+  for (const TypeNode& st : getSubfieldTypes())
+  {
+    expr::getComponentTypes(st, ctypes);
+  }
+  for (const TypeNode& ct : ctypes)
+  {
+    if (!ct.isParametricDatatype() || !dependsOn(ct.getDType(), d_self))
+    {
+      continue;
+    }
+    // Note that ct may be the uninstantiated datatype, so we do not use
+    // TypeNode::getInstantiatedParamTypes here. The first child of ct is its
+    // datatype type.
+    for (size_t i = 1, nchild = ct.getNumChildren(); i < nchild; i++)
+    {
+      TypeNode arg = ct[i];
+      if (std::find(params.begin(), params.end(), arg) != params.end())
+      {
+        continue;
+      }
+      std::unordered_set<TypeNode> atypes;
+      expr::getComponentTypes(arg, atypes);
+      for (const TypeNode& p : params)
+      {
+        if (atypes.find(p) != atypes.end())
+        {
+          Trace("datatypes-init")
+              << "DType::isRegular: false for " << getName() << " due to "
+              << arg << " in " << ct << std::endl;
+          d_regular = -1;
+          return false;
+        }
+      }
+    }
+  }
+  return true;
 }
 
 bool DType::hasNestedRecursion() const

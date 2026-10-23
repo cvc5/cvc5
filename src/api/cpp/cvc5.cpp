@@ -5759,6 +5759,8 @@ Sort TermManager::mkDatatypeSort(const DatatypeDecl& dtypedecl)
   const Datatype& dt = res.getDatatype();
   CVC5_API_CHECK(dt.d_dtype->isCodatatype() || dt.d_dtype->isWellFounded())
       << "Datatype sort " << dt.d_dtype->getName() + " is not well-founded";
+  CVC5_API_CHECK(dt.d_dtype->isRegular())
+      << "Datatype sort " << dt.d_dtype->getName() + " is not regular";
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5783,6 +5785,8 @@ std::vector<Sort> TermManager::mkDatatypeSorts(
     const Datatype& dt = res[i].getDatatype();
     CVC5_API_CHECK(dt.d_dtype->isCodatatype() || dt.d_dtype->isWellFounded())
         << "Datatype sort " << dt.d_dtype->getName() + " is not well-founded";
+    CVC5_API_CHECK(dt.d_dtype->isRegular())
+        << "Datatype sort " << dt.d_dtype->getName() + " is not regular";
   }
   return res;
   ////////
