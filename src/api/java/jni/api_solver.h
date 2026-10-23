@@ -24,13 +24,16 @@ class ApiSolver : public cvc5::Solver
   ApiSolver(cvc5::TermManager& tm);
 
   /**
-   * Create a new global reference to the object referred to by the obj
-   * argument, and store the object to be disposed of later.
+   * Create a new weak global reference to the object referred to by the obj
+   * argument, and store it to be disposed of later.
    *
-   * Intended for objects requiring global lifetime management across JNI calls.
-   * Currently used for oracles and plugins.
+   * Intended for objects that native code calls back into across JNI calls,
+   * currently oracle bridges and plugins. The reference is weak so that it
+   * does not keep the Java object (and, through it, the term manager) alive:
+   * the Java solver object holds a strong reference to it instead, for as long
+   * as it exists, and callbacks only happen while the Java solver is in use.
    */
-  jobject addGlobalReference(JNIEnv* env, jobject object);
+  jweak addWeakGlobalReference(JNIEnv* env, jobject object);
   /**
    * Store a plugin pointer to be deleted later.
    */
@@ -42,10 +45,10 @@ class ApiSolver : public cvc5::Solver
 
  private:
   /**
-   * A vector of jni global references that need to be freed when
+   * A vector of jni weak global references that need to be freed when
    * the deletePointers method is called.
    */
-  std::vector<jobject> d_globalReferences;
+  std::vector<jweak> d_weakGlobalReferences;
   /**
    * A vector of ApiPlugin pointers that need to be freed when
    * the deletePointers method is called.

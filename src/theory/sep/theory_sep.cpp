@@ -381,6 +381,38 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     d_im.lemma(lem, InferenceId::SEP_LABEL_INTRO);
     return;
   }
+  if (satom.getKind() == Kind::SEP_EMP)
+  {
+    // SEP_EMP is not a participant in the d_red_conc[slbl][satom] cache
+    // below: unlike SEP_STAR/SEP_WAND/SEP_PTO, its reduction is polarity-
+    // dependent and it emits its lemma directly rather than producing a
+    // polarity-independent `conc` for the shared use_polarity wrap-up.
+    // Deduplication for SEP_EMP is already handled correctly above via
+    // d_reduce, which is keyed on `fact` (so positive and negative
+    // occurrences of the same labelled sep.emp are distinct entries).
+    // Sharing d_red_conc with the other kinds would (and did) let one
+    // polarity's cache entry suppress the other polarity's lemma.
+    Node lem;
+    Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
+    if (polarity)
+    {
+      lem = nm->mkNode(Kind::OR, {fact.negate(), slbl.eqNode(emp_s)});
+    }
+    else
+    {
+      Assert(!d_type_ref.isNull());
+      Node kl = NodeManager::mkDummySkolem("loc", d_type_ref);
+      Node kd = NodeManager::mkDummySkolem("data", d_type_data);
+      Node econc = nm->mkNode(
+          Kind::SEP_LABEL,
+          nm->mkNode(Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, kl, kd), d_true),
+          slbl);
+      lem = nm->mkNode(Kind::OR, fact.negate(), econc);
+    }
+    Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
+    d_im.lemma(lem, InferenceId::SEP_EMP);
+    return;
+  }
   Trace("sep-lemma-debug") << "Reducing assertion " << fact << std::endl;
   Node conc;
   if (Node* in_map = FindOrNull(d_red_conc[slbl], satom))
@@ -436,48 +468,29 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
       // A is the disjoint union of B and C.
       if (!sharesRootLabel(slbl, d_base_label))
       {
-        std::map<Node, std::vector<Node> >::iterator itc =
+        std::map<Node, std::vector<std::vector<Node> > >::iterator itc =
             d_childrenMap.find(slbl);
         if (itc != d_childrenMap.end())
         {
-          std::vector<Node> disjs;
-          for (const Node& c : itc->second)
+          // apply downwards closure for each list of children of slbl
+          for (const std::vector<Node>& cs : itc->second)
           {
-            disjs.push_back(nm->mkNode(Kind::SEP_LABEL, satom, c));
+            std::vector<Node> disjs;
+            for (const Node& c : cs)
+            {
+              disjs.push_back(nm->mkNode(Kind::SEP_LABEL, satom, c));
+            }
+            Node conc2 = nm->mkNode(Kind::OR, disjs);
+            conc = conc.isNull() ? conc2 : nm->mkNode(Kind::AND, conc, conc2);
           }
-          Node conc2 = nm->mkNode(Kind::OR, disjs);
-          conc = conc.isNull() ? conc2 : nm->mkNode(Kind::AND, conc, conc2);
         }
       }
       // note semantics of sep.nil is enforced globally
     }
-    else if (satom.getKind() == Kind::SEP_EMP)
-    {
-      Node lem;
-      Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
-      if (polarity)
-      {
-        lem = nm->mkNode(Kind::OR, {fact.negate(), slbl.eqNode(emp_s)});
-      }
-      else
-      {
-        Assert(!d_type_ref.isNull());
-        Node kl = NodeManager::mkDummySkolem("loc", d_type_ref);
-        Node kd = NodeManager::mkDummySkolem("data", d_type_data);
-        Node econc = nm->mkNode(
-            Kind::SEP_LABEL,
-            nm->mkNode(
-                Kind::SEP_STAR, nm->mkNode(Kind::SEP_PTO, kl, kd), d_true),
-            slbl);
-        // Node econc = nm->mkNode( AND, slbl.eqNode( emp_s ).negate(),
-        lem = nm->mkNode(Kind::OR, fact.negate(), econc);
-      }
-      Trace("sep-lemma") << "Sep::Lemma : emp : " << lem << std::endl;
-      d_im.lemma(lem, InferenceId::SEP_EMP);
-    }
     else
     {
-      // labeled emp should be rewritten
+      // SEP_EMP is handled earlier in this function, before the
+      // d_red_conc cache is consulted; no other spatial kind reaches here.
       Unreachable();
     }
     d_red_conc[slbl][satom] = conc;
@@ -1206,9 +1219,11 @@ void TheorySep::initializeBounds()
   {
     n_emp = d_card_max;
   }
-  else if (d_type_references.empty())
+  if (n_emp == 0 && d_type_references.empty())
   {
-    // must include at least one constant TODO: remove?
+    // We must include at least one constant, so that the set of locations is
+    // not empty. Otherwise, computeLabelModel has no location to fall back on
+    // for a location in the model that has no corresponding term.
     n_emp = 1;
   }
   Trace("sep-bound") << "Cardinality element size : " << d_card_max
@@ -1385,8 +1400,11 @@ void TheorySep::makeDisjointHeap(Node parent, const std::vector<Node>& children)
   Assert(children.size() >= 2);
   if (!sharesRootLabel(parent, d_base_label))
   {
-    Assert(d_childrenMap.find(parent) == d_childrenMap.end());
-    d_childrenMap[parent] = children;
+    std::vector<std::vector<Node> >& cm = d_childrenMap[parent];
+    if (std::find(cm.begin(), cm.end(), children) == cm.end())
+    {
+      cm.push_back(children);
+    }
   }
   // remember parent relationships
   for (const Node& c : children)

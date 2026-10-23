@@ -48,7 +48,13 @@ class LiaStarUtils
    * satisfy, by instantiating the lambda with the vector elements.
    *
    * The first child may be a purified skolem or a function array constant
-   * rather than a syntactic lambda; both are resolved.
+   * rather than a syntactic lambda; both are resolved, see
+   * uf::FunctionConst::getDefinition.
+   *
+   * The type rule of int.star-contains does not require its first argument
+   * to be a lambda; this is enforced by TheoryArith::ppStaticRewrite. Callers
+   * that may see atoms that were not preprocessed, e.g. the rewriter, must
+   * check that getDefinition(n[0]) is non-null before calling this method.
    *
    * @param n a node of the form
    * (int.star-contains (lambda ((x_1 Int) ... (x_n Int)) p) y_1 ... y_n)
@@ -157,14 +163,23 @@ class LiaStarUtils
                                  LiaStarStatistics* stats = nullptr);
 
   /**
-   * This function returns a list of matrices representing cones (disjunctions)
-   * where the rows of each matrix are constraints of the form a1 x_1 + ... +
-   * an_xn + b >= 0
-   * @param variables is a node of Kind BOUND_VAR_LIST
-   * @param n is a LIA predicate in DNF format
-   * @return one pair per disjunct of n, holding the disjunct's constraints as
-   * Normaliz symbolic constraint strings (over the coordinates x[1]..x[k] of
-   * `variables`) together with the disjunct itself
+   * Convert a LIA predicate in DNF into one constraint system per disjunct,
+   * each a list of linear constraints a_1 x_1 + ... + a_n x_n ~ b with ~ in
+   * {<, <=, =, >=, >} over the Normaliz coordinates x[1]..x[k] of
+   * `variables`.
+   *
+   * The constraints are Normaliz symbolic constraint strings rather than
+   * numeric matrices: libnormaliz::readNormalizInput parses them and does the
+   * translation into Normaliz's internal matrices, see normalizCheckSat. The
+   * string format is easier to debug, its cost is negligible compared to
+   * computing the cone, and the input printed by trace tag
+   * liastar-normalizCheckSat can be fed to the normaliz binary as is.
+   *
+   * @param variables a node of Kind BOUND_VAR_LIST; its i-th variable is the
+   * Normaliz coordinate x[i + 1]
+   * @param n a LIA predicate in DNF
+   * @return one pair per disjunct of n: its constraints, e.g.
+   * {"2x[1] - x[3] >= 5;", "x[2] = 0;"}, together with the disjunct itself
    */
   static std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
       Node variables, Node n);

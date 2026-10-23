@@ -99,7 +99,7 @@ add_custom_command(
 add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 
 # find java
-find_package(Java 1.8 COMPONENTS Development REQUIRED)
+find_package(Java 11 COMPONENTS Development REQUIRED)
 include(UseJava)
 
 # specify java source files
@@ -121,6 +121,7 @@ set(JAVA_FILES
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/InputParser.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IOracle.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/IPointer.java
+  ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/NativeContext.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Op.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/OptionInfo.java
   ${CMAKE_CURRENT_LIST_DIR}/io/github/cvc5/Pair.java
@@ -180,6 +181,7 @@ add_custom_command(
 
 add_custom_target(generate-jni-headers DEPENDS ${JNI_HEADERS})
 add_dependencies(generate-jni-headers generate-java-kinds generate-java-types generate-java-proofrules generate-java-skolemfunids)
+add_dependencies(cvc5-prerequisites generate-jni-headers)
 
 # JNI_HOME, if defined, specifies the path to the JNI libraries
 if(NOT DEFINED JNI_HOME AND DEFINED ENV{JNI_HOME})

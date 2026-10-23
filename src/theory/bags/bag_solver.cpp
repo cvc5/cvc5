@@ -39,7 +39,7 @@ namespace bags {
 BagSolver::BagSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env),
       d_state(s),
-      d_ig(env.getNodeManager(), &s, &im, options().bags.bagsToLiastar),
+      d_ig(env, &s, &im, options().bags.bagsToLiastar),
       d_im(im),
       d_mapCache(userContext()),
       d_liastarElements(userContext(), 0)
@@ -1377,12 +1377,6 @@ void BagSolver::checkMap(Node n)
   }
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
-  for (const Node& x : upwards)
-  {
-    InferInfo upInference = d_ig.mapUp1(n, x);
-    d_im.lemmaTheoryInference(&upInference);
-  }
-
   if (d_state.isInjective(n[0]))
   {
     for (const Node& z : downwards)
@@ -1390,9 +1384,20 @@ void BagSolver::checkMap(Node n)
       InferInfo upInference = d_ig.mapDownInjective(n, z);
       d_im.lemmaTheoryInference(&upInference);
     }
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUpInjective(n, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
   }
   else
   {
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUp1(n, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
+
     for (const Node& z : downwards)
     {
       Node y = d_state.getRepresentative(z);

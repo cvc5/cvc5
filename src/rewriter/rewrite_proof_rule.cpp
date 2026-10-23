@@ -18,13 +18,17 @@
 #include "expr/nary_term_util.h"
 #include "expr/node_algorithm.h"
 #include "proof/proof_checker.h"
+#include "rewriter/rewrite_db_term_process.h"
 
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace rewriter {
 
-RewriteProofRule::RewriteProofRule() : d_id(ProofRewriteRule::NONE) {}
+RewriteProofRule::RewriteProofRule()
+    : d_id(ProofRewriteRule::NONE), d_hasIndexedOp(false)
+{
+}
 
 void RewriteProofRule::init(ProofRewriteRule id,
                             const std::vector<Node>& userFvs,
@@ -106,6 +110,19 @@ void RewriteProofRule::init(ProofRewriteRule id,
                     << v;
       }
     }
+  }
+
+  // Determine whether this rule mentions an indexed operator whose indices are
+  // given as explicit arguments. If so, its instances must be folded when
+  // constructing proofs, see RewriteDbProofCons::fold.
+  d_hasIndexedOp =
+      IndexedOpFoldNodeConverter::hasIndexedSymbolic(d_conc)
+      || (!d_context.isNull()
+          && IndexedOpFoldNodeConverter::hasIndexedSymbolic(d_context));
+  for (const Node& c : d_cond)
+  {
+    d_hasIndexedOp =
+        d_hasIndexedOp || IndexedOpFoldNodeConverter::hasIndexedSymbolic(c);
   }
 
   d_numFv = fvs.size();
@@ -190,6 +207,8 @@ Kind RewriteProofRule::getListContext(Node v) const
   }
   return Kind::UNDEFINED_KIND;
 }
+bool RewriteProofRule::hasIndexedOperator() const { return d_hasIndexedOp; }
+
 bool RewriteProofRule::hasConditions() const { return !d_cond.empty(); }
 
 const std::vector<Node>& RewriteProofRule::getConditions() const

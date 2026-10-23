@@ -17,8 +17,7 @@ public class UnsatCores
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       // Enable the production of unsat cores
       solver.setOption("produce-unsat-cores", "true");
@@ -47,6 +46,5 @@ public class UnsatCores
         System.out.println(e);
       }
     }
-    Context.deletePointers();
   }
 }

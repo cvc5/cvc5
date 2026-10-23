@@ -34,7 +34,7 @@ class DatatypeTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_tm.close();
   }
 
   @Test

@@ -135,8 +135,7 @@ public class Datatypes
 
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       // This example builds a simple "cons list" of integers, with
       // two constructors, "cons" and "nil."
@@ -179,6 +178,5 @@ public class Datatypes
       Sort consListSort2 = slv.declareDatatype("list2", ctors);
       test(slv, consListSort2);
     }
-    Context.deletePointers();
   }
 }

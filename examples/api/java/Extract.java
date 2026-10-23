@@ -18,8 +18,7 @@ public class Extract
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("QF_BV"); // Set the logic
 
@@ -48,6 +47,5 @@ public class Extract
       System.out.println(" Expect UNSAT. ");
       System.out.println(" cvc5: " + slv.checkSatAssuming(eq2.notTerm()));
     }
-    Context.deletePointers();
   }
 }

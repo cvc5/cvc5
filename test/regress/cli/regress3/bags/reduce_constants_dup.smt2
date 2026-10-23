@@ -1,6 +1,7 @@
 ; Safe and stable modes disallow combining uf-lazy-ll with fmf-bound.
 ; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: unsat-core
+; CPC checking fails because the signature does not define table.project.
 ; DISABLE-TESTER: cpc
 ; test name: testReduceConstantsDup2
 ;Translating sql query: SELECT * FROM EMP AS EMP WHERE EMP.DEPTNO = 7 AND EMP.DEPTNO = 8 AND EMP.EMPNO = 10 AND EMP.MGR IS NULL AND EMP.EMPNO = 10

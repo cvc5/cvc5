@@ -16,6 +16,7 @@
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "smt/env.h"
 #include "test_smt.h"
 #include "theory/arith/liastar/liastar_utils.h"
@@ -96,6 +97,21 @@ TEST_F(TestLiaStarUtils, getVectorPredicateAcceptsConstantLambda)
   ASSERT_EQ("(and true (>= x 0))", nonnegative.toString());
 }
 
+TEST_F(TestLiaStarUtils, getVectorPredicateAcceptsLiftedLambda)
+{
+  Node u = nm->mkBoundVar("u", intType);
+  // (int.star-contains k x), where lambda lifting replaced the lambda
+  // (lambda ((u Int)) (>= u 1)) by its purification skolem k
+  Node lifted =
+      SkolemManager::mkPurifySkolem(lambda({u}, nm->mkNode(Kind::GEQ, u, one)));
+  Node star = nm->mkNode(Kind::STAR_CONTAINS, lifted, x);
+
+  auto [predicate, nonnegative] = LiaStarUtils::getVectorPredicate(star, nm);
+
+  ASSERT_EQ(nm->mkNode(Kind::GEQ, x, one), predicate);
+  ASSERT_EQ("(and true (>= x 0))", nonnegative.toString());
+}
+
 TEST_F(TestLiaStarUtils, getMatricesConjunctionIsOneMatrix)
 {
   // (and (>= x 1) (= y 0)) over the coordinates (x y)
@@ -134,6 +150,59 @@ TEST_F(TestLiaStarUtils, getMatricesPrintsCoefficients)
   ASSERT_EQ(1, matrices.size());
   ASSERT_EQ(std::vector<std::string>({"2x[1] + x[2] >= 1;"}),
             matrices[0].first);
+}
+
+TEST_F(TestLiaStarUtils, getMatricesPrintsNegativeCoefficients)
+{
+  // (>= (+ (* 2 x) (* (- 1) y)) 5)
+  Node minusOne = nm->mkConstInt(Rational(-1));
+  Node five = nm->mkConstInt(Rational(5));
+  Node sum = nm->mkNode(Kind::ADD,
+                        nm->mkNode(Kind::MULT, two, x),
+                        nm->mkNode(Kind::MULT, minusOne, y));
+  Node constraint = nm->mkNode(Kind::GEQ, sum, five);
+
+  auto matrices = LiaStarUtils::getMatrices(boundVarList({x, y}), constraint);
+
+  ASSERT_EQ(1, matrices.size());
+  ASSERT_EQ(std::vector<std::string>({"2x[1] - x[2] >= 5;"}),
+            matrices[0].first);
+}
+
+TEST_F(TestLiaStarUtils, getMatricesPrintsRelationsAndKeepsDisjuncts)
+{
+  // (or (< x y) (> x y) (<= x y)), one matrix per relation
+  Node disjunction = nm->mkNode(Kind::OR,
+                                nm->mkNode(Kind::LT, x, y),
+                                nm->mkNode(Kind::GT, x, y),
+                                nm->mkNode(Kind::LEQ, x, y));
+
+  auto matrices = LiaStarUtils::getMatrices(boundVarList({x, y}), disjunction);
+
+  ASSERT_EQ(3, matrices.size());
+  ASSERT_EQ(std::vector<std::string>({"x[1] < x[2];"}), matrices[0].first);
+  ASSERT_EQ(std::vector<std::string>({"x[1] > x[2];"}), matrices[1].first);
+  ASSERT_EQ(std::vector<std::string>({"x[1] <= x[2];"}), matrices[2].first);
+  // each pair carries its own disjunct
+  for (size_t i = 0; i < 3; i++)
+  {
+    ASSERT_EQ(disjunction[i], matrices[i].second);
+  }
+}
+
+TEST_F(TestLiaStarUtils, getMatricesConstants)
+{
+  // Normaliz needs at least one constraint, so true becomes a tautology and
+  // false a contradiction
+  Node vars = boundVarList({x});
+  auto trueMatrices = LiaStarUtils::getMatrices(vars, nm->mkConst<bool>(true));
+  auto falseMatrices =
+      LiaStarUtils::getMatrices(vars, nm->mkConst<bool>(false));
+
+  ASSERT_EQ(1, trueMatrices.size());
+  ASSERT_EQ(std::vector<std::string>({"x[1] = x[1];"}), trueMatrices[0].first);
+  ASSERT_EQ(1, falseMatrices.size());
+  ASSERT_EQ(std::vector<std::string>({"1 = 0;"}), falseMatrices[0].first);
 }
 
 TEST_F(TestLiaStarUtils, cvc5CheckSatUnsat)
