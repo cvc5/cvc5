@@ -285,6 +285,7 @@ TEST_F(TestApiBlackUncovered, Statistics)
   Statistics stats = d_solver->getStatistics();
   auto it = stats.begin(true, true);
   ASSERT_TRUE(it != stats.end());
+  ASSERT_FALSE(it == stats.end());
   it++;
   it--;
   ++it;

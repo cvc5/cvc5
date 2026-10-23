@@ -101,7 +101,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
   @Override
   public int hashCode()
   {
-    return Long.hashCode(pointer);
+    return Long.hashCode(getPointer());
   }
 
   /**
@@ -111,7 +111,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public boolean isLogicSet()
   {
-    return isLogicSet(pointer);
+    return isLogicSet(getPointer());
   }
 
   private native boolean isLogicSet(long pointer);
@@ -124,7 +124,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public String getLogic()
   {
-    return getLogic(pointer);
+    return getLogic(getPointer());
   }
 
   private native String getLogic(long pointer);
@@ -138,7 +138,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public Sort[] getDeclaredSorts()
   {
-    long[] pointers = getDeclaredSorts(pointer);
+    long[] pointers = getDeclaredSorts(getPointer());
     return Utils.getSorts(ctx, pointers);
   }
 
@@ -153,7 +153,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public Term[] getDeclaredTerms()
   {
-    long[] retPointers = getDeclaredTerms(pointer);
+    long[] retPointers = getDeclaredTerms(getPointer());
     return Utils.getTerms(ctx, retPointers);
   }
 
@@ -167,7 +167,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
    */
   public Map<Term, String> getNamedTerms()
   {
-    Map<Long, String> map = getNamedTerms(pointer);
+    Map<Long, String> map = getNamedTerms(getPointer());
     Map<Term, String> ret = new HashMap<>();
     for (Map.Entry<Long, String> entry : map.entrySet())
     {

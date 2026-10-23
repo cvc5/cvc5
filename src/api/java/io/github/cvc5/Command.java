@@ -45,7 +45,7 @@ public class Command extends AbstractPointer
   {
     try
     {
-      return invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+      return invoke(getPointer(), solver.getPointer(), symbolManager.getPointer());
     }
     finally
     {
@@ -71,7 +71,7 @@ public class Command extends AbstractPointer
    */
   public String getCommandName()
   {
-    return getCommandName(pointer);
+    return getCommandName(getPointer());
   }
 
   private native String getCommandName(long pointer);
@@ -82,7 +82,7 @@ public class Command extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
