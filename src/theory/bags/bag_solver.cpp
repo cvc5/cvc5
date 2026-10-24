@@ -410,7 +410,20 @@ void BagSolver::collectLiastarModelValues(TheoryModel* m,
   subOptions.write_bags().bagsToLiastar = false;
   subOptions.write_smt().produceModels = true;
   SubsolverSetupInfo ssi(d_env, subOptions);
-  const size_t maxFresh = 32;
+  // Removing the fresh rows that are zero in every slot with a cardinality
+  // keeps a solution, and each other fresh row adds at least 1 to such a slot.
+  // So fresh rows beyond the sum of the cardinalities are never needed.
+  Rational cardinalitySum(0);
+  for (const Node& c : cards)
+  {
+    if (!c.isNull())
+    {
+      cardinalitySum += c.getConst<Rational>();
+    }
+  }
+  const Integer& total = cardinalitySum.getNumerator();
+  const size_t maxFresh =
+      total.fitsUnsignedInt() ? total.toUnsignedInt() : UINT32_MAX;
   std::vector<std::vector<Node>> rows;  // rows[j][i]: variable of row j, slot i
   std::vector<Node> rowValues;
   size_t fresh = 0;

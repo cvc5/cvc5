@@ -2966,6 +2966,7 @@ set(regress_1_tests
   regress1/bags/liastar/member_card_sat.smt2
   regress1/bags/liastar/member_card_unsat.smt2
   regress1/bags/liastar/setof_fold_sat.smt2
+  regress1/bags/liastar/setof_many_elements.smt2
   regress1/bags/liastar/two_types_sat.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
