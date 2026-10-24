@@ -49,4 +49,4 @@ name   = "Sets Theory"
   help = "Convert each set term to a bag term wrapped in bag.setof, which preserves the semantics of sets."
 [[option.mode.RELAXED]]
   name = "relaxed"
-  help = "Convert each set term to a bag term without bag.setof (except for set.union), which relaxes the semantics of sets to bags."
+  help = "Convert each set term to a bag term without bag.setof (except for set.union), which relaxes the semantics of sets to bags. The answers are for the resulting bag problem."

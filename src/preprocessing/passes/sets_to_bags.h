@@ -64,7 +64,7 @@ namespace passes {
  * - SETOF: every converted set term t is wrapped as (bag.setof t), which
  *   preserves the semantics of sets.
  * - RELAXED: bag.setof is not added, which relaxes the semantics of sets to
- *   the semantics of bags.
+ *   the semantics of bags. The answers are for the resulting bag problem.
  */
 class SetsToBagsConverter : protected EnvObj, public NodeConverter
 {
@@ -110,11 +110,12 @@ class SetsToBagsConverter : protected EnvObj, public NodeConverter
  * runs before the input is rewritten.
  *
  * Since there is no conversion from the model values of bags to sets, this
- * pass is incompatible with model generation. Moreover, the assertions are
- * marked as model unsound if the mode is RELAXED or if a universe bag was
- * introduced, since a model of the bags may not correspond to a model of the
- * sets in these cases. In all modes, the converted assertions are satisfiable
- * if the original ones are, hence "unsat" answers are preserved.
+ * pass is incompatible with model generation. In mode SETOF, the assertions
+ * are marked as model unsound if a universe bag was introduced, since a model
+ * of the bags may not correspond to a model of the sets then. In mode RELAXED,
+ * the answers are for the bag problem. In both modes, the converted
+ * assertions are satisfiable if the original ones are, hence "unsat" answers
+ * are preserved for the sets.
  */
 class SetsToBags : public PreprocessingPass
 {

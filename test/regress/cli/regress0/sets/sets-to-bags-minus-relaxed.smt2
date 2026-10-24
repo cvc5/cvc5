@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --sets-to-bags=relaxed
-; EXPECT: unknown
-; With bag semantics, this is satisfied by A = {|(x, 2)|} and B = {|(x, 1)|}.
+; EXPECT: sat
+; This is unsat for sets, but sat for bags, e.g. A = {|(x, 2)|} and
+; B = {|(x, 1)|}, and --sets-to-bags=relaxed answers for the bags.
 (set-logic ALL)
 (declare-fun A () (Set Int))
 (declare-fun B () (Set Int))

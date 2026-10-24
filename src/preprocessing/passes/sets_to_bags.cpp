@@ -294,7 +294,8 @@ PreprocessingPassResult SetsToBags::applyInternal(
     Node a = brc.convert(sm.apply((*assertionsToPreprocess)[i]));
     converted.push_back(d_converter.convert(a, false));
   }
-  if (!d_converter.getUniverses().empty())
+  if (options().sets.setsToBags == options::SetsToBagsMode::SETOF
+      && !d_converter.getUniverses().empty())
   {
     // The universe set contains all elements, whereas the universe bag is only
     // required to contain the other bags.
@@ -312,11 +313,6 @@ PreprocessingPassResult SetsToBags::applyInternal(
       continue;
     }
     Trace("sets-to-bags") << "Converted " << a << " to " << ac << std::endl;
-    if (options().sets.setsToBags == options::SetsToBagsMode::RELAXED)
-    {
-      // a model of the bags may not correspond to a model of the sets
-      d_modelUnsound = true;
-    }
     assertionsToPreprocess->replace(
         i, ac, nullptr, TrustId::PREPROCESS_SETS_TO_BAGS);
   }
