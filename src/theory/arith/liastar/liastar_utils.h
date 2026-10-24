@@ -65,6 +65,49 @@ class LiaStarUtils
    */
   static std::pair<Node, Node> getVectorPredicate(Node n, NodeManager* nm);
   /**
+   * Convert a LIA predicate to disjunctive normal form, by eliminating ite
+   * terms, converting to negation normal form, and distributing conjunctions
+   * over disjunctions.
+   *
+   * @param n a node in LIA that only contains =, >=, ite in its tree
+   * @param e the environment, used for its node manager, rewriter and options
+   * @param stats optional statistics collector, may be nullptr
+   * @return an equivalent node in DNF where ite and = are eliminated
+   */
+  static Node toDNF(Node n, Env* e, LiaStarStatistics* stats = nullptr);
+
+  /**
+   * Eliminate ite terms from a LIA predicate. An integer ite is replaced by a
+   * disjunction over its branches, each guarded by the ite condition, so no
+   * new variables are introduced.
+   *
+   * @param n a node in LIA that only contains =, >=, ite in its tree
+   * @param e the environment, used for its node manager, rewriter and options
+   * @param stats optional statistics collector, may be nullptr
+   * @return an equivalent node that does not contain ite expressions
+   * without introducing new variables
+   */
+  static Node removeItes(Node n, Env* e, LiaStarStatistics* stats = nullptr);
+
+  /**
+   * Distribute conjunctions over disjunctions, turning a negation-normal-form
+   * predicate into DNF. Disjuncts that the subsolver shows to be unsat are
+   * dropped, which keeps the result small enough for the cone computation.
+   *
+   * @param n a node in negation normal form whose atoms are LIA constraints
+   * @param e the environment, used for its node manager, rewriter and options
+   * @param stats optional statistics collector, may be nullptr
+   * @param context conjuncts known to hold wherever n occurs (the accumulated
+   * non-OR conjuncts of ancestor conjunctions). Used only to strengthen the
+   * pruning subsolver checks; it is never part of the returned DNF.
+   * @return an equivalent node in DNF
+   */
+  static Node distribute(Node n,
+                         Env* e,
+                         LiaStarStatistics* stats = nullptr,
+                         const std::vector<Node>& context = {});
+
+  /**
    * Check whether a conjunction of assertions is unsatisfiable, using either
    * cvc5 or Normaliz as the subsolver depending on the
    * arith-liastar-subsolver-normaliz-as-subsolver option. Free variables of
@@ -142,6 +185,45 @@ class LiaStarUtils
       Node variables, Node n);
 
  private:
+  /**
+   * Enumerate the ite-free forms of an integer term. Each ite is expanded
+   * into its two branches, so a term with k (independent) ites yields 2^k
+   * cases.
+   *
+   * @param n an integer term
+   * @param e the environment, used for its node manager and rewriter
+   * @param stats optional statistics collector, may be nullptr
+   * @return pairs <condition, term> whose conditions are pairwise disjoint
+   * and cover all cases, where `term` is the value of n under `condition` and
+   * contains no ite. For example (+ (ite c1 a b) (ite c2 c d)) yields
+   * <(and c1 c2), (+ a c)>, <(and c1 (not c2)), (+ a d)>,
+   * <(and (not c1) c2), (+ b c)> and <(and (not c1) (not c2)), (+ b d)>.
+   */
+  static std::vector<std::pair<Node, Node>> removeIntegerItes(
+      Node n, Env* e, LiaStarStatistics* stats = nullptr);
+  /**
+   * Convert a predicate to negation normal form and eliminate the negations
+   * of LIA atoms by flipping their relation, e.g. (not (>= a b)) becomes
+   * (< a b), so that the result is a conjunction/disjunction structure over
+   * unnegated atoms.
+   *
+   * @param n a Boolean node whose atoms are LIA constraints
+   * @param e the environment, used for its node manager
+   * @return an equivalent node in negation normal form with no negated atoms
+   */
+  static Node removeNot(Node n, Env* e);
+  /**
+   * Flatten a node and, one level down, each of its children by their own
+   * kinds. A single expr::algorithm::flatten call only flattens nesting of
+   * the node's own kind, so for an alternating structure this additionally
+   * flattens the children: (or (and a (and b c)) d) becomes
+   * (or (and a b c) d).
+   *
+   * @param nm the node manager
+   * @param n the node to flatten
+   * @return the flattened node, or n itself if it has no children
+   */
+  static Node recursiveFlatten(NodeManager* nm, Node n);
   /**
    * Print a linear polynomial as a Normaliz symbolic term, mapping the i-th
    * variable of `variables` to the Normaliz coordinate x[i + 1].
