@@ -622,7 +622,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithLiaStarModelValue"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-liastar-model-value"
   type       = "bool"
   default    = "true"
@@ -630,7 +630,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithLiaStarSubSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-liastar-subsolver"
   type       = "bool"
   default    = "true"
@@ -638,7 +638,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithLiaStarNormalizAsSubSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-liastar-subsolver-normaliz-as-subsolver"
   type       = "bool"
   default    = "false"
@@ -646,7 +646,7 @@ name   = "Arithmetic Theory"
 
 [[option]]
   name       = "arithLiaStarAssumeNonnegative"
-  category   = "regular"
+  category   = "expert"
   long       = "arith-liastar-assume-nonnegative"
   type       = "bool"
   default    = "false"

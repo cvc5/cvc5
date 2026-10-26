@@ -49,7 +49,7 @@ public class Result extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -63,7 +63,7 @@ public class Result extends AbstractPointer
    */
   public boolean isSat()
   {
-    return isSat(pointer);
+    return isSat(getPointer());
   }
 
   private native boolean isSat(long pointer);
@@ -77,7 +77,7 @@ public class Result extends AbstractPointer
    */
   public boolean isUnsat()
   {
-    return isUnsat(pointer);
+    return isUnsat(getPointer());
   }
 
   private native boolean isUnsat(long pointer);
@@ -91,7 +91,7 @@ public class Result extends AbstractPointer
    */
   public boolean isUnknown()
   {
-    return isUnknown(pointer);
+    return isUnknown(getPointer());
   }
 
   private native boolean isUnknown(long pointer);
@@ -117,7 +117,7 @@ public class Result extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, result.getPointer());
+    return equals(getPointer(), result.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -130,7 +130,7 @@ public class Result extends AbstractPointer
   {
     try
     {
-      int explanation = getUnknownExplanation(pointer);
+      int explanation = getUnknownExplanation(getPointer());
       return UnknownExplanation.fromInt(explanation);
     }
     catch (CVC5ApiException e)
@@ -154,7 +154,7 @@ public class Result extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

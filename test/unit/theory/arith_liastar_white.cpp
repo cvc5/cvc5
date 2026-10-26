@@ -15,7 +15,9 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "smt/env.h"
 #include "test_smt.h"
 #include "theory/arith/liastar/liastar_utils.h"
@@ -65,6 +67,18 @@ class TestLiaStarUtils : public TestSmt
   {
     return nm->mkBoundVar(name, nm->booleanType());
   }
+
+  /** Whether a and b agree for all values of their free variables. */
+  bool isEquivalent(Node a, Node b)
+  {
+    // (exists (vars) (distinct a b)) is unsat iff a and b are equivalent
+    Node distinct = a.eqNode(b).notNode();
+    std::unordered_set<Node> fvs;
+    expr::getFreeVariables(distinct, fvs);
+    std::vector<Node> vars(fvs.begin(), fvs.end());
+    return LiaStarUtils::cvc5CheckSat(vars, distinct, *e).getStatus()
+           == Result::Status::UNSAT;
+  }
 };
 
 TEST_F(TestLiaStarUtils, getVectorPredicateInstantiatesLambda)
@@ -93,6 +107,21 @@ TEST_F(TestLiaStarUtils, getVectorPredicateAcceptsConstantLambda)
   auto [predicate, nonnegative] = LiaStarUtils::getVectorPredicate(star, nm);
 
   ASSERT_EQ(nm->mkConst<bool>(false), predicate);
+  ASSERT_EQ("(and true (>= x 0))", nonnegative.toString());
+}
+
+TEST_F(TestLiaStarUtils, getVectorPredicateAcceptsLiftedLambda)
+{
+  Node u = nm->mkBoundVar("u", intType);
+  // (int.star-contains k x), where lambda lifting replaced the lambda
+  // (lambda ((u Int)) (>= u 1)) by its purification skolem k
+  Node lifted =
+      SkolemManager::mkPurifySkolem(lambda({u}, nm->mkNode(Kind::GEQ, u, one)));
+  Node star = nm->mkNode(Kind::STAR_CONTAINS, lifted, x);
+
+  auto [predicate, nonnegative] = LiaStarUtils::getVectorPredicate(star, nm);
+
+  ASSERT_EQ(nm->mkNode(Kind::GEQ, x, one), predicate);
   ASSERT_EQ("(and true (>= x 0))", nonnegative.toString());
 }
 
@@ -136,13 +165,66 @@ TEST_F(TestLiaStarUtils, getMatricesPrintsCoefficients)
             matrices[0].first);
 }
 
+TEST_F(TestLiaStarUtils, getMatricesPrintsNegativeCoefficients)
+{
+  // (>= (+ (* 2 x) (* (- 1) y)) 5)
+  Node minusOne = nm->mkConstInt(Rational(-1));
+  Node five = nm->mkConstInt(Rational(5));
+  Node sum = nm->mkNode(Kind::ADD,
+                        nm->mkNode(Kind::MULT, two, x),
+                        nm->mkNode(Kind::MULT, minusOne, y));
+  Node constraint = nm->mkNode(Kind::GEQ, sum, five);
+
+  auto matrices = LiaStarUtils::getMatrices(boundVarList({x, y}), constraint);
+
+  ASSERT_EQ(1, matrices.size());
+  ASSERT_EQ(std::vector<std::string>({"2x[1] - x[2] >= 5;"}),
+            matrices[0].first);
+}
+
+TEST_F(TestLiaStarUtils, getMatricesPrintsRelationsAndKeepsDisjuncts)
+{
+  // (or (< x y) (> x y) (<= x y)), one matrix per relation
+  Node disjunction = nm->mkNode(Kind::OR,
+                                nm->mkNode(Kind::LT, x, y),
+                                nm->mkNode(Kind::GT, x, y),
+                                nm->mkNode(Kind::LEQ, x, y));
+
+  auto matrices = LiaStarUtils::getMatrices(boundVarList({x, y}), disjunction);
+
+  ASSERT_EQ(3, matrices.size());
+  ASSERT_EQ(std::vector<std::string>({"x[1] < x[2];"}), matrices[0].first);
+  ASSERT_EQ(std::vector<std::string>({"x[1] > x[2];"}), matrices[1].first);
+  ASSERT_EQ(std::vector<std::string>({"x[1] <= x[2];"}), matrices[2].first);
+  // each pair carries its own disjunct
+  for (size_t i = 0; i < 3; i++)
+  {
+    ASSERT_EQ(disjunction[i], matrices[i].second);
+  }
+}
+
+TEST_F(TestLiaStarUtils, getMatricesConstants)
+{
+  // Normaliz needs at least one constraint, so true becomes a tautology and
+  // false a contradiction
+  Node vars = boundVarList({x});
+  auto trueMatrices = LiaStarUtils::getMatrices(vars, nm->mkConst<bool>(true));
+  auto falseMatrices =
+      LiaStarUtils::getMatrices(vars, nm->mkConst<bool>(false));
+
+  ASSERT_EQ(1, trueMatrices.size());
+  ASSERT_EQ(std::vector<std::string>({"x[1] = x[1];"}), trueMatrices[0].first);
+  ASSERT_EQ(1, falseMatrices.size());
+  ASSERT_EQ(std::vector<std::string>({"1 = 0;"}), falseMatrices[0].first);
+}
+
 TEST_F(TestLiaStarUtils, cvc5CheckSatUnsat)
 {
   // exists x. x >= 1 and x <= 0
   Node assertion = nm->mkNode(
       Kind::AND, nm->mkNode(Kind::GEQ, x, one), nm->mkNode(Kind::LEQ, x, zero));
 
-  Result result = LiaStarUtils::cvc5CheckSat({x}, assertion, e);
+  Result result = LiaStarUtils::cvc5CheckSat({x}, assertion, *e);
 
   ASSERT_EQ(Result::Status::UNSAT, result.getStatus());
 }
@@ -152,7 +234,7 @@ TEST_F(TestLiaStarUtils, cvc5CheckSatSat)
   // exists x. x >= 1
   Node assertion = nm->mkNode(Kind::GEQ, x, one);
 
-  Result result = LiaStarUtils::cvc5CheckSat({x}, assertion, e);
+  Result result = LiaStarUtils::cvc5CheckSat({x}, assertion, *e);
 
   ASSERT_EQ(Result::Status::SAT, result.getStatus());
 }
@@ -164,9 +246,9 @@ TEST_F(TestLiaStarUtils, areAssertionsUnsatConjoinsAssertions)
   Node upper = nm->mkNode(Kind::LEQ, x, zero);
 
   ASSERT_EQ(Result::Status::UNSAT,
-            LiaStarUtils::areAssertionsUnsat({lower, upper}, e).getStatus());
+            LiaStarUtils::areAssertionsUnsat({lower, upper}, *e).getStatus());
   ASSERT_EQ(Result::Status::SAT,
-            LiaStarUtils::areAssertionsUnsat({lower}, e).getStatus());
+            LiaStarUtils::areAssertionsUnsat({lower}, *e).getStatus());
 }
 
 TEST_F(TestLiaStarUtils, areAssertionsUnsatIsNoneWhenSubsolverIsDisabled)
@@ -175,7 +257,7 @@ TEST_F(TestLiaStarUtils, areAssertionsUnsatIsNoneWhenSubsolverIsDisabled)
   Node lower = nm->mkNode(Kind::GEQ, x, one);
   Node upper = nm->mkNode(Kind::LEQ, x, zero);
 
-  Result result = LiaStarUtils::areAssertionsUnsat({lower, upper}, e);
+  Result result = LiaStarUtils::areAssertionsUnsat({lower, upper}, *e);
 
   ASSERT_EQ(Result::Status::NONE, result.getStatus());
 }
@@ -241,7 +323,7 @@ TEST_F(TestLiaStarUtils, distribute1)
   Node and_z = nm->mkNode(Kind::AND, {and_or_fg_or_xy, z});
   Node or_uv_z = nm->mkNode(Kind::OR, {or_uv, and_z});
   Node and_outer = nm->mkNode(Kind::AND, {or_uv_z, and_ab});
-  Node dnf = LiaStarUtils::distribute(and_outer, e);
+  Node dnf = LiaStarUtils::distribute(and_outer, *e);
   dnf = LiaStarUtils::recursiveFlatten(nm, dnf);
   ASSERT_EQ(
       "(or (and a b u) (and a b v) (and a b z f p) (and a b z g p) (and a b z "
@@ -259,7 +341,7 @@ TEST_F(TestLiaStarUtils, toDNF1)
   Node minus = nm->mkNode(Kind::SUB, threeTimesX, y);
   Node geq = nm->mkNode(Kind::GEQ, minus, nine);
   Node notGEQ = geq.notNode();
-  Node dnf = LiaStarUtils::toDNF(notGEQ, e);
+  Node dnf = LiaStarUtils::toDNF(notGEQ, *e);
   ASSERT_EQ("(< (- (* 3 x) y) 9)", dnf.toString());
 }
 
@@ -270,7 +352,7 @@ TEST_F(TestLiaStarUtils, toDNF2)
   Node or_a_b = a.orNode(b);
   Node or_c_d = c.orNode(d);
   Node and = or_a_b.andNode(or_c_d);
-  Node dnf = LiaStarUtils::toDNF(and, e);
+  Node dnf = LiaStarUtils::toDNF(and, *e);
   ASSERT_EQ("(or (and a c) (and b c) (and a d) (and b d))", dnf.toString());
 }
 
@@ -283,7 +365,7 @@ TEST_F(TestLiaStarUtils, toDNF3)
   Node or_a_b = and_a_x.orNode(b);
   Node or_c_d = c.orNode(d);
   Node and = or_a_b.andNode(or_c_d);
-  Node dnf = LiaStarUtils::toDNF(and, e);
+  Node dnf = LiaStarUtils::toDNF(and, *e);
   ASSERT_EQ("(or (and a p c) (and b c) (and a p d) (and b d))", dnf.toString());
 }
 
@@ -296,7 +378,7 @@ TEST_F(TestLiaStarUtils, toDNF4)
   Node or_a_b = a.orNode(and_b_x);
   Node or_c_d = c.orNode(d);
   Node and = or_a_b.andNode(or_c_d);
-  Node dnf = LiaStarUtils::toDNF(and, e);
+  Node dnf = LiaStarUtils::toDNF(and, *e);
   ASSERT_EQ("(or (and a c) (and b p c) (and a d) (and b p d))", dnf.toString());
 }
 
@@ -308,7 +390,7 @@ TEST_F(TestLiaStarUtils, toDNF5)
   Node or1 = nm->mkNode(Kind::OR, {a, b, p});
   Node or2 = nm->mkNode(Kind::OR, {c, d});
   Node and = or1.andNode(or2);
-  Node dnf = LiaStarUtils::toDNF(and, e);
+  Node dnf = LiaStarUtils::toDNF(and, *e);
   ASSERT_EQ("(or (and a c) (and b c) (and p c) (and a d) (and b d) (and p d))",
             dnf.toString());
 }
@@ -322,11 +404,120 @@ TEST_F(TestLiaStarUtils, toDNF6)
   Node or2 = nm->mkNode(Kind::OR, {c, d});
   Node or3 = nm->mkNode(Kind::OR, {p, q});
   Node and = nm->mkNode(Kind::AND, {or1, or2, or3});
-  Node dnf = LiaStarUtils::toDNF(and, e);
+  Node dnf = LiaStarUtils::toDNF(and, *e);
   ASSERT_EQ(
       "(or (and a c p) (and b c p) (and a d p) (and b d p) (and a c q) (and b "
       "c q) (and a d q) (and b d q))",
       dnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, removeItesUnderUnaryMinus)
+{
+  Node c = boolVar("c");
+  // (>= (- (ite c x y)) 1): the ite below the unary minus is removed too
+  Node neg = nm->mkNode(Kind::NEG, nm->mkNode(Kind::ITE, c, x, y));
+  Node dnf = LiaStarUtils::toDNF(nm->mkNode(Kind::GEQ, neg, one), *e);
+  ASSERT_FALSE(expr::hasSubtermKind(Kind::ITE, dnf)) << dnf;
+  // one disjunct per branch, guarded by c and (not c)
+  ASSERT_EQ(Kind::OR, dnf.getKind());
+  ASSERT_EQ(2, dnf.getNumChildren());
+}
+
+TEST_F(TestLiaStarUtils, removeNotKeepsNegatedBooleanVariables)
+{
+  Node p = boolVar("p"), q = boolVar("q");
+  // (not (and p q)): the literals have no relation to flip
+  Node dnf = LiaStarUtils::toDNF(p.andNode(q).notNode(), *e);
+  ASSERT_EQ("(or (not p) (not q))", dnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, removeNotFlipsNegatedConstraints)
+{
+  // (not (and (< x y) (> x y) (<= x y) (>= x y) (= x y)))
+  Node conjunction = nm->mkNode(Kind::AND,
+                                {nm->mkNode(Kind::LT, x, y),
+                                 nm->mkNode(Kind::GT, x, y),
+                                 nm->mkNode(Kind::LEQ, x, y),
+                                 nm->mkNode(Kind::GEQ, x, y),
+                                 nm->mkNode(Kind::EQUAL, x, y)});
+
+  Node nnf = LiaStarUtils::removeNot(conjunction.notNode(), *e);
+
+  ASSERT_EQ("(or (>= x y) (<= x y) (> x y) (< x y) (or (> x y) (< x y)))",
+            nnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, removeItesGuardsWithTheConditionsOfBothSides)
+{
+  Node c1 = boolVar("c1"), c2 = boolVar("c2");
+  // (>= (ite c1 x y) (ite c2 1 2)): each disjunct needs both conditions.
+  // The ites are created in order, so (ite c1 x y) has the smaller id and
+  // is split first, which fixes the order of the disjuncts.
+  Node lhs = nm->mkNode(Kind::ITE, c1, x, y);
+  Node rhs = nm->mkNode(Kind::ITE, c2, one, two);
+  Node geq = nm->mkNode(Kind::GEQ, lhs, rhs);
+
+  Node noItes = LiaStarUtils::removeItes(geq, *e);
+
+  ASSERT_EQ(
+      "(or (and (>= x 1) c1 c2) (and (>= x 2) c1 (not c2)) (and (>= y 1) "
+      "(not c1) c2) (and (>= y 2) (not c1) (not c2)))",
+      noItes.toString());
+  ASSERT_TRUE(isEquivalent(geq, noItes));
+}
+
+TEST_F(TestLiaStarUtils, removeItesSplitsARepeatedIteOnce)
+{
+  Node c = boolVar("c");
+  Node ite = nm->mkNode(Kind::ITE, c, x, y);
+  // (>= (+ (ite c x y) (ite c x y)) 0): both occurrences take the same branch
+  Node geq = nm->mkNode(Kind::GEQ, nm->mkNode(Kind::ADD, ite, ite), zero);
+
+  Node noItes = LiaStarUtils::removeItes(geq, *e);
+
+  ASSERT_EQ("(or (and (>= (* 2 x) 0) c) (and (>= (* 2 y) 0) (not c)))",
+            noItes.toString());
+  ASSERT_TRUE(isEquivalent(geq, noItes));
+}
+
+TEST_F(TestLiaStarUtils, removeItesKeepsAllOperands)
+{
+  Node c = boolVar("c");
+  Node z = nm->mkBoundVar("z", intType);
+  // (>= (+ (ite c x y) z x) 0): a sum with three operands
+  Node sum = nm->mkNode(Kind::ADD, {nm->mkNode(Kind::ITE, c, x, y), z, x});
+  Node geq = nm->mkNode(Kind::GEQ, sum, zero);
+
+  Node noItes = LiaStarUtils::removeItes(geq, *e);
+
+  ASSERT_FALSE(expr::hasSubtermKind(Kind::ITE, noItes)) << noItes;
+  ASSERT_TRUE(isEquivalent(geq, noItes)) << noItes;
+}
+
+TEST_F(TestLiaStarUtils, removeItesExpandsBooleanItes)
+{
+  Node c = boolVar("c");
+  // (ite c (>= x 1) (<= x 0))
+  Node geq = nm->mkNode(Kind::GEQ, x, one);
+  Node leq = nm->mkNode(Kind::LEQ, x, zero);
+  Node ite = nm->mkNode(Kind::ITE, c, geq, leq);
+
+  Node noItes = LiaStarUtils::removeItes(ite, *e);
+
+  ASSERT_EQ("(or (and (>= x 1) c) (and (<= x 0) (not c)))", noItes.toString());
+}
+
+TEST_F(TestLiaStarUtils, removeItesInConditions)
+{
+  Node d = boolVar("d");
+  // (>= (ite (>= (ite d x y) 0) x y) 1): the condition has an ite too
+  Node condition = nm->mkNode(Kind::GEQ, nm->mkNode(Kind::ITE, d, x, y), zero);
+  Node geq = nm->mkNode(Kind::GEQ, nm->mkNode(Kind::ITE, condition, x, y), one);
+
+  Node noItes = LiaStarUtils::removeItes(geq, *e);
+
+  ASSERT_FALSE(expr::hasSubtermKind(Kind::ITE, noItes)) << noItes;
+  ASSERT_TRUE(isEquivalent(geq, noItes)) << noItes;
 }
 
 }  // namespace test

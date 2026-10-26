@@ -15,7 +15,7 @@
 
 using namespace cvc5;
 
-ApiPlugin::ApiPlugin(TermManager& tm, JavaVM* vm, jobject plugin)
+ApiPlugin::ApiPlugin(TermManager& tm, JavaVM* vm, jweak plugin)
     : Plugin(tm), d_vm(vm), d_plugin(plugin)
 {
 }
@@ -26,11 +26,17 @@ std::vector<Term> ApiPlugin::check()
   // Release the local references created below when done: this function may
   // be called many times during a single native call.
   env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject plugin = env->NewLocalRef(d_plugin);
+  if (plugin == nullptr)
+  {
+    env->PopLocalFrame(nullptr);
+    return {};
+  }
 
-  jclass pluginClass = env->GetObjectClass(d_plugin);
+  jclass pluginClass = env->GetObjectClass(plugin);
   jmethodID checkMethod = env->GetMethodID(pluginClass, "checkNative", "()[J");
   jlongArray jPointers =
-      static_cast<jlongArray>(env->CallObjectMethod(d_plugin, checkMethod));
+      static_cast<jlongArray>(env->CallObjectMethod(plugin, checkMethod));
   if (env->ExceptionCheck())
   {
     env->ExceptionClear();
@@ -49,13 +55,19 @@ void ApiPlugin::notifyHelper(const char* functionName, const Term& cl)
 {
   JNIEnv* env = getEnv(d_vm);
   env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject plugin = env->NewLocalRef(d_plugin);
+  if (plugin == nullptr)
+  {
+    env->PopLocalFrame(nullptr);
+    return;
+  }
 
   // Ownership of the copy is transferred to the Java wrapper created by the
   // bridge.
   jlong termPointer = reinterpret_cast<jlong>(new Term(cl));
-  jclass pluginClass = env->GetObjectClass(d_plugin);
+  jclass pluginClass = env->GetObjectClass(plugin);
   jmethodID method = env->GetMethodID(pluginClass, functionName, "(J)V");
-  env->CallVoidMethod(d_plugin, method, termPointer);
+  env->CallVoidMethod(plugin, method, termPointer);
   if (env->ExceptionCheck())
   {
     env->ExceptionClear();
@@ -81,12 +93,18 @@ std::string ApiPlugin::getName()
 {
   JNIEnv* env = getEnv(d_vm);
   env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject plugin = env->NewLocalRef(d_plugin);
+  if (plugin == nullptr)
+  {
+    env->PopLocalFrame(nullptr);
+    return "";
+  }
 
-  jclass pluginClass = env->GetObjectClass(d_plugin);
+  jclass pluginClass = env->GetObjectClass(plugin);
   jmethodID getNameMethod =
       env->GetMethodID(pluginClass, "getName", "()Ljava/lang/String;");
   jstring jName =
-      static_cast<jstring>(env->CallObjectMethod(d_plugin, getNameMethod));
+      static_cast<jstring>(env->CallObjectMethod(plugin, getNameMethod));
   if (env->ExceptionCheck() || jName == nullptr)
   {
     env->ExceptionClear();
