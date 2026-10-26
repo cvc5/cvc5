@@ -387,6 +387,17 @@ void SetDefaults::setDefaultsPre(Options& opts)
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
   Assert(opts.smt.produceProofs
          == (opts.smt.proofMode != options::ProofMode::OFF));
+  // Only track the assumptions of check-sat-assuming if we did not end up
+  // enabling full unsat cores, e.g., due to options that require proofs.
+  if (opts.smt.unsatCoresAssumptionsOnly
+      && (opts.smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
+          || opts.smt.proofMode != options::ProofMode::PP_ONLY))
+  {
+    SET_AND_NOTIFY(smt,
+                   unsatCoresAssumptionsOnly,
+                   false,
+                   "unsat cores or proofs enabled");
+  }
 
   // if we require disabling options due to proofs, disable them now
   if (opts.smt.produceProofs)

@@ -8,8 +8,6 @@
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: ()
-; EXPECT: (error "Cannot get an unsat core when produce-unsat-cores or produce-proofs option is off.")
-; EXIT: 1
 (set-option :produce-unsat-assumptions true)
 (set-logic QF_LIA)
 (declare-fun x () Int)
@@ -31,4 +29,3 @@
 (assert (< y 0))
 (check-sat-assuming (a))
 (get-unsat-assumptions)
-(get-unsat-core)
