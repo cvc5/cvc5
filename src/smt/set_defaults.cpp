@@ -393,10 +393,8 @@ void SetDefaults::setDefaultsPre(Options& opts)
       && (opts.smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
           || opts.smt.proofMode != options::ProofMode::PP_ONLY))
   {
-    SET_AND_NOTIFY(smt,
-                   unsatCoresAssumptionsOnly,
-                   false,
-                   "unsat cores or proofs enabled");
+    SET_AND_NOTIFY(
+        smt, unsatCoresAssumptionsOnly, false, "unsat cores or proofs enabled");
   }
 
   // if we require disabling options due to proofs, disable them now
