@@ -13,7 +13,6 @@
 
 #include "liastar_extension.h"
 
-#include "expr/skolem_manager.h"
 #include "liastar_utils.h"
 #include "libnormaliz/input.h"
 #include "options/arith_options.h"
@@ -134,9 +133,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // The first child may have been purified into a skolem by lambda
     // lifting, and the rewriter may normalize a constant lambda to a
     // function array constant; recover the lambda from either form.
-    Node lambda =
-        uf::FunctionConst::toLambda(SkolemManager::getOriginalForm(literal[0]));
-    Assert(!lambda.isNull() && lambda.getKind() == Kind::LAMBDA)
+    Node lambda = uf::FunctionConst::getDefinition(literal[0]);
+    Assert(!lambda.isNull())
         << "Expected a lambda as the first child of " << literal << std::endl;
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
@@ -589,7 +587,7 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
     }
   }
 
-  Node dnf = LiaStarUtils::toDNF(predicate, &d_env, &d_stats);
+  Node dnf = LiaStarUtils::toDNF(predicate, d_env, &d_stats);
 
   Trace("liastar-ext") << "predicate in dnf: " << dnf << std::endl;
   Trace("liastar-ext") << "lia constraint: " << std::endl;
