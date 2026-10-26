@@ -1887,6 +1887,15 @@ UnsatCore SolverEngine::getUnsatCore()
     return ssolver->getUnsatCore();
   }
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
+  if (d_env->getOptions().smt.unsatCoresAssumptionsOnly)
+  {
+    // unsat cores were enabled only for the purposes of unsat assumptions, in
+    // which case the SAT solver only tracks the assumptions of
+    // check-sat-assuming and the core would be incomplete.
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
+        "option is off.");
+  }
   return getUnsatCoreInternal(false);
 }
 

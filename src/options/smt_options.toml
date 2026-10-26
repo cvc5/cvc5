@@ -224,6 +224,14 @@ name   = "SMT Layer"
   help       = "turn on unsat assumptions generation"
 
 [[option]]
+  name       = "unsatCoresAssumptionsOnly"
+  category   = "expert"
+  long       = "unsat-cores-assumptions-only"
+  type       = "bool"
+  default    = "false"
+  help       = "when unsat cores are assumption-based, only pass the assumptions of check-sat-assuming as assumptions to the SAT solver, which suffices for get-unsat-assumptions but not get-unsat-core (enabled by default when produce-unsat-assumptions is the only option requiring unsat cores)"
+
+[[option]]
   name       = "produceDifficulty"
   category   = "regular"
   long       = "produce-difficulty"

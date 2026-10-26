@@ -208,6 +208,18 @@ void SetDefaults::setDefaultsPre(Options& opts)
       || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
+    // If unsat assumptions is the only reason for producing unsat cores, we
+    // only need to track the assumptions of check-sat-assuming calls as
+    // assumptions in the SAT solver, not all input assertions.
+    if (opts.smt.unsatAssumptions && !opts.smt.produceUnsatCores
+        && !opts.smt.produceProofs && !opts.smt.checkUnsatCores
+        && !opts.driver.dumpUnsatCores && !opts.driver.dumpUnsatCoresLemmas
+        && !opts.smt.minimalUnsatCores
+        && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
+    {
+      SET_AND_NOTIFY(
+          smt, unsatCoresAssumptionsOnly, true, "unsat assumptions only");
+    }
     SET_AND_NOTIFY(
         smt, produceUnsatCores, true, "option requiring unsat cores");
   }

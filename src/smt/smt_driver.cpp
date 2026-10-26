@@ -32,6 +32,7 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
       d_ctx(ctx),
       d_ap(env),
       d_illegalChecker(env),
+      d_hasAssumptions(false),
       d_modelVerifier(env)
 {
   // set up proofs, this is done after options are finalized, so the
@@ -51,6 +52,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   {
     d_ctx->notifyCheckSat(hasAssumptions);
   }
+  d_hasAssumptions = hasAssumptions;
   Assertions& as = d_smt.getAssertions();
   Result result;
   try
@@ -218,7 +220,7 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
   }
 
   // assert to internal
-  d_smt.assertToInternal(ap);
+  d_smt.assertToInternal(ap, d_hasAssumptions);
   // get result
   Result result = d_smt.checkSatInternal();
   // handle preprocessing-specific modifications to result
