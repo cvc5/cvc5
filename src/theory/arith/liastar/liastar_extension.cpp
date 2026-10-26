@@ -211,17 +211,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     {
       for (size_t i = 0; i < lia.size(); i++)
       {
-        Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-        Trace("liastar-ext-smt") << "(echo \"" << i << "\")" << std::endl;
-        Trace("liastar-ext-smt") << "(assert " << std::endl
-                                 << "  (distinct" << std::endl
-                                 << "    ";
-        Trace("liastar-ext-smt") << lia[i].first << std::endl << "    ";
-        Trace("liastar-ext-smt") << lia[i].second << std::endl
-                                 << "  )" << std::endl
-                                 << ")" << std::endl;
-        Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-        Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+        LiaStarUtils::traceEquivalenceCheck(
+            std::to_string(i).c_str(), lia[i].first, lia[i].second);
       }
       std::vector<Node> disjunctions;
       std::transform(lia.begin(),
@@ -241,17 +232,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       {
         liaFormula = d_nm->mkNode(Kind::OR, disjunctions);
       }
-      Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-      Trace("liastar-ext-smt") << "(echo \"lia formula: \")" << std::endl;
-      Trace("liastar-ext-smt") << "(assert " << std::endl
-                               << "  (distinct" << std::endl
-                               << "    ";
-      Trace("liastar-ext-smt") << lambda[1] << std::endl << "    ";
-      Trace("liastar-ext-smt") << liaFormula << std::endl
-                               << "  )" << std::endl
-                               << ")" << std::endl;
-      Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-      Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+      LiaStarUtils::traceEquivalenceCheck("lia formula", lambda[1], liaFormula);
     }
     Node star = d_nm->mkNode(Kind::AND, starConstraints);
     Trace("liastar-ext") << "starConstraints: " << std::endl

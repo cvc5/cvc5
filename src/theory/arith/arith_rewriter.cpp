@@ -32,7 +32,6 @@
 #include "theory/arith/rewriter/node_utils.h"
 #include "theory/arith/rewriter/ordering.h"
 #include "theory/arith/rewriter/rewrite_atom.h"
-#include "theory/datatypes/tuple_utils.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"

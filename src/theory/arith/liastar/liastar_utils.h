@@ -287,6 +287,33 @@ class LiaStarUtils
   static std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
       Node variables, Node n);
 
+  /**
+   * Print, under trace tag liastar-ext-smt, an SMT-LIB query asserting that
+   * a step changed the meaning of its input, e.g. a step of toDNF or the
+   * reduction of a predicate to LIA in LiaStarExtension::checkFullEffort.
+   * For the step "nnf" with before (not (>= x 1)) and after (< x 1) it prints
+   *   (push 1)
+   *   (echo "nnf")
+   *   (assert
+   *     (distinct
+   *       (not (>= x 1))
+   *       (< x 1)
+   *     )
+   *   )
+   *   (check-sat)
+   *   (pop 1)
+   * The step preserved equivalence exactly when the query is unsat. The
+   * declarations of the free variables are not printed, so after adding
+   * them, e.g. (declare-const x Int), the traced output can be run with
+   * cvc5 --incremental to find the step that broke it. Does nothing when
+   * the trace tag is off.
+   *
+   * @param step the name of the step, echoed before its query
+   * @param before the input of the step
+   * @param after the output of the step
+   */
+  static void traceEquivalenceCheck(const char* step, Node before, Node after);
+
  private:
   /**
    * Convert a predicate to negation normal form and eliminate the negated
@@ -319,31 +346,6 @@ class LiaStarUtils
    * @return the flattened node, or n itself if it has no children
    */
   static Node recursiveFlatten(NodeManager* nm, Node n);
-  /**
-   * Print, under trace tag liastar-ext-smt, an SMT-LIB query asserting that
-   * a step of toDNF changed the meaning of its input. For the step "nnf"
-   * with before (not (>= x 1)) and after (< x 1) it prints
-   *   (push 1)
-   *   (echo "nnf")
-   *   (assert
-   *     (distinct
-   *       (not (>= x 1))
-   *       (< x 1)
-   *     )
-   *   )
-   *   (check-sat)
-   *   (pop 1)
-   * The step preserved equivalence exactly when the query is unsat. The
-   * declarations of the free variables are not printed, so after adding
-   * them, e.g. (declare-const x Int), the traced output can be run with
-   * cvc5 --incremental to find the step that broke it. Does nothing when
-   * the trace tag is off.
-   *
-   * @param step the name of the step, echoed before its query
-   * @param before the input of the step
-   * @param after the output of the step
-   */
-  static void traceEquivalenceCheck(const char* step, Node before, Node after);
   /**
    * Print a linear polynomial as a Normaliz symbolic term, mapping the i-th
    * variable of `variables` to the Normaliz coordinate x[i + 1].
