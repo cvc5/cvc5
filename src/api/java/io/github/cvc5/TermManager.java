@@ -18,7 +18,7 @@ import java.util.*;
 /**
  * A cvc5 term manager.
  */
-public class TermManager extends AbstractPointer
+public class TermManager extends AbstractPointer implements AutoCloseable
 {
   static
   {
@@ -52,6 +52,18 @@ public class TermManager extends AbstractPointer
   TermManager(NativeContext ctx, long pointer)
   {
     super(ctx, pointer, TermManager::deletePointer);
+  }
+
+  /**
+   * Free the native term manager, see {@code deletePointer()}.
+   *
+   * <p>Objects created via this term manager remain valid, they keep the
+   * underlying node manager alive.</p>
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
   }
 
   @Override
@@ -98,7 +110,7 @@ public class TermManager extends AbstractPointer
    */
   public Statistics getStatistics()
   {
-    long statisticsPointer = getStatistics(pointer);
+    long statisticsPointer = getStatistics(getPointer());
     return new Statistics(ctx, statisticsPointer);
   }
 
@@ -114,7 +126,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort getBooleanSort()
   {
-    long sortPointer = getBooleanSort(pointer);
+    long sortPointer = getBooleanSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -126,7 +138,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort getIntegerSort()
   {
-    long sortPointer = getIntegerSort(pointer);
+    long sortPointer = getIntegerSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -137,7 +149,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort getRealSort()
   {
-    long sortPointer = getRealSort(pointer);
+    long sortPointer = getRealSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -148,7 +160,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort getRegExpSort()
   {
-    long sortPointer = getRegExpSort(pointer);
+    long sortPointer = getRegExpSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -160,7 +172,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort getRoundingModeSort() throws CVC5ApiException
   {
-    long sortPointer = getRoundingModeSort(pointer);
+    long sortPointer = getRoundingModeSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -172,7 +184,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort getStringSort()
   {
-    long sortPointer = getStringSort(pointer);
+    long sortPointer = getStringSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -185,7 +197,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkArraySort(Sort indexSort, Sort elemSort)
   {
-    long sortPointer = mkArraySort(pointer, indexSort.getPointer(), elemSort.getPointer());
+    long sortPointer = mkArraySort(getPointer(), indexSort.getPointer(), elemSort.getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -200,7 +212,7 @@ public class TermManager extends AbstractPointer
   public Sort mkBitVectorSort(int size) throws CVC5ApiException
   {
     Utils.validateUnsigned(size, "size");
-    long sortPointer = mkBitVectorSort(pointer, size);
+    long sortPointer = mkBitVectorSort(getPointer(), size);
     return new Sort(ctx, sortPointer);
   }
 
@@ -215,7 +227,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkFiniteFieldSort(String size, int base) throws CVC5ApiException
   {
-    long sortPointer = mkFiniteFieldSort(pointer, size, base);
+    long sortPointer = mkFiniteFieldSort(getPointer(), size, base);
     return new Sort(ctx, sortPointer);
   }
 
@@ -232,7 +244,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long sortPointer = mkFloatingPointSort(pointer, exp, sig);
+    long sortPointer = mkFloatingPointSort(getPointer(), exp, sig);
     return new Sort(ctx, sortPointer);
   }
 
@@ -246,7 +258,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
   {
-    long pointer = mkDatatypeSort(this.pointer, dtypedecl.getPointer());
+    long pointer = mkDatatypeSort(getPointer(), dtypedecl.getPointer());
     return new Sort(ctx, pointer);
   }
 
@@ -265,7 +277,7 @@ public class TermManager extends AbstractPointer
   public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
   {
     long[] declPointers = Utils.getPointers(dtypedecls);
-    long[] sortPointers = mkDatatypeSorts(pointer, declPointers);
+    long[] sortPointers = mkDatatypeSorts(getPointer(), declPointers);
     Sort[] sorts = Utils.getSorts(ctx, sortPointers);
     return sorts;
   }
@@ -291,7 +303,8 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
   {
-    long sortPointer = mkFunctionSort(pointer, Utils.getPointers(sorts), codomain.getPointer());
+    long sortPointer =
+        mkFunctionSort(getPointer(), Utils.getPointers(sorts), codomain.getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -307,7 +320,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkParamSort(String symbol)
   {
-    long sortPointer = mkParamSort(pointer, symbol);
+    long sortPointer = mkParamSort(getPointer(), symbol);
     return new Sort(ctx, sortPointer);
   }
 
@@ -322,7 +335,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkParamSort()
   {
-    long sortPointer = mkParamSort(pointer);
+    long sortPointer = mkParamSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -339,7 +352,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkSkolem(SkolemId skolemId, Term[] indices)
   {
-    long skolemPointer = mkSkolem(pointer, skolemId.getValue(), Utils.getPointers(indices));
+    long skolemPointer = mkSkolem(getPointer(), skolemId.getValue(), Utils.getPointers(indices));
     return new Term(ctx, skolemPointer);
   }
 
@@ -356,7 +369,7 @@ public class TermManager extends AbstractPointer
 
   public int getNumIndicesForSkolemId(SkolemId id)
   {
-    int numIndices = getNumIndicesForSkolemId(pointer, id.getValue());
+    int numIndices = getNumIndicesForSkolemId(getPointer(), id.getValue());
     return numIndices;
   }
 
@@ -369,7 +382,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkPredicateSort(Sort[] sorts)
   {
-    long sortPointer = mkPredicateSort(pointer, Utils.getPointers(sorts));
+    long sortPointer = mkPredicateSort(getPointer(), Utils.getPointers(sorts));
     return new Sort(ctx, sortPointer);
   }
 
@@ -385,7 +398,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkRecordSort(Pair<String, Sort>[] fields)
   {
-    long sortPointer = mkRecordSort(pointer, Utils.getPairs(fields));
+    long sortPointer = mkRecordSort(getPointer(), Utils.getPairs(fields));
     return new Sort(ctx, sortPointer);
   }
 
@@ -398,7 +411,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkSetSort(Sort elemSort)
   {
-    long sortPointer = mkSetSort(pointer, elemSort.getPointer());
+    long sortPointer = mkSetSort(getPointer(), elemSort.getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -410,7 +423,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkBagSort(Sort elemSort)
   {
-    long sortPointer = mkBagSort(pointer, elemSort.getPointer());
+    long sortPointer = mkBagSort(getPointer(), elemSort.getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -423,7 +436,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkSequenceSort(Sort elemSort)
   {
-    long sortPointer = mkSequenceSort(pointer, elemSort.getPointer());
+    long sortPointer = mkSequenceSort(getPointer(), elemSort.getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -457,7 +470,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkAbstractSort(SortKind kind)
   {
-    long sortPointer = mkAbstractSort(pointer, kind.getValue());
+    long sortPointer = mkAbstractSort(getPointer(), kind.getValue());
     return new Sort(ctx, sortPointer);
   }
 
@@ -470,7 +483,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkUninterpretedSort(String symbol)
   {
-    long sortPointer = mkUninterpretedSort(pointer, symbol);
+    long sortPointer = mkUninterpretedSort(getPointer(), symbol);
     return new Sort(ctx, sortPointer);
   }
 
@@ -482,7 +495,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkUninterpretedSort()
   {
-    long sortPointer = mkUninterpretedSort(pointer);
+    long sortPointer = mkUninterpretedSort(getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -502,7 +515,7 @@ public class TermManager extends AbstractPointer
   public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUnresolvedDatatypeSort(pointer, symbol, arity);
+    long sortPointer = mkUnresolvedDatatypeSort(getPointer(), symbol, arity);
     return new Sort(ctx, sortPointer);
   }
 
@@ -537,7 +550,7 @@ public class TermManager extends AbstractPointer
   public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity, symbol);
+    long sortPointer = mkUninterpretedSortConstructorSort(getPointer(), arity, symbol);
     return new Sort(ctx, sortPointer);
   }
 
@@ -556,7 +569,7 @@ public class TermManager extends AbstractPointer
   public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = mkUninterpretedSortConstructorSort(pointer, arity);
+    long sortPointer = mkUninterpretedSortConstructorSort(getPointer(), arity);
     return new Sort(ctx, sortPointer);
   }
 
@@ -570,7 +583,7 @@ public class TermManager extends AbstractPointer
   public Sort mkTupleSort(Sort[] sorts)
   {
     long[] sortPointers = Utils.getPointers(sorts);
-    long sortPointer = mkTupleSort(pointer, sortPointers);
+    long sortPointer = mkTupleSort(getPointer(), sortPointers);
     return new Sort(ctx, sortPointer);
   }
 
@@ -584,7 +597,7 @@ public class TermManager extends AbstractPointer
    */
   public Sort mkNullableSort(Sort sort)
   {
-    long sortPointer = mkNullableSort(pointer, sort.getPointer());
+    long sortPointer = mkNullableSort(getPointer(), sort.getPointer());
     return new Sort(ctx, sortPointer);
   }
 
@@ -601,7 +614,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Kind kind)
   {
-    long termPointer = mkTerm(pointer, kind.getValue());
+    long termPointer = mkTerm(getPointer(), kind.getValue());
     return new Term(ctx, termPointer);
   }
 
@@ -615,7 +628,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Kind kind, Term child)
   {
-    long termPointer = mkTerm(pointer, kind.getValue(), child.getPointer());
+    long termPointer = mkTerm(getPointer(), kind.getValue(), child.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -630,7 +643,8 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Kind kind, Term child1, Term child2)
   {
-    long termPointer = mkTerm(pointer, kind.getValue(), child1.getPointer(), child2.getPointer());
+    long termPointer =
+        mkTerm(getPointer(), kind.getValue(), child1.getPointer(), child2.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -646,8 +660,11 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
   {
-    long termPointer = mkTerm(
-        pointer, kind.getValue(), child1.getPointer(), child2.getPointer(), child3.getPointer());
+    long termPointer = mkTerm(getPointer(),
+        kind.getValue(),
+        child1.getPointer(),
+        child2.getPointer(),
+        child3.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -662,7 +679,7 @@ public class TermManager extends AbstractPointer
   public Term mkTerm(Kind kind, Term[] children)
   {
     long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(pointer, kind.getValue(), childPointers);
+    long termPointer = mkTerm(getPointer(), kind.getValue(), childPointers);
     return new Term(ctx, termPointer);
   }
 
@@ -677,7 +694,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Op op)
   {
-    long termPointer = mkTerm(pointer, op.getPointer());
+    long termPointer = mkTerm(getPointer(), op.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -692,7 +709,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Op op, Term child)
   {
-    long termPointer = mkTerm(pointer, op.getPointer(), child.getPointer());
+    long termPointer = mkTerm(getPointer(), op.getPointer(), child.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -709,7 +726,8 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Op op, Term child1, Term child2)
   {
-    long termPointer = mkTerm(pointer, op.getPointer(), child1.getPointer(), child2.getPointer());
+    long termPointer =
+        mkTerm(getPointer(), op.getPointer(), child1.getPointer(), child2.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -726,8 +744,11 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTerm(Op op, Term child1, Term child2, Term child3)
   {
-    long termPointer = mkTerm(
-        pointer, op.getPointer(), child1.getPointer(), child2.getPointer(), child3.getPointer());
+    long termPointer = mkTerm(getPointer(),
+        op.getPointer(),
+        child1.getPointer(),
+        child2.getPointer(),
+        child3.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -745,7 +766,7 @@ public class TermManager extends AbstractPointer
   public Term mkTerm(Op op, Term[] children)
   {
     long[] childPointers = Utils.getPointers(children);
-    long termPointer = mkTerm(pointer, op.getPointer(), childPointers);
+    long termPointer = mkTerm(getPointer(), op.getPointer(), childPointers);
     return new Term(ctx, termPointer);
   }
 
@@ -760,7 +781,7 @@ public class TermManager extends AbstractPointer
   public Term mkTuple(Term[] terms)
   {
     long[] termPointers = Utils.getPointers(terms);
-    long termPointer = mkTuple(pointer, termPointers);
+    long termPointer = mkTuple(getPointer(), termPointers);
     return new Term(ctx, termPointer);
   }
 
@@ -773,7 +794,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkNullableSome(Term term)
   {
-    long termPointer = mkNullableSome(pointer, term.getPointer());
+    long termPointer = mkNullableSome(getPointer(), term.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -786,7 +807,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkNullableVal(Term term)
   {
-    long termPointer = mkNullableVal(pointer, term.getPointer());
+    long termPointer = mkNullableVal(getPointer(), term.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -799,7 +820,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkNullableIsNull(Term term)
   {
-    long termPointer = mkNullableIsNull(pointer, term.getPointer());
+    long termPointer = mkNullableIsNull(getPointer(), term.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -812,7 +833,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkNullableIsSome(Term term)
   {
-    long termPointer = mkNullableIsSome(pointer, term.getPointer());
+    long termPointer = mkNullableIsSome(getPointer(), term.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -825,7 +846,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkNullableNull(Sort sort)
   {
-    long termPointer = mkNullableNull(pointer, sort.getPointer());
+    long termPointer = mkNullableNull(getPointer(), sort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -847,7 +868,7 @@ public class TermManager extends AbstractPointer
   public Term mkNullableLift(Kind kind, Term[] args)
   {
     long[] termPointers = Utils.getPointers(args);
-    long termPointer = mkNullableLift(pointer, kind.getValue(), termPointers);
+    long termPointer = mkNullableLift(getPointer(), kind.getValue(), termPointers);
     return new Term(ctx, termPointer);
   }
 
@@ -870,7 +891,7 @@ public class TermManager extends AbstractPointer
    */
   public Op mkOp(Kind kind)
   {
-    long opPointer = mkOp(pointer, kind.getValue());
+    long opPointer = mkOp(getPointer(), kind.getValue());
     return new Op(ctx, opPointer);
   }
 
@@ -889,7 +910,7 @@ public class TermManager extends AbstractPointer
    */
   public Op mkOp(Kind kind, String arg)
   {
-    long opPointer = mkOp(pointer, kind.getValue(), arg);
+    long opPointer = mkOp(getPointer(), kind.getValue(), arg);
     return new Op(ctx, opPointer);
   }
 
@@ -920,7 +941,7 @@ public class TermManager extends AbstractPointer
   public Op mkOp(Kind kind, int arg) throws CVC5ApiException
   {
     Utils.validateUnsigned(arg, "arg");
-    long opPointer = mkOp(pointer, kind.getValue(), arg);
+    long opPointer = mkOp(getPointer(), kind.getValue(), arg);
     return new Op(ctx, opPointer);
   }
 
@@ -947,7 +968,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(arg1, "arg1");
     Utils.validateUnsigned(arg2, "arg2");
-    long opPointer = mkOp(pointer, kind.getValue(), arg1, arg2);
+    long opPointer = mkOp(getPointer(), kind.getValue(), arg1, arg2);
     return new Op(ctx, opPointer);
   }
 
@@ -967,7 +988,7 @@ public class TermManager extends AbstractPointer
   public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
   {
     Utils.validateUnsigned(args, "args");
-    long opPointer = mkOp(pointer, kind.getValue(), args);
+    long opPointer = mkOp(getPointer(), kind.getValue(), args);
     return new Op(ctx, opPointer);
   }
 
@@ -983,7 +1004,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkTrue()
   {
-    long termPointer = mkTrue(pointer);
+    long termPointer = mkTrue(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -994,7 +1015,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkFalse()
   {
-    long termPointer = mkFalse(pointer);
+    long termPointer = mkFalse(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1006,7 +1027,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkBoolean(boolean val)
   {
-    long termPointer = mkBoolean(pointer, val);
+    long termPointer = mkBoolean(getPointer(), val);
     return new Term(ctx, termPointer);
   }
 
@@ -1017,7 +1038,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkPi()
   {
-    long termPointer = mkPi(pointer);
+    long termPointer = mkPi(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1032,7 +1053,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkInteger(String s) throws CVC5ApiException
   {
-    long termPointer = mkInteger(pointer, s);
+    long termPointer = mkInteger(getPointer(), s);
     return new Term(ctx, termPointer);
   }
 
@@ -1045,7 +1066,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkInteger(long val)
   {
-    long termPointer = mkInteger(pointer, val);
+    long termPointer = mkInteger(getPointer(), val);
     return new Term(ctx, termPointer);
   }
 
@@ -1060,7 +1081,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkReal(String s) throws CVC5ApiException
   {
-    long termPointer = mkReal(pointer, s);
+    long termPointer = mkReal(getPointer(), s);
     return new Term(ctx, termPointer);
   }
 
@@ -1072,7 +1093,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkReal(long val)
   {
-    long termPointer = mkRealValue(pointer, val);
+    long termPointer = mkRealValue(getPointer(), val);
     return new Term(ctx, termPointer);
   }
 
@@ -1085,7 +1106,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkReal(long num, long den)
   {
-    long termPointer = mkReal(pointer, num, den);
+    long termPointer = mkReal(getPointer(), num, den);
     return new Term(ctx, termPointer);
   }
 
@@ -1097,7 +1118,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkRegexpNone()
   {
-    long termPointer = mkRegexpNone(pointer);
+    long termPointer = mkRegexpNone(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1109,7 +1130,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkRegexpAll()
   {
-    long termPointer = mkRegexpAll(pointer);
+    long termPointer = mkRegexpAll(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1121,7 +1142,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkRegexpAllchar()
   {
-    long termPointer = mkRegexpAllchar(pointer);
+    long termPointer = mkRegexpAllchar(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1134,7 +1155,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkEmptySet(Sort sort)
   {
-    long termPointer = mkEmptySet(pointer, sort.getPointer());
+    long termPointer = mkEmptySet(getPointer(), sort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1146,7 +1167,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkEmptyBag(Sort sort)
   {
-    long termPointer = mkEmptyBag(pointer, sort.getPointer());
+    long termPointer = mkEmptyBag(getPointer(), sort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1161,7 +1182,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkSepEmp()
   {
-    long termPointer = mkSepEmp(pointer);
+    long termPointer = mkSepEmp(getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1177,7 +1198,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkSepNil(Sort sort)
   {
-    long termPointer = mkSepNil(pointer, sort.getPointer());
+    long termPointer = mkSepNil(getPointer(), sort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1204,7 +1225,7 @@ public class TermManager extends AbstractPointer
   public Term mkString(String s, boolean useEscSequences)
   {
     // TODO: review unicode https://github.com/cvc5/cvc5-wishues/issues/150
-    long termPointer = mkString(pointer, s, useEscSequences);
+    long termPointer = mkString(getPointer(), s, useEscSequences);
     return new Term(ctx, termPointer);
   }
 
@@ -1220,7 +1241,7 @@ public class TermManager extends AbstractPointer
   public Term mkString(int[] s) throws CVC5ApiException
   {
     Utils.validateUnsigned(s, "s");
-    long termPointer = mkString(pointer, s);
+    long termPointer = mkString(getPointer(), s);
     return new Term(ctx, termPointer);
   }
 
@@ -1233,7 +1254,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkEmptySequence(Sort sort)
   {
-    long termPointer = mkEmptySequence(pointer, sort.getPointer());
+    long termPointer = mkEmptySequence(getPointer(), sort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1246,7 +1267,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkUniverseSet(Sort sort)
   {
-    long termPointer = mkUniverseSet(pointer, sort.getPointer());
+    long termPointer = mkUniverseSet(getPointer(), sort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1277,7 +1298,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(val, "val");
-    long termPointer = mkBitVector(pointer, size, val);
+    long termPointer = mkBitVector(getPointer(), size, val);
     return new Term(ctx, termPointer);
   }
 
@@ -1299,7 +1320,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(size, "size");
     Utils.validateUnsigned(base, "base");
-    long termPointer = mkBitVector(pointer, size, s, base);
+    long termPointer = mkBitVector(getPointer(), size, s, base);
     return new Term(ctx, termPointer);
   }
 
@@ -1318,7 +1339,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkFiniteFieldElem(String val, Sort sort, int base) throws CVC5ApiException
   {
-    long termPointer = mkFiniteFieldElem(pointer, val, sort.getPointer(), base);
+    long termPointer = mkFiniteFieldElem(getPointer(), val, sort.getPointer(), base);
     return new Term(ctx, termPointer);
   }
 
@@ -1334,7 +1355,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkConstArray(Sort sort, Term val)
   {
-    long termPointer = mkConstArray(pointer, sort.getPointer(), val.getPointer());
+    long termPointer = mkConstArray(getPointer(), sort.getPointer(), val.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1350,7 +1371,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointPosInf(pointer, exp, sig);
+    long termPointer = mkFloatingPointPosInf(getPointer(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
@@ -1366,7 +1387,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointNegInf(pointer, exp, sig);
+    long termPointer = mkFloatingPointNegInf(getPointer(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
@@ -1382,7 +1403,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointNaN(pointer, exp, sig);
+    long termPointer = mkFloatingPointNaN(getPointer(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
@@ -1399,7 +1420,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointPosZero(pointer, exp, sig);
+    long termPointer = mkFloatingPointPosZero(getPointer(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
@@ -1416,7 +1437,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPointNegZero(pointer, exp, sig);
+    long termPointer = mkFloatingPointNegZero(getPointer(), exp, sig);
     return new Term(ctx, termPointer);
   }
 
@@ -1429,7 +1450,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkRoundingMode(RoundingMode rm)
   {
-    long termPointer = mkRoundingMode(pointer, rm.getValue());
+    long termPointer = mkRoundingMode(getPointer(), rm.getValue());
     return new Term(ctx, termPointer);
   }
 
@@ -1448,7 +1469,7 @@ public class TermManager extends AbstractPointer
   {
     Utils.validateUnsigned(exp, "exp");
     Utils.validateUnsigned(sig, "sig");
-    long termPointer = mkFloatingPoint(pointer, exp, sig, val.getPointer());
+    long termPointer = mkFloatingPoint(getPointer(), exp, sig, val.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1466,7 +1487,7 @@ public class TermManager extends AbstractPointer
   public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
   {
     long termPointer =
-        mkFloatingPointX(pointer, sign.getPointer(), exp.getPointer(), sig.getPointer());
+        mkFloatingPointX(getPointer(), sign.getPointer(), exp.getPointer(), sig.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1486,7 +1507,7 @@ public class TermManager extends AbstractPointer
   public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
   {
     Utils.validateUnsigned(upperBound, "upperBound");
-    long termPointer = mkCardinalityConstraint(pointer, sort.getPointer(), upperBound);
+    long termPointer = mkCardinalityConstraint(getPointer(), sort.getPointer(), upperBound);
     return new Term(ctx, termPointer);
   }
 
@@ -1511,7 +1532,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkConst(Sort sort, String symbol)
   {
-    long termPointer = mkConst(pointer, sort.getPointer(), symbol);
+    long termPointer = mkConst(getPointer(), sort.getPointer(), symbol);
     return new Term(ctx, termPointer);
   }
 
@@ -1525,7 +1546,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkConst(Sort sort)
   {
-    long termPointer = mkConst(pointer, sort.getPointer());
+    long termPointer = mkConst(getPointer(), sort.getPointer());
     return new Term(ctx, termPointer);
   }
 
@@ -1551,7 +1572,7 @@ public class TermManager extends AbstractPointer
    */
   public Term mkVar(Sort sort, String symbol)
   {
-    long termPointer = mkVar(pointer, sort.getPointer(), symbol);
+    long termPointer = mkVar(getPointer(), sort.getPointer(), symbol);
     return new Term(ctx, termPointer);
   }
 
@@ -1568,7 +1589,7 @@ public class TermManager extends AbstractPointer
    */
   public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
   {
-    long declPointer = mkDatatypeConstructorDecl(pointer, name);
+    long declPointer = mkDatatypeConstructorDecl(getPointer(), name);
     return new DatatypeConstructorDecl(ctx, declPointer);
   }
 
@@ -1596,7 +1617,7 @@ public class TermManager extends AbstractPointer
    */
   public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
   {
-    long declPointer = mkDatatypeDecl(pointer, name, isCoDatatype);
+    long declPointer = mkDatatypeDecl(getPointer(), name, isCoDatatype);
     return new DatatypeDecl(ctx, declPointer);
   }
 
@@ -1631,7 +1652,7 @@ public class TermManager extends AbstractPointer
   public DatatypeDecl mkDatatypeDecl(String name, Sort[] params, boolean isCoDatatype)
   {
     long[] paramPointers = Utils.getPointers(params);
-    long declPointer = mkDatatypeDecl(pointer, name, paramPointers, isCoDatatype);
+    long declPointer = mkDatatypeDecl(getPointer(), name, paramPointers, isCoDatatype);
     return new DatatypeDecl(ctx, declPointer);
   }
 

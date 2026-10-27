@@ -16,6 +16,10 @@ import java.util.function.LongConsumer;
 
 /**
  * Abstract base class for handling native pointers in a managed way.
+ *
+ * <p>The native object behind a wrapper is freed automatically once the
+ * wrapper is no longer reachable (see {@link NativeContext}), or explicitly
+ * via {@link #deletePointer()}.</p>
  */
 abstract class AbstractPointer implements IPointer
 {
@@ -32,15 +36,12 @@ abstract class AbstractPointer implements IPointer
   final NativeContext ctx;
 
   /**
-   * The function that frees the native object, or {@code null} if it is
-   * never freed.
+   * Tracks the native object, or {@code null} if it is not tracked.
    */
-  private final LongConsumer deleter;
+  private final NativeContext.Ref ref;
 
   /**
    * Construct an {@code AbstractPointer} with the given native pointer.
-   * Automatically registers this instance with the {@code Context}, unless it
-   * is a null object.
    *
    * @param ctx the context of the term manager the native object belongs to,
    *            or {@code null} if the native object is a static null object
@@ -52,38 +53,48 @@ abstract class AbstractPointer implements IPointer
   {
     this.pointer = pointer;
     this.ctx = ctx;
-    this.deleter = deleter;
-    if (ctx != null)
-    {
-      Context.addAbstractPointer(this);
-    }
+    this.ref = ctx == null ? null : ctx.register(this, pointer, deleter);
   }
 
   /**
    * Return the raw native pointer.
    *
+   * <p>Every native call obtains the pointers of the objects it uses through
+   * this method, so that using an object after its native resource has been
+   * released raises an exception instead of crashing the JVM.</p>
+   *
    * @return the pointer value
+   * @throws IllegalStateException if the native resource of this object has
+   *         been released, e.g., via {@link #deletePointer()}
    */
   public long getPointer()
   {
-    return pointer;
+    long p = pointer;
+    if (p == 0)
+    {
+      throw new IllegalStateException(
+          "This " + getClass().getSimpleName() + " has been released and cannot be used anymore");
+    }
+    return p;
   }
 
   /**
    * Free the native resource associated with this pointer.
    * <p>
-   * This method should be called to explicitly clean up the underlying native
-   * resource. It removes this instance from the {@code Context}, then frees
-   * the native object. Calling it more than once has no further effect.
+   * Native resources are freed automatically once the Java object is no
+   * longer reachable. This method frees the native resource immediately
+   * instead; afterwards, using the object raises an
+   * {@link IllegalStateException}. It must be called from
+   * the thread that is using the associated term manager. Calling it more
+   * than once has no further effect.
    * </p>
    */
   public void deletePointer()
   {
-    if (pointer != 0 && deleter != null)
+    if (ref != null)
     {
-      Context.removeAbstractPointer(this);
-      deleter.accept(pointer);
       pointer = 0;
+      ref.release();
     }
   }
 
@@ -95,7 +106,7 @@ abstract class AbstractPointer implements IPointer
   @Override
   public String toString()
   {
-    return toString(pointer);
+    return toString(getPointer());
   }
 
   /**

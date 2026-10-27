@@ -57,7 +57,7 @@ public class Op extends AbstractPointer
     {
       return false;
     }
-    return equals(pointer, ((Op) t).getPointer());
+    return equals(getPointer(), ((Op) t).getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -71,7 +71,7 @@ public class Op extends AbstractPointer
   {
     try
     {
-      int value = getKind(pointer);
+      int value = getKind(getPointer());
       return Kind.fromInt(value);
     }
     catch (CVC5ApiException e)
@@ -90,7 +90,7 @@ public class Op extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -102,7 +102,7 @@ public class Op extends AbstractPointer
    */
   public boolean isIndexed()
   {
-    return isIndexed(pointer);
+    return isIndexed(getPointer());
   }
 
   private native boolean isIndexed(long pointer);
@@ -114,7 +114,7 @@ public class Op extends AbstractPointer
    */
   public int getNumIndices()
   {
-    return getNumIndices(pointer);
+    return getNumIndices(getPointer());
   }
 
   private native int getNumIndices(long pointer);
@@ -128,7 +128,7 @@ public class Op extends AbstractPointer
   public Term get(int i) throws CVC5ApiException
   {
     Utils.validateUnsigned(i, "index");
-    long termPointer = get(pointer, i);
+    long termPointer = get(getPointer(), i);
     return new Term(ctx, termPointer);
   }
 
@@ -146,7 +146,7 @@ public class Op extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

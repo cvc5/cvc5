@@ -99,7 +99,7 @@ add_custom_command(
 add_custom_target(generate-java-types DEPENDS ${JAVA_TYPES_FILES})
 
 # find java
-find_package(Java 1.8 COMPONENTS Development REQUIRED)
+find_package(Java 11 COMPONENTS Development REQUIRED)
 include(UseJava)
 
 # specify java source files

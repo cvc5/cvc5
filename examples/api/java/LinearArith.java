@@ -16,8 +16,7 @@ public class LinearArith
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("QF_LIRA"); // Set the logic
 
@@ -72,6 +71,5 @@ public class LinearArith
 
       System.out.println("Thus the maximum value of (y - x) is 2/3.");
     }
-    Context.deletePointers();
   }
 }

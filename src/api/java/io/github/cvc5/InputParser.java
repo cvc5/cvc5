@@ -40,7 +40,7 @@ import io.github.cvc5.modes.InputLanguage;
  * manager) has its logic set, then the symbol manager (resp. solver) is set to
  * use that logic, if its logic is not already set.
  */
-public class InputParser extends AbstractPointer
+public class InputParser extends AbstractPointer implements AutoCloseable
 {
   /**
    * The solver of this parser. The native parser only borrows the native
@@ -86,6 +86,15 @@ public class InputParser extends AbstractPointer
 
   private static native void deletePointer(long pointer);
 
+  /**
+   * Free the native input parser, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
+
   protected String toString(long pointer)
   {
     throw new UnsupportedOperationException(
@@ -120,7 +129,7 @@ public class InputParser extends AbstractPointer
    */
   public void setFileInput(InputLanguage lang, String fileName)
   {
-    setFileInput(pointer, lang.getValue(), fileName);
+    setFileInput(getPointer(), lang.getValue(), fileName);
   }
 
   private native void setFileInput(long pointer, int langValue, String fileName);
@@ -134,7 +143,7 @@ public class InputParser extends AbstractPointer
    */
   public void setStringInput(InputLanguage lang, String input, String name)
   {
-    setStringInput(pointer, lang.getValue(), input, name);
+    setStringInput(getPointer(), lang.getValue(), input, name);
   }
   private native void setStringInput(long pointer, int langValue, String input, String name);
 
@@ -147,7 +156,7 @@ public class InputParser extends AbstractPointer
    */
   public void setIncrementalStringInput(InputLanguage lang, String name)
   {
-    setIncrementalStringInput(pointer, lang.getValue(), name);
+    setIncrementalStringInput(getPointer(), lang.getValue(), name);
   }
 
   private native void setIncrementalStringInput(long pointer, int langValue, String name);
@@ -160,7 +169,7 @@ public class InputParser extends AbstractPointer
    */
   public void appendIncrementalStringInput(String input)
   {
-    appendIncrementalStringInput(pointer, input);
+    appendIncrementalStringInput(getPointer(), input);
   }
 
   private native void appendIncrementalStringInput(long pointer, String input);
@@ -175,7 +184,7 @@ public class InputParser extends AbstractPointer
    */
   public Command nextCommand()
   {
-    return new Command(ctx, nextCommand(pointer));
+    return new Command(ctx, nextCommand(getPointer()));
   }
 
   private native long nextCommand(long pointer);
@@ -187,7 +196,7 @@ public class InputParser extends AbstractPointer
    */
   public Term nextTerm()
   {
-    return new Term(ctx, nextTerm(pointer));
+    return new Term(ctx, nextTerm(getPointer()));
   }
 
   private native long nextTerm(long pointer);
@@ -199,7 +208,7 @@ public class InputParser extends AbstractPointer
    */
   public boolean done()
   {
-    return done(pointer);
+    return done(getPointer());
   }
 
   private native boolean done(long pointer);
