@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-ext=full --sat-solver=minisat --no-nl-ext-initial-sign-lemmas
 ; EXPECT: sat
 (set-logic QF_NRA)
