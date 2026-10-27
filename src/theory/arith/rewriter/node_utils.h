@@ -157,10 +157,16 @@ Node getFactors(const Node& n, std::vector<Node>& factors);
 
 /**
  * Do simple factoring of (num/den), if applicable, update them to num'/den'
- * such that num/den = num'/den' when den != 0. Return true if num/den are
- * updated.
+ * such that num = num' * c and den = den' * c for some common factor c. The
+ * factor c is a positive integer constant times the variable factors common
+ * to num and den, where the latter are only cancelled if cancelVars is true.
+ * Return true if num/den are updated.
+ *
+ * Note that cancelling c is not in general sound for integer division, since
+ * c may be zero or negative. Callers must ensure that the cancellation is
+ * valid for their purposes.
  */
-bool simpleNonzeroFactoring(Node& num, Node& den);
+bool simpleNonzeroFactoring(Node& num, Node& den, bool cancelVars);
 
 }  // namespace rewriter
 }  // namespace arith

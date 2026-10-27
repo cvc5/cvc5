@@ -1033,7 +1033,12 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
   }
   else if (n == d)
   {
-    Node ret = nm->mkConstInt(k == Kind::INTS_MODULUS_TOTAL ? 0 : 1);
+    // (mod_total x x) ---> 0, (div_total x x) ---> (ite (= x 0) 0 1)
+    Node zero = nm->mkConstInt(0);
+    Node ret = k == Kind::INTS_MODULUS_TOTAL
+                   ? zero
+                   : nm->mkNode(Kind::ITE,
+                                {d.eqNode(zero), zero, nm->mkConstInt(1)});
     return returnRewrite(t, ret, Rewrite::DIV_MOD_EQ);
   }
   else if (dIsConstant && d.getConst<Rational>().isOne())
@@ -1125,7 +1130,35 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
   // factoring
   if (!pre)
   {
-    if (rewriter::simpleNonzeroFactoring(n, d))
+    // If cancelling all common factors (including variables) makes the
+    // denominator 1 or -1, then the division is exact, i.e. n = d * q. In
+    // this case, (mod_total n d) is 0 and (div_total n d) is q if d is
+    // non-zero. Note that if d is zero then n is zero, and hence both
+    // (mod_total n d) and (div_total n d) are 0.
+    Node nf = n;
+    Node df = d;
+    if (rewriter::simpleNonzeroFactoring(nf, df, true) && df.isConst()
+        && df.getConst<Rational>().abs().isOne())
+    {
+      Node zero = nm->mkConstInt(0);
+      Node ret = zero;
+      if (k == Kind::INTS_DIVISION_TOTAL)
+      {
+        ret = df.getConst<Rational>().sgn() > 0 ? nf
+                                                : nm->mkNode(Kind::NEG, nf);
+        if (!dIsConstant)
+        {
+          ret = nm->mkNode(Kind::ITE, {d.eqNode(zero), zero, ret});
+        }
+      }
+      return returnRewrite(t, ret, Rewrite::DIV_MOD_TOTAL_EXACT);
+    }
+    // Otherwise, we may cancel a positive constant factor c for division
+    // only: (div_total (* c x) (* c y)) = (div_total x y), which also holds
+    // when y is zero. We do not cancel variable factors, which may be
+    // negative.
+    if (k == Kind::INTS_DIVISION_TOTAL
+        && rewriter::simpleNonzeroFactoring(n, d, false))
     {
       Node ret = nm->mkNode(k, n, d);
       return returnRewrite(t, ret, Rewrite::DIV_TOTAL_FACTOR);

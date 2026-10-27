@@ -37,6 +37,7 @@ const char* toString(Rewrite r)
     case Rewrite::MOD_CHILD_MOD: return "MOD_CHILD_MOD";
     case Rewrite::DIV_OVER_MOD: return "DIV_OVER_MOD";
     case Rewrite::DIV_TOTAL_FACTOR: return "DIV_TOTAL_FACTOR";
+    case Rewrite::DIV_MOD_TOTAL_EXACT: return "DIV_MOD_TOTAL_EXACT";
     case Rewrite::INT_EXT_CONST: return "INT_EXT_CONST";
     case Rewrite::INT_EXT_INT: return "INT_EXT_INT";
     case Rewrite::INT_EXT_PI: return "INT_EXT_PI";

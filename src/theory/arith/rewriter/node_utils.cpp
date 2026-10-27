@@ -127,7 +127,7 @@ Node getFactors(const Node& n, std::vector<Node>& factors)
   else if (nk == Kind::MULT)
   {
     Assert(n[0].isConst());
-    factors.push_back(n[1]);
+    getFactors(n[1], factors);
     return n[0];
   }
   else
@@ -137,7 +137,7 @@ Node getFactors(const Node& n, std::vector<Node>& factors)
   return Node::null();
 }
 
-bool simpleNonzeroFactoring(Node& num, Node& den)
+bool simpleNonzeroFactoring(Node& num, Node& den, bool cancelVars)
 {
   if (den.getKind() == Kind::ADD)
   {
@@ -159,7 +159,11 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
   Trace("simple-factor") << "Factors denominator: " << cden << ", " << nfactors
                          << std::endl;
   // compute what factors are not divisible
-  std::vector<Node> factors = nfactors;
+  std::vector<Node> factors;
+  if (cancelVars)
+  {
+    factors = nfactors;
+  }
   for (const std::pair<const Node, Node>& m : msum)
   {
     Trace("simple-factor") << "Factor " << m.first << " -> " << m.second
@@ -209,7 +213,10 @@ bool simpleNonzeroFactoring(Node& num, Node& den)
   for (const std::pair<const Node, Node>& m : msum)
   {
     std::vector<Node> mfactors;
-    getFactors(m.first, mfactors);
+    if (!m.first.isNull())
+    {
+      getFactors(m.first, mfactors);
+    }
     std::vector<Node> mfactorsFinal;
     std::set_difference(mfactors.begin(),
                         mfactors.end(),
