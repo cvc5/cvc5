@@ -131,6 +131,8 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_ICP_PROPAGATION:
       return "ARITH_NL_ICP_PROPAGATION";
     case InferenceId::ARITH_LIA_STAR_EXISTS: return "ARITH_LIA_STAR_EXISTS";
+    case InferenceId::ARITH_LIA_STAR_NOT_EXISTS:
+      return "ARITH_LIA_STAR_NOT_EXISTS";
     case InferenceId::ARITH_LIA_STAR_NONNEGATIVE:
       return "ARITH_LIA_STAR_NONNEGATIVE";
     case InferenceId::ARITH_LIA_STAR_SPLIT: return "ARITH_LIA_STAR_SPLIT";
