@@ -237,6 +237,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::ProofFormat::CPC);
   ss << cvc5::ProofRewriteRule::NONE
      << std::to_string(cvc5::ProofRewriteRule::NONE);
+  ss << cvc5::AnnotationId::THEORY_LEMMA
+     << std::to_string(cvc5::AnnotationId::THEORY_LEMMA);
   ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
   ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
   ss << cvc5::Result();
@@ -358,6 +360,12 @@ TEST_F(TestApiBlackUncovered, ProofRewriteRule)
 {
   ASSERT_EQ(std::hash<cvc5::ProofRewriteRule>()(ProofRewriteRule::NONE),
             static_cast<size_t>(ProofRewriteRule::NONE));
+}
+
+TEST_F(TestApiBlackUncovered, AnnotationId)
+{
+  ASSERT_EQ(std::hash<cvc5::AnnotationId>()(AnnotationId::THEORY_LEMMA),
+            static_cast<size_t>(AnnotationId::THEORY_LEMMA));
 }
 
 TEST_F(TestApiBlackUncovered, SkolemId)
