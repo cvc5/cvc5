@@ -381,6 +381,7 @@ TEST_F(TestCApiBlackUncovered, parser)
   Solver solver(d_tm);
   parser::InputParser parser(&solver);
   (void)parser.getSolver();
+  (void)parser.getSymbolManager();
   std::stringstream ss;
   ss << command << std::endl;
   parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");

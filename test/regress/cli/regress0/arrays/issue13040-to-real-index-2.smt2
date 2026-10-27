@@ -1,0 +1,13 @@
+; EXPECT: unsat
+(set-logic QF_AUFLIRA)
+(set-info :status unsat)
+(declare-const x Int)
+(declare-const y Real)
+(declare-const A (Array Real Bool))
+(assert (>= x 0))
+(assert (<= x 0))
+(assert (>= y 0.0))
+(assert (<= y 0.0))
+(assert (select A (to_real x)))
+(assert (not (select A y)))
+(check-sat)

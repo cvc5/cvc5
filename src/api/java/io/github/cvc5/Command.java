@@ -11,6 +11,8 @@
  */
 package io.github.cvc5;
 
+import java.lang.ref.Reference;
+
 /**
  * Encapsulation of a command.
  *
@@ -24,12 +26,12 @@ public class Command extends AbstractPointer
    * inside cvc5 package.
    * @param pointer The cpp pointer to command.
    */
-  Command(long pointer)
+  Command(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Command::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Invoke the command on the solver and symbol manager sm and return any
@@ -41,7 +43,18 @@ public class Command extends AbstractPointer
    */
   public String invoke(Solver solver, SymbolManager symbolManager)
   {
-    return invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+    try
+    {
+      return invoke(getPointer(), solver.getPointer(), symbolManager.getPointer());
+    }
+    finally
+    {
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable. Keep the
+      // solver and symbol manager reachable until the call has returned.
+      Reference.reachabilityFence(solver);
+      Reference.reachabilityFence(symbolManager);
+    }
   }
 
   private native String invoke(long pointer, long solverPointer, long symbolManagerPointer);
@@ -58,7 +71,7 @@ public class Command extends AbstractPointer
    */
   public String getCommandName()
   {
-    return getCommandName(pointer);
+    return getCommandName(getPointer());
   }
 
   private native String getCommandName(long pointer);
@@ -69,7 +82,7 @@ public class Command extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);

@@ -875,6 +875,11 @@ Node IntBlaster::translateNoChildren(Node original,
       Rational r = Rational(c, Integer(1));
       translation = d_nm->mkConstInt(r);
     }
+    else if (original.getType().isBitVector())
+    {
+      // Nullary operators of type bit-vectors are cast to integers.
+      translation = castToType(original, d_nm->integerType());
+    }
     else
     {
       // Other constants or operators stay the same.
