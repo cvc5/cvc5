@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -16,9 +13,9 @@
 ##
 
 # where to build dependencies
-set(DEPS_PREFIX "${CMAKE_BINARY_DIR}/deps")
+set(DEPS_PREFIX "${PROJECT_BINARY_DIR}/deps")
 # base path to installed dependencies
-set(DEPS_BASE "${CMAKE_BINARY_DIR}/deps")
+set(DEPS_BASE "${PROJECT_BINARY_DIR}/deps")
 # CMake wants directories specified via INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
 # (and similar) to exist when target property is set.
 file(MAKE_DIRECTORY "${DEPS_BASE}/include/")

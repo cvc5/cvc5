@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +38,7 @@ void test_get_info(Cvc5* solver, const char* s)
     }
   } while (cmd);
   assert(cvc5_parser_done(parser));  // parser should be done
+  cvc5_parser_release(parser);
   cvc5_parser_delete(parser);
   cvc5_symbol_manager_delete(sm);
   free(str);
@@ -64,6 +62,7 @@ int main()
   test_get_info(solver, ":all-statistics");
 
   cvc5_delete(solver);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return 0;
 }

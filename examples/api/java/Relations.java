@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Daniel Larraz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,8 +18,7 @@ public class Relations
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       // Set the logic
       solver.setLogic("ALL");
@@ -148,6 +144,5 @@ public class Relations
       System.out.println("descendant = " + solver.getValue(descendant));
       System.out.println("ancestor   = " + solver.getValue(ancestor));
     }
-    Context.deletePointers();
   }
 }

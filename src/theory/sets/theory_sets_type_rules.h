@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -179,8 +176,8 @@ struct IsSetTypeRule
 };
 
 /**
- * Type rule for (set.insert e1 ... en A) that checks the sorts of e1, ..., en
- * match the element sort of the set A
+ * Type rule for (set.insert e A) that checks the sort of e matches the element
+ * sort of the set A
  */
 struct InsertTypeRule
 {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Kshitij Bansal, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -151,7 +148,8 @@ class TheorySetsRewriter : public TheoryRewriter
    *  rewrites for n include:
    *  - (set.fold f t (as set.empty (Set T))) = t
    *  - (set.fold f t (set.singleton x)) = (f t x)
-   *  - (set.fold f t (set.union A B)) = (set.fold f (set.fold f t A) B))
+   *  - (set.fold f t (set.union A B)) =
+   *    (set.fold f (set.fold f t A) (set.minus B A)))
    *  where f: T -> S -> S, and t : S
    */
   RewriteResponse postRewriteFold(TNode n);

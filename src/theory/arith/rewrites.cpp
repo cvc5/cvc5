@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,7 @@ const char* toString(Rewrite r)
     case Rewrite::INEQ_BV_TO_NAT_ELIM: return "INEQ_BV_TO_NAT_ELIM";
     case Rewrite::UNKNOWN: return "?";
     default:
-      Assert(false) << "No print for rewrite " << static_cast<size_t>(r);
+      DebugUnhandled() << "No print for rewrite " << static_cast<size_t>(r);
       return "?unhandled";
   }
 }

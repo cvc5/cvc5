@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,6 +11,14 @@
  */
 package io.github.cvc5;
 
+import java.lang.ref.Reference;
+
+/**
+ * Encapsulation of a command.
+ *
+ * Commands are constructed by the input parser and can be invoked on
+ * the solver and symbol manager.
+ */
 public class Command extends AbstractPointer
 {
   /**
@@ -21,12 +26,12 @@ public class Command extends AbstractPointer
    * inside cvc5 package.
    * @param pointer The cpp pointer to command.
    */
-  Command(long pointer)
+  Command(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Command::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Invoke the command on the solver and symbol manager sm and return any
@@ -38,7 +43,18 @@ public class Command extends AbstractPointer
    */
   public String invoke(Solver solver, SymbolManager symbolManager)
   {
-    return invoke(pointer, solver.getPointer(), symbolManager.getPointer());
+    try
+    {
+      return invoke(getPointer(), solver.getPointer(), symbolManager.getPointer());
+    }
+    finally
+    {
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable. Keep the
+      // solver and symbol manager reachable until the call has returned.
+      Reference.reachabilityFence(solver);
+      Reference.reachabilityFence(symbolManager);
+    }
   }
 
   private native String invoke(long pointer, long solverPointer, long symbolManagerPointer);
@@ -55,17 +71,18 @@ public class Command extends AbstractPointer
    */
   public String getCommandName()
   {
-    return getCommandName(pointer);
+    return getCommandName(getPointer());
   }
 
   private native String getCommandName(long pointer);
 
   /**
+   * Determine if this command is null.
    * @return True if this command is null.
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);

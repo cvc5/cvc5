@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -119,6 +116,12 @@ class HoExtension : protected EnvObj
    * an inconsistency in m.
    */
   bool collectModelInfoHo(TheoryModel* m, const std::set<Node>& termSet);
+
+  /**
+   * Compute relevant terms. For each (f a b) in termSet, we add terms
+   * e.g. (@ f a), (@ (@ f a) b) to termSet.
+   */
+  void computeRelevantTerms(std::set<Node>& termSet);
 
  protected:
   /** get apply uf for ho apply

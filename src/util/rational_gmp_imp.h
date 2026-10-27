@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,6 +43,10 @@ namespace cvc5::internal {
 class Rational
 {
  public:
+  /**
+   * Constructs a Rational from a mpz_class object.
+   */
+  Rational(const mpz_class& val) : d_value(val) {}
   /**
    * Constructs a Rational from a mpq_class object.
    * Does a deep copy.
@@ -284,7 +285,10 @@ class Rational
     return (*this);
   }
 
-  bool isIntegral() const { return mpz_cmp_ui(d_value.get_den_mpz_t(), 1) == 0; }
+  bool isIntegral() const
+  {
+    return mpz_cmp_ui(d_value.get_den_mpz_t(), 1) == 0;
+  }
 
   /** Returns a string representing the rational in the given base. */
   std::string toString(int base = 10) const { return d_value.get_str(base); }
@@ -322,7 +326,10 @@ class Rational
 
 struct RationalHashFunction
 {
-  inline size_t operator()(const cvc5::internal::Rational& r) const { return r.hash(); }
+  inline size_t operator()(const cvc5::internal::Rational& r) const
+  {
+    return r.hash();
+  }
 }; /* struct RationalHashFunction */
 
 std::ostream& operator<<(std::ostream& os, const Rational& n);

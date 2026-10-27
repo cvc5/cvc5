@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,7 +47,8 @@ class QuantDSplitProofGenerator;
  * This class is used to compute this splitting dynamically, by splitting
  * one variable per quantified formula at a time.
  */
-class QuantDSplit : public QuantifiersModule {
+class QuantDSplit : public QuantifiersModule
+{
   using NodeSet = context::CDHashSet<Node>;
   using NodeIntMap = context::CDHashMap<Node, size_t>;
 
@@ -92,8 +90,8 @@ class QuantDSplit : public QuantifiersModule {
   std::shared_ptr<QuantDSplitProofGenerator> d_pfgen;
 };
 
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif

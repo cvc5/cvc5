@@ -38,7 +38,7 @@
 (define-cond-rule uf-bv2nat-geq-elim ((x ?BitVec) (n Int) (w Int))
   (= w (@bvsize x))
   (>= (ubv_to_int x) n)
-  (ite (>= n w) false (ite (< n 0) true (bvuge x (int_to_bv w n)))))
+  (ite (>= n (int.pow2 w)) false (ite (< n 0) true (bvuge x (int_to_bv w n)))))
 
 (define-rule uf-int2bv-bvult-equiv ((t ?BitVec) (s ?BitVec))
   (bvult t s)

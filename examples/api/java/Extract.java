@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Daniel Larraz, Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,8 +18,7 @@ public class Extract
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("QF_BV"); // Set the logic
 
@@ -51,6 +47,5 @@ public class Extract
       System.out.println(" Expect UNSAT. ");
       System.out.println(" cvc5: " + slv.checkSatAssuming(eq2.notTerm()));
     }
-    Context.deletePointers();
   }
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -146,6 +143,8 @@ void OutputChannel::trustedLemma(TrustNode plem,
   // now, call the normal interface for lemma
   d_engine->lemma(plem, id, p, d_theory);
 }
+
+void OutputChannel::markUsed() { d_engine->d_outputChannelUsed = true; }
 
 TheoryId OutputChannel::getId() const { return d_theory; }
 

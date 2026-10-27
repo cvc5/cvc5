@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -172,6 +169,12 @@ class IntBlaster : protected EnvObj, public ProofGenerator
                           uint32_t size,
                           std::vector<TrustNode>& lemmas);
 
+  /** Adds the constraint forall x1,...,xn. 0 <= f(x1,...,xn) < 2^size to lemmas
+   */
+  void addQuantifiedRangeConstraint(Node f,
+                                    uint32_t size,
+                                    std::vector<TrustNode>& lemmas);
+
   /** Adds a constraint that encodes bitwise and */
   void addBitwiseConstraint(Node bitwiseConstraint,
                             std::vector<TrustNode>& lemmas);
@@ -256,14 +259,16 @@ class IntBlaster : protected EnvObj, public ProofGenerator
   bool childrenTypesChanged(Node n);
 
   /**
-   * @param quantifiedNode a node whose main operator is forall/exists.
-   * @return a node opbtained from quantifiedNode by:
+   * @param quantifiedNode a node whose main operator is forall.
+   * @param translated_children the translated children of quantifiedNode.
+   * @return a node obtained from quantifiedNode by:
    * 1. Replacing all bound BV variables by new bound integer variables.
-   * 2. Add range constraints for the new variables, induced by the original
-   * bit-width. These range constraints are added with "AND" in case of exists
-   * and with "IMPLIES" in case of forall.
+   * 2. Adding range constraints for the new variables, induced by the original
+   * bit-width, as the left-hand side of an implication.
    */
-  Node translateQuantifiedFormula(Node quantifiedNode);
+  Node translateQuantifiedFormula(Node quantifiedNode,
+                                  const std::vector<Node>& translated_children,
+                                  std::vector<TrustNode>& lemmas);
 
   /**
    * Reconstructs a node whose main operator cannot be
@@ -362,10 +367,9 @@ class IntBlaster : protected EnvObj, public ProofGenerator
   NodeManager* d_nm;
 
   /**
-   * Range constraints of the form 0 <= x < 2^k
-   * These are added for every new integer variable that we introduce.
+   * Nodes for which we have added range constraints to the `lemmas set.
    */
-  context::CDHashSet<Node> d_rangeAssertions;
+  context::CDHashSet<Node> d_rangeNodes;
 
   /**
    * A set of "bitwise" equalities over integers for BITVECTOR_AND

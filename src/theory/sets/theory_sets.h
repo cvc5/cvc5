@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Kshitij Bansal
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,6 +38,7 @@ class TheorySets : public Theory
 {
   friend class TheorySetsPrivate;
   friend class TheorySetsRels;
+
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
   TheorySets(Env& env, OutputChannel& out, Valuation valuation);
@@ -76,9 +74,8 @@ class TheorySets : public Theory
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
   /**
-   * If the sets-ext option is not set and we have an extended operator,
-   * we throw an exception. Additionally, we expand operators like choose
-   * and is_singleton.
+   * Check that set operators are supported by the current options and logic.
+   * Additionally, reduce set.fold, rel.aggr, and rel.project.
    */
   TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
   bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;

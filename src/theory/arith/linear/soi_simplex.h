@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -65,21 +62,22 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith::linear {
 
-class SumOfInfeasibilitiesSPD : public SimplexDecisionProcedure {
-public:
- SumOfInfeasibilitiesSPD(Env& env,
-                         LinearEqualityModule& linEq,
-                         ErrorSet& errors,
-                         RaiseConflict conflictChannel,
-                         TempVarMalloc tvmalloc);
+class SumOfInfeasibilitiesSPD : public SimplexDecisionProcedure
+{
+ public:
+  SumOfInfeasibilitiesSPD(Env& env,
+                          LinearEqualityModule& linEq,
+                          ErrorSet& errors,
+                          RaiseConflict conflictChannel,
+                          TempVarMalloc tvmalloc);
 
- Result::Status findModel(bool exactResult) override;
+  Result::Status findModel(bool exactResult) override;
 
- // other error variables are dropping
- WitnessImprovement dualLikeImproveError(ArithVar evar);
- WitnessImprovement primalImproveError(ArithVar evar);
+  // other error variables are dropping
+  WitnessImprovement dualLikeImproveError(ArithVar evar);
+  WitnessImprovement primalImproveError(ArithVar evar);
 
-private:
+ private:
   /** The current sum of infeasibilities variable. */
   ArithVar d_soiVar;
 
@@ -100,19 +98,29 @@ private:
   static constexpr uint32_t s_maxDegeneratePivotsBeforeBlandsOnEntering = 10;
 
   DenseMap<uint32_t> d_leavingCountSinceImprovement;
-  void increaseLeavingCount(ArithVar x){
-    if(!d_leavingCountSinceImprovement.isKey(x)){
-      d_leavingCountSinceImprovement.set(x,1);
-    }else{
+  void increaseLeavingCount(ArithVar x)
+  {
+    if (!d_leavingCountSinceImprovement.isKey(x))
+    {
+      d_leavingCountSinceImprovement.set(x, 1);
+    }
+    else
+    {
       (d_leavingCountSinceImprovement.get(x))++;
     }
   }
-  LinearEqualityModule::UpdatePreferenceFunction selectLeavingFunction(ArithVar x){
-    bool useBlands = d_leavingCountSinceImprovement.isKey(x) &&
-      d_leavingCountSinceImprovement[x] >= s_maxDegeneratePivotsBeforeBlandsOnEntering;
-    if(useBlands) {
+  LinearEqualityModule::UpdatePreferenceFunction selectLeavingFunction(
+      ArithVar x)
+  {
+    bool useBlands = d_leavingCountSinceImprovement.isKey(x)
+                     && d_leavingCountSinceImprovement[x]
+                            >= s_maxDegeneratePivotsBeforeBlandsOnEntering;
+    if (useBlands)
+    {
       return &LinearEqualityModule::preferWitness<false>;
-    } else {
+    }
+    else
+    {
       return &LinearEqualityModule::preferWitness<true>;
     }
   }
@@ -123,11 +131,9 @@ private:
 
   void logPivot(WitnessImprovement w);
 
-  void updateAndSignal(const UpdateInfo& selected, WitnessImprovement w);
+  void updateAndSignal(const UpdateInfo& selected);
 
-  UpdateInfo selectUpdate(LinearEqualityModule::UpdatePreferenceFunction upf,
-                          LinearEqualityModule::VarPreferenceFunction bpf);
-
+  UpdateInfo selectUpdate(LinearEqualityModule::UpdatePreferenceFunction upf);
 
   // UpdateInfo selectUpdateForDualLike(ArithVar basic){
   //   TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForDualLike);
@@ -156,7 +162,7 @@ private:
   // WitnessImprovement selectFocusImproving() ;
   WitnessImprovement soiRound();
   WitnessImprovement SOIConflict();
-  std::vector< ArithVarVec > greedyConflictSubsets();
+  std::vector<ArithVarVec> greedyConflictSubsets();
   bool generateSOIConflict(const ArithVarVec& subset);
 
   // WitnessImprovement focusUsingSignDisagreements(ArithVar basic);
@@ -164,8 +170,7 @@ private:
   // WitnessImprovement adjustFocusShrank(const ArithVarVec& drop);
   // WitnessImprovement focusDownToJust(ArithVar v);
 
-
-  void adjustFocusAndError(const UpdateInfo& up, const AVIntPairVec& focusChanges);
+  void adjustFocusAndError(const AVIntPairVec& focusChanges);
 
   /**
    * This is the main simplex for DPLL(T) loop.
@@ -176,9 +181,10 @@ private:
    */
   bool searchForFeasibleSolution(uint32_t maxIterations);
 
-  bool initialProcessSignals(){
-    TimerStat &timer = d_statistics.d_initialSignalsTime;
-    IntStat& conflictStat  = d_statistics.d_initialConflicts;
+  bool initialProcessSignals()
+  {
+    TimerStat& timer = d_statistics.d_initialSignalsTime;
+    IntStat& conflictStat = d_statistics.d_initialConflicts;
     return standardProcessSignals(timer, conflictStat);
   }
 
@@ -195,11 +201,14 @@ private:
   void qeSwapRange(uint32_t N, uint32_t r, uint32_t s);
 
   unsigned trySet(const ArithVarVec& set);
-  unsigned tryAllSubsets(const ArithVarVec& set, unsigned depth, ArithVarVec& tmp);
+  unsigned tryAllSubsets(const ArithVarVec& set,
+                         unsigned depth,
+                         ArithVarVec& tmp);
 
   /** These fields are designed to be accessible to TheoryArith methods. */
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     TimerStat d_initialSignalsTime;
     IntStat d_initialConflicts;
 
@@ -222,8 +231,8 @@ private:
                const std::string& name,
                uint32_t& pivots);
   } d_statistics;
-};/* class FCSimplexDecisionProcedure */
+}; /* class FCSimplexDecisionProcedure */
 
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Leni Aniva, Liana Hadarean, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -139,10 +136,8 @@ Node TheoryBVRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       BV_PROOF_REWRITE_CASE(ConcatExtractMerge)
     case ProofRewriteRule::MACRO_BV_CONCAT_CONSTANT_MERGE:
       BV_PROOF_REWRITE_CASE(ConcatConstantMerge)
-    case ProofRewriteRule::BV_UMULO_ELIM:
-      BV_PROOF_REWRITE_CASE(UmuloEliminate)
-    case ProofRewriteRule::BV_SMULO_ELIM:
-      BV_PROOF_REWRITE_CASE(SmuloEliminate)
+    case ProofRewriteRule::BV_UMULO_ELIM: BV_PROOF_REWRITE_CASE(UmuloEliminate)
+    case ProofRewriteRule::BV_SMULO_ELIM: BV_PROOF_REWRITE_CASE(SmuloEliminate)
     case ProofRewriteRule::BV_BITWISE_SLICING:
       BV_PROOF_REWRITE_CASE(BitwiseSlicing)
     case ProofRewriteRule::BV_REPEAT_ELIM:
@@ -187,13 +182,15 @@ Node TheoryBVRewriter::eliminateOverflows(Node node)
   return res;
 }
 
-RewriteResponse TheoryBVRewriter::RewriteBit(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteBit(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<BitConst>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   // reduce common subexpressions on both sides
   Node resultNode =
@@ -211,7 +208,8 @@ RewriteResponse TheoryBVRewriter::RewriteUlt(TNode node, bool prerewrite)
                          resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUltBv(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteUltBv(TNode node,
+                                               CVC5_UNUSED bool prerewrite)
 {
   // reduce common subexpressions on both sides
   Node resultNode = LinearRewriteStrategy<RewriteRule<EvalUltBv>>::apply(node);
@@ -219,7 +217,8 @@ RewriteResponse TheoryBVRewriter::RewriteUltBv(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSlt(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSlt(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalSlt>,
@@ -236,14 +235,16 @@ RewriteResponse TheoryBVRewriter::RewriteSlt(TNode node, bool prerewrite)
   // return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSltBv(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSltBv(TNode node,
+                                               CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<EvalSltBv>>::apply(node);
 
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUle(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteUle(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalUle>,
@@ -257,7 +258,8 @@ RewriteResponse TheoryBVRewriter::RewriteUle(TNode node, bool prerewrite)
                          resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSle(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSle(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalSle>,
@@ -266,7 +268,8 @@ RewriteResponse TheoryBVRewriter::RewriteSle(TNode node, bool prerewrite)
                          resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUgt(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteUgt(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<UgtUrem>,
@@ -275,7 +278,8 @@ RewriteResponse TheoryBVRewriter::RewriteUgt(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSgt(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSgt(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<SgtEliminate>
                                           // RewriteRule<SltEliminate>
@@ -284,7 +288,8 @@ RewriteResponse TheoryBVRewriter::RewriteSgt(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUge(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteUge(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<UgeEliminate>>::apply(node);
@@ -292,7 +297,8 @@ RewriteResponse TheoryBVRewriter::RewriteUge(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSge(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<SgeEliminate>
                                           //      RewriteRule<SleEliminate>
@@ -301,7 +307,8 @@ RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node,
+                                               CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalITEBv>,
@@ -334,7 +341,8 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
                          resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteNot(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = node;
 
@@ -391,7 +399,8 @@ RewriteResponse TheoryBVRewriter::RewriteExtract(TNode node, bool prerewrite)
                          resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node,
+                                                CVC5_UNUSED bool prerewrite)
 {
   TRY_REWRITE(ConcatFlatten)
   TRY_REWRITE(ConcatExtractMerge)
@@ -409,7 +418,6 @@ RewriteResponse TheoryBVRewriter::RewriteConcat(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommutNoDuplicates)
   TRY_REWRITE(AndSimplify)
   TRY_REWRITE(AndOrXorConcatPullUp)
   if (!prerewrite)
@@ -421,7 +429,6 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommutNoDuplicates)
   TRY_REWRITE(OrSimplify)
   TRY_REWRITE(AndOrXorConcatPullUp)
   if (!prerewrite)
@@ -433,9 +440,8 @@ RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommut) // flatten the expression
-  TRY_REWRITE(XorSimplify) // simplify duplicates and constants
-  TRY_REWRITE(XorZero) // checks if the constant part is zero and eliminates it
+  TRY_REWRITE(XorSimplify)  // simplify duplicates and constants
+  TRY_REWRITE(XorZero)  // checks if the constant part is zero and eliminates it
   TRY_REWRITE(AndOrXorConcatPullUp)
 
   if (!prerewrite)
@@ -447,7 +453,8 @@ RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteXnor(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteXnor(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<XnorEliminate>>::apply(node);
@@ -455,7 +462,8 @@ RewriteResponse TheoryBVRewriter::RewriteXnor(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteNand(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteNand(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<NandEliminate>>::apply(node);
@@ -463,7 +471,8 @@ RewriteResponse TheoryBVRewriter::RewriteNand(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteNor(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteNor(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<NorEliminate>>::apply(node);
@@ -471,7 +480,8 @@ RewriteResponse TheoryBVRewriter::RewriteNor(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteComp(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = LinearRewriteStrategy<RewriteRule<EvalComp>>::apply(node);
 
@@ -484,20 +494,47 @@ RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteConstBvSym(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteConstBvSym(TNode node,
+                                                    CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalConstBvSym>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
-RewriteResponse TheoryBVRewriter::RewriteSize(TNode node, bool prerewrite)
+
+RewriteResponse TheoryBVRewriter::RewriteOverflow(TNode node,
+                                                  CVC5_UNUSED bool prerewrite)
+{
+  // If all children are constant, we rewrite based on the definition of the
+  // overflow predicate using eliminateOverflows. We require rewriting this
+  // way to ensure the rewrite does constant folding, which is necessary for
+  // model evaluation.
+  bool allConstChildren = true;
+  for (const Node& nc : node)
+  {
+    if (!nc.isConst())
+    {
+      allConstChildren = false;
+      break;
+    }
+  }
+  if (allConstChildren)
+  {
+    Node nodeo = eliminateOverflows(node);
+    return RewriteResponse(REWRITE_AGAIN_FULL, nodeo);
+  }
+  return RewriteResponse(REWRITE_DONE, node);
+}
+RewriteResponse TheoryBVRewriter::RewriteSize(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<SizeEliminate>>::apply(node);
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node,
+                                                   CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalEagerAtom>>::apply(node);
@@ -507,13 +544,13 @@ RewriteResponse TheoryBVRewriter::RewriteEagerAtom(TNode node, bool prerewrite)
 
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite)
 {
-  TRY_REWRITE(FlattenAssocCommut) // flattens and sorts
-  TRY_REWRITE(MultSimplify) // multiplies constant part and checks for 0
+  TRY_REWRITE(FlattenAssocCommut)  // flattens and sorts
+  TRY_REWRITE(MultSimplify)        // multiplies constant part and checks for 0
 
   // only apply if every subterm was already rewritten
   if (!prerewrite)
   {
-    TRY_REWRITE(MultPow2) // replaces multiplication by a power of 2 by a shift
+    TRY_REWRITE(MultPow2)  // replaces multiplication by a power of 2 by a shift
     TRY_REWRITE(MultDistribConst)
     TRY_REWRITE(MultDistrib)
   }
@@ -542,7 +579,8 @@ RewriteResponse TheoryBVRewriter::RewriteAdd(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSub(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSub(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   // return RewriteResponse(REWRITE_DONE, node);
   Node resultNode =
@@ -581,7 +619,8 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite)
                          resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = node;
 
@@ -598,7 +637,8 @@ RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = node;
 
@@ -614,7 +654,8 @@ RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSmod(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSmod(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<SmodEliminate>>::apply(node);
@@ -622,7 +663,8 @@ RewriteResponse TheoryBVRewriter::RewriteSmod(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSdiv(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSdiv(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<SdivEliminate>>::apply(node);
@@ -630,14 +672,16 @@ RewriteResponse TheoryBVRewriter::RewriteSdiv(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSrem(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSrem(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<SremEliminate>>::apply(node);
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteShl(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteShl(TNode node,
+                                             CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = node;
   if (RewriteRule<ShlByConst>::applies(node))
@@ -652,7 +696,8 @@ RewriteResponse TheoryBVRewriter::RewriteShl(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteLshr(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteLshr(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = node;
   if (RewriteRule<LshrByConst>::applies(node))
@@ -667,7 +712,8 @@ RewriteResponse TheoryBVRewriter::RewriteLshr(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteAshr(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteAshr(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode = node;
   if (RewriteRule<AshrByConst>::applies(node))
@@ -682,7 +728,8 @@ RewriteResponse TheoryBVRewriter::RewriteAshr(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteRepeat(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteRepeat(TNode node,
+                                                CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<RepeatEliminate>>::apply(node);
@@ -690,7 +737,8 @@ RewriteResponse TheoryBVRewriter::RewriteRepeat(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteZeroExtend(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteZeroExtend(TNode node,
+                                                    CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<ZeroExtendEliminate>>::apply(node);
@@ -698,7 +746,8 @@ RewriteResponse TheoryBVRewriter::RewriteZeroExtend(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSignExtend(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSignExtend(TNode node,
+                                                    CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<MergeSignExtend>,
@@ -711,8 +760,8 @@ RewriteResponse TheoryBVRewriter::RewriteSignExtend(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteRotateRight(TNode node,
-                                                     bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteRotateRight(
+    TNode node, CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<RotateRightEliminate>>::apply(node);
@@ -720,7 +769,8 @@ RewriteResponse TheoryBVRewriter::RewriteRotateRight(TNode node,
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteRotateLeft(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteRotateLeft(TNode node,
+                                                    CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<RotateLeftEliminate>>::apply(node);
@@ -728,7 +778,8 @@ RewriteResponse TheoryBVRewriter::RewriteRotateLeft(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteRedor(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteRedor(TNode node,
+                                               CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<RedorEliminate>>::apply(node);
@@ -736,7 +787,8 @@ RewriteResponse TheoryBVRewriter::RewriteRedor(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteRedand(TNode node,
+                                                CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<RedandEliminate>>::apply(node);
@@ -765,7 +817,8 @@ RewriteResponse TheoryBVRewriter::RewriteEqual(TNode node, bool prerewrite)
   }
 }
 
-RewriteResponse TheoryBVRewriter::RewriteNego(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteNego(TNode node,
+                                              CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<NegoEliminate>>::apply(node);
@@ -773,7 +826,8 @@ RewriteResponse TheoryBVRewriter::RewriteNego(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteSdivo(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::RewriteSdivo(TNode node,
+                                               CVC5_UNUSED bool prerewrite)
 {
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<SdivoEliminate>>::apply(node);
@@ -781,12 +835,14 @@ RewriteResponse TheoryBVRewriter::RewriteSdivo(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_AGAIN, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::IdentityRewrite(TNode node,
+                                                  CVC5_UNUSED bool prerewrite)
 {
   return RewriteResponse(REWRITE_DONE, node);
 }
 
-RewriteResponse TheoryBVRewriter::UndefinedRewrite(TNode node, bool prerewrite)
+RewriteResponse TheoryBVRewriter::UndefinedRewrite(TNode node,
+                                                   CVC5_UNUSED bool prerewrite)
 {
   Trace("bv-rewrite") << "TheoryBV::UndefinedRewrite for" << node;
   Unimplemented();
@@ -853,4 +909,16 @@ void TheoryBVRewriter::initializeRewrites()
   d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SIZE)] = RewriteSize;
   d_rewriteTable[static_cast<uint32_t>(Kind::CONST_BITVECTOR_SYMBOLIC)] =
       RewriteConstBvSym;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SADDO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UADDO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SMULO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_UMULO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_SSUBO)] =
+      RewriteOverflow;
+  d_rewriteTable[static_cast<uint32_t>(Kind::BITVECTOR_USUBO)] =
+      RewriteOverflow;
 }

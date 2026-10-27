@@ -227,6 +227,7 @@ Example
 
 .. api-examples::
     <examples>/api/cpp/quickstart.cpp
+    <examples>/api/c/quickstart.c
     <examples>/api/java/QuickStart.java
     <pythonicapi>/test/pgms/example_quickstart.py
     <examples>/api/python/quickstart.py

@@ -1,0 +1,13 @@
+; EXPECT: sat
+(set-logic ALIA)
+(declare-const x-1 (Array Int Int))
+(declare-const x- Int)
+(declare-const x5 Bool)
+(declare-const x Int)
+(declare-fun O2 () (Array Int Int))
+(declare-fun A () Int)
+(declare-fun O () Int)
+(declare-fun V () Bool)
+(declare-fun H () Int)
+(assert (and (> H 0) (or V x5) (or x5 (= O 0)) (= 0 (select (store x-1 0 0) H)) (or (not V) (= A (select O2 x))) (or (not V) (= O2 (store x-1 0 x-))) (= 1 (+ A (select O2 0))) (= 0 (select (store (store x-1 0 0) 1 0) (+ 1 O)))))
+(check-sat)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -64,9 +61,9 @@ const char* toString(cvc5::internal::Kind k);
  */
 std::ostream& operator<<(std::ostream&, cvc5::internal::Kind);
 
-/** Returns true if the given kind is associative. This is used by ExprManager to
- * decide whether it's safe to modify big expressions by changing the grouping of
- * the arguments. */
+/** Returns true if the given kind is associative. This is used by ExprManager
+ * to decide whether it's safe to modify big expressions by changing the
+ * grouping of the arguments. */
 /* TODO: This could be generated. */
 bool isAssociative(cvc5::internal::Kind k);
 std::string kindToString(cvc5::internal::Kind k);

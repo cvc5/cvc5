@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +17,7 @@ public class UnsatCores
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       // Enable the production of unsat cores
       solver.setOption("produce-unsat-cores", "true");
@@ -50,6 +46,5 @@ public class UnsatCores
         System.out.println(e);
       }
     }
-    Context.deletePointers();
   }
 }

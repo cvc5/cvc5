@@ -10,7 +10,7 @@ but also functions for retrieving constant values for the supported theories
 (i.e., :code:`cvc5_term_is_*_value()` and :code:`cvc5_term_get_*_value()`,
 which returns the constant values in the best type standard C++ offers).
 
-Additionally, a :cpp:tyep:`Cvc5Term` can be hashed (using
+Additionally, a :cpp:type:`Cvc5Term` can be hashed (using
 :cpp:func:`cvc5_term_hash()`) and represented as string
 (via :cpp:func:`cvc5_term_to_string()`).
 

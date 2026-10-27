@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,9 @@
 
 package io.github.cvc5;
 
+/**
+ * A cvc5 plugin abstract class.
+ */
 public abstract class AbstractPlugin
 {
   /**
@@ -26,6 +26,7 @@ public abstract class AbstractPlugin
     this.termManager = tm;
   }
 
+  /** The associated term manager. */
   protected final TermManager termManager;
 
   /**
@@ -69,4 +70,44 @@ public abstract class AbstractPlugin
    * @return The name of the plugin.
    */
   public abstract String getName();
+
+  /*
+   * Bridges called from native code. They exchange raw native pointers so
+   * that Term wrappers are created here, in the context of the plugin's term
+   * manager.
+   */
+
+  /**
+   * Called from native code, see {@link #check()}.
+   *
+   * @return The native pointers of the lemmas, which native code copies
+   *         before any further Java code can run on this thread.
+   */
+  final long[] checkNative()
+  {
+    Term[] lemmas = check();
+    return lemmas == null ? new long[0] : Utils.getPointers(lemmas);
+  }
+
+  /**
+   * Called from native code, see {@link #notifySatClause(Term)}.
+   *
+   * @param pointer The native pointer of the clause; ownership is transferred
+   *                to the created wrapper.
+   */
+  final void notifySatClauseNative(long pointer)
+  {
+    notifySatClause(new Term(termManager.ctx, pointer));
+  }
+
+  /**
+   * Called from native code, see {@link #notifyTheoryLemma(Term)}.
+   *
+   * @param pointer The native pointer of the lemma; ownership is transferred
+   *                to the created wrapper.
+   */
+  final void notifyTheoryLemmaNative(long pointer)
+  {
+    notifyTheoryLemma(new Term(termManager.ctx, pointer));
+  }
 }

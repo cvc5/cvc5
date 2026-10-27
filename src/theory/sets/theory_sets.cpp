@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,9 +43,7 @@ TheorySets::TheorySets(Env& env, OutputChannel& out, Valuation valuation)
   d_inferManager = &d_im;
 }
 
-TheorySets::~TheorySets()
-{
-}
+TheorySets::~TheorySets() {}
 
 TheoryRewriter* TheorySets::getTheoryRewriter() { return &d_rewriter; }
 
@@ -74,6 +69,9 @@ void TheorySets::finishInit()
   // Universe set is not evaluated. This is moreover important for ensuring that
   // we do not eliminate terms whose value involves the universe set.
   d_valuation.setUnevaluatedKind(Kind::SET_UNIVERSE);
+  // The value of set.choose is determined by congruence with the terms in the
+  // equality engine.
+  d_valuation.setSemiEvaluatedKind(Kind::SET_CHOOSE);
 
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(Kind::SET_SINGLETON);
@@ -82,6 +80,7 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::SET_MINUS);
   d_equalityEngine->addFunctionKind(Kind::SET_MEMBER);
   d_equalityEngine->addFunctionKind(Kind::SET_SUBSET);
+  d_equalityEngine->addFunctionKind(Kind::SET_CHOOSE);
   // relation operators
   d_equalityEngine->addFunctionKind(Kind::RELATION_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN);
@@ -90,7 +89,11 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_IDEN);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_GROUP);
   d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
+  // higher-order operators that are not eliminated during rewriting
+  d_equalityEngine->addFunctionKind(Kind::SET_MAP);
+  d_equalityEngine->addFunctionKind(Kind::SET_FILTER);
   // we do congruence over cardinality
   d_equalityEngine->addFunctionKind(Kind::SET_CARD);
 
@@ -106,7 +109,7 @@ void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
 void TheorySets::notifyFact(TNode atom,
                             bool polarity,
                             TNode fact,
-                            bool isInternal)
+                            CVC5_UNUSED bool isInternal)
 {
   d_internal->notifyFact(atom, polarity, fact);
 }
@@ -117,23 +120,22 @@ bool TheorySets::collectModelValues(TheoryModel* m,
   return d_internal->collectModelValues(m, termSet);
 }
 
-void TheorySets::computeCareGraph() {
-  d_internal->computeCareGraph();
-}
+void TheorySets::computeCareGraph() { d_internal->computeCareGraph(); }
 
-TrustNode TheorySets::explain(TNode node)
+TrustNode TheorySets::explain(TNode node) { return d_im.explainLit(node); }
+
+Node TheorySets::getCandidateModelValue(CVC5_UNUSED TNode node)
 {
-  return d_im.explainLit(node);
+  return Node::null();
 }
-
-Node TheorySets::getCandidateModelValue(TNode node) { return Node::null(); }
 
 void TheorySets::preRegisterTerm(TNode node)
 {
   d_internal->preRegisterTerm(node);
 }
 
-TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+TrustNode TheorySets::ppRewrite(TNode n,
+                                CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
   if (nk == Kind::SET_UNIVERSE || nk == Kind::SET_COMPLEMENT
@@ -189,7 +191,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     Node ret = SetReduction::reduceProjectOperator(n);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
-  return d_internal->ppRewrite(n, lems);
+  return TrustNode::null();
 }
 
 bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
@@ -225,12 +227,11 @@ bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)
   return status;
 }
 
-void TheorySets::presolve() {
-  d_internal->presolve();
-}
+void TheorySets::presolve() { d_internal->presolve(); }
 
-bool TheorySets::isEntailed( Node n, bool pol ) {
-  return d_internal->isEntailed( n, pol );
+bool TheorySets::isEntailed(Node n, bool pol)
+{
+  return d_internal->isEntailed(n, pol);
 }
 
 void TheorySets::processCarePairArgs(TNode a, TNode b)

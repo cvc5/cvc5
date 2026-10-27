@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,8 +40,19 @@ import io.github.cvc5.modes.InputLanguage;
  * manager) has its logic set, then the symbol manager (resp. solver) is set to
  * use that logic, if its logic is not already set.
  */
-public class InputParser extends AbstractPointer
+public class InputParser extends AbstractPointer implements AutoCloseable
 {
+  /**
+   * The solver of this parser. The native parser only borrows the native
+   * solver, so the wrapper is kept reachable here.
+   */
+  private final Solver d_solver;
+  /**
+   * The symbol manager of this parser, kept reachable for the same reason as
+   * {@link #d_solver}.
+   */
+  private final SymbolManager d_sm;
+
   /**
    * Construct an input parser
    *
@@ -55,7 +63,11 @@ public class InputParser extends AbstractPointer
    */
   public InputParser(Solver solver, SymbolManager sm)
   {
-    super(newInputParser(solver.getPointer(), sm.getPointer()));
+    super(solver.ctx,
+        newInputParser(solver.getPointer(), sm.getPointer()),
+        InputParser::deletePointer);
+    d_solver = solver;
+    d_sm = sm;
   }
 
   private static native long newInputParser(long solverPointer, long symbolManagerPointer);
@@ -69,13 +81,19 @@ public class InputParser extends AbstractPointer
   {
     // unlike cpp api, here we create a symbol manager first and then
     // we call the corresponding constructor in cpp api
-    super(newInputParser(
-        solver.getPointer(), new SymbolManager(solver.getTermManager()).getPointer()));
+    this(solver, new SymbolManager(solver.getTermManager()));
   }
 
-  private static native long newInputParser(long solverPointer);
+  private static native void deletePointer(long pointer);
 
-  protected native void deletePointer(long pointer);
+  /**
+   * Free the native input parser, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
 
   protected String toString(long pointer)
   {
@@ -84,24 +102,24 @@ public class InputParser extends AbstractPointer
   }
 
   /**
+   * Get the underlying solver of this input parser.
+   *
    * @return The underlying solver of this input parser
    */
   public Solver getSolver()
   {
-    return new Solver(getSolver(pointer));
+    return d_solver;
   }
 
-  private native long getSolver(long pointer);
-
   /**
+   * Get the underlying symbol manager of this input parser.
+   *
    * @return The underlying symbol manager of this input parser.
    */
   public SymbolManager getSymbolManager()
   {
-    return new SymbolManager(getSymbolManager(pointer));
+    return d_sm;
   }
-
-  private native long getSymbolManager(long pointer);
 
   /**
    * Set the input for the given file.
@@ -111,7 +129,7 @@ public class InputParser extends AbstractPointer
    */
   public void setFileInput(InputLanguage lang, String fileName)
   {
-    setFileInput(pointer, lang.getValue(), fileName);
+    setFileInput(getPointer(), lang.getValue(), fileName);
   }
 
   private native void setFileInput(long pointer, int langValue, String fileName);
@@ -125,7 +143,7 @@ public class InputParser extends AbstractPointer
    */
   public void setStringInput(InputLanguage lang, String input, String name)
   {
-    setStringInput(pointer, lang.getValue(), input, name);
+    setStringInput(getPointer(), lang.getValue(), input, name);
   }
   private native void setStringInput(long pointer, int langValue, String input, String name);
 
@@ -138,7 +156,7 @@ public class InputParser extends AbstractPointer
    */
   public void setIncrementalStringInput(InputLanguage lang, String name)
   {
-    setIncrementalStringInput(pointer, lang.getValue(), name);
+    setIncrementalStringInput(getPointer(), lang.getValue(), name);
   }
 
   private native void setIncrementalStringInput(long pointer, int langValue, String name);
@@ -151,7 +169,7 @@ public class InputParser extends AbstractPointer
    */
   public void appendIncrementalStringInput(String input)
   {
-    appendIncrementalStringInput(pointer, input);
+    appendIncrementalStringInput(getPointer(), input);
   }
 
   private native void appendIncrementalStringInput(long pointer, String input);
@@ -166,7 +184,7 @@ public class InputParser extends AbstractPointer
    */
   public Command nextCommand()
   {
-    return new Command(nextCommand(pointer));
+    return new Command(ctx, nextCommand(getPointer()));
   }
 
   private native long nextCommand(long pointer);
@@ -178,15 +196,19 @@ public class InputParser extends AbstractPointer
    */
   public Term nextTerm()
   {
-    return new Term(nextTerm(pointer));
+    return new Term(ctx, nextTerm(getPointer()));
   }
 
   private native long nextTerm(long pointer);
 
-  /** @return True if this parser done reading input. */
+  /**
+   * Determine if this parser done reading input.
+   *
+   * @return True if this parser done reading input.
+   */
   public boolean done()
   {
-    return done(pointer);
+    return done(getPointer());
   }
 
   private native boolean done(long pointer);

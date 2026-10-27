@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +57,7 @@ size_t CardinalityConstraintHashFunction::operator()(
     const CardinalityConstraint& cc) const
 {
   return std::hash<TypeNode>()(cc.getType())
-         * IntegerHashFunction()(cc.getUpperBound());
+         * std::hash<Integer>()(cc.getUpperBound());
 }
 
 CombinedCardinalityConstraint::CombinedCardinalityConstraint(const Integer& ub)

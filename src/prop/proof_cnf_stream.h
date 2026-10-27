@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -71,8 +68,12 @@ class ProofCnfStream : protected EnvObj
    * definitionally equal to it.  The result of this function is that the Node
    * can be queried via getSatValue(). Essentially, this is like a "convert-but-
    * don't-assert" version of convertAndAssert().
+   *
+   * @param n The node to ensure a literal for.
+   * @param input Whether the clauses introduced for n are derived from the
+   * input, as in convertAndAssert.
    */
-  void ensureLiteral(TNode n);
+  void ensureLiteral(TNode n, bool input);
 
   /**
    * Returns true iff the node has an assigned literal (it might not be

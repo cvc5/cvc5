@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Hans-Joerg Schurr
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -141,7 +138,7 @@ WitnessReq WitnessFormGenerator::requiresWitnessFormTransform(
     // rewriting via the method is enough
     return WitnessReq::NONE;
   }
-  if (rewrite(tr) == rewrite(sr))
+  if (CVC5_EQUAL(rewrite(tr), rewrite(sr)))
   {
     // calling ordinary rewrite after (extended) rewriting is enough
     return WitnessReq::REWRITE;

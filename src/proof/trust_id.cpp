@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -41,14 +38,10 @@ const char* toString(TrustId id)
     case TrustId::PP_STATIC_REWRITE: return "PP_STATIC_REWRITE";
     case TrustId::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case TrustId::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
-    case TrustId::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     // preprocess passes
     case TrustId::PREPROCESS_BV_GUASS: return "PREPROCESS_BV_GUASS";
     case TrustId::PREPROCESS_BV_GUASS_LEMMA: return "PREPROCESS_BV_GUASS_LEMMA";
     case TrustId::PREPROCESS_BV_TO_BOOL: return "PREPROCESS_BV_TO_BOOL";
-    case TrustId::PREPROCESS_BV_TO_INT: return "PREPROCESS_BV_TO_INT";
-    case TrustId::PREPROCESS_BV_TO_INT_LEMMA:
-      return "PREPROCESS_BV_TO_INT_LEMMA";
     case TrustId::PREPROCESS_BOOL_TO_BV: return "PREPROCESS_BOOL_TO_BV";
     case TrustId::PREPROCESS_ACKERMANN: return "PREPROCESS_ACKERMANN";
     case TrustId::PREPROCESS_ACKERMANN_LEMMA:
@@ -57,8 +50,6 @@ const char* toString(TrustId id)
       return "PREPROCESS_STATIC_LEARNING_LEMMA";
     case TrustId::PREPROCESS_HO_ELIM: return "PREPROCESS_HO_ELIM";
     case TrustId::PREPROCESS_HO_ELIM_LEMMA: return "PREPROCESS_HO_ELIM_LEMMA";
-    case TrustId::PREPROCESS_BITVECTOR_EAGER_ATOMS:
-      return "PREPROCESS_BITVECTOR_EAGER_ATOMS";
     case TrustId::PREPROCESS_FF_BITSUM: return "PREPROCESS_FF_BITSUM";
     case TrustId::PREPROCESS_FF_DISJUNCTIVE_BIT:
       return "PREPROCESS_FF_DISJUNCTIVE_BIT";
@@ -87,6 +78,7 @@ const char* toString(TrustId id)
     case TrustId::PREPROCESS_STRINGS_EAGER_PP:
       return "PREPROCESS_STRINGS_EAGER_PP";
     // other
+    case TrustId::UF_DISTINCT: return "UF_DISTINCT";
     case TrustId::ARITH_NL_COVERING_DIRECT: return "ARITH_NL_COVERING_DIRECT";
     case TrustId::ARITH_NL_COVERING_RECURSIVE:
       return "ARITH_NL_COVERING_RECURSIVE";
@@ -95,6 +87,8 @@ const char* toString(TrustId id)
     case TrustId::ARITH_DIO_LEMMA: return "ARITH_DIO_LEMMA";
     case TrustId::ARITH_STATIC_LEARN: return "ARITH_STATIC_LEARN";
     case TrustId::ARITH_NL_COMPARE_LEMMA: return "ARITH_NL_COMPARE_LEMMA";
+    case TrustId::ARITH_NL_FLATTEN_MON_LEMMA:
+      return "ARITH_NL_FLATTEN_MON_LEMMA";
     case TrustId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
     case TrustId::BV_PP_ASSERT: return "BV_PP_ASSERT";
     case TrustId::DIAMONDS: return "DIAMONDS";

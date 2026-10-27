@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Kshitij Bansal, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +24,8 @@
 
 namespace cvc5::internal {
 
-class CVC5_EXPORT DidYouMean {
+class CVC5_EXPORT DidYouMean
+{
  public:
   void addWord(const std::string& word) { d_words.emplace_back(word); }
   void addWords(const std::vector<std::string>& words)

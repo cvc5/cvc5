@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,18 +24,16 @@ namespace cvc5::internal {
 class ModalException : public cvc5::internal::Exception
 {
  public:
-  ModalException() :
-    Exception("Feature used while operating in "
-              "incorrect state") {
+  ModalException()
+      : Exception(
+            "Feature used while operating in "
+            "incorrect state")
+  {
   }
 
-  ModalException(const std::string& msg) :
-    Exception(msg) {
-  }
+  ModalException(const std::string& msg) : Exception(msg) {}
 
-  ModalException(const char* msg) :
-    Exception(msg) {
-  }
+  ModalException(const char* msg) : Exception(msg) {}
 }; /* class ModalException */
 
 /**

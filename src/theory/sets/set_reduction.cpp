@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,7 +69,7 @@ Node SetReduction::reduceFoldOperator(Node node, std::vector<Node>& asserts)
   Node union_i_equal =
       union_i.eqNode(nm->mkNode(Kind::SET_UNION, singleton, union_iMinusOne));
   Node interval_i = nm->mkNode(
-      Kind::AND, nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n));
+      Kind::AND, {nm->mkNode(Kind::GEQ, i, one), nm->mkNode(Kind::LEQ, i, n)});
 
   Node body_i =
       nm->mkNode(Kind::IMPLIES,
@@ -128,6 +125,16 @@ Node SetReduction::reduceProjectOperator(Node n)
       nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, t), projection);
   Node setMap = nm->mkNode(Kind::SET_MAP, lambda, A);
   return setMap;
+}
+
+Node SetReduction::mkChooseMemberAxiom(const Node& n)
+{
+  Assert(n.getKind() == Kind::SET_CHOOSE);
+  NodeManager* nm = n.getNodeManager();
+  Node A = n[0];
+  Node isEmpty = A.eqNode(nm->mkConst(EmptySet(A.getType())));
+  Node member = nm->mkNode(Kind::SET_MEMBER, n, A);
+  return nm->mkNode(Kind::OR, isEmpty, member);
 }
 
 }  // namespace sets

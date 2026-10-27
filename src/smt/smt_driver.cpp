@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,17 +15,25 @@
 #include "options/base_options.h"
 #include "options/main_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/context_manager.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_solver.h"
+#include "theory/theory_engine.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
-    : EnvObj(env), d_smt(smt), d_ctx(ctx), d_ap(env)
+    : EnvObj(env),
+      d_smt(smt),
+      d_ctx(ctx),
+      d_ap(env),
+      d_illegalChecker(env),
+      d_modelVerifier(env),
+      d_satFromModelVerify(false)
 {
   // set up proofs, this is done after options are finalized, so the
   // preprocess proof has been setup
@@ -43,6 +48,7 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
   bool hasAssumptions = !assumptions.empty();
+  d_satFromModelVerify = false;
   if (d_ctx)
   {
     d_ctx->notifyCheckSat(hasAssumptions);
@@ -53,6 +59,10 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   {
     // then, initialize the assertions
     as.setAssumptions(assumptions);
+
+    // the assertions are now finalized, we call the illegal checker to
+    // verify that any new assertions are legal
+    d_illegalChecker.checkAssertions(as);
 
     // make the check, where notice smt engine should be fully inited by now
 
@@ -108,11 +118,72 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     d_smt.getPropEngine()->resetTrail();
     throw;
   }
+  // Check whether an unknown result can be strengthened to "sat", which is the
+  // case if the candidate model can be verified to satisfy the input
+  // assertions. Note this is done before the context is popped below, so that
+  // the assumptions of this call are taken into account.
+  if (options().smt.modelVerify)
+  {
+    if (result.getStatus() == Result::UNKNOWN && verifyUnknownModel(result))
+    {
+      Trace("smt") << "SmtDriver::checkSat: strengthen unknown to sat, based "
+                      "on verifying the candidate model"
+                   << std::endl;
+      result = Result(Result::SAT);
+      d_satFromModelVerify = true;
+    }
+  }
   if (d_ctx)
   {
     d_ctx->notifyCheckSatResult(hasAssumptions);
   }
   return result;
+}
+
+bool SmtDriver::verifyUnknownModel(const Result& r)
+{
+  Assert(r.getStatus() == Result::UNKNOWN);
+  // We require having a model, which additionally requires that functions are
+  // assigned values.
+  if (!options().smt.produceModels || !options().theory.assignFunctionValues)
+  {
+    return false;
+  }
+  // Do not attempt this if we were interrupted or ran out of resources, since
+  // in this case the user asked us to stop spending resources on this query.
+  UnknownExplanation uexp = r.getUnknownExplanation();
+  if (uexp != UnknownExplanation::INCOMPLETE
+      && uexp != UnknownExplanation::UNKNOWN_REASON
+      && uexp != UnknownExplanation::OTHER)
+  {
+    return false;
+  }
+  // This is the candidate model that would be returned by a call to get-model
+  // if we responded unknown for this query.
+  theory::TheoryModel* m = d_smt.getTheoryEngine()->getModel();
+  const context::CDList<Node>& al = d_smt.getAssertions().getAssertionList();
+  // We disable the resource manager while verifying the model, similar to what
+  // is done when building or getting models.
+  ResourceManager* rm = d_env.getResourceManager();
+  rm->setEnabled(false);
+  bool ret = d_modelVerifier.verify(m, al);
+  rm->setEnabled(true);
+  return ret;
+}
+
+void SmtDriver::debugCheckModels(bool hardFailure)
+{
+  // If the result was obtained by verifying a candidate model after an
+  // "unknown" result, the theory engine may have asserted facts (e.g.
+  // quantified formulas) that are not satisfied by the model, so we skip
+  // the check.
+  if (d_satFromModelVerify)
+  {
+    return;
+  }
+  TheoryEngine* te = d_smt.getTheoryEngine();
+  Assert(te != nullptr);
+  te->checkTheoryAssertionsWithModel(hardFailure);
 }
 
 void SmtDriver::getNextAssertionsInternal(preprocessing::AssertionPipeline& ap)

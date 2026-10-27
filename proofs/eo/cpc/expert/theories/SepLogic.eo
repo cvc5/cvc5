@@ -5,7 +5,7 @@
 ; disclaimer: All of the functions in this file are not in SMT-LIB.
 
 ; The distinguished nil element.
-(declare-const sep.nil (-> (! Type :var T) T))
+(declare-parameterized-const sep.nil ((T Type :implicit)) T)
 
 ; The empty heap constraint.
 (declare-const sep.emp Bool)
@@ -17,7 +17,9 @@
 (declare-const wand (-> Bool Bool Bool))
 
 ; The points-to predicate.
-(declare-const pto (-> (! Type :var U :implicit) (! Type :var T :implicit) U T Bool))
+(declare-parameterized-const pto ((U Type :implicit) (T Type :implicit))
+  (-> U T Bool))
 
 ; Internal functions.
-(declare-const @sep_label (-> (! Type :var U :implicit) (! Type :var T :implicit) U (Set T) Bool))
+(declare-parameterized-const @sep_label ((U Type :implicit) (T Type :implicit))
+  (-> U (Set T) Bool))

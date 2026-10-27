@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 (set-logic LIA)
 (set-option :cegqi-nested-qe true)
 (set-info :status unsat)

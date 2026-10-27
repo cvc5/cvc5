@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,31 +12,41 @@
 
 package io.github.cvc5;
 
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Legacy entry point for releasing native memory.
+ *
+ * <p>Native memory is now released automatically once the corresponding Java
+ * objects are no longer reachable, and can be released deterministically via
+ * {@code deletePointer()} or, for term managers, solvers, symbol managers and
+ * input parsers, via {@code close()}.</p>
+ *
+ * @deprecated Native memory is managed automatically. This class will be
+ *             removed in a future release.
+ */
+@Deprecated
 public class Context
 {
-  // store pointers for terms, sorts, etc
-  private static List<AbstractPointer> abstractPointers = new ArrayList<>();
-
-  static void addAbstractPointer(AbstractPointer pointer)
-  {
-    if (!abstractPointers.contains(pointer))
-    {
-      abstractPointers.add(pointer);
-    }
-  }
+  /**
+   * Private constructor to prevent instantiation of this memory management class.
+   */
+  private Context() {}
 
   /**
-   * Delete all cpp pointers for terms, sorts, etc
+   * Delete all native objects of all term managers, solvers, and objects
+   * derived from them, whether or not they are still referenced from Java.
+   *
+   * <p>This method must be called by a single thread once no term manager and
+   * solver instance is in use anymore. Objects whose native counterpart has
+   * been deleted must not be used afterwards.</p>
+   *
+   * @deprecated Native memory is released automatically once the
+   *             corresponding Java objects are no longer reachable. Use
+   *             {@code deletePointer()} or {@code close()} to release
+   *             individual objects deterministically.
    */
+  @Deprecated
   public static void deletePointers()
   {
-    for (int i = abstractPointers.size() - 1; i >= 0; i--)
-    {
-      abstractPointers.get(i).deletePointer();
-    }
-    abstractPointers.clear();
+    NativeContext.releaseAll();
   }
 }

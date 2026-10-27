@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Daniel Larraz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -52,6 +49,7 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                # make sure not to register with cmake
                -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
+               -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DENABLE_ASSERTIONS=OFF

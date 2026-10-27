@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,9 +44,7 @@ class SolverState : public TheoryState
   typedef context::CDHashMap<Node, size_t> NodeIntMap;
 
  public:
-  SolverState(Env& env,
-              Valuation val,
-              SkolemCache& skc);
+  SolverState(Env& env, Valuation val, SkolemCache& skc);
   //-------------------------------- initialize per check
   /** reset, clears the data structures maintained by this class. */
   void reset();
@@ -145,22 +140,22 @@ class SolverState : public TheoryState
    * context, and t is of the form <k>(t1,t2) where t1=r1 and t2=r2 hold in the
    * current context. The term t is the representative of its congruence class.
    */
-  const std::map<Kind, std::map<Node, std::map<Node, Node> > >&
-  getBinaryOpIndex() const;
+  const std::map<Kind, std::map<Node, std::map<Node, Node>>>& getBinaryOpIndex()
+      const;
 
   /** Get binary operator index
    *
    * This returns the binary operator index of the given kind.
    * See getBinaryOpIndex() above.
    */
-  const std::map<Node, std::map<Node, Node> >& getBinaryOpIndex(Kind k);
+  const std::map<Node, std::map<Node, Node>>& getBinaryOpIndex(Kind k);
   /** get operator list
    *
    * This returns a mapping from set kinds to a list of terms of that kind
    * that exist in the current context. Each of the terms in the range of this
    * map is a representative of its congruence class.
    */
-  const std::map<Kind, std::vector<Node> >& getOperatorList() const;
+  const std::map<Kind, std::vector<Node>>& getOperatorList() const;
   /** Get the list of all set.filter terms */
   const std::vector<Node>& getFilterTerms() const;
   /** Get the list of all set.map terms in the current user context */
@@ -225,7 +220,7 @@ class SolverState : public TheoryState
   /** Map from terms to the representative of their congruence class */
   std::map<Node, Node> d_congruent;
   /** Map from equivalence classes to the list of non-variable sets in it */
-  std::map<Node, std::vector<Node> > d_nvar_sets;
+  std::map<Node, std::vector<Node>> d_nvar_sets;
   /** A list of filter terms. It is initialized during full effort check */
   std::vector<Node> d_filterTerms;
   /** User context collection of set.map terms */
@@ -236,7 +231,7 @@ class SolverState : public TheoryState
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_mapSkolemElements;
   /** Map from equivalence classes to the list of comprehension sets in it */
-  std::map<Node, std::vector<Node> > d_compSets;
+  std::map<Node, std::vector<Node>> d_compSets;
   /** Map from equivalence classes to a variable sets in it */
   std::map<Node, Node> d_var_set;
   /** polarity memberships
@@ -245,7 +240,7 @@ class SolverState : public TheoryState
    * with explanations (see getMembers), d_pol_mems[1] maps equivalence classes
    * to their negative memberships.
    */
-  std::map<Node, std::map<Node, Node> > d_pol_mems[2];
+  std::map<Node, std::map<Node, Node>> d_pol_mems[2];
   // -------------------------------- term indices
   /** Term index for SET_MEMBER
    *
@@ -257,22 +252,22 @@ class SolverState : public TheoryState
    * equivalence classes, (member t1 t2) is the representative of its congruence
    * class, and r1=t1 and r2=t2 hold in the current context.
    */
-  std::map<Node, std::map<Node, Node> > d_members_index;
+  std::map<Node, std::map<Node, Node>> d_members_index;
   /** Term index for SET_SINGLETON */
   std::map<Node, Node> d_singleton_index;
   /** Indices for the binary kinds INTERSECT, SET_MINUS and SET_UNION. */
-  std::map<Kind, std::map<Node, std::map<Node, Node> > > d_bop_index;
+  std::map<Kind, std::map<Node, std::map<Node, Node>>> d_bop_index;
   /** A list of comprehension sets */
   std::vector<Node> d_allCompSets;
   // -------------------------------- end term indices
   /** List of operators per kind */
-  std::map<Kind, std::vector<Node> > d_op_list;
+  std::map<Kind, std::vector<Node>> d_op_list;
   //--------------------------------- SAT-context-dependent member list
   /**
    * Map from representatives r of set equivalence classes to atoms of the form
    * (member x s) where s is in the equivalence class of r.
    */
-  std::map<Node, std::vector<Node> > d_members_data;
+  std::map<Node, std::vector<Node>> d_members_data;
   /** A (SAT-context-dependent) number of members in the above map */
   NodeIntMap d_members;
   //--------------------------------- end

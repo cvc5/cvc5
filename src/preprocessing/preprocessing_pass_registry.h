@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Justin Xu, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +33,8 @@ class PreprocessingPassContext;
  * to be used as a singleton and can be shared between threads (assuming that
  * the memory allocator is thread-safe) as well as different solver instances.
  */
-class PreprocessingPassRegistry {
+class PreprocessingPassRegistry
+{
  public:
   /**
    * Gets the single instance of this class.

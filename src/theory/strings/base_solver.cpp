@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,6 +47,22 @@ BaseSolver::BaseSolver(Env& env,
 }
 
 BaseSolver::~BaseSolver() {}
+
+/**
+ * Implements union find, with path compression
+ */
+Node getRep(const Node& n, std::map<Node, Node>& rep)
+{
+  std::map<Node, Node>::iterator it = rep.find(n);
+  if (it == rep.end())
+  {
+    return n;
+  }
+  Assert(n != it->second);
+  Node r = getRep(it->second, rep);
+  rep[n] = r;
+  return r;
+}
 
 void BaseSolver::checkInit()
 {
@@ -167,6 +180,18 @@ void BaseSolver::checkInit()
               std::vector<Node> exp;
               // the number of empty components of n, nc
               size_t count[2] = {0, 0};
+              // We are explaining equal components, which may end up producing
+              // cycles in the explanation, e.g. explaining
+              //   (= (str.++ s t) (str.++ t s)) when s is equal to t,
+              // we would add (= s t) and (= t s) to the explanation. This leads
+              // to issues in proofs since we are treating explanations as
+              // substitutions. To address this we track a representative of
+              // the terms occurring in our explanation, such that after adding
+              // (= s t), expRep[s] = expRep[t] = s, and hence (= t s) is
+              // recognized as redundant. This also can lead to shorter
+              // explanations.
+              std::map<Node, Node> expRep;
+              std::map<Node, Node>::iterator itra, itrb;
               while (count[0] < nc.getNumChildren()
                      || count[1] < n.getNumChildren())
               {
@@ -193,7 +218,17 @@ void BaseSolver::checkInit()
                   Assert(count[1] < n.getNumChildren());
                   if (nc[count[0]] != n[count[1]])
                   {
-                    exp.push_back(nc[count[0]].eqNode(n[count[1]]));
+                    Node a = nc[count[0]];
+                    Node b = n[count[1]];
+                    Node ra = getRep(a, expRep);
+                    Node rb = getRep(b, expRep);
+                    // if they do not already have an equal representative
+                    if (ra != rb)
+                    {
+                      // update the representative
+                      expRep[rb] = ra;
+                      exp.push_back(a.eqNode(b));
+                    }
                   }
                   count[0]++;
                   count[1]++;
@@ -225,9 +260,8 @@ void BaseSolver::checkInit()
               tti[k].add(n, 0, d_state, emps, true, c);
               std::swap(nc, n);
             }
-            Trace("strings-base-debug")
-                << "  congruent term : " << n << " (via " << nc << ")"
-                << std::endl;
+            Trace("strings-base-debug") << "  congruent term : " << n
+                                        << " (via " << nc << ")" << std::endl;
             d_congruent.insert(n);
             congruentCount[k].first++;
           }
@@ -346,7 +380,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
                         << " from " << a << ", " << b << std::endl;
   if (!d_state.areEqual(s, t))
   {
-    Assert(s.getType() == t.getType());
+    AssertEqual(s.getType(), t.getType());
     Node eq = s.eqNode(t);
     if (a.getType().isString())
     {
@@ -370,7 +404,7 @@ bool BaseSolver::processConstantLike(Node a, Node b)
         Node scr = utils::mkCodeRange(s, d_cardSize);
         Node tcr = utils::mkCodeRange(t, d_cardSize);
         Node conc =
-            nodeManager()->mkNode(Kind::OR, scr.notNode(), tcr.notNode());
+            nodeManager()->mkNode(Kind::OR, {scr.notNode(), tcr.notNode()});
         // We do not explain exp for two reasons. First, we are
         // caching this inference based on the user context and thus
         // it should not depend on the current explanation. Second,
@@ -540,12 +574,24 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             Trace("strings-debug")
                 << "Set eqc best content " << n << " to " << nct
                 << ", explanation = " << bei.d_exp << std::endl;
+            // we have e.g. (= x (str.++ "A" x)), which is a conflict.
+            for (const Node& nctc : nct)
+            {
+              if (d_state.areEqual(nctc, nr))
+              {
+                d_im.sendInference(exp,
+                                   nctc.eqNode(n).notNode(),
+                                   InferenceId::STRINGS_I_CYCLE_CONFLICT);
+                return;
+              }
+            }
           }
         }
       }
       else if (d_state.hasTerm(c))
       {
-        d_im.sendInference(exp, n.eqNode(c), InferenceId::STRINGS_I_CONST_MERGE);
+        d_im.sendInference(
+            exp, n.eqNode(c), InferenceId::STRINGS_I_CONST_MERGE);
         return;
       }
       else if (!d_im.hasProcessed())
@@ -578,7 +624,8 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             exp.push_back(bei.d_exp);
             d_im.addToExplanation(n, bei.d_base, exp);
           }
-          d_im.sendInference(exp, d_false, InferenceId::STRINGS_I_CONST_CONFLICT);
+          d_im.sendInference(
+              exp, d_false, InferenceId::STRINGS_I_CONST_CONFLICT);
           return;
         }
         else
@@ -617,10 +664,10 @@ void BaseSolver::checkCardinality()
   // are pairwise propagated to be equal. We do not require disequalities
   // between the lengths of each collection, since we split on disequalities
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
-  std::map<TypeNode, std::vector<std::vector<Node> > > cols;
-  std::map<TypeNode, std::vector<Node> > lts;
+  std::map<TypeNode, std::vector<std::vector<Node>>> cols;
+  std::map<TypeNode, std::vector<Node>> lts;
   d_state.separateByLengthTyped(d_stringLikeEqc, cols, lts);
-  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
+  for (std::pair<const TypeNode, std::vector<std::vector<Node>>>& c : cols)
   {
     checkCardinalityType(c.first, c.second, lts[c.first]);
   }

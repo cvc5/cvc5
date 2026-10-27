@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -109,7 +106,7 @@ class InQuantTermContext : public TermContext
   /** get hash value from the flags */
   static uint32_t getValue(bool inQuant);
   /** get flags from the hash value */
-  static bool inQuant(uint32_t val, bool& inQuant);
+  static bool inQuant(uint32_t val);
 };
 
 /**
@@ -212,6 +209,26 @@ class WithinKindTermContext : public TermContext
   /** The kind */
   Kind d_kind;
 };
+
+/**
+ * Increments value if we are on (repeated) traversals of the given path.
+ * The context value is 0 if the term context is not on the path, or
+ * 1 + depth otherwise.
+ */
+class WithinPathTermContext : public TermContext
+{
+ public:
+  WithinPathTermContext(const std::vector<size_t>& path) : d_path(path) {}
+  /** The initial value: value 1. */
+  uint32_t initialValue() const override;
+  /** Compute the value of the index^th child of t whose hash is tval */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
+
+ protected:
+  /** The path */
+  std::vector<size_t> d_path;
+};
+
 }  // namespace cvc5::internal
 
 #endif /* CVC5__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H */

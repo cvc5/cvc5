@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Daniel Larraz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,8 +19,7 @@ public class Bags
   public static void main(String args[]) throws CVC5ApiException
 
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("ALL");
 
@@ -109,6 +105,5 @@ public class Bags
         }
       }
     }
-    Context.deletePointers();
   }
 }

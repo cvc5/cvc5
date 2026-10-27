@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,13 +42,31 @@ class ExpandDefs : protected EnvObj
   ExpandDefs(Env& env);
   ~ExpandDefs();
   /**
-   * Expand definitions in term n. Return the expanded form of n.
+   * Expand definitions in term n, using the cache owned by this class.
+   *
+   * Note that the expanded form of a term is a function of the term itself and
+   * the theory rewriters of this environment only. In particular, it does not
+   * depend on the current assertions, the top-level substitutions, or the
+   * user context. It is thus safe to maintain this cache for the lifetime of
+   * this object, e.g. across (incremental) calls to check-sat and across
+   * user-context push/pop.
+   *
+   * @param n The node to expand
+   * @return The expanded term.
+   */
+  Node expandDefinitions(TNode n);
+  /**
+   * Same as above, where the caller provides the cache of previous results.
    *
    * @param n The node to expand
    * @param cache Cache of previous results
    * @return The expanded term.
    */
   Node expandDefinitions(TNode n, std::unordered_map<Node, Node>& cache);
+
+ private:
+  /** The cache used by the method above that takes no cache argument */
+  std::unordered_map<Node, Node> d_cache;
 };
 
 }  // namespace smt

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -148,10 +145,29 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(assumps.size() == 1 || assumps[1].getKind() == Kind::EQUAL);
       // (and (set.member x S) (= S (op T1 T2))) =>
       // rewrite((set.member x (op T1 T2)))
-      // this holds by applying the equality as a substitution to the first
-      // assumption and rewriting.
-      std::vector<Node> exp(assumps.begin() + 1, assumps.end());
-      Node aelim = psb.applyPredElim(assumps[0], exp);
+      // this holds by applying the equality to the first assumption and
+      // rewriting.
+      Node aelim;
+      Node s = assumps[0][1];
+      if (assumps.size() == 2 && assumps[1][0] == s)
+      {
+        // We use congruence to rewrite only the set argument of the
+        // membership. Applying (= S (op T1 T2)) as a substitution would
+        // also replace S in x, which may contain S if x is e.g.
+        // (set.choose S).
+        Node x = assumps[0][0];
+        Node xeq = psb.tryStep(ProofRule::REFL, {}, {x});
+        std::vector<Node> cargs;
+        ProofRule cr = expr::getCongRule(assumps[0], cargs);
+        Node ceq = psb.tryStep(cr, {xeq, assumps[1]}, cargs);
+        aelim = psb.tryStep(ProofRule::EQ_RESOLVE, {assumps[0], ceq}, {});
+      }
+      else
+      {
+        // apply the equalities as a substitution to the first assumption
+        std::vector<Node> exp(assumps.begin() + 1, assumps.end());
+        aelim = psb.applyPredElim(assumps[0], exp);
+      }
       success = true;
       if (!CDProof::isSame(aelim, conc))
       {
@@ -307,6 +323,18 @@ bool InferProofCons::convert(CDProof& cdp,
       Assert(success);
     }
     break;
+    case InferenceId::SETS_CHOOSE_MEMBER:
+    {
+      Assert(assumps.empty());
+      // the conclusion is
+      //   (or (= A (as set.empty (Set E))) (set.member (set.choose A) A))
+      Assert(conc.getKind() == Kind::OR && conc.getNumChildren() == 2);
+      Node t = conc[1][0];
+      Node res = psb.tryStep(ProofRule::SETS_CHOOSE_MEMBER, {}, {t}, conc);
+      success = CDProof::isSame(res, conc);
+      Assert(success);
+    }
+    break;
     case InferenceId::SETS_DEQ:
     {
       Assert(assumps.size() == 1);
@@ -386,12 +414,12 @@ bool InferProofCons::convert(CDProof& cdp,
       // Handles cases:
       // (and (= S set.empty) (set.member x S)) => false
       // (and (= S (set.singleton y)) (set.member x S)) => (= x y)
-      Assert(assumps.size()==2);
+      Assert(assumps.size() == 2);
       Assert(assumps[0].getKind() == Kind::EQUAL);
       Assert(assumps[1].getKind() == Kind::SET_MEMBER);
       success = psb.applyPredTransform(assumps[1], conc, {assumps[0]});
     }
-      break;
+    break;
     case InferenceId::SETS_EQ_CONFLICT:
     default: Trace("sets-ipc") << "Unhandled " << id; break;
   }
@@ -400,7 +428,7 @@ bool InferProofCons::convert(CDProof& cdp,
     if (!cdp.addSteps(psb))
     {
       // should not fail if success was computed correctly above
-      Assert(false);
+      DebugUnhandled();
       success = false;
     }
   }

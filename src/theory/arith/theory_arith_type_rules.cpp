@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,7 @@
 
 #include "theory/arith/theory_arith_type_rules.h"
 
+#include "util/iand.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -31,14 +29,15 @@ bool isMaybeInteger(const TypeNode& tn)
   return tn.isInteger() || tn.isFullyAbstract();
 }
 
-TypeNode ArithConstantTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArithConstantTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
                                             TNode n,
                                             bool check,
-                                            std::ostream* errOut)
+                                            CVC5_UNUSED std::ostream* errOut)
 {
   // we use different kinds for constant integers and reals
   if (n.getKind() == Kind::CONST_RATIONAL)
@@ -61,29 +60,34 @@ TypeNode ArithConstantTypeRule::computeType(NodeManager* nodeManager,
 }
 
 TypeNode ArithRealAlgebraicNumberOpTypeRule::preComputeType(NodeManager* nm,
-                                                            TNode n)
+                                                            CVC5_UNUSED TNode n)
 {
   return nm->realType();
 }
 TypeNode ArithRealAlgebraicNumberOpTypeRule::computeType(
-    NodeManager* nodeManager, TNode n, bool check, std::ostream* errOut)
+    NodeManager* nodeManager,
+    CVC5_UNUSED TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->realType();
 }
 TypeNode ArithRealAlgebraicNumberTypeRule::preComputeType(NodeManager* nm,
-                                                          TNode n)
+                                                          CVC5_UNUSED TNode n)
 {
   return nm->realType();
 }
-TypeNode ArithRealAlgebraicNumberTypeRule::computeType(NodeManager* nodeManager,
-                                                       TNode n,
-                                                       bool check,
-                                                       std::ostream* errOut)
+TypeNode ArithRealAlgebraicNumberTypeRule::computeType(
+    NodeManager* nodeManager,
+    CVC5_UNUSED TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->realType();
 }
 
-TypeNode ArithOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArithOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
@@ -153,7 +157,8 @@ TypeNode ArithOperatorTypeRule::computeType(NodeManager* nodeManager,
   }
 }
 
-TypeNode ArithRelationTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode ArithRelationTypeRule::preComputeType(NodeManager* nm,
+                                               CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -178,13 +183,14 @@ TypeNode ArithRelationTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
-TypeNode RealNullaryOperatorTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode RealNullaryOperatorTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
                                                   TNode n,
-                                                  bool check,
+                                                  CVC5_UNUSED bool check,
                                                   std::ostream* errOut)
 {
   // for nullary operators, we only computeType for check=true, since they are
@@ -201,7 +207,7 @@ TypeNode RealNullaryOperatorTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->realType();
 }
 
-TypeNode IAndTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IAndTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
 {
   return nm->integerType();
 }
@@ -216,6 +222,17 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   {
     TypeNode arg1 = n[0].getTypeOrNull();
     TypeNode arg2 = n[1].getTypeOrNull();
+    Node op = n.getOperator();
+    uint32_t bsize = op.getConst<IntAnd>().d_size;
+    if (bsize <= 0)
+    {
+      if (errOut)
+      {
+        (*errOut) << "iand must be indexed by a positive integer. Index is: "
+                  << bsize;
+      }
+      return TypeNode::null();
+    }
     if (!isMaybeInteger(arg1) || !isMaybeInteger(arg2))
     {
       if (errOut)
@@ -228,17 +245,18 @@ TypeNode IAndTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->integerType();
 }
 
-TypeNode PowTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode PowTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                     CVC5_UNUSED TNode n)
 {
   return TypeNode::null();
 }
 
-TypeNode PowTypeRule::computeType(NodeManager* nodeManager,
-                                   TNode n,
-                                   bool check,
-                                   std::ostream* errOut)
+TypeNode PowTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
+                                  TNode n,
+                                  CVC5_UNUSED bool check,
+                                  std::ostream* errOut)
 {
-  Assert (n.getKind() == Kind::POW);
+  Assert(n.getKind() == Kind::POW);
   TypeNode arg1 = n[0].getTypeOrNull();
   TypeNode arg2 = n[1].getTypeOrNull();
   TypeNode t = arg1.leastUpperBound(arg2);
@@ -253,7 +271,8 @@ TypeNode PowTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
-TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm, TNode n)
+TypeNode IndexedRootPredicateTypeRule::preComputeType(NodeManager* nm,
+                                                      CVC5_UNUSED TNode n)
 {
   return nm->booleanType();
 }
@@ -280,6 +299,109 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
       if (errOut)
       {
         (*errOut) << "expecting polynomial as second argument";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nodeManager->booleanType();
+}
+
+TypeNode StarContainsTypeRule::preComputeType(NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
+                                           TNode n,
+                                           bool check,
+                                           std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::STAR_CONTAINS);
+  if (check)
+  {
+    // The first argument should be a lambda. STAR_CONTAINS is not a
+    // closure, so its first child is an ordinary term that lambda
+    // lifting may have purified into a skolem; we check its original
+    // form.
+    Node lambda = n[0];
+    // remaining arguments should be elements of integer type
+    std::vector<Node> arguments;
+    for (size_t i = 1; i < n.getNumChildren(); i++)
+    {
+      arguments.push_back(n[i]);
+    }
+
+    bool anyIsNull = std::any_of(
+        arguments.begin(), arguments.end(), [](Node x) { return x.isNull(); });
+
+    if (lambda.isNull() || anyIsNull)
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting concrete types for STAR_CONTAINS operator";
+      }
+      return TypeNode::null();
+    }
+
+    TypeNode functionType = lambda.getType();
+    if (!(functionType.isFunction()))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    bool allInt = std::all_of(argTypes.begin(), argTypes.end(), [](TypeNode x) {
+      return x.isInteger();
+    });
+
+    if (!(allInt
+          && CVC5_EQUAL(functionType.getRangeType(),
+                        nodeManager->booleanType())))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function that accepts only integer arguments "
+                     "and returns a boolean."
+                  << "Found a function of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+
+    if (argTypes.size() != arguments.size())
+    {
+      if (errOut)
+      {
+        (*errOut) << "The number of arguments " << arguments.size()
+                  << "does not match the number of function arguments "
+                  << argTypes.size();
+      }
+      return TypeNode::null();
+    }
+
+    allInt = std::all_of(arguments.begin(), arguments.end(), [](Node x) {
+      return x.getType().isInteger();
+    });
+
+    if (!allInt)
+    {
+      if (errOut)
+      {
+        std::stringstream types;
+        for (const Node& node : arguments)
+        {
+          types << node.getType();
+        }
+
+        (*errOut) << "Operator " << n.getKind() << " expects integer arguments "
+                  << "Found arguments of types '" << types.str() << "'.";
       }
       return TypeNode::null();
     }

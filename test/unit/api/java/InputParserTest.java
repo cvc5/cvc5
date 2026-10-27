@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,6 +34,7 @@ class InputParserTest extends ParserTest
   {
     InputParser p = new InputParser(d_solver);
     assertEquals(p.getSolver(), d_solver);
+    assertSame(p.getSolver(), d_solver);
   }
 
   @Test
@@ -46,8 +44,28 @@ class InputParserTest extends ParserTest
     // a symbol manager is allocated
     assertNotEquals(p.getSymbolManager(), null);
 
+    assertSame(p.getSymbolManager(), p.getSymbolManager());
+
     InputParser p2 = new InputParser(d_solver, d_symman);
     assertEquals(p2.getSymbolManager(), d_symman);
+    assertSame(p2.getSymbolManager(), d_symman);
+  }
+
+  @Test
+  void releaseViaGetters()
+  {
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
+    SymbolManager sm = new SymbolManager(tm);
+    InputParser p = new InputParser(solver, sm);
+    // The getters return the original objects rather than new wrappers around
+    // the same native objects, so releasing both does not free them twice.
+    p.deletePointer();
+    p.getSolver().deletePointer();
+    p.getSymbolManager().deletePointer();
+    solver.deletePointer();
+    sm.deletePointer();
+    tm.deletePointer();
   }
 
   @Test

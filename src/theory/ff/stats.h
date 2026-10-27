@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,13 +26,19 @@ namespace ff {
 struct FfStatistics
 {
   /**
-   * Number of groebner-basis reductions
+   * Number of runs of the GB engine for reasoning.
+   * Excludes calls to the GB engine for model construction.
    */
-  IntStat d_numReductions;
+  IntStat d_numGbRuns;
   /**
-   * Time spent in groebner-basis reductions
+   * Time spent in Groebner-basis reductions
    */
-  TimerStat d_reductionTime;
+  TimerStat d_timeGbRuns;
+  /**
+   * Number of reductions where 1 was in the original ideal.
+   * I.e. the number of times that the ideal was trivially unsat.
+   */
+  IntStat d_numTrivialUnsat;
   /**
    * Time spent in model construction
    */
@@ -44,6 +47,14 @@ struct FfStatistics
    * Number of times that model construction gave an error
    */
   IntStat d_numConstructionErrors;
+  /**
+   * Number of times the ideal was zero dimensional.
+   */
+  IntStat d_idealMinPoly;
+  /**
+   * Number of times the ideal was positive dimensional.
+   */
+  IntStat d_idealPosDim;
 
   FfStatistics(StatisticsRegistry& reg, const std::string& prefix);
 };

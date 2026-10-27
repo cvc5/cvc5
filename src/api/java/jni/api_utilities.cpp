@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,8 +14,6 @@
 
 #include <string>
 #include <vector>
-
-#include "api_plugin.h"
 
 jobjectArray getStringArrayFromStringVector(
     JNIEnv* env, const std::vector<std::string>& cStrings)
@@ -53,66 +48,58 @@ jobject getBooleanObject(JNIEnv* env, bool cValue)
   return ret;
 }
 
-cvc5::Term applyOracle(JNIEnv* env,
-                       jobject oracleRef,
+JNIEnv* getEnv(JavaVM* vm)
+{
+  JNIEnv* env = nullptr;
+  jint rc = vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+  if (rc == JNI_EDETACHED)
+  {
+    vm->AttachCurrentThread(reinterpret_cast<void**>(&env), nullptr);
+  }
+  return env;
+}
+
+cvc5::Term applyOracle(JavaVM* vm,
+                       jweak oracleRef,
                        const std::vector<cvc5::Term>& terms)
 {
-  jclass termClass = env->FindClass("Lio/github/cvc5/Term;");
-  jmethodID termConstructor = env->GetMethodID(termClass, "<init>", "(J)V");
-
-  jobjectArray jTerms = env->NewObjectArray(terms.size(), termClass, NULL);
-
-  for (size_t i = 0; i < terms.size(); i++)
+  JNIEnv* env = getEnv(vm);
+  // Release the local references created below when done: this function may
+  // be called many times during a single native call.
+  env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject oracle = env->NewLocalRef(oracleRef);
+  if (oracle == nullptr)
   {
-    jlong termPointer = reinterpret_cast<jlong>(new cvc5::Term(terms[i]));
-    jobject jTerm = env->NewObject(termClass, termConstructor, termPointer);
-    env->SetObjectArrayElement(jTerms, i, jTerm);
+    // Cannot happen while the Java solver is alive, which it is during any
+    // call that can invoke an oracle.
+    env->PopLocalFrame(nullptr);
+    throw cvc5::CVC5ApiException("The oracle has been garbage collected.");
   }
 
-  jclass oracleClass = env->GetObjectClass(oracleRef);
-  jmethodID applyMethod = env->GetMethodID(
-      oracleClass, "apply", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
-
-  jobject jTerm = env->CallObjectMethod(oracleRef, applyMethod, jTerms);
-  jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
-  jlong termPointer = env->GetLongField(jTerm, pointer);
-  cvc5::Term* term = reinterpret_cast<cvc5::Term*>(termPointer);
-  return *term;
-}
-
-ApiManager* ApiManager::currentAM()
-{
-  static ApiManager am;
-  return &am;
-}
-
-jobject ApiManager::addGlobalReference(JNIEnv* env,
-                                       jlong pointer,
-                                       jobject object)
-{
-  jobject reference = env->NewGlobalRef(object);
-  d_globalReferences[pointer].push_back(reference);
-  return reference;
-}
-
-void ApiManager::addPluginPointer(jlong pointer, jlong pluginPointer)
-{
-  d_pluginPointers[pointer].push_back(pluginPointer);
-}
-
-void ApiManager::deletePointer(JNIEnv* env, jlong pointer)
-{
-  const std::vector<jobject>& refs = d_globalReferences[pointer];
-  for (jobject ref : refs)
+  // Ownership of the term copies is transferred to the Java wrappers created
+  // by the bridge.
+  std::vector<jlong> pointers;
+  pointers.reserve(terms.size());
+  for (const cvc5::Term& term : terms)
   {
-    env->DeleteGlobalRef(ref);
+    pointers.push_back(reinterpret_cast<jlong>(new cvc5::Term(term)));
   }
-  const std::vector<jlong>& pointers = d_pluginPointers[pointer];
-  for (jlong p : pointers)
+  jlongArray jPointers = env->NewLongArray(pointers.size());
+  env->SetLongArrayRegion(jPointers, 0, pointers.size(), pointers.data());
+
+  jclass oracleClass = env->GetObjectClass(oracle);
+  jmethodID applyMethod = env->GetMethodID(oracleClass, "apply", "([J)J");
+  jlong termPointer = env->CallLongMethod(oracle, applyMethod, jPointers);
+  if (env->ExceptionCheck() || termPointer == 0)
   {
-    ApiPlugin* plugin = reinterpret_cast<ApiPlugin*>(p);
-    delete plugin;
+    env->ExceptionClear();
+    env->PopLocalFrame(nullptr);
+    throw cvc5::CVC5ApiException("The oracle threw an exception.");
   }
-  d_globalReferences.erase(pointer);
-  d_pluginPointers.erase(pointer);
+  // The result is owned by its Java wrapper, which cannot be reclaimed before
+  // this native call returns to Java. Copy it now.
+  cvc5::Term term = *reinterpret_cast<cvc5::Term*>(termPointer);
+
+  env->PopLocalFrame(nullptr);
+  return term;
 }

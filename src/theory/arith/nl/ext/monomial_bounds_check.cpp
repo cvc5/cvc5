@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 #include "options/arith_options.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
@@ -33,7 +31,8 @@ namespace arith {
 namespace nl {
 
 namespace {
-void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs)
+void debugPrintBound(
+    CVC5_UNUSED const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
   Node t = ArithMSum::mkCoeffTerm(coeff, x);
   Trace(c) << t << " " << type << " " << rhs;
@@ -347,11 +346,11 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                            : ProofRule::ARITH_MULT_NEG,
                              {},
                              {mult, simpleeq});
-              if (type == Kind::EQUAL && (rewrite(simpleeq) != rewrite(exp[1])))
+              if (type == Kind::EQUAL
+                  && (!CVC5_EQUAL(rewrite(simpleeq), rewrite(exp[1]))))
               {
-                // it is not identical under rewriting and we need to do some work here
-                // The proof looks like this:
-                // (SCOPE
+                // it is not identical under rewriting and we need to do some
+                // work here The proof looks like this: (SCOPE
                 //   (MODUS_PONENS
                 //     <tmplem>
                 //     (AND_INTRO
@@ -368,40 +367,54 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 // ARITH_TRICHOTOMY expects, and also their order is not clear.
                 // Hence, we apply MACRO_SR_PRED_TRANSFORM to them, and check
                 // which corresponds to which subterm of the premise.
-                proof->addStep(exp[1][0],
-                               ProofRule::AND_ELIM,
-                               {exp[1]},
-                               {nm->mkConstInt(Rational(0))});
-                proof->addStep(exp[1][1],
-                               ProofRule::AND_ELIM,
-                               {exp[1]},
-                               {nm->mkConstInt(Rational(1))});
-                Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
-                Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
-                if (rewrite(lb) == rewrite(exp[1][0]))
+                // Note that the explanation may also be an equality that is
+                // equivalent to simpleeq up to polynomial normalization only,
+                // in which case we relate the two directly.
+                if (exp[1].getKind() == Kind::EQUAL
+                    && addArithPolyNormRel(*proof, exp[1], simpleeq))
                 {
-                  proof->addStep(lb,
-                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
-                                 {exp[1][0]},
-                                 {lb});
-                  proof->addStep(rb,
-                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
-                                 {exp[1][1]},
-                                 {rb});
+                  proof->addStep(simpleeq,
+                                 ProofRule::EQ_RESOLVE,
+                                 {exp[1], exp[1].eqNode(simpleeq)},
+                                 {});
                 }
                 else
                 {
-                  proof->addStep(lb,
-                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
-                                 {exp[1][1]},
-                                 {lb});
-                  proof->addStep(rb,
-                                 ProofRule::MACRO_SR_PRED_TRANSFORM,
-                                 {exp[1][0]},
-                                 {rb});
+                  proof->addStep(exp[1][0],
+                                 ProofRule::AND_ELIM,
+                                 {exp[1]},
+                                 {nm->mkConstInt(Rational(0))});
+                  proof->addStep(exp[1][1],
+                                 ProofRule::AND_ELIM,
+                                 {exp[1]},
+                                 {nm->mkConstInt(Rational(1))});
+                  Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
+                  Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
+                  if (CVC5_EQUAL(rewrite(lb), rewrite(exp[1][0])))
+                  {
+                    proof->addStep(lb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][0]},
+                                   {lb});
+                    proof->addStep(rb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][1]},
+                                   {rb});
+                  }
+                  else
+                  {
+                    proof->addStep(lb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][1]},
+                                   {lb});
+                    proof->addStep(rb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][0]},
+                                   {rb});
+                  }
+                  proof->addStep(
+                      simpleeq, ProofRule::ARITH_TRICHOTOMY, {lb, rb}, {});
                 }
-                proof->addStep(
-                    simpleeq, ProofRule::ARITH_TRICHOTOMY, {lb, rb}, {});
                 proof->addStep(
                     tmplem[0], ProofRule::AND_INTRO, {exp[0], simpleeq}, {});
                 proof->addStep(tmplem[1],

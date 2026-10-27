@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,9 +30,13 @@ namespace cvc5::internal {
  * otherwise return the first (and unique) iterator satisfying pred().
  */
 template <class InputIterator, class Predicate>
-inline InputIterator find_if_unique(InputIterator first, InputIterator last, Predicate pred) {
+inline InputIterator find_if_unique(InputIterator first,
+                                    InputIterator last,
+                                    Predicate pred)
+{
   InputIterator match = std::find_if(first, last, pred);
-  if(match == last) {
+  if (match == last)
+  {
     return last;
   }
 

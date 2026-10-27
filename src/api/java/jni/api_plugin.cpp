@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,67 +15,106 @@
 
 using namespace cvc5;
 
-ApiPlugin::ApiPlugin(TermManager& tm, JNIEnv* env, jobject plugin)
-    : Plugin(tm), d_env(env), d_plugin(plugin)
+ApiPlugin::ApiPlugin(TermManager& tm, JavaVM* vm, jweak plugin)
+    : Plugin(tm), d_vm(vm), d_plugin(plugin)
 {
 }
 
 std::vector<Term> ApiPlugin::check()
 {
-  jclass termClass = d_env->FindClass("Lio/github/cvc5/Term;");
-  jfieldID pointer = d_env->GetFieldID(termClass, "pointer", "J");
-
-  jclass pluginClass = d_env->GetObjectClass(d_plugin);
-
-  jmethodID checkMethod =
-      d_env->GetMethodID(pluginClass, "check", "()[Lio/github/cvc5/Term;");
-  jobjectArray jTerms =
-      (jobjectArray)d_env->CallObjectMethod(d_plugin, checkMethod);
-  jsize size = d_env->GetArrayLength(jTerms);
-  std::vector<Term> terms;
-  for (jsize i = 0; i < size; i++)
+  JNIEnv* env = getEnv(d_vm);
+  // Release the local references created below when done: this function may
+  // be called many times during a single native call.
+  env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject plugin = env->NewLocalRef(d_plugin);
+  if (plugin == nullptr)
   {
-    jobject jTerm = d_env->GetObjectArrayElement(jTerms, i);
-    jlong termPointer = d_env->GetLongField(jTerm, pointer);
-    Term* term = reinterpret_cast<Term*>(termPointer);
-    terms.push_back(*term);
+    env->PopLocalFrame(nullptr);
+    return {};
   }
+
+  jclass pluginClass = env->GetObjectClass(plugin);
+  jmethodID checkMethod = env->GetMethodID(pluginClass, "checkNative", "()[J");
+  jlongArray jPointers =
+      static_cast<jlongArray>(env->CallObjectMethod(plugin, checkMethod));
+  if (env->ExceptionCheck())
+  {
+    env->ExceptionClear();
+    env->PopLocalFrame(nullptr);
+    throw CVC5ApiException("The plugin threw an exception in check().");
+  }
+  // The lemmas are owned by their Java wrappers, which cannot be reclaimed
+  // before this native call returns to Java. Copy them now.
+  std::vector<Term> terms = getObjectsFromPointers<Term>(env, jPointers);
+
+  env->PopLocalFrame(nullptr);
   return terms;
 }
 
 void ApiPlugin::notifyHelper(const char* functionName, const Term& cl)
 {
-  jclass termClass = d_env->FindClass("Lio/github/cvc5/Term;");
-  jmethodID termConstructor = d_env->GetMethodID(termClass, "<init>", "(J)V");
+  JNIEnv* env = getEnv(d_vm);
+  env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject plugin = env->NewLocalRef(d_plugin);
+  if (plugin == nullptr)
+  {
+    env->PopLocalFrame(nullptr);
+    return;
+  }
+
+  // Ownership of the copy is transferred to the Java wrapper created by the
+  // bridge.
   jlong termPointer = reinterpret_cast<jlong>(new Term(cl));
-  jobject jTerm = d_env->NewObject(termClass, termConstructor, termPointer);
+  jclass pluginClass = env->GetObjectClass(plugin);
+  jmethodID method = env->GetMethodID(pluginClass, functionName, "(J)V");
+  env->CallVoidMethod(plugin, method, termPointer);
+  if (env->ExceptionCheck())
+  {
+    env->ExceptionClear();
+    env->PopLocalFrame(nullptr);
+    throw CVC5ApiException(std::string("The plugin threw an exception in ")
+                           + functionName + "().");
+  }
 
-  jclass pluginClass = d_env->GetObjectClass(d_plugin);
-
-  jmethodID method =
-      d_env->GetMethodID(pluginClass, functionName, "(Lio/github/cvc5/Term;)V");
-
-  d_env->CallVoidMethod(d_plugin, method, jTerm);
+  env->PopLocalFrame(nullptr);
 }
 
 void ApiPlugin::notifySatClause(const Term& cl)
 {
-  notifyHelper("notifySatClause", cl);
+  notifyHelper("notifySatClauseNative", cl);
 }
 
 void ApiPlugin::notifyTheoryLemma(const Term& lem)
 {
-  notifyHelper("notifyTheoryLemma", lem);
+  notifyHelper("notifyTheoryLemmaNative", lem);
 }
 
 std::string ApiPlugin::getName()
 {
-  jclass pluginClass = d_env->GetObjectClass(d_plugin);
-  jmethodID getNameMethod =
-      d_env->GetMethodID(pluginClass, "getName", "()Ljava/lang/String;");
-  jstring jName = (jstring)d_env->CallObjectMethod(d_plugin, getNameMethod);
+  JNIEnv* env = getEnv(d_vm);
+  env->PushLocalFrame(callbackLocalFrameCapacity);
+  jobject plugin = env->NewLocalRef(d_plugin);
+  if (plugin == nullptr)
+  {
+    env->PopLocalFrame(nullptr);
+    return "";
+  }
 
-  const char* s = d_env->GetStringUTFChars(jName, nullptr);
+  jclass pluginClass = env->GetObjectClass(plugin);
+  jmethodID getNameMethod =
+      env->GetMethodID(pluginClass, "getName", "()Ljava/lang/String;");
+  jstring jName =
+      static_cast<jstring>(env->CallObjectMethod(plugin, getNameMethod));
+  if (env->ExceptionCheck() || jName == nullptr)
+  {
+    env->ExceptionClear();
+    env->PopLocalFrame(nullptr);
+    throw CVC5ApiException("The plugin threw an exception in getName().");
+  }
+  const char* s = env->GetStringUTFChars(jName, nullptr);
   std::string name(s);
+  env->ReleaseStringUTFChars(jName, s);
+
+  env->PopLocalFrame(nullptr);
   return name;
 }

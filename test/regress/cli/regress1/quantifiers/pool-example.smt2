@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --pool-inst
 ; EXPECT: unsat
 (set-logic ALL)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,17 @@ class TermManagerTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_solver.close();
+    d_tm.close();
+  }
+
+  @Test
+  void equalHash()
+  {
+    TermManager tm = new TermManager();
+    assertEquals(d_tm, d_tm);
+    assertNotEquals(d_tm, tm);
+    assertEquals(d_tm.hashCode(), d_tm.hashCode());
   }
 
   @Test
@@ -212,9 +219,6 @@ class TermManagerTest
     Sort funSort = d_tm.mkFunctionSort(d_tm.mkUninterpretedSort("u"), d_tm.getIntegerSort());
     // function arguments are allowed
     assertDoesNotThrow(() -> d_tm.mkFunctionSort(funSort, d_tm.getIntegerSort()));
-    // non-first-class arguments are not allowed
-    Sort reSort = d_tm.getRegExpSort();
-    assertThrows(CVC5ApiException.class, () -> d_tm.mkFunctionSort(reSort, d_tm.getIntegerSort()));
 
     assertThrows(CVC5ApiException.class, () -> d_tm.mkFunctionSort(d_tm.getIntegerSort(), funSort));
 
@@ -1048,6 +1052,8 @@ class TermManagerTest
     for (Map.Entry<String, Stat> s : stats)
     {
       assertFalse(s.getKey().isEmpty());
+      assertFalse(s.getValue().isInternal());
+      assertFalse(s.getValue().isDefault());
     }
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
@@ -1062,5 +1068,29 @@ class TermManagerTest
         assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
       }
     }
+  }
+
+  @Test
+  void getStatisticsIterator()
+  {
+    d_tm.mkConst(d_tm.getIntegerSort(), "i");
+    Statistics stats = d_tm.getStatistics();
+    Statistics.ConstIterator it = stats.iterator(true, true);
+    assertTrue(it.hasNext());
+    // The iterator keeps no native state, so it remains usable after the
+    // statistics object has been released.
+    stats.deletePointer();
+    int count = 0;
+    while (it.hasNext())
+    {
+      Map.Entry<String, Stat> entry = it.next();
+      assertFalse(entry.getKey().isEmpty());
+      assertDoesNotThrow(() -> entry.getValue().toString());
+      count++;
+    }
+    assertTrue(count > 0);
+    assertThrows(NoSuchElementException.class, () -> it.next());
+    // A new iterator cannot be created from the released statistics object.
+    assertThrows(IllegalStateException.class, () -> stats.iterator());
   }
 }

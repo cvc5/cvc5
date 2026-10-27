@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,9 +17,8 @@
 #include <cvc5/cvc5.h>
 #include <cvc5/cvc5_parser.h>
 
-#include "gtest/gtest.h"
-
 #include "expr/node.h"
+#include "gtest/gtest.h"
 #include "test.h"
 
 namespace cvc5::internal {
@@ -36,7 +32,6 @@ namespace test {
 class TestWithSmtParser : public TestInternal
 {
  protected:
-
   void SetUp() override
   {
     d_solver.reset(new cvc5::Solver(d_tm));
@@ -57,7 +52,6 @@ class TestWithSmtParser : public TestInternal
   std::unique_ptr<cvc5::parser::InputParser> d_ip;
 
  public:
-
   /**
    * Run this SMT-LIB command.
    */
@@ -76,10 +70,8 @@ class TestWithSmtParser : public TestInternal
     d_ip->setStringInput(modes::InputLanguage::SMT_LIB_2_6, s, "temp");
     return *d_ip->nextTerm().d_node;
   }
-
 };
 
 }  // namespace test
 }  // namespace cvc5::internal
 #endif
-

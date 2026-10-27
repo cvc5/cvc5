@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,17 +26,20 @@ public class Op extends AbstractPointer
    */
   public Op()
   {
-    super(getNullOp());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null op instances. It is never freed. */
+  private static final long NULL_POINTER = getNullOp();
 
   private static native long getNullOp();
 
-  Op(long pointer)
+  Op(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Op::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Syntactic equality operator.
@@ -57,19 +57,21 @@ public class Op extends AbstractPointer
     {
       return false;
     }
-    return equals(pointer, ((Op) t).getPointer());
+    return equals(getPointer(), ((Op) t).getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
 
   /**
+   * Get the kind of this operator.
+   *
    * @return The kind of this operator.
    */
   public Kind getKind()
   {
     try
     {
-      int value = getKind(pointer);
+      int value = getKind(getPointer());
       return Kind.fromInt(value);
     }
     catch (CVC5ApiException e)
@@ -82,31 +84,37 @@ public class Op extends AbstractPointer
   private native int getKind(long pointer);
 
   /**
+   * Determine if this operator is a null term.
+   *
    * @return True if this operator is a null term.
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
 
   /**
+   * Determine if this operator is indexed.
+   *
    * @return True iff this operator is indexed.
    */
   public boolean isIndexed()
   {
-    return isIndexed(pointer);
+    return isIndexed(getPointer());
   }
 
   private native boolean isIndexed(long pointer);
 
   /**
+   * Get the number of indices of this op.
+   *
    * @return The number of indices of this op.
    */
   public int getNumIndices()
   {
-    return getNumIndices(pointer);
+    return getNumIndices(getPointer());
   }
 
   private native int getNumIndices(long pointer);
@@ -120,8 +128,8 @@ public class Op extends AbstractPointer
   public Term get(int i) throws CVC5ApiException
   {
     Utils.validateUnsigned(i, "index");
-    long termPointer = get(pointer, i);
-    return new Term(termPointer);
+    long termPointer = get(getPointer(), i);
+    return new Term(ctx, termPointer);
   }
 
   private native long get(long pointer, int i);
@@ -138,8 +146,8 @@ public class Op extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return hashCode(pointer);
+    return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native int hashCode(long pointer);
+  private native long hashCode(long pointer);
 }

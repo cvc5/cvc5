@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -60,7 +57,7 @@ enum class FormulaLitPolicy : uint32_t
 
 /**
  * Implements the following recursive algorithm
- * http://people.inf.ethz.ch/daniekro/classes/251-0247-00/f2007/readings/Tseitin70.pdf
+ * https://link.springer.com/chapter/10.1007/978-3-642-81955-1_28
  * in a single pass.
  *
  * The general idea is to introduce a new literal that will be equivalent to

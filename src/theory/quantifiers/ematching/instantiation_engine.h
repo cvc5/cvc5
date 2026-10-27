@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +29,8 @@ namespace quantifiers {
 class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
 
-class InstantiationEngine : public QuantifiersModule {
+class InstantiationEngine : public QuantifiersModule
+{
  public:
   InstantiationEngine(Env& env,
                       QuantifiersState& qs,
@@ -52,6 +50,7 @@ class InstantiationEngine : public QuantifiersModule {
   void addUserNoPattern(Node q, Node pat);
   /** Identify this module */
   std::string identify() const override;
+
  private:
   /** do instantiation round */
   void doInstantiationRound(Theory::Effort effort);

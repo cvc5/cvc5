@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --simplification=none --no-strings-lazy-pp
 ; EXPECT: sat
 (set-logic SLIA)

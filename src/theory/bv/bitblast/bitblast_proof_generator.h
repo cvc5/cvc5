@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,9 +29,8 @@ namespace bv {
 class BitblastProofGenerator : public ProofGenerator, protected EnvObj
 {
  public:
-  BitblastProofGenerator(Env& env,
-                         TConvProofGenerator* tcpg);
-  ~BitblastProofGenerator(){};
+  BitblastProofGenerator(Env& env, TConvProofGenerator* tcpg);
+  ~BitblastProofGenerator() {};
 
   /**
    * Get proof for, which expects an equality of the form t = bb(t).

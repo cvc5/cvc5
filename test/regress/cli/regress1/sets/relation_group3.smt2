@@ -1,5 +1,4 @@
-; DISABLE-TESTER: lfsc
-; Disabled since rel.group is not supported in LFSC
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 
 (set-info :status unsat)

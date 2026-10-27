@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +15,9 @@
 #ifndef CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
 #define CVC5__THEORY__ARRAYS__INFERENCE_MANAGER_H
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 #include "proof/eager_proof_generator.h"
-#include "cvc5/cvc5_proof_rule.h"
 #include "theory/theory_inference_manager.h"
 
 namespace cvc5::internal {

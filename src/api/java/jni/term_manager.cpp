@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mudathir Mohamed, Amalee Wilson
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,11 +25,13 @@ using namespace cvc5;
  * Method:    newTermManager
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
-                                                                       jclass)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_TermManager_newTermManager(JNIEnv* env, jclass)
 {
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
   TermManager* tm = new TermManager();
   return reinterpret_cast<jlong>(tm);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
@@ -40,10 +39,9 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
  * Method:    deletePointer
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_io_github_cvc5_TermManager_deletePointer(
-    JNIEnv* env, jobject, jlong pointer)
+JNIEXPORT void JNICALL
+Java_io_github_cvc5_TermManager_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
-  ApiManager::currentAM()->deletePointer(env, pointer);
   delete (reinterpret_cast<TermManager*>(pointer));
 }
 

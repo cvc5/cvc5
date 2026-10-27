@@ -19,6 +19,7 @@ cat << EOF > $REWRITE_SIG
 (include "../theories/Builtin.eo")
 (include "../theories/Arrays.eo")
 (include "../theories/Arith.eo")
+(include "../theories/ArithBvConv.eo")
 (include "../theories/Reals.eo")
 (include "../theories/BitVectors.eo")
 (include "../theories/Strings.eo")

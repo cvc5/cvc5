@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,9 +89,28 @@ Node HoTermDb::getOperatorRepresentative(TNode op) const
   {
     return it->second;
   }
+  // The map above only contains operators that have ground terms. If op has
+  // none, it may still be equal to an operator that does, in which case we
+  // use the representative of that operator.
+  if (!d_hoOpRep.empty() && op.getType().isFunction())
+  {
+    eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
+    if (ee->hasTerm(op))
+    {
+      eq::EqClassIterator eqc_i(ee->getRepresentative(op), ee);
+      for (; !eqc_i.isFinished(); ++eqc_i)
+      {
+        it = d_hoOpRep.find(*eqc_i);
+        if (it != d_hoOpRep.end())
+        {
+          return it->second;
+        }
+      }
+    }
+  }
   return op;
 }
-bool HoTermDb::finishResetInternal(Theory::Effort effort)
+bool HoTermDb::finishResetInternal(CVC5_UNUSED Theory::Effort effort)
 {
   if (!options().quantifiers.hoMergeTermDb)
   {
@@ -168,7 +184,7 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
     }
     else
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
   }

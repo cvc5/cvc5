@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,7 +35,7 @@ void SygusUnif::initializeCandidate(
     TermDbSygus* tds,
     Node f,
     std::vector<Node>& enums,
-    std::map<Node, std::vector<Node>>& strategy_lemmas)
+    CVC5_UNUSED std::map<Node, std::vector<Node>>& strategy_lemmas)
 {
   d_tds = tds;
   d_candidates.push_back(f);
@@ -74,7 +71,8 @@ Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
   return minTerm;
 }
 
-Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedTerm(CVC5_UNUSED Node e,
+                                        const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   if (d_enableMinimality)
@@ -84,11 +82,11 @@ Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
   return solved[0];
 }
 
-Node SygusUnif::constructBestConditional(Node ce,
+Node SygusUnif::constructBestConditional(CVC5_UNUSED Node ce,
                                          const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
-  double r = Random::getRandom().pickDouble(0.0, 1.0);
+  double r = Random::getRandom().pick<double>(0.0, 1.0);
   unsigned cindex = r * conds.size();
   if (cindex > conds.size())
   {
@@ -100,7 +98,7 @@ Node SygusUnif::constructBestConditional(Node ce,
 Node SygusUnif::constructBestStringToConcat(
     const std::vector<Node>& strs,
     const std::map<Node, size_t>& total_inc,
-    const std::map<Node, std::vector<size_t>>& incr)
+    CVC5_UNUSED const std::map<Node, std::vector<size_t>>& incr)
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;

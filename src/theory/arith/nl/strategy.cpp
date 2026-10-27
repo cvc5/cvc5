@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Yoni Zohar, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,9 +32,13 @@ std::ostream& operator<<(std::ostream& os, InferStep step)
     case InferStep::COVERINGS_INIT: return os << "COVERINGS_INIT";
     case InferStep::COVERINGS_FULL: return os << "COVERINGS_FULL";
     case InferStep::NL_FACTORING: return os << "NL_FACTORING";
+    case InferStep::NL_FLATTEN_MON: return os << "NL_FLATTEN_MON";
     case InferStep::IAND_INIT: return os << "IAND_INIT";
     case InferStep::IAND_FULL: return os << "IAND_FULL";
     case InferStep::IAND_INITIAL: return os << "IAND_INITIAL";
+    case InferStep::PIAND_INIT: return os << "PIAND_INIT";
+    case InferStep::PIAND_FULL: return os << "PIAND_FULL";
+    case InferStep::PIAND_INITIAL: return os << "PIAND_INITIAL";
     case InferStep::POW2_INIT: return os << "POW2_INIT";
     case InferStep::POW2_FULL: return os << "POW2_FULL";
     case InferStep::POW2_INITIAL: return os << "POW2_INITIAL";
@@ -98,7 +99,7 @@ const StepSequence& Interleaving::get()
     }
     cnt -= branch.d_interleavingConstant;
   }
-  Assert(false) << "Something went wrong.";
+  DebugUnhandled() << "Something went wrong.";
   return d_branches[0].d_steps;
 }
 bool Interleaving::empty() const { return d_branches.empty(); }
@@ -130,6 +131,8 @@ void Strategy::initializeStrategy(const Options& options)
   }
   one << InferStep::IAND_INIT;
   one << InferStep::IAND_INITIAL << InferStep::BREAK;
+  one << InferStep::PIAND_INIT;
+  one << InferStep::PIAND_INITIAL << InferStep::BREAK;
   one << InferStep::POW2_INIT;
   one << InferStep::POW2_INITIAL << InferStep::BREAK;
   if (options.arith.nlExt == options::NlExtMode::FULL
@@ -137,6 +140,10 @@ void Strategy::initializeStrategy(const Options& options)
   {
     one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
     one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
+  }
+  if (options.arith.nlExtFlattenMon)
+  {
+    one << InferStep::NL_FLATTEN_MON << InferStep::BREAK;
   }
   if (options.arith.nlExt == options::NlExtMode::FULL)
   {
@@ -150,6 +157,20 @@ void Strategy::initializeStrategy(const Options& options)
       one << InferStep::NL_TANGENT_PLANES;
     }
     one << InferStep::BREAK;
+  }
+  one << InferStep::IAND_FULL << InferStep::BREAK;
+  one << InferStep::PIAND_FULL << InferStep::BREAK;
+  one << InferStep::POW2_FULL << InferStep::BREAK;
+  if (options.arith.nlCov)
+  {
+    one << InferStep::COVERINGS_INIT << InferStep::BREAK;
+    one << InferStep::COVERINGS_FULL << InferStep::BREAK;
+  }
+  if (options.arith.nlExt == options::NlExtMode::FULL
+      && (!options.arith.nlCov || options.arith.nlCovForce))
+  {
+    // if nl-cov is not enabled or we forced it to be enabled, then we use
+    // heuristic non-terminating techniques as a last resort
     one << InferStep::FLUSH_WAITING_LEMMAS << InferStep::BREAK;
     if (options.arith.nlExtFactor)
     {
@@ -169,13 +190,6 @@ void Strategy::initializeStrategy(const Options& options)
       one << InferStep::TRANS_TANGENT_PLANES;
     }
     one << InferStep::BREAK;
-  }
-  one << InferStep::IAND_FULL << InferStep::BREAK;
-  one << InferStep::POW2_FULL << InferStep::BREAK;
-  if (options.arith.nlCov)
-  {
-    one << InferStep::COVERINGS_INIT << InferStep::BREAK;
-    one << InferStep::COVERINGS_FULL << InferStep::BREAK;
   }
 
   d_interleaving.add(one);

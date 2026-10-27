@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Yoni Zohar, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,8 +15,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "expr/node_algorithm.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -77,8 +74,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
       bvs.push_back(bv);
     }
 
-    body = body.substitute(
-        fvs.begin(), fvs.end(), bvs.begin(), bvs.end());
+    body = body.substitute(fvs.begin(), fvs.end(), bvs.begin(), bvs.end());
 
     Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
 
@@ -92,7 +88,7 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
 }
 
 GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "global-negate"){};
+    : PreprocessingPass(preprocContext, "global-negate") {};
 
 PreprocessingPassResult GlobalNegate::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -124,7 +120,6 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

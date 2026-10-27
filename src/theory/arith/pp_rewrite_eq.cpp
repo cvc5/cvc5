@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,7 +13,9 @@
 #include "theory/arith/pp_rewrite_eq.h"
 
 #include "options/arith_options.h"
+#include "proof/proof_node_manager.h"
 #include "smt/env.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
 
@@ -32,11 +31,22 @@ PreprocessRewriteEq::PreprocessRewriteEq(Env& env)
 TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
 {
   Assert(atom.getKind() == Kind::EQUAL);
+  Assert(atom[0].getType().isRealOrInt());
   if (!options().arith.arithRewriteEq)
   {
-    return TrustNode::null();
+    // We are not splitting the equality into inequalities below, in which case
+    // we normalize it. Note this is applied here and not by Rewriter::rewrite,
+    // since normalizing an equality does not preserve its terms, which is
+    // incompatible with theory combination for equalities that are generated
+    // as literals in lemmas. It is instead an extended equality rewrite, see
+    // ArithRewriter::rewriteEqualityExt.
+    Node atomn = rewriteEqualityExt(atom);
+    if (atomn == atom)
+    {
+      return TrustNode::null();
+    }
+    return ppNormalizeEq(atom, atomn);
   }
-  Assert(atom[0].getType().isRealOrInt());
   Node leq = NodeBuilder(nodeManager(), Kind::LEQ) << atom[0] << atom[1];
   Node geq = NodeBuilder(nodeManager(), Kind::GEQ) << atom[0] << atom[1];
   Node rewritten = leq.andNode(geq);
@@ -55,6 +65,28 @@ TrustNode PreprocessRewriteEq::ppRewriteEq(TNode atom)
             TrustId::THEORY_INFERENCE_ARITH, {}, {}, eq));
   }
   return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
+}
+
+TrustNode PreprocessRewriteEq::ppNormalizeEq(TNode eq, TNode eqn)
+{
+  Assert(eq.getKind() == Kind::EQUAL);
+  if (d_env.isTheoryProofProducing())
+  {
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
+    // The two are equivalent up to polynomial normalization, unless the
+    // normalized form is a Boolean constant.
+    if (std::shared_ptr<ProofNode> pf = mkArithPolyNormRel(pnm, eq, eqn);
+        pf != nullptr)
+    {
+      return d_ppPfGen.mkTrustedRewrite(eq, eqn, pf);
+    }
+    Node equiv = eq.eqNode(eqn);
+    return d_ppPfGen.mkTrustedRewrite(
+        eq,
+        eqn,
+        pnm->mkTrustedNode(TrustId::THEORY_INFERENCE_ARITH, {}, {}, equiv));
+  }
+  return TrustNode::mkTrustRewrite(eq, eqn, nullptr);
 }
 
 }  // namespace arith

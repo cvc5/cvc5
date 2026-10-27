@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +21,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace sets {
 
-class NormalForm {
+class NormalForm
+{
  public:
   /**
    * Constructs a set of the form:
@@ -65,9 +63,10 @@ class NormalForm {
    *   c1 > ... > cn.
    * Also handles the corner cases of empty set and singleton set.
    */
-  static bool checkNormalConstant(TNode n) {
-    Trace("sets-checknormal") << "[sets-checknormal] checkNormal " << n << " :"
-                              << std::endl;
+  static bool checkNormalConstant(TNode n)
+  {
+    Trace("sets-checknormal")
+        << "[sets-checknormal] checkNormal " << n << " :" << std::endl;
     if (n.getKind() == Kind::SET_EMPTY)
     {
       return true;
@@ -134,7 +133,8 @@ class NormalForm {
    *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
    * Also handles the corner cases of empty set and singleton set.
    */
-  static std::set<Node> getElementsFromNormalConstant(TNode n) {
+  static std::set<Node> getElementsFromNormalConstant(TNode n)
+  {
     Assert(n.isConst());
     std::set<Node> ret;
     if (n.getKind() == Kind::SET_EMPTY)
@@ -151,13 +151,22 @@ class NormalForm {
     ret.insert(n[0]);
     return ret;
   }
-  
-  static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
-    if( index>=els.size() ){
+
+  static Node mkBop(Kind k,
+                    std::vector<Node>& els,
+                    TypeNode tn,
+                    unsigned index = 0)
+  {
+    if (index >= els.size())
+    {
       return tn.getNodeManager()->mkConst(EmptySet(tn));
-    }else if( index==els.size()-1 ){
+    }
+    else if (index == els.size() - 1)
+    {
       return els[index];
-    }else{
+    }
+    else
+    {
       return NodeManager::mkNode(k, els[index], mkBop(k, els, tn, index + 1));
     }
   }
@@ -201,8 +210,8 @@ class NormalForm {
     return nsr;
   }
 };
-}
-}
+}  // namespace sets
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif

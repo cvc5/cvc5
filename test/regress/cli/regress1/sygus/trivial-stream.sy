@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: (define-fun triv ((x Int) (y Int)) Int x)
 ; EXPECT: (define-fun triv ((x Int) (y Int)) Int y)
 ; EXPECT: (error "Maximum term size (0) for enumerative SyGuS exceeded.")

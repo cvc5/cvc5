@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Daniel Larraz, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,8 +36,7 @@ public class Combination
 
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setOption("produce-models", "true"); // Produce Models
       slv.setOption("dag-thresh", "0"); // Disable dagifying the output
@@ -127,6 +123,5 @@ public class Combination
         }
       }
     }
-    Context.deletePointers();
   }
 }

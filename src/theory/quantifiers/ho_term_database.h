@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,7 +77,11 @@ class HoTermDb : public TermDb
   void addTermInternal(Node n) override;
   /** Get operators that we know are equivalent to f */
   void getOperatorsFor(TNode f, std::vector<TNode>& ops) override;
-  /** get the chosen representative for operator op */
+  /**
+   * Get the chosen representative for operator op. If op has no ground terms
+   * but is equal to an operator that does, this returns the representative of
+   * that operator.
+   */
   Node getOperatorRepresentative(TNode op) const override;
   /** check if we are in conflict based on congruent terms a and b */
   bool checkCongruentDisequal(TNode a,

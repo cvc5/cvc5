@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Alex Ozdemir, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -173,7 +170,7 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, skip_all)
   std::vector<TNode> expected = {};
 
   auto traversal =
-      NodeDfsIterable(top, VisitOrder::POSTORDER, [](TNode n) { return true; });
+      NodeDfsIterable(top, VisitOrder::POSTORDER, [](TNode) { return true; });
 
   std::vector<TNode> actual;
   std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));

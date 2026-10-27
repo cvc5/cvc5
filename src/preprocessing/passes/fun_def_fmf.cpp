@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -124,7 +121,7 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
         // We then make the sort constructor applied to that type. For example,
         // this is (@fmf-fun-sort f), where here f is an uninterpreted sort.
         // This is done to have a clear name for this sort, and to support
-        // proof printing in ALF where @fmf-fun-sort is a type constructor
+        // proof printing in Eunoia where @fmf-fun-sort is a type constructor
         // parameterized by a function.
         iType = nm->mkSort(d_fmfFunSc, {iType});
         AbsTypeFunDefAttribute atfda;
@@ -138,8 +135,8 @@ void FunDefFmf::process(AssertionPipeline* assertionsToPreprocess)
           TypeNode typ = nm->mkFunctionType(iType, n[j].getType());
           std::stringstream ssf;
           ssf << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back(NodeManager::mkDummySkolem(
-              ssf.str(), typ, "op created during fun def fmf"));
+          d_input_arg_inj[f].push_back(
+              NodeManager::mkDummySkolem(ssf.str(), typ));
         }
 
         // construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Dejan Jovanovic, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,15 +26,15 @@ namespace cvc5::internal {
 class TheoryEngine;
 
 /**
- * Visitor that calls the appropriate theory to pre-register the term. The visitor also keeps track
- * of the sets of theories that are involved in the terms, so that it can say if there are multiple
- * theories involved.
+ * Visitor that calls the appropriate theory to pre-register the term. The
+ * visitor also keeps track of the sets of theories that are involved in the
+ * terms, so that it can say if there are multiple theories involved.
  *
- * A sub-term has been visited if the theories of both the parent and the term itself have already
- * visited this term.
+ * A sub-term has been visited if the theories of both the parent and the term
+ * itself have already visited this term.
  *
- * Computation of the set of theories in the original term are computed in the alreadyVisited method
- * so as no to skip any theories.
+ * Computation of the set of theories in the original term are computed in the
+ * alreadyVisited method so as no to skip any theories.
  */
 class PreRegisterVisitor : protected EnvObj
 {
@@ -47,7 +44,8 @@ class PreRegisterVisitor : protected EnvObj
   typedef context::CDHashMap<TNode, theory::TheoryIdSet> TNodeToTheorySetMap;
 
   /**
-   * Map from terms to the theories that have already had this term pre-registered.
+   * Map from terms to the theories that have already had this term
+   * pre-registered.
    */
   TNodeToTheorySetMap d_visited;
 
@@ -81,7 +79,7 @@ class PreRegisterVisitor : protected EnvObj
   void start(TNode node);
 
   /** Called when the visitor is finished with a term, do nothing */
-  void done(TNode node) {}
+  void done(CVC5_UNUSED TNode node) {}
 
   /**
    * Preregister the term current occuring under term parent.  This calls
@@ -121,9 +119,11 @@ class PreRegisterVisitor : protected EnvObj
 };
 
 /**
- * The reason why we need to make this outside of the pre-registration loop is because we need a shared term x to 
- * be associated with every atom that contains it. For example, if given f(x) >= 0 and f(x) + 1 >= 0, although f(x) has
- * been visited already, we need to visit it again, since we need to associate it with both atoms.
+ * The reason why we need to make this outside of the pre-registration loop is
+ * because we need a shared term x to be associated with every atom that
+ * contains it. For example, if given f(x) >= 0 and f(x) + 1 >= 0, although f(x)
+ * has been visited already, we need to visit it again, since we need to
+ * associate it with both atoms.
  */
 class SharedTermsVisitor : protected EnvObj
 {
@@ -134,7 +134,7 @@ class SharedTermsVisitor : protected EnvObj
    */
   std::string toString() const;
 
-  /** 
+  /**
    * The initial atom.
    */
   TNode d_atom;
@@ -148,12 +148,14 @@ class SharedTermsVisitor : protected EnvObj
                      SharedTermsDatabase& sharedTerms);
 
   /**
-   * Returns true is current has already been pre-registered with both current and parent theories.
+   * Returns true is current has already been pre-registered with both current
+   * and parent theories.
    */
   bool alreadyVisited(TNode current, TNode parent) const;
-  
+
   /**
-   * Pre-registeres current with any of the current and parent theories that haven't seen the term yet.
+   * Pre-registeres current with any of the current and parent theories that
+   * haven't seen the term yet.
    */
   void visit(TNode current, TNode parent);
 
@@ -169,7 +171,7 @@ class SharedTermsVisitor : protected EnvObj
 
   /**
    * Clears the internal state.
-   */   
+   */
   void clear();
 
  private:

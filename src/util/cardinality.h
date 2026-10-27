@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -176,14 +173,16 @@ class Cardinality
   Cardinality& operator^=(const Cardinality& c);
 
   /** Add two cardinalities. */
-  Cardinality operator+(const Cardinality& c) const {
+  Cardinality operator+(const Cardinality& c) const
+  {
     Cardinality card(*this);
     card += c;
     return card;
   }
 
   /** Multiply two cardinalities. */
-  Cardinality operator*(const Cardinality& c) const {
+  Cardinality operator*(const Cardinality& c) const
+  {
     Cardinality card(*this);
     card *= c;
     return card;
@@ -192,7 +191,8 @@ class Cardinality
   /**
    * Exponentiation of two cardinalities.
    */
-  Cardinality operator^(const Cardinality& c) const {
+  Cardinality operator^(const Cardinality& c) const
+  {
     Cardinality card(*this);
     card ^= c;
     return card;

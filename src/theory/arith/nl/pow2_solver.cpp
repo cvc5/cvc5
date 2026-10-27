@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +15,8 @@
 #include "options/arith_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/passes/bv_to_int.h"
+#include "proof/proof.h"
+#include "smt/env.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
@@ -32,9 +31,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-Pow2Solver::Pow2Solver(Env& env,
-                       InferenceManager& im,
-                       NlModel& model)
+Pow2Solver::Pow2Solver(Env& env, InferenceManager& im, NlModel& model)
     : EnvObj(env), d_im(im), d_model(model), d_initRefine(userContext())
 {
   NodeManager* nm = nodeManager();
@@ -43,13 +40,24 @@ Pow2Solver::Pow2Solver(Env& env,
   d_zero = nm->mkConstInt(Rational(0));
   d_one = nm->mkConstInt(Rational(1));
   d_two = nm->mkConstInt(Rational(2));
+  if (env.isTheoryProofProducing())
+  {
+    d_proof.reset(
+        new CDProofSet<CDProof>(env, env.getUserContext(), "nl-pow2"));
+  }
 }
 
 Pow2Solver::~Pow2Solver() {}
 
-void Pow2Solver::initLastCall(const std::vector<Node>& assertions,
-                              const std::vector<Node>& false_asserts,
-                              const std::vector<Node>& xts)
+bool Pow2Solver::isProofEnabled() const { return d_proof.get() != nullptr; }
+
+CDProof* Pow2Solver::getProof()
+{
+  Assert(isProofEnabled());
+  return d_proof->allocateProof(d_env.getUserContext());
+}
+
+void Pow2Solver::initLastCall(const std::vector<Node>& xts)
 {
   d_pow2s.clear();
   Trace("pow2-mv") << "POW2 terms : " << std::endl;
@@ -80,14 +88,33 @@ void Pow2Solver::checkInitialRefine()
     d_initRefine.insert(i);
     // initial refinement lemmas
     std::vector<Node> conj;
-    // x>=0 -> x < pow2(x)
-    Node xgeq0 = nm->mkNode(Kind::LEQ, d_zero, i[0]);
-    Node xltpow2x = nm->mkNode(Kind::LT, i[0], i);
-    conj.push_back(nm->mkNode(Kind::IMPLIES, xgeq0, xltpow2x));
+    // x>=0 -> pow2(x) > 0
+    Node xgeq0 = nm->mkNode(Kind::GEQ, i[0], d_zero);
+    Node nonegative = nm->mkNode(Kind::GT, i, d_zero);
+    conj.push_back(nm->mkNode(Kind::IMPLIES, xgeq0, nonegative));
+
+    // even: x != 0 -> pow2(x) mod 2 = 0
+    Node xgt0 = nm->mkNode(Kind::DISTINCT, i[0], d_zero);
+    Node mod2 = nm->mkNode(Kind::INTS_MODULUS, i, d_two);
+    Node even = nm->mkNode(Kind::EQUAL, mod2, d_zero);
+    conj.push_back(nm->mkNode(Kind::IMPLIES, xgt0, even));
+
+    // neg: x < 0 -> pow2(x) = 0
+    Node xlt0 = nm->mkNode(Kind::LT, i[0], d_zero);
+    Node eq0 = nm->mkNode(Kind::EQUAL, i, mkZero(i.getType()));
+    Node neg = nm->mkNode(Kind::IMPLIES, xlt0, eq0);
+    conj.push_back(neg);
+
     Node lem = nm->mkAnd(conj);
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; INIT_REFINE"
                         << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_INIT_REFINE);
+    CDProof* proof = nullptr;
+    if (isProofEnabled())
+    {
+      proof = getProof();
+      proof->addStep(lem, ProofRule::ARITH_POW2_INIT, {}, {i[0]});
+    }
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_POW2_INIT_REFINE, proof);
   }
 }
 
@@ -143,24 +170,80 @@ void Pow2Solver::checkFullRefine()
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
 
-      if (x < y && pow2x >= pow2y)
+      if (x >= 0 && x < y && pow2x >= pow2y)
       {
-        Node assumption = nm->mkNode(Kind::LEQ, n[0], m[0]);
-        Node conclusion = nm->mkNode(Kind::LEQ, n, m);
+        // 0 <= x /\ x < y => pow2(x) < pow2(y)
+        Node x_lt_y = nm->mkNode(Kind::LT, n[0], m[0]);
+        Node xgeq0 = nm->mkNode(Kind::LEQ, d_zero, n[0]);
+        Node assumption = nm->mkNode(Kind::AND, xgeq0, x_lt_y);
+        Node conclusion = nm->mkNode(Kind::LT, n, m);
         Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
-        d_im.addPendingLemma(
-            lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, nullptr, true);
+        CDProof* proof = nullptr;
+        if (isProofEnabled())
+        {
+          proof = getProof();
+          proof->addStep(lem, ProofRule::ARITH_POW2_MONOTONE, {}, {n[0], m[0]});
         }
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
+      }
+      else if (y >= 0 && y < x && pow2x <= pow2y)
+      {
+        // 0 <= y /\ y < x => pow2(y) < pow2(x).
+        Node y_lt_x = nm->mkNode(Kind::LT, m[0], n[0]);
+        Node ygeq0 = nm->mkNode(Kind::LEQ, d_zero, m[0]);
+        Node assumption = nm->mkNode(Kind::AND, ygeq0, y_lt_x);
+        Node conclusion = nm->mkNode(Kind::LT, m, n);
+        Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+        CDProof* proof = nullptr;
+        if (isProofEnabled())
+        {
+          proof = getProof();
+          proof->addStep(lem, ProofRule::ARITH_POW2_MONOTONE, {}, {m[0], n[0]});
+        }
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_POW2_MONOTONE_REFINE, proof, true);
+      }
     }
 
-    // triviality lemmas: pow2(x) = 0 whenever x < 0
-    if (x < 0 && pow2x != 0)
+    // div 0: x div pow2(x) = 0 whenever x >= 0
+    if (x >= 0 && x > pow2x)
     {
-      Node assumption = nm->mkNode(Kind::LT, n[0], d_zero);
-      Node conclusion = nm->mkNode(Kind::EQUAL, n, mkZero(n.getType()));
+      Node assumption = nm->mkNode(Kind::GEQ, n[0], d_zero);
+      Node div_zero = nm->mkNode(Kind::INTS_DIVISION, n[0], n);
+      Node conclusion = nm->mkNode(Kind::EQUAL, div_zero, d_zero);
       Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+      CDProof* proof = nullptr;
+      if (isProofEnabled())
+      {
+        proof = getProof();
+        proof->addStep(lem, ProofRule::ARITH_POW2_DIV0, {}, {n[0]});
+      }
       d_im.addPendingLemma(
-          lem, InferenceId::ARITH_NL_POW2_TRIVIAL_CASE_REFINE, nullptr, true);
+          lem, InferenceId::ARITH_NL_POW2_DIV0_CASE_REFINE, proof, true);
+    }
+
+    // lower bound: x >= k /\ k >= 7 => pow2(x) > kx + k^2
+    if (x >= 7 && pow2x <= x * x * 2)
+    {
+      Node d_seven = nm->mkConstInt(Rational(7));
+      Node k_gt_5 = nm->mkNode(Kind::GEQ, valXConcrete, d_seven);
+      Node x_gt_k = nm->mkNode(Kind::GEQ, n[0], valXConcrete);
+      Node assumption = nm->mkNode(Kind::AND, x_gt_k, k_gt_5);
+      Node kx = nm->mkNode(Kind::MULT, valXConcrete, n[0]);
+      Node k_squar = nm->mkNode(Kind::MULT, valXConcrete, valXConcrete);
+      Node kx_plus_k_squar = nm->mkNode(Kind::ADD, kx, k_squar);
+      Node conclusion = nm->mkNode(Kind::GT, n, kx_plus_k_squar);
+      Node lem = nm->mkNode(Kind::IMPLIES, assumption, conclusion);
+      CDProof* proof = nullptr;
+      if (isProofEnabled())
+      {
+        proof = getProof();
+        proof->addStep(
+            lem, ProofRule::ARITH_POW2_LOWER_BOUND, {}, {n[0], valXConcrete});
+      }
+      d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_POW2_LOWER_BOUND_CASE_REFINE, proof, true);
     }
 
     // Place holder for additional lemma schemas
@@ -188,7 +271,7 @@ Node Pow2Solver::valueBasedLemma(Node i)
   Node valC = nm->mkNode(Kind::POW2, valX);
   valC = rewrite(valC);
 
-  return nm->mkNode(Kind::IMPLIES, x.eqNode(valX), i.eqNode(valC));
+  return nm->mkNode(Kind::IMPLIES, {x.eqNode(valX), i.eqNode(valC)});
 }
 
 }  // namespace nl

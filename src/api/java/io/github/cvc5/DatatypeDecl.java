@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,17 +31,20 @@ public class DatatypeDecl extends AbstractPointer
    */
   public DatatypeDecl()
   {
-    super(getNullDatatypeDecl());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null DatatypeDecl instances. It is never freed. */
+  private static final long NULL_POINTER = getNullDatatypeDecl();
 
   private static native long getNullDatatypeDecl();
 
-  DatatypeDecl(long pointer)
+  DatatypeDecl(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, DatatypeDecl::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   /**
    * Syntactic equality operator.
@@ -68,7 +68,7 @@ public class DatatypeDecl extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, decl.getPointer());
+    return equals(getPointer(), decl.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -79,7 +79,7 @@ public class DatatypeDecl extends AbstractPointer
    */
   public void addConstructor(DatatypeConstructorDecl ctor)
   {
-    addConstructor(pointer, ctor.getPointer());
+    addConstructor(getPointer(), ctor.getPointer());
   }
 
   private native void addConstructor(long pointer, long declPointer);
@@ -90,7 +90,7 @@ public class DatatypeDecl extends AbstractPointer
    */
   public int getNumConstructors()
   {
-    return getNumConstructors(pointer);
+    return getNumConstructors(getPointer());
   }
 
   private native int getNumConstructors(long pointer);
@@ -103,17 +103,19 @@ public class DatatypeDecl extends AbstractPointer
    */
   public boolean isParametric()
   {
-    return isParametric(pointer);
+    return isParametric(getPointer());
   }
 
   private native boolean isParametric(long pointer);
 
   /**
+   * Determine if this DatatypeDecl is a null object.
+   *
    * @return True if this DatatypeDecl is a null object.
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -123,10 +125,14 @@ public class DatatypeDecl extends AbstractPointer
    */
   protected native String toString(long pointer);
 
-  /** @return The name of this datatype declaration. */
+  /**
+   * Get the name of this datatype declaration.
+   *
+   * @return The name of this datatype declaration.
+   */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
@@ -138,8 +144,8 @@ public class DatatypeDecl extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return hashCode(pointer);
+    return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native int hashCode(long pointer);
+  private native long hashCode(long pointer);
 }

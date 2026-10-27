@@ -9,3 +9,4 @@ parse additional terms in another input source.
     <examples>/api/c/parser_sym_manager.c
     <examples>/api/java/ParserSymbolManager.java
     <examples>/api/python/parser_sym_manager.py
+    :skip: py-pythonicapi, smt2

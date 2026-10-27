@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -206,11 +203,11 @@ class RepBoundExt
    * field we are considering, which indicates that
    * the iterator will terminate with a failure.
    */
-  virtual bool resetIndex(RepSetIterator* rsi,
-                          Node owner,
-                          size_t i,
-                          bool initial,
-                          std::vector<Node>& elements)
+  virtual bool resetIndex(CVC5_UNUSED RepSetIterator* rsi,
+                          CVC5_UNUSED Node owner,
+                          CVC5_UNUSED size_t i,
+                          CVC5_UNUSED bool initial,
+                          CVC5_UNUSED std::vector<Node>& elements)
   {
     return true;
   }
@@ -220,7 +217,10 @@ class RepBoundExt
    * with this bound has been given a complete interpretation
    * for type tn.
    */
-  virtual bool initializeRepresentativesForType(TypeNode tn) { return false; }
+  virtual bool initializeRepresentativesForType(CVC5_UNUSED TypeNode tn)
+  {
+    return false;
+  }
   /** get variable order
    * If this method returns true, then varOrder is the order
    * in which we want to consider variables for the iterator.
@@ -228,7 +228,8 @@ class RepBoundExt
    * and the RepSetIterator is free to choose a default
    * variable order.
    */
-  virtual bool getVariableOrder(Node owner, std::vector<size_t>& varOrder)
+  virtual bool getVariableOrder(CVC5_UNUSED Node owner,
+                                CVC5_UNUSED std::vector<size_t>& varOrder)
   {
     return false;
   }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,7 +82,7 @@ size_t cindexOf(Node n);
 /**
  * Get the datatype of n.
  */
-const DType& datatypeOf(Node n);
+CVC5_NO_DANGLING const DType& datatypeOf(Node n);
 /** make tester is-C( n ), where C is the i^{th} constructor of dt */
 Node mkTester(Node n, int i, const DType& dt);
 /** make tester split

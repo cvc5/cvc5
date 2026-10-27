@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,8 @@ class TermTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_solver.close();
+    d_tm.close();
   }
 
   @Test
@@ -787,7 +785,7 @@ class TermTest
     assertTrue(s1.isStringValue());
     assertEquals(s1.getStringValue(), "abcde");
     Term s2 = d_tm.mkString("\\u{200cb}", true);
-    assertEquals(s2.getStringValue(), Character.toString(0x200cb));
+    assertEquals(s2.getStringValue(), new String(Character.toChars(0x200cb)));
   }
 
   @Test
@@ -1089,7 +1087,7 @@ class TermTest
       assertTrue(ub.isRealValue());
       // cannot call with non-variable
       Term yc = d_tm.mkConst(realsort, "y");
-      assertThrows(CVC5ApiException.class, () ->vx.getRealAlgebraicNumberDefiningPolynomial(yc));
+      assertThrows(CVC5ApiException.class, () -> vx.getRealAlgebraicNumberDefiningPolynomial(yc));
     }
   }
 
@@ -1099,8 +1097,8 @@ class TermTest
     // ordinary variables are not skolems
     Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
     assertFalse(x.isSkolem());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemId());
-    assertThrows(CVC5ApiException.class, () ->x.getSkolemIndices());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemId());
+    assertThrows(CVC5ApiException.class, () -> x.getSkolemIndices());
   }
 
   @Test
@@ -1237,5 +1235,24 @@ class TermTest
     assertEquals(x.toString(), "x");
     Solver solver2;
     assertEquals(x.toString(), "x");
+  }
+
+  @Test
+  void nullObjectsShareOneNativeObject()
+  {
+    Term t1 = new Term();
+    Term t2 = new Term();
+    assertTrue(t1.isNull());
+    assertEquals(t1, t2);
+    assertEquals(t1.getPointer(), t2.getPointer());
+    // Null objects are never freed, so they remain usable.
+    t1.deletePointer();
+    assertTrue(t1.isNull());
+    assertEquals(new Sort().getPointer(), new Sort().getPointer());
+    assertEquals(new Op().getPointer(), new Op().getPointer());
+    assertEquals(new Result().getPointer(), new Result().getPointer());
+    assertEquals(new SynthResult().getPointer(), new SynthResult().getPointer());
+    assertEquals(new Proof().getPointer(), new Proof().getPointer());
+    assertEquals(new DatatypeDecl().getPointer(), new DatatypeDecl().getPointer());
   }
 }

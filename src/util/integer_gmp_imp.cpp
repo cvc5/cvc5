@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +18,7 @@
 #include "base/check.h"
 #include "base/cvc5config.h"
 #include "util/integer.h"
+#include "util/random.h"
 #include "util/rational.h"
 
 #ifndef CVC5_GMP_IMP
@@ -31,25 +29,14 @@ using namespace std;
 
 namespace cvc5::internal {
 
-Integer::Integer(const char* s, unsigned base)
-  : d_value(s, base)
-{}
+Integer::Integer(const char* s, unsigned base) : d_value(s, base) {}
 
-Integer::Integer(const std::string& s, unsigned base)
-  : d_value(s, base)
-{}
+Integer::Integer(const std::string& s, unsigned base) : d_value(s, base) {}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
 Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}
 Integer::Integer(uint64_t z) : d_value(construct_mpz(z)) {}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
-
-Integer& Integer::operator=(const Integer& x)
-{
-  if (this == &x) return *this;
-  d_value = x.d_value;
-  return *this;
-}
 
 bool Integer::operator==(const Integer& y) const
 {
@@ -436,7 +423,7 @@ int64_t Integer::getSigned64() const
     }
     catch (const std::exception& e)
     {
-      Assert(false) << "Overflow detected in Integer::getSigned64().";
+      DebugUnhandled() << "Overflow detected in Integer::getSigned64().";
     }
   }
   return 0;
@@ -460,7 +447,7 @@ uint64_t Integer::getUnsigned64() const
     }
     catch (const std::exception& e)
     {
-      Assert(false) << "Overflow detected in Integer::getUnsigned64().";
+      DebugUnhandled() << "Overflow detected in Integer::getUnsigned64().";
     }
   }
   return 0;
@@ -523,6 +510,15 @@ const Integer& Integer::min(const Integer& a, const Integer& b)
 const Integer& Integer::max(const Integer& a, const Integer& b)
 {
   return (a >= b) ? a : b;
+}
+
+Integer Integer::mkRandom(uint32_t nbits)
+{
+  Assert(nbits > 0);
+  mpz_class res;
+  Random& rnd = Random::getRandom();
+  mpz_urandomb(res.get_mpz_t(), *rnd.getGMPRandstate(), nbits);
+  return Integer(res);
 }
 
 }  // namespace cvc5::internal

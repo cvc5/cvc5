@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,8 +34,8 @@ class Sequence
  public:
   /** constructors for Sequence
    *
-   * Internally, a cvc5::internal::Sequence is represented by a vector of Nodes (d_seq),
-   * where each Node in this vector must be a constant.
+   * Internally, a cvc5::internal::Sequence is represented by a vector of Nodes
+   * (d_seq), where each Node in this vector must be a constant.
    */
   Sequence() = default;
   explicit Sequence(const TypeNode& t, const std::vector<Node>& s);

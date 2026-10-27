@@ -22,7 +22,121 @@ provides more details on the individual classes.
 
 ----
 
-Using Self-Contained cvc5 Java API JAR
+Memory management
+-----------------
+
+Objects of the Java API (term managers, solvers, terms, sorts, ...) wrap native
+cvc5 objects. A native object is released automatically once its Java object
+is no longer reachable, so no explicit clean-up is required. Objects derived
+from a term manager (sorts, terms, ...) remain valid after the term manager
+has been released, as they keep the underlying node manager alive.
+
+The garbage collector only accounts for the (small) Java objects, so native
+memory is released only when the garbage collector runs and, for objects
+derived from a term manager that is still in use, when that term manager is
+used next. Every object thus provides ``deletePointer()``, which releases the
+native object immediately; the object must not be used afterwards. The
+classes ``TermManager``, ``Solver``, ``SymbolManager`` and ``InputParser``
+also implement ``AutoCloseable`` and can be used in a try-with-resources
+statement:
+
+.. code-block:: java
+
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
+    {
+      Term x = tm.mkConst(tm.getBooleanSort(), "x");
+      solver.assertFormula(x);
+      System.out.println(solver.checkSat());
+    }
+
+Threads
+-------
+
+A term manager, and the objects derived from it, may be used by one thread at
+a time. Different threads may use different term managers concurrently, and
+objects may be handed over from one thread to another, provided the hand-over
+is synchronized (e.g., via ``Thread.join()`` or a concurrent queue). Native
+memory is released by the thread that uses the term manager or, once nothing
+references the term manager and its objects anymore, by a background thread.
+
+----
+
+Using the cvc5 Java API in a Maven project
+------------------------------------------
+
+To use a release version of the library in your Maven project,
+add the following dependencies to your POM file:
+
+.. code-block:: xml
+
+  <dependencies>
+    <!-- cvc5 Java bindings (pure Java API) -->
+    <dependency>
+      <groupId>io.github.cvc5</groupId>
+      <artifactId>cvc5</artifactId>
+      <version>${cvc5.version}</version>
+    </dependency>
+
+    <!-- cvc5 native JNI library for the target platform -->
+    <dependency>
+      <groupId>io.github.cvc5</groupId>
+      <artifactId>cvc5</artifactId>
+      <version>${cvc5.version}</version>
+      <classifier>${os.classifier}</classifier>
+    </dependency>
+  </dependencies>
+
+Here, ``${cvc5.version}`` refers to one of the versions published in
+`Maven Central <https://central.sonatype.com/artifact/io.github.cvc5/cvc5>`_
+(e.g., ``1.3.2-1``). The ``${os.classifier}`` variable specifies
+the operating system and CPU architecture
+(e.g., ``linux-x86_64`` or ``osx-aarch_64``).
+
+You can make Maven automatically retrieve the correct classifier using
+the `os-maven-plugin <https://github.com/trustin/os-maven-plugin>`_:
+
+.. code-block:: xml
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.7.0</version>
+      </extension>
+    </extensions>
+  </build>
+
+After adding this plugin, use the ``${os.detected.classifier}`` property
+as the classifier value.
+
+To use the latest development version of the library,
+as opposed to a release version, add also the following repository to
+your POM file:
+
+.. code-block:: xml
+
+  <repositories>
+    <repository>
+      <name>Central Portal Snapshots</name>
+      <id>central-portal-snapshots</id>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+Then, use ``${next.cvc5.version}-SNAPSHOT`` as the version for the library
+dependencies, where ``${next.cvc5.version}`` must be the version following
+the latest release (e.g., use ``1.3.3`` if the latest release version is
+``1.3.2``).
+
+
+Using self-contained cvc5 Java API JAR
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Starting from version 1.2.1, a JAR file containing the cvc5 Java API and
@@ -62,21 +176,42 @@ After compilation, execute the example with:
 Building cvc5 Java API
 ^^^^^^^^^^^^^^^^^^^^^^
 
+This section describes how to build the cvc5 Java bindings from source.
+If you want to create a single JNI native library file that includes
+all required library dependencies, pass the ``--static`` option to ``configure.sh``
+in the steps below. This option also generates a JAR file that bundles the JNI library,
+which can be installed into a Maven repository.
+When using ``--static``, you may need to recompile some external cvc5 dependencies from
+source rather than relying on the static versions
+provided by your operating system. This ensures that all dependencies are compiled as
+Position-Independent Code (PIC).
+For instance, to statically compile the GMP library with PIC enabled,
+pass the ``--static`` and ``--auto-download`` options, along with
+``-DBUILD_GMP=1``. This forces GMP to be built from source with the PIC option enabled.
+
+To additionally generate the ``sources`` and ``javadoc`` JAR files,
+pass the ``--docs`` option.
+
+The following example shows a typical build workflow for compiling and installing
+the cvc5 Java bindings with shared libraries. Adjust the configuration options as
+needed (e.g., add ``--static`` or ``--docs``) depending on your desired
+build artifacts.
+
 .. code-block:: bash
 
      $ git clone https://github.com/cvc5/cvc5
      $ cd cvc5
-     $ ./configure.sh production --java-bindings --auto-download --prefix=build/install
+     $ ./configure.sh unrestricted --java-bindings --auto-download --prefix=build/install
      $ cd build
      $ make
      $ make install
 
      $ ls install/lib
-       cmake  libcvc5jni.so  libcvc5parser.so  libcvc5parser.so.1  libcvc5.so
-       libpicpoly.a  libpicpolyxx.a  libpoly.so libpoly.so.0  libpoly.so.0.1.9
-       libpolyxx.so  libpolyxx.so.0  libpolyxx.so.0.1.9  objects-Production
+       cmake             libcvc5parser.so.1  libpoly.so        libpolyxx.so
+       libcvc5jni.so     libcvc5.so          libpoly.so.0      libpolyxx.so.0
+       libcvc5parser.so  libcvc5.so.1        libpoly.so.0.2.1  libpolyxx.so.0.2.1
      $ ls install/share/java/
-       cvc5-0.0.5-dev.jar  cvc5.jar
+       cvc5-1.3.2-SNAPSHOT.jar  cvc5.jar
 
      # compile example QuickStart.java with cvc5 jar file
      $ javac -cp "install/share/java/cvc5.jar" ../examples/api/java/QuickStart.java -d .
@@ -87,13 +222,19 @@ Building cvc5 Java API
        result: sat
        value for x: 1/6
        value for y: 1/6
+       value for x - y: 0/1
+       computed correctly
        expected: unsat
        result: unsat
        unsat core size: 3
-       unsat core:
+       unsat core: 
        (< 0 a)
        (< 0 b)
        (< (+ a b) 1)
+
+After building the project with ``make``, you can install
+the generated artifacts into your local Maven repository by running
+``mvn install`` from within the build directory.
 
 ----
 
@@ -143,6 +284,7 @@ Building cvc5 Java API
   * enum `FindSynthTarget <io/github/cvc5/modes/FindSynthTarget.html>`_
   * enum `InputLanguage <io/github/cvc5/modes/InputLanguage.html>`_
   * enum `LearnedLitType <io/github/cvc5/modes/LearnedLitType.html>`_
+  * enum `OptionCategory <io/github/cvc5/modes/OptionCategory.html>`_
   * enum `ProofComponent <io/github/cvc5/modes/ProofComponent.html>`_
   * enum `ProofFormat <io/github/cvc5/modes/ProofFormat.html>`_
 

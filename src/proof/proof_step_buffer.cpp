@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Hans-Joerg Schurr, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -73,7 +70,7 @@ Node ProofStepBuffer::tryStep(bool& added,
   if (d_checker == nullptr)
   {
     added = false;
-    Assert(false) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
+    DebugUnhandled() << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
     return Node::null();
   }
   Node res =

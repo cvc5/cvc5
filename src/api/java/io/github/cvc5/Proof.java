@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Hans-Joerg Schurr, Abdalrhman Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,92 +17,104 @@ import java.math.BigInteger;
 /**
  * A cvc5 Proof.
  */
-public class Proof implements IPointer
+public class Proof extends AbstractPointer
 {
   /**
    * Null proof
    */
   public Proof()
   {
-    this(getNullProof());
+    super(null, NULL_POINTER, null);
+  }
+
+  /** The native null object shared by all null proof instances. It is never freed. */
+  private static final long NULL_POINTER = getNullProof();
+
+  /**
+   * This is an internal constructor intended to be used only
+   * inside cvc5 package.
+   *
+   * @param pointer the cpp pointer to Proof
+   */
+  Proof(NativeContext ctx, long pointer)
+  {
+    super(ctx, pointer, Proof::deletePointer);
   }
 
   private static native long getNullProof();
 
-  Proof(long pointer)
+  private static native void deletePointer(long pointer);
+
+  protected String toString(long pointer)
   {
-    this.pointer = pointer;
-  }
-
-  protected long pointer;
-
-  public void deletePointer()
-  {
-    if (pointer != 0)
-    {
-      deletePointer(pointer);
-    }
-    pointer = 0;
-  }
-
-  protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
+    throw new UnsupportedOperationException("Proof.toString() is not supported in the cpp api");
   }
 
   /**
+   * Get the proof rule used by the root step of the proof.
+   *
    * @return The proof rule used by the root step of the proof.
    * @throws CVC5ApiException on error
    */
   public ProofRule getRule() throws CVC5ApiException
   {
-    int value = getRule(pointer);
+    int value = getRule(getPointer());
     return ProofRule.fromInt(value);
   }
 
   private native int getRule(long pointer);
 
   /**
+   * Get the proof rewrite rule used by the root step of the proof.
+   *
    * @return The proof rewrite rule used by the root step of the proof.
    * @throws CVC5ApiException if `getRule()` does not return `DSL_REWRITE`
    *         or `THEORY_REWRITE`.
    */
   public ProofRewriteRule getRewriteRule() throws CVC5ApiException
   {
-    int value = getRewriteRule(pointer);
+    int value = getRewriteRule(getPointer());
     return ProofRewriteRule.fromInt(value);
   }
 
   private native int getRewriteRule(long pointer);
 
-  /** @return The conclusion of the root step of the proof. */
+  /**
+   * Get the conclusion of the root step of the proof.
+   *
+   * @return The conclusion of the root step of the proof.
+   */
   public Term getResult()
   {
-    long termPointer = getResult(pointer);
-    return new Term(termPointer);
+    long termPointer = getResult(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getResult(long pointer);
 
-  /** @return The premises of the root step of the proof. */
+  /**
+   * Get the premises of the root step of the proof.
+   *
+   * @return The premises of the root step of the proof.
+   */
   public Proof[] getChildren()
   {
-    long[] proofPointers = getChildren(pointer);
-    return Utils.getProofs(proofPointers);
+    long[] proofPointers = getChildren(getPointer());
+    return Utils.getProofs(ctx, proofPointers);
   }
 
   private native long[] getChildren(long pointer);
 
   /**
+   * Get the arguments of the root step of the proof as a vector of terms.
+   *
    * @return The arguments of the root step of the proof as a vector of terms.
    *         Some of those terms might be strings.
    */
   public Term[] getArguments()
   {
-    long[] termPointers = getArguments(pointer);
-    return Utils.getTerms(termPointers);
+    long[] termPointers = getArguments(getPointer());
+    return Utils.getTerms(ctx, termPointers);
   }
 
   private native long[] getArguments(long pointer);
@@ -132,7 +141,7 @@ public class Proof implements IPointer
     {
       return true;
     }
-    return equals(pointer, proof.getPointer());
+    return equals(getPointer(), proof.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -144,8 +153,8 @@ public class Proof implements IPointer
   @Override
   public int hashCode()
   {
-    return hashCode(pointer);
+    return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native int hashCode(long pointer);
+  private native long hashCode(long pointer);
 }

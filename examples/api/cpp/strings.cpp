@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Tianyi Liang, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,7 +82,7 @@ int main()
   Result result = slv.checkSatAssuming(q);
   std::cout << "cvc5 reports: " << q << " is " << result << "." << std::endl;
 
-  if(result.isSat())
+  if (result.isSat())
   {
     std::cout << "  x  = " << slv.getValue(x) << std::endl;
     std::cout << "  s1.s2 = " << slv.getValue(s) << std::endl;

@@ -1,4 +1,7 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --parse-skolem-definitions --print-skolem-definitions
+;; Non-SMT-LIB benchmark
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-option :parse-skolem-definitions true)
 (set-logic QF_AUFNIA)

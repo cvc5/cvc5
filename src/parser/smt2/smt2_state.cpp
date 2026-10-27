@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,8 +28,7 @@ Smt2State::Smt2State(ParserStateCallback* psc,
                      bool isSygus)
     : ParserState(psc, solver, sm, parsingMode),
       d_isSygus(isSygus),
-      d_logicSet(false),
-      d_seenSetLogic(false)
+      d_logicSet(false)
 {
   d_freshBinders = (d_solver->getOption("fresh-binders") == "true");
 }
@@ -50,6 +46,7 @@ void Smt2State::addArithmeticOperators()
   addOperator(Kind::LEQ, "<=");
   addOperator(Kind::GT, ">");
   addOperator(Kind::GEQ, ">=");
+  addOperator(Kind::STAR_CONTAINS, "int.star-contains");
 
   if (!strictModeEnabled())
   {
@@ -123,7 +120,6 @@ void Smt2State::addBitvectorOperators()
   {
     addOperator(Kind::BITVECTOR_ITE, "bvite");
   }
-
 
   addIndexedOperator(Kind::BITVECTOR_EXTRACT, "extract");
   addIndexedOperator(Kind::BITVECTOR_REPEAT, "repeat");
@@ -480,20 +476,6 @@ bool Smt2State::hasCardinalityConstraints() const
 
 bool Smt2State::logicIsSet() { return d_logicSet; }
 
-bool Smt2State::getTesterName(Term cons, std::string& name)
-{
-  if (strictModeEnabled())
-  {
-    // 2.6 or above uses indexed tester symbols, if we are in strict mode,
-    // we do not automatically define is-cons for constructor cons.
-    return false;
-  }
-  std::stringstream ss;
-  ss << "is-" << cons;
-  name = ss.str();
-  return true;
-}
-
 Term Smt2State::mkIndexedConstant(const std::string& name,
                                   const std::vector<uint32_t>& numerals)
 {
@@ -587,7 +569,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       }
       Sort t = getSort(symbols[0]);
       // convert second symbol back to a numeral
-      uint32_t ubound = stringToUnsigned(symbols[1]);
+      uint32_t ubound = parseStringToUnsigned(symbols[1]);
       return d_tm.mkCardinalityConstraint(t, ubound);
     }
   }
@@ -624,8 +606,10 @@ Term Smt2State::mkIndexedOp(Kind k,
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
       Datatype d = sf.getDatatype();
-      // lookup by name
-      DatatypeConstructor dc = d.getConstructor(f.toString());
+      // lookup by name, using the raw symbol since toString() may print
+      // the name as a quoted symbol, e.g. |C,|
+      DatatypeConstructor dc =
+          d.getConstructor(f.hasSymbol() ? f.getSymbol() : f.toString());
       return dc.getTesterTerm();
     }
     else
@@ -635,12 +619,14 @@ Term Smt2State::mkIndexedOp(Kind k,
       {
         parseError("Bad syntax for (_ update X), X must be a selector.");
       }
-      std::string sname = f.toString();
+      // use the raw symbol since toString() may print the name as a quoted
+      // symbol, e.g. |fst,|
+      std::string sname = f.hasSymbol() ? f.getSymbol() : f.toString();
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeSelectorDomainSort();
       Datatype d = sf.getDatatype();
       // find the selector
-      DatatypeSelector ds = d.getSelector(f.toString());
+      DatatypeSelector ds = d.getSelector(sname);
       // get the updater term
       return ds.getUpdaterTerm();
     }
@@ -699,7 +685,6 @@ Term Smt2State::setupDefineFunRecScope(
 
 void Smt2State::pushDefineFunRecScope(
     const std::vector<std::pair<std::string, Sort>>& sortedVarNames,
-    Term func,
     const std::vector<Term>& flattenVars,
     std::vector<Term>& bvs)
 {
@@ -747,7 +732,13 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
       parseError(ss.str());
     }
 
-    terms.push_back(getVariable(name));
+    Term t = getVariable(name);
+    // getVariable returns null if the symbol is overloaded
+    if (t.isNull())
+    {
+      parseError("Overloaded constants must be type cast.");
+    }
+    terms.push_back(t);
   }
 
   return std::unique_ptr<Cmd>(new SygusInvConstraintCommand(terms));
@@ -843,8 +834,12 @@ void Smt2State::setLogic(std::string name)
     {
       // integer version of AND
       addIndexedOperator(Kind::IAND, "iand");
+      // parametric integer version of AND
+      addOperator(Kind::PIAND, "piand");
       // pow2
       addOperator(Kind::POW2, "int.pow2");
+      // log2
+      addOperator(Kind::LOG2, "int.log2");
     }
   }
 
@@ -1025,11 +1020,11 @@ void Smt2State::setLogic(std::string name)
 
   // Builtin symbols of the logic are declared at context level zero, hence
   // we push the outermost scope in the symbol manager here.
-  // We only do this if the logic has not already been set, in which case we have already
-  // pushed the outermost context (and this method redeclares the symbols which does
-  // not impact the symbol manager).
-  // TODO (cvc5-projects #693): refactor this so that this method is moved to the
-  // symbol manager and only called once per symbol manager.
+  // We only do this if the logic has not already been set, in which case we
+  // have already pushed the outermost context (and this method redeclares the
+  // symbols which does not impact the symbol manager).
+  // TODO (cvc5-projects #693): refactor this so that this method is moved to
+  // the symbol manager and only called once per symbol manager.
   if (!smLogicAlreadySet)
   {
     pushScope(true);
@@ -1187,28 +1182,6 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
   p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
-Term Smt2State::parseOpToExpr(ParseOp& p)
-{
-  Trace("parser") << "parseOpToExpr: " << p << std::endl;
-  Term expr;
-  if (p.d_kind != Kind::NULL_TERM)
-  {
-    parseError(
-        "Bad syntax for qualified identifier operator in term position.");
-  }
-  else if (!p.d_expr.isNull())
-  {
-    expr = p.d_expr;
-  }
-  else
-  {
-    checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-    expr = getVariable(p.d_name);
-  }
-  Assert(!expr.isNull());
-  return expr;
-}
-
 Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
 {
   bool isBuiltinOperator = false;
@@ -1234,6 +1207,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // output: (nullable.lift f x y)
       ParserState::checkDeclaration(p.d_name, DeclarationCheck::CHECK_DECLARED);
       Term function = getVariable(p.d_name);
+      // getVariable returns null if the symbol is overloaded
+      if (function.isNull())
+      {
+        parseError("Overloaded constants must be type cast.");
+      }
       args.insert(args.begin(), function);
       return d_tm.mkTerm(Kind::NULLABLE_LIFT, args);
     }
@@ -1340,7 +1318,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       }
       else
       {
-        Assert(false) << "Failed to resolve indexed operator " << p.d_name;
+        DebugUnhandled() << "Failed to resolve indexed operator " << p.d_name;
       }
     }
     else
@@ -1599,7 +1577,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // lenient for. In particular, any case that is ill-typed according to
       // the SMT standard but not in our internal type checker are handled
       // here.
-      Sort sreq; // if applicable, the sort which all arguments must be.
+      Sort sreq;  // if applicable, the sort which all arguments must be.
       bool sameType = false;
       if (kind == Kind::ADD || kind == Kind::MULT || kind == Kind::SUB
           || kind == Kind::GEQ || kind == Kind::GT || kind == Kind::LEQ
@@ -1609,8 +1587,8 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         sreq = args[0].getSort();
         sameType = true;
       }
-      else if (kind == Kind::DIVISION
-               || kind == Kind::TO_INTEGER || kind == Kind::IS_INTEGER)
+      else if (kind == Kind::DIVISION || kind == Kind::TO_INTEGER
+               || kind == Kind::IS_INTEGER)
       {
         // must apply division, to_int, is_int to real only
         sreq = d_tm.getRealSort();
@@ -1680,7 +1658,7 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       {
         ret = d_tm.mkSkolem(skolemId, args);
       }
-      else
+      else if (numSkolemIndices < args.size())
       {
         std::vector<Term> skolemArgs(args.begin(),
                                      args.begin() + numSkolemIndices);
@@ -1689,6 +1667,14 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
         finalArgs.insert(
             finalArgs.end(), args.begin() + numSkolemIndices, args.end());
         ret = d_tm.mkTerm(Kind::APPLY_UF, finalArgs);
+      }
+      else
+      {
+        std::stringstream ss;
+        ss << "Not enough indices for skolem operator " << skolemId
+           << ". Expects " << numSkolemIndices << ", received " << args.size()
+           << ".";
+        parseError(ss.str());
       }
       Trace("parser") << "applyParseOp: return skolem " << ret << std::endl;
       return ret;
@@ -1831,7 +1817,7 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal bitvector type.");
     }
-    uint32_t n0 = stringToUnsigned(numerals[0]);
+    uint32_t n0 = parseStringToUnsigned(numerals[0]);
     if (n0 == 0)
     {
       parseError("Illegal bitvector size: 0");
@@ -1852,8 +1838,8 @@ Sort Smt2State::getIndexedSort(const std::string& name,
     {
       parseError("Illegal floating-point type.");
     }
-    uint32_t n0 = stringToUnsigned(numerals[0]);
-    uint32_t n1 = stringToUnsigned(numerals[1]);
+    uint32_t n0 = parseStringToUnsigned(numerals[0]);
+    uint32_t n1 = parseStringToUnsigned(numerals[1]);
     if (!internal::validExponentSize(n0))
     {
       parseError("Illegal floating-point exponent size");

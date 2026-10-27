@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-bound --finite-model-find
 ; EXPECT: sat
 (set-logic ALL)

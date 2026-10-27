@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -116,6 +113,6 @@ Node flatten(NodeManager* nm, TNode t, Kinds... kinds)
   return nm->mkNode(t.getKind(), children);
 }
 
-}  // namespace cvc5::internal::expr
+}  // namespace cvc5::internal::expr::algorithm
 
 #endif

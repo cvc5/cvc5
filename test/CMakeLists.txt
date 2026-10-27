@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Daniel Larraz, Mathias Preiner, Aina Niemetz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -22,8 +19,8 @@ set(ENV_PATH_CMD )
 if(WIN32)
   # Set up a command to add DLL library paths to PATH
   set(ENV_PATH )
-  list(APPEND ENV_PATH ${CMAKE_BINARY_DIR}\\src)
-  list(APPEND ENV_PATH ${CMAKE_BINARY_DIR}\\src\\parser)
+  list(APPEND ENV_PATH ${PROJECT_BINARY_DIR}\\src)
+  list(APPEND ENV_PATH ${PROJECT_BINARY_DIR}\\src\\parser)
   list(APPEND ENV_PATH ${DEPS_BASE}\\bin)
   list(APPEND ENV_PATH $ENV{PATH})
   # Escape semicolons and backslashes

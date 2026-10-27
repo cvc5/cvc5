@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +21,8 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
+#include "smt/illegal_checker.h"
+#include "smt/model_verifier.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
@@ -44,7 +43,7 @@ class SmtDriver : protected EnvObj
 {
  public:
   SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx);
-  virtual ~SmtDriver(){}
+  virtual ~SmtDriver() {}
   /**
    * Check satisfiability. This invokes the algorithm given by this driver
    * for checking satisfiability.
@@ -63,6 +62,13 @@ class SmtDriver : protected EnvObj
    * ensure that assertions are only preprocessed in one context.
    */
   void refreshAssertions();
+  /**
+   * Debug check the model of the last call to checkSat, which checks that the
+   * model satisfies all facts asserted to the theory engine.
+   *
+   * @param hardFailure Whether to throw an internal error on failure.
+   */
+  void debugCheckModels(bool hardFailure);
   // --------------------------------------- callbacks from the context manager
   /**
    * Notify push pre, which is called just before the user context of the state
@@ -93,6 +99,17 @@ class SmtDriver : protected EnvObj
    */
   void getNextAssertionsInternal(preprocessing::AssertionPipeline& ap);
   /**
+   * Called when the result of a check-sat was unknown. This attempts to verify
+   * that the candidate model of the underlying SMT solver satisfies the input
+   * assertions.
+   *
+   * @param r The (unknown) result of the check-sat.
+   * @return true if we successfully verified that the candidate model
+   * satisfies the input assertions, in which case the response of the
+   * check-sat can be strengthened to "sat".
+   */
+  bool verifyUnknownModel(const Result& r);
+  /**
    * Check satisfiability next, return the result.
    *
    * If the result is unknown with UnknownExplanation REQUIRES_CHECK_AGAIN,
@@ -120,6 +137,20 @@ class SmtDriver : protected EnvObj
   ContextManager* d_ctx;
   /** assertions pipeline */
   preprocessing::AssertionPipeline d_ap;
+  /**
+   * The utility used for checking for illegal inputs
+   */
+  IllegalChecker d_illegalChecker;
+  /**
+   * The utility used for verifying candidate models, when the option
+   * modelVerify is enabled.
+   */
+  ModelVerifier d_modelVerifier;
+  /**
+   * Whether the last call to checkSat was "sat" due to strengthening an
+   * "unknown" result via verifying the candidate model (see modelVerify).
+   */
+  bool d_satFromModelVerify;
 };
 
 /**
@@ -133,7 +164,7 @@ class SmtDriverSingleCall : public SmtDriver
 {
  public:
   SmtDriverSingleCall(Env& env, SmtSolver& smt, ContextManager* ctx = nullptr);
-  virtual ~SmtDriverSingleCall(){}
+  virtual ~SmtDriverSingleCall() {}
 
  protected:
   /** Check sat next, takes result of underlying SMT solver only */

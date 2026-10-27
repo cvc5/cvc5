@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -85,6 +82,29 @@ Node expandMacroSumUb(NodeManager* nm,
 std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
                                                std::shared_ptr<ProofNode>& pf,
                                                const Node& pred);
+
+/**
+ * Return a proof of (= a b) by ProofRule::ARITH_POLY_NORM_REL, extended by a
+ * congruence step if a and b are negated. This is used for relating relations
+ * that are not equivalent under rewriting alone, e.g. (= (+ x 1) 2) and
+ * (= x 1), which is possible since the rewriter does not normalize equalities,
+ * see rewriter::normalizeEquality.
+ *
+ * @param pnm Reference to the proof manager.
+ * @param a The first relation, or its negation.
+ * @param b The second relation, or its negation.
+ * @return The proof of (= a b), or nullptr if a and b are not arithmetic
+ * relations that are equivalent up to polynomial normalization.
+ */
+std::shared_ptr<ProofNode> mkArithPolyNormRel(ProofNodeManager* pnm,
+                                              const Node& a,
+                                              const Node& b);
+
+/**
+ * Same as above, but adds the steps proving (= a b) to cdp. Returns false and
+ * adds no steps if a and b are not related by polynomial normalization.
+ */
+bool addArithPolyNormRel(CDProof& cdp, const Node& a, const Node& b);
 
 }  // namespace arith
 }  // namespace theory

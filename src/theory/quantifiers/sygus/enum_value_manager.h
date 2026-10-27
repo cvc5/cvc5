@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +40,6 @@ class EnumValueManager : protected EnvObj
 {
  public:
   EnumValueManager(Env& env,
-                   QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    TermRegistry& tr,
                    SygusStatistics& s,
@@ -74,8 +70,6 @@ class EnumValueManager : protected EnvObj
   Node getModelValue(Node n);
   /** The enumerator */
   Node d_enum;
-  /** Reference to the quantifiers state */
-  QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** Reference to the term registry */

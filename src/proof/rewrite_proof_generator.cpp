@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,8 +33,8 @@ std::shared_ptr<ProofNode> RewriteProofGenerator::getProofFor(Node fact)
 {
   if (fact.getKind() != Kind::EQUAL)
   {
-    Assert(false) << "Expected an equality in RewriteProofGenerator, got "
-                  << fact;
+    DebugUnhandled() << "Expected an equality in RewriteProofGenerator, got "
+                     << fact;
     return nullptr;
   }
   ProofNodeManager* pnm = d_env.getProofNodeManager();
@@ -45,7 +42,8 @@ std::shared_ptr<ProofNode> RewriteProofGenerator::getProofFor(Node fact)
   Node tp = d_env.rewriteViaMethod(t, d_id);
   if (tp != fact[1])
   {
-    Assert(false) << "Could not prove " << fact << " via RewriteProofGenerator";
+    DebugUnhandled() << "Could not prove " << fact
+                     << " via RewriteProofGenerator";
     return nullptr;
   }
   std::vector<Node> pargs{t};

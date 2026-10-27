@@ -46,7 +46,6 @@ following external formats.
 
    CPC <output_cpc>
    Alethe <output_alethe>
-   LFSC <output_lfsc>
    DOT <output_dot>
 
 Note that the DOT format is only meant for visualization.

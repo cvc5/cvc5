@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -79,6 +76,12 @@ class SetReduction
    * @return (set.map (lambda ((t T)) ((_ tuple.project n1 ... nk) t)) A)
    */
   static Node reduceProjectOperator(Node n);
+  /**
+   * @param n a term of the form (set.choose A) where A has type (Set E)
+   * @return the axiom for n:
+   *   (or (= A (as set.empty (Set E))) (set.member (set.choose A) A))
+   */
+  static Node mkChooseMemberAxiom(const Node& n);
 };
 
 }  // namespace sets

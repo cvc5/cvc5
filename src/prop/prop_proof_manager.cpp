@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -88,7 +85,10 @@ PropPfManager::PropPfManager(Env& env,
   d_trackLemmaClauseIds = isOutputOn(OutputTag::UNSAT_CORE_LEMMAS);
 }
 
-void PropPfManager::ensureLiteral(TNode n) { d_pfCnfStream.ensureLiteral(n); }
+void PropPfManager::ensureLiteral(TNode n, bool input)
+{
+  d_pfCnfStream.ensureLiteral(n, input);
+}
 
 void PropPfManager::convertAndAssert(theory::InferenceId id,
                                      TNode node,
@@ -221,7 +221,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   for (const std::shared_ptr<ProofNode>& pf : pfs)
   {
     Node proven = pf->getResult();
-    if (std::find(satLeaves.begin(), satLeaves.end(), proven) != satLeaves.end())
+    if (std::find(satLeaves.begin(), satLeaves.end(), proven)
+        != satLeaves.end())
     {
       usedPfs.push_back(pf);
     }

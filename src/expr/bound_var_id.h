@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -82,6 +79,11 @@ enum class BoundVarId
    * axiomatizing the behavior of some term.
    */
   STRINGS_LENGTH,
+  /**
+   * A bound variable quantifying over all strings to reduce a regular
+   * expression equality.
+   */
+  STRINGS_REG_EXP_EQ,
 
   /**
    * A unique (bound variable) which corresponds to
@@ -139,6 +141,11 @@ enum class BoundVarId
    * predicate that describes the invertibility condition.
    */
   QUANT_BV_INVERT_ANNOT,
+  /**
+   * Cached on a canonical variable index and type class, used by
+   * expr::TermCanonize when building alpha-invariant representative terms.
+   */
+  TERM_CANONIZE,
   /**
    * A variable used by the valid witness proof generator. This is cached based
    * on the skolem that witnesses the variable, whose skolem identifier is one

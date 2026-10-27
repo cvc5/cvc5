@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -77,7 +74,7 @@ Node ExampleMinEval::evaluate(const std::vector<Node>& subs)
 }
 
 Node EmeEvalTds::eval(TNode n,
-                      const std::vector<Node>& args,
+                      CVC5_UNUSED const std::vector<Node>& args,
                       const std::vector<Node>& vals)
 {
   return d_tds->evaluateBuiltin(d_tn, n, vals);

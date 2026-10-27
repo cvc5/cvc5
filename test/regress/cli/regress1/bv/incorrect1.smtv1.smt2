@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 ;; slow conversion
 ; DISABLE-TESTER: alethe
 (set-option :incremental false)

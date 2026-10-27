@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "theory/sets/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "theory/sets/set_reduction.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -30,6 +28,7 @@ void SetsProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(ProofRule::SETS_SINGLETON_INJ, this);
   pc->registerChecker(ProofRule::SETS_EXT, this);
+  pc->registerChecker(ProofRule::SETS_CHOOSE_MEMBER, this);
   pc->registerChecker(ProofRule::SETS_FILTER_UP, this);
   pc->registerChecker(ProofRule::SETS_FILTER_DOWN, this);
 }
@@ -68,6 +67,16 @@ Node SetsProofRuleChecker::checkInternal(ProofRule id,
     Node as = nm->mkNode(Kind::SET_MEMBER, k, a);
     Node bs = nm->mkNode(Kind::SET_MEMBER, k, b);
     return as.eqNode(bs).notNode();
+  }
+  else if (id == ProofRule::SETS_CHOOSE_MEMBER)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::SET_CHOOSE)
+    {
+      return Node::null();
+    }
+    return SetReduction::mkChooseMemberAxiom(args[0]);
   }
   else if (id == ProofRule::SETS_FILTER_UP)
   {

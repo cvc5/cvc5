@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,12 +21,12 @@ import java.util.NoSuchElementException;
 public class Datatype extends AbstractPointer implements Iterable<DatatypeConstructor>
 {
   // region construction and destruction
-  Datatype(long pointer)
+  Datatype(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Datatype::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -55,7 +52,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
     {
       return true;
     }
-    return equals(pointer, datatype.getPointer());
+    return equals(getPointer(), datatype.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -67,8 +64,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public DatatypeConstructor getConstructor(int idx)
   {
-    long constructorPointer = getConstructor(pointer, idx);
-    return new DatatypeConstructor(constructorPointer);
+    long constructorPointer = getConstructor(getPointer(), idx);
+    return new DatatypeConstructor(ctx, constructorPointer);
   }
 
   private native long getConstructor(long pointer, int index);
@@ -82,8 +79,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public DatatypeConstructor getConstructor(String name)
   {
-    long constructorPointer = getConstructor(pointer, name);
-    return new DatatypeConstructor(constructorPointer);
+    long constructorPointer = getConstructor(getPointer(), name);
+    return new DatatypeConstructor(ctx, constructorPointer);
   }
 
   private native long getConstructor(long pointer, String name);
@@ -97,29 +94,39 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public DatatypeSelector getSelector(String name)
   {
-    long selectorPointer = getSelector(pointer, name);
-    return new DatatypeSelector(selectorPointer);
+    long selectorPointer = getSelector(getPointer(), name);
+    return new DatatypeSelector(ctx, selectorPointer);
   }
 
   private native long getSelector(long pointer, String name);
 
-  /** @return The name of this Datatype. */
+  /**
+   * Get the name of this Datatype.
+   *
+   * @return The name of this Datatype.
+   */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
 
-  /** @return The number of constructors for this Datatype. */
+  /**
+   * Get the number of constructors for this Datatype.
+   *
+   * @return The number of constructors for this Datatype.
+   */
   public int getNumConstructors()
   {
-    return getNumConstructors(pointer);
+    return getNumConstructors(getPointer());
   }
 
   private native int getNumConstructors(long pointer);
 
   /**
+   * Get the parameters of this datatype.
+   *
    * @api.note This method is experimental and may change in future versions.
    *
    * @return The parameters of this datatype, if it is parametric. An exception.
@@ -127,57 +134,73 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public Sort[] getParameters()
   {
-    long[] sortPointers = getParameters(pointer);
-    Sort[] sorts = Utils.getSorts(sortPointers);
+    long[] sortPointers = getParameters(getPointer());
+    Sort[] sorts = Utils.getSorts(ctx, sortPointers);
     return sorts;
   }
 
   private native long[] getParameters(long pointer);
 
   /**
+   * Determine if this datatype is parametric.
+   *
    * @api.note This method is experimental and may change in future versions.
    *
    * @return True if this datatype is parametric.
    */
   public boolean isParametric()
   {
-    return isParametric(pointer);
+    return isParametric(getPointer());
   }
 
   private native boolean isParametric(long pointer);
 
-  /** @return True if this datatype corresponds to a co-datatype */
+  /**
+   * Determine if this datatype corresponds to a co-datatype.
+   *
+   * @return True if this datatype corresponds to a co-datatype.
+   */
   public boolean isCodatatype()
   {
-    return isCodatatype(pointer);
+    return isCodatatype(getPointer());
   }
 
   private native boolean isCodatatype(long pointer);
 
-  /** @return True if this datatype corresponds to a tuple */
+  /**
+   * Determine if this datatype corresponds to a tuple.
+   *
+   * @return True if this datatype corresponds to a tuple.
+   */
   public boolean isTuple()
   {
-    return isTuple(pointer);
+    return isTuple(getPointer());
   }
 
   private native boolean isTuple(long pointer);
 
   /**
+   * Determine if this datatype corresponds to a record.
+   *
    * @api.note This method is experimental and may change in future versions.
    *
    * @return True if this datatype corresponds to a record.
    */
   public boolean isRecord()
   {
-    return isRecord(pointer);
+    return isRecord(getPointer());
   }
 
   private native boolean isRecord(long pointer);
 
-  /** @return True if this datatype is finite */
+  /**
+   * Determine if this datatype is finite.
+   *
+   * @return True if this datatype is finite
+   */
   public boolean isFinite()
   {
-    return isFinite(pointer);
+    return isFinite(getPointer());
   }
 
   private native boolean isFinite(long pointer);
@@ -191,31 +214,44 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isWellFounded()
   {
-    return isWellFounded(pointer);
+    return isWellFounded(getPointer());
   }
 
   private native boolean isWellFounded(long pointer);
 
   /**
+   * Determine if this Datatype is a null object.
+   *
    * @return True if this Datatype is a null object.
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
 
   /**
+   * Provide a string representation of the native datatype.
+   *
+   * @param pointer The native memory address pointing to the datatype.
    * @return A string representation of this datatype.
    */
   protected native String toString(long pointer);
 
+  /**
+   * ConstIterator is an implementation of the {@link Iterator} interface for iterating over
+   * a collection of {@code DatatypeConstructor} objects.
+   * It provides read-only access to the elements.
+   */
   public class ConstIterator implements Iterator<DatatypeConstructor>
   {
     private int currentIndex;
     private int size;
 
+    /**
+     * Constructs a new ConstIterator.
+     */
     public ConstIterator()
     {
       currentIndex = -1;
@@ -254,8 +290,8 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   @Override
   public int hashCode()
   {
-    return hashCode(pointer);
+    return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native int hashCode(long pointer);
+  private native long hashCode(long pointer);
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +19,7 @@
 #include "proof/proof_checker.h"
 #include "theory/arith/nl/coverings/proof_checker.h"
 #include "theory/arith/nl/ext/proof_checker.h"
+#include "theory/arith/nl/pow2_proof_checker.h"
 #include "theory/arith/nl/transcendental/proof_checker.h"
 
 namespace cvc5::internal {
@@ -44,6 +42,8 @@ class ArithProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& args) override;
   /** The proof checker for proofs of the nlext. */
   nl::ExtProofRuleChecker d_extChecker;
+  /** The proof checker for proofs of the pow2 solver. */
+  nl::Pow2ProofRuleChecker d_pow2Checker;
   /** The proof checker for transcendental proofs */
   nl::transcendental::TranscendentalProofRuleChecker d_trChecker;
 #ifdef CVC5_POLY_IMP

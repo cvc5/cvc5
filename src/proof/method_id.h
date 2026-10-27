@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,9 +36,9 @@ enum class MethodId : uint32_t
   //---------------------------- Rewriters
   // Rewriter::rewrite(n)
   RW_REWRITE,
-  // d_ext_rew.extendedRewrite(n);
+  // Rewriter::extendedRewrite(n, false);
   RW_EXT_REWRITE,
-  // d_ext_rew.extendedRewrite(n, true);
+  // Rewriter::extendedRewrite(n, true);
   RW_EXT_REWRITE_AGG,
   // Rewriter::rewriteExtEquality(n)
   RW_REWRITE_EQ_EXT,

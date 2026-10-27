@@ -1,6 +1,7 @@
-; COMMAND-LINE: --no-early-exit --check-proofs --proof-granularity=theory-rewrite --proof-check=lazy -q --dag-thresh=0
+; COMMAND-LINE: --no-early-exit --check-proofs --proof-granularity=theory-rewrite --proof-check=lazy --dag-thresh=0
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*'
+(set-logic ALL)
 (declare-fun p () Bool)
 (declare-fun q () Bool)
 (declare-fun r () Bool)

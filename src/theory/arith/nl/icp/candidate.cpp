@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,7 +49,7 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
       res.set_lower(poly::Value::minus_infty(), true);
       break;
     case poly::SignCondition::EQ: break;
-    case poly::SignCondition::NE: Assert(false); break;
+    case poly::SignCondition::NE: DebugUnhandled(); break;
     case poly::SignCondition::GT:
       res.set_lower(get_lower(res), true);
       res.set_upper(poly::Value::plus_infty(), true);
@@ -72,7 +69,8 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
     case PropagationResult::CONTRACTED:
     case PropagationResult::CONTRACTED_WITHOUT_CURRENT:
     {
-      Trace("nl-icp") << *this << " contracted " << lhs << " -> " << cur
+      Trace("nl-icp") << *this << " contracted "
+                      << stream_variable(polyCtx, lhs) << " -> " << cur
                       << std::endl;
       auto old = ia.get(lhs);
       bool strong = false;
@@ -98,7 +96,7 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
     }
     case PropagationResult::CONTRACTED_STRONGLY:
     case PropagationResult::CONTRACTED_STRONGLY_WITHOUT_CURRENT:
-      Assert(false) << "This method should not return strong flags.";
+      DebugUnhandled() << "This method should not return strong flags.";
       break;
     default: break;
   }
@@ -107,7 +105,7 @@ PropagationResult Candidate::propagate(poly::IntervalAssignment& ia,
 
 std::ostream& operator<<(std::ostream& os, const Candidate& c)
 {
-  os << c.lhs << " " << c.rel << " ";
+  os << stream_variable(c.polyCtx, c.lhs) << " " << c.rel << " ";
   if (c.rhsmult != poly::Rational(1)) os << c.rhsmult << " * ";
   return os << c.rhs;
 }

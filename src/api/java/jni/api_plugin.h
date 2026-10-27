@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +22,7 @@
 class ApiPlugin : public cvc5::Plugin
 {
  public:
-  ApiPlugin(cvc5::TermManager& tm, JNIEnv* env, jobject plugin);
+  ApiPlugin(cvc5::TermManager& tm, JavaVM* vm, jweak plugin);
   /**
    * Call to check, return vector of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
@@ -57,10 +54,14 @@ class ApiPlugin : public cvc5::Plugin
   /** call a void function that receives a term in class AbstractPlugin  */
   void notifyHelper(const char* functionName, const cvc5::Term& cl);
 
-  /** Reference to java environment */
-  JNIEnv* d_env;
-  /** Reference to java plugin object */
-  jobject d_plugin;
+  /** The Java VM, used to look up the environment of the calling thread */
+  JavaVM* d_vm;
+  /**
+   * Weak global reference to the java plugin object. The Java solver keeps
+   * the plugin alive for as long as it exists, see
+   * ApiSolver::addWeakGlobalReference().
+   */
+  jweak d_plugin;
 };
 
 #endif  // CVC5__API_PLUGIN_H

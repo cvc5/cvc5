@@ -1,4 +1,5 @@
-; DISABLE-TESTER: lfsc
+; The cpc-logos tester takes more than 60 seconds.
+; DISABLE-TESTER: cpc-logos
 (set-logic BV)
 (set-info :status unsat)
 (declare-fun t () (_ BitVec 4))

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,8 +40,8 @@ CegisUnif::CegisUnif(Env& env,
 }
 
 CegisUnif::~CegisUnif() {}
-bool CegisUnif::processInitialize(Node conj,
-                                  Node n,
+bool CegisUnif::processInitialize(CVC5_UNUSED Node conj,
+                                  CVC5_UNUSED Node n,
                                   const std::vector<Node>& candidates)
 {
   // list of strategy points for unification candidates
@@ -94,7 +91,7 @@ bool CegisUnif::processInitialize(Node conj,
   return true;
 }
 
-void CegisUnif::getTermList(const std::vector<Node>& candidates,
+void CegisUnif::getTermList(CVC5_UNUSED const std::vector<Node>& candidates,
                             std::vector<Node>& enums)
 {
   // Non-unif candidate are themselves the enumerators
@@ -214,8 +211,8 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
               if (curr_size == prev_size)
               {
                 Node slem = nm->mkNode(Kind::AND,
-                                       es[j - 1].eqNode(vs[j - 1]),
-                                       es[j].eqNode(vs[j]))
+                                       {es[j - 1].eqNode(vs[j - 1]),
+                                        es[j].eqNode(vs[j])})
                                 .negate();
                 Trace("cegis-unif")
                     << "CegisUnif::lemma, inter-unif-enumerator "
@@ -315,7 +312,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         Assert(std::find(enums.begin(), enums.end(), hd) != enums.end());
         unsigned i = std::distance(enums.begin(),
                                    std::find(enums.begin(), enums.end(), hd));
-        Assert(i >= 0 && i < enum_values.size());
+        Assert(i < enum_values.size());
         TermDbSygus::toStreamSygus("cegis-unif", enum_values[i]);
         Trace("cegis-unif") << "\n";
       }
@@ -376,7 +373,8 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   return false;
 }
 
-void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars, Node lem)
+void CegisUnif::registerRefinementLemma(
+    CVC5_UNUSED const std::vector<Node>& vars, Node lem)
 {
   // Notify lemma to unification utility and get its purified form
   std::map<Node, std::vector<Node>> eval_pts;
@@ -645,7 +643,7 @@ void CegisUnifEnumDecisionStrategy::registerEvalPts(
   // register at all already allocated sizes
   for (const Node& ei : eis)
   {
-    Assert(ei.getType() == e.getType());
+    AssertEqual(ei.getType(), e.getType());
     for (unsigned j = 0, size = d_literals.size(); j < size; j++)
     {
       Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -178,8 +175,11 @@ SpectrumOpt spectrum(const Node& t, uint8_t depth)
     }
     case Kind::EQUAL:
     {
+      // As in the other cases, the children are visited in order: the
+      // evaluation order of function arguments is unspecified.
+      SpectrumOpt lhs = spectrum(t[0], depth - 1);
       return spectrumOp(
-          spectrum(t[0], depth - 1),
+          std::move(lhs),
           spectrum(t[1], depth - 1),
           [](const uint8_t& x, const uint8_t& y) { return std::max(x, y); },
           [](const FiniteFieldValue& x, const FiniteFieldValue& y) {
@@ -407,7 +407,11 @@ std::optional<Node> disjunctiveBitConstraint(const Node& t)
     if ((oneConstraint(t[0]) && zeroConstraint(t[1]))
         || (oneConstraint(t[1]) && zeroConstraint(t[0])))
     {
-      return {theory::ff::parse::spectrum(t[0])->var};
+      auto s0 = theory::ff::parse::spectrum(t[0]);
+      auto s1 = theory::ff::parse::spectrum(t[1]);
+      Assert(s0.has_value());
+      Assert(s1.has_value());
+      if (s0->var == s1->var) return {s0->var};
     }
   }
   return {};

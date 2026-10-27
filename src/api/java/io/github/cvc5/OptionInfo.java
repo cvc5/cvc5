@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,7 @@
 
 package io.github.cvc5;
 
+import io.github.cvc5.modes.OptionCategory;
 import java.math.BigInteger;
 
 /**
@@ -52,20 +50,28 @@ import java.math.BigInteger;
 public class OptionInfo extends AbstractPointer
 {
   // region construction and destruction
-  OptionInfo(long pointer)
+  OptionInfo(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, OptionInfo::deletePointer);
     this.name = getName(pointer);
     this.aliases = getAliases(pointer);
     this.setByUser = getSetByUser(pointer);
+    try
+    {
+      this.category = OptionCategory.fromInt(getCategory(pointer));
+    }
+    catch (CVC5ApiException e)
+    {
+      throw new RuntimeException("Invalid OptionCategory value", e);
+    }
     this.baseInfo = getBaseInfo(pointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   public String toString()
   {
-    return toString(pointer);
+    return toString(getPointer());
   }
 
   /**
@@ -78,37 +84,79 @@ public class OptionInfo extends AbstractPointer
   /** Abstract class for OptionInfo values */
   public abstract class BaseInfo
   {
+    /**
+     * Construct a new BaseInfo.
+     */
+    public BaseInfo() {}
   }
 
-  /** Has the current and the default value */
+  /**
+   * Has the current and the default value
+   *
+   * @param <T> the type of the value
+   */
   public class ValueInfo<T> extends BaseInfo
   {
     private final T defaultValue;
     private final T currentValue;
+
+    /**
+     * Construct a new {@code ValueInfo} instance with the given default and current values.
+     *
+     * @param defaultValue The default value.
+     * @param currentValue The current value.
+     */
     public ValueInfo(T defaultValue, T currentValue)
     {
       this.defaultValue = defaultValue;
       this.currentValue = currentValue;
     }
+    /**
+     * Get the default value.
+     *
+     * @return The default value.
+     */
     public T getDefaultValue()
     {
       return defaultValue;
     }
+    /**
+     * Get the current value.
+     *
+     * @return The current value.
+     */
     public T getCurrentValue()
     {
       return currentValue;
     }
   }
 
+  /**
+   * Information for mode option values.
+   */
   public class ModeInfo extends ValueInfo<String>
   {
     private final String[] modes;
 
+    /**
+     * Constructs a {@code ModeInfo} instance with the specified default value,
+     * current value, and available mode options.
+     *
+     * @param defaultValue The default value.
+     * @param currentValue The current value.
+     * @param modes The possible mode values.
+     */
     public ModeInfo(String defaultValue, String currentValue, String[] modes)
     {
       super(defaultValue, currentValue);
       this.modes = modes;
     }
+
+    /**
+     * Get the list of valid mode values.
+     *
+     * @return An array of available mode options.
+     */
     public String[] getModes()
     {
       return modes;
@@ -118,23 +166,53 @@ public class OptionInfo extends AbstractPointer
   /** Has no value information */
   public class VoidInfo extends BaseInfo
   {
+    /**
+     * Construct a new VoidInfo.
+     */
+    public VoidInfo() {}
   }
 
-  /** Default value, current value, minimum and maximum of a numeric value */
+  /**
+   * Default value, current value, minimum and maximum of a numeric value
+   *
+   * @param <T> the type of the numeric value
+   */
   public class NumberInfo<T> extends ValueInfo<T>
   {
     private final T minimum;
     private final T maximum;
+
+    /**
+     * Construct a {@code NumberInfo} instance with specified default value,
+     * current value, minimum, and maximum.
+     *
+     * @param defaultValue The default value.
+     * @param currentValue The current value.
+     * @param minimum The minimum value.
+     * @param maximum The maximum value.
+     */
     public NumberInfo(T defaultValue, T currentValue, T minimum, T maximum)
     {
       super(defaultValue, currentValue);
       this.minimum = minimum;
       this.maximum = maximum;
     }
+
+    /**
+     * Get the minimum value.
+     *
+     * @return The minimum value.
+     */
     public T getMinimum()
     {
       return minimum;
     }
+
+    /**
+     * Get the maximum value.
+     *
+     * @return The maximum value.
+     */
     public T getMaximum()
     {
       return maximum;
@@ -151,18 +229,37 @@ public class OptionInfo extends AbstractPointer
 
   /** The option name */
   private final String name;
+
+  /**
+   * Get the name of the option.
+   *
+   * @return The option name.
+   */
   public String getName()
   {
     return name;
   }
+
   /** The option name aliases */
   private final String[] aliases;
+  /**
+   * Get the option name aliases.
+   *
+   * @return An array of alias strings associated with the option.
+   */
   public String[] getAliases()
   {
     return aliases;
   }
+
   /** Whether the option was explicitly set by the user */
   private final boolean setByUser;
+
+  /**
+   * Determine if the option was set by the user.
+   *
+   * @return True if the option was set by the user.
+   */
   public boolean getSetByUser()
   {
     return setByUser;
@@ -170,6 +267,11 @@ public class OptionInfo extends AbstractPointer
 
   /** The option variant information */
   private final BaseInfo baseInfo;
+  /**
+   * Get base info.
+   *
+   * @return The base info.
+   */
   public BaseInfo getBaseInfo()
   {
     return baseInfo;
@@ -182,7 +284,7 @@ public class OptionInfo extends AbstractPointer
    */
   public boolean booleanValue()
   {
-    return booleanValue(pointer);
+    return booleanValue(getPointer());
   }
 
   private native boolean booleanValue(long pointer);
@@ -194,7 +296,7 @@ public class OptionInfo extends AbstractPointer
    */
   public String stringValue()
   {
-    return stringValue(pointer);
+    return stringValue(getPointer());
   }
 
   private native String stringValue(long pointer);
@@ -206,7 +308,7 @@ public class OptionInfo extends AbstractPointer
    */
   public BigInteger intValue()
   {
-    return intValue(pointer);
+    return intValue(getPointer());
   }
 
   private native BigInteger intValue(long pointer);
@@ -218,8 +320,23 @@ public class OptionInfo extends AbstractPointer
    */
   public double doubleValue()
   {
-    return doubleValue(pointer);
+    return doubleValue(getPointer());
   }
 
   private native double doubleValue(long pointer);
+
+  /** The option category */
+  private final OptionCategory category;
+
+  /**
+   * Get the category of the option.
+   *
+   * @return The option category.
+   */
+  public OptionCategory getCategory()
+  {
+    return category;
+  }
+
+  private native int getCategory(long pointer);
 }

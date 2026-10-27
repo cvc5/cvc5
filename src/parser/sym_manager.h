@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -115,10 +112,13 @@ class CVC5_EXPORT SymManager
                 cvc5::Sort t,
                 bool isUser);
   /**
-   * Binds sorts of a list of mutually-recursive datatype declarations.
+   * Binds the sorts, constructors, and selectors of a list of
+   * mutually-recursive datatype declarations. Testers are accessed via indexed
+   * symbols (_ is C).
    *
-   * If bindTesters is true, we bind the testers of this datatype to
-   * `is-C` where `C` is the name of the constructor for that tester.
+   * If bindTesters is true, we additionally bind the testers of this datatype
+   * to the (legacy) names `is-C` where `C` is the name of the constructor for
+   * that tester.
    */
   bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
                                bool bindTesters = true);
@@ -267,7 +267,7 @@ class CVC5_EXPORT SymManager
 
  private:
   /** The API Solver object. */
-  cvc5::TermManager& d_tm;
+  cvc5::TermManager d_tm;
   /** The implementation of the symbol manager */
   class Implementation;
   std::unique_ptr<Implementation> d_implementation;

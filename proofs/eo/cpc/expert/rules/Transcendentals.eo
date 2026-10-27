@@ -24,7 +24,7 @@
 (declare-rule arith_trans_exp_neg ((x Real))
   :premises ()
   :args (x)
-  :conclusion (= (< x 0) (< (exp x) 1))
+  :conclusion (= (< x 0/1) (< (exp x) 1/1))
 )
 
 ; rule: arith_trans_exp_positivity
@@ -35,7 +35,7 @@
 (declare-rule arith_trans_exp_positivity ((x Real))
   :premises ()
   :args (x)
-  :conclusion (> (exp x) 0)
+  :conclusion (> (exp x) 0/1)
 )
 
 ; rule: arith_trans_exp_super_lin
@@ -47,7 +47,7 @@
 ;   greater than its argument plus one.
 (declare-rule arith_trans_exp_super_lin ((x Real))
   :args (x)
-  :conclusion (or (<= x 0) (> (exp x) (+ x 1)))
+  :conclusion (or (<= x 0/1) (> (exp x) (+ x 1/1)))
 )
 
 ; rule: arith_trans_exp_zero
@@ -69,7 +69,7 @@
 ; conclusion: The sine is within positive and negative one.
 (declare-rule arith_trans_sine_bounds ((x Real))
   :args (x)
-  :conclusion (and (<= (sin x) 1) (>= (sin x) -1))
+  :conclusion (and (<= (sin x) 1/1) (>= (sin x) -1/1))
 )
 
 ; rule: arith_trans_sine_symmetry
@@ -81,7 +81,7 @@
 ;   sine is symmetric wrt the point 0.
 (declare-rule arith_trans_sine_symmetry ((x Real))
   :args (x)
-  :conclusion (= (+ (sin x) (sin (* -1 x))) 0)
+  :conclusion (= (+ (sin x) (sin (* -1/1 x))) 0/1)
 )
 
 ; rule: arith_trans_sine_tangent_zero
@@ -93,7 +93,7 @@
 ;   x is less than zero, sin is greater than x.
 (declare-rule arith_trans_sine_tangent_zero ((x Real))
   :args (x)
-  :conclusion (and (=> (> x 0) (< (sin x) x)) (=> (< x 0) (> (sin x) x)))
+  :conclusion (and (=> (> x 0/1) (< (sin x) x)) (=> (< x 0/1) (> (sin x) x)))
 )
 
 ; rule: arith_trans_sine_tangent_pi
@@ -105,5 +105,5 @@
 ;   x is less than pi, sin is less than pi minus x.
 (declare-rule arith_trans_sine_tangent_pi ((x Real))
   :args (x)
-  :conclusion (and (=> (> x (* -1 real.pi)) (> (sin x) (- (* -1 real.pi) x))) (=> (< x real.pi) (< (sin x) (- real.pi x))))
+  :conclusion (and (=> (> x (* -1/1 real.pi)) (> (sin x) (- (* -1/1 real.pi) x))) (=> (< x real.pi) (< (sin x) (- real.pi x))))
 )

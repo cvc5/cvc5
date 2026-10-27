@@ -1,4 +1,5 @@
 ; Source: NRA/keymaera/ETCS-essentials-live-range2.proof-node1388.smt2
+; COMMAND-LINE: --var-ineq-elim-quant
 ; EXPECT: unsat
 ; REQUIRES: poly
 (set-logic NRA)

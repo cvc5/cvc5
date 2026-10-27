@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Daniel Larraz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2025 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,8 +18,7 @@ public class Exceptions
 {
   public static void main(String[] args)
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       solver.setOption("produce-models", "true");
 
@@ -63,6 +59,5 @@ public class Exceptions
         System.out.println(e.toString());
       }
     }
-    Context.deletePointers();
   }
 }
