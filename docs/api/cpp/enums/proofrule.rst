@@ -53,3 +53,23 @@ rewrites performed on terms. These identifiers are arguments of the proof rules
     :project: std
     :members:
     :undoc-members:
+
+----
+
+Enum class :cpp:enum:`AnnotationId <cvc5::AnnotationId>` is used as an argument
+of the proof rule :cpp:enumerator:`ANNOTATE <cvc5::ProofRule::ANNOTATE>`. It is
+experimental and may change in future versions.
+
+.. doxygenenum:: cvc5::AnnotationId
+    :project: cvc5
+
+.. doxygenfunction:: cvc5::operator<<(std::ostream& out, AnnotationId id)
+    :project: cvc5
+
+.. doxygenfunction:: std::to_string(cvc5::AnnotationId id)
+    :project: cvc5
+
+.. doxygenstruct:: std::hash< cvc5::AnnotationId >
+    :project: std
+    :members:
+    :undoc-members:
