@@ -592,6 +592,14 @@ enum class InferenceId
   //-------------------- sets relations solver
   SETS_RELS_IDENTITY_DOWN,
   SETS_RELS_IDENTITY_UP,
+  // (rel.is-functional R) /\ (x, y) in R => y = f_R(x), f_R a fresh function
+  SETS_RELS_FUNCTIONAL,
+  // (rel.is-functional R) /\ (x1, y1) in R /\ (x2, y2) in R =>
+  //   (x1 = x2 => y1 = y2)
+  SETS_RELS_FUNCTIONAL_PAIR,
+  // not (rel.is-functional R) =>
+  //   (k1, k2) in R /\ (k1, k3) in R /\ k2 != k3, k1, k2, k3 fresh
+  SETS_RELS_NOT_FUNCTIONAL,
   SETS_RELS_JOIN_COMPOSE,
   SETS_RELS_JOIN_IMAGE_DOWN,
   SETS_RELS_JOIN_IMAGE_UP,
