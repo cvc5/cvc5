@@ -319,27 +319,44 @@ int CadicalPropagator::cb_decide()
   bool stopSearch = false;
   bool requirePhase = false;
   SatLiteral lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
-  // We found a partial model, let's check it.
-  if (stopSearch)
+  // Decision requests are not filtered by assignment status, i.e., the theory
+  // engine may request a decision on a literal that is already assigned.
+  // We skip assigned literals and ask for the next request until we find an
+  // unassigned one, as done in Minisat (see Solver::pickBranchLit()).
+  //
+  // Note: Requesting the next decision may also signal that we found a partial
+  //       model, which is why the model check is part of this loop.
+  bool model_checked = false;
+  while (stopSearch || lit != undefSatLiteral)
   {
-    d_found_solution = cb_check_found_model({});
-    if (d_found_solution)
+    // We found a partial model, let's check it.
+    if (stopSearch)
     {
-      Trace("cadical::propagator") << "Found solution" << std::endl;
-      d_found_solution = d_proxy->isDecisionEngineDone();
+      // Check the model at most once per callback. Otherwise, if the decision
+      // engine keeps signaling a partial model that is not done yet, we would
+      // perform full effort checks indefinitely.
+      if (model_checked)
+      {
+        break;
+      }
+      model_checked = true;
+      d_found_solution = cb_check_found_model({});
       if (!d_found_solution)
       {
-        Trace("cadical::propagator") << "Decision engine not done" << std::endl;
-        lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+        Trace("cadical::propagator") << "No solution found yet" << std::endl;
+        break;
       }
+      Trace("cadical::propagator") << "Found solution" << std::endl;
+      d_found_solution = d_proxy->isDecisionEngineDone();
+      if (d_found_solution)
+      {
+        break;
+      }
+      Trace("cadical::propagator") << "Decision engine not done" << std::endl;
+      stopSearch = false;
+      lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
+      continue;
     }
-    else
-    {
-      Trace("cadical::propagator") << "No solution found yet" << std::endl;
-    }
-  }
-  if (!stopSearch && lit != undefSatLiteral)
-  {
     if (!requirePhase)
     {
       int8_t phase = d_var_info[lit.getSatVariable()].phase;
@@ -352,8 +369,15 @@ int CadicalPropagator::cb_decide()
         }
       }
     }
-    Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
-    return toCadicalLit(lit);
+    if (value(lit) == SAT_VALUE_UNKNOWN)
+    {
+      Trace("cadical::propagator") << "cb::decide: " << lit << std::endl;
+      return toCadicalLit(lit);
+    }
+    Trace("cadical::propagator")
+        << "cb::decide: skip already assigned " << lit << std::endl;
+    ++d_stats.cbDecideSkipped;
+    lit = d_proxy->getNextDecisionRequest(requirePhase, stopSearch);
   }
   Trace("cadical::propagator") << "cb::decide: 0" << std::endl;
   return 0;

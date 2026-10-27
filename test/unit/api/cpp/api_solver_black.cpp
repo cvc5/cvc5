@@ -414,6 +414,106 @@ TEST_F(TestApiBlackSolver, defineFunGlobal)
   ASSERT_THROW(slv.defineFun("f", {}, d_bool, bTrue, true), CVC5ApiException);
 }
 
+TEST_F(TestApiBlackSolver, defineFunAfterCheckSat)
+{
+  Sort bv = d_tm.mkBitVectorSort(4);
+  Term value = d_tm.mkBitVector(4, 15);
+  Term x = d_tm.mkVar(bv, "x");
+  for (bool global : {false, true})
+  {
+    Solver slv(d_tm);
+    slv.setOption("incremental", "true");
+    slv.setOption("produce-models", "true");
+    ASSERT_TRUE(slv.checkSat().isSat());
+
+    Term c = slv.defineFun("c", {}, bv, value, global);
+    ASSERT_THROW(slv.getValue(c), CVC5ApiRecoverableException);
+    ASSERT_THROW(slv.getModel({}, {c}), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(c), value);
+
+    Term f = slv.defineFun("f", {x}, bv, x, global);
+    Term app = d_tm.mkTerm(Kind::APPLY_UF, {f, value});
+    ASSERT_THROW(slv.getValue(app), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(app), value);
+  }
+}
+
+TEST_F(TestApiBlackSolver, defineFunRecAfterCheckSat)
+{
+  Term value = d_tm.mkBitVector(4, 15);
+  Sort bv = value.getSort();
+  for (bool global : {false, true})
+  {
+    Solver slv(d_tm);
+    slv.setOption("incremental", "true");
+    slv.setOption("produce-models", "true");
+    ASSERT_TRUE(slv.checkSat().isSat());
+
+    Term c = slv.defineFunRec("c", {}, bv, value, global);
+    ASSERT_THROW(slv.getValue(c), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(c), value);
+
+    Term d = d_tm.mkConst(bv, "d");
+    slv.defineFunRec(d, {}, value, global);
+    ASSERT_THROW(slv.getValue(d), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(d), value);
+
+    Term e = d_tm.mkConst(bv, "e");
+    slv.defineFunsRec({e}, {{}}, {value}, global);
+    ASSERT_THROW(slv.getValue(e), CVC5ApiRecoverableException);
+    ASSERT_TRUE(slv.checkSat().isSat());
+    ASSERT_EQ(slv.getValue(e), value);
+  }
+}
+
+TEST_F(TestApiBlackSolver, defineFunAfterCheckSatUnsat)
+{
+  for (bool global : {false, true})
+  {
+    for (bool recursive : {false, true})
+    {
+      Solver slv(d_tm);
+      slv.setOption("incremental", "true");
+      slv.setOption("produce-unsat-cores", "true");
+      slv.setOption("produce-proofs", "true");
+      slv.setOption("produce-unsat-assumptions", "true");
+      slv.setOption("produce-difficulty", "true");
+      slv.setOption("produce-learned-literals", "true");
+      ASSERT_TRUE(slv.checkSatAssuming(d_tm.mkFalse()).isUnsat());
+      ASSERT_NO_THROW(slv.getUnsatCore());
+      ASSERT_NO_THROW(slv.getProof());
+      ASSERT_NO_THROW(slv.getUnsatAssumptions());
+      ASSERT_NO_THROW(slv.getDifficulty());
+      ASSERT_NO_THROW(slv.getLearnedLiterals());
+
+      if (recursive)
+      {
+        slv.defineFunRec("c", {}, d_bool, d_tm.mkTrue(), global);
+      }
+      else
+      {
+        slv.defineFun("c", {}, d_bool, d_tm.mkTrue(), global);
+      }
+      ASSERT_THROW(slv.getUnsatCore(), CVC5ApiRecoverableException);
+      ASSERT_THROW(slv.getProof(), CVC5ApiRecoverableException);
+      ASSERT_THROW(slv.getUnsatAssumptions(), CVC5ApiException);
+      ASSERT_THROW(slv.getDifficulty(), CVC5ApiRecoverableException);
+      ASSERT_THROW(slv.getLearnedLiterals(), CVC5ApiRecoverableException);
+
+      ASSERT_TRUE(slv.checkSatAssuming(d_tm.mkFalse()).isUnsat());
+      ASSERT_NO_THROW(slv.getUnsatCore());
+      ASSERT_NO_THROW(slv.getProof());
+      ASSERT_NO_THROW(slv.getUnsatAssumptions());
+      ASSERT_NO_THROW(slv.getDifficulty());
+      ASSERT_NO_THROW(slv.getLearnedLiterals());
+    }
+  }
+}
+
 TEST_F(TestApiBlackSolver, defineFunRec)
 {
   Sort bvSort = d_tm.mkBitVectorSort(32);
@@ -937,6 +1037,11 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term output2 = d_solver->getAbduct(conj2, g);
   // abduct must be true
   ASSERT_EQ(output2, truen);
+  // free variables are not allowed
+  Term v = d_tm.mkVar(d_int, "v");
+  Term conjFv = d_tm.mkTerm(Kind::GT, {v, zero});
+  ASSERT_THROW(d_solver->getAbduct(conjFv), CVC5ApiException);
+  ASSERT_THROW(d_solver->getAbduct(conjFv, g), CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
@@ -988,6 +1093,7 @@ TEST_F(TestApiBlackSolver, getAbductNext)
   Term conj = d_tm.mkTerm(Kind::GT, {y, zero});
   // Call the abduction api, while the resulting abduct is the output
   Term output = d_solver->getAbduct(conj);
+  d_solver->defineFun("aux", {}, d_int, zero);
   Term output2 = d_solver->getAbductNext();
   // should produce a different output
   ASSERT_TRUE(output != output2);
@@ -1029,6 +1135,11 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   Term output2 = d_solver->getInterpolant(conj2, g);
   // interpolant must be true
   ASSERT_EQ(output2, truen);
+  // free variables are not allowed
+  Term v = d_tm.mkVar(d_int, "v");
+  Term conjFv = d_tm.mkTerm(Kind::GT, {v, zero});
+  ASSERT_THROW(d_solver->getInterpolant(conjFv), CVC5ApiException);
+  ASSERT_THROW(d_solver->getInterpolant(conjFv, g), CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
@@ -1064,6 +1175,7 @@ TEST_F(TestApiBlackSolver, getInterpolantNext)
       {d_tm.mkTerm(Kind::GT, {d_tm.mkTerm(Kind::ADD, {y, z}), zero}),
        d_tm.mkTerm(Kind::LT, {z, zero})});
   Term output = d_solver->getInterpolant(conj);
+  d_solver->defineFun("aux", {}, d_int, zero);
   Term output2 = d_solver->getInterpolantNext();
 
   // We expect the next output to be distinct
@@ -1144,6 +1256,8 @@ TEST_F(TestApiBlackSolver, getStatistics)
   {
     hasstats = true;
     ASSERT_FALSE(s.first.empty());
+    ASSERT_FALSE(s.second.isInternal());
+    ASSERT_FALSE(s.second.isDefault());
   }
   ASSERT_TRUE(hasstats);
   hasstats = false;
@@ -1563,6 +1677,12 @@ TEST_F(TestApiBlackSolver, getQuantifierElimination)
   ASSERT_THROW(d_solver->getQuantifierElimination(d_tm.mkBoolean(false)),
                CVC5ApiException);
   ASSERT_NO_THROW(d_solver->getQuantifierElimination(forall));
+  // free variables are not allowed
+  Term y = d_tm.mkVar(d_bool, "y");
+  Term forallFv = d_tm.mkTerm(
+      Kind::FORALL,
+      {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}), d_tm.mkTerm(Kind::OR, {x, y})});
+  ASSERT_THROW(d_solver->getQuantifierElimination(forallFv), CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
@@ -1583,6 +1703,13 @@ TEST_F(TestApiBlackSolver, getQuantifierEliminationDisjunct)
       d_solver->getQuantifierEliminationDisjunct(d_tm.mkBoolean(false)),
       CVC5ApiException);
   ASSERT_NO_THROW(d_solver->getQuantifierEliminationDisjunct(forall));
+  // free variables are not allowed
+  Term y = d_tm.mkVar(d_bool, "y");
+  Term forallFv = d_tm.mkTerm(
+      Kind::FORALL,
+      {d_tm.mkTerm(Kind::VARIABLE_LIST, {x}), d_tm.mkTerm(Kind::OR, {x, y})});
+  ASSERT_THROW(d_solver->getQuantifierEliminationDisjunct(forallFv),
+               CVC5ApiException);
 
   TermManager tm;
   Solver slv(tm);
@@ -2209,6 +2336,7 @@ TEST_F(TestApiBlackSolver, checkSynthNext)
 
   cvc5::SynthResult sr = d_solver->checkSynth();
   ASSERT_TRUE(sr.hasSolution());
+  d_solver->defineFun("aux", {}, d_bool, d_tm.mkTrue());
   ASSERT_NO_THROW(d_solver->getSynthSolutions({f}));
   sr = d_solver->checkSynthNext();
   ASSERT_TRUE(sr.hasSolution());
@@ -2264,6 +2392,7 @@ TEST_F(TestApiBlackSolver, findSynth2)
   // should enumerate true/false
   cvc5::Term t = d_solver->findSynth(modes::FindSynthTarget::ENUM, g);
   ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
+  d_solver->defineFun("aux", {}, d_bool, truen);
   t = d_solver->findSynthNext();
   ASSERT_TRUE(!t.isNull() && t.getSort().isBoolean());
 }

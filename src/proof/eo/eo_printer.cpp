@@ -28,11 +28,14 @@
 #include "printer/printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "proof/eo/eo_dependent_type_converter.h"
+#include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_to_sexpr.h"
 #include "rewriter/rewrite_db.h"
 #include "smt/print_benchmark.h"
 #include "theory/builtin/generic_op.h"
+#include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 #include "theory/theory.h"
 #include "util/string.h"
 
@@ -150,6 +153,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::SKOLEM_INTRO:
     case ProofRule::SETS_SINGLETON_INJ:
     case ProofRule::SETS_EXT:
+    case ProofRule::SETS_CHOOSE_MEMBER:
     case ProofRule::CONCAT_EQ:
     case ProofRule::CONCAT_UNIFY:
     case ProofRule::CONCAT_CSPLIT:
@@ -330,7 +334,6 @@ bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
     case ProofRewriteRule::RE_LOOP_ELIM:
     case ProofRewriteRule::RE_EQ_ELIM:
     case ProofRewriteRule::SETS_EVAL_OP:
-    case ProofRewriteRule::SETS_INSERT_ELIM:
     case ProofRewriteRule::STR_IN_RE_CONCAT_STAR_CHAR:
     case ProofRewriteRule::STR_IN_RE_SIGMA:
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
@@ -351,8 +354,18 @@ bool EoPrinter::isHandledTheoryRewrite(const Options& opts,
     case ProofRewriteRule::STR_CTN_MULTISET_SUBSET:
     case ProofRewriteRule::SEQ_EVAL_OP: return true;
     case ProofRewriteRule::STR_IN_RE_EVAL:
+    {
       Assert(n[0].getKind() == Kind::STRING_IN_REGEXP && n[0][0].isConst());
+      if (theory::strings::Word::isEmpty(n[0][0]))
+      {
+        // If the string is empty, the signature only requires determining
+        // whether the regular expression is nullable, which does not require
+        // it to be evaluatable.
+        bool res;
+        return theory::strings::RegExpEntail::isNullable(n[0][1], res);
+      }
       return canEvaluateRegExp(n[0][1]);
+    }
     case ProofRewriteRule::ARITH_POW_ELIM:
     case ProofRewriteRule::ARRAYS_SELECT_CONST:
     case ProofRewriteRule::LAMBDA_ELIM:
@@ -859,6 +872,8 @@ void EoPrinter::print(EoPrintChannelOut& aout,
   std::ostream& out = aout.getOStream();
   Assert(d_pletMap.empty());
   d_pfIdCounter = 0;
+  d_topAssumps.clear();
+  d_caMap.clear();
 
   const ProofNode* ascope = nullptr;
   const ProofNode* dscope = nullptr;
@@ -920,15 +935,15 @@ void EoPrinter::print(EoPrintChannelOut& aout,
       // [3] print proof-level term bindings
       printLetList(out, d_lbind);
     }
-    // [4] print (unique) assumptions, including definitions
-    std::unordered_set<Node> processed;
+    // [4] print (unique) assumptions, including definitions, which are the
+    // top-level assumptions of the proof body
+    d_topAssumps.clear();
     for (const Node& n : assertions)
     {
-      if (processed.find(n) != processed.end())
+      if (!d_topAssumps.insert(n).second)
       {
         continue;
       }
-      processed.insert(n);
       size_t id = allocateAssumeId(n, wasAlloc);
       Node nc = d_tproc.convert(n);
       ao->printAssume(nc, id, false);
@@ -940,11 +955,10 @@ void EoPrinter::print(EoPrintChannelOut& aout,
         // skip define-fun-rec?
         continue;
       }
-      if (processed.find(n) != processed.end())
+      if (!d_topAssumps.insert(n).second)
       {
         continue;
       }
-      processed.insert(n);
       // define-fun are HO equalities that can be proven by refl
       size_t id = allocateAssumeId(n, wasAlloc);
       Node f = d_tproc.convert(n[0]);
@@ -1001,6 +1015,13 @@ void EoPrinter::printNext(EoPrintChannelOut& aout,
                           std::shared_ptr<ProofNode> pfn)
 {
   const ProofNode* pnBody = pfn.get();
+  // the proof nodes may differ from previous calls
+  d_caMap.clear();
+  // Note that d_topAssumps is intentionally not reset here. It contains the
+  // assumptions of the last call to print (e.g. the preprocessed input
+  // assertions when proof logging), which remain in scope for the proofs
+  // printed by this method. If print was not called, it is empty and no
+  // subproof depending on assumptions is hoisted.
   // print with letification
   printProofInternal(&d_eletify, pnBody, false);
   // print the new let bindings
@@ -1024,6 +1045,9 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
   context::CDHashMap<const ProofNode*, bool> processingChildren(&d_passumeCtx);
   // helper iterators
   context::CDHashMap<const ProofNode*, bool>::iterator pit;
+  // The SCOPE proofs whose closed subproofs we have processed, see
+  // getClosedSubproofs.
+  context::CDHashSet<const ProofNode*> hoisted(&d_passumeCtx);
   const ProofNode* cur;
   visit.push_back(pn);
   do
@@ -1043,6 +1067,28 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
         // ignore
         visit.pop_back();
         continue;
+      }
+      if (r == ProofRule::SCOPE && hoisted.find(cur) == hoisted.end())
+      {
+        // Process the closed subproofs of the body of the scope beforehand,
+        // so that they are printed outside of the scope and can be shared.
+        hoisted.insert(cur);
+        std::vector<const ProofNode*> pfs;
+        getClosedSubproofs(cur->getChildren()[0].get(), pfs);
+        bool hasHoisted = false;
+        for (const ProofNode* p : pfs)
+        {
+          // skip those already processed in this traversal
+          if (processingChildren.find(p) == processingChildren.end())
+          {
+            visit.push_back(p);
+            hasHoisted = true;
+          }
+        }
+        if (hasHoisted)
+        {
+          continue;
+        }
       }
       // print preorder traversal
       printStepPre(out, cur);
@@ -1067,6 +1113,38 @@ void EoPrinter::printProofInternal(EoPrintChannel* out,
       {
         d_alreadyPrinted.insert(cur);
       }
+    }
+  } while (!visit.empty());
+}
+
+void EoPrinter::getClosedSubproofs(const ProofNode* pn,
+                                   std::vector<const ProofNode*>& pfs)
+{
+  std::unordered_set<const ProofNode*> visited;
+  std::vector<const ProofNode*> visit;
+  std::vector<std::shared_ptr<ProofNode>> children;
+  const ProofNode* cur;
+  visit.push_back(pn);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (cur->getRule() == ProofRule::ASSUME || !visited.insert(cur).second
+        || d_alreadyPrinted.find(cur) != d_alreadyPrinted.end())
+    {
+      continue;
+    }
+    // closed if all of its free assumptions are top-level assumptions
+    if (!expr::containsAssumption(cur, d_caMap, d_topAssumps))
+    {
+      pfs.push_back(cur);
+      continue;
+    }
+    children.clear();
+    getChildrenFromProofRule(cur, children);
+    for (const std::shared_ptr<ProofNode>& c : children)
+    {
+      visit.push_back(c.get());
     }
   } while (!visit.empty());
 }

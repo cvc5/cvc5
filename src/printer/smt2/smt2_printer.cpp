@@ -1218,6 +1218,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::TO_REAL: return "to_real";
     case Kind::POW: return "^";
     case Kind::DIVISIBLE: return "divisible";
+    case Kind::STAR_CONTAINS: return "int.star-contains";
 
     // arrays theory
     case Kind::SELECT: return "select";
@@ -1230,6 +1231,8 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::FINITE_FIELD_BITSUM: return "ff.bitsum";
     case Kind::FINITE_FIELD_MULT: return "ff.mul";
     case Kind::FINITE_FIELD_NEG: return "ff.neg";
+    case Kind::FINITE_FIELD_IDEAL: return "@ff.ideal";
+    case Kind::FINITE_FIELD_VARIETY: return "@ff.variety";
 
     // bv theory
     case Kind::BITVECTOR_CONCAT: return "concat";

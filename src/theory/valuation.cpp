@@ -225,6 +225,12 @@ bool Valuation::needCheck() const
   return d_engine->needCheck();
 }
 
+bool Valuation::isModelUnsound() const
+{
+  Assert(d_engine != nullptr);
+  return d_engine->isModelUnsound();
+}
+
 bool Valuation::isRelevant(Node lit) const { return d_engine->isRelevant(lit); }
 
 bool Valuation::isLegalElimination(TNode x, TNode val)

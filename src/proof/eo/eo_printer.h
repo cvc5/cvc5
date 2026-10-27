@@ -18,6 +18,8 @@
 #define CVC5__PROOF__EO_PROOF_PRINTER_H
 
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -141,6 +143,17 @@ class EoPrinter : protected EnvObj
                           const ProofNode* pn,
                           bool addToCache);
   /**
+   * Get the maximal closed subproofs of pn that have not been printed, where
+   * a proof is closed if all of its free assumptions are top-level
+   * assumptions (in d_topAssumps). This is computed conservatively, i.e. it
+   * does not take into account the assumptions bound by SCOPE proofs within
+   * the subproof. We print these subproofs before printing a SCOPE whose body
+   * is pn. This ensures they are printed outside of the SCOPE, so that they
+   * can be shared with other parts of the proof.
+   */
+  void getClosedSubproofs(const ProofNode* pn,
+                          std::vector<const ProofNode*>& pfs);
+  /**
    * Helper for print. Prints a (dummy) step concluding the formula assumed by
    * pn, which is expected to be an application of ProofRule::ASSUME that is
    * the body of the proof we are printing. This ensures that proofs always end
@@ -194,6 +207,13 @@ class EoPrinter : protected EnvObj
    * used by printProofInternal.
    */
   context::CDHashSet<const ProofNode*> d_alreadyPrinted;
+  /** The top-level assumptions of the proof we are printing */
+  std::unordered_set<Node> d_topAssumps;
+  /**
+   * Cache for expr::containsAssumption with respect to d_topAssumps, which we
+   * use to check whether a proof is closed.
+   */
+  std::unordered_map<const ProofNode*, bool> d_caMap;
   /** Mapping assumed formulas to identifiers */
   context::CDHashMap<Node, size_t> d_passumeMap;
   /** The (dummy) type used for proof terms */

@@ -7,10 +7,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * [[ Add one-line brief description here ]]
- *
- * [[ Add lengthier description here ]]
- * \todo document this file
+ * Util functions for theory FP.
  */
 #include "theory/fp/theory_fp_utils.h"
 
@@ -61,6 +58,42 @@ void checkForExperimentalFloatingPointType(const Node& n)
             "solver, use at your own risk.";
       throw SafeLogicException(ss.str());
     }
+  }
+}
+
+std::pair<Rational, bool> roundingCellLowerBound(const FloatingPoint& c,
+                                                 RoundingMode rm)
+{
+  Assert(!c.isNaN() && !c.isInfinite());
+  FloatingPoint p = FloatingPoint::nextDown(c);
+  Assert(!p.isInfinite());
+  Rational rc = c.convertToRationalTotal(Rational(0));
+  Rational rp = p.convertToRationalTotal(Rational(0));
+  switch (rm)
+  {
+    case RoundingMode::ROUND_TOWARD_POSITIVE:
+      // x in (real(p), real(c)] rounds up to c
+      return {rp, true};
+    case RoundingMode::ROUND_TOWARD_NEGATIVE:
+      // x in [real(c), real(nextUp(c))) rounds down to c
+      return {rc, false};
+    case RoundingMode::ROUND_TOWARD_ZERO:
+      // positive: rounds down, as for ROUND_TOWARD_NEGATIVE
+      // negative and zero: rounds up, as for ROUND_TOWARD_POSITIVE
+      return rc > 0 ? std::make_pair(rc, false) : std::make_pair(rp, true);
+    case RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+      // the tie (midpoint) rounds to the neighbor with even significand; the
+      // significand lsbs of adjacent packed values alternate, thus the
+      // boundary is strict iff the significand of c is odd
+      return {(rp + rc) / 2, c.pack().getValue().testBit(0)};
+    case RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+    {
+      // the tie rounds away from zero: to c if the midpoint is positive,
+      // to p if it is negative
+      Rational t0 = (rp + rc) / 2;
+      return {t0, t0 < 0};
+    }
+    default: Unreachable() << "Unknown rounding mode";
   }
 }
 

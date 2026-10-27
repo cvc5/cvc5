@@ -23,6 +23,7 @@ int main()
   int res = cvc5_result_is_unsat(res1) && cvc5_result_is_unsat(res2) ? 0 : 1;
   cvc5_delete(solver1);
   cvc5_delete(solver2);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return res;
 }

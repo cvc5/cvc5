@@ -26,6 +26,7 @@ import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.function.Executable;
@@ -45,7 +46,8 @@ class SolverTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_solver.close();
+    d_tm.close();
   }
 
   @Test
@@ -817,6 +819,8 @@ class SolverTest
     for (Map.Entry<String, Stat> s : stats)
     {
       assertFalse(s.getKey().isEmpty());
+      assertFalse(s.getValue().isInternal());
+      assertFalse(s.getValue().isDefault());
     }
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
@@ -2538,5 +2542,72 @@ class SolverTest
       Term value3 = s3.getValue(function2);
       assertEquals(value1, value3);
     }
+  }
+
+  @Test
+  void pluginFromAnotherThread() throws Exception
+  {
+    // A plugin registered on one thread is invoked on the thread that uses
+    // the solver afterwards.
+    AtomicInteger checks = new AtomicInteger();
+    List<Solver> handover = new ArrayList<>();
+    Thread producer = new Thread(() -> {
+      Solver solver = new Solver(d_tm);
+      solver.addPlugin(new AbstractPlugin(d_tm) {
+        @Override
+        public Term[] check()
+        {
+          checks.incrementAndGet();
+          return new Term[0];
+        }
+        @Override
+        public String getName()
+        {
+          return "counting";
+        }
+      });
+      handover.add(solver);
+    });
+    producer.start();
+    producer.join();
+    Solver solver = handover.get(0);
+    solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
+    assertTrue(solver.checkSat().isSat());
+    assertTrue(checks.get() > 0);
+  }
+
+  @Test
+  void pluginException()
+  {
+    d_solver.addPlugin(new AbstractPlugin(d_tm) {
+      @Override
+      public Term[] check()
+      {
+        throw new IllegalStateException("plugin failure");
+      }
+      @Override
+      public String getName()
+      {
+        return "throwing";
+      }
+    });
+    d_solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSat());
+  }
+
+  @Test
+  void getTermManagerSameInstance()
+  {
+    assertSame(d_solver.getTermManager(), d_solver.getTermManager());
+    assertEquals(d_tm.getBooleanSort(), d_solver.getTermManager().getBooleanSort());
+    // The returned term manager shares the node manager of d_tm.
+    assertEquals(d_tm, d_solver.getTermManager());
+    assertEquals(d_solver.getTermManager(), d_tm);
+    assertEquals(d_tm.hashCode(), d_solver.getTermManager().hashCode());
+    assertEquals(d_tm, new Solver(d_tm).getTermManager());
+    assertNotEquals(new TermManager(), d_solver.getTermManager());
+    TermManager tm = new TermManager();
+    assertNotEquals(d_tm, new Solver(tm).getTermManager());
+    assertEquals(tm, new Solver(tm).getTermManager());
   }
 }

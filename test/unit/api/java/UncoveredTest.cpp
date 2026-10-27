@@ -233,8 +233,8 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::OptionCategory::REGULAR);
   ss << cvc5::modes::InputLanguage::SMT_LIB_2_6
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
-  ss << cvc5::modes::ProofFormat::LFSC
-     << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::modes::ProofFormat::CPC
+     << std::to_string(cvc5::modes::ProofFormat::CPC);
   ss << cvc5::ProofRewriteRule::NONE
      << std::to_string(cvc5::ProofRewriteRule::NONE);
   ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
@@ -283,13 +283,15 @@ TEST_F(TestApiBlackUncovered, Statistics)
   Stat stat;
   stat = Stat();
   Statistics stats = d_solver->getStatistics();
-  auto it = stats.begin();
+  auto it = stats.begin(true, true);
+  ASSERT_TRUE(it != stats.end());
+  ASSERT_FALSE(it == stats.end());
   it++;
   it--;
   ++it;
   --it;
   std::stringstream ss;
-  ss << it->first;
+  ss << it->first << (*it).first;
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
   d_tm.printStatisticsSafe(STDOUT_FILENO);
@@ -375,6 +377,8 @@ TEST_F(TestApiBlackUncovered, Parser)
   parser::Command command;
   Solver solver(d_tm);
   parser::InputParser inputParser(&solver);
+  ASSERT_EQ(inputParser.getSolver(), &solver);
+  ASSERT_NE(inputParser.getSymbolManager(), nullptr);
   std::stringstream ss;
   ss << command << std::endl;
   inputParser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");

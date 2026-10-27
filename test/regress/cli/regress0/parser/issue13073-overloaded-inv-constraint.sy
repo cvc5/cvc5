@@ -1,0 +1,12 @@
+; DISABLE-TESTER: dump
+; REQUIRES: no-competition
+; EXPECT-ERROR: (error "Parse Error: issue13073-overloaded-inv-constraint.sy:11.31: Overloaded constants must be type cast.")
+; EXIT: 1
+(set-logic ALL)
+(synth-inv inv ((x Int)))
+(declare-fun pre (Int) Bool)
+(declare-fun pre (Int Int) Bool)
+(define-fun trans ((x Int) (x! Int)) Bool (= x! (+ x 1)))
+(define-fun post ((x Int)) Bool (>= x 0))
+(inv-constraint inv pre trans post)
+(check-synth)
