@@ -180,12 +180,12 @@ JNIEnv* getEnv(JavaVM* vm);
  * Call a Java oracle.
  *
  * @param vm the Java VM
- * @param oracleRef a global reference to a java Solver.OracleBridge object
+ * @param oracleRef a weak global reference to a java Solver.OracleBridge object
  * @param terms the arguments
  * @return the result of applying the oracle to the arguments
  */
 cvc5::Term applyOracle(JavaVM* vm,
-                       jobject oracleRef,
+                       jweak oracleRef,
                        const std::vector<cvc5::Term>& terms);
 
 #endif  // CVC5__API_UTILITIES_H

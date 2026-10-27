@@ -27,7 +27,7 @@ import java.util.*;
  *
  * The symbol manager's interface is otherwise not publicly available.
  */
-public class SymbolManager extends AbstractPointer
+public class SymbolManager extends AbstractPointer implements AutoCloseable
 {
   /**
    * Create symbol manager instance.
@@ -61,6 +61,15 @@ public class SymbolManager extends AbstractPointer
   }
   private static native void deletePointer(long pointer);
 
+  /**
+   * Free the native symbol manager, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
+
   @Override
   public boolean equals(Object s)
   {
@@ -92,7 +101,7 @@ public class SymbolManager extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(pointer);
+    return Long.hashCode(getPointer());
   }
 
   /**
@@ -102,7 +111,7 @@ public class SymbolManager extends AbstractPointer
    */
   public boolean isLogicSet()
   {
-    return isLogicSet(pointer);
+    return isLogicSet(getPointer());
   }
 
   private native boolean isLogicSet(long pointer);
@@ -115,7 +124,7 @@ public class SymbolManager extends AbstractPointer
    */
   public String getLogic()
   {
-    return getLogic(pointer);
+    return getLogic(getPointer());
   }
 
   private native String getLogic(long pointer);
@@ -129,7 +138,7 @@ public class SymbolManager extends AbstractPointer
    */
   public Sort[] getDeclaredSorts()
   {
-    long[] pointers = getDeclaredSorts(pointer);
+    long[] pointers = getDeclaredSorts(getPointer());
     return Utils.getSorts(ctx, pointers);
   }
 
@@ -144,7 +153,7 @@ public class SymbolManager extends AbstractPointer
    */
   public Term[] getDeclaredTerms()
   {
-    long[] retPointers = getDeclaredTerms(pointer);
+    long[] retPointers = getDeclaredTerms(getPointer());
     return Utils.getTerms(ctx, retPointers);
   }
 
@@ -158,7 +167,7 @@ public class SymbolManager extends AbstractPointer
    */
   public Map<Term, String> getNamedTerms()
   {
-    Map<Long, String> map = getNamedTerms(pointer);
+    Map<Long, String> map = getNamedTerms(getPointer());
     Map<Term, String> ret = new HashMap<>();
     for (Map.Entry<Long, String> entry : map.entrySet())
     {

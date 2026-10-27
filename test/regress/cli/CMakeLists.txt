@@ -2188,6 +2188,7 @@ set(regress_0_tests
   regress0/sets/int-real-univ.smt2
   regress0/sets/issue10584-card-fmf-bound.smt2
   regress0/sets/issue12814-filter-card.smt2
+  regress0/sets/issue13092-model-relevant-rep.smt2
   regress0/sets/issue5400-card-minus-univ.smt2
   regress0/sets/issue5400-2-card-minus-univ.smt2
   regress0/sets/issue5402-1-card.smt2

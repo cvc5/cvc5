@@ -630,7 +630,7 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
     }
   }
 
-  Node dnf = LiaStarUtils::toDNF(predicate, &d_env, &d_stats);
+  Node dnf = LiaStarUtils::toDNF(predicate, d_env, &d_stats);
 
   Trace("liastar-ext") << "predicate in dnf: " << dnf << std::endl;
   Trace("liastar-ext") << "lia constraint: " << std::endl;

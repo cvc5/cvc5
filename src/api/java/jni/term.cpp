@@ -1122,22 +1122,6 @@ Java_io_github_cvc5_Term_getSkolemIndices(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Term
- * Method:    iterator
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_iterator(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = reinterpret_cast<Term*>(pointer);
-  Term::const_iterator* retPointer = new Term::const_iterator(current->begin());
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Term
  * Method:    hashCode
  * Signature: (J)J
  */

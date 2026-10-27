@@ -52,7 +52,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
     {
       return true;
     }
-    return equals(pointer, datatype.getPointer());
+    return equals(getPointer(), datatype.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -64,7 +64,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public DatatypeConstructor getConstructor(int idx)
   {
-    long constructorPointer = getConstructor(pointer, idx);
+    long constructorPointer = getConstructor(getPointer(), idx);
     return new DatatypeConstructor(ctx, constructorPointer);
   }
 
@@ -79,7 +79,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public DatatypeConstructor getConstructor(String name)
   {
-    long constructorPointer = getConstructor(pointer, name);
+    long constructorPointer = getConstructor(getPointer(), name);
     return new DatatypeConstructor(ctx, constructorPointer);
   }
 
@@ -94,7 +94,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public DatatypeSelector getSelector(String name)
   {
-    long selectorPointer = getSelector(pointer, name);
+    long selectorPointer = getSelector(getPointer(), name);
     return new DatatypeSelector(ctx, selectorPointer);
   }
 
@@ -107,7 +107,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
@@ -119,7 +119,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public int getNumConstructors()
   {
-    return getNumConstructors(pointer);
+    return getNumConstructors(getPointer());
   }
 
   private native int getNumConstructors(long pointer);
@@ -134,7 +134,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public Sort[] getParameters()
   {
-    long[] sortPointers = getParameters(pointer);
+    long[] sortPointers = getParameters(getPointer());
     Sort[] sorts = Utils.getSorts(ctx, sortPointers);
     return sorts;
   }
@@ -150,7 +150,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isParametric()
   {
-    return isParametric(pointer);
+    return isParametric(getPointer());
   }
 
   private native boolean isParametric(long pointer);
@@ -162,7 +162,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isCodatatype()
   {
-    return isCodatatype(pointer);
+    return isCodatatype(getPointer());
   }
 
   private native boolean isCodatatype(long pointer);
@@ -174,7 +174,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isTuple()
   {
-    return isTuple(pointer);
+    return isTuple(getPointer());
   }
 
   private native boolean isTuple(long pointer);
@@ -188,7 +188,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isRecord()
   {
-    return isRecord(pointer);
+    return isRecord(getPointer());
   }
 
   private native boolean isRecord(long pointer);
@@ -200,7 +200,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isFinite()
   {
-    return isFinite(pointer);
+    return isFinite(getPointer());
   }
 
   private native boolean isFinite(long pointer);
@@ -214,7 +214,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isWellFounded()
   {
-    return isWellFounded(pointer);
+    return isWellFounded(getPointer());
   }
 
   private native boolean isWellFounded(long pointer);
@@ -226,7 +226,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -290,7 +290,7 @@ public class Datatype extends AbstractPointer implements Iterable<DatatypeConstr
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);
