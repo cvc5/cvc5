@@ -42,7 +42,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_newSolver(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Solver_deletePointer(JNIEnv* env,
-                                                                jobject,
+                                                                jclass,
                                                                 jlong pointer)
 {
   ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
@@ -512,21 +512,6 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Solver_getOptionInfo(
   Solver* solver = reinterpret_cast<Solver*>(pointer);
   std::string cOption(env->GetStringUTFChars(jOption, nullptr));
   OptionInfo* ret = new OptionInfo(solver->getOptionInfo(cOption));
-  return reinterpret_cast<jlong>(ret);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Solver
- * Method:    getDriverOptions
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL
-Java_io_github_cvc5_Solver_getDriverOptions(JNIEnv* env, jobject, jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Solver* solver = reinterpret_cast<Solver*>(pointer);
-  DriverOptions* ret = new DriverOptions(solver->getDriverOptions());
   return reinterpret_cast<jlong>(ret);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
@@ -1011,7 +996,7 @@ Java_io_github_cvc5_Solver_declarePool(JNIEnv* env,
 /*
  * Class:     io_github_cvc5_Solver
  * Method:    declareOracleFun
- * Signature: (JLjava/lang/String;[JJLio/github/cvc5/IOracle;)J
+ * Signature: (JLjava/lang/String;[JJLio/github/cvc5/Solver$OracleBridge;)J
  */
 JNIEXPORT jlong JNICALL
 Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
@@ -1024,7 +1009,7 @@ Java_io_github_cvc5_Solver_declareOracleFun(JNIEnv* env,
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
-  jobject oracleReference = api_solver->addGlobalReference(env, oracle);
+  jweak oracleReference = api_solver->addWeakGlobalReference(env, oracle);
   const char* s = env->GetStringUTFChars(jSymbol, nullptr);
   std::string cSymbol(s);
   Sort* sort = reinterpret_cast<Sort*>(sortPointer);
@@ -1056,7 +1041,7 @@ Java_io_github_cvc5_Solver_addPlugin(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   ApiSolver* api_solver = reinterpret_cast<ApiSolver*>(pointer);
   TermManager* tm = reinterpret_cast<TermManager*>(termManagerPointer);
-  jobject pluginReference = api_solver->addGlobalReference(env, plugin);
+  jweak pluginReference = api_solver->addWeakGlobalReference(env, plugin);
   JavaVM* vm = nullptr;
   env->GetJavaVM(&vm);
   ApiPlugin* p = new ApiPlugin(*tm, vm, pluginReference);

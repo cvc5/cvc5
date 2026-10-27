@@ -276,7 +276,7 @@ void PropEngine::assertInternal(theory::InferenceId id,
         && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
     {
       // use the proof CNF stream to ensure the literal
-      d_ppm->ensureLiteral(node);
+      d_ppm->ensureLiteral(node, input);
       addAssumption = true;
     }
     else
@@ -618,7 +618,7 @@ Node PropEngine::ensureLiteral(TNode n)
                          << std::endl;
   if (isProofEnabled())
   {
-    d_ppm->ensureLiteral(preprocessed);
+    d_ppm->ensureLiteral(preprocessed, false);
   }
   else
   {

@@ -16,6 +16,8 @@
 #include <cvc5/cvc5_parser.h>
 #include <jni.h>
 
+#include <exception>
+#include <new>
 #include <string>
 #include <vector>
 
@@ -43,6 +45,17 @@
     env->ThrowNew(exceptionClass, e.what());                                   \
   }                                                                            \
   catch (const CVC5ApiException& e)                                            \
+  {                                                                            \
+    jclass exceptionClass = env->FindClass("io/github/cvc5/CVC5ApiException"); \
+    env->ThrowNew(exceptionClass, e.what());                                   \
+  }                                                                            \
+  /* No C++ exception may unwind through JVM frames. */                        \
+  catch (const std::bad_alloc& e)                                              \
+  {                                                                            \
+    jclass exceptionClass = env->FindClass("java/lang/OutOfMemoryError");      \
+    env->ThrowNew(exceptionClass, e.what());                                   \
+  }                                                                            \
+  catch (const std::exception& e)                                              \
   {                                                                            \
     jclass exceptionClass = env->FindClass("io/github/cvc5/CVC5ApiException"); \
     env->ThrowNew(exceptionClass, e.what());                                   \
@@ -167,12 +180,12 @@ JNIEnv* getEnv(JavaVM* vm);
  * Call a Java oracle.
  *
  * @param vm the Java VM
- * @param oracleRef a global reference to a java IOracle object
+ * @param oracleRef a weak global reference to a java Solver.OracleBridge object
  * @param terms the arguments
  * @return the result of applying the oracle to the arguments
  */
 cvc5::Term applyOracle(JavaVM* vm,
-                       jobject oracleRef,
+                       jweak oracleRef,
                        const std::vector<cvc5::Term>& terms);
 
 #endif  // CVC5__API_UTILITIES_H
