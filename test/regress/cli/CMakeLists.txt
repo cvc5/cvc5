@@ -988,8 +988,12 @@ set(regress_0_tests
   regress0/fmf/quant_real_univ.cvc.smt2
   regress0/fmf/sat-logic.smt2
   regress0/fmf/sc_bad_model_1221.smt2
+  regress0/fmf/sort-infer-nonmonotonic-dt.smt2
+  regress0/fmf/sort-infer-nonmonotonic-ite.smt2
+  regress0/fmf/sort-infer-nonmonotonic-order.smt2
   regress0/fmf/sort-infer-nonmonotonic-orig.smt2
   regress0/fmf/sort-infer-original-injection.smt2
+  regress0/fmf/sort-infer-ramsey-gra121.smt2
   regress0/fmf/sort-infer-typed-082718.smt2
   regress0/fmf/syn002-si-real-int.smt2
   regress0/fmf/tail_rec.smt2
@@ -2187,6 +2191,7 @@ set(regress_0_tests
   regress0/sets/int-real-univ.smt2
   regress0/sets/issue10584-card-fmf-bound.smt2
   regress0/sets/issue12814-filter-card.smt2
+  regress0/sets/issue13092-model-relevant-rep.smt2
   regress0/sets/issue5400-card-minus-univ.smt2
   regress0/sets/issue5400-2-card-minus-univ.smt2
   regress0/sets/issue5402-1-card.smt2
@@ -3162,6 +3167,7 @@ set(regress_1_tests
   regress1/issue10788-refresh-a-interp.smt2
   regress1/issue11966-get-value-ss.smt2
   regress1/issue12339-bv-as-int-subtype-pf.smt2
+  regress1/issue13082-interpol-ensure-literal.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2

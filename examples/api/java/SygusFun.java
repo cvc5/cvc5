@@ -21,8 +21,7 @@ public class SygusFun
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       // required options
       slv.setOption("sygus", "true");
@@ -102,6 +101,5 @@ public class SygusFun
         Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
       }
     }
-    Context.deletePointers();
   }
 }

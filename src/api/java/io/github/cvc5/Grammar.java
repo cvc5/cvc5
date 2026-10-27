@@ -22,9 +22,9 @@ package io.github.cvc5;
 public class Grammar extends AbstractPointer
 {
   // region construction and destruction
-  Grammar(long pointer)
+  Grammar(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Grammar::deletePointer);
   }
 
   /**
@@ -35,12 +35,12 @@ public class Grammar extends AbstractPointer
    */
   public Grammar(Grammar grammar)
   {
-    super(copyGrammar(grammar.pointer));
+    super(grammar.ctx, copyGrammar(grammar.getPointer()), Grammar::deletePointer);
   }
 
   private static native long copyGrammar(long pointer);
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -50,7 +50,7 @@ public class Grammar extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -77,7 +77,7 @@ public class Grammar extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, grammar.getPointer());
+    return equals(getPointer(), grammar.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -89,7 +89,7 @@ public class Grammar extends AbstractPointer
    */
   public void addRule(Term ntSymbol, Term rule)
   {
-    addRule(pointer, ntSymbol.getPointer(), rule.getPointer());
+    addRule(getPointer(), ntSymbol.getPointer(), rule.getPointer());
   }
 
   private native void addRule(long pointer, long ntSymbolPointer, long rulePointer);
@@ -102,7 +102,7 @@ public class Grammar extends AbstractPointer
   public void addRules(Term ntSymbol, Term[] rules)
   {
     long[] pointers = Utils.getPointers(rules);
-    addRules(pointer, ntSymbol.getPointer(), pointers);
+    addRules(getPointer(), ntSymbol.getPointer(), pointers);
   }
 
   private native void addRules(long pointer, long ntSymbolPointer, long[] rulePointers);
@@ -113,7 +113,7 @@ public class Grammar extends AbstractPointer
    */
   public void addAnyConstant(Term ntSymbol)
   {
-    addAnyConstant(pointer, ntSymbol.getPointer());
+    addAnyConstant(getPointer(), ntSymbol.getPointer());
   }
 
   private native void addAnyConstant(long pointer, long ntSymbolPointer);
@@ -126,7 +126,7 @@ public class Grammar extends AbstractPointer
    */
   public void addAnyVariable(Term ntSymbol)
   {
-    addAnyVariable(pointer, ntSymbol.getPointer());
+    addAnyVariable(getPointer(), ntSymbol.getPointer());
   }
 
   private native void addAnyVariable(long pointer, long ntSymbolPointer);
@@ -143,7 +143,7 @@ public class Grammar extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);
