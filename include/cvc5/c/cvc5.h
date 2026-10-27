@@ -2563,9 +2563,6 @@ CVC5_EXPORT Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar);
 /**
  * Release copy of grammar, decrements reference counter of `grammar`.
  *
- * @note A grammar is released together with the solver that created it. To
- *       use it afterwards, keep a reference to it via `cvc5_grammar_copy()`.
- *
  * @param grammar The grammar to release.
  *
  * @note This step is optional and allows users to release resources in a more
@@ -2594,8 +2591,8 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
  * Delete a cvc5 term manager instance.
  *
  * Objects created via the term manager (sorts, terms, operators, datatypes,
- * ...), as well as the statistics of solver instances associated with the
- * term manager, are managed by the term manager. They keep the term manager
+ * grammars, ...), as well as the statistics of solver instances associated with
+ * the term manager, are managed by the term manager. They keep the term manager
  * alive and thus remain valid after the term manager has been deleted, until
  * they are released via the corresponding `cvc5_*_release()` function. The
  * memory of the term manager (and of the objects it manages) is only freed once
@@ -3565,6 +3562,36 @@ cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
 
 /** @} */
 
+/* .................................................................... */
+/* Create SyGuS grammars                                                */
+/* .................................................................... */
+
+/** \addtogroup c_grammar_creation
+ *  @{
+ */
+
+/**
+ * Create a Sygus grammar. The first non-terminal is treated as the starting
+ * non-terminal, so the order of non-terminals matters.
+ *
+ * The grammar is associated with the term manager and can be used with any
+ * solver instance associated with it.
+ *
+ * @param tm          The term manager instance.
+ * @param nbound_vars The number of bound variables.
+ * @param bound_vars  The parameters to corresponding synth-fun/synth-inv.
+ * @param nsymbols    The number of symbols.
+ * @param symbols     The pre-declaration of the non-terminal symbols.
+ * @return The grammar.
+ */
+CVC5_EXPORT Cvc5Grammar cvc5_mk_grammar(Cvc5TermManager* tm,
+                                        size_t nbound_vars,
+                                        const Cvc5Term bound_vars[],
+                                        size_t nsymbols,
+                                        const Cvc5Term symbols[]);
+
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5OptionInfo                                                             */
 /* -------------------------------------------------------------------------- */
@@ -4150,10 +4177,10 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  * `cvc5_stat_release()`, or all at once via `cvc5_term_manager_release()`
  * (see `cvc5_term_manager_delete()`).
  *
- * Results (`Cvc5Result`), synthesis results (`Cvc5SynthResult`), proofs
- * (`Cvc5Proof`) and grammars (`Cvc5Grammar`) are managed by the solver:
- * deleting it drops one reference to each such object it created, which frees
- * those the user did not keep a reference to. An object the user kept a
+ * Results (`Cvc5Result`), synthesis results (`Cvc5SynthResult`) and proofs
+ * (`Cvc5Proof`) are managed by the solver: deleting it drops one reference to
+ * each such object it created, which frees those the user did not keep a
+ * reference to. An object the user kept a
  * reference to (via the corresponding `cvc5_*_copy()` function) outlives the
  * solver, as in the C++ API, and is freed by its final release. Proofs
  * additionally keep the term manager alive, since querying them creates new
@@ -4164,8 +4191,8 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  * are deleted themselves (see `cvc5_parser_delete()`). The memory of the
  * solver is only freed once it has been deleted and all of its input parsers
  * have been freed. Consequently, dropping the reference the solver holds on
- * each of its results, synthesis results, proofs and grammars is deferred
- * until then as well.
+ * each of its results, synthesis results and proofs is deferred until then as
+ * well.
  *
  * @note A solver instance keeps its associated term manager alive. Solver and
  *       term manager instances may thus be deleted in any order.
@@ -5450,23 +5477,6 @@ CVC5_EXPORT void cvc5_set_option(Cvc5* cvc5,
 CVC5_EXPORT Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5,
                                             const char* symbol,
                                             Cvc5Sort sort);
-
-/**
- * Create a Sygus grammar. The first non-terminal is treated as the starting
- * non-terminal, so the order of non-terminals matters.
- *
- * @param cvc5        The solver instance.
- * @param nbound_vars The number of bound variabls.
- * @param bound_vars  The parameters to corresponding synth-fun/synth-inv.
- * @param nsymbols    The number of symbols.
- * @param symbols     The pre-declaration of the non-terminal symbols.
- * @return The grammar.
- */
-CVC5_EXPORT Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
-                                        size_t nbound_vars,
-                                        const Cvc5Term bound_vars[],
-                                        size_t nsymbols,
-                                        const Cvc5Term symbols[]);
 
 /**
  * Synthesize n-ary function.

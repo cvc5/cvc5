@@ -3112,6 +3112,37 @@ Cvc5DatatypeDecl cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
   return res;
 }
 
+/* SyGuS grammars ------------------------------------------------------ */
+
+Cvc5Grammar cvc5_mk_grammar(Cvc5TermManager* tm,
+                            size_t nbound_vars,
+                            const Cvc5Term bound_vars[],
+                            size_t nsymbols,
+                            const Cvc5Term symbols[])
+{
+  Cvc5Grammar res = nullptr;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(tm);
+  CVC5_CAPI_CHECK_NOT_NULL(symbols);
+  CVC5_API_CHECK(bound_vars || nbound_vars == 0)
+      << "unexpected NULL argument for 'bound_vars'";
+  std::vector<cvc5::Term> cbound_vars;
+  for (size_t i = 0; i < nbound_vars; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
+    cbound_vars.push_back(bound_vars[i]->d_term);
+  }
+  std::vector<cvc5::Term> csymbols;
+  for (size_t i = 0; i < nsymbols; ++i)
+  {
+    CVC5_CAPI_CHECK_TERM_AT_IDX(symbols, i);
+    csymbols.push_back(symbols[i]->d_term);
+  }
+  res = tm->export_grammar(tm->d_tm.mkGrammar(cbound_vars, csymbols));
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 /* Create Terms --------------------------------------------------------- */
 
 Cvc5Term cvc5_mk_term(Cvc5TermManager* tm,
@@ -4217,7 +4248,7 @@ Cvc5Grammar cvc5_grammar_copy(Cvc5Grammar grammar)
   Cvc5Grammar res = nullptr;
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  res = grammar->copy();
+  res = grammar->d_tm->copy(grammar);
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -4226,7 +4257,7 @@ void cvc5_grammar_release(Cvc5Grammar grammar)
 {
   CVC5_CAPI_TRY_CATCH_BEGIN;
   CVC5_CAPI_CHECK_GRAMMAR(grammar);
-  grammar->release();
+  grammar->d_tm->release(grammar);
   CVC5_CAPI_TRY_CATCH_END;
 }
 
@@ -5678,35 +5709,6 @@ Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5, const char* symbol, Cvc5Sort sort)
   CVC5_CAPI_CHECK_SORT(sort);
   res = cvc5->d_tm->export_term(
       cvc5->d_solver.declareSygusVar(symbol, sort->d_sort));
-  CVC5_CAPI_TRY_CATCH_END;
-  return res;
-}
-
-Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
-                            size_t nbound_vars,
-                            const Cvc5Term bound_vars[],
-                            size_t nsymbols,
-                            const Cvc5Term symbols[])
-{
-  Cvc5Grammar res = nullptr;
-  CVC5_CAPI_TRY_CATCH_BEGIN;
-  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
-  CVC5_CAPI_CHECK_NOT_NULL(symbols);
-  CVC5_API_CHECK(bound_vars || nbound_vars == 0)
-      << "unexpected NULL argument for 'bound_vars'";
-  std::vector<cvc5::Term> cbound_vars;
-  for (size_t i = 0; i < nbound_vars; ++i)
-  {
-    CVC5_CAPI_CHECK_TERM_AT_IDX(bound_vars, i);
-    cbound_vars.push_back(bound_vars[i]->d_term);
-  }
-  std::vector<cvc5::Term> csymbols;
-  for (size_t i = 0; i < nsymbols; ++i)
-  {
-    CVC5_CAPI_CHECK_TERM_AT_IDX(symbols, i);
-    csymbols.push_back(symbols[i]->d_term);
-  }
-  res = cvc5->export_grammar(cvc5->d_tm->d_tm.mkGrammar(cbound_vars, csymbols));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
