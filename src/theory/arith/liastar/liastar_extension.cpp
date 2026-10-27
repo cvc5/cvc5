@@ -42,6 +42,7 @@ using namespace libnormaliz;
 
 using libnormaliz::operator<<;
 
+/** Print the elements of l separated by spaces, for traces. */
 template <typename T>
 std::string toString(const std::vector<T>& l)
 {
@@ -112,7 +113,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                        const std::set<Node>& termSet)
 {
   d_stats.d_checkFullEffortTime.start();
-  // run a last call effort check
+  // the steps 1-4 below are those documented in liastar_extension.h
   Trace("liastar-ext") << "interceptModel: do model-based refinement"
                        << std::endl;
   Trace("liastar-ext") << " model is : " << arithModel << std::endl;
@@ -139,6 +140,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     auto [vectorPredicate, nonnegative] =
         LiaStarUtils::getVectorPredicate(literal, nm);
 
+    // 1. y is nonnegative
     if (options().arith.arithLiaStarAssumeNonnegative)
     {
       // assert that vector elements are non negative. The nonnegativity
@@ -150,7 +152,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       d_im.addPendingLemma(
           lemma, InferenceId::ARITH_LIA_STAR_NONNEGATIVE, nullptr);
     }
-    // add a spliting lemma for vector predicate
+    // 2. split on p(y)
     Node split = vectorPredicate.orNode(vectorPredicate.notNode());
     d_im.addPendingLemma(split, InferenceId::ARITH_LIA_STAR_SPLIT, nullptr);
     d_im.doPendingLemmas();
@@ -159,6 +161,7 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       Trace("liastar-ext") << "Sending lemma: " << split << std::endl;
       continue;
     }
+    // 3. skip the literal if p(y) holds in the model, since then y is in S*
     if (options().arith.arithLiaStarModelValue)
     {
       d_stats.d_modelValueTime.start();
@@ -193,20 +196,24 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       d_stats.d_modelValueTime.stop();
     }
 
+    // 4. the reduction lemma, sent once per literal
     if (std::find(
             d_processedStarTerms.begin(), d_processedStarTerms.end(), literal)
         != d_processedStarTerms.end())
     {
       continue;
     }
-    // more work need to be done
     std::vector<std::pair<std::vector<std::string>, Node>> pairs =
         convertQFLIAToMatrices(lambda);
 
     auto [cones, starConstraints] = getCones(literal, pairs);
+    // only used by the trace below
     std::vector<std::pair<Node, Node>> lia = getLia(lambda, cones);
 
     Trace("liastar-ext") << "lia constraint: " << std::endl;
+    // print SMT-LIB queries comparing each linear set with its disjunct
+    // (equivalent when the disjunct has one module generator) and p with the
+    // union of all linear sets, see LiaStarUtils::traceEquivalenceCheck
     if (TraceIsOn("liastar-ext-smt"))
     {
       for (size_t i = 0; i < lia.size(); i++)
@@ -279,6 +286,15 @@ LiaStarExtension::getCones(
 
     libnormaliz::renf_class_ptr number_field_ref;
 
+    // the input for the disjunct (and (>= x 2) (= y 1)) is
+    //   amb_space 2
+    //   constraints 2 symbolic
+    //   x[1] >= 2;
+    //   x[2] = 1;
+    //   signs
+    //   0 0
+    //   HilbertBasis
+    //   ModuleGenerators
     std::stringstream ss;
     ss << "amb_space " << dimension << std::endl;
     ss << "constraints " << pair.first.size() << " symbolic" << std::endl;
@@ -344,7 +360,7 @@ LiaStarExtension::getCones(
       // AffineDim is only computed for inhomogeneous cones
       if (cone.getAffineDim() == -1)
       {
-        // the cone is empty skip.
+        // the polyhedron is empty, skip it
         Trace("liastar-ext") << "empty cone" << std::endl;
         ++d_stats.d_conesEmpty;
         continue;
@@ -363,6 +379,10 @@ LiaStarExtension::getCones(
     }
 
     Trace("liastar-ext") << "Module generators:" << std::endl;
+    // A cone has no module generators: its integer points are 0 + H*N. For
+    // a polyhedron, Normaliz appends a homogenizing coordinate to each
+    // vector, e.g. the module generator 2 1 1 and the Hilbert basis element
+    // 1 0 0 for (and (>= x 2) (= y 1)); the sums below ignore it.
     std::vector<std::vector<Integer>> generators = {zeroVector};
     if (cone.getModuleGenerators().size() > 0)
     {
@@ -371,6 +391,7 @@ LiaStarExtension::getCones(
     for (const auto& generator : generators)
     {
       Trace("liastar-ext") << toString(generator) << std::endl;
+      // the star of 0 + H*N is itself, so mu is 1 for the zero generator
       Node mu = d_one;
       if (generator != zeroVector)
       {
@@ -391,7 +412,8 @@ LiaStarExtension::getCones(
         Node lambda = d_nm->mkDummySkolem("l", d_nm->integerType());
         // (>= l 0)
         starConstraints.push_back(d_nm->mkNode(Kind::GEQ, lambda, d_zero));
-        // (=> (= mu 0) (= l 0))
+        // (=> (= mu 0) (= l 0)), the rays of a linear set may only be used
+        // together with its generator
         starConstraints.push_back(
             d_nm->mkNode(Kind::EQUAL, mu, d_zero)
                 .impNode(d_nm->mkNode(Kind::EQUAL, lambda, d_zero)));
@@ -410,7 +432,7 @@ LiaStarExtension::getCones(
     cones.push_back({pair.second, cone});
   }
 
-  // sum constraints
+  // y_i is the sum of the i-th coordinates of all points and rays
   Vector sums(dimension, d_zero);
   for (const std::pair<Vector, std::vector<Vector>>& pair : lambdas)
   {
@@ -490,7 +512,7 @@ std::vector<std::pair<Node, Node>> LiaStarExtension::getLia(
         rays.push_back(ray);
       }
 
-      // sum constraints
+      // x_i = g_i + h_1i * l1 + ... + h_ki * lk
       Vector sums(dimension, d_zero);
       for (size_t i = 0; i < dimension; i++)
       {
@@ -551,6 +573,8 @@ LiaStarExtension::convertQFLIAToMatrices(Node n)
 
   Trace("liastar-ext") << "predicate: " << predicate << std::endl;
 
+  // print the preamble of the liastar-ext-smt queries, which declares the
+  // variables of the lambda and assumes they are nonnegative
   if (TraceIsOn("liastar-ext-smt"))
   {
     Trace("liastar-ext-smt") << "(set-logic ALL)" << std::endl;
