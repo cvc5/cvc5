@@ -1,6 +1,7 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-const x Bool)
 (declare-const x3 Bool)
 (declare-const x4 Bool)

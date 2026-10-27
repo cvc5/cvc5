@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --seq-array=lazy
 (set-logic QF_SLIA)
 (declare-fun s () (Seq Int))

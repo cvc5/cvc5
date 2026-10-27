@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Gereon Kremer, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,17 +26,12 @@ import java.util.Map;
 public class Stat extends AbstractPointer
 {
   // region construction and destruction
-  Stat(long pointer)
+  Stat(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Stat::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -54,7 +46,7 @@ public class Stat extends AbstractPointer
    */
   public boolean isInternal()
   {
-    return isInternal(pointer);
+    return isInternal(getPointer());
   }
 
   private native boolean isInternal(long pointer);
@@ -65,7 +57,7 @@ public class Stat extends AbstractPointer
    */
   public boolean isDefault()
   {
-    return isDefault(pointer);
+    return isDefault(getPointer());
   }
 
   private native boolean isDefault(long pointer);
@@ -76,7 +68,7 @@ public class Stat extends AbstractPointer
    */
   public boolean isInt()
   {
-    return isInt(pointer);
+    return isInt(getPointer());
   }
 
   private native boolean isInt(long pointer);
@@ -87,7 +79,7 @@ public class Stat extends AbstractPointer
    */
   public long getInt()
   {
-    return getInt(pointer);
+    return getInt(getPointer());
   }
 
   private native long getInt(long pointer);
@@ -98,7 +90,7 @@ public class Stat extends AbstractPointer
    */
   public boolean isDouble()
   {
-    return isDouble(pointer);
+    return isDouble(getPointer());
   }
 
   private native boolean isDouble(long pointer);
@@ -109,7 +101,7 @@ public class Stat extends AbstractPointer
    */
   public double getDouble()
   {
-    return getDouble(pointer);
+    return getDouble(getPointer());
   }
 
   private native double getDouble(long pointer);
@@ -120,7 +112,7 @@ public class Stat extends AbstractPointer
    */
   public boolean isString()
   {
-    return isString(pointer);
+    return isString(getPointer());
   }
 
   private native boolean isString(long pointer);
@@ -131,7 +123,7 @@ public class Stat extends AbstractPointer
    */
   public String getString()
   {
-    return getString(pointer);
+    return getString(getPointer());
   }
 
   private native String getString(long pointer);
@@ -142,7 +134,7 @@ public class Stat extends AbstractPointer
    */
   public boolean isHistogram()
   {
-    return isHistogram(pointer);
+    return isHistogram(getPointer());
   }
 
   private native boolean isHistogram(long pointer);
@@ -153,7 +145,7 @@ public class Stat extends AbstractPointer
    */
   public Map<String, Long> getHistogram()
   {
-    return getHistogram(pointer);
+    return getHistogram(getPointer());
   }
 
   private native Map<String, Long> getHistogram(long pointer);

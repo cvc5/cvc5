@@ -45,6 +45,11 @@ evaluate to true iff their argument has top-symbol ``C``. It also allows for
 updater indexed symbols of the form ``(_ update Sij)`` for each selector ``Sij``,
 whose semantics are described below.
 
+Use the indexed tester application ``((_ is C) t)`` to test whether ``t`` has
+constructor ``C``. Datatype declarations also introduce the legacy tester names
+``is-C`` unless strict parsing is enabled with ``--strict-parsing`` or
+``--parsing-mode=strict``.
+
 Semantics
 ---------
 
@@ -247,13 +252,11 @@ a `cvc5::Solver solver` object.
 |                    |                                        |                                                                                                                                 |
 |                    |                                        | ``Term t = solver.mkConst(s, "t");``                                                                                            |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| Tuple Constructor  | ``(tuple  <Term_1>, ..., <Term_n>)``   | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
-|                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Datatype dt = s.getDatatype();``                                                                                              |
-|                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term c = dt[0].getTerm();``                                                                                                   |
-|                    |                                        |                                                                                                                                 |
-|                    |                                        | ``Term r = solver.mkTerm(Kind::APPLY_CONSTRUCTOR, {c, <Term_1>, ..., <Term_n>});``                                              |
+| Tuple Constructor  | ``(tuple  <Term_1>, ..., <Term_n>)``   | ``Term r = solver.mkTuple({<Term_1>, ..., <Term_n>});``                                                                         |
++--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| Unit Tuple Sort    | ``UnitTuple``                          | ``Sort s = solver.mkTupleSort({});``                                                                                            |
++--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
+| Tuple Unit         | ``tuple.unit``                         | ``Term r = solver.mkTuple({});``                                                                                                |
 +--------------------+----------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 | Tuple Selector     | ``((_ tuple.select i) t)``             | ``Sort s = solver.mkTupleSort(sorts);``                                                                                         |
 |                    |                                        |                                                                                                                                 |

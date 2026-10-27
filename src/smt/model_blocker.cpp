@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,12 @@
 
 #include "smt/model_blocker.h"
 
+#include "base/modal_exception.h"
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
+#include "expr/non_closed_node_converter.h"
+#include "expr/subs.h"
+#include "options/base_options.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -33,12 +34,15 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
                                    modes::BlockModelsMode mode,
                                    const std::vector<Node>& exprToBlock)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // convert to nodes
   std::vector<Node> tlAsserts = assertions;
   std::vector<Node> nodesToBlock = exprToBlock;
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
-  Node blocker;
+  // the list of literals that should be blocked
+  std::unordered_set<Node> blockers;
+  // a subset of the above vector that holds on top level
+  std::unordered_set<Node> blockersTriv;
   if (mode == modes::BlockModelsMode::LITERALS)
   {
     Assert(nodesToBlock.empty());
@@ -50,13 +54,13 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
     {
       Node cur = tlAsserts[counter];
       counter++;
-      Node catom = cur.getKind() == NOT ? cur[0] : cur;
-      bool cpol = cur.getKind() != NOT;
-      if (catom.getKind() == NOT)
+      Node catom = cur.getKind() == Kind::NOT ? cur[0] : cur;
+      bool cpol = cur.getKind() != Kind::NOT;
+      if (catom.getKind() == Kind::NOT)
       {
         tlAsserts.push_back(catom[0]);
       }
-      else if (catom.getKind() == AND && cpol)
+      else if (catom.getKind() == Kind::AND && cpol)
       {
         tlAsserts.insert(tlAsserts.end(), catom.begin(), catom.end());
       }
@@ -65,23 +69,19 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
         asserts.push_back(cur);
         Trace("model-blocker") << "  " << cur << std::endl;
       }
+      else
+      {
+        // otherwise store that the blocker is trivial
+        blockersTriv.insert(cur);
+        blockers.insert(cur);
+      }
     }
-    if (asserts.empty())
-    {
-      Node blockTriv = nm->mkConst(false);
-      Trace("model-blocker")
-          << "...model blocker is (trivially) " << blockTriv << std::endl;
-      return blockTriv;
-    }
-
-    Node formula = asserts.size() > 1 ? nm->mkNode(AND, asserts) : asserts[0];
-    std::unordered_map<TNode, Node> visited;
-    std::unordered_map<TNode, Node> implicant;
-    std::unordered_map<TNode, Node>::iterator it;
-    std::vector<TNode> visit;
-    TNode cur;
-    visit.push_back(formula);
-    do
+    std::unordered_set<Node> visited;
+    std::unordered_set<Node>::iterator it;
+    std::vector<Node> visit;
+    visit.insert(visit.end(), asserts.begin(), asserts.end());
+    Node cur;
+    while (!visit.empty())
     {
       cur = visit.back();
       visit.pop_back();
@@ -91,38 +91,42 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
 
       if (it == visited.end())
       {
-        visited[cur] = Node::null();
-        Node catom = cur.getKind() == NOT ? cur[0] : cur;
-        bool cpol = cur.getKind() != NOT;
+        visited.insert(cur);
+        Node catom = cur.getKind() == Kind::NOT ? cur[0] : cur;
+        bool cpol = cur.getKind() != Kind::NOT;
         // compute the implicant
         // impl is a formula that implies cur that is also satisfied by m
         Node impl;
-        if (catom.getKind() == NOT)
+        if (catom.getKind() == Kind::NOT)
         {
           // double negation
           impl = catom[0];
         }
-        else if (catom.getKind() == OR || catom.getKind() == AND)
+        else if (catom.getKind() == Kind::OR || catom.getKind() == Kind::AND)
         {
           // if disjunctive
-          if ((catom.getKind() == OR) == cpol)
+          if ((catom.getKind() == Kind::OR) == cpol)
           {
             // take the first literal that is satisfied
-            for (Node n : catom)
+            for (const Node& n : catom)
             {
               // rewrite, this ensures that e.g. the propositional value of
               // quantified formulas can be queried
-              n = rewrite(n);
-              Node vn = m->getValue(n);
-              Assert(vn.isConst());
-              if (vn.getConst<bool>() == cpol)
+              Node nr = rewrite(n);
+              Node vn = m->getValue(nr);
+              if (vn.isConst() && vn.getConst<bool>() == cpol)
               {
-                impl = cpol ? n : n.negate();
+                impl = cpol ? nr : nr.negate();
                 break;
               }
             }
+            if (impl.isNull())
+            {
+              // unknown value, take self
+              blockers.insert(cur);
+            }
           }
-          else if (catom.getKind() == OR)
+          else if (catom.getKind() == Kind::OR)
           {
             // one step NNF
             std::vector<Node> children;
@@ -130,108 +134,89 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
             {
               children.push_back(cn.negate());
             }
-            impl = nm->mkNode(AND, children);
-          }
-        }
-        else if (catom.getKind() == ITE)
-        {
-          Node vcond = m->getValue(catom[0]);
-          Assert(vcond.isConst());
-          Node cond = catom[0];
-          Node branch;
-          if (vcond.getConst<bool>())
-          {
-            branch = catom[1];
+            impl = nm->mkNode(Kind::AND, children);
           }
           else
           {
-            cond = cond.negate();
-            branch = catom[2];
+            // otherwise a positive AND, recurse on this below
+            impl = cur;
           }
-          impl = nm->mkNode(AND, cond, cpol ? branch : branch.negate());
         }
-        else if ((catom.getKind() == EQUAL && catom[0].getType().isBoolean())
-                 || catom.getKind() == XOR)
+        else if (catom.getKind() == Kind::ITE)
+        {
+          Node vcond = m->getValue(catom[0]);
+          if (vcond.isConst())
+          {
+            Node cond = catom[0];
+            Node branch;
+            if (vcond.getConst<bool>())
+            {
+              branch = catom[1];
+            }
+            else
+            {
+              cond = cond.negate();
+              branch = catom[2];
+            }
+            impl = nm->mkNode(Kind::AND, cond, cpol ? branch : branch.negate());
+          }
+          else
+          {
+            // unknown value, take self
+            blockers.insert(cur);
+          }
+        }
+        else if ((catom.getKind() == Kind::EQUAL
+                  && catom[0].getType().isBoolean())
+                 || catom.getKind() == Kind::XOR)
         {
           // based on how the children evaluate in the model
           std::vector<Node> children;
+          bool success = true;
           for (const Node& cn : catom)
           {
             Node vn = m->getValue(cn);
-            Assert(vn.isConst());
+            if (!vn.isConst())
+            {
+              success = false;
+              break;
+            }
             children.push_back(vn.getConst<bool>() ? cn : cn.negate());
           }
-          impl = nm->mkNode(AND, children);
+          if (success)
+          {
+            impl = nm->mkNode(Kind::AND, children);
+          }
+          else
+          {
+            // unknown value, take self
+            blockers.insert(cur);
+          }
         }
         else
         {
           // literals justified by themselves
-          visited[cur] = cur;
+          blockers.insert(cur);
           Trace("model-blocker-debug") << "...self justified" << std::endl;
         }
-        if (visited[cur].isNull())
+        if (!impl.isNull())
         {
-          visit.push_back(cur);
-          if (impl.isNull())
+          if (impl.getKind() == Kind::AND)
           {
-            Assert(cur.getKind() == AND);
             Trace("model-blocker-debug") << "...recurse" << std::endl;
-            visit.insert(visit.end(), cur.begin(), cur.end());
+            visit.insert(visit.end(), impl.begin(), impl.end());
           }
           else
           {
-            Trace("model-blocker-debug")
-                << "...implicant : " << impl << std::endl;
-            implicant[cur] = impl;
-            visit.push_back(impl);
+            visit.emplace_back(impl);
           }
         }
       }
-      else if (it->second.isNull())
-      {
-        Node ret = cur;
-        it = implicant.find(cur);
-        if (it != implicant.end())
-        {
-          Node impl = it->second;
-          it = visited.find(impl);
-          Assert(it != visited.end());
-          Assert(!it->second.isNull());
-          ret = it->second;
-          Trace("model-blocker-debug")
-              << "...implicant res: " << ret << std::endl;
-        }
-        else
-        {
-          bool childChanged = false;
-          std::vector<Node> children;
-          // we never recurse to parameterized nodes
-          Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
-          for (const Node& cn : cur)
-          {
-            it = visited.find(cn);
-            Assert(it != visited.end());
-            Assert(!it->second.isNull());
-            childChanged = childChanged || cn != it->second;
-            children.push_back(it->second);
-          }
-          if (childChanged)
-          {
-            ret = nm->mkNode(cur.getKind(), children);
-          }
-          Trace("model-blocker-debug") << "...recons res: " << ret << std::endl;
-        }
-        visited[cur] = ret;
-      }
-    } while (!visit.empty());
-    Assert(visited.find(formula) != visited.end());
-    Assert(!visited.find(formula)->second.isNull());
-    blocker = visited[formula].negate();
+    }
   }
   else
   {
     Assert(mode == modes::BlockModelsMode::VALUES);
-    std::vector<Node> blockers;
     // if specific terms were not specified, block all variables of
     // the model
     if (nodesToBlock.empty())
@@ -251,7 +236,7 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
           continue;
         }
         if (!logicInfo().isHigherOrder()
-            && s.getType().getKind() == kind::FUNCTION_TYPE)
+            && s.getType().getKind() == Kind::FUNCTION_TYPE)
         {
           // ignore functions if not higher-order
           continue;
@@ -260,48 +245,131 @@ Node ModelBlocker::getModelBlocker(const std::vector<Node>& assertions,
       }
     }
     // otherwise, block all terms that were specified in get-value
-    std::map<TypeNode, std::vector<Node> > nonClosedEnum;
+    std::map<TypeNode, std::vector<Node> > allEnum;
+    std::unordered_set<TypeNode> nonClosedType;
     std::map<Node, Node> nonClosedValue;
     std::unordered_set<Node> terms;
     for (const Node& n : nodesToBlock)
     {
-      TypeNode tn = n.getType();
       Node v = m->getValue(n);
-      if (tn.isClosedEnumerable())
+      TypeNode tn = n.getType();
+      allEnum[tn].push_back(n);
+      if (NonClosedNodeConverter::isClosed(d_env, v))
       {
-        // if its type is closed enumerable, then we can block its value
-        Node a = n.eqNode(v).notNode();
-        blockers.push_back(a);
+        // if its value is closed, then we can block its value
+        Node a = n.eqNode(v);
+        blockers.insert(a);
       }
       else
       {
-        nonClosedValue[n] = v;
         // otherwise we will block (dis)equality with other variables of its
         // type below
-        nonClosedEnum[tn].push_back(n);
+        nonClosedValue[n] = v;
+        // remember this type has at least one non-closed value
+        nonClosedType.insert(tn);
       }
     }
-    for (const std::pair<const TypeNode, std::vector<Node> >& es :
-         nonClosedEnum)
+    std::map<Node, Node>::iterator itn;
+    for (const TypeNode& tn : nonClosedType)
     {
-      size_t nenum = es.second.size();
+      const std::vector<Node>& enums = allEnum[tn];
+      size_t nenum = enums.size();
       for (size_t i = 0; i < nenum; i++)
       {
-        const Node& vi = nonClosedValue[es.second[i]];
-        for (size_t j = (i + 1); j < nenum; j++)
+        itn = nonClosedValue.find(enums[i]);
+        if (itn == nonClosedValue.end())
         {
-          const Node& vj = nonClosedValue[es.second[j]];
-          Node eq = es.second[i].eqNode(es.second[j]);
-          if (vi == vj)
+          // closed value, already blocked its value above
+          continue;
+        }
+        // Given x that has a non-closed value, the following loop adds
+        // blockers of the form x != y or x = y, depending on whether y
+        // has the same value as x in the current model, for all other
+        // variables y of the same type as x. We do this even
+        // if y has a closed value in the model.
+        Node vi = itn->second;
+        for (size_t j = 0; j < nenum; j++)
+        {
+          if (i == j)
+          {
+            continue;
+          }
+          Node vj = enums[j];
+          itn = nonClosedValue.find(enums[j]);
+          if (itn != nonClosedValue.end())
+          {
+            if (j < i)
+            {
+              // already processed reverse
+              continue;
+            }
+            vj = itn->second;
+          }
+          // ...otherwise, we are comparing a non-closed and closed value, we
+          // assume these are disequal and leave vj unchanged.
+          Node eq = enums[i].eqNode(enums[j]);
+          if (vi != vj)
           {
             eq = eq.notNode();
           }
-          blockers.push_back(eq);
+          blockers.insert(eq);
         }
       }
     }
-    blocker = nm->mkOr(blockers);
   }
+  // minimize, if in literals mode
+  bool minBlocker = (mode == modes::BlockModelsMode::LITERALS);
+  if (minBlocker)
+  {
+    Subs s;
+    std::vector<Node> possible;
+    std::vector<Node> bvec(blockers.begin(), blockers.end());
+    blockers.clear();
+    for (const Node& a : bvec)
+    {
+      if (a.getKind() == Kind::EQUAL)
+      {
+        // if it is an equality between a variable, turn into a substitution,
+        // which will help prune below.
+        Node as = s.apply(a);
+        for (size_t i = 0; i < 2; i++)
+        {
+          if (as[i].isVar() && !expr::hasSubterm(as[1 - i], as[i]))
+          {
+            s.add(as[i], as[1 - i]);
+            // this equality is definitely relevant
+            blockers.insert(a);
+            continue;
+          }
+        }
+      }
+      // otherwise, it may be relevant below
+      possible.push_back(a);
+    }
+    // do not add blockers that are implied by the substitution
+    for (const Node& a : possible)
+    {
+      Node as = rewrite(s.apply(a));
+      if (as.isConst())
+      {
+        continue;
+      }
+      blockers.insert(a);
+    }
+  }
+  if (isOutputOn(OutputTag::BLOCK_MODEL))
+  {
+    std::vector<Node> bvec(blockers.begin(), blockers.end());
+    Node bu = nm->mkAnd(bvec);
+    output(OutputTag::BLOCK_MODEL) << "(block-model " << bu << ")" << std::endl;
+  }
+  // go back and erase the trivial blockers
+  for (const Node& bt : blockersTriv)
+  {
+    blockers.erase(bt);
+  }
+  std::vector<Node> bvec(blockers.begin(), blockers.end());
+  Node blocker = nm->mkAnd(bvec).notNode();
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
   return blocker;
 }

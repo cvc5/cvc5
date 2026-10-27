@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Gereon Kremer, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +20,6 @@
 #include <optional>
 #include <string>
 
-#include "cvc5_export.h"  // remove when Cvc language support is removed
 #include "util/gmp_util.h"
 #include "util/integer.h"
 
@@ -44,9 +40,13 @@ namespace cvc5::internal {
  * in danger of invoking the char* constructor, from whence you will segfault.
  */
 
-class CVC5_EXPORT Rational
+class Rational
 {
  public:
+  /**
+   * Constructs a Rational from a mpz_class object.
+   */
+  Rational(const mpz_class& val) : d_value(val) {}
   /**
    * Constructs a Rational from a mpq_class object.
    * Does a deep copy.
@@ -96,11 +96,10 @@ class CVC5_EXPORT Rational
   Rational(unsigned long int n) : d_value(n, 1) { d_value.canonicalize(); }
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Rational(int64_t n) : d_value(static_cast<long>(n), 1)
-  {
-    d_value.canonicalize();
-  }
-  Rational(uint64_t n) : d_value(static_cast<unsigned long>(n), 1)
+  // to avoid truncation, we convert the input value to an mpz and then build
+  // the mpq.
+  Rational(int64_t n) : d_value(construct_mpz(n), 1) { d_value.canonicalize(); }
+  Rational(uint64_t n) : d_value(construct_mpz(n), 1)
   {
     d_value.canonicalize();
   }
@@ -127,13 +126,13 @@ class CVC5_EXPORT Rational
   }
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Rational(int64_t n, int64_t d)
-      : d_value(static_cast<long>(n), static_cast<long>(d))
+  // to avoid truncation, we convert the input value to an mpz and then build
+  // the mpq.
+  Rational(int64_t n, int64_t d) : d_value(construct_mpz(n), construct_mpz(d))
   {
     d_value.canonicalize();
   }
-  Rational(uint64_t n, uint64_t d)
-      : d_value(static_cast<unsigned long>(n), static_cast<unsigned long>(d))
+  Rational(uint64_t n, uint64_t d) : d_value(construct_mpz(n), construct_mpz(d))
   {
     d_value.canonicalize();
   }
@@ -286,7 +285,10 @@ class CVC5_EXPORT Rational
     return (*this);
   }
 
-  bool isIntegral() const { return mpz_cmp_ui(d_value.get_den_mpz_t(), 1) == 0; }
+  bool isIntegral() const
+  {
+    return mpz_cmp_ui(d_value.get_den_mpz_t(), 1) == 0;
+  }
 
   /** Returns a string representing the rational in the given base. */
   std::string toString(int base = 10) const { return d_value.get_str(base); }
@@ -300,7 +302,7 @@ class CVC5_EXPORT Rational
     size_t numeratorHash = gmpz_hash(d_value.get_num_mpz_t());
     size_t denominatorHash = gmpz_hash(d_value.get_den_mpz_t());
 
-    return numeratorHash xor denominatorHash;
+    return numeratorHash ^ denominatorHash;
   }
 
   uint32_t complexity() const
@@ -324,10 +326,13 @@ class CVC5_EXPORT Rational
 
 struct RationalHashFunction
 {
-  inline size_t operator()(const cvc5::internal::Rational& r) const { return r.hash(); }
+  inline size_t operator()(const cvc5::internal::Rational& r) const
+  {
+    return r.hash();
+  }
 }; /* struct RationalHashFunction */
 
-std::ostream& operator<<(std::ostream& os, const Rational& n) CVC5_EXPORT;
+std::ostream& operator<<(std::ostream& os, const Rational& n);
 
 }  // namespace cvc5::internal
 

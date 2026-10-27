@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +25,7 @@ TheoryEngineProofGenerator::TheoryEngineProofGenerator(Env& env,
                                                        context::Context* c)
     : EnvObj(env), d_proofs(c)
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_false = nodeManager()->mkConst(false);
 }
 
 TrustNode TheoryEngineProofGenerator::mkTrustExplain(
@@ -41,13 +38,13 @@ TrustNode TheoryEngineProofGenerator::mkTrustExplain(
     // propagation of false is a conflict
     trn = TrustNode::mkTrustConflict(exp, this);
     p = trn.getProven();
-    Assert(p.getKind() == NOT);
+    Assert(p.getKind() == Kind::NOT);
   }
   else
   {
     trn = TrustNode::mkTrustPropExp(lit, exp, this);
     p = trn.getProven();
-    Assert(p.getKind() == IMPLIES && p.getNumChildren() == 2);
+    Assert(p.getKind() == Kind::IMPLIES && p.getNumChildren() == 2);
   }
   // should not already be proven
   NodeLazyCDProofMap::iterator it = d_proofs.find(p);
@@ -75,12 +72,12 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   // should only ask this generator for proofs of implications, or conflicts
   Node exp;
   Node conclusion;
-  if (f.getKind() == IMPLIES && f.getNumChildren() == 2)
+  if (f.getKind() == Kind::IMPLIES && f.getNumChildren() == 2)
   {
     exp = f[0];
     conclusion = f[1];
   }
-  else if (f.getKind() == NOT)
+  else if (f.getKind() == Kind::NOT)
   {
     exp = f[0];
     conclusion = d_false;
@@ -92,7 +89,7 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // get the assumptions to assume in a scope
-  if (exp.getKind() == AND)
+  if (exp.getKind() == Kind::AND)
   {
     for (const Node& fc : exp)
     {

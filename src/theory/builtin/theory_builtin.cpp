@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 #include "proof/proof_node_manager.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/uf/theory_uf_rewriter.h"
 #include "theory/valuation.h"
 
 namespace cvc5::internal {
@@ -27,7 +25,8 @@ namespace builtin {
 
 TheoryBuiltin::TheoryBuiltin(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BUILTIN, env, out, valuation),
-      d_checker(env),
+      d_rewriter(env.getNodeManager()),
+      d_checker(env.getNodeManager(), env.getRewriter(), env),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::builtin::")
 {
@@ -54,6 +53,16 @@ void TheoryBuiltin::finishInit()
   // hence it is easy to check for illegal eliminations via TheoryModel
   // (see TheoryModel::isLegalElimination) since there are no unevaluated kinds
   // present.
+}
+
+TrustNode TheoryBuiltin::ppStaticRewrite(TNode n)
+{
+  if (n.getKind() == Kind::DISTINCT)
+  {
+    Node bn = uf::TheoryUfRewriter::blastDistinct(nodeManager(), n);
+    return TrustNode::mkTrustRewrite(n, bn);
+  }
+  return TrustNode::null();
 }
 
 }  // namespace builtin

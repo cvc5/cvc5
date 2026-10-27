@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andres Noetzli, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,11 +52,11 @@ PreprocessingPassResult PseudoBooleanProcessor::applyInternal(
 
 bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
 {
-  if (assertion.getKind() != kind::GEQ)
+  if (assertion.getKind() != Kind::GEQ)
   {
     return false;
   }
-  Assert(assertion.getKind() == kind::GEQ);
+  Assert(assertion.getKind() == Kind::GEQ);
 
   Trace("pbs::rewrites") << "decomposeAssertion" << assertion << std::endl;
 
@@ -72,7 +69,7 @@ bool PseudoBooleanProcessor::decomposeAssertion(Node assertion, bool negated)
     return false;
   }
   // don't bother matching on anything other than + on the left hand side
-  if (l.getKind() != kind::ADD)
+  if (l.getKind() != Kind::ADD)
   {
     Trace("pbs::rewrites") << "not plus" << assertion << std::endl;
     return false;
@@ -209,7 +206,7 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
                                                bool negated,
                                                Node orig)
 {
-  Assert(assertion.getKind() == kind::GEQ);
+  Assert(assertion.getKind() == Kind::GEQ);
   Assert(assertion == rewrite(assertion));
 
   // assume assertion is rewritten
@@ -230,7 +227,7 @@ void PseudoBooleanProcessor::learnRewrittenGeq(Node assertion,
         addLeqOne(l, orig);
       }
     }
-    else if (l.getKind() == kind::MULT && l.getNumChildren() == 2)
+    else if (l.getKind() == Kind::MULT && l.getNumChildren() == 2)
     {
       Node c = l[0], v = l[1];
       if (c.isConst() && c.getConst<Rational>().isNegativeOne())
@@ -258,15 +255,15 @@ void PseudoBooleanProcessor::learnInternal(Node assertion,
 {
   switch (assertion.getKind())
   {
-    case kind::GEQ:
-    case kind::GT:
-    case kind::LEQ:
-    case kind::LT:
+    case Kind::GEQ:
+    case Kind::GT:
+    case Kind::LEQ:
+    case Kind::LT:
     {
       Node rw = rewrite(assertion);
       if (assertion == rw)
       {
-        if (assertion.getKind() == kind::GEQ)
+        if (assertion.getKind() == Kind::GEQ)
         {
           learnRewrittenGeq(assertion, negated, orig);
         }
@@ -277,14 +274,14 @@ void PseudoBooleanProcessor::learnInternal(Node assertion,
       }
     }
     break;
-    case kind::NOT: learnInternal(assertion[0], !negated, orig); break;
+    case Kind::NOT: learnInternal(assertion[0], !negated, orig); break;
     default: break;  // do nothing
   }
 }
 
 void PseudoBooleanProcessor::learn(Node assertion)
 {
-  if (assertion.getKind() == kind::AND)
+  if (assertion.getKind() == Kind::AND)
   {
     Node::iterator ci = assertion.begin(), cend = assertion.end();
     for (; ci != cend; ++ci)
@@ -298,11 +295,10 @@ void PseudoBooleanProcessor::learn(Node assertion)
   }
 }
 
-Node PseudoBooleanProcessor::mkGeqOne(Node v)
+Node PseudoBooleanProcessor::mkGeqOne(NodeManager* nm, Node v)
 {
-  NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(
-      kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
+      Kind::GEQ, v, nm->mkConstRealOrInt(v.getType(), Rational(1)));
 }
 
 void PseudoBooleanProcessor::learn(const std::vector<Node>& assertions)
@@ -327,7 +323,7 @@ void PseudoBooleanProcessor::addSub(Node from, Node to)
 
 void PseudoBooleanProcessor::learnGeqSub(Node geq)
 {
-  Assert(geq.getKind() == kind::GEQ);
+  Assert(geq.getKind() == Kind::GEQ);
   const bool negated = false;
   bool success = decomposeAssertion(geq, negated);
   if (!success)
@@ -340,6 +336,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
 
   // \sum pos >= \sum neg + off
 
+  NodeManager* nm = nodeManager();
+
   // for now special case everything we want
   // target easy clauses
   if (d_pos.size() == 1 && d_neg.size() == 1 && off.isZero())
@@ -349,8 +347,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_pos.front();
     Node y = d_neg.front();
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
     Node imp = yGeq1.impNode(xGeq1);
     addSub(geq, imp);
   }
@@ -362,8 +360,8 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node x = d_neg[0];
     Node y = d_neg[1];
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
     Node cases = (xGeq1.notNode()).orNode(yGeq1.notNode());
     addSub(geq, cases);
   }
@@ -375,11 +373,10 @@ void PseudoBooleanProcessor::learnGeqSub(Node geq)
     Node y = d_pos[1];
     Node z = d_neg[0];
 
-    Node xGeq1 = mkGeqOne(x);
-    Node yGeq1 = mkGeqOne(y);
-    Node zGeq1 = mkGeqOne(z);
-    NodeManager* nm = NodeManager::currentNM();
-    Node dis = nm->mkNode(kind::OR, zGeq1.notNode(), xGeq1, yGeq1);
+    Node xGeq1 = mkGeqOne(nm, x);
+    Node yGeq1 = mkGeqOne(nm, y);
+    Node zGeq1 = mkGeqOne(nm, z);
+    Node dis = nm->mkNode(Kind::OR, zGeq1.notNode(), xGeq1, yGeq1);
     addSub(geq, dis);
   }
 }
@@ -415,7 +412,6 @@ void PseudoBooleanProcessor::clear()
   d_pos.clear();
   d_neg.clear();
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

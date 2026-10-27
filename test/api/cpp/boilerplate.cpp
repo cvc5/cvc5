@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,17 +14,18 @@
  * system tests.
  */
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 #include <sstream>
-
-#include "api/cpp/cvc5.h"
 
 using namespace cvc5;
 using namespace std;
 
-int main() {
-  Solver slv;
-  Result r = slv.checkSatAssuming(slv.mkBoolean(false));
+int main()
+{
+  TermManager tm;
+  Solver slv(tm);
+  Result r = slv.checkSatAssuming(tm.mkBoolean(false));
   return r.isUnsat() ? 0 : 1;
 }
-

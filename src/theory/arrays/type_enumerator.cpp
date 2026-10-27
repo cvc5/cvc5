@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Clark Barrett, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,7 +27,7 @@ ArrayEnumerator::ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
       d_tep(tep),
       d_index(type.getArrayIndexType(), tep),
       d_constituentType(type.getArrayConstituentType()),
-      d_nm(NodeManager::currentNM()),
+      d_nm(type.getNodeManager()),
       d_indexVec(),
       d_constituentVec(),
       d_finished(false),
@@ -45,7 +42,7 @@ ArrayEnumerator::ArrayEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
 
 ArrayEnumerator::ArrayEnumerator(const ArrayEnumerator& ae)
     : TypeEnumeratorBase<ArrayEnumerator>(
-        ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
+          ae.d_nm->mkArrayType(ae.d_index.getType(), ae.d_constituentType)),
       d_tep(ae.d_tep),
       d_index(ae.d_index),
       d_constituentType(ae.d_constituentType),
@@ -83,7 +80,7 @@ Node ArrayEnumerator::operator*()
   Node n = d_arrayConst;
   for (size_t i = 0, size = d_indexVec.size(); i < size; ++i)
   {
-    n = d_nm->mkNode(kind::STORE,
+    n = d_nm->mkNode(Kind::STORE,
                      n,
                      d_indexVec[d_indexVec.size() - 1 - i],
                      *(*(d_constituentVec[i])));
@@ -91,7 +88,7 @@ Node ArrayEnumerator::operator*()
     // since this utility requires all children of n to be constant, which
     // implies the first argument to STORE on the next iteration must be
     // normalized.
-    n = TheoryArraysRewriter::normalizeConstant(n);
+    n = TheoryArraysRewriter::normalizeConstant(d_nm, n);
   }
   Trace("array-type-enum") << "operator * returning: " << n << std::endl;
   return n;

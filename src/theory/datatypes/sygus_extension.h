@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +25,6 @@
 #include "smt/env_obj.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/decision_manager.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace cvc5::internal {
@@ -179,18 +175,19 @@ class SygusExtension : protected EnvObj
    * Returns true if the selector chain n is top-level based on the above
    * definition, when tn is the type of n.
    */
-  bool computeTopLevel( TypeNode tn, Node n );
-private:
- /** This caches all information regarding symmetry breaking for an anchor. */
- class SearchCache
- {
-  public:
-    SearchCache(){}
+  bool computeTopLevel(TypeNode tn, Node n);
+
+ private:
+  /** This caches all information regarding symmetry breaking for an anchor. */
+  class SearchCache
+  {
+   public:
+    SearchCache() {}
     /**
      * A cache of all search terms for (types, sizes). See registerSearchTerm
      * for definition of search terms.
      */
-    std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
+    std::map<TypeNode, std::map<unsigned, std::vector<Node>>> d_search_terms;
     /** A cache of all symmetry breaking lemma templates for (types, sizes). */
     std::map<TypeNode, std::map<uint64_t, std::vector<Node>>> d_sbLemmas;
     /** search value
@@ -207,7 +204,7 @@ private:
     std::unordered_set<Node> d_search_val_proc;
   };
   /** An instance of the above cache, for each anchor */
-  std::map< Node, SearchCache > d_cache;
+  std::map<Node, SearchCache> d_cache;
   //-----------------------------------traversal predicates
   /** pre/post traversal predicates for each type, variable
    *
@@ -284,13 +281,6 @@ private:
    */
   Node eliminateTraversalPredicates(Node n);
   //-----------------------------------end traversal predicates
-  /** a sygus sampler object for each (anchor, sygus type) pair
-   *
-   * This is used for the sygusRewVerify() option to verify the correctness of
-   * the rewriter.
-   */
-  std::map<Node, std::map<TypeNode, std::unique_ptr<quantifiers::SygusSampler>>>
-      d_sampler;
   /** Assert tester internal
    *
    * This function is called when the tester with index tindex is asserted for
@@ -387,12 +377,8 @@ private:
    * If doSym is false, we are not performing symmetry breaking on n. This flag
    * is set to false on branches of n that are not leftmost.
    */
-  Node registerSearchValue(Node a,
-                           Node n,
-                           Node nv,
-                           unsigned d,
-                           bool isVarAgnostic,
-                           bool doSym);
+  Node registerSearchValue(
+      Node a, Node n, Node nv, unsigned d, bool isVarAgnostic, bool doSym);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of
@@ -430,7 +416,7 @@ private:
                                      Node val,
                                      quantifiers::SygusInvarianceTest& et,
                                      Node valr,
-                                     std::map<TypeNode, int>& var_count);
+                                     std::map<TypeNode, size_t>& var_count);
   /** Add symmetry breaking lemmas for term
    *
    * Sends all active symmetry breaking lemmas for selector chain t via the
@@ -462,7 +448,7 @@ private:
    * If shared selectors are enabled, this is a conjunction of disjunctions,
    * since shared selectors may apply to multiple constructors.
    */
-  Node getRelevancyCondition( Node n );
+  Node getRelevancyCondition(Node n);
   /** Cache of the above function */
   std::map<Node, Node> d_rlv_cond;
 
@@ -518,7 +504,7 @@ private:
   //------------------------end static symmetry breaking
 
   /** Get the canonical free variable for type tn */
-  TNode getFreeVar( TypeNode tn );
+  TNode getFreeVar(TypeNode tn);
   /** get term order predicate
    *
    * Assuming that n1 and n2 are children of a commutative operator, this
@@ -526,7 +512,7 @@ private:
    * n2 while preserving satisfiability. By default, this is the predicate
    *   ( DT_SIZE n1 ) >= ( DT_SIZE n2 )
    */
-  Node getTermOrderPredicate( Node n1, Node n2 );
+  Node getTermOrderPredicate(Node n1, Node n2);
 
  private:
   /**
@@ -563,22 +549,16 @@ private:
     /** the measure term */
     Node d_this;
     /**
-     * For each size n, an explanation for why this measure term has size at
-     * most n. This is typically the literal (DT_SYGUS_BOUND m n), which
-     * we call the (n^th) "fairness literal" for m.
-     */
-    std::map< unsigned, Node > d_search_size_exp;
-    /**
      * For each size, whether we have called SygusExtension::notifySearchSize.
      */
-    std::map< unsigned, bool > d_search_size;
+    std::map<unsigned, bool> d_search_size;
     /**
      * The current search size. This corresponds to the number of times
      * incrementCurrentSearchSize has been called for this measure term.
      */
     unsigned d_curr_search_size;
     /** the list of all enumerators whose measure term is this */
-    std::vector< Node > d_anchors;
+    std::vector<Node> d_anchors;
     /** get or make the measure value
      *
      * The measure value is an integer variable v that is a (symbolic) integer
@@ -627,9 +607,9 @@ private:
   /** the above information for each registered measure term */
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>> d_szinfo;
   /** map from enumerators (anchors) to their associated measure term */
-  std::map< Node, Node > d_anchor_to_measure_term;
+  std::map<Node, Node> d_anchor_to_measure_term;
   /** map from enumerators (anchors) to their active guard*/
-  std::map< Node, Node > d_anchor_to_active_guard;
+  std::map<Node, Node> d_anchor_to_active_guard;
   /** map from enumerators (anchors) to a decision stratregy for that guard */
   std::map<Node, std::unique_ptr<DecisionStrategy>> d_anchor_to_ag_strategy;
   /** generic measure term
@@ -650,19 +630,18 @@ private:
   void incrementCurrentSearchSize(TNode m);
   /**
    * Notify this class that we are currently searching for terms of size at
-   * most s as model values for measure term m. Literal exp corresponds to the
-   * explanation of why the measure term has size at most n. This calls
+   * most s as model values for measure term m. This calls
    * incrementSearchSize above, until the total number of times we have called
    * incrementSearchSize so far is at least s.
    */
-  void notifySearchSize(TNode m, uint64_t s, Node exp);
+  void notifySearchSize(TNode m, uint64_t s);
   /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
-  void registerMeasureTerm( Node m );
+  void registerMeasureTerm(Node m);
   /**
    * Return the current search size for arbitrary term n. This is the current
    * search size of the anchor of n.
    */
-  unsigned getSearchSizeFor( Node n );
+  unsigned getSearchSizeFor(Node n);
   /** return the current search size for enumerator (anchor) e */
   unsigned getSearchSizeForAnchor(Node e);
   /** Get the current search size for measure term m in this SAT context. */
@@ -678,7 +657,7 @@ private:
    * for fresh variables x1, x2, x3. The map var_count maintains the variable
    * count for generating these fresh variables.
    */
-  Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
+  Node getCurrentTemplate(Node n, std::map<TypeNode, size_t>& var_count);
   //----------------------end search size information
   /** check value
    *
@@ -709,16 +688,15 @@ private:
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted
    * false, and 0 if it is not asserted.
    */
-  int getGuardStatus( Node g );
+  int getGuardStatus(Node g);
   /** Calls util::getSelector based on the value of options::dtShareSel */
   Node getSelectorInternal(TypeNode dtt,
                            const DTypeConstructor& dc,
                            size_t index) const;
 };
 
-}
-}
+}  // namespace datatypes
+}  // namespace theory
 }  // namespace cvc5::internal
 
 #endif
-

@@ -4,7 +4,7 @@ name: cmake-version
 jobs:
   build:
     continue-on-error: true
-    name: ubuntu:production-dbg
+    name: ubuntu:unrestricted-dbg
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -15,11 +15,11 @@ jobs:
 
     steps:
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: ${{ matrix.cmake_version }}
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
 
     - name: Adapt cmake version checks
       run: |
@@ -29,7 +29,6 @@ jobs:
       uses: ./.github/actions/install-dependencies
       with:
         with-documentation: true
-        with-python-bindings: true
   
     - name: Setup caches
       uses: ./.github/actions/setup-cache
@@ -38,7 +37,7 @@ jobs:
   
     - name: Configure
       run: |
-        ./configure.sh production --auto-download --static --python-bindings --assertions --tracing --unit-testing --editline --docs \
+        ./configure.sh unrestricted --auto-download --static --python-bindings --assertions --tracing --unit-testing --editline --docs \
           --prefix=$(pwd)/build/install \
           --werror
 

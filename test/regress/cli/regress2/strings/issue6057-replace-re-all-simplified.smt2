@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-logic QF_SLIA)
 (declare-fun literal_5 () String)                                               
 (assert (not (=

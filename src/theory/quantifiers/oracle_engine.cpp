@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,12 +15,14 @@
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
+#include "theory/trust_substitutions.h"
 
 using namespace cvc5::internal::kind;
 using namespace cvc5::context;
@@ -52,13 +51,53 @@ OracleEngine::OracleEngine(Env& env,
                            TermRegistry& tr)
     : QuantifiersModule(env, qs, qim, qr, tr),
       d_oracleFuns(userContext()),
-      d_ochecker(tr.getOracleChecker()),
-      d_consistencyCheckPassed(false)
+      d_ochecker(env.getOracleChecker()),
+      d_consistencyCheckPassed(false),
+      d_dstrat(env, "OracleArgValue", qs.getValuation())
 {
   Assert(d_ochecker != nullptr);
 }
 
-void OracleEngine::presolve() {}
+void OracleEngine::presolve()
+{
+  // Ensure all oracle functions in top-level substitutions occur in
+  // lemmas. Otherwise the oracles will not be invoked for those values
+  // and the model will be inaccurate.
+  std::unordered_map<Node, Node> subs =
+      d_env.getTopLevelSubstitutions().get().getSubstitutions();
+  std::unordered_set<Node> visited;
+  std::vector<TNode> visit;
+  for (const std::pair<const Node, Node>& s : subs)
+  {
+    visit.push_back(s.second);
+  }
+  TNode cur;
+  while (!visit.empty())
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (OracleCaller::isOracleFunctionApp(cur))
+      {
+        Node k = SkolemManager::mkPurifySkolem(cur);
+        Node eq = k.eqNode(cur);
+        d_qim.lemma(eq, InferenceId::QUANTIFIERS_ORACLE_PURIFY_SUBS);
+      }
+      if (cur.getNumChildren() > 0)
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  }
+  // register the decision strategy which will insist that arguments are
+  // decided to be equal to values.
+  d_qim.getDecisionManager()->registerStrategy(
+      DecisionManager::STRAT_ORACLE_ARG_VALUE,
+      &d_dstrat,
+      DecisionManager::STRAT_SCOPE_LOCAL_SOLVE);
+}
 
 bool OracleEngine::needsCheck(Theory::Effort e)
 {
@@ -66,36 +105,28 @@ bool OracleEngine::needsCheck(Theory::Effort e)
 }
 
 // the model is built at this effort level
-OracleEngine::QEffort OracleEngine::needsModel(Theory::Effort e)
+OracleEngine::QEffort OracleEngine::needsModel(CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_MODEL;
 }
 
-void OracleEngine::reset_round(Theory::Effort e)
+void OracleEngine::reset_round(CVC5_UNUSED Theory::Effort e)
 {
   d_consistencyCheckPassed = false;
 }
 
-void OracleEngine::registerQuantifier(Node q) {}
+void OracleEngine::registerQuantifier(CVC5_UNUSED Node q) {}
 
-void OracleEngine::check(Theory::Effort e, QEffort quant_e)
+void OracleEngine::check(CVC5_UNUSED Theory::Effort e, QEffort quant_e)
 {
   if (quant_e != QEFFORT_MODEL)
   {
     return;
   }
 
-  double clSet = 0;
-  if (TraceIsOn("oracle-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("oracle-engine") << "---Oracle Engine Round, effort = " << e << "---"
-                           << std::endl;
-  }
   FirstOrderModel* fm = d_treg.getModel();
   TermDb* termDatabase = d_treg.getTermDatabase();
-  eq::EqualityEngine* eq = getEqualityEngine();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   unsigned nquant = fm->getNumAssertedQuantifiers();
   std::vector<Node> currInterfaces;
   for (unsigned i = 0; i < nquant; i++)
@@ -107,6 +138,11 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
     }
     currInterfaces.push_back(q);
   }
+  if (d_oracleFuns.empty() && currInterfaces.empty())
+  {
+    return;
+  }
+  beginCallDebug();
   // Note that we currently ignore oracle interface quantified formulas, and
   // look directly at the oracle functions. Note that:
   // (1) The lemmas with InferenceId QUANTIFIERS_ORACLE_INTERFACE are not
@@ -148,11 +184,31 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
         arguments.push_back(fm->getValue(arg));
       }
       // call oracle
-      Node fappWithValues = nm->mkNode(APPLY_UF, arguments);
-      Node predictedResponse = eq->getRepresentative(fapp);
-      if (!d_ochecker->checkConsistent(
-              fappWithValues, predictedResponse, learnedLemmas))
+      Node fappWithValues = nm->mkNode(Kind::APPLY_UF, arguments);
+      Node predictedResponse = fm->getValue(fapp);
+      Node result =
+          d_ochecker->checkConsistent(fappWithValues, predictedResponse);
+      if (!result.isNull())
       {
+        // Note that we add (=> (= args values) (= (f args) result))
+        // instead of (= (f values) result) here. The latter may be more
+        // compact, but we require introducing literals for (= args values)
+        // so that they can be preferred by the decision strategy.
+        std::vector<Node> disj;
+        Node conc = nm->mkNode(Kind::EQUAL, fapp, result);
+        disj.push_back(conc);
+        for (size_t i = 0, nchild = fapp.getNumChildren(); i < nchild; i++)
+        {
+          Node eqa = fapp[i].eqNode(arguments[i + 1]);
+          eqa = rewrite(eqa);
+          // Insist that the decision strategy tries to make (= args values)
+          // true first. This is to ensure that the value of the oracle can be
+          // used.
+          d_dstrat.addLiteral(eqa);
+          disj.push_back(eqa.notNode());
+        }
+        Node lem = nm->mkOr(disj);
+        learnedLemmas.push_back(lem);
         allFappsConsistent = false;
       }
     }
@@ -174,12 +230,7 @@ void OracleEngine::check(Theory::Effort e, QEffort quant_e)
   }
   // general SMTO: call constraint generators and assumption generators here
 
-  if (TraceIsOn("oracle-engine"))
-  {
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("oracle-engine") << "Finished oracle engine, time = "
-                           << (clSet2 - clSet) << std::endl;
-  }
+  endCallDebug();
 }
 
 bool OracleEngine::checkCompleteFor(Node q)
@@ -211,7 +262,7 @@ void OracleEngine::checkOwnership(Node q)
     Node assume, constraint, oracle;
     if (!getOracleInterface(q, inputs, outputs, assume, constraint, oracle))
     {
-      Assert(false) << "Not an oracle interface " << q;
+      DebugUnhandled() << "Not an oracle interface " << q;
     }
     else
     {
@@ -220,7 +271,7 @@ void OracleEngine::checkOwnership(Node q)
           << "Unhandled oracle constraint " << q;
     }
     CVC5_UNUSED bool isOracleFun = false;
-    if (assume.getKind() == EQUAL)
+    if (assume.getKind() == Kind::EQUAL)
     {
       for (size_t i = 0; i < 2; i++)
       {
@@ -261,10 +312,10 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
 {
   Assert(!assume.isNull());
   Assert(!constraint.isNull());
-  Assert(oracleNode.getKind() == ORACLE);
-  NodeManager* nm = NodeManager::currentNM();
-  Node ipl =
-      nm->mkNode(INST_PATTERN_LIST, nm->mkNode(INST_ATTRIBUTE, oracleNode));
+  Assert(oracleNode.getKind() == Kind::ORACLE);
+  NodeManager* nm = oracleNode.getNodeManager();
+  Node ipl = nm->mkNode(Kind::INST_PATTERN_LIST,
+                        nm->mkNode(Kind::INST_ATTRIBUTE, oracleNode));
   std::vector<Node> vars;
   OracleInputVarAttribute oiva;
   for (Node v : inputs)
@@ -278,9 +329,9 @@ Node OracleEngine::mkOracleInterface(const std::vector<Node>& inputs,
     v.setAttribute(oova, true);
     vars.push_back(v);
   }
-  Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
-  Node body = nm->mkNode(ORACLE_FORMULA_GEN, assume, constraint);
-  return nm->mkNode(FORALL, bvl, body, ipl);
+  Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, vars);
+  Node body = nm->mkNode(Kind::ORACLE_FORMULA_GEN, assume, constraint);
+  return nm->mkNode(Kind::FORALL, bvl, body, ipl);
 }
 
 bool OracleEngine::getOracleInterface(Node q,
@@ -307,13 +358,13 @@ bool OracleEngine::getOracleInterface(Node q,
         outputs.push_back(v);
       }
     }
-    Assert(q[1].getKind() == ORACLE_FORMULA_GEN);
+    Assert(q[1].getKind() == Kind::ORACLE_FORMULA_GEN);
     assume = q[1][0];
     constraint = q[1][1];
     Assert(q.getNumChildren() == 3);
     Assert(q[2].getNumChildren() == 1);
     Assert(q[2][0].getNumChildren() == 1);
-    Assert(q[2][0][0].getKind() == ORACLE);
+    Assert(q[2][0][0].getKind() == Kind::ORACLE);
     oracleNode = q[2][0][0];
     return true;
   }

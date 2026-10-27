@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -83,23 +80,28 @@ LogicInfo::LogicInfo(const char* logicString)
 }
 
 /** Is sharing enabled for this logic? */
-bool LogicInfo::isSharingEnabled() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::isSharingEnabled() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   return d_sharingTheories > 1;
 }
 
-
 /** Is the given theory module active in this logic? */
-bool LogicInfo::isTheoryEnabled(theory::TheoryId theory) const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::isTheoryEnabled(theory::TheoryId theory) const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   return d_theories[theory];
 }
 
 /** Is this a quantified logic? */
-bool LogicInfo::isQuantified() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::isQuantified() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   return isTheoryEnabled(theory::THEORY_QUANTIFIERS);
 }
@@ -125,39 +127,49 @@ bool LogicInfo::hasEverything() const
 }
 
 /** Is this the all-exclusive logic?  (Here, that means propositional logic) */
-bool LogicInfo::hasNothing() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::hasNothing() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   LogicInfo nothing("");
   nothing.lock();
   return *this == nothing;
 }
 
-bool LogicInfo::isPure(theory::TheoryId theory) const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::isPure(theory::TheoryId theory) const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   // the third and fourth conjucts are really just to rule out the misleading
   // case where you ask isPure(THEORY_BOOL) and get true even in e.g. QF_LIA
-  return isTheoryEnabled(theory) && !isSharingEnabled() &&
-      ( !isTrueTheory(theory) || d_sharingTheories == 1 ) &&
-      ( isTrueTheory(theory) || d_sharingTheories == 0 );
+  return isTheoryEnabled(theory) && !isSharingEnabled()
+         && (!isTrueTheory(theory) || d_sharingTheories == 1)
+         && (isTrueTheory(theory) || d_sharingTheories == 0);
 }
 
-bool LogicInfo::areIntegersUsed() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::areIntegersUsed() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  PrettyCheckArgument(
-      isTheoryEnabled(theory::THEORY_ARITH), *this,
-      "Arithmetic not used in this LogicInfo; cannot ask whether integers are used");
+  PrettyCheckArgument(isTheoryEnabled(theory::THEORY_ARITH),
+                      *this,
+                      "Arithmetic not used in this LogicInfo; cannot ask "
+                      "whether integers are used");
   return d_integers;
 }
 
-bool LogicInfo::areRealsUsed() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::areRealsUsed() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  PrettyCheckArgument(
-      isTheoryEnabled(theory::THEORY_ARITH), *this,
-      "Arithmetic not used in this LogicInfo; cannot ask whether reals are used");
+  PrettyCheckArgument(isTheoryEnabled(theory::THEORY_ARITH),
+                      *this,
+                      "Arithmetic not used in this LogicInfo; cannot ask "
+                      "whether reals are used");
   return d_reals;
 }
 
@@ -173,48 +185,62 @@ bool LogicInfo::areTranscendentalsUsed() const
   return d_transcendentals;
 }
 
-bool LogicInfo::isLinear() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::isLinear() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   PrettyCheckArgument(
-      isTheoryEnabled(theory::THEORY_ARITH), *this,
+      isTheoryEnabled(theory::THEORY_ARITH),
+      *this,
       "Arithmetic not used in this LogicInfo; cannot ask whether it's linear");
   return d_linear || d_differenceLogic;
 }
 
-bool LogicInfo::isDifferenceLogic() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::isDifferenceLogic() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  PrettyCheckArgument(
-      isTheoryEnabled(theory::THEORY_ARITH), *this,
-      "Arithmetic not used in this LogicInfo; cannot ask whether it's difference logic");
+  PrettyCheckArgument(isTheoryEnabled(theory::THEORY_ARITH),
+                      *this,
+                      "Arithmetic not used in this LogicInfo; cannot ask "
+                      "whether it's difference logic");
   return d_differenceLogic;
 }
 
-bool LogicInfo::hasCardinalityConstraints() const {
-  PrettyCheckArgument(d_locked, *this,
+bool LogicInfo::hasCardinalityConstraints() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
   return d_cardinalityConstraints;
 }
 
-
-bool LogicInfo::operator==(const LogicInfo& other) const {
-  PrettyCheckArgument(isLocked() && other.isLocked(), *this,
+bool LogicInfo::operator==(const LogicInfo& other) const
+{
+  PrettyCheckArgument(isLocked() && other.isLocked(),
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-    if(d_theories[id] != other.d_theories[id]) {
+  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
+       ++id)
+  {
+    if (d_theories[id] != other.d_theories[id])
+    {
       return false;
     }
   }
 
-  PrettyCheckArgument(d_sharingTheories == other.d_sharingTheories, *this,
+  PrettyCheckArgument(d_sharingTheories == other.d_sharingTheories,
+                      *this,
                       "LogicInfo internal inconsistency");
-  if (d_cardinalityConstraints != other.d_cardinalityConstraints ||
-             d_higherOrder != other.d_higherOrder )
+  if (d_cardinalityConstraints != other.d_cardinalityConstraints
+      || d_higherOrder != other.d_higherOrder)
   {
     return false;
   }
-  if(isTheoryEnabled(theory::THEORY_ARITH)) {
+  if (isTheoryEnabled(theory::THEORY_ARITH))
+  {
     return d_integers == other.d_integers && d_reals == other.d_reals
            && d_transcendentals == other.d_transcendentals
            && d_linear == other.d_linear
@@ -223,55 +249,77 @@ bool LogicInfo::operator==(const LogicInfo& other) const {
   return true;
 }
 
-bool LogicInfo::operator<=(const LogicInfo& other) const {
-  PrettyCheckArgument(isLocked() && other.isLocked(), *this,
+bool LogicInfo::operator<=(const LogicInfo& other) const
+{
+  PrettyCheckArgument(isLocked() && other.isLocked(),
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-    if(d_theories[id] && !other.d_theories[id]) {
+  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
+       ++id)
+  {
+    if (d_theories[id] && !other.d_theories[id])
+    {
       return false;
     }
   }
-  PrettyCheckArgument(d_sharingTheories <= other.d_sharingTheories, *this,
+  PrettyCheckArgument(d_sharingTheories <= other.d_sharingTheories,
+                      *this,
                       "LogicInfo internal inconsistency");
   bool res = (!d_cardinalityConstraints || other.d_cardinalityConstraints)
              && (!d_higherOrder || other.d_higherOrder);
-  if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
+  if (isTheoryEnabled(theory::THEORY_ARITH)
+      && other.isTheoryEnabled(theory::THEORY_ARITH))
+  {
     return (!d_integers || other.d_integers) && (!d_reals || other.d_reals)
            && (!d_transcendentals || other.d_transcendentals)
            && (d_linear || !other.d_linear)
            && (d_differenceLogic || !other.d_differenceLogic) && res;
-  } else {
+  }
+  else
+  {
     return res;
   }
 }
 
-bool LogicInfo::operator>=(const LogicInfo& other) const {
-  PrettyCheckArgument(isLocked() && other.isLocked(), *this,
+bool LogicInfo::operator>=(const LogicInfo& other) const
+{
+  PrettyCheckArgument(isLocked() && other.isLocked(),
+                      *this,
                       "This LogicInfo isn't locked yet, and cannot be queried");
-  for(theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-    if(!d_theories[id] && other.d_theories[id]) {
+  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
+       ++id)
+  {
+    if (!d_theories[id] && other.d_theories[id])
+    {
       return false;
     }
   }
-  PrettyCheckArgument(d_sharingTheories >= other.d_sharingTheories, *this,
+  PrettyCheckArgument(d_sharingTheories >= other.d_sharingTheories,
+                      *this,
                       "LogicInfo internal inconsistency");
   bool res = (d_cardinalityConstraints || !other.d_cardinalityConstraints)
              && (d_higherOrder || !other.d_higherOrder);
-  if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
+  if (isTheoryEnabled(theory::THEORY_ARITH)
+      && other.isTheoryEnabled(theory::THEORY_ARITH))
+  {
     return (d_integers || !other.d_integers) && (d_reals || !other.d_reals)
            && (d_transcendentals || !other.d_transcendentals)
            && (!d_linear || other.d_linear)
            && (!d_differenceLogic || other.d_differenceLogic) && res;
-    } else {
-      return res;
+  }
+  else
+  {
+    return res;
   }
 }
 
-std::string LogicInfo::getLogicString() const {
-  PrettyCheckArgument(
-      d_locked, *this,
-      "This LogicInfo isn't locked yet, and cannot be queried");
-  if(d_logicString == "") {
+std::string LogicInfo::getLogicString() const
+{
+  PrettyCheckArgument(d_locked,
+                      *this,
+                      "This LogicInfo isn't locked yet, and cannot be queried");
+  if (d_logicString == "")
+  {
     LogicInfo qf_all_supported;
     qf_all_supported.disableQuantifiers();
     qf_all_supported.lock();
@@ -290,24 +338,28 @@ std::string LogicInfo::getLogicString() const {
     }
     else
     {
-      size_t seen = 0; // make sure we support all the active theories
+      size_t seen = 0;  // make sure we support all the active theories
       if (d_theories[THEORY_SEP])
       {
         ss << "SEP_";
         ++seen;
       }
-      if(d_theories[THEORY_ARRAYS]) {
+      if (d_theories[THEORY_ARRAYS])
+      {
         ss << (d_sharingTheories == 1 ? "AX" : "A");
         ++seen;
       }
-      if(d_theories[THEORY_UF]) {
+      if (d_theories[THEORY_UF])
+      {
         ss << "UF";
         ++seen;
       }
-      if( d_cardinalityConstraints ){
+      if (d_cardinalityConstraints)
+      {
         ss << "C";
       }
-      if(d_theories[THEORY_BV]) {
+      if (d_theories[THEORY_BV])
+      {
         ss << "BV";
         ++seen;
       }
@@ -316,24 +368,31 @@ std::string LogicInfo::getLogicString() const {
         ss << "FF";
         ++seen;
       }
-      if(d_theories[THEORY_FP]) {
+      if (d_theories[THEORY_FP])
+      {
         ss << "FP";
         ++seen;
       }
-      if(d_theories[THEORY_DATATYPES]) {
+      if (d_theories[THEORY_DATATYPES])
+      {
         ss << "DT";
         ++seen;
       }
-      if(d_theories[THEORY_STRINGS]) {
+      if (d_theories[THEORY_STRINGS])
+      {
         ss << "S";
         ++seen;
       }
-      if(d_theories[THEORY_ARITH]) {
-        if(isDifferenceLogic()) {
+      if (d_theories[THEORY_ARITH])
+      {
+        if (isDifferenceLogic())
+        {
           ss << (areIntegersUsed() ? "I" : "");
           ss << (areRealsUsed() ? "R" : "");
           ss << "DL";
-        } else {
+        }
+        else
+        {
           ss << (isLinear() ? "L" : "N");
           ss << (areIntegersUsed() ? "I" : "");
           ss << (areRealsUsed() ? "R" : "");
@@ -342,7 +401,8 @@ std::string LogicInfo::getLogicString() const {
         }
         ++seen;
       }
-      if(d_theories[THEORY_SETS]) {
+      if (d_theories[THEORY_SETS])
+      {
         ss << "FS";
         ++seen;
       }
@@ -351,13 +411,15 @@ std::string LogicInfo::getLogicString() const {
         ss << "FB";
         ++seen;
       }
-      if(seen != d_sharingTheories) {
+      if (seen != d_sharingTheories)
+      {
         Unhandled()
             << "can't extract a logic string from LogicInfo; at least one "
                "active theory is unknown to LogicInfo::getLogicString() !";
       }
 
-      if(seen == 0) {
+      if (seen == 0)
+      {
         ss << "SAT";
       }
     }
@@ -366,12 +428,40 @@ std::string LogicInfo::getLogicString() const {
   return d_logicString;
 }
 
+void throwTwoArithmeticTheoriesError(const char* th1, const char* th2)
+{
+  stringstream err;
+  err << "a logic name can only contain one arithmetic theory but found two: "
+      << th1 << " and " << th2;
+  throw cvc5::internal::Exception(err.str().c_str());
+}
+
+void checkMultipleArithmeticTheories(const char* prevTheory,
+                                     const char* currentTheory)
+{
+  if (*prevTheory != '\0')
+  {
+    throwTwoArithmeticTheoriesError(prevTheory, currentTheory);
+  }
+}
+
+void LogicInfo::checkDuplicateTheory(TheoryId theory, const char* id)
+{
+  if (d_theories[theory])
+  {
+    stringstream err;
+    err << "duplicate theory: " << id;
+    throw cvc5::internal::Exception(err.str().c_str());
+  }
+}
+
 void LogicInfo::setLogicString(std::string logicString)
 {
-  PrettyCheckArgument(!d_locked, *this,
-                      "This LogicInfo is locked, and cannot be modified");
-  for(TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id) {
-    d_theories[id] = false;// ensure it's cleared
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  for (TheoryId id = THEORY_FIRST; id < THEORY_LAST; ++id)
+  {
+    d_theories[id] = false;  // ensure it's cleared
   }
   d_sharingTheories = 0;
 
@@ -388,22 +478,31 @@ void LogicInfo::setLogicString(std::string logicString)
     enableHigherOrder();
     p += 3;
   }
-  if(*p == '\0') {
+  if (*p == '\0')
+  {
     // propositional logic only; we're done.
-  } else if(!strcmp(p, "QF_SAT")) {
+  }
+  else if (!strcmp(p, "QF_SAT"))
+  {
     // propositional logic only; we're done.
     p += 6;
-  } else if(!strcmp(p, "SAT")) {
+  }
+  else if (!strcmp(p, "SAT"))
+  {
     // quantified Boolean formulas only; we're done.
     enableQuantifiers();
     p += 3;
-  } else if(!strcmp(p, "QF_ALL")) {
+  }
+  else if (!strcmp(p, "QF_ALL"))
+  {
     // the "all theories included" logic, no quantifiers.
     enableEverything(d_higherOrder);
     disableQuantifiers();
     arithNonLinear();
     p += 6;
-  } else if(!strcmp(p, "ALL")) {
+  }
+  else if (!strcmp(p, "ALL"))
+  {
     // the "all theories included" logic, with quantifiers.
     enableEverything(d_higherOrder);
     enableQuantifiers();
@@ -417,11 +516,16 @@ void LogicInfo::setLogicString(std::string logicString)
     enableQuantifiers();
     arithNonLinear();
     p += 4;
-  } else {
-    if(!strncmp(p, "QF_", 3)) {
+  }
+  else
+  {
+    if (!strncmp(p, "QF_", 3))
+    {
       disableQuantifiers();
       p += 3;
-    } else {
+    }
+    else
+    {
       enableQuantifiers();
     }
     if (!strncmp(p, "SEP_", 4))
@@ -429,109 +533,175 @@ void LogicInfo::setLogicString(std::string logicString)
       enableSeparationLogic();
       p += 4;
     }
-    if(!strncmp(p, "AX", 2)) {
+    if (!strncmp(p, "AX", 2))
+    {
       enableTheory(THEORY_ARRAYS);
       p += 2;
-    } else {
-      if(*p == 'A') {
-        enableTheory(THEORY_ARRAYS);
-        ++p;
-      }
-      if(!strncmp(p, "UF", 2)) {
-        enableTheory(THEORY_UF);
-        p += 2;
-      }
-      if(!strncmp(p, "C", 1 )) {
-        d_cardinalityConstraints = true;
-        p += 1;
-      }
-      // allow BV or DT in either order
-      if(!strncmp(p, "BV", 2)) {
-        enableTheory(THEORY_BV);
-        p += 2;
-      }
-      if (!strncmp(p, "FF", 2))
+    }
+    else
+    {
+      // arithmeticTheory points to "\0" if no arithmetic theory has been read
+      // yet; otherwise it points to the arithmetic theory that has already been
+      // read.
+      const char* arithmeticTheory = "\0";
+      // whether an unrecognized theory has been read
+      bool unrecognizedTheory = false;
+      while (!unrecognizedTheory && (*p != '\0'))
       {
-        enableTheory(THEORY_FF);
-        p += 2;
-      }
-      if(!strncmp(p, "FP", 2)) {
-        enableTheory(THEORY_FP);
-        p += 2;
-      }
-      if(!strncmp(p, "DT", 2)) {
-        enableTheory(THEORY_DATATYPES);
-        p += 2;
-      }
-      if(!d_theories[THEORY_BV] && !strncmp(p, "BV", 2)) {
-        enableTheory(THEORY_BV);
-        p += 2;
-      }
-      if(*p == 'S') {
-        enableTheory(THEORY_STRINGS);
-        ++p;
-      }
-      if(!strncmp(p, "IDL", 3)) {
-        enableIntegers();
-        disableReals();
-        arithOnlyDifference();
-        p += 3;
-      } else if(!strncmp(p, "RDL", 3)) {
-        disableIntegers();
-        enableReals();
-        arithOnlyDifference();
-        p += 3;
-      } else if(!strncmp(p, "IRDL", 4)) {
-        // "IRDL" ?! --not very useful, but getLogicString() can produce
-        // that string, so we really had better be able to read it back in.
-        enableIntegers();
-        enableReals();
-        arithOnlyDifference();
-        p += 4;
-      } else if(!strncmp(p, "LIA", 3)) {
-        enableIntegers();
-        disableReals();
-        arithOnlyLinear();
-        p += 3;
-      } else if(!strncmp(p, "LRA", 3)) {
-        disableIntegers();
-        enableReals();
-        arithOnlyLinear();
-        p += 3;
-      } else if(!strncmp(p, "LIRA", 4)) {
-        enableIntegers();
-        enableReals();
-        arithOnlyLinear();
-        p += 4;
-      } else if(!strncmp(p, "NIA", 3)) {
-        enableIntegers();
-        disableReals();
-        arithNonLinear();
-        p += 3;
-      } else if(!strncmp(p, "NRA", 3)) {
-        disableIntegers();
-        enableReals();
-        arithNonLinear();
-        p += 3;
-        if (*p == 'T')
+        if (*p == 'A')
         {
-          arithTranscendentals();
+          checkDuplicateTheory(THEORY_ARRAYS, "A");
+          enableTheory(THEORY_ARRAYS);
+          ++p;
+        }
+        else if (!strncmp(p, "UF", 2))
+        {
+          checkDuplicateTheory(THEORY_UF, "UF");
+          enableTheory(THEORY_UF);
+          p += 2;
+        }
+        else if (!strncmp(p, "C", 1))
+        {
+          if (d_cardinalityConstraints)
+          {
+            throw cvc5::internal::Exception("duplicate theory: C");
+          }
+          enableCardinalityConstraints();
           p += 1;
         }
-      } else if(!strncmp(p, "NIRA", 4)) {
-        enableIntegers();
-        enableReals();
-        arithNonLinear();
-        p += 4;
-        if (*p == 'T')
+        else if (!strncmp(p, "BV", 2))
         {
-          arithTranscendentals();
-          p += 1;
+          checkDuplicateTheory(THEORY_BV, "BV");
+          enableTheory(THEORY_BV);
+          p += 2;
         }
-      }
-      if(!strncmp(p, "FS", 2)) {
-        enableTheory(THEORY_SETS);
-        p += 2;
+        else if (!strncmp(p, "FF", 2))
+        {
+          checkDuplicateTheory(THEORY_FF, "FF");
+          enableTheory(THEORY_FF);
+          p += 2;
+        }
+        else if (!strncmp(p, "FP", 2))
+        {
+          checkDuplicateTheory(THEORY_FP, "FP");
+          enableTheory(THEORY_FP);
+          p += 2;
+        }
+        else if (!strncmp(p, "DT", 2))
+        {
+          checkDuplicateTheory(THEORY_DATATYPES, "DT");
+          enableTheory(THEORY_DATATYPES);
+          p += 2;
+        }
+        else if (*p == 'S')
+        {
+          checkDuplicateTheory(THEORY_STRINGS, "S");
+          enableTheory(THEORY_STRINGS);
+          ++p;
+        }
+        else if (!strncmp(p, "IDL", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "IDL");
+          enableIntegers();
+          disableReals();
+          arithOnlyDifference();
+          p += 3;
+          arithmeticTheory = "IDL";
+        }
+        else if (!strncmp(p, "RDL", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "RDL");
+          disableIntegers();
+          enableReals();
+          arithOnlyDifference();
+          arithmeticTheory = "RDL";
+          p += 3;
+        }
+        else if (!strncmp(p, "IRDL", 4))
+        {
+          // "IRDL" ?! --not very useful, but getLogicString() can produce
+          // that string, so we really had better be able to read it back in.
+          checkMultipleArithmeticTheories(arithmeticTheory, "IRDL");
+          enableIntegers();
+          enableReals();
+          arithOnlyDifference();
+          arithmeticTheory = "IRDL";
+          p += 4;
+        }
+        else if (!strncmp(p, "LIA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "LIA");
+          enableIntegers();
+          disableReals();
+          arithOnlyLinear();
+          arithmeticTheory = "LIA";
+          p += 3;
+        }
+        else if (!strncmp(p, "LRA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "LRA");
+          disableIntegers();
+          enableReals();
+          arithOnlyLinear();
+          arithmeticTheory = "LRA";
+          p += 3;
+        }
+        else if (!strncmp(p, "LIRA", 4))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "LIRA");
+          enableIntegers();
+          enableReals();
+          arithOnlyLinear();
+          arithmeticTheory = "LIRA";
+          p += 4;
+        }
+        else if (!strncmp(p, "NIA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "NIA");
+          enableIntegers();
+          disableReals();
+          arithNonLinear();
+          arithmeticTheory = "NIA";
+          p += 3;
+        }
+        else if (!strncmp(p, "NRA", 3))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "NRA");
+          disableIntegers();
+          enableReals();
+          arithNonLinear();
+          arithmeticTheory = "NRA";
+          p += 3;
+          if (*p == 'T')
+          {
+            arithTranscendentals();
+            p += 1;
+          }
+        }
+        else if (!strncmp(p, "NIRA", 4))
+        {
+          checkMultipleArithmeticTheories(arithmeticTheory, "NIRA");
+          enableIntegers();
+          enableReals();
+          arithNonLinear();
+          arithmeticTheory = "NIRA";
+          p += 4;
+          if (*p == 'T')
+          {
+            arithTranscendentals();
+            p += 1;
+          }
+        }
+        else if (!strncmp(p, "FS", 2))
+        {
+          checkDuplicateTheory(THEORY_SETS, "FS");
+          enableTheory(THEORY_SETS);
+          p += 2;
+        }
+        else
+        {
+          unrecognizedTheory = true;
+        }
       }
     }
   }
@@ -545,15 +715,22 @@ void LogicInfo::setLogicString(std::string logicString)
     enableTheory(THEORY_BV);
   }
 
-  if(*p != '\0') {
+  if (*p != '\0')
+  {
     stringstream err;
     err << "LogicInfo::setLogicString(): ";
-    if(p == logicString) {
+    if (p == logicString)
+    {
       err << "cannot parse logic string: " << logicString;
-    } else {
+    }
+    else
+    {
       err << "junk (\"" << p << "\") at end of logic string: " << logicString;
     }
-    IllegalArgument(logicString, err.str().c_str());
+    // The strings logicString and p are user-provided and
+    // may include format specifiers (e.g. "QF_LIA%s").
+    // Do not use unsafe macros/functions such as IllegalArgument.
+    throw cvc5::internal::Exception(err.str().c_str());
   }
 
   // ensure a getLogic() returns the same thing as was set
@@ -562,20 +739,27 @@ void LogicInfo::setLogicString(std::string logicString)
 
 void LogicInfo::enableEverything(bool enableHigherOrder)
 {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo();
   this->d_higherOrder = enableHigherOrder;
 }
 
-void LogicInfo::disableEverything() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::disableEverything()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   *this = LogicInfo("");
 }
 
-void LogicInfo::enableTheory(theory::TheoryId theory) {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
-  if(!d_theories[theory]) {
-    if(isTrueTheory(theory)) {
+void LogicInfo::enableTheory(theory::TheoryId theory)
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  if (!d_theories[theory])
+  {
+    if (isTrueTheory(theory))
+    {
       ++d_sharingTheories;
     }
     d_logicString = "";
@@ -583,15 +767,19 @@ void LogicInfo::enableTheory(theory::TheoryId theory) {
   }
 }
 
-void LogicInfo::disableTheory(theory::TheoryId theory) {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
-  if(d_theories[theory]) {
-    if(isTrueTheory(theory)) {
+void LogicInfo::disableTheory(theory::TheoryId theory)
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+  if (d_theories[theory])
+  {
+    if (isTrueTheory(theory))
+    {
       Assert(d_sharingTheories > 0);
       --d_sharingTheories;
     }
-    if(theory == THEORY_BUILTIN ||
-       theory == THEORY_BOOL) {
+    if (theory == THEORY_BUILTIN || theory == THEORY_BOOL)
+    {
       return;
     }
     d_logicString = "";
@@ -614,34 +802,44 @@ void LogicInfo::enableSeparationLogic()
   enableTheory(THEORY_SETS);
 }
 
-void LogicInfo::enableIntegers() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::enableIntegers()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_integers = true;
 }
 
-void LogicInfo::disableIntegers() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::disableIntegers()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_integers = false;
-  if(!d_reals) {
+  if (!d_reals)
+  {
     disableTheory(THEORY_ARITH);
   }
 }
 
-void LogicInfo::enableReals() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::enableReals()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   enableTheory(THEORY_ARITH);
   d_reals = true;
 }
 
-void LogicInfo::disableReals() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::disableReals()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_reals = false;
-  if(!d_integers) {
+  if (!d_integers)
+  {
     disableTheory(THEORY_ARITH);
   }
 }
@@ -662,24 +860,30 @@ void LogicInfo::arithTranscendentals()
   }
 }
 
-void LogicInfo::arithOnlyDifference() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::arithOnlyDifference()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = true;
   d_transcendentals = false;
 }
 
-void LogicInfo::arithOnlyLinear() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::arithOnlyLinear()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = true;
   d_differenceLogic = false;
   d_transcendentals = false;
 }
 
-void LogicInfo::arithNonLinear() {
-  PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
+void LogicInfo::arithNonLinear()
+{
+  PrettyCheckArgument(
+      !d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";
   d_linear = false;
   d_differenceLogic = false;
@@ -717,17 +921,22 @@ void LogicInfo::disableHigherOrder()
   d_higherOrder = false;
 }
 
-LogicInfo LogicInfo::getUnlockedCopy() const {
-  if(d_locked) {
+LogicInfo LogicInfo::getUnlockedCopy() const
+{
+  if (d_locked)
+  {
     LogicInfo info = *this;
     info.d_locked = false;
     return info;
-  } else {
+  }
+  else
+  {
     return *this;
   }
 }
 
-std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) {
+std::ostream& operator<<(std::ostream& out, const LogicInfo& logic)
+{
   return out << logic.getLogicString();
 }
 

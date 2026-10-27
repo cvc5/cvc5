@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Kshitij Bansal
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,11 +20,12 @@
 #include "smt/logic_exception.h"
 #include "theory/care_pair_argument_callback.h"
 #include "theory/sets/inference_manager.h"
+#include "theory/sets/proof_checker.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
-#include "theory/uf/equality_engine.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,6 +38,7 @@ class TheorySets : public Theory
 {
   friend class TheorySetsPrivate;
   friend class TheorySetsRels;
+
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
   TheorySets(Env& env, OutputChannel& out, Valuation valuation);
@@ -75,13 +74,11 @@ class TheorySets : public Theory
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
   /**
-   * If the sets-ext option is not set and we have an extended operator,
-   * we throw an exception. Additionally, we expand operators like choose
-   * and is_singleton.
+   * Check that set operators are supported by the current options and logic.
+   * Additionally, reduce set.fold, rel.aggr, and rel.project.
    */
   TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   void presolve() override;
   bool isEntailed(Node n, bool pol);
 
@@ -109,12 +106,16 @@ class TheorySets : public Theory
   SkolemCache d_skCache;
   /** The state of the sets solver at full effort */
   SolverState d_state;
+  /** The theory rewriter for this theory. */
+  TheorySetsRewriter d_rewriter;
   /** The inference manager */
   InferenceManager d_im;
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
   /** The internal theory */
   std::unique_ptr<TheorySetsPrivate> d_internal;
+  /** The proof checker */
+  SetsProofRuleChecker d_checker;
   /** Instance of the above class */
   NotifyClass d_notify;
 }; /* class TheorySets */

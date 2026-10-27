@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2023 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +19,7 @@
 namespace cvc5::internal {
 namespace proof {
 
-/** The information relevant for converting MACRO_RESOLUTION steps into
+/** The information relevant for converting CHAIN_M_RESOLUTION steps into
  * CHAIN_RESOLUTION+FACTORING steps when "crowding literals" are present. See
  * `ProofPostprocessCallback::eliminateCrowdingLits` for more information. */
 struct CrowdingLitInfo
@@ -64,7 +61,8 @@ std::ostream& operator<<(std::ostream& out, CrowdingLitInfo info)
   return out;
 }
 
-Node eliminateCrowdingLits(bool reorderPremises,
+Node eliminateCrowdingLits(NodeManager* nm,
+                           bool reorderPremises,
                            const std::vector<Node>& clauseLits,
                            const std::vector<Node>& targetClauseLits,
                            const std::vector<Node>& children,
@@ -76,7 +74,6 @@ Node eliminateCrowdingLits(bool reorderPremises,
   Trace("crowding-lits") << "Clause lits: " << clauseLits << "\n";
   Trace("crowding-lits") << "Target lits: " << targetClauseLits << "\n\n";
   std::vector<Node> newChildren{children}, newArgs{args};
-  NodeManager* nm = NodeManager::currentNM();
   Node trueNode = nm->mkConst(true);
   // get crowding lits and the position of the last clause that includes
   // them. The factoring step must be added after the last inclusion and before
@@ -113,7 +110,7 @@ Node eliminateCrowdingLits(bool reorderPremises,
       // crowding literal, so we only care about non-singleton OR nodes. We
       // check then against the kind and whether the whole OR node occurs as a
       // pivot of the respective resolution
-      if (newChildren[j - 1].getKind() != kind::OR)
+      if (newChildren[j - 1].getKind() != Kind::OR)
       {
         continue;
       }
@@ -203,8 +200,8 @@ Node eliminateCrowdingLits(bool reorderPremises,
       // Since this primise is an eliminator, if it's an OR it can only be a
       // singleton if the crowding literal is its negation.
       size_t maxSafeMove = childrenSize,
-             numLits = (newChildren[elim].getKind() != kind::OR
-                        || (crowdingLit.getKind() == kind::NOT
+             numLits = (newChildren[elim].getKind() != Kind::OR
+                        || (crowdingLit.getKind() == Kind::NOT
                             && crowdingLit[0] == newChildren[elim]))
                            ? 1
                            : newChildren[elim].getNumChildren();
@@ -351,9 +348,9 @@ Node eliminateCrowdingLits(bool reorderPremises,
                   newArgs.begin() + (2 * maxSafeMove) - 1);
       // Being pedantic here we should assert that the rotated
       // newChildren/newArgs still yield the same conclusion with a
-      // MACRO_RESOLUTION step. However this can be very expensive to check, so
-      // we don't do this. Only if one is debugging this code this test should
-      // be added.
+      // CHAIN_M_RESOLUTION step. However this can be very expensive to check,
+      // so we don't do this. Only if one is debugging this code this test
+      // should be added.
 
       // Now we need to update the indices, since we have changed newChildren.
       // For every crowding literal whose information indices are in the
@@ -494,26 +491,33 @@ Node eliminateCrowdingLits(bool reorderPremises,
     childrenResArgs.insert(childrenResArgs.end(),
                            newArgs.begin() + (2 * start) - 1,
                            newArgs.begin() + (2 * end) + 1);
+    std::vector<Node> cpols;
+    std::vector<Node> clits;
+    for (size_t i = 0, ncargs = childrenResArgs.size(); i < ncargs; i = i + 2)
+    {
+      cpols.push_back(childrenResArgs[i]);
+      clits.push_back(childrenResArgs[i + 1]);
+    }
+    std::vector<Node> cargs;
+    cargs.push_back(nm->mkNode(Kind::SEXPR, cpols));
+    cargs.push_back(nm->mkNode(Kind::SEXPR, clits));
     Trace("crowding-lits") << "\tres children: " << childrenRes << "\n";
     Trace("crowding-lits") << "\tres args: " << childrenResArgs << "\n";
-    resPlaceHolder = pnm->getChecker()->checkDebug(PfRule::CHAIN_RESOLUTION,
-                                                   childrenRes,
-                                                   childrenResArgs,
-                                                   Node::null(),
-                                                   "");
+    resPlaceHolder = pnm->getChecker()->checkDebug(
+        ProofRule::CHAIN_RESOLUTION, childrenRes, cargs, Node::null(), "");
     Trace("crowding-lits") << "resPlaceHorder: " << resPlaceHolder << "\n";
     Trace("crowding-lits") << "-------\n";
     cdp->addStep(
-        resPlaceHolder, PfRule::CHAIN_RESOLUTION, childrenRes, childrenResArgs);
+        resPlaceHolder, ProofRule::CHAIN_RESOLUTION, childrenRes, cargs);
     // I need to add factoring if end < children.size(). Otherwise, this is
     // to be handled by the caller
     if (end < childrenSize - 1)
     {
       lastClause = pnm->getChecker()->checkDebug(
-          PfRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
+          ProofRule::FACTORING, {resPlaceHolder}, {}, Node::null(), "");
       if (!lastClause.isNull())
       {
-        cdp->addStep(lastClause, PfRule::FACTORING, {resPlaceHolder}, {});
+        cdp->addStep(lastClause, ProofRule::FACTORING, {resPlaceHolder}, {});
         Trace("crowding-lits") << "Apply factoring.\n";
       }
       else
@@ -574,12 +578,12 @@ bool isSingletonClause(TNode res,
                        const std::vector<Node>& children,
                        const std::vector<Node>& args)
 {
-  if (res.getKind() != kind::OR)
+  if (res.getKind() != Kind::OR)
   {
     return true;
   }
   size_t i;
-  Node trueNode = NodeManager::currentNM()->mkConst(true);
+  Node trueNode = res.getNodeManager()->mkConst(true);
   // Find out the last child to introduced res, if any. We only need to
   // look at the last one because any previous introduction would have
   // been eliminated.
@@ -593,7 +597,7 @@ bool isSingletonClause(TNode res,
     // res, so we only care about non-singleton or nodes. We check then
     // against the kind and whether the whole or node occurs as a pivot of
     // the respective resolution
-    if (children[i - 1].getKind() != kind::OR)
+    if (children[i - 1].getKind() != Kind::OR)
     {
       continue;
     }

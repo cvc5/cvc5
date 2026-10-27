@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
+###############################################################################
+# This file is part of the cvc5 project.
 #
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+
 set -e -o pipefail
 
 [ ! -d contrib ] && echo "$0 not called from base directory" && exit 1
@@ -12,15 +20,6 @@ INSTALL_BIN_DIR="$INSTALL_DIR/bin"
 
 mkdir -p "$DEPS_DIR"
 
-if ! [ -e src/parser/smt2/Smt2.g ]; then
-  echo "$(basename $0): I expect to be in the contrib/ of a cvc5 source tree," >&2
-  echo "but apparently:" >&2
-  echo >&2
-  echo "  $(pwd)" >&2
-  echo >&2
-  echo "is not a cvc5 source tree ?!" >&2
-  exit 1
-fi
 
 function webget {
   if [ -x "$(command -v wget)" ]; then

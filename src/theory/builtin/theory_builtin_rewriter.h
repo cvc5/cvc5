@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,24 +23,27 @@ namespace builtin {
 
 class TheoryBuiltinRewriter : public TheoryRewriter
 {
-  static Node blastDistinct(TNode node);
-
  public:
+  TheoryBuiltinRewriter(NodeManager* nm);
 
   RewriteResponse postRewrite(TNode node) override;
 
-  RewriteResponse preRewrite(TNode node) override { return doRewrite(node); }
+  RewriteResponse preRewrite(TNode node) override;
 
  public:
   /**
    * The default rewriter for rewrites that occur at both pre and post rewrite.
    */
-  static RewriteResponse doRewrite(TNode node);
+  RewriteResponse doRewrite(TNode node);
   /**
    * Main entry point for rewriting terms of the form (witness ((x T)) (P x)).
    * Returns the rewritten form of node.
    */
-  static Node rewriteWitness(TNode node);
+  Node rewriteWitness(TNode node);
+  /**
+   * Main entry point for rewriting APPLY_INDEXED_SYMBOLIC terms.
+   */
+  static Node rewriteApplyIndexedSymbolic(TNode node);
 }; /* class TheoryBuiltinRewriter */
 
 }  // namespace builtin

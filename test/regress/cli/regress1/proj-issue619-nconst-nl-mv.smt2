@@ -1,0 +1,8 @@
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sat-solver=minisat
+; EXPECT: unknown
+(set-logic ALL)
+(set-option :sets-exp true)
+(declare-sort u 0)
+(declare-const x u)
+(check-sat-assuming ((set.member (set.choose (set.comprehension ((_x3 Real)) (is_int (sec 25980915886.0)) (seq.unit x))) (set.comprehension ((_x3 Real)) true (seq.unit x)))))

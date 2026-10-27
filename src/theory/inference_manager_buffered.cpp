@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,8 @@
 
 #include "theory/inference_manager_buffered.h"
 
+#include "base/check.h"
+#include "base/output.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -81,7 +80,7 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
                                               ProofGenerator* pg)
 {
   // make a simple theory internal fact
-  Assert(conc.getKind() != AND && conc.getKind() != OR);
+  Assert(conc.getKind() != Kind::AND && conc.getKind() != Kind::OR);
   d_pendingFact.emplace_back(new SimpleTheoryInternalFact(id, conc, exp, pg));
 }
 
@@ -130,12 +129,31 @@ void InferenceManagerBuffered::doPendingLemmas()
   d_processingPendingLemmas = false;
 }
 
+void InferenceManagerBuffered::doPending()
+{
+  doPendingFacts();
+  if (d_theoryState.isInConflict())
+  {
+    // just clear the pending vectors, nothing else to do
+    clearPendingLemmas();
+    clearPendingPhaseRequirements();
+    return;
+  }
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+}
+
+bool InferenceManagerBuffered::hasProcessed() const
+{
+  return d_theoryState.isInConflict() || hasPending();
+}
+
 void InferenceManagerBuffered::doPendingPhaseRequirements()
 {
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
-    requirePhase(prp.first, prp.second);
+    preferPhase(prp.first, prp.second);
   }
   d_pendingReqPhase.clear();
 }
@@ -179,10 +197,10 @@ void InferenceManagerBuffered::assertInternalFactTheoryInference(
   ProofGenerator* pg = nullptr;
   Node lit = fact->processFact(exp, pg);
   Assert(!lit.isNull());
-  bool pol = lit.getKind() != NOT;
+  bool pol = lit.getKind() != Kind::NOT;
   TNode atom = pol ? lit : lit[0];
   // no double negation or conjunctive conclusions
-  Assert(atom.getKind() != NOT && atom.getKind() != AND);
+  Assert(atom.getKind() != Kind::NOT && atom.getKind() != Kind::AND);
   // assert the internal fact
   assertInternalFact(atom, pol, fact->getId(), exp, pg);
 }

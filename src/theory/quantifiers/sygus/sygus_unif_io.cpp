@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,6 +11,8 @@
  */
 
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
+
+#include <cmath>
 
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -25,25 +24,22 @@
 #include "theory/strings/word.h"
 #include "util/random.h"
 
-#include <math.h>
-
 using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-UnifContextIo::UnifContextIo() : d_curr_role(role_invalid)
+UnifContextIo::UnifContextIo(NodeManager* nm)
+    : d_nm(nm), d_curr_role(role_invalid)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = d_nm->mkConst(true);
+  d_false = d_nm->mkConst(false);
 }
 
 NodeRole UnifContextIo::getCurrentRole() { return d_curr_role; }
 
-bool UnifContextIo::updateContext(SygusUnifIo* sui,
-                                  std::vector<Node>& vals,
-                                  bool pol)
+bool UnifContextIo::updateContext(std::vector<Node>& vals, bool pol)
 {
   Assert(d_vals.size() == vals.size());
   bool changed = false;
@@ -73,8 +69,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   return changed;
 }
 
-bool UnifContextIo::updateStringPosition(SygusUnifIo* sui,
-                                         std::vector<size_t>& pos,
+bool UnifContextIo::updateStringPosition(std::vector<size_t>& pos,
                                          NodeRole nrole)
 {
   Assert(pos.size() == d_str_pos.size());
@@ -275,7 +270,7 @@ Node SubsumeTrie::addTermInternal(Node t,
     }
     return d_term;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = vals[index].getNodeManager();
   // the current value
   Assert(pol || (vals[index].isConst() && vals[index].getType().isBoolean()));
   Node cv = pol ? vals[index] : nm->mkConst(!vals[index].getConst<bool>());
@@ -446,7 +441,7 @@ void SubsumeTrie::getSubsumedBy(const std::vector<Node>& vals,
 
 void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
                                     bool pol,
-                                    std::map<int, std::vector<Node> >& v,
+                                    std::map<int, std::vector<Node>>& v,
                                     unsigned index,
                                     int status)
 {
@@ -503,7 +498,7 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
 
 void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
                             bool pol,
-                            std::map<int, std::vector<Node> >& v)
+                            std::map<int, std::vector<Node>>& v)
 {
   getLeavesInternal(vals, pol, v, 0, -2);
 }
@@ -515,10 +510,11 @@ SygusUnifIo::SygusUnifIo(Env& env, SynthConjecture* p)
       d_cond_count(0),
       d_sol_term_size(0),
       d_sol_cons_nondet(false),
-      d_solConsUsingInfoGain(false)
+      d_solConsUsingInfoGain(false),
+      d_context(env.getNodeManager())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 SygusUnifIo::~SygusUnifIo() {}
@@ -615,7 +611,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       Assert(!exp_exc_vec.empty());
       exp_exc = exp_exc_vec.size() == 1
                     ? exp_exc_vec[0]
-                    : NodeManager::currentNM()->mkNode(AND, exp_exc_vec);
+                    : nodeManager()->mkNode(Kind::AND, exp_exc_vec);
     }
     Trace("sygus-sui-enum")
         << "  ...fail : term is excluded (domain-specific)" << std::endl;
@@ -919,13 +915,12 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
   return false;
 }
 
-bool SygusUnifIo::getExplanationForEnumeratorExclude(
-    Node e,
-    Node v,
-    std::vector<Node>& results,
-    std::vector<Node>& exp)
+bool SygusUnifIo::getExplanationForEnumeratorExclude(Node e,
+                                                     Node v,
+                                                     std::vector<Node>& results,
+                                                     std::vector<Node>& exp)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   if (useStrContainsEnumeratorExclude(e))
   {
     // This check whether the example evaluates to something that is larger than
@@ -954,7 +949,8 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
             << "  " << results[i] << " <> " << d_examples_out[i];
-        Node cont = nm->mkNode(STRING_CONTAINS, d_examples_out[i], results[i]);
+        Node cont =
+            nm->mkNode(Kind::STRING_CONTAINS, d_examples_out[i], results[i]);
         Node contr = rewrite(cont);
         if (contr == d_false)
         {
@@ -1008,7 +1004,7 @@ void SygusUnifIo::initializeConstructSol()
   d_sol_cons_nondet = false;
 }
 
-void SygusUnifIo::initializeConstructSolFor(Node f)
+void SygusUnifIo::initializeConstructSolFor(CVC5_UNUSED Node f)
 {
   Assert(d_candidate == f);
 }
@@ -1270,7 +1266,7 @@ Node SygusUnifIo::constructSol(
             << "PBE: CONCAT strategy : choose " << (isPrefix ? "pre" : "suf")
             << "fix value " << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         // update the context
-        bool ret = x.updateStringPosition(this, incr[ret_dt], nrole);
+        bool ret = x.updateStringPosition(incr[ret_dt], nrole);
         AlwaysAssert(ret == (total_inc[ret_dt] > 0));
       }
       else
@@ -1291,7 +1287,7 @@ Node SygusUnifIo::constructSol(
   }
   if (!ret_dt.isNull() || einfo.isTemplated())
   {
-    Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+    Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
     indent("sygus-sui-dt", ind);
     Trace("sygus-sui-dt") << "ConstructPBE: returned (pre-strategy) " << ret_dt
                           << std::endl;
@@ -1383,8 +1379,7 @@ Node SygusUnifIo::constructSol(
           Assert(set_split_cond_res_index);
           Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
           prev = x.d_vals;
-          x.updateContext(this,
-                          ecache_cond.d_enum_vals_res[split_cond_res_index],
+          x.updateContext(ecache_cond.d_enum_vals_res[split_cond_res_index],
                           sc == 1);
           // return value of above call may be false in corner cases where we
           // must choose a non-separating condition to traverse to another
@@ -1400,7 +1395,7 @@ Node SygusUnifIo::constructSol(
 
           // get the conditionals in the current context : they must be
           // distinguishable
-          std::map<int, std::vector<Node> > possible_cond;
+          std::map<int, std::vector<Node>> possible_cond;
           std::map<Node, int> solved_cond;  // stores branch
           ecache_child.d_term_trie.getLeaves(x.d_vals, true, possible_cond);
 
@@ -1494,7 +1489,7 @@ Node SygusUnifIo::constructSol(
       if (success)
       {
         Assert(dt_children_cons.size() == etis->d_sol_templ_args.size());
-        // ret_dt = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR,
+        // ret_dt = nodeManager()->mkNode( APPLY_CONSTRUCTOR,
         // dt_children );
         ret_dt = etis->d_sol_templ;
         ret_dt = ret_dt.substitute(etis->d_sol_templ_args.begin(),
@@ -1526,7 +1521,7 @@ Node SygusUnifIo::constructSol(
     }
     else if (d_enableMinimality)
     {
-      Assert(ret_dt.getType() == cached_ret_dt.getType());
+      AssertEqual(ret_dt.getType(), cached_ret_dt.getType());
       // take the cached one if it is smaller
       std::vector<Node> retDts;
       retDts.push_back(cached_ret_dt);
@@ -1534,7 +1529,7 @@ Node SygusUnifIo::constructSol(
       ret_dt = getMinimalTerm(retDts);
     }
   }
-  Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
+  Assert(ret_dt.isNull() || CVC5_EQUAL(ret_dt.getType(), e.getType()));
   if (TraceIsOn("sygus-sui-dt"))
   {
     indent("sygus-sui-dt", ind);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,21 +29,17 @@ namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-BagSolver::BagSolver(Env& env,
-                     SolverState& s,
-                     InferenceManager& im,
-                     TermRegistry& tr)
+BagSolver::BagSolver(Env& env, SolverState& s, InferenceManager& im)
     : EnvObj(env),
       d_state(s),
-      d_ig(&s, &im),
+      d_ig(env, &s, &im),
       d_im(im),
-      d_termReg(tr),
       d_mapCache(userContext())
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_one = NodeManager::currentNM()->mkConstInt(Rational(1));
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_one = nodeManager()->mkConstInt(Rational(1));
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 BagSolver::~BagSolver() {}
@@ -68,19 +61,48 @@ void BagSolver::checkBasicOperations()
       Kind k = n.getKind();
       switch (k)
       {
-        case kind::BAG_EMPTY: checkEmpty(n); break;
-        case kind::BAG_MAKE: checkBagMake(n); break;
-        case kind::BAG_UNION_DISJOINT: checkUnionDisjoint(n); break;
-        case kind::BAG_UNION_MAX: checkUnionMax(n); break;
-        case kind::BAG_INTER_MIN: checkIntersectionMin(n); break;
-        case kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
-        case kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
-        case kind::BAG_DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
-        case kind::BAG_FILTER: checkFilter(n); break;
-        case kind::BAG_MAP: checkMap(n); break;
-        case kind::TABLE_PRODUCT: checkProduct(n); break;
-        case kind::TABLE_JOIN: checkJoin(n); break;
-        case kind::TABLE_GROUP: checkGroup(n); break;
+        case Kind::BAG_EMPTY: checkEmpty(n); break;
+        case Kind::BAG_MAKE: checkBagMake(n); break;
+        case Kind::BAG_UNION_DISJOINT: checkUnionDisjoint(n); break;
+        case Kind::BAG_UNION_MAX: checkUnionMax(n); break;
+        case Kind::BAG_INTER_MIN: checkIntersectionMin(n); break;
+        case Kind::BAG_DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
+        case Kind::BAG_DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
+        case Kind::BAG_SETOF: checkSetof(n); break;
+        case Kind::BAG_FILTER: checkFilter(n); break;
+        case Kind::TABLE_PRODUCT: checkProduct(n); break;
+        case Kind::TABLE_JOIN: checkJoin(n); break;
+        case Kind::TABLE_GROUP: checkGroup(n); break;
+        default: break;
+      }
+      it++;
+    }
+  }
+
+  // add non negative constraints for all multiplicities
+  for (const Node& n : d_state.getBags())
+  {
+    for (const Node& e : d_state.getElements(n))
+    {
+      checkNonNegativeCountTerms(n, d_state.getRepresentative(e));
+    }
+  }
+}
+
+void BagSolver::checkQuantifiedOperations()
+{
+  for (const Node& bag : d_state.getBags())
+  {
+    // iterate through all bags terms in each equivalent class
+    eq::EqClassIterator it =
+        eq::EqClassIterator(bag, d_state.getEqualityEngine());
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      Kind k = n.getKind();
+      switch (k)
+      {
+        case Kind::BAG_MAP: checkMap(n); break;
         default: break;
       }
       it++;
@@ -115,7 +137,7 @@ set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
 
 void BagSolver::checkEmpty(const Node& n)
 {
-  Assert(n.getKind() == BAG_EMPTY);
+  Assert(n.getKind() == Kind::BAG_EMPTY);
   for (const Node& e : d_state.getElements(n))
   {
     InferInfo i = d_ig.empty(n, d_state.getRepresentative(e));
@@ -125,7 +147,7 @@ void BagSolver::checkEmpty(const Node& n)
 
 void BagSolver::checkUnionDisjoint(const Node& n)
 {
-  Assert(n.getKind() == BAG_UNION_DISJOINT);
+  Assert(n.getKind() == Kind::BAG_UNION_DISJOINT);
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
@@ -136,7 +158,7 @@ void BagSolver::checkUnionDisjoint(const Node& n)
 
 void BagSolver::checkUnionMax(const Node& n)
 {
-  Assert(n.getKind() == BAG_UNION_MAX);
+  Assert(n.getKind() == Kind::BAG_UNION_MAX);
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
@@ -147,7 +169,7 @@ void BagSolver::checkUnionMax(const Node& n)
 
 void BagSolver::checkIntersectionMin(const Node& n)
 {
-  Assert(n.getKind() == BAG_INTER_MIN);
+  Assert(n.getKind() == Kind::BAG_INTER_MIN);
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
@@ -158,7 +180,7 @@ void BagSolver::checkIntersectionMin(const Node& n)
 
 void BagSolver::checkDifferenceSubtract(const Node& n)
 {
-  Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
+  Assert(n.getKind() == Kind::BAG_DIFFERENCE_SUBTRACT);
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
@@ -173,7 +195,7 @@ bool BagSolver::checkBagMake()
   for (const Node& bag : d_state.getBags())
   {
     TypeNode bagType = bag.getType();
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node empty = nm->mkConst(EmptyBag(bagType));
     if (d_state.areEqual(empty, bag) || d_state.areDisequal(empty, bag))
     {
@@ -186,7 +208,7 @@ bool BagSolver::checkBagMake()
     while (!it.isFinished())
     {
       Node n = (*it);
-      if (n.getKind() == BAG_MAKE)
+      if (n.getKind() == Kind::BAG_MAKE)
       {
         Trace("bags-check") << "splitting on node " << std::endl;
         InferInfo i = d_ig.bagMake(n);
@@ -202,7 +224,7 @@ bool BagSolver::checkBagMake()
 
 void BagSolver::checkBagMake(const Node& n)
 {
-  Assert(n.getKind() == BAG_MAKE);
+  Assert(n.getKind() == Kind::BAG_MAKE);
   Trace("bags::BagSolver::postCheck")
       << "BagSolver::checkBagMake Elements of " << n
       << " are: " << d_state.getElements(n) << std::endl;
@@ -220,7 +242,7 @@ void BagSolver::checkNonNegativeCountTerms(const Node& bag, const Node& element)
 
 void BagSolver::checkDifferenceRemove(const Node& n)
 {
-  Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
+  Assert(n.getKind() == Kind::BAG_DIFFERENCE_REMOVE);
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
@@ -229,9 +251,9 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   }
 }
 
-void BagSolver::checkDuplicateRemoval(Node n)
+void BagSolver::checkSetof(Node n)
 {
-  Assert(n.getKind() == BAG_DUPLICATE_REMOVAL);
+  Assert(n.getKind() == Kind::BAG_SETOF);
   set<Node> elements;
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[0]);
@@ -241,7 +263,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
 
   for (const Node& e : elements)
   {
-    InferInfo i = d_ig.duplicateRemoval(n, d_state.getRepresentative(e));
+    InferInfo i = d_ig.setof(n, d_state.getRepresentative(e));
     d_im.lemmaTheoryInference(&i);
   }
 }
@@ -257,43 +279,65 @@ void BagSolver::checkDisequalBagTerms()
 
 void BagSolver::checkMap(Node n)
 {
-  Assert(n.getKind() == BAG_MAP);
+  Assert(n.getKind() == Kind::BAG_MAP);
   const set<Node>& downwards = d_state.getElements(n);
   const set<Node>& upwards = d_state.getElements(n[1]);
-  for (const Node& z : downwards)
+  if (d_state.isInjective(n[0]))
   {
-    Node y = d_state.getRepresentative(z);
-    if (!d_mapCache.count(n))
+    for (const Node& z : downwards)
     {
-      std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node>>> nMap =
-          std::make_shared<context::CDHashMap<Node, std::pair<Node, Node>>>(
-              userContext());
-      d_mapCache[n] = nMap;
+      InferInfo upInference = d_ig.mapDownInjective(n, z);
+      d_im.lemmaTheoryInference(&upInference);
     }
-    if (!d_mapCache[n].get()->count(y))
-    {
-      auto [downInference, uf, preImageSize] = d_ig.mapDown(n, y);
-      d_im.lemmaTheoryInference(&downInference);
-      std::pair<Node, Node> yPair = std::make_pair(uf, preImageSize);
-      d_mapCache[n].get()->insert(y, yPair);
-    }
-
-    context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
-        d_mapCache[n].get()->find(y);
-
-    auto [uf, preImageSize] = it->second;
-
     for (const Node& x : upwards)
     {
-      InferInfo upInference = d_ig.mapUp(n, uf, preImageSize, y, x);
+      InferInfo upInference = d_ig.mapUpInjective(n, x);
       d_im.lemmaTheoryInference(&upInference);
+    }
+  }
+  else
+  {
+    for (const Node& x : upwards)
+    {
+      InferInfo upInference = d_ig.mapUp1(n, x);
+      d_im.lemmaTheoryInference(&upInference);
+    }
+
+    for (const Node& z : downwards)
+    {
+      Node y = d_state.getRepresentative(z);
+      if (!d_mapCache.count(n))
+      {
+        std::shared_ptr<context::CDHashMap<Node, std::pair<Node, Node>>> nMap =
+            std::make_shared<context::CDHashMap<Node, std::pair<Node, Node>>>(
+                userContext());
+        d_mapCache[n] = nMap;
+      }
+      if (!d_mapCache[n].get()->count(y))
+      {
+        auto [downInference, uf, preImageSize] = d_ig.mapDown(n, y);
+        d_im.lemmaTheoryInference(&downInference);
+        std::pair<Node, Node> yPair = std::make_pair(uf, preImageSize);
+        d_mapCache[n].get()->insert(y, yPair);
+      }
+
+      context::CDHashMap<Node, std::pair<Node, Node>>::iterator it =
+          d_mapCache[n].get()->find(y);
+
+      auto [uf, preImageSize] = it->second;
+
+      for (const Node& x : upwards)
+      {
+        InferInfo upInference = d_ig.mapUp2(n, uf, preImageSize, y, x);
+        d_im.lemmaTheoryInference(&upInference);
+      }
     }
   }
 }
 
 void BagSolver::checkFilter(Node n)
 {
-  Assert(n.getKind() == BAG_FILTER);
+  Assert(n.getKind() == Kind::BAG_FILTER);
 
   set<Node> elements;
   const set<Node>& downwards = d_state.getElements(n);
@@ -315,7 +359,7 @@ void BagSolver::checkFilter(Node n)
 
 void BagSolver::checkProduct(Node n)
 {
-  Assert(n.getKind() == TABLE_PRODUCT);
+  Assert(n.getKind() == Kind::TABLE_PRODUCT);
   const set<Node>& elementsA = d_state.getElements(n[0]);
   const set<Node>& elementsB = d_state.getElements(n[1]);
 
@@ -339,7 +383,7 @@ void BagSolver::checkProduct(Node n)
 
 void BagSolver::checkJoin(Node n)
 {
-  Assert(n.getKind() == TABLE_JOIN);
+  Assert(n.getKind() == Kind::TABLE_JOIN);
   const set<Node>& elementsA = d_state.getElements(n[0]);
   const set<Node>& elementsB = d_state.getElements(n[1]);
 
@@ -363,7 +407,7 @@ void BagSolver::checkJoin(Node n)
 
 void BagSolver::checkGroup(Node n)
 {
-  Assert(n.getKind() == TABLE_GROUP);
+  Assert(n.getKind() == Kind::TABLE_GROUP);
 
   InferInfo notEmpty = d_ig.groupNotEmpty(n);
   d_im.lemmaTheoryInference(&notEmpty);
@@ -397,7 +441,7 @@ void BagSolver::checkGroup(Node n)
     bool newPart = true;
     for (Node p : partEqc)
     {
-      if (p.getKind() == APPLY_UF && p.getOperator() == part)
+      if (p.getKind() == Kind::APPLY_UF && p.getOperator() == part)
       {
         newPart = false;
       }

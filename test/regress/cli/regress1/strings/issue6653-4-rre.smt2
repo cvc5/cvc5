@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --re-elim=agg
+; REQUIRES: no-safe-mode
+; COMMAND-LINE: --re-elim=agg
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun x () String)

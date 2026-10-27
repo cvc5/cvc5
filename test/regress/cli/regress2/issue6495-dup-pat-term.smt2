@@ -1,5 +1,6 @@
 ; COMMAND-LINE: -i -q
 ; EXPECT: unsat
+
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort |T@[Int]Int| 0)

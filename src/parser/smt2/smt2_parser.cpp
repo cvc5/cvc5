@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,33 +13,32 @@
 #include "parser/smt2/smt2_parser.h"
 
 #include "base/output.h"
-#include "parser/api/cpp/command.h"
+#include "parser/commands.h"
 
 namespace cvc5 {
 namespace parser {
 
 Smt2Parser::Smt2Parser(Solver* solver,
-                       SymbolManager* sm,
-                       bool strictMode,
+                       SymManager* sm,
+                       ParsingMode parsingMode,
                        bool isSygus)
-    : FlexParser(solver, sm),
-      d_slex(isSygus, strictMode),
-      d_state(this, solver, sm, strictMode, isSygus),
+    : Parser(solver, sm),
+      d_slex(parsingMode == ParsingMode::STRICT, isSygus),
+      d_state(this, solver, sm, parsingMode, isSygus),
       d_termParser(d_slex, d_state),
       d_cmdParser(d_slex, d_state, d_termParser)
 {
   d_lex = &d_slex;
 }
 
-Command* Smt2Parser::parseNextCommand()
+void Smt2Parser::setLogic(const std::string& logic) { d_state.setLogic(logic); }
+
+std::unique_ptr<Cmd> Smt2Parser::parseNextCommand()
 {
-  // !!! note that the memory management of commands will change after we
-  // remove the ANTLR parser.
-  std::unique_ptr<Command> cmd = d_cmdParser.parseNextCommand();
-  return cmd.release();
+  return d_cmdParser.parseNextCommand();
 }
 
-Term Smt2Parser::parseNextExpression()
+Term Smt2Parser::parseNextTerm()
 {
   // check for EOF here and return null if so
   Token tok = d_slex.peekToken();
@@ -50,6 +46,9 @@ Term Smt2Parser::parseNextExpression()
   {
     return Term();
   }
+  // check that the logic has been set
+  d_state.checkThatLogicIsSet();
+  // Parse the term.
   return d_termParser.parseTerm();
 }
 

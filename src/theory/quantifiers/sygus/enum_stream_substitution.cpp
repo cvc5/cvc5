@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,7 +47,7 @@ void EnumStreamPermutation::reset(Node value)
   // get variables in value's type
   TypeNode tn = value.getType();
   Node var_list = tn.getDType().getSygusVarList();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // get subfield types in value's type
   SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
@@ -67,7 +64,8 @@ void EnumStreamPermutation::reset(Node value)
       {
         if (dt[i].getNumArgs() == 0 && dt[i].getSygusOp() == v)
         {
-          Node cons = nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
+          Node cons =
+              nm->mkNode(Kind::APPLY_CONSTRUCTOR, dt[i].getConstructor());
           d_var_tn_cons[v][stn] = cons;
           cons_var[cons] = v;
         }
@@ -248,7 +246,7 @@ void EnumStreamPermutation::collectVars(Node n,
     }
     return;
   }
-  if (d_tds->sygusToBuiltin(n, n.getType()).getKind() == kind::BOUND_VARIABLE)
+  if (d_tds->sygusToBuiltin(n, n.getType()).getKind() == Kind::BOUND_VARIABLE)
   {
     if (std::find(vars.begin(), vars.end(), n) == vars.end())
     {
@@ -338,7 +336,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
   // get variables in value's type
   Node var_list = tn.getDType().getSygusVarList();
   // get subfield types in value's type
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   std::vector<TypeNode> sf_types;
   ti.getSubfieldTypes(sf_types);
@@ -354,7 +352,7 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
         if (dt[i].getNumArgs() == 0 && dt[i].getSygusOp() == v)
         {
           d_var_tn_cons[v][stn] =
-              nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
+              nm->mkNode(Kind::APPLY_CONSTRUCTOR, dt[i].getConstructor());
         }
       }
     }
@@ -533,7 +531,8 @@ Node EnumStreamSubstitution::getNext()
       std::stringstream ss, ss1;
       TermDbSygus::toStreamSygus(ss, comb_value);
       Trace("synth-stream-concrete")
-          << " ..term " << ss.str() << " is REDUNDANT with " << builtin_comb_value
+          << " ..term " << ss.str() << " is REDUNDANT with "
+          << builtin_comb_value
           << "\n ..excluding all other concretizations (had "
           << d_comb_values.size() << " already)\n\n";
     }
@@ -561,7 +560,7 @@ EnumStreamSubstitution::CombinationState::CombinationState(
   d_subclass_id = subclass_id;
 }
 
-const unsigned EnumStreamSubstitution::CombinationState::getSubclassId() const
+unsigned EnumStreamSubstitution::CombinationState::getSubclassId() const
 {
   return d_subclass_id;
 }

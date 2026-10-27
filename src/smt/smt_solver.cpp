@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,15 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/arith_options.h"
+#include "options/arrays_options.h"
+#include "options/bags_options.h"
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
+#include "options/ff_options.h"
+#include "options/fp_options.h"
 #include "options/main_options.h"
+#include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "prop/prop_engine.h"
@@ -24,6 +28,7 @@
 #include "smt/env.h"
 #include "smt/logic_exception.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/solver_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
@@ -34,15 +39,15 @@ using namespace std;
 namespace cvc5::internal {
 namespace smt {
 
-SmtSolver::SmtSolver(Env& env,
-                     AbstractValues& abs,
-                     SolverEngineStatistics& stats)
+SmtSolver::SmtSolver(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pp(env, stats),
-      d_asserts(env, abs),
+      d_asserts(env),
       d_stats(stats),
       d_theoryEngine(nullptr),
-      d_propEngine(nullptr)
+      d_propEngine(nullptr),
+      d_ppAssertions(userContext()),
+      d_ppSkolemMap(userContext())
 {
 }
 
@@ -81,7 +86,17 @@ void SmtSolver::finishInit()
   Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
   d_theoryEngine->finishInit();
   d_propEngine->finishInit();
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
+
+  if (options().proof.proofLog)
+  {
+    smt::PfManager* pm = d_env.getProofManager();
+    if (pm != nullptr)
+    {
+      // Logs proofs on the base output stream of the solver
+      pm->startProofLogging(options().base.out, d_asserts);
+    }
+  }
 }
 
 void SmtSolver::resetAssertions()
@@ -98,7 +113,7 @@ void SmtSolver::resetAssertions()
   // depend on knowing the associated PropEngine.
   d_propEngine->finishInit();
   // must reset the preprocessor as well
-  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get());
+  finishInitPreprocessor();
 }
 
 void SmtSolver::interrupt()
@@ -116,41 +131,7 @@ void SmtSolver::interrupt()
 Result SmtSolver::checkSatInternal()
 {
   // call the prop engine to check sat
-  Result result = d_propEngine->checkSat();
-  // handle options-specific modifications to result
-  if ((options().smt.solveRealAsInt || options().smt.solveIntAsBV > 0)
-      && result.getStatus() == Result::UNSAT)
-  {
-    result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
-  }
-  // handle preprocessing-specific modifications to result
-  if (options().quantifiers.globalNegate)
-  {
-    Trace("smt") << "SmtSolver::process global negate " << result << std::endl;
-    if (result.getStatus() == Result::UNSAT)
-    {
-      result = Result(Result::SAT);
-    }
-    else if (result.getStatus() == Result::SAT)
-    {
-      // Only can answer unsat if the theory is satisfaction complete. This
-      // includes linear arithmetic and bitvectors, which are the primary
-      // targets for the global negate option. Other logics are possible
-      // here but not considered.
-      LogicInfo logic = logicInfo();
-      if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear())
-          || logic.isPure(theory::THEORY_BV))
-      {
-        result = Result(Result::UNSAT);
-      }
-      else
-      {
-        result = Result(Result::UNKNOWN, UnknownExplanation::UNKNOWN_REASON);
-      }
-    }
-    Trace("smt") << "SmtSolver::global negate returned " << result << std::endl;
-  }
-  return result;
+  return d_propEngine->checkSat();
 }
 
 void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
@@ -163,15 +144,32 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
+}
 
+void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
+{
+  // carry information about soundness to the theory engine we are sending to
+  if (ap.isRefutationUnsound())
+  {
+    d_theoryEngine->setRefutationUnsound(theory::IncompleteId::PREPROCESSING);
+  }
+  if (ap.isModelUnsound())
+  {
+    d_theoryEngine->setModelUnsound(theory::IncompleteId::PREPROCESSING);
+  }
+  // get the assertions
   const std::vector<Node>& assertions = ap.ref();
+  preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
+  // assert to prop engine, which will convert to CNF
+  d_env.verbose(2) << "converting to CNF..." << endl;
+  d_propEngine->assertInputFormulas(assertions, ism);
+
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter
   // specially. Note that we don't pass the preprocess learned literals
   // d_pp.getLearnedLiterals() here, since they may not exactly correspond
   // to the actual preprocessed learned literals, as the input may have
   // undergone further preprocessing.
-  preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
   // if we can deep restart, we always remember the preprocessed formulas,
   // which are the basis for the next check-sat.
   if (trackPreprocessedAssertions())
@@ -179,48 +177,31 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
     // incompatible with global negation
     Assert(!options().quantifiers.globalNegate);
     theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
-    // note that if a skolem is eliminated in preprocessing, we remove it
-    // from the preprocessed skolem map
-    std::vector<size_t> elimSkolems;
-    for (const std::pair<const size_t, Node>& k : d_ppSkolemMap)
+    size_t startIndex = d_ppAssertions.size();
+    // remember the assertions and Skolem mapping
+    for (const Node& a : assertions)
     {
+      d_ppAssertions.push_back(a);
+    }
+    for (const std::pair<const size_t, Node>& k : ism)
+    {
+      // optimization: skip skolems that were eliminated in preprocessing
       if (sm.hasSubstitution(k.second))
       {
-        Trace("deep-restart-ism")
-            << "SKOLEM:" << k.second << " was eliminated during preprocessing"
-            << std::endl;
-        elimSkolems.push_back(k.first);
         continue;
       }
-      Trace("deep-restart-ism") << "SKOLEM:" << k.second << " is skolem for "
-                                << assertions[k.first] << std::endl;
+      size_t newIndex = k.first + startIndex;
+      d_ppSkolemMap[newIndex] = k.second;
     }
-    for (size_t i : elimSkolems)
-    {
-      ism.erase(i);
-    }
-    // remember the assertions and Skolem mapping
-    d_ppAssertions = assertions;
-    d_ppSkolemMap = ism;
   }
 }
 
-void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
-{
-  // get the assertions
-  const std::vector<Node>& assertions = ap.ref();
-  preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-  // assert to prop engine, which will convert to CNF
-  d_env.verbose(2) << "converting to CNF..." << endl;
-  d_propEngine->assertInputFormulas(assertions, ism);
-}
-
-const std::vector<Node>& SmtSolver::getPreprocessedAssertions() const
+const context::CDList<Node>& SmtSolver::getPreprocessedAssertions() const
 {
   return d_ppAssertions;
 }
 
-const std::unordered_map<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
+const context::CDHashMap<size_t, Node>& SmtSolver::getPreprocessedSkolemMap()
     const
 {
   return d_ppSkolemMap;
@@ -260,13 +241,22 @@ void SmtSolver::popPropContext()
   d_propEngine->pop();
 }
 
-void SmtSolver::postsolve()
+void SmtSolver::resetTrail()
 {
   Assert(d_propEngine != nullptr);
   d_propEngine->resetTrail();
+}
 
-  Assert(d_theoryEngine != nullptr);
-  d_theoryEngine->postsolve();
+void SmtSolver::finishInitPreprocessor()
+{
+  // determine if we are assigning a preprocess proof generator here
+  smt::PfManager* pm = d_env.getProofManager();
+  smt::PreprocessProofGenerator* pppg = nullptr;
+  if (pm != nullptr)
+  {
+    pppg = pm->getPreprocessProofGenerator();
+  }
+  d_pp.finishInit(d_theoryEngine.get(), d_propEngine.get(), pppg);
 }
 
 }  // namespace smt

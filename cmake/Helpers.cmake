@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Mathias Preiner, Aina Niemetz, Andrew V. Jones
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -14,10 +11,46 @@
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
+function(check_min_compiler_version id min_version)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "${id}")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "${min_version}")
+      message(FATAL_ERROR "${id} version must be at least ${min_version}")
+    endif()
+  endif()
+endfunction()
+
 if(NOT WIN32)
   string(ASCII 27 Esc)
   set(Yellow "${Esc}[33m")
   set(ResetColor "${Esc}[m")
+endif()
+
+# Build triplet used when compiling GMP, CLN, and GLPK to ensure that
+# optimizations using very specific CPU instructions are not enabled.
+# This makes the binary more portable.
+set(BUILD_TRIPLET "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(BUILD_TRIPLET "x86_64-linux-gnu")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    set(BUILD_TRIPLET "aarch64-linux-gnu")
+  endif()
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(BUILD_TRIPLET "x86_64-apple-darwin")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(BUILD_TRIPLET "aarch64-apple-darwin")
+  endif()
+elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+  if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64"
+      OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64")
+    set(BUILD_TRIPLET "x86_64-w64-mingw32")
+  elseif(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "aarch64"
+      OR CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "ARM64")
+    # CMake derives the host processor on Windows from PROCESSOR_ARCHITECTURE,
+    # which reports "ARM64"; "aarch64" only shows up when uname is used.
+    set(BUILD_TRIPLET "aarch64-w64-mingw32")
+  endif()
 endif()
 
 # Add a C flag to the global list of C flags.
@@ -46,21 +79,35 @@ macro(add_c_cxx_flag flag)
   add_cxx_flag(${flag})
 endmacro()
 
-# Check if C flag is supported and add to global list of C flags.
+# Check if C flag is supported and add to global list of C flags or to the specified files only.
+# Warning: `add_check_c_flag("-v" ${LIST})` will create a global flag if `${LIST}` is empty.
 macro(add_check_c_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
   check_c_compiler_flag("${flag}" HAVE_C_FLAG${flagname})
   if(HAVE_C_FLAG${flagname})
-    add_c_flag(${flag})
+    if(ARGN)
+      # add the flag only to the provided files
+      set_source_files_properties(${ARGN} PROPERTIES COMPILE_OPTIONS "${flag}")
+    else()
+      # add the flag to all files
+      add_c_flag(${flag})
+    endif()
   endif()
 endmacro()
 
-# Check if CXX flag is supported and add to global list of CXX flags.
+# Check if CXX flag is supported and add to global list of CXX flags or to the specified files only.
+# Warning: `add_check_cxx_flag("-v" ${LIST})` will create a global flag if `${LIST}` is empty.
 macro(add_check_cxx_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
   check_cxx_compiler_flag("${flag}" HAVE_CXX_FLAG${flagname})
   if(HAVE_CXX_FLAG${flagname})
-    add_cxx_flag(${flag})
+    if(ARGN)
+      # add the flag only to the provided files
+      set_source_files_properties(${ARGN} PROPERTIES COMPILE_OPTIONS "${flag}")
+    else()
+      # add the flag to all files
+      add_cxx_flag(${flag})
+    endif()
   endif()
 endmacro()
 
@@ -72,37 +119,37 @@ endmacro()
 
 # Check if C warning suppression flag is supported and add to global list of C
 # flags.
-macro(add_check_c_supression_flag supression_flag)
-  # Obtain the non-supression warning flag name
-  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${supression_flag})
+macro(add_check_c_suppression_flag suppression_flag)
+  # Obtain the non-suppression warning flag name
+  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${suppression_flag})
   string(REGEX REPLACE "[-=]" "_" warning_flagname ${warning_flag})
   # Check if we have the warning flag
   check_c_compiler_flag("${warning_flag}" HAVE_C_FLAG${warning_flagname})
-  # Only add the supression flag if we have the warning flag
+  # Only add the suppression flag if we have the warning flag
   if(HAVE_C_FLAG${warning_flagname})
-    add_c_flag(${supression_flag})
+    add_c_flag(${suppression_flag})
   endif()
 endmacro()
 
 # Check if CXX warning suppression flag is supported and add to global list of
 # CXX flags.
-macro(add_check_cxx_supression_flag supression_flag)
-  # Obtain the non-supression warning flag name
-  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${supression_flag})
+macro(add_check_cxx_suppression_flag suppression_flag)
+  # Obtain the non-suppression warning flag name
+  string(REGEX REPLACE "^-Wno-" "-W" warning_flag ${suppression_flag})
   string(REGEX REPLACE "[-=]" "_" warning_flagname ${warning_flag})
   # Check if we have the warning flag
   check_cxx_compiler_flag("${warning_flag}" HAVE_CXX_FLAG${warning_flagname})
-  # Only add the supression flag if we have the warning flag
+  # Only add the suppression flag if we have the warning flag
   if(HAVE_CXX_FLAG${warning_flagname})
-    add_cxx_flag(${supression_flag})
+    add_cxx_flag(${suppression_flag})
   endif()
 endmacro()
 
-# Check if C/CXX warning supression flag is supported and add to global list of
+# Check if C/CXX warning suppression flag is supported and add to global list of
 # C/CXX flags.
-macro(add_check_c_cxx_supression_flag supression_flag)
-  add_check_c_supression_flag(${supression_flag})
-  add_check_cxx_supression_flag(${supression_flag})
+macro(add_check_c_cxx_suppression_flag suppression_flag)
+  add_check_c_suppression_flag(${suppression_flag})
+  add_check_cxx_suppression_flag(${suppression_flag})
 endmacro()
 
 # Add required CXX flag. Configuration fails if the CXX flag is not supported
@@ -247,11 +294,43 @@ function(check_python_module module)
   endif()
 
   if(RET_MODULE_TEST)
-    message(FATAL_ERROR
+    if(ENABLE_AUTO_DOWNLOAD)
+      message(STATUS "Installing Python module ${module_name}")
+      execute_process(
+        COMMAND
+        ${Python_EXECUTABLE} -m pip install ${module_name}
+        RESULT_VARIABLE PYTHON_MODULE_INSTALL_CMD_EXIT_CODE
+      )
+      if(PYTHON_MODULE_INSTALL_CMD_EXIT_CODE)
+        message(FATAL_ERROR "Could not install Python module ${module_name}")
+      endif()
+    else()
+      message(FATAL_ERROR
         "Could not find module ${module_name} for Python "
         "version ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}. "
         "Make sure to install ${module_name} for this Python version "
-        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}'.\n"
+        "via \n`${Python_EXECUTABLE} -m pip install ${module_name}',\n"
+        "or use --auto-download to let us install it for you.\n"
         "Note: You need to have pip installed for this Python version.")
+    endif()
   endif()
 endfunction()
+
+macro(copy_file_from_src filename)
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    COMMAND ${CMAKE_COMMAND} -E copy
+      ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+      ${CMAKE_CURRENT_BINARY_DIR}/${filename}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
+  )
+endmacro()
+
+macro(update_rpath_macos dylibname)
+  install(CODE "execute_process(COMMAND \${CMAKE_COMMAND}
+    -DRPATH=@loader_path
+    -DINSTALL_NAME_TOOL=${CMAKE_INSTALL_NAME_TOOL}
+    -DDYLIB_PATH=\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${dylibname}
+    -DDEPS_BASE=${DEPS_BASE}
+    -P ${PROJECT_SOURCE_DIR}/cmake/update_rpath_macos.cmake)")
+endmacro()

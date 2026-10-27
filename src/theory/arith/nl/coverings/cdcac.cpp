@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,8 @@
  */
 
 #include "theory/arith/nl/coverings/cdcac.h"
+
+#include <algorithm>
 
 #ifdef CVC5_POLY_IMP
 
@@ -45,7 +44,11 @@ namespace nl {
 namespace coverings {
 
 CDCAC::CDCAC(Env& env, const std::vector<poly::Variable>& ordering)
-    : EnvObj(env), d_variableOrdering(ordering)
+    : EnvObj(env),
+      d_assignment(nodeManager()->getPolyContext()),
+      d_constraints(nodeManager()->getPolyContext()),
+      d_variableOrdering(ordering),
+      d_varOrder(nodeManager()->getPolyContext())
 {
   if (d_env.isTheoryProofProducing())
   {
@@ -60,16 +63,44 @@ void CDCAC::reset()
   d_nextIntervalId = 1;
 }
 
-void CDCAC::computeVariableOrdering()
+poly::detail::variable_printer CDCAC::get_stream_variable(
+    const poly::Variable& v)
+{
+  const poly::Context& ctx = nodeManager()->getPolyContext();
+  return stream_variable(ctx, v);
+}
+
+std::vector<poly::detail::variable_printer> CDCAC::get_stream_variables(
+    const std::vector<poly::Variable>& vars)
+{
+  std::vector<poly::detail::variable_printer> result;
+  result.reserve(vars.size());
+
+  const poly::Context& ctx = nodeManager()->getPolyContext();
+
+  for (const poly::Variable& v : vars)
+  {
+    result.emplace_back(stream_variable(ctx, v));
+  }
+
+  return result;
+}
+
+void CDCAC::computeVariableOrdering(bool reverse)
 {
   // Actually compute the variable ordering
   d_variableOrdering = d_varOrder(d_constraints.getConstraints(),
                                   VariableOrderingStrategy::BROWN);
-  Trace("cdcac") << "Variable ordering is now " << d_variableOrdering
-                 << std::endl;
+  if (reverse)
+  {
+    std::reverse(d_variableOrdering.begin(), d_variableOrdering.end());
+  }
+  Trace("cdcac") << "Variable ordering is now "
+                 << get_stream_variables(d_variableOrdering) << std::endl;
 
   // Write variable ordering back to libpoly.
-  lp_variable_order_t* vo = poly::Context::get_context().get_variable_order();
+  lp_variable_order_t* vo =
+      nodeManager()->getPolyContext().get_variable_order();
   lp_variable_order_clear(vo);
   for (const auto& v : d_variableOrdering)
   {
@@ -79,7 +110,8 @@ void CDCAC::computeVariableOrdering()
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
 {
-  if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::NONE) return;
+  if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::NONE)
+    return;
   d_initialAssignment.clear();
   Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
   for (const auto& var : d_variableOrdering)
@@ -87,7 +119,8 @@ void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
     Node v = getConstraints().varMapper()(var);
     Node val = model.computeConcreteModelValue(v);
     poly::Value value = node_to_value(val, ran_variable);
-    Trace("cdcac") << "\t" << var << " = " << value << std::endl;
+    Trace("cdcac") << "\t" << get_stream_variable(var) << " = " << value
+                   << std::endl;
     d_initialAssignment.emplace_back(value);
   }
 }
@@ -104,7 +137,7 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
 std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
-  LazardEvaluation le(statisticsRegistry());
+  LazardEvaluation le(statisticsRegistry(), nodeManager()->getPolyContext());
   prepareRootIsolation(le, cur_variable);
   for (const auto& c : d_constraints.getConstraints())
   {
@@ -121,8 +154,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
                    << " 0 over " << d_assignment << std::endl;
     std::vector<poly::Interval> intervals;
-    if (options().arith.nlCovLifting
-        == options::nlCovLiftingMode::LAZARD)
+    if (options().arith.nlCovLifting == options::nlCovLiftingMode::LAZARD)
     {
       intervals = le.infeasibleRegions(p, sc);
       if (TraceIsOn("cdcac"))
@@ -152,7 +184,6 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
             d_constraints.varMapper(),
             p,
             d_assignment,
-            sc,
             i,
             n,
             res.back().d_id);
@@ -175,7 +206,8 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
     {
       if (poly::contains(i.d_interval, suggested))
       {
-        if (options().arith.nlCovLinearModel == options::nlCovLinearModelMode::INITIAL)
+        if (options().arith.nlCovLinearModel
+            == options::nlCovLinearModelMode::INITIAL)
         {
           d_initialAssignment.clear();
         }
@@ -195,21 +227,30 @@ namespace {
  * This method follows the projection operator as detailed in algorithm 6 of
  * 10.1016/j.jlamp.2020.100633, which mostly follows the projection operator due
  * to McCallum. It uses all coefficients until one is either constant or does
- * not vanish over the current assignment.
+ * not vanish over the current assignment. Sets nullified if all coefficients
+ * vanish over the current assignment.
  */
 PolyVector requiredCoefficientsOriginal(const poly::Polynomial& p,
-                                        const poly::Assignment& assignment)
+                                        const poly::Assignment& assignment,
+                                        bool& nullified)
 {
   PolyVector res;
+  nullified = true;
   for (long deg = degree(p); deg >= 0; --deg)
   {
     auto coeff = coefficient(p, deg);
     Assert(poly::is_constant(coeff)
            == lp_polynomial_is_constant(coeff.get_internal()));
-    if (poly::is_constant(coeff)) break;
+    if (poly::is_zero(coeff)) continue;
+    if (poly::is_constant(coeff))
+    {
+      nullified = false;
+      break;
+    }
     res.add(coeff);
     if (evaluate_constraint(coeff, assignment, poly::SignCondition::NE))
     {
+      nullified = false;
       break;
     }
   }
@@ -249,6 +290,7 @@ PolyVector requiredCoefficientsLazard(const poly::Polynomial& p,
  * false.
  */
 PolyVector requiredCoefficientsLazardModified(
+    NodeManager* nm,
     const poly::Polynomial& p,
     const poly::Assignment& assignment,
     VariableMapper& vm,
@@ -268,15 +310,14 @@ PolyVector requiredCoefficientsLazardModified(
 
   // construct phi := (and (= p_i 0)) with p_i the coefficients of p
   std::vector<Node> conditions;
-  auto zero = NodeManager::currentNM()->mkConstReal(Rational(0));
+  auto zero = nm->mkConstReal(Rational(0));
   for (const auto& coeff : poly::coefficients(p))
   {
-    conditions.emplace_back(NodeManager::currentNM()->mkNode(
-        Kind::EQUAL, nl::as_cvc_polynomial(coeff, vm), zero));
+    conditions.emplace_back(NodeManager::mkNode(
+        Kind::EQUAL, nl::as_cvc_polynomial(nm, coeff, vm), zero));
   }
   // if phi is false (i.e. p can not vanish)
-  Node rewritten =
-      rewriter->extendedRewrite(NodeManager::currentNM()->mkAnd(conditions));
+  Node rewritten = rewriter->extendedRewrite(nm->mkAnd(conditions));
   if (rewritten.isConst())
   {
     Assert(rewritten.getKind() == Kind::CONST_BOOLEAN);
@@ -301,25 +342,34 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
         << std::endl;
     Trace("cdcac::projection")
         << "LMod: "
-        << requiredCoefficientsLazardModified(
-               p, d_assignment, d_constraints.varMapper(), d_env.getRewriter())
+        << requiredCoefficientsLazardModified(d_env.getNodeManager(),
+                                              p,
+                                              d_assignment,
+                                              d_constraints.varMapper(),
+                                              d_env.getRewriter())
         << std::endl;
+    bool nullified;
     Trace("cdcac::projection")
-        << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
+        << "Original: "
+        << requiredCoefficientsOriginal(p, d_assignment, nullified)
         << std::endl;
   }
+  bool nullified;
   switch (options().arith.nlCovProjection)
   {
     case options::nlCovProjectionMode::MCCALLUM:
-      return requiredCoefficientsOriginal(p, d_assignment);
+      return requiredCoefficientsOriginal(p, d_assignment, nullified);
     case options::nlCovProjectionMode::LAZARD:
       return requiredCoefficientsLazard(p, d_assignment);
     case options::nlCovProjectionMode::LAZARDMOD:
-      return requiredCoefficientsLazardModified(
-          p, d_assignment, d_constraints.varMapper(), d_env.getRewriter());
+      return requiredCoefficientsLazardModified(d_env.getNodeManager(),
+                                                p,
+                                                d_assignment,
+                                                d_constraints.varMapper(),
+                                                d_env.getRewriter());
     default:
-      Assert(false);
-      return requiredCoefficientsOriginal(p, d_assignment);
+      DebugUnhandled();
+      return requiredCoefficientsOriginal(p, d_assignment, nullified);
   }
 }
 
@@ -427,9 +477,27 @@ CACInterval CDCAC::intervalFromCharacterization(
   // Push lower-dimensional polys to down
   m.pushDownPolys(d, d_variableOrdering[cur_variable]);
 
+  // McCallum's projection is not sound if a polynomial is nullified over the
+  // current assignment. Abort, getUnsatCover() retries with another ordering.
+  for (const auto& p : m)
+  {
+    requiredCoefficientsOriginal(p, d_assignment, d_nullified);
+    if (d_nullified)
+    {
+      Trace("cdcac") << p << " is nullified over " << d_assignment << std::endl;
+      return CACInterval{d_nextIntervalId++,
+                         poly::Interval(sample, false, sample, false),
+                         {},
+                         {},
+                         {},
+                         {},
+                         {}};
+    }
+  }
+
   // Collect -oo, all roots, oo
 
-  LazardEvaluation le(statisticsRegistry());
+  LazardEvaluation le(statisticsRegistry(), nodeManager()->getPolyContext());
   prepareRootIsolation(le, cur_variable);
   std::vector<poly::Value> roots;
   roots.emplace_back(poly::Value::minus_infty());
@@ -525,12 +593,14 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
 {
   d_env.getResourceManager()->spendResource(Resource::ArithNlCoveringStep);
   Trace("cdcac") << "Looking for unsat cover for "
-                 << d_variableOrdering[curVariable] << std::endl;
+                 << get_stream_variable(d_variableOrdering[curVariable])
+                 << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
 
   if (TraceIsOn("cdcac"))
   {
-    Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[curVariable]
+    Trace("cdcac") << "Unsat intervals for "
+                   << get_stream_variable(d_variableOrdering[curVariable])
                    << ":" << std::endl;
     for (const auto& i : intervals)
     {
@@ -546,7 +616,8 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     {
       // the variable is integral, but the sample is not.
       Trace("cdcac") << "Used " << sample << " for integer variable "
-                     << d_variableOrdering[curVariable] << std::endl;
+                     << get_stream_variable(d_variableOrdering[curVariable])
+                     << std::endl;
       auto newInterval = buildIntegralityInterval(curVariable, sample);
       Trace("cdcac") << "Adding integrality interval " << newInterval.d_interval
                      << std::endl;
@@ -584,6 +655,10 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     Trace("cdcac") << "Building interval..." << std::endl;
     auto newInterval =
         intervalFromCharacterization(characterization, curVariable, sample);
+    if (d_nullified)
+    {
+      return {};
+    }
     Trace("cdcac") << "New interval: " << newInterval.d_interval << std::endl;
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
@@ -622,7 +697,8 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
   if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Returning intervals for "
-                   << d_variableOrdering[curVariable] << ":" << std::endl;
+                   << get_stream_variable(d_variableOrdering[curVariable])
+                   << ":" << std::endl;
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
@@ -633,14 +709,31 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
 
 std::vector<CACInterval> CDCAC::getUnsatCover(bool returnFirstInterval)
 {
-  if (isProofEnabled())
+  std::vector<CACInterval> res;
+  for (size_t attempt = 0; attempt < 2; ++attempt)
   {
-    d_proof->startRecursive();
-  }
-  auto res = getUnsatCoverImpl(0, returnFirstInterval);
-  if (isProofEnabled())
-  {
-    d_proof->endRecursive(0);
+    if (attempt > 0)
+    {
+      // a polynomial was nullified, retry with the reversed variable ordering
+      d_assignment.clear();
+      d_initialAssignment.clear();
+      computeVariableOrdering(true);
+      startNewProof();
+    }
+    d_nullified = false;
+    if (isProofEnabled())
+    {
+      d_proof->startRecursive();
+    }
+    res = getUnsatCoverImpl(0, returnFirstInterval);
+    if (isProofEnabled())
+    {
+      d_proof->endRecursive(0);
+    }
+    if (!d_nullified)
+    {
+      break;
+    }
   }
   return res;
 }
@@ -666,7 +759,7 @@ ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
 {
   Node var = d_constraints.varMapper()(d_variableOrdering[cur_variable]);
-  if (var.getType() != NodeManager::currentNM()->integerType())
+  if (!var.getType().isInteger())
   {
     // variable is not integral
     return true;
@@ -680,12 +773,16 @@ CACInterval CDCAC::buildIntegralityInterval(std::size_t cur_variable,
   poly::Variable var = d_variableOrdering[cur_variable];
   poly::Integer below = poly::floor(value);
   poly::Integer above = poly::ceil(value);
+  const poly::Context& ctx = nodeManager()->getPolyContext();
+  poly::Polynomial pvar = poly::Polynomial(ctx, var);
+  poly::Polynomial pbelow = poly::Polynomial(ctx, below);
+  poly::Polynomial pabove = poly::Polynomial(ctx, above);
   // construct var \in (below, above)
   return CACInterval{d_nextIntervalId++,
                      poly::Interval(below, above),
-                     {var - below},
-                     {var - above},
-                     {var - below, var - above},
+                     {pvar - pbelow},
+                     {pvar - pabove},
+                     {pvar - pbelow, pvar - pabove},
                      {},
                      {}};
 }

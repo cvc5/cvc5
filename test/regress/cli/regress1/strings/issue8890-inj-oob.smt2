@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --mbqi --strings-fmf
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --mbqi --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun b (Int) Bool)

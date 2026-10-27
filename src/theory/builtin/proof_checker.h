@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,6 +25,9 @@ namespace cvc5::internal {
 class Env;
 
 namespace theory {
+
+class Rewriter;
+
 namespace builtin {
 
 /** A checker for builtin proofs */
@@ -35,7 +35,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 {
  public:
   /** Constructor. */
-  BuiltinProofRuleChecker(Env& env);
+  BuiltinProofRuleChecker(NodeManager* nm, Rewriter* r, Env& env);
   /** Destructor. */
   ~BuiltinProofRuleChecker() {}
   /**
@@ -103,19 +103,34 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   /** get a TheoryId from a node, return false if we fail */
   static bool getTheoryId(TNode n, TheoryId& tid);
   /** Make a TheoryId into a node */
-  static Node mkTheoryIdNode(TheoryId tid);
+  static Node mkTheoryIdNode(NodeManager* nm, TheoryId tid);
+  /**
+   * @param nm The node manager.
+   * @param n The term to rewrite via ENCODE_EQ_INTRO.
+   * @return The right hand side of the equality concluded by ENCODE_EQ_INTRO
+   * for n.
+   */
+  static Node getEncodeEqIntro(NodeManager* nm, const Node& n);
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
+
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
-  Node checkInternal(PfRule id,
+  Node checkInternal(ProofRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
 
  private:
+  /**
+   * Pointer to the rewriter. Necessary since this uses the rewriter as an
+   * oracle for proof checking.
+   */
+  Rewriter* d_rewriter;
   /** Reference to the environment. */
   Env& d_env;
+  /** Pointer to the rewrite database */
+  rewriter::RewriteDb* d_rdb;
 };
 
 }  // namespace builtin

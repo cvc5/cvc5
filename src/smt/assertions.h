@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +23,9 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+class LazyCDProof;
+
 namespace smt {
 
 class AbstractValues;
@@ -44,7 +44,7 @@ class Assertions : protected EnvObj
   typedef context::CDList<Node> AssertionList;
 
  public:
-  Assertions(Env& env, AbstractValues& absv);
+  Assertions(Env& env);
   ~Assertions();
   /** refresh
    *
@@ -100,6 +100,7 @@ class Assertions : protected EnvObj
    * on initializeCheckSat.
    */
   std::vector<Node>& getAssumptions();
+
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -121,11 +122,7 @@ class Assertions : protected EnvObj
    * assertions from the SyGuS parser may have free variables (say if the
    * input contains an assert or define-fun-rec command).
    */
-  void addFormula(TNode n,
-                  bool isFunDef,
-                  bool maybeHasFv);
-  /** Reference to the abstract values utility */
-  AbstractValues& d_absValues;
+  void addFormula(TNode n, bool isFunDef, bool maybeHasFv);
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */
@@ -143,6 +140,8 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
+  /** Proof generator storing proofs of rewriting for defined functions */
+  std::shared_ptr<LazyCDProof> d_defFunRewPf;
 };
 
 }  // namespace smt

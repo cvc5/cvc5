@@ -1,5 +1,6 @@
+; REQUIRES: unrestricted-mode
 (set-logic SLIA)
-(set-option :strings-exp true)
+
 (set-option :strings-fmf true)
 (set-option :fmf-bound true)
 (set-info :status sat)

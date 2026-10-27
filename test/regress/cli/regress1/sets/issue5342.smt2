@@ -1,4 +1,5 @@
-; COMMAND-LINE: --sets-ext
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sets-exp
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun S () (Set Int))

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mikolas Janota
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +41,7 @@ TermPools::TermPools(Env& env, QuantifiersState& qs)
 {
 }
 
-bool TermPools::reset(Theory::Effort e)
+bool TermPools::reset(CVC5_UNUSED Theory::Effort e)
 {
   for (std::pair<const Node, TermPoolDomain>& p : d_pools)
   {
@@ -64,11 +61,11 @@ void TermPools::registerQuantifier(Node q)
   for (const Node& p : q[2])
   {
     Kind pk = p.getKind();
-    if (pk == kind::INST_ADD_TO_POOL)
+    if (pk == Kind::INST_ADD_TO_POOL)
     {
       qi.d_instAddToPool.push_back(p);
     }
-    else if (pk == kind::SKOLEM_ADD_TO_POOL)
+    else if (pk == Kind::SKOLEM_ADD_TO_POOL)
     {
       qi.d_skolemAddToPool.push_back(p);
     }
@@ -87,7 +84,7 @@ void TermPools::registerPool(Node p, const std::vector<Node>& initValue)
   d.initialize();
   for (const Node& i : initValue)
   {
-    Assert(i.getType() == p.getType().getSetElementType());
+    AssertEqual(i.getType(), p.getType().getSetElementType());
     d.add(i);
   }
 }
@@ -122,9 +119,7 @@ void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
   terms.insert(terms.end(), dom.d_currTerms.begin(), dom.d_currTerms.end());
 }
 
-void TermPools::processInstantiation(Node q,
-                                     const std::vector<Node>& terms,
-                                     bool success)
+void TermPools::processInstantiation(Node q, const std::vector<Node>& terms)
 {
   // success is ignored, meaning that inst-add-to-pool annotates
   processInternal(q, terms, true);
@@ -139,7 +134,7 @@ void TermPools::processInternal(Node q,
                                 const std::vector<Node>& ts,
                                 bool isInst)
 {
-  Assert(q.getKind() == kind::FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   std::map<Node, TermPoolQuantInfo>::iterator it = d_qinfo.find(q);
   if (it == d_qinfo.end())
   {

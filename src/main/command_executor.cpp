@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,8 +13,10 @@
 #include "main/command_executor.h"
 
 #ifndef __WIN32__
-#  include <sys/resource.h>
+#include <sys/resource.h>
 #endif /* ! __WIN32__ */
+
+#include <cvc5/cvc5_parser.h>
 
 #include <iomanip>
 #include <iostream>
@@ -25,10 +24,10 @@
 #include <string>
 #include <vector>
 
-#include "main/main.h"
-#include "parser/api/cpp/command.h"
-#include "smt/solver_engine.h"
 #include "base/output.h"
+#include "main/main.h"
+#include "parser/commands.h"
+#include "smt/solver_engine.h"
 
 using namespace cvc5::parser;
 
@@ -38,12 +37,14 @@ namespace cvc5::main {
 // This is used for competitions while a solution (proof or model)
 // is being dumped (so that we don't give "sat" or "unsat" then get
 // interrupted partway through outputting a proof!).
-void setNoLimitCPU() {
+void setNoLimitCPU()
+{
   // Windows doesn't have these things, just ignore
 #ifndef __WIN32__
   struct rlimit rlc;
   int st = getrlimit(RLIMIT_CPU, &rlc);
-  if(st == 0) {
+  if (st == 0)
+  {
     rlc.rlim_cur = rlc.rlim_max;
     setrlimit(RLIMIT_CPU, &rlc);
   }
@@ -52,14 +53,12 @@ void setNoLimitCPU() {
 
 CommandExecutor::CommandExecutor(std::unique_ptr<cvc5::Solver>& solver)
     : d_solver(solver),
-      d_symman(new SymbolManager(d_solver.get())),
+      d_symman(new SymbolManager(d_solver->getTermManager())),
       d_result(),
       d_parseOnly(false)
 {
 }
-CommandExecutor::~CommandExecutor()
-{
-}
+CommandExecutor::~CommandExecutor() {}
 
 void CommandExecutor::storeOptionsAsOriginal()
 {
@@ -69,16 +68,36 @@ void CommandExecutor::storeOptionsAsOriginal()
   d_parseOnly = d_solver->getOptionInfo("parse-only").boolValue();
 }
 
+void CommandExecutor::setOptionInternal(const std::string& key,
+                                        const std::string& value)
+{
+  // set option, marked not from user.
+  d_solver->d_slv->setOption(key, value, false);
+}
+
 void CommandExecutor::printStatistics(std::ostream& out) const
 {
   if (d_solver->getOptionInfo("stats").boolValue())
   {
-    const auto& stats = d_solver->getStatistics();
-    auto it = stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
-                          d_solver->getOptionInfo("stats-all").boolValue());
-    for (; it != stats.end(); ++it)
     {
-      out << it->first << " = " << it->second << std::endl;
+      const auto& stats = d_solver->getStatistics();
+      auto it =
+          stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
+                      d_solver->getOptionInfo("stats-all").boolValue());
+      for (; it != stats.end(); ++it)
+      {
+        out << it->first << " = " << it->second << std::endl;
+      }
+    }
+    {
+      const auto& stats = d_solver->getTermManager().getStatistics();
+      auto it =
+          stats.begin(d_solver->getOptionInfo("stats-internal").boolValue(),
+                      d_solver->getOptionInfo("stats-all").boolValue());
+      for (; it != stats.end(); ++it)
+      {
+        out << it->first << " = " << it->second << std::endl;
+      }
     }
   }
 }
@@ -87,6 +106,7 @@ void CommandExecutor::printStatisticsSafe(int fd) const
 {
   if (d_solver->getOptionInfo("stats").boolValue())
   {
+    d_solver->getTermManager().printStatisticsSafe(fd);
     d_solver->printStatisticsSafe(fd);
   }
 }
@@ -95,19 +115,18 @@ bool CommandExecutor::doCommand(Command* cmd)
 {
   // formerly was guarded by verbosity > 2
   Trace("cmd-exec") << "Invoking: " << *cmd << std::endl;
-  return doCommandSingleton(cmd);
+  return doCommandSingleton(cmd->d_cmd.get());
 }
 
 void CommandExecutor::reset()
 {
   printStatistics(d_solver->getDriverOptions().err());
-  Command::resetSolver(d_solver.get());
+  Cmd::resetSolver(d_solver.get());
 }
 
-bool CommandExecutor::doCommandSingleton(Command* cmd)
+bool CommandExecutor::doCommandSingleton(Cmd* cmd)
 {
-  bool status = solverInvoke(
-      d_solver.get(), d_symman.get(), cmd, d_solver->getDriverOptions().out());
+  bool status = solverInvoke(d_solver.get(), d_symman->toSymManager(), cmd);
 
   cvc5::Result res;
   bool hasResult = false;
@@ -132,10 +151,11 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   }
 
   // dump the model/proof/unsat core if option is set
-  if (status) {
+  if (status)
+  {
     bool isResultUnsat = res.isUnsat();
     bool isResultSat = res.isSat();
-    std::vector<std::unique_ptr<Command> > getterCommands;
+    std::vector<std::unique_ptr<Cmd> > getterCommands;
     if (d_solver->getOptionInfo("dump-models").boolValue()
         && (isResultSat
             || (res.isUnknown()
@@ -162,19 +182,27 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
+    if (d_solver->getOptionInfo("dump-unsat-cores-lemmas").boolValue()
+        && isResultUnsat)
+    {
+      getterCommands.emplace_back(new GetUnsatCoreLemmasCommand());
+    }
+
     if (d_solver->getOptionInfo("dump-difficulty").boolValue()
         && (isResultUnsat || isResultSat || res.isUnknown()))
     {
       getterCommands.emplace_back(new GetDifficultyCommand());
     }
 
-    if (!getterCommands.empty()) {
+    if (!getterCommands.empty())
+    {
       // set no time limit during dumping if applicable
       if (d_solver->getOptionInfo("force-no-limit-cpu-while-dump").boolValue())
       {
         setNoLimitCPU();
       }
-      for (const auto& getterCommand : getterCommands) {
+      for (const auto& getterCommand : getterCommands)
+      {
         status = doCommandSingleton(getterCommand.get());
         if (!status)
         {
@@ -187,14 +215,13 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 }
 
 bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
-                                   SymbolManager* sm,
-                                   Command* cmd,
-                                   std::ostream& out)
+                                   SymManager* sm,
+                                   Cmd* cmd)
 {
   // print output for -o raw-benchmark
   if (solver->isOutputOn("raw-benchmark"))
   {
-    cmd->toStream(solver->getOutput("raw-benchmark"));
+    solver->getOutput("raw-benchmark") << cmd->toString() << std::endl;
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-*
@@ -202,16 +229,19 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   // commands because they add function names to the symbol table.
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr
-      && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr)
+      && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr
+      && dynamic_cast<DatatypeDeclarationCommand*>(cmd) == nullptr
+      && dynamic_cast<DefineFunctionRecCommand*>(cmd) == nullptr)
   {
     return true;
   }
 
-  cmd->invoke(solver, sm, out);
+  cmd->invokeAndPrintResult(solver, sm);
   return !cmd->fail();
 }
 
-void CommandExecutor::flushOutputStreams() {
+void CommandExecutor::flushOutputStreams()
+{
   printStatistics(d_solver->getDriverOptions().err());
 
   // make sure out and err streams are flushed too

@@ -10,14 +10,14 @@
   (((ColorType_Red) (ColorType_Black))
 ))
 
-(declare-datatypes ((RBTree 0) (RBTree_Node_recd 0))
-  (((RBTree_Leaf) (RBTree_Node (destRBTree_Node RBTree_Node_recd)))
+(declare-datatypes ((RBTree 0) (RBTree_Node_recdT 0))
+  (((RBTree_Leaf) (RBTree_Node (destRBTree_Node RBTree_Node_recdT)))
    ((RBTree_Node_recd (RBTree_Node_recd_color ColorType)
     (RBTree_Node_recd_left RBTree) (RBTree_Node_recd_elem Int)
     (RBTree_Node_recd_right RBTree)))
 ))
 
-(declare-datatypes ((BoolColor 0))
+(declare-datatypes ((BoolColorT 0))
   (((BoolColor (BoolColor_res Bool) (BoolColor_color ColorType)))
 ))
 
@@ -52,7 +52,7 @@
 
 ( declare-fun insertFn ( Int RBTree ) RBTree )
 
-( declare-fun NoTwoRedsFn ( RBTree ) BoolColor )
+( declare-fun NoTwoRedsFn ( RBTree ) BoolColorT )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Goals

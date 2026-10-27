@@ -1,7 +1,7 @@
 [![License: BSD](
     https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](
         https://opensource.org/licenses/BSD-3-Clause)
-![CI](https://github.com/cvc5/cvc5/workflows/CI/badge.svg)
+![CI](https://github.com/cvc5/cvc5/actions/workflows/ci.yml/badge.svg?branch=main)
 [![Coverage](
   https://img.shields.io/endpoint?url=https://cvc5.stanford.edu/downloads/builds/coverage/nightly-coverage.json)](
     https://cvc5.stanford.edu/downloads/builds/coverage)
@@ -55,11 +55,18 @@ Nightly builds are available [here](https://cvc5.github.io/downloads).
 Build and Dependencies
 -------------------------------------------------------------------------------
 
-cvc5 can be built on Linux and macOS.  For Windows, cvc5 can be cross-compiled
-using Mingw-w64.
+cvc5 can be built on Linux and macOS.  For Windows, cvc5 can be built using MSYS2
+or cross-compiled using Mingw-w64.
 
 For detailed build and installation instructions on these platforms,
 see file [INSTALL.rst](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst).
+
+
+Interfaces
+-------------------------------------------------------------------------------
+
+cvc5 features APIs for several different programming languages such as Python and
+Java. See the [user documentation](https://cvc5.github.io/docs/) for more information.
 
 
 Bug Reports

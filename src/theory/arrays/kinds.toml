@@ -1,0 +1,81 @@
+# kinds.toml
+#
+# For documentation on this file format, please refer to
+# src/theory/builtin/kinds.toml.
+#
+
+[theory]
+id                 = "THEORY_ARRAYS"
+base_class         = "::cvc5::internal::theory::arrays::TheoryArrays"
+base_class_header  = "theory/arrays/theory_arrays.h"
+properties         = ["polite", "stable-infinite", "parametric", "check", "presolve"]
+typechecker_header = "theory/arrays/theory_arrays_type_rules.h"
+
+[rewriter]
+class  = "::cvc5::internal::theory::arrays::TheoryArraysRewriter"
+header = "theory/arrays/theory_arrays_rewriter.h"
+
+[[kinds]]
+type     = "operator"
+name     = "ARRAY_TYPE"
+children = 2
+comment  = "array type"
+[kinds.cardinality]
+computer = "::cvc5::internal::theory::arrays::ArraysProperties::computeCardinality(%TYPE%)"
+header   = "theory/arrays/theory_arrays_type_rules.h"
+[kinds.well-founded]
+wellfoundedness-computer = "::cvc5::internal::theory::arrays::ArraysProperties::isWellFounded(%TYPE%)"
+ground-term-computer     = "::cvc5::internal::theory::arrays::ArraysProperties::mkGroundTerm(%TYPE%)"
+header                   = "theory/arrays/theory_arrays_type_rules.h"
+[kinds.enumerator]
+class  = "::cvc5::internal::theory::arrays::ArrayEnumerator"
+header = "theory/arrays/type_enumerator.h"
+
+# select a i  is  a[i]
+[[kinds]]
+type = "operator"
+name     = "SELECT"
+children = 2
+comment  = "array select; first parameter is an array term, second is the selection index"
+
+typerule = "::cvc5::internal::theory::arrays::ArraySelectTypeRule"
+
+# store a i e  is  a[i] <= e
+[[kinds]]
+type      = "operator"
+name      = "STORE"
+children  = 3
+comment   = "array store; first parameter is an array term, second is the store index, third is the term to store at the index"
+typerule  = "::cvc5::internal::theory::arrays::ArrayStoreTypeRule"
+construle = "::cvc5::internal::theory::arrays::ArrayStoreTypeRule"
+
+# eqrange a b i j  \forall k. i <= k <= j -> a[k] = b[k]
+[[kinds]]
+type = "operator"
+name     = "EQ_RANGE"
+children = 4
+comment  = "equality of two arrays over an index range lower/upper"
+typerule = "::cvc5::internal::theory::arrays::ArrayEqRangeTypeRule"
+
+# storeall t e  is  \all i in indexType(t) <= e
+[[kinds]]
+type      = "constant"
+name      = "STORE_ALL"
+class_key = "class"
+cpp_type  = "ArrayStoreAll"
+hasher    = "::cvc5::internal::ArrayStoreAllHashFunction"
+header    = "expr/array_store_all.h"
+comment   = "array store-all; payload is an instance of the cvc5::internal::ArrayStoreAll class (this is not supported by arrays decision procedure yet, but it is used for returned array models)"
+typerule  = "::cvc5::internal::theory::arrays::ArrayStoreTypeRule"
+
+# used internally for substitutions in models (e.g. the Boolean terms converter)
+# The (single) argument is a lambda(x:T):U.  Type of the array lambda is
+# Array T of U.  Thus ARRAY_LAMBDA LAMBDA(x:INT) . (read a x) is the same array
+# as a.  ARRAY_LAMBDA LAMBDA(x:INT) . (read a (- x 1)) is the same array as
+# as a shifted over one.
+[[kinds]]
+type     = "operator"
+name     = "ARRAY_LAMBDA"
+children = 1
+comment  = "array lambda (internal-only symbol)"
+typerule = "::cvc5::internal::theory::arrays::ArrayLambdaTypeRule"

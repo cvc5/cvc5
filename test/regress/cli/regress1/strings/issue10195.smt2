@@ -1,0 +1,5 @@
+(set-logic QF_SLIA)
+(set-info :status sat)
+(declare-fun r () String)
+(assert (= (= r "T") (str.contains (str.update "Ty" (- (str.indexof_re r re.allchar (- 1))) (str.update r 0 r)) (str.from_int (- (str.indexof_re (str.replace_re_all r re.allchar r) re.none 0))))))
+(check-sat)

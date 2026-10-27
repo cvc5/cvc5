@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +15,7 @@
 #include "proof/proof_checker.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
+#include "theory/builtin/generic_op.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;
@@ -25,55 +23,30 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace rewriter {
 
-void addRules(RewriteDb& db)
+// clang-format off
+${decl_individual_rewrites}$
+    // clang-format on
+
+    void addRules(NodeManager* nm, RewriteDb& db){
+        // Calls to individual rewrites
+        // clang-format off
+  ${call_individual_rewrites}$
+        // clang-format on
+    }
+
+Node mkRewriteRuleNode(NodeManager* nm, ProofRewriteRule rule)
 {
-  NodeManager* nm = NodeManager::currentNM();
-
-  // Variables
-  // clang-format off
-${decls}$
-
-  // Definitions
-${defns}$
-
-  // Rules
-${rules}$
-  // clang-format on
-}
-const char* toString(DslPfRule drule)
-{
-  switch (drule)
-  {
-    case DslPfRule::FAIL: return "FAIL";
-    case DslPfRule::REFL: return "REFL";
-    case DslPfRule::EVAL: return "EVAL";
-      // clang-format off
-${printer}$
-    default : Unreachable();
-      // clang-format on
-  }
+  return nm->mkConstInt(Rational(static_cast<uint32_t>(rule)));
 }
 
-std::ostream& operator<<(std::ostream& out, DslPfRule drule)
-{
-  out << toString(drule);
-  return out;
-}
-
-Node mkDslPfRuleNode(DslPfRule i)
-{
-  return NodeManager::currentNM()->mkConstInt(
-      Rational(static_cast<uint32_t>(i)));
-}
-
-bool getDslPfRule(TNode n, DslPfRule& i)
+bool getRewriteRule(TNode n, ProofRewriteRule& rule)
 {
   uint32_t index;
   if (!ProofRuleChecker::getUInt32(n, index))
   {
     return false;
   }
-  i = static_cast<DslPfRule>(index);
+  rule = static_cast<ProofRewriteRule>(index);
   return true;
 }
 

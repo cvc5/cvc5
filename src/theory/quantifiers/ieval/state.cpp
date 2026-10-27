@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -38,11 +35,11 @@ State::State(Env& env, context::Context* c, QuantifiersState& qs, TermDb& tdb)
       d_initialized(c, false),
       d_numActiveQuant(c, 0)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode btype = nm->booleanType();
-  d_none = sm->mkSkolemFunction(SkolemFunId::IEVAL_NONE, btype);
-  d_some = sm->mkSkolemFunction(SkolemFunId::IEVAL_SOME, btype);
+  d_none = sm->mkInternalSkolemFunction(InternalSkolemId::IEVAL_NONE, btype);
+  d_some = sm->mkInternalSkolemFunction(InternalSkolemId::IEVAL_SOME, btype);
 }
 
 bool State::hasInitialized() const { return d_initialized.get(); }
@@ -126,7 +123,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
     if (itr == d_registeredTerms.end())
     {
       d_registeredTerms.insert(cur);
-      if (cur.getKind() == BOUND_VARIABLE)
+      if (cur.getKind() == Kind::BOUND_VARIABLE)
       {
         // should be one of the free variables of the quantified formula
         Assert(std::find(vars.begin(), vars.end(), cur) != vars.end());
@@ -137,6 +134,7 @@ void State::watch(Node q, const std::vector<Node>& vars, Node body)
       {
         // get the unique children
         std::set<TNode> children;
+        // we don't traverse into operators here
         children.insert(cur.begin(), cur.end());
         for (TNode cc : children)
         {
@@ -175,10 +173,15 @@ bool State::assignVar(TNode v,
                       std::vector<Node>& assignedQuants,
                       bool trackAssignedQuant)
 {
-  Assert(d_initialized.get());
-  Assert(getValue(r) == r);
   // notify that the variable is equal to the ground term
   Trace("ieval") << "ASSIGN: " << v << " := " << r << std::endl;
+  Assert(d_initialized.get());
+  // note that we allow setting patterns to terms that evaluate to "none",
+  // e.g. for conflict-based instantiation where a variable is entailed
+  // equal to a term in the body of the quantified formula that is not
+  // registered to the term database.
+  Assert(isNone(getValue(r)) || getValue(r) == r)
+      << "Unexpected value " << getValue(r) << " for " << r;
   notifyPatternEqGround(v, r);
   // might the inactive now
   if (isFinished())
@@ -315,18 +318,30 @@ const PatTermInfo& State::getPatTermInfo(TNode p) const
 
 void State::notifyPatternEqGround(TNode p, TNode g)
 {
+  Trace("ieval-state-debug")
+      << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   Assert(!g.isNull());
-  Assert(!expr::hasBoundVar(g));
-  Assert(d_tec->evaluateBase(*this, g) == g);
+  Assert(!expr::hasFreeVar(g));
+  // note that we allow setting patterns to terms that evaluate to "none",
+  // e.g. for conflict-based instantiation where a variable is entailed
+  // equal to a term in the body of the quantified formula that is not
+  // registered to the term database.
+  Assert(isNone(d_tec->evaluateBase(*this, g))
+         || d_tec->evaluateBase(*this, g) == g)
+      << "Bad eval: " << d_tec->evaluateBase(*this, g) << " " << g;
   std::map<Node, PatTermInfo>::iterator it = d_pInfo.find(p);
-  Assert(it != d_pInfo.end());
+  if (it == d_pInfo.end())
+  {
+    // in rare cases, we may be considering a quantified formula not containing
+    // one of its bound variables, e.g. if the variable is in an annotation
+    // (pattern) only, or if only in nested quantification.
+    return;
+  }
   if (!it->second.isActive())
   {
     // already assigned
     return;
   }
-  Trace("ieval-state-debug")
-      << "Notify pattern eq ground: " << p << " == " << g << std::endl;
   it->second.d_eq = g;
   // run notifications until fixed point
   size_t tnIndex = 0;
@@ -345,7 +360,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
     context::CDList<Node>& notifyList = it->second.d_parentNotify;
     for (TNode pp : notifyList)
     {
-      if (pp.getKind() == FORALL)
+      if (pp.getKind() == Kind::FORALL)
       {
         // if we have a quantified formula as a parent, notify is a special
         // method, which will test the constraints
@@ -371,7 +386,7 @@ void State::notifyPatternEqGround(TNode p, TNode g)
 
 void State::notifyQuant(TNode q, TNode p, TNode val)
 {
-  Assert(q.getKind() == FORALL);
+  Assert(q.getKind() == Kind::FORALL);
   QuantInfo& qi = getQuantInfo(q);
   if (!qi.isActive())
   {
@@ -502,7 +517,7 @@ TNode State::evaluate(TNode n) const
     return n;
   }
   // all pattern terms should have been assigned pattern term info
-  Assert(!expr::hasBoundVar(n));
+  Assert(!expr::hasFreeVar(n));
   return d_tec->evaluateBase(*this, n);
 }
 
@@ -518,7 +533,7 @@ TNode State::getValue(TNode p) const
     return it->second.d_eq;
   }
   // all pattern terms should have been assigned pattern term info
-  Assert(!expr::hasBoundVar(p));
+  Assert(!expr::hasFreeVar(p));
   return d_tec->evaluateBase(*this, p);
 }
 
@@ -553,6 +568,7 @@ std::string State::toStringDebugSearch() const
     }
   }
   ss << " ]";
+  (void)nqc;
   Assert(nqc == d_numActiveQuant.get()) << "Active quant mismatch " << ss.str();
   return ss.str();
 }

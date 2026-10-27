@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,6 +18,7 @@
 #include <map>
 #include <string>
 #include <vector>
+
 #include "expr/dtype_selector.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -101,7 +99,8 @@ class DTypeConstructor
   /** set sygus
    *
    * Set that this constructor is a sygus datatype constructor that encodes
-   * operator op.
+   * operator op. If op is a skolem with id SYGUS_ANY_CONSTANT, then this
+   * is treated as the "any constant" constructor.
    */
   void setSygus(Node op);
   /** get sygus op
@@ -117,6 +116,10 @@ class DTypeConstructor
    * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
+  /** is this the "any constant" constructor? */
+  bool isSygusAnyConstant() const;
+  /** is n is the "any constant" sygus operator? */
+  static bool isSygusAnyConstantOp(const Node& n);
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the
@@ -151,7 +154,7 @@ class DTypeConstructor
    * Return the cardinality of this constructor (the product of the
    * cardinalities of its arguments).
    */
-  Cardinality getCardinality(TypeNode t) const;
+  Cardinality getCardinality() const;
 
   /**
    * Return the cardinality class, which indicates if the type has cardinality
@@ -346,24 +349,18 @@ class DTypeConstructor
   mutable std::map<TypeNode, std::pair<CardinalityClass, bool> > d_cardInfo;
 }; /* class DTypeConstructor */
 
-/**
- * A hash function for DTypeConstructors.  Needed to store them in hash sets
- * and hash maps.
- */
-struct DTypeConstructorHashFunction
-{
-  size_t operator()(const DTypeConstructor& dtc) const
-  {
-    return std::hash<std::string>()(dtc.getName());
-  }
-  size_t operator()(const DTypeConstructor* dtc) const
-  {
-    return std::hash<std::string>()(dtc->getName());
-  }
-}; /* struct DTypeConstructorHashFunction */
-
 std::ostream& operator<<(std::ostream& os, const DTypeConstructor& ctor);
 
 }  // namespace cvc5::internal
 
+namespace std {
+/**
+ * A hash function for DTypeConstructors.
+ */
+template <>
+struct hash<cvc5::internal::DTypeConstructor>
+{
+  size_t operator()(const cvc5::internal::DTypeConstructor& cons) const;
+};
+}  // namespace std
 #endif

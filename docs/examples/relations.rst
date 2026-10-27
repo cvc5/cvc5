@@ -24,7 +24,8 @@ We have the following list of constraints:
 
 .. api-examples::
     <examples>/api/cpp/relations.cpp
+    <examples>/api/c/relations.c
     <examples>/api/java/Relations.java
     <examples>/api/python/relations.py
     <examples>/api/smtlib/relations.smt2
-
+    :skip: py-pythonicapi

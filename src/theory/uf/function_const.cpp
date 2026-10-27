@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/function_array_const.h"
+#include "expr/skolem_manager.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
@@ -27,15 +25,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace uf {
 
-/**
- * Attribute for constructing a unique bound variable list for the lambda
- * corresponding to an array constant.
- */
-struct FunctionBoundVarListTag
-{
-};
-using FunctionBoundVarListAttribute =
-    expr::Attribute<FunctionBoundVarListTag, Node>;
 /**
  * An attribute to cache the conversion between array constants and lambdas.
  */
@@ -47,11 +36,11 @@ using ArrayToLambdaAttribute = expr::Attribute<ArrayToLambdaTag, Node>;
 Node FunctionConst::toLambda(TNode n)
 {
   Kind nk = n.getKind();
-  if (nk == kind::LAMBDA)
+  if (nk == Kind::LAMBDA)
   {
     return n;
   }
-  else if (nk == kind::FUNCTION_ARRAY_CONST)
+  else if (nk == Kind::FUNCTION_ARRAY_CONST)
   {
     ArrayToLambdaAttribute atla;
     if (n.hasAttribute(atla))
@@ -64,23 +53,28 @@ Node FunctionConst::toLambda(TNode n)
     Assert(tn.isFunction());
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     std::vector<Node> bvs;
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = n.getNodeManager();
     BoundVarManager* bvm = nm->getBoundVarManager();
     // associate a unique bound variable list with the value
     for (size_t i = 0, nargs = argTypes.size(); i < nargs; i++)
     {
       Node cacheVal =
           BoundVarManager::getCacheValue(n, nm->mkConstInt(Rational(i)));
-      Node v =
-          bvm->mkBoundVar<FunctionBoundVarListAttribute>(cacheVal, argTypes[i]);
+      Node v = bvm->mkBoundVar(
+          BoundVarId::FUN_BOUND_VAR_LIST, cacheVal, argTypes[i]);
       bvs.push_back(v);
     }
-    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, bvs);
+    Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
     Node lam = getLambdaForArrayRepresentation(avalue, bvl);
     n.setAttribute(atla, lam);
     return lam;
   }
   return Node::null();
+}
+
+Node FunctionConst::getDefinition(TNode f)
+{
+  return toLambda(SkolemManager::getUnpurifiedForm(f));
 }
 
 TypeNode FunctionConst::getFunctionTypeForArrayType(TypeNode atn, Node bvl)
@@ -94,7 +88,7 @@ TypeNode FunctionConst::getFunctionTypeForArrayType(TypeNode atn, Node bvl)
     atn = atn.getArrayConstituentType();
   }
   children.push_back(atn);
-  return NodeManager::currentNM()->mkFunctionType(children);
+  return bvl.getNodeManager()->mkFunctionType(children);
 }
 
 TypeNode FunctionConst::getArrayTypeForFunctionType(TypeNode ftn)
@@ -106,7 +100,7 @@ TypeNode FunctionConst::getArrayTypeForFunctionType(TypeNode ftn)
   for (size_t i = 0; i < nchildren - 1; i++)
   {
     size_t ii = nchildren - i - 2;
-    ret = NodeManager::currentNM()->mkArrayType(ftn[ii], ret);
+    ret = NodeManager::mkArrayType(ftn[ii], ret);
   }
   return ret;
 }
@@ -126,7 +120,7 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
   if (bvlIndex < bvl.getNumChildren())
   {
     Assert(a.getType().isArray());
-    if (a.getKind() == kind::STORE)
+    if (a.getKind() == Kind::STORE)
     {
       // convert the array recursively
       Node body =
@@ -139,14 +133,14 @@ Node FunctionConst::getLambdaForArrayRepresentationRec(
             a[2], bvl, bvlIndex + 1, visited);
         if (!val.isNull())
         {
-          Assert(a[1].getType() == bvl[bvlIndex].getType());
-          Assert(val.getType() == body.getType());
+          AssertEqual(a[1].getType(), bvl[bvlIndex].getType());
+          AssertEqual(val.getType(), body.getType());
           Node cond = bvl[bvlIndex].eqNode(a[1]);
-          ret = NodeManager::currentNM()->mkNode(kind::ITE, cond, val, body);
+          ret = NodeManager::mkNode(Kind::ITE, cond, val, body);
         }
       }
     }
-    else if (a.getKind() == kind::STORE_ALL)
+    else if (a.getKind() == Kind::STORE_ALL)
     {
       ArrayStoreAll storeAll = a.getConst<ArrayStoreAll>();
       Node sa = storeAll.getValue();
@@ -174,7 +168,7 @@ Node FunctionConst::getLambdaForArrayRepresentation(TNode a, TNode bvl)
   {
     Trace("builtin-rewrite-debug")
         << "...got lambda body " << body << std::endl;
-    return NodeManager::currentNM()->mkNode(kind::LAMBDA, bvl, body);
+    return NodeManager::mkNode(Kind::LAMBDA, bvl, body);
   }
   Trace("builtin-rewrite-debug") << "...failed to get lambda body" << std::endl;
   return Node::null();
@@ -183,8 +177,8 @@ Node FunctionConst::getLambdaForArrayRepresentation(TNode a, TNode bvl)
 Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
                                                        TypeNode retType)
 {
-  Assert(n.getKind() == kind::LAMBDA);
-  NodeManager* nm = NodeManager::currentNM();
+  Assert(n.getKind() == Kind::LAMBDA);
+  NodeManager* nm = n.getNodeManager();
   Trace("builtin-rewrite-debug")
       << "Get array representation for : " << n << std::endl;
 
@@ -198,7 +192,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     {
       args.push_back(n[0][i]);
     }
-    rec_bvl = nm->mkNode(kind::BOUND_VAR_LIST, args);
+    rec_bvl = nm->mkNode(Kind::BOUND_VAR_LIST, args);
   }
 
   Trace("builtin-rewrite-debug2") << "  process body..." << std::endl;
@@ -206,8 +200,8 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
   std::vector<Node> vals;
   Node curr = n[1];
   Kind ck = curr.getKind();
-  while (ck == kind::ITE || ck == kind::OR || ck == kind::AND
-         || ck == kind::EQUAL || ck == kind::NOT || ck == kind::BOUND_VARIABLE)
+  while (ck == Kind::ITE || ck == Kind::OR || ck == Kind::AND
+         || ck == Kind::EQUAL || ck == Kind::NOT || ck == Kind::BOUND_VARIABLE)
   {
     Node index_eq;
     Node curr_val;
@@ -218,7 +212,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     // [1] We infer that the entry has value "curr_val" under condition
     // "index_eq". We set "next" to the node that is the remainder of the
     // function to process.
-    if (ck == kind::ITE)
+    if (ck == Kind::ITE)
     {
       Trace("builtin-rewrite-debug2")
           << "  process condition : " << curr[0] << std::endl;
@@ -226,7 +220,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       curr_val = curr[1];
       next = curr[2];
     }
-    else if (ck == kind::OR || ck == kind::AND)
+    else if (ck == Kind::OR || ck == Kind::AND)
     {
       Trace("builtin-rewrite-debug2")
           << "  process base : " << curr << std::endl;
@@ -245,8 +239,8 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       //       lambda x. (ite (= x v1) [...] true)
       // thus requiring the rest of the disjunction to be further processed in
       // the then-branch as the current value.
-      bool pol = curr[0].getKind() != kind::NOT;
-      bool inverted = (pol == (ck == kind::AND));
+      bool pol = curr[0].getKind() != Kind::NOT;
+      bool inverted = (pol == (ck == Kind::AND));
       index_eq = pol ? curr[0] : curr[0][0];
       // processed : the value that is determined by the first child of curr
       // remainder : the remaining children of curr
@@ -295,18 +289,18 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       //  (1) lambda x. (= x v) becomes lambda x. (ite (= x v) true false)
       //  (2) lambda x. x becomes lambda x. (ite (= x true) true false)
       // Note the negateg cases of the bodies above are also handled.
-      bool pol = ck != kind::NOT;
+      bool pol = ck != Kind::NOT;
       index_eq = pol ? curr : curr[0];
       curr_val = nm->mkConst(pol);
       next = nm->mkConst(!pol);
     }
 
     // [2] We ensure that "index_eq" is an equality, if possible.
-    if (index_eq.getKind() != kind::EQUAL)
+    if (index_eq.getKind() != Kind::EQUAL)
     {
-      bool pol = index_eq.getKind() != kind::NOT;
+      bool pol = index_eq.getKind() != Kind::NOT;
       Node indexEqAtom = pol ? index_eq : index_eq[0];
-      if (indexEqAtom.getKind() == kind::BOUND_VARIABLE)
+      if (indexEqAtom.getKind() == Kind::BOUND_VARIABLE)
       {
         if (!indexEqAtom.getType().isBoolean())
         {
@@ -339,20 +333,10 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
       Node val = index_eq[1 - r];
       if (arg == first_arg)
       {
-        if (!val.isConst())
-        {
-          // non-constant value
-          Trace("builtin-rewrite-debug2")
-              << "  ...non-constant value for argument\n.";
-          return Node::null();
-        }
-        else
-        {
-          curr_index = val;
-          Trace("builtin-rewrite-debug2")
-              << "  arg " << arg << " -> " << val << std::endl;
-          break;
-        }
+        curr_index = val;
+        Trace("builtin-rewrite-debug2")
+            << "  arg " << arg << " -> " << val << std::endl;
+        break;
       }
     }
     if (curr_index.isNull())
@@ -371,7 +355,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     // remaining arguments (rec_bvl).
     if (!rec_bvl.isNull())
     {
-      curr_val = nm->mkNode(kind::LAMBDA, rec_bvl, curr_val);
+      curr_val = nm->mkNode(Kind::LAMBDA, rec_bvl, curr_val);
       Trace("builtin-rewrite-debug") << push;
       Trace("builtin-rewrite-debug2") << push;
       curr_val = getArrayRepresentationForLambdaRec(curr_val, retType);
@@ -388,6 +372,14 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
         << "  ...condition is index " << curr_val << std::endl;
 
     // [5] Add the entry
+    Assert(!curr_index.isNull());
+    Assert(!curr_val.isNull());
+    if (!curr_index.isConst() || !curr_val.isConst())
+    {
+      // non-constant value
+      Trace("builtin-rewrite-debug2") << "  ...non-constant value for entry\n.";
+      return Node::null();
+    }
     conds.push_back(curr_index);
     vals.push_back(curr_val);
 
@@ -399,7 +391,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
   }
   if (!rec_bvl.isNull())
   {
-    curr = nm->mkNode(kind::LAMBDA, rec_bvl, curr);
+    curr = nm->mkNode(Kind::LAMBDA, rec_bvl, curr);
     Trace("builtin-rewrite-debug") << push;
     Trace("builtin-rewrite-debug2") << push;
     curr = getArrayRepresentationForLambdaRec(curr, retType);
@@ -417,7 +409,7 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     }
     Trace("builtin-rewrite-debug2")
         << "  make array store all " << curr.getType()
-        << " annotated : " << array_type << std::endl;
+        << " annotated : " << array_type << " from " << curr << std::endl;
     Assert(curr.getType() == array_type.getArrayConstituentType());
     curr = nm->mkConst(ArrayStoreAll(array_type, curr));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
@@ -431,11 +423,11 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
     for (size_t i = 0, numCond = conds.size(); i < numCond; i++)
     {
       size_t ii = (numCond - 1) - i;
-      Assert(conds[ii].getType() == first_arg.getType());
-      curr = nm->mkNode(kind::STORE, curr, conds[ii], vals[ii]);
+      AssertEqual(conds[ii].getType(), first_arg.getType());
+      curr = nm->mkNode(Kind::STORE, curr, conds[ii], vals[ii]);
       // normalize it using the array rewriter utility, which must be done at
       // each iteration of this loop
-      curr = arrays::TheoryArraysRewriter::normalizeConstant(curr);
+      curr = arrays::TheoryArraysRewriter::normalizeConstant(nm, curr);
     }
     Trace("builtin-rewrite-debug")
         << "...got array " << curr << " for " << n << std::endl;
@@ -450,12 +442,12 @@ Node FunctionConst::getArrayRepresentationForLambdaRec(TNode n,
 Node FunctionConst::toArrayConst(TNode n)
 {
   Kind nk = n.getKind();
-  if (nk == kind::FUNCTION_ARRAY_CONST)
+  if (nk == Kind::FUNCTION_ARRAY_CONST)
   {
     const FunctionArrayConst& fc = n.getConst<FunctionArrayConst>();
     return fc.getArrayValue();
   }
-  else if (nk == kind::LAMBDA)
+  else if (nk == Kind::LAMBDA)
   {
     // must carry the overall return type to deal with cases like (lambda ((x
     // Int) (y Int)) (ite (= x _) 0.5 0.0)), where the inner construction for

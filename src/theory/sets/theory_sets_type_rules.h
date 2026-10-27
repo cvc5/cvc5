@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,6 +28,8 @@ namespace sets {
  */
 struct SetsBinaryOperatorTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -44,6 +43,8 @@ struct SetsBinaryOperatorTypeRule
  */
 struct SubsetTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -56,6 +57,8 @@ struct SubsetTypeRule
  */
 struct MemberTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -68,6 +71,8 @@ struct MemberTypeRule
  */
 struct SingletonTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -81,6 +86,8 @@ struct SingletonTypeRule
  */
 struct EmptySetTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -92,6 +99,8 @@ struct EmptySetTypeRule
  */
 struct CardTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -103,6 +112,8 @@ struct CardTypeRule
  */
 struct ComplementTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -114,6 +125,8 @@ struct ComplementTypeRule
  */
 struct UniverseSetTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -127,6 +140,8 @@ struct UniverseSetTypeRule
  */
 struct ComprehensionTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -138,6 +153,8 @@ struct ComprehensionTypeRule
  */
 struct ChooseTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -145,10 +162,13 @@ struct ChooseTypeRule
 };
 
 /**
- * Type rule for (set.is_singleton A) to check the argument A is a set.
+ * Type rule for (set.is_empty A) and (set.is_singleton A) to check the argument
+ * A is a set.
  */
-struct IsSingletonTypeRule
+struct IsSetTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -156,11 +176,13 @@ struct IsSingletonTypeRule
 };
 
 /**
- * Type rule for (set.insert e1 ... en A) that checks the sorts of e1, ..., en
- * match the element sort of the set A
+ * Type rule for (set.insert e A) that checks the sort of e matches the element
+ * sort of the set A
  */
 struct InsertTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -173,6 +195,8 @@ struct InsertTypeRule
  */
 struct SetMapTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -185,6 +209,8 @@ struct SetMapTypeRule
  */
 struct SetFilterTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -192,11 +218,28 @@ struct SetFilterTypeRule
 }; /* struct SetFilterTypeRule */
 
 /**
+ * Type rule for (set.all p A) and (set.some p A) to make sure p is
+ * a unary predicate of type
+ * (-> T Bool) where A is a set of type (Set T)
+ */
+struct SetAllSomeTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct SetAllSomeTypeRule */
+
+/**
  * Type rule for (set.fold f t A) to make sure f is a binary operation of type
  * (-> T1 T2 T2), t of type T2, and A is a set of type (Set T1)
  */
 struct SetFoldTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -214,11 +257,31 @@ struct SetFoldTypeRule
  */
 struct RelBinaryOperatorTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
                               std::ostream* errOut);
 };
+
+/**
+ * Relation table join operator is indexed by a list of indices (m_1, m_k, n_1,
+ * ..., n_k). It ensures that it has 2 arguments:
+ * - A relation of type (Relation X_1 ... X_i)
+ * - A relation of type (Relation Y_1 ... Y_j)
+ * such that indices has constraints 0 <= m_1, ..., mk, n_1, ..., n_k <=
+ * min(i,j) and types has constraints X_{m_1} = Y_{n_1}, ..., X_{m_k} = Y_{n_k}.
+ * The returned type is (Relation X_1 ... X_i Y_1 ... Y_j)
+ */
+struct RelationTableJoinTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct RelationTableJoinTypeRule */
 
 /**
  * Type rule for unary operator (rel.transpose A) to check that A is a relation
@@ -227,6 +290,8 @@ struct RelBinaryOperatorTypeRule
  */
 struct RelTransposeTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -239,6 +304,8 @@ struct RelTransposeTypeRule
  */
 struct RelTransClosureTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -253,6 +320,8 @@ struct RelTransClosureTypeRule
  */
 struct JoinImageTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -266,6 +335,8 @@ struct JoinImageTypeRule
  */
 struct RelIdenTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -280,6 +351,8 @@ struct RelIdenTypeRule
  */
 struct RelationGroupTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -294,6 +367,8 @@ struct RelationGroupTypeRule
  */
 struct RelationProjectTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -310,11 +385,26 @@ struct RelationProjectTypeRule
  */
 struct RelationAggregateTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
                               std::ostream* errOut);
 }; /* struct RelationAggregateTypeRule */
+
+/**
+ * Type rule for set.empty_of_type
+ */
+struct SetEmptyOfTypeTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
 
 struct SetsProperties
 {

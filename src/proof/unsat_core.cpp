@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "proof/unsat_core.h"
 
 #include "base/check.h"
+#include "expr/node.h"
 #include "options/base_options.h"
 #include "options/io_utils.h"
 #include "printer/printer.h"
@@ -40,21 +38,18 @@ const std::vector<std::string>& UnsatCore::getCoreNames() const
   return d_names;
 }
 
-UnsatCore::const_iterator UnsatCore::begin() const {
-  return d_core.begin();
-}
+UnsatCore::const_iterator UnsatCore::begin() const { return d_core.begin(); }
 
-UnsatCore::const_iterator UnsatCore::end() const {
-  return d_core.end();
-}
+UnsatCore::const_iterator UnsatCore::end() const { return d_core.end(); }
 
-void UnsatCore::toStream(std::ostream& out) const {
+void UnsatCore::toStream(std::ostream& out) const
+{
   options::ioutils::Scope scope(out);
-  options::ioutils::applyDagThresh(out, 0);
   Printer::getPrinter(out)->toStream(out, *this);
 }
 
-std::ostream& operator<<(std::ostream& out, const UnsatCore& core) {
+std::ostream& operator<<(std::ostream& out, const UnsatCore& core)
+{
   core.toStream(out);
   return out;
 }

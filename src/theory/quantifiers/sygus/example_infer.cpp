@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,10 +21,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-ExampleInfer::ExampleInfer(TermDbSygus* tds) : d_tds(tds)
-{
-  d_isExamples = false;
-}
+ExampleInfer::ExampleInfer(NodeManager* nm) : d_nm(nm) { d_isExamples = false; }
 
 ExampleInfer::~ExampleInfer() {}
 
@@ -96,24 +90,23 @@ bool ExampleInfer::collectExamples(
     return true;
   }
   visited[cacheIndex].insert(n);
-  NodeManager* nm = NodeManager::currentNM();
   Node neval;
   Node n_output;
   bool neval_is_evalapp = false;
-  if (n.getKind() == DT_SYGUS_EVAL)
+  if (n.getKind() == Kind::DT_SYGUS_EVAL)
   {
     neval = n;
     if (hasPol)
     {
-      n_output = nm->mkConst(pol);
+      n_output = d_nm->mkConst(pol);
     }
     neval_is_evalapp = true;
   }
-  else if (n.getKind() == EQUAL && hasPol && pol)
+  else if (n.getKind() == Kind::EQUAL && hasPol && pol)
   {
     for (unsigned r = 0; r < 2; r++)
     {
-      if (n[r].getKind() == DT_SYGUS_EVAL)
+      if (n[r].getKind() == Kind::DT_SYGUS_EVAL)
       {
         neval = n[r];
         if (n[1 - r].isConst())
@@ -238,7 +231,7 @@ void ExampleInfer::getExample(Node f, unsigned i, std::vector<Node>& ex) const
   }
   else
   {
-    Assert(false);
+    DebugUnhandled();
   }
 }
 
@@ -262,7 +255,7 @@ Node ExampleInfer::getExampleOut(Node f, unsigned i) const
     Assert(i < it->second.size());
     return it->second[i];
   }
-  Assert(false);
+  DebugUnhandled();
   return Node::null();
 }
 

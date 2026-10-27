@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andrew V. Jones
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -26,16 +23,10 @@ if(cryptominisat5_FOUND)
   set(CryptoMiniSat_FOUND_SYSTEM TRUE)
   add_library(CryptoMiniSat INTERFACE IMPORTED GLOBAL)
   target_link_libraries(CryptoMiniSat INTERFACE cryptominisat5)
-  # TODO(gereon): remove this when
-  # https://github.com/msoos/cryptominisat/pull/645 is merged
-  set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                             "${CRYPTOMINISAT5_INCLUDE_DIRS}"
-  )
 endif()
 
 if(NOT CryptoMiniSat_FOUND_SYSTEM)
-  set(CryptoMiniSat_VERSION "5.8.0")
+  set(CryptoMiniSat_VERSION "5.11.21")
 
   check_ep_downloaded("CryptoMiniSat-EP")
   if(NOT CryptoMiniSat-EP_DOWNLOADED)
@@ -54,13 +45,11 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
     CryptoMiniSat-EP
     ${COMMON_EP_CONFIG}
     URL https://github.com/msoos/cryptominisat/archive/refs/tags/${CryptoMiniSat_VERSION}.tar.gz
-    URL_HASH SHA1=f79dfa1ffc6c9c75b3a33f76d3a89a3df2b3f4c2
-    PATCH_COMMAND
-      patch <SOURCE_DIR>/src/packedmatrix.h
-      ${CMAKE_CURRENT_LIST_DIR}/deps-utils/CryptoMiniSat-patch-ba6f76e3.patch
+    URL_HASH SHA256=288fd53d801909af797c72023361a75af3229d1806dbc87a0fcda18f5e03763b
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                # make sure not to register with cmake
                -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON
+               -DCMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -DENABLE_ASSERTIONS=OFF
@@ -89,10 +78,6 @@ if(NOT CryptoMiniSat_FOUND_SYSTEM)
   set_target_properties(
     CryptoMiniSat PROPERTIES IMPORTED_LOCATION "${CryptoMiniSat_LIBRARIES}"
   )
-  set_target_properties(
-    CryptoMiniSat PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                             "${CryptoMiniSat_INCLUDE_DIR}"
-  )
 endif()
 
 set(CryptoMiniSat_FOUND TRUE)
@@ -113,4 +98,8 @@ else()
       "Building CryptoMiniSat ${CryptoMiniSat_VERSION}: ${CryptoMiniSat_LIBRARIES}"
   )
   add_dependencies(CryptoMiniSat CryptoMiniSat-EP)
+  # Install static library only if it is a static build.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CryptoMiniSat_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

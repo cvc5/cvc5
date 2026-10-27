@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,8 +36,9 @@ class BVToInt : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
   // Add the lemmas in `additionalConstraints` to the assertions pipeline.
-  void addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
-                             const std::vector<Node>& additionalConstraints);
+  void addFinalizeAssertions(
+      AssertionPipeline* assertionsToPreprocess,
+      const std::vector<TrustNode>& additionalConstraints);
 
   // include the skolem map as substitutions
   void addSkolemDefinitions(const std::map<Node, Node>& skolems);

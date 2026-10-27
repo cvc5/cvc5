@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Ying Sheng, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,11 +15,13 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
+#include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/set_defaults.h"
+#include "smt/sygus_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/trust_substitutions.h"
@@ -47,17 +46,78 @@ bool InterpolationSolver::getInterpolant(const std::vector<Node>& axioms,
         "Cannot get interpolation when produce-interpolants options is off.";
     throw ModalException(msg);
   }
+  // apply top-level substitutions
   Trace("sygus-interpol") << "SolverEngine::getInterpol: conjecture " << conj
                           << std::endl;
-  // must expand definitions
-  Node conjn = d_env.getTopLevelSubstitutions().apply(conj);
+  // We can apply top-level substitutions x -> t that are implied by the
+  // assertions but only if all symbols in (= x t) are also contained in the
+  // goal (to satisfy the shared symbol requirement of get-interpolant).
+  // We construct a subset of the top-level substitutions (tlShared) here that
+  // can legally be applied, and conjoin these with our final solution when
+  // applicable below.
+  SubstitutionMap& tls = d_env.getTopLevelSubstitutions().get();
+  SubstitutionMap tlsShared;
+  std::unordered_map<Node, Node> subs = tls.getSubstitutions();
+  std::unordered_set<Node> conjSyms;
+  expr::getSymbols(conj, conjSyms);
+  std::vector<Node> axiomsn;
+  for (const std::pair<const Node, Node>& s : subs)
+  {
+    // Furthermore note that if we have a target grammar, we cannot conjoin
+    // substitutions since this would violate the grammar from the user.
+    if (grammarType.isNull())
+    {
+      bool isShared = true;
+      // legal substitution if all variables in (= x t) also appear in the goal
+      if (conjSyms.find(s.first) == conjSyms.end())
+      {
+        // solved variable is not shared
+        isShared = false;
+      }
+      else
+      {
+        std::unordered_set<Node> ssyms;
+        expr::getSymbols(s.second, ssyms);
+        for (const Node& sym : ssyms)
+        {
+          if (conjSyms.find(sym) == conjSyms.end())
+          {
+            // variable in right hand side is not shared
+            isShared = false;
+            break;
+          }
+        }
+      }
+      if (isShared)
+      {
+        // can apply as a substitution
+        tlsShared.addSubstitution(s.first, s.second);
+        continue;
+      }
+    }
+    // must treat the substitution as an assertion
+    axiomsn.emplace_back(s.first.eqNode(s.second));
+  }
+  for (const Node& ax : axioms)
+  {
+    axiomsn.emplace_back(rewrite(tlsShared.apply(ax)));
+  }
+  Node conjn = tlsShared.apply(conj);
   conjn = rewrite(conjn);
   std::string name("__internal_interpol");
 
+  d_tlsConj = Node::null();
   d_subsolver = std::make_unique<quantifiers::SygusInterpol>(d_env);
   if (d_subsolver->solveInterpolation(
-          name, axioms, conjn, grammarType, interpol))
+          name, axiomsn, conjn, grammarType, interpol))
   {
+    if (!tlsShared.empty())
+    {
+      // must conjoin equalities from shared top-level substitutions
+      NodeManager* nm = nodeManager();
+      d_tlsConj = tlsShared.toFormula(nm);
+      interpol = nm->mkNode(Kind::AND, d_tlsConj, interpol);
+    }
     if (options().smt.checkInterpolants)
     {
       checkInterpol(interpol, axioms, conj);
@@ -72,7 +132,17 @@ bool InterpolationSolver::getInterpolantNext(Node& interpol)
   // should already have initialized a subsolver, since we are immediately
   // preceeded by a successful call to get-interpolant(-next).
   Assert(d_subsolver != nullptr);
-  return d_subsolver->solveInterpolationNext(interpol);
+  if (!d_subsolver->solveInterpolationNext(interpol))
+  {
+    return false;
+  }
+  // conjoin the top-level substitutions, as computed in getInterpolant
+  if (!d_tlsConj.isNull())
+  {
+    NodeManager* nm = nodeManager();
+    interpol = nm->mkNode(Kind::AND, d_tlsConj, interpol);
+  }
+  return true;
 }
 
 void InterpolationSolver::checkInterpol(Node interpol,
@@ -82,10 +152,17 @@ void InterpolationSolver::checkInterpol(Node interpol,
   Assert(interpol.getType().isBoolean());
   Trace("check-interpol")
       << "SolverEngine::checkInterpol: get expanded assertions" << std::endl;
+  bool canTrustResult = SygusSolver::canTrustSynthesisResult(options());
+  if (!canTrustResult)
+  {
+    warning() << "Running check-interpolants is not guaranteed to pass with "
+                 "the current options."
+              << std::endl;
+  }
 
   Options subOptions;
   subOptions.copyValues(d_env.getOptions());
-  subOptions.writeSmt().produceInterpolants = false;
+  subOptions.write_smt().produceInterpolants = false;
   SetDefaults::disableChecking(subOptions);
   SubsolverSetupInfo ssi(d_env, subOptions);
   // two checks: first, axioms imply interpol, second, interpol implies conj.
@@ -100,7 +177,7 @@ void InterpolationSolver::checkInterpol(Node interpol,
                             << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SolverEngine> itpChecker;
-    initializeSubsolver(itpChecker, ssi);
+    initializeSubsolver(nodeManager(), itpChecker, ssi);
     Trace("check-interpol") << "SolverEngine::checkInterpol: phase " << j
                             << ": asserting formulas" << std::endl;
     if (j == 0)
@@ -129,19 +206,25 @@ void InterpolationSolver::checkInterpol(Node interpol,
       if (j == 0)
       {
         serr << "SolverEngine::checkInterpol(): negated produced solution "
-                "cannot "
-                "be shown "
+                "cannot be shown "
                 "satisfiable with assertions, result was "
              << r;
       }
       else
       {
         serr << "SolverEngine::checkInterpol(): negated conjecture cannot be "
-                "shown "
-                "satisfiable with produced solution, result was "
+                "shown satisfiable with produced solution, result was "
              << r;
       }
-      InternalError() << serr.str();
+      bool hardFailure = canTrustResult && !r.isUnknown();
+      if (hardFailure)
+      {
+        InternalError() << serr.str();
+      }
+      else
+      {
+        warning() << serr.str() << std::endl;
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 (set-logic QF_SLIA)
 (set-info :status sat)
-(set-option :strings-exp true)
+
 (declare-fun a () String)
 (declare-fun b () String)
 (declare-fun c () String)

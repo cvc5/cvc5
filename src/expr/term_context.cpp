@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,11 +12,12 @@
 
 #include "expr/term_context.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/theory.h"
 
 namespace cvc5::internal {
 
-uint32_t TermContext::computeValueOp(TNode t, uint32_t tval) const
+uint32_t TermContext::computeValueOp(CVC5_UNUSED TNode t, uint32_t tval) const
 {
   // default is no change
   return tval;
@@ -33,7 +31,7 @@ uint32_t RtfTermContext::initialValue() const
 
 uint32_t RtfTermContext::computeValue(TNode t,
                                       uint32_t tval,
-                                      size_t child) const
+                                      CVC5_UNUSED size_t child) const
 {
   if (t.isClosure())
   {
@@ -67,26 +65,23 @@ bool RtfTermContext::hasNestedTermChildren(TNode t)
 {
   Kind k = t.getKind();
   // dont' worry about FORALL or EXISTS, these are part of inQuant.
-  return theory::kindToTheoryId(k) != theory::THEORY_BOOL && k != kind::EQUAL
-         && k != kind::SEP_STAR && k != kind::SEP_WAND && k != kind::SEP_LABEL
-         && k != kind::BITVECTOR_EAGER_ATOM;
+  return theory::kindToTheoryId(k) != theory::THEORY_BOOL && k != Kind::EQUAL
+         && k != Kind::SEP_STAR && k != Kind::SEP_WAND && k != Kind::SEP_LABEL
+         && k != Kind::BITVECTOR_EAGER_ATOM;
 }
 
 uint32_t InQuantTermContext::initialValue() const { return 0; }
 
 uint32_t InQuantTermContext::computeValue(TNode t,
                                           uint32_t tval,
-                                          size_t index) const
+                                          CVC5_UNUSED size_t index) const
 {
   return t.isClosure() ? 1 : tval;
 }
 
 uint32_t InQuantTermContext::getValue(bool inQuant) { return inQuant ? 1 : 0; }
 
-bool InQuantTermContext::inQuant(uint32_t val, bool& inQuant)
-{
-  return val == 1;
-}
+bool InQuantTermContext::inQuant(uint32_t val) { return val == 1; }
 
 uint32_t PolarityTermContext::initialValue() const
 {
@@ -100,21 +95,21 @@ uint32_t PolarityTermContext::computeValue(TNode t,
 {
   switch (t.getKind())
   {
-    case kind::AND:
-    case kind::OR:
-    case kind::SEP_STAR:
+    case Kind::AND:
+    case Kind::OR:
+    case Kind::SEP_STAR:
       // polarity preserved
       return tval;
-    case kind::IMPLIES:
+    case Kind::IMPLIES:
       // first child reverses, otherwise we preserve
       return index == 0 ? (tval == 0 ? 0 : (3 - tval)) : tval;
-    case kind::NOT:
+    case Kind::NOT:
       // polarity reversed
       return tval == 0 ? 0 : (3 - tval);
-    case kind::ITE:
+    case Kind::ITE:
       // head has no polarity, branches preserve
       return index == 0 ? 0 : tval;
-    case kind::FORALL:
+    case Kind::FORALL:
       // body preserves, others have no polarity.
       return index == 1 ? tval : 0;
     default:
@@ -139,9 +134,60 @@ uint32_t TheoryLeafTermContext::initialValue() const { return 0; }
 
 uint32_t TheoryLeafTermContext::computeValue(TNode t,
                                              uint32_t tval,
-                                             size_t index) const
+                                             CVC5_UNUSED size_t index) const
 {
   return theory::Theory::isLeafOf(t, d_theoryId) ? 1 : tval;
 }
+uint32_t BoolSkeletonTermContext::initialValue() const { return 0; }
 
+uint32_t BoolSkeletonTermContext::computeValue(TNode t,
+                                               uint32_t tval,
+                                               CVC5_UNUSED size_t child) const
+{
+  if (tval == 0)
+  {
+    if (!expr::isBooleanConnective(t))
+    {
+      return 1;
+    }
+    return 0;
+  }
+  return 1;
+}
+
+uint32_t WithinKindTermContext::initialValue() const { return 0; }
+
+uint32_t WithinKindTermContext::computeValue(TNode t,
+                                             uint32_t tval,
+                                             CVC5_UNUSED size_t index) const
+{
+  if (tval == 0)
+  {
+    if (t.getKind() == d_kind)
+    {
+      return 1;
+    }
+    return 0;
+  }
+  return 1;
+}
+
+uint32_t WithinPathTermContext::initialValue() const { return 1; }
+
+uint32_t WithinPathTermContext::computeValue(CVC5_UNUSED TNode t,
+                                             uint32_t tval,
+                                             size_t index) const
+{
+  if (tval == 0)
+  {
+    return 0;
+  }
+  Assert(!d_path.empty());
+  size_t cc = (tval - 1) % d_path.size();
+  if (index == d_path[cc])
+  {
+    return tval + 1;
+  }
+  return 0;
+}
 }  // namespace cvc5::internal

@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --re-elim=on
+; REQUIRES: no-safe-mode
+; COMMAND-LINE: --re-elim=on
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const a String)

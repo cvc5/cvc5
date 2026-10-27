@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Christopher L. Conway
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +22,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace expr;
 
 namespace test {
@@ -37,9 +33,9 @@ class TestNodeBlackNodeManager : public TestNode
 TEST_F(TestNodeBlackNodeManager, mkNode_not)
 {
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
-  Node n = d_nodeManager->mkNode(NOT, x);
+  Node n = d_nodeManager->mkNode(Kind::NOT, x);
   ASSERT_EQ(n.getNumChildren(), 1u);
-  ASSERT_EQ(n.getKind(), NOT);
+  ASSERT_EQ(n.getKind(), Kind::NOT);
   ASSERT_EQ(n[0], x);
 }
 
@@ -47,9 +43,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_binary)
 {
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
-  Node n = d_nodeManager->mkNode(IMPLIES, x, y);
+  Node n = d_nodeManager->mkNode(Kind::IMPLIES, x, y);
   ASSERT_EQ(n.getNumChildren(), 2u);
-  ASSERT_EQ(n.getKind(), IMPLIES);
+  ASSERT_EQ(n.getKind(), Kind::IMPLIES);
   ASSERT_EQ(n[0], x);
   ASSERT_EQ(n[1], y);
 }
@@ -59,9 +55,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_three_children)
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
   Node y = d_skolemManager->mkDummySkolem("y", d_nodeManager->booleanType());
   Node z = d_skolemManager->mkDummySkolem("z", d_nodeManager->booleanType());
-  Node n = d_nodeManager->mkNode(AND, x, y, z);
+  Node n = d_nodeManager->mkNode(Kind::AND, x, y, z);
   ASSERT_EQ(n.getNumChildren(), 3u);
-  ASSERT_EQ(n.getKind(), AND);
+  ASSERT_EQ(n.getKind(), Kind::AND);
   ASSERT_EQ(n[0], x);
   ASSERT_EQ(n[1], y);
   ASSERT_EQ(n[2], z);
@@ -74,9 +70,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_init_list)
   Node x3 = d_skolemManager->mkDummySkolem("x3", d_nodeManager->booleanType());
   Node x4 = d_skolemManager->mkDummySkolem("x4", d_nodeManager->booleanType());
   // Negate second argument to test the use of temporary nodes
-  Node n = d_nodeManager->mkNode(AND, {x1, x2.negate(), x3, x4});
+  Node n = d_nodeManager->mkNode(Kind::AND, {x1, x2.negate(), x3, x4});
   ASSERT_EQ(n.getNumChildren(), 4u);
-  ASSERT_EQ(n.getKind(), AND);
+  ASSERT_EQ(n.getKind(), Kind::AND);
   ASSERT_EQ(n[0], x1);
   ASSERT_EQ(n[1], x2.negate());
   ASSERT_EQ(n[2], x3);
@@ -92,9 +88,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_node)
   args.push_back(x1);
   args.push_back(x2);
   args.push_back(x3);
-  Node n = d_nodeManager->mkNode(AND, args);
+  Node n = d_nodeManager->mkNode(Kind::AND, args);
   ASSERT_EQ(n.getNumChildren(), args.size());
-  ASSERT_EQ(n.getKind(), AND);
+  ASSERT_EQ(n.getKind(), Kind::AND);
   for (unsigned i = 0; i < args.size(); ++i)
   {
     ASSERT_EQ(n[i], args[i]);
@@ -110,9 +106,9 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
   args.push_back(x1);
   args.push_back(x2);
   args.push_back(x3);
-  Node n = d_nodeManager->mkNode(AND, args);
+  Node n = d_nodeManager->mkNode(Kind::AND, args);
   ASSERT_EQ(n.getNumChildren(), args.size());
-  ASSERT_EQ(n.getKind(), AND);
+  ASSERT_EQ(n.getKind(), Kind::AND);
   for (unsigned i = 0; i < args.size(); ++i)
   {
     ASSERT_EQ(n[i], args[i]);
@@ -122,8 +118,8 @@ TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 TEST_F(TestNodeBlackNodeManager, mkSkolem_with_name)
 {
   Node x = d_skolemManager->mkDummySkolem(
-      "x", *d_boolTypeNode, "", SkolemManager::SKOLEM_EXACT_NAME);
-  ASSERT_EQ(x.getKind(), SKOLEM);
+      "x", *d_boolTypeNode, SkolemFlags::SKOLEM_EXACT_NAME);
+  ASSERT_EQ(x.getKind(), Kind::DUMMY_SKOLEM);
   ASSERT_EQ(x.getNumChildren(), 0u);
   ASSERT_EQ(x.getAttribute(VarNameAttr()), "x");
   ASSERT_EQ(x.getType(), *d_boolTypeNode);
@@ -146,11 +142,11 @@ TEST_F(TestNodeBlackNodeManager, mkConst_rational)
 
 TEST_F(TestNodeBlackNodeManager, hasOperator)
 {
-  ASSERT_TRUE(NodeManager::hasOperator(AND));
-  ASSERT_TRUE(NodeManager::hasOperator(OR));
-  ASSERT_TRUE(NodeManager::hasOperator(NOT));
-  ASSERT_TRUE(NodeManager::hasOperator(APPLY_UF));
-  ASSERT_TRUE(!NodeManager::hasOperator(VARIABLE));
+  ASSERT_TRUE(NodeManager::hasOperator(Kind::AND));
+  ASSERT_TRUE(NodeManager::hasOperator(Kind::OR));
+  ASSERT_TRUE(NodeManager::hasOperator(Kind::NOT));
+  ASSERT_TRUE(NodeManager::hasOperator(Kind::APPLY_UF));
+  ASSERT_TRUE(!NodeManager::hasOperator(Kind::VARIABLE));
 }
 
 TEST_F(TestNodeBlackNodeManager, booleanType)
@@ -287,7 +283,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 {
 #ifdef CVC5_ASSERTIONS
   Node x = d_skolemManager->mkDummySkolem("x", d_nodeManager->booleanType());
-  ASSERT_DEATH(d_nodeManager->mkNode(AND, x),
+  ASSERT_DEATH(d_nodeManager->mkNode(Kind::AND, x),
                "Nodes with kind `and` must have at least 2 children");
 #endif
 }
@@ -297,7 +293,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 {
 #ifdef CVC5_ASSERTIONS
   std::vector<Node> vars;
-  const uint32_t max = metakind::getMaxArityForKind(AND);
+  const uint32_t max = kind::metakind::getMaxArityForKind(Kind::AND);
   TypeNode boolType = d_nodeManager->booleanType();
   Node skolem_i = d_skolemManager->mkDummySkolem("i", boolType);
   Node skolem_j = d_skolemManager->mkDummySkolem("j", boolType);
@@ -309,7 +305,8 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
     vars.push_back(skolem_j);
     vars.push_back(orNode);
   }
-  ASSERT_DEATH(d_nodeManager->mkNode(AND, vars), "toSize > d_nvMaxChildren");
+  ASSERT_DEATH(d_nodeManager->mkNode(Kind::AND, vars),
+               "toSize > d_nvMaxChildren");
 #endif
 }
 }  // namespace test

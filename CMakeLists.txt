@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz, Mathias Preiner, Gereon Kremer
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -13,7 +10,7 @@
 # The build system configuration.
 ##
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -26,7 +23,13 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include(version)
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+if (WASM STREQUAL "OFF")
+  set(CMAKE_C_EXTENSIONS OFF)
+else()
+  set(CMAKE_C_EXTENSIONS ON)
+endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -36,6 +39,9 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Default component used in install() commands
+set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME cvc5)
 
 #-----------------------------------------------------------------------------#
 # Policies
@@ -51,6 +57,13 @@ if(POLICY CMP0135)
   # introduced in CMake 3.23 and is the recommended to make sure that
   # dependencies get rebuilt when the URL changes.
   cmake_policy(SET CMP0135 NEW)
+endif()
+
+if(POLICY CMP0079)
+  # Allows target_link_libraries() to use targets from other directories.
+  # This will prevent issues with INTERFACE_LINK_LIBRARIES, which allows
+  # cvc5 to be properly linked as a static library on other CMake projects.
+  cmake_policy(SET CMP0079 NEW)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -83,21 +96,31 @@ cvc5_option(ENABLE_ASAN           "Enable ASAN build")
 cvc5_option(ENABLE_UBSAN          "Enable UBSan build")
 cvc5_option(ENABLE_TSAN           "Enable TSan build")
 cvc5_option(ENABLE_ASSERTIONS     "Enable assertions")
-cvc5_option(ENABLE_COMP_INC_TRACK
-            "Enable optimizations for incremental SMT-COMP tracks")
 cvc5_option(ENABLE_DEBUG_SYMBOLS  "Enable debug symbols")
 cvc5_option(ENABLE_MUZZLE         "Suppress ALL non-result output")
+cvc5_option(ENABLE_SAFE_MODE      "Enable safe mode")
+cvc5_option(ENABLE_STABLE_MODE    "Enable stable mode")
 cvc5_option(ENABLE_STATISTICS     "Enable statistics")
 cvc5_option(ENABLE_TRACING        "Enable tracing")
 cvc5_option(ENABLE_UNIT_TESTING   "Enable unit testing")
 cvc5_option(ENABLE_VALGRIND       "Enable valgrind instrumentation")
 cvc5_option(ENABLE_AUTO_DOWNLOAD  "Enable automatic download of dependencies")
+cvc5_option(USE_PYTHON_VENV       "Install Python dependencies in virtual environment")
 cvc5_option(ENABLE_IPO            "Enable interprocedural optimization")
+
+cvc5_set_option(USE_PYTHON_VENV ON)
+
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
+option(ENABLE_CLANG_TIDY       "Enable clang-tidy static analysis during build")
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
+
+option(TREAT_WARNING_AS_ERROR  "Treat warnings on building as errors")
+
+# Ensure cvc5 does not use LibPoly's global context by stripping all related code
+option(NO_GLOBAL_POLY_CTX      "Remove global context from LibPoly source code")
 
 # Optional dependencies
 #
@@ -109,7 +132,9 @@ option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 option(USE_EDITLINE      "Use Editline for better interactive support")
 option(USE_GLPK          "Use GLPK simplex solver")
 option(USE_KISSAT        "Use Kissat SAT solver")
+option(USE_MPFR          "Use MPFR for FP constant folding instead of SymFPU")
 option(USE_POLY          "Use LibPoly for polynomial arithmetic")
+option(USE_NORMALIZ      "Use Normaliz for liastar solver extension")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -117,20 +142,30 @@ option(USE_POLY          "Use LibPoly for polynomial arithmetic")
 # check the intalled system version. If the user provides a directory we
 # immediately fail if the dependency was not found at the specified location.
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
+set(PYTHONIC_PATH     "" CACHE STRING "Set Pythonic API repository path")
 
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
 # Supported language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
+option(ONLY_PYTHON_EXT_SRC "Create only Python bindings source files")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 # Api documentation
 option(BUILD_DOCS "Build Api documentation")
+option(BUILD_DOCS_GA "Build API documentation with Google Analytics")
+
+option(BUILD_GMP "Build GMP from source")
+option(BUILD_CLN "Build CLN from source")
 
 # Link against static system libraries
 cvc5_option(STATIC_BINARY "Link against static system libraries \
 (enabled by default for static builds)")
+
+option(SKIP_COMPRESS_DEBUG "Skip compression of debug symbols")
+option(SKIP_SET_RPATH      "Skip setting of rpath")
+option(USE_DEFAULT_LINKER  "Use default linker")
 
 # Custom flags for WebAssembly compilation
 set(WASM_FLAGS "" CACHE STRING "Link flags for the WebAssembly binary generation")
@@ -148,11 +183,26 @@ if(WASM STREQUAL "OFF")
 elseif(BUILD_SHARED_LIBS OR NOT(STATIC_BINARY) OR NOT(ENABLE_AUTO_DOWNLOAD))
   message(FATAL_ERROR "Use --static, --static-binary and --auto-download flags for WebAssembly compilation. GMP will not compile with shared libraries.")
 else()
+  # Older SDKs miscompile cvc5: their getrusage() overruns the caller's
+  # buffer by 16 bytes, silently corrupting adjacent memory (a stack
+  # smash in Minisat::cpuTime and, via CoCoALib, a nulled
+  # GlobalManager pointer).
+  if(EMSCRIPTEN_VERSION VERSION_LESS "6.0.8")
+    message(FATAL_ERROR
+      "Emscripten >= 6.0.8 is required for WebAssembly builds "
+      "(found '${EMSCRIPTEN_VERSION}'). See INSTALL.rst.")
+  endif()
   set(CONFIGURE_CMD_WRAPPER emconfigure)
   set(TOOLCHAIN_PREFIX wasm64-unknown-emscripten)
   string(TOLOWER ".${WASM}" WASM_EXTENSION)
   set(CMAKE_EXECUTABLE_SUFFIX ${WASM_EXTENSION})
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS}")
+  set(WASM_FLAGS_CONFIGURE "${WASM_FLAGS}")
+  set(WASM_EXPORTED_FUNCTIONS_FLAG "")
+  if(WASM_FLAGS MATCHES "(-s *EXPORTED_FUNCTIONS=[^ ]+)")
+    set(WASM_EXPORTED_FUNCTIONS_FLAG "${CMAKE_MATCH_1}")
+    string(REPLACE "${CMAKE_MATCH_1}" "" WASM_FLAGS_CONFIGURE "${WASM_FLAGS}")
+  endif()
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_FLAGS_CONFIGURE}")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -160,6 +210,17 @@ endif()
 
 set(OPTIMIZATION_LEVEL 3)
 set(GPL_LIBS "")
+
+if(ENABLE_CLANG_TIDY)
+  if(NOT ENABLE_ASSERTIONS)
+    message(FATAL_ERROR
+      "Use of clang-tidy requires building with assertions enabled.")
+  endif()
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy")
+  if(TREAT_WARNING_AS_ERROR)
+    set(CMAKE_CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY};-warnings-as-errors=*")
+  endif()
+endif()
 
 #-----------------------------------------------------------------------------#
 # Determine number of threads available, used to configure (default) parallel
@@ -204,49 +265,99 @@ include(Config${CMAKE_BUILD_TYPE})
 #-----------------------------------------------------------------------------#
 # Compiler flags
 
+check_min_compiler_version("GNU" 10)
+check_min_compiler_version("Clang" 12)
+
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
-add_check_c_cxx_supression_flag("-Wno-unused-private-field")
+add_check_c_cxx_flag("-Wextra")
 add_check_c_flag("-fexceptions")
+if(EMSCRIPTEN)
+  # emcc compiles C++ with -fignore-exceptions by default, which discards
+  # every catch block. Enabling catching at link time alone (the wasm
+  # linker flags carry -fexceptions) is not enough: the flag must also be
+  # present at compile time, or exceptions unwind straight past main().
+  add_check_cxx_flag("-fexceptions")
+endif()
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
 add_check_c_cxx_flag("-Wshadow")
+add_check_c_cxx_flag("-Wtype-limits")
+add_check_cxx_flag("-fno-operator-names")
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
+  # GCC 13 introduced -Wdangling-reference, but the
+  # [[gnu::no_dangling]] attribute to suppress it was only
+  # added in GCC 14, so disable the warning for GCC 13.
+  add_cxx_flag("-Wno-dangling-reference")
+endif()
 
 # Assume no dynamic initialization of thread-local variables in non-defining
 # translation units. This option should result in better performance and works
 # around crashing issues with our Windows build.
-add_check_cxx_flag("-fno-extern-tls-init")
-
-# Disable -Wclass-memaccess to suppress 'no trivial copy-assignment' in MiniSat
-# code.
-add_check_cxx_supression_flag("-Wno-class-memaccess")
+if(NOT ENABLE_CLANG_TIDY)
+  add_check_cxx_flag("-fno-extern-tls-init")
+endif()
 
 if (WIN32)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,100000000")
-
-  # ANTLR uses pragmas that certain versions of MinGW does not support
-  add_check_c_cxx_flag("-Wno-error=unknown-pragmas")
 endif ()
 
-#-----------------------------------------------------------------------------#
-# Use ld.gold if available
+if (NOT USE_DEFAULT_LINKER)
+  #-----------------------------------------------------------------------------#
+  # Use ld.mold if available, otherwise use ld.lld if available, otherwise
+  # use ld.gold if available (unless ASan is enabled).
 
-execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -fuse-ld=gold
-                -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-if ("${LD_VERSION}" MATCHES "GNU gold")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-  message(STATUS "Using GNU gold linker.")
-endif ()
+  set(USE_EXPLICIT_LINKER_FLAG FALSE)
+  execute_process(COMMAND ${CMAKE_C_COMPILER}
+                  -fuse-ld=mold
+                  -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_MOLD_VERSION)
+  if ("${LD_MOLD_VERSION}" MATCHES "mold")
+    set(USE_EXPLICIT_LINKER_FLAG TRUE)
+    set(EXPLICIT_LINKER_FLAG " -fuse-ld=mold")
+    message(STATUS "Using mold linker.")
+  else ()
+    execute_process(COMMAND ${CMAKE_C_COMPILER}
+                    -fuse-ld=lld
+                    -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_LLD_VERSION)
+    if ("${LD_LLD_VERSION}" MATCHES "LLD")
+      set(USE_EXPLICIT_LINKER_FLAG TRUE)
+      set(EXPLICIT_LINKER_FLAG " -fuse-ld=lld")
+      message(STATUS "Using LLD linker.")
+    elseif (NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" AND NOT ENABLE_ASAN)
+      # On Linux ARM64, the gold linker has a bug that causes build failures. Additionally,
+      # using the gold linker with ASan triggers "cannot export local symbol" warnings.
+      execute_process(COMMAND ${CMAKE_C_COMPILER}
+                      -fuse-ld=gold
+                      -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_GOLD_VERSION)
+      if ("${LD_GOLD_VERSION}" MATCHES "GNU gold")
+        set(USE_EXPLICIT_LINKER_FLAG TRUE)
+        set(EXPLICIT_LINKER_FLAG " -fuse-ld=gold")
+        message(STATUS "Using GNU gold linker.")
+      endif ()
+    endif ()
+  endif ()
+  if (USE_EXPLICIT_LINKER_FLAG)
+    string(APPEND CMAKE_EXE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+    string(APPEND CMAKE_SHARED_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+    string(APPEND CMAKE_MODULE_LINKER_FLAGS ${EXPLICIT_LINKER_FLAG})
+  endif ()
+endif()
 
 #-----------------------------------------------------------------------------#
 # Use interprocedural optimization if requested
 
 if(ENABLE_IPO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  check_ipo_supported(RESULT have_ipo_support)
+  if(have_ipo_support)
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+  else()
+    message(STATUS "Interprocedural optimization not supported.")
+    set(ENABLE_IPO OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -277,7 +388,13 @@ endif()
 #
 # More information on RPATH in CMake:
 # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
+if(NOT SKIP_SET_RPATH)
+  if (APPLE)
+    SET(CMAKE_INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
+  else()
+    SET(CMAKE_INSTALL_RPATH "\${ORIGIN}/../${CMAKE_INSTALL_LIBDIR}")
+  endif()
+endif()
 
 # Set visibility to default if unit tests are enabled. If unit tests are
 # enabled, we also check if we can execute white box unit tests (some versions
@@ -315,14 +432,81 @@ if(BUILD_SHARED_LIBS)
   endif()
 else()
   if (WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a .dll)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
   else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a .so .dylib)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
   endif()
 endif()
 
-find_package(Python 3.6...3.10.999 COMPONENTS Interpreter REQUIRED)
-find_package(GMP 6.1 REQUIRED)
+# Find a Python interpreter on the system. It serves two exclusive purposes:
+# either to be used when the '--auto-download' option is not specified, or
+# to create a virtual environment when the '--auto-download' option is given.
+# In the latter case, it is also used to install the Python bindings (if built).
+if(DEFINED BUILD_BINDINGS_PYTHON_VERSION)
+  find_package(Python ${BUILD_BINDINGS_PYTHON_VERSION}
+    EXACT COMPONENTS Interpreter REQUIRED
+  )
+else()
+  find_package(Python COMPONENTS Interpreter REQUIRED)
+endif()
+
+# Keep the PATH to the Python binary before setting venv.
+# Use a CACHE variable to remember the original value.
+# We use this path in the installation step of the Python bindings.
+set(Python_BASE_EXECUTABLE "${Python_EXECUTABLE}"
+    CACHE STRING "Base Python executable")
+
+macro(create_venv)
+  message(STATUS "Creating Python virtual environment")
+  # Use packages installed in the base installation if they're already present...
+  if(BUILD_BINDINGS_PYTHON AND NOT ONLY_PYTHON_EXT_SRC)
+    #... unless we are building the Python bindings.
+    # Building the Python bindings currently requires a recent version of
+    # setuptools. On old systems with Python 3.8 or 3.9, upgrading to the latest
+    # version of setuptools without manually upgrading its dependencies
+    # can cause problems (see https://github.com/pypa/setuptools/issues/4478).
+    # Therefore, we start with a clean virtual environment so that
+    # all the latest dependencies of setuptools are installed.
+    set(VENV_SYSTEM_PACKAGES_FLAG "")
+  else()
+    set(VENV_SYSTEM_PACKAGES_FLAG "--system-site-packages")
+  endif()
+  execute_process (
+    COMMAND
+      "${Python_EXECUTABLE}" -m venv ${VENV_SYSTEM_PACKAGES_FLAG} "${VENV_PATH}"
+    RESULT_VARIABLE VENV_CMD_EXIT_CODE
+  )
+  if(VENV_CMD_EXIT_CODE)
+    message(FATAL_ERROR "Could not create Python virtual environment")
+  endif()
+endmacro()
+
+if(ENABLE_AUTO_DOWNLOAD)
+  if(USE_PYTHON_VENV)
+    # Set up Python venv if one doesn't exist already
+    set(VENV_PATH "${PROJECT_BINARY_DIR}/venv-${Python_VERSION}")
+    if(NOT EXISTS ${VENV_PATH})
+      create_venv()
+    endif()
+
+    # Set up variables to find Python within the virtual environment
+    set(ENV{VIRTUAL_ENV} "${VENV_PATH}")
+    unset(Python_EXECUTABLE CACHE)
+    if(EXISTS ${VENV_PATH}/bin/python3)
+      set(Python_EXECUTABLE ${VENV_PATH}/bin/python3)
+    elseif(EXISTS ${VENV_PATH}/Scripts/python.exe)
+      set(Python_EXECUTABLE ${VENV_PATH}/Scripts/python.exe)
+    else()
+      message(FATAL_ERROR "Could not find Python interpreter in venv")
+    endif()
+
+    # Find the Python interpreter within the virtual environment
+    find_package(Python COMPONENTS Interpreter REQUIRED)
+  endif()
+  find_package(Pip REQUIRED)
+endif()
+
+find_package(GMP 6.3 REQUIRED)
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
@@ -360,7 +544,7 @@ if(ENABLE_COVERAGE)
   setup_code_coverage_fastcov(
     NAME coverage
     PATH "${PROJECT_SOURCE_DIR}"
-    EXCLUDE "${CMAKE_BINARY_DIR}/deps/*"
+    EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
     DEPENDENCIES cvc5-bin
   )
 endif()
@@ -371,11 +555,9 @@ endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
-  add_check_c_cxx_flag("-gz")
-endif()
-
-if(ENABLE_COMP_INC_TRACK)
-  add_definitions(-DCVC5_SMTCOMP_APPLICATION_TRACK)
+  if(NOT SKIP_COMPRESS_DEBUG)
+    add_check_c_cxx_flag("-gz")
+  endif()
 endif()
 
 if(ENABLE_MUZZLE)
@@ -389,6 +571,14 @@ endif()
 
 if(ENABLE_TRACING)
   add_definitions(-DCVC5_TRACING)
+endif()
+
+if(ENABLE_SAFE_MODE)
+  add_definitions(-DCVC5_SAFE_MODE)
+endif()
+
+if(ENABLE_STABLE_MODE)
+  add_definitions(-DCVC5_STABLE_MODE)
 endif()
 
 if(ENABLE_STATISTICS)
@@ -416,10 +606,7 @@ if(USE_CRYPTOMINISAT)
   # CryptoMiniSat requires pthreads support
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
-  if(THREADS_HAVE_PTHREAD_ARG)
-    add_c_cxx_flag(-pthread)
-  endif()
-  find_package(CryptoMiniSat 5.8 REQUIRED)
+  find_package(CryptoMiniSat 5.11.2 REQUIRED)
   add_definitions(-DCVC5_USE_CRYPTOMINISAT)
 endif()
 
@@ -434,8 +621,27 @@ if(USE_KISSAT)
   add_definitions(-DCVC5_USE_KISSAT)
 endif()
 
+# disable libraries that cannot be used in safe mode
+if(ENABLE_SAFE_MODE)
+  if(USE_POLY)
+    set(USE_POLY OFF)
+    message(WARNING
+      "LibPoly disabled due to safe mode")
+  endif()
+  if(USE_COCOA)
+    set(USE_COCOA OFF)
+    message(WARNING
+      "Cocoa disabled due to safe mode")
+  endif()
+  if(USE_NORMALIZ)
+    set(USE_NORMALIZ OFF)
+    message(WARNING
+      "Normaliz disabled due to safe mode")
+  endif()
+endif()
+
 if(USE_POLY)
-  find_package(Poly REQUIRED)
+  find_package(Poly 0.2.1 REQUIRED)
   add_definitions(-DCVC5_USE_POLY)
   set(CVC5_USE_POLY_IMP 1)
 else()
@@ -443,25 +649,39 @@ else()
 endif()
 
 if(USE_COCOA)
+  set(GPL_LIBS "${GPL_LIBS} cocoa")
   find_package(CoCoA REQUIRED 0.99711)
   add_definitions(-DCVC5_USE_COCOA)
+endif()
+
+if(USE_NORMALIZ)
+  set(GPL_LIBS "${GPL_LIBS} normaliz")
+  find_package(Normaliz REQUIRED)
+  add_definitions(-DCVC5_USE_NORMALIZ)
 endif()
 
 if(USE_EDITLINE)
   find_package(Editline REQUIRED)
   set(HAVE_LIBEDITLINE 1)
-  if(Editline_COMPENTRY_FUNC_RETURNS_CHARPTR)
-    set(EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
-  endif()
 endif()
 
+# SymFPU is always needed for the symbolic FP word blaster in the theory solver.
 find_package(SymFPU REQUIRED)
+
+if(USE_MPFR)
+  find_package(MPFR REQUIRED)
+  add_definitions(-DCVC5_USE_MPFR)
+  set(CVC5_USE_MPFR TRUE)
+else()
+  set(CVC5_USE_MPFR FALSE)
+endif()
 
 if(GPL_LIBS)
   if(NOT ENABLE_GPL)
     message(FATAL_ERROR
       "Bad configuration detected: BSD-licensed code only, but also requested "
-      "GPLed libraries: ${GPL_LIBS}")
+      "GPLed libraries: ${GPL_LIBS}. (Configure with --gpl to allow GPLed "
+      "libraries.)")
   endif()
   set(CVC5_GPL_DEPS 1)
 endif()
@@ -470,7 +690,6 @@ endif()
 # Provide targets to inspect iwyu suggestions
 
 include(IWYU)
-include(fuzzing-murxla)
 
 #-----------------------------------------------------------------------------#
 
@@ -484,8 +703,20 @@ else()
   endif()
 endif()
 
+# Re-apply EXPORTED_FUNCTIONS after configure checks complete
+if(NOT "${WASM_EXPORTED_FUNCTIONS_FLAG}" STREQUAL "")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " ${WASM_EXPORTED_FUNCTIONS_FLAG}")
+endif()
+
 #-----------------------------------------------------------------------------#
 # Add subdirectories
+
+# Include public headers
+include_directories(include)
+include_directories(${PROJECT_BINARY_DIR}/include)
+
+# Install public headers
+install(DIRECTORY include/cvc5 DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 add_subdirectory(src)
 
@@ -569,8 +800,8 @@ install(EXPORT cvc5-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5)
 
 configure_package_config_file(
-  ${CMAKE_SOURCE_DIR}/cmake/cvc5Config.cmake.in
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_SOURCE_DIR}/cmake/cvc5Config.cmake.in
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
   INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
   PATH_VARS CMAKE_INSTALL_LIBDIR
 )
@@ -582,8 +813,8 @@ write_basic_package_version_file(
 )
 
 install(FILES
-  ${CMAKE_BINARY_DIR}/cmake/cvc5Config.cmake
-  ${CMAKE_BINARY_DIR}/cvc5ConfigVersion.cmake
+  ${PROJECT_BINARY_DIR}/cmake/cvc5Config.cmake
+  ${PROJECT_BINARY_DIR}/cvc5ConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cvc5
 )
 
@@ -609,8 +840,12 @@ string(REPLACE ";" " " CVC5_DEFINITIONS "${CVC5_DEFINITIONS}")
 message("")
 print_info("cvc5 ${CVC5_VERSION}")
 message("")
-if(ENABLE_COMP_INC_TRACK)
-  print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING} (incremental)")
+if (ENABLE_SAFE_MODE)
+  print_config("Build profile             " "safe")
+elseif (ENABLE_STABLE_MODE)
+  print_config("Build profile             " "stable")
+elseif (CVC5_BUILD_PROFILE_STRING STREQUAL "production")
+  print_config("Build profile             " "unrestricted")
 else()
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()
@@ -641,11 +876,17 @@ print_config("GLPK                      " ${USE_GLPK})
 print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FOUND_SYSTEM})
 print_config("LibPoly                   " ${USE_POLY} FOUND_SYSTEM ${Poly_FOUND_SYSTEM})
 print_config("CoCoALib                  " ${USE_COCOA} FOUND_SYSTEM ${CoCoA_FOUND_SYSTEM})
+print_config("Normaliz                  " ${USE_NORMALIZ} FOUND_SYSTEM ${NORMALIZ_FOUND_SYSTEM})
 
 if(CVC5_USE_CLN_IMP)
   print_config("MP library                " "cln" FOUND_SYSTEM ${CLN_FOUND_SYSTEM})
 else()
   print_config("MP library                " "gmp" FOUND_SYSTEM ${GMP_FOUND_SYSTEM})
+endif()
+if(CVC5_USE_MPFR)
+  print_config("FP literal backend        " "mpfr" FOUND_SYSTEM ${MPFR_FOUND_SYSTEM})
+else()
+  print_config("FP literal backend        " "symfpu" FOUND_SYSTEM ${SymFPU_FOUND_SYSTEM})
 endif()
 print_config("Editline                  " ${USE_EDITLINE})
 message("")
@@ -653,6 +894,9 @@ print_config("Api docs                  " ${BUILD_DOCS})
 message("")
 if(GLPK_DIR)
   print_config("GLPK dir                  " ${GLPK_DIR})
+endif()
+if(PYTHONIC_PATH)
+  print_config("Pythonic API path         " ${PYTHONIC_PATH})
 endif()
 message("")
 print_config("CPPLAGS (-D...)" "${CVC5_DEFINITIONS}")

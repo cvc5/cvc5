@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 #include "options/arith_options.h"
 #include "proof/proof.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/ext_state.h"
@@ -33,7 +31,8 @@ namespace arith {
 namespace nl {
 
 namespace {
-void debugPrintBound(const char* c, Node coeff, Node x, Kind type, Node rhs)
+void debugPrintBound(
+    CVC5_UNUSED const char* c, Node coeff, Node x, Kind type, Node rhs)
 {
   Node t = ArithMSum::mkCoeffTerm(coeff, x);
   Trace(c) << t << " " << type << " " << rhs;
@@ -98,7 +97,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
   const std::map<Node, std::map<Node, ConstraintInfo> >& cim =
       d_cdb.getConstraints();
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
   for (const Node& lit : asserts)
@@ -299,7 +298,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           // if we are making an equality below, we require making it
           // well-typed so that lhs/rhs have the same type. We use the
           // mkSameType utility to do this
-          if (type == kind::EQUAL)
+          if (type == Kind::EQUAL)
           {
             std::tie(lhsTgt, rhsTgt) = mkSameType(lhsTgt, rhsTgt);
           }
@@ -319,8 +318,9 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           {
             Node exp = nm->mkNode(
                 Kind::AND,
-                nm->mkNode(
-                    mmv_sign == 1 ? Kind::GT : Kind::LT, mult, d_data->d_zero),
+                nm->mkNode(mmv_sign == 1 ? Kind::GT : Kind::LT,
+                           mult,
+                           nm->mkConstRealOrInt(mult.getType(), Rational(0))),
                 d_ci_exp[x][coeff][rhs]);
             Node iblem = nm->mkNode(Kind::IMPLIES, exp, infer);
             Node iblem_rw = rewrite(iblem);
@@ -342,15 +342,15 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                                        nm->mkNode(Kind::AND, exp[0], simpleeq),
                                        infer);
               proof->addStep(tmplem,
-                             mmv_sign == 1 ? PfRule::ARITH_MULT_POS
-                                           : PfRule::ARITH_MULT_NEG,
+                             mmv_sign == 1 ? ProofRule::ARITH_MULT_POS
+                                           : ProofRule::ARITH_MULT_NEG,
                              {},
                              {mult, simpleeq});
-              if (type == Kind::EQUAL && (rewrite(simpleeq) != rewrite(exp[1])))
+              if (type == Kind::EQUAL
+                  && (!CVC5_EQUAL(rewrite(simpleeq), rewrite(exp[1]))))
               {
-                // it is not identical under rewriting and we need to do some work here
-                // The proof looks like this:
-                // (SCOPE
+                // it is not identical under rewriting and we need to do some
+                // work here The proof looks like this: (SCOPE
                 //   (MODUS_PONENS
                 //     <tmplem>
                 //     (AND_INTRO
@@ -367,43 +367,69 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                 // ARITH_TRICHOTOMY expects, and also their order is not clear.
                 // Hence, we apply MACRO_SR_PRED_TRANSFORM to them, and check
                 // which corresponds to which subterm of the premise.
-                proof->addStep(exp[1][0],
-                               PfRule::AND_ELIM,
-                               {exp[1]},
-                               {nm->mkConstInt(Rational(0))});
-                proof->addStep(exp[1][1],
-                               PfRule::AND_ELIM,
-                               {exp[1]},
-                               {nm->mkConstInt(Rational(1))});
-                Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
-                Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
-                if (rewrite(lb) == rewrite(exp[1][0]))
+                // Note that the explanation may also be an equality that is
+                // equivalent to simpleeq up to polynomial normalization only,
+                // in which case we relate the two directly.
+                if (exp[1].getKind() == Kind::EQUAL
+                    && addArithPolyNormRel(*proof, exp[1], simpleeq))
                 {
-                  proof->addStep(
-                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {lb});
-                  proof->addStep(
-                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {rb});
+                  proof->addStep(simpleeq,
+                                 ProofRule::EQ_RESOLVE,
+                                 {exp[1], exp[1].eqNode(simpleeq)},
+                                 {});
                 }
                 else
                 {
+                  proof->addStep(exp[1][0],
+                                 ProofRule::AND_ELIM,
+                                 {exp[1]},
+                                 {nm->mkConstInt(Rational(0))});
+                  proof->addStep(exp[1][1],
+                                 ProofRule::AND_ELIM,
+                                 {exp[1]},
+                                 {nm->mkConstInt(Rational(1))});
+                  Node lb = nm->mkNode(Kind::GEQ, simpleeq[0], simpleeq[1]);
+                  Node rb = nm->mkNode(Kind::LEQ, simpleeq[0], simpleeq[1]);
+                  if (CVC5_EQUAL(rewrite(lb), rewrite(exp[1][0])))
+                  {
+                    proof->addStep(lb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][0]},
+                                   {lb});
+                    proof->addStep(rb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][1]},
+                                   {rb});
+                  }
+                  else
+                  {
+                    proof->addStep(lb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][1]},
+                                   {lb});
+                    proof->addStep(rb,
+                                   ProofRule::MACRO_SR_PRED_TRANSFORM,
+                                   {exp[1][0]},
+                                   {rb});
+                  }
                   proof->addStep(
-                      lb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][1]}, {lb});
-                  proof->addStep(
-                      rb, PfRule::MACRO_SR_PRED_TRANSFORM, {exp[1][0]}, {rb});
+                      simpleeq, ProofRule::ARITH_TRICHOTOMY, {lb, rb}, {});
                 }
                 proof->addStep(
-                    simpleeq, PfRule::ARITH_TRICHOTOMY, {lb, rb}, {simpleeq});
+                    tmplem[0], ProofRule::AND_INTRO, {exp[0], simpleeq}, {});
+                proof->addStep(tmplem[1],
+                               ProofRule::MODUS_PONENS,
+                               {tmplem[0], tmplem},
+                               {});
                 proof->addStep(
-                    tmplem[0], PfRule::AND_INTRO, {exp[0], simpleeq}, {});
-                proof->addStep(
-                    tmplem[1], PfRule::MODUS_PONENS, {tmplem[0], tmplem}, {});
-                proof->addStep(
-                    iblem, PfRule::SCOPE, {tmplem[1]}, {exp[0], exp[1]});
+                    iblem, ProofRule::SCOPE, {tmplem[1]}, {exp[0], exp[1]});
               }
               else
               {
-                proof->addStep(
-                    iblem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {iblem});
+                proof->addStep(iblem,
+                               ProofRule::MACRO_SR_PRED_TRANSFORM,
+                               {tmplem},
+                               {iblem});
               }
             }
             d_data->d_im.addPendingLemma(iblem,
@@ -419,7 +445,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
 
 void MonomialBoundsCheck::checkResBounds()
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..."
                   << std::endl;
   size_t nmterms = d_data->d_mterms.size();

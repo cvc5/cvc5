@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,36 +28,121 @@ Cardinality FiniteFieldProperties::computeCardinality(TypeNode type)
   return cardinality;
 }
 
-TypeNode FiniteFieldConstantTypeRule::computeType(NodeManager* nodeManager,
-                                                  TNode n,
-                                                  bool check,
-                                                  std::ostream* errOut)
+TypeNode FiniteFieldConstantTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FiniteFieldConstantTypeRule::computeType(
+    NodeManager* nodeManager,
+    TNode n,
+    CVC5_UNUSED bool check,
+    CVC5_UNUSED std::ostream* errOut)
 {
   return nodeManager->mkFiniteFieldType(
       n.getConst<FiniteFieldValue>().getFieldSize());
 }
 
+TypeNode FiniteFieldFixedFieldTypeRule::preComputeType(
+    CVC5_UNUSED NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
                                                     TNode n,
                                                     bool check,
                                                     std::ostream* errOut)
 {
-  TNode::iterator it = n.begin();
-  TypeNode t = (*it).getType(check);
+  TypeNode t;
+  for (const Node& nc : n)
+  {
+    TypeNode tc = nc.getType(check);
+    if (check)
+    {
+      if (!tc.isMaybeKind(Kind::FINITE_FIELD_TYPE))
+      {
+        if (errOut)
+        {
+          (*errOut) << "expecting finite-field terms";
+        }
+        return TypeNode::null();
+      }
+    }
+    // if first child
+    if (t.isNull())
+    {
+      t = tc;
+      continue;
+    }
+    t = t.leastUpperBound(tc);
+    if (t.isNull())
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting comparable finite-field terms";
+      }
+      return TypeNode::null();
+    }
+  }
+  // if all arguments are fully abstract, ensure we return the abstract finite
+  // field type
+  if (t.isFullyAbstract())
+  {
+    return nodeManager->mkAbstractType(Kind::FINITE_FIELD_TYPE);
+  }
+  return t;
+}
+
+TypeNode FiniteFieldIdealTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                  CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FiniteFieldIdealTypeRule::computeType(NodeManager* nodeManager,
+                                               TNode n,
+                                               bool check,
+                                               std::ostream* errOut)
+{
+  TypeNode t = n[0].getType(check);
   if (check)
   {
-    if (t.getKind() != kind::FINITE_FIELD_TYPE)
+    for (const Node& nc : n)
     {
-      throw TypeCheckingExceptionPrivate(n, "expecting finite-field terms");
-    }
-    TNode::iterator it_end = n.end();
-    for (++it; it != it_end; ++it)
-    {
-      if ((*it).getType(check) != t)
+      TypeNode tc = nc.getType(check);
+      if (!tc.isFiniteField() || tc != t)
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "expecting finite-field terms from the same field");
+        if (errOut)
+        {
+          (*errOut) << "expecting generators over a common finite field";
+        }
+        return TypeNode::null();
       }
+    }
+  }
+  return nodeManager->mkSetType(t);
+}
+
+TypeNode FiniteFieldVarietyTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                    CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FiniteFieldVarietyTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    bool check,
+    std::ostream* errOut)
+{
+  TypeNode t = n[0].getType(check);
+  if (check)
+  {
+    if (!t.isSet() || !t.getSetElementType().isFiniteField())
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting an ideal over a finite field";
+      }
+      return TypeNode::null();
     }
   }
   return t;

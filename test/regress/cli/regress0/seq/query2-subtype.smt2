@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --simplification=none --strings-fmf
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --simplification=none --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun x () (Seq Real))

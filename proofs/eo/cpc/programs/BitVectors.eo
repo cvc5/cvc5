@@ -1,0 +1,103 @@
+(include "../theories/BitVectors.eo")
+
+; define: $bv_sign_bit
+; args:
+; - b (BitVec m): The bitvector term.
+; return: The sign bit of b.
+(define $bv_sign_bit ((m Int :implicit) (b (BitVec m)))
+  (eo::define ((T (eo::typeof b)))
+  (eo::define ((w ($bv_bitwidth T)))
+  (eo::define ((wm1 (eo::add w -1)))
+    (eo::extract b wm1 wm1)))))
+
+; define: $bv_ones
+; args:
+; - m Int: The bitwidth.
+; return: The bitvector of width m containing all ones.
+(define $bv_ones ((m Int))
+  (eo::to_bin m (eo::add ($arith_eval_int_pow_2 m) -1)))
+
+; define: $bv_to_signed_int
+; args:
+; - b (BitVec m): The bitvector term.
+; return: The result of converting b to a signed integer.
+(define $bv_to_signed_int ((m Int :implicit) (b (BitVec m)))
+  (eo::define ((T (eo::typeof b)))
+  (eo::define ((w ($bv_bitwidth T)))
+  (eo::define ((wm1 (eo::add w -1)))
+  (eo::define ((z (eo::to_z (eo::extract b 0 (eo::add w -2)))))
+    (eo::ite (eo::eq ($bv_sign_bit b) #b1)
+      (eo::add (eo::neg ($arith_eval_int_pow_2 wm1)) z)
+      z))))))
+
+; define: $bv_unfold_repeat_rec
+; args:
+; - n Int: The number of times to repeat, expected to be a non-negative numeral.
+; - b (BitVec m): The bitvector term.
+; return: The result of concatenating b n times.
+(define $bv_unfold_repeat_rec ((m Int :implicit) (n Int) (b (BitVec m)))
+  (eo::list_repeat concat b n))
+
+; program: $bv_eval_concat
+; args:
+; - b (BitVec m): The bitvector concatenation term.
+; return: The result of concatenating each child of b.
+(program $bv_eval_concat
+  ((m Int) (n Int) (k Int) (b (BitVec m)) (bs (BitVec n) :list))
+  :signature ((BitVec k)) (BitVec k)
+  (
+  (($bv_eval_concat (concat b bs))  (eo::concat b ($bv_eval_concat bs)))
+  (($bv_eval_concat @bv_empty)      @bv_empty)
+  )
+)
+
+; define: $bv_unfold_repeat
+; args:
+; - n Int: The number of times to repeat, expected to be a non-negative numeral.
+; - b (BitVec m): The bitvector term.
+; return: >
+;   The result of concatenating b n times. If n is not a numeral or is negative,
+;   this returns the term (repeat n b).
+(define $bv_unfold_repeat ((m Int :implicit) (n Int) (b (BitVec m)))
+  (eo::ite (eo::and (eo::is_z n) (eo::not (eo::is_neg n)))
+    ($bv_unfold_repeat_rec n b)
+    (repeat n b)))
+
+; program: $bv_get_first_const_child
+; args:
+; - a (BitVec n): The term to find a constant child in.
+; return: >
+;   The first direct child of a that it is a bitvector constant if one exists,
+;   or the term @bv_empty otherwise.
+(program $bv_get_first_const_child
+  ((n Int) (f (-> (BitVec n) (BitVec n) (BitVec n))) (a (BitVec n))
+    (b (BitVec n) :list))
+  :signature ((BitVec n)) (BitVec n)
+  (
+  (($bv_get_first_const_child (f a b))
+    (eo::ite (eo::is_bin a) a ($bv_get_first_const_child b)))
+  )
+)
+
+; define: $bv_bit_set
+; args:
+; - a (BitVec n): The bitvector to inspect, in little endian form.
+; - i Int: The index of the bit.
+; return: true if the i^th bit of a is set.
+(define $bv_bit_set ((n Int :implicit) (a (BitVec n)) (i Int))
+  (eo::eq (eo::extract a i i) #b1))
+
+; define: $nary_app
+; args:
+; - f (-> T U V): The function to apply, which is assumed to be
+; right-associative with a nil terminator.
+; - a T: The first argument.
+; - b U: The second argument.
+; return: the term (f a b).
+; note: >
+;   This is a helpful method for constructing n-ary terms with exactly two
+;   children.
+(define $nary_app
+  ((T Type :implicit) (U Type :implicit) (V Type :implicit) (f (-> T U V))
+    (a T) (b U))
+  (f a (f b (eo::nil f (eo::typeof a)))))

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,14 +26,14 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "proof/trust_node.h"
-#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/branch_and_bound.h"
+#include "theory/arith/delta_rational.h"
+#include "theory/arith/linear/arith_static_learner.h"
 #include "theory/arith/linear/arithvar.h"
 #include "theory/arith/linear/attempt_solution_simplex.h"
-#include "theory/arith/branch_and_bound.h"
 #include "theory/arith/linear/congruence_manager.h"
 #include "theory/arith/linear/constraint.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/linear/dio_solver.h"
 #include "theory/arith/linear/dual_simplex.h"
 #include "theory/arith/linear/error_set.h"
@@ -46,9 +43,8 @@
 #include "theory/arith/linear/matrix.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/arith/linear/partial_model.h"
-#include "theory/arith/proof_checker.h"
 #include "theory/arith/linear/soi_simplex.h"
-#include "theory/arith/theory_arith.h"
+#include "theory/theory.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -59,6 +55,7 @@
 namespace cvc5::internal {
 
 class EagerProofGenerator;
+class LazyCDProof;
 
 namespace theory {
 
@@ -66,6 +63,7 @@ class TheoryModel;
 
 namespace arith::linear {
 
+class LinearSolver;
 class BranchCutInfo;
 class TreeLog;
 class ApproximateStatistics;
@@ -73,21 +71,21 @@ class ApproximateStatistics;
 class ArithEntailmentCheckParameters;
 class ArithEntailmentCheckSideEffects;
 namespace inferbounds {
-  class InferBoundAlgorithm;
+class InferBoundAlgorithm;
 }
 class InferBoundsResult;
-  
+
 /**
  * Implementation of QF_LRA.
  * Based upon:
- * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
+ * https://leodemoura.github.io/files/cav06.pdf
  */
 class TheoryArithPrivate : protected EnvObj
 {
  private:
   static constexpr uint32_t RESET_START = 2;
 
-  TheoryArith& d_containing;
+  LinearSolver& d_containing;
 
   /**
    * Whether we encountered non-linear arithmetic at any time during solving.
@@ -97,13 +95,20 @@ class TheoryArithPrivate : protected EnvObj
   BoundInfoMap d_rowTracking;
   /** Branch and bound utility */
   BranchAndBound& d_bab;
+  /** Theory state */
+  TheoryState& d_state;
+  /** Valuation */
+  Valuation& d_valuation;
   // For proofs
   /** Manages the proof nodes of this theory. */
   ProofNodeManager* d_pnm;
-  /** Checks the proof rules of this theory. */
-  ArithProofRuleChecker d_checker;
   /** Stores proposition(node)/proof pairs. */
   std::unique_ptr<EagerProofGenerator> d_pfGen;
+  /**
+   * Proves the equalities in solved form that we infer in ppAssert, which are
+   * proven based on the (lazy) proof of the equality we solved.
+   */
+  std::unique_ptr<LazyCDProof> d_ppAssertPf;
 
   /**
    * The constraint database associated with the theory.
@@ -117,7 +122,8 @@ class TheoryArithPrivate : protected EnvObj
   //   fullEffort(e) -> simplex returns either sat or unsat
   //   !fullEffort(e) -> simplex returns either sat, unsat or unknown
   //                     if unknown, save the assignment
-  //                     if unknown, the simplex priority queue cannot be emptied
+  //                     if unknown, the simplex priority queue cannot be
+  //                     emptied
   int d_unknownsInARow;
 
   bool d_replayedLemmas;
@@ -131,16 +137,19 @@ class TheoryArithPrivate : protected EnvObj
   /** Static learner. */
   ArithStaticLearner d_learner;
 
-  //std::vector<ArithVar> d_pool;
-public:
+  // std::vector<ArithVar> d_pool;
+ public:
   void releaseArithVar(ArithVar v);
-  void signal(ArithVar v){ d_errorSet.signalVariable(v); }
+  void signal(ArithVar v) { d_errorSet.signalVariable(v); }
 
-
-private:
+ private:
   // t does not contain constants
-  void entailmentCheckBoundLookup(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
-  void entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp, int sgn, TNode tp) const;
+  void entailmentCheckBoundLookup(std::pair<Node, DeltaRational>& tmp,
+                                  int sgn,
+                                  TNode tp) const;
+  void entailmentCheckRowSum(std::pair<Node, DeltaRational>& tmp,
+                             int sgn,
+                             TNode tp) const;
 
   /**
    * Infers either a new upper/lower bound on term in the real relaxation.
@@ -159,44 +168,52 @@ private:
    * -- If theshold != NULL, and a feasible value is found to exceed threshold
    * -- Simplex stops and returns <threshold, term>
    */
-  //std::pair<DeltaRational, Node> inferBound(TNode term, bool lb, int maxRounds = -1, const DeltaRational* threshold = NULL);
+  // std::pair<DeltaRational, Node> inferBound(TNode term, bool lb, int
+  // maxRounds = -1, const DeltaRational* threshold = NULL);
 
-private:
- static bool decomposeTerm(Node t, Rational& m, Node& p, Rational& c);
- bool decomposeLiteral(Node lit,
-                       Kind& k,
-                       int& dir,
-                       Rational& lm,
-                       Node& lp,
-                       Rational& rm,
-                       Node& rp,
-                       Rational& dm,
-                       Node& dp,
-                       DeltaRational& sep);
- static void setToMin(int sgn,
-                      std::pair<Node, DeltaRational>& min,
-                      const std::pair<Node, DeltaRational>& e);
+ private:
+  static bool decomposeTerm(
+      NodeManager* nm, Node t, Rational& m, Node& p, Rational& c);
+  bool decomposeLiteral(Node lit,
+                        Kind& k,
+                        int& dir,
+                        Rational& lm,
+                        Node& lp,
+                        Rational& rm,
+                        Node& rp,
+                        Rational& dm,
+                        Node& dp,
+                        DeltaRational& sep);
+  static void setToMin(int sgn,
+                       std::pair<Node, DeltaRational>& min,
+                       const std::pair<Node, DeltaRational>& e);
 
- typedef ArithVariables::var_iterator var_iterator;
- var_iterator var_begin() const { return d_partialModel.var_begin(); }
- var_iterator var_end() const { return d_partialModel.var_end(); }
+  typedef ArithVariables::var_iterator var_iterator;
+  var_iterator var_begin() const { return d_partialModel.var_begin(); }
+  var_iterator var_end() const { return d_partialModel.var_end(); }
 
- NodeSet d_setupNodes;
-public:
-  bool isSetup(Node n) const {
+  NodeSet d_setupNodes;
+
+ public:
+  bool isSetup(Node n) const
+  {
     return d_setupNodes.find(n) != d_setupNodes.end();
   }
-  void markSetup(Node n){
+  void markSetup(Node n)
+  {
     Assert(!isSetup(n));
     d_setupNodes.insert(n);
   }
-private:
+
+ private:
   void setupVariable(const Variable& x);
   void setupVariableList(const VarList& vl);
   void setupPolynomial(const Polynomial& poly);
-public:
+
+ public:
   void setupAtom(TNode atom);
-private:
+
+ private:
   void cautiousSetupPolynomial(const Polynomial& p);
 
   /**
@@ -207,13 +224,15 @@ private:
       d_assertionsThatDoNotMatchTheirLiterals;
 
   /** Returns true if x is of type Integer. */
-  inline bool isInteger(ArithVar x) const {
+  inline bool isInteger(ArithVar x) const
+  {
     return d_partialModel.isInteger(x);
   }
 
-
-  /** Returns true if the variable was initially introduced as an auxiliary variable. */
-  inline bool isAuxiliaryVariable(ArithVar x) const{
+  /** Returns true if the variable was initially introduced as an auxiliary
+   * variable. */
+  inline bool isAuxiliaryVariable(ArithVar x) const
+  {
     return d_partialModel.isAuxiliary(x);
   }
 
@@ -251,8 +270,8 @@ private:
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
   /**
-   * List of all of the disequalities asserted in the current context that are not known
-   * to be satisfied.
+   * List of all of the disequalities asserted in the current context that are
+   * not known to be satisfied.
    */
   context::CDQueue<ConstraintP> d_diseqQueue;
 
@@ -351,9 +370,7 @@ private:
   bool anyConflict() const;
 
  private:
-  inline bool conflictQueueEmpty() const {
-    return d_conflicts.empty();
-  }
+  inline bool conflictQueueEmpty() const { return d_conflicts.empty(); }
 
   /**
    * Outputs the contents of d_conflicts onto d_out.
@@ -394,7 +411,8 @@ private:
   /* Returns true if this is heuristically a good time to try
    * to solve the integers.
    */
-  bool attemptSolveInteger(Theory::Effort effortLevel, bool emmmittedLemmaOrSplit);
+  bool attemptSolveInteger(Theory::Effort effortLevel,
+                           bool emmmittedLemmaOrSplit);
   bool replayLemmas(ApproximateSimplex* approx);
   void solveInteger(Theory::Effort effortLevel);
   bool safeToCallApprox() const;
@@ -407,7 +425,8 @@ private:
   context::CDO<int> d_lastContextIntegerAttempted;
   bool replayLog(ApproximateSimplex* approx);
 
-  class ModelException : public Exception {
+  class ModelException : public Exception
+  {
    public:
     ModelException(TNode n, const char* msg);
     ~ModelException() override;
@@ -427,26 +446,34 @@ private:
    */
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
+
  public:
-  TheoryArithPrivate(TheoryArith& containing, Env& env, BranchAndBound& bab);
+  TheoryArithPrivate(Env& env,
+                     LinearSolver& containing,
+                     TheoryState& ts,
+                     BranchAndBound& bab);
   ~TheoryArithPrivate();
 
   //--------------------------------- initialization
   /** finish initialize */
-  void finishInit();
+  void finishInit(eq::EqualityEngine* ee);
   //--------------------------------- end initialization
+
+  /**
+   * Returns the associated node manager
+   */
+  NodeManager* getNodeManager() const { return nodeManager(); };
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
 
-  void propagate(Theory::Effort e);
+  void propagate();
   TrustNode explain(TNode n);
 
   Rational deltaValueForTotalOrder() const;
 
-  bool collectModelInfo(TheoryModel* m);
   /**
    * Collect model values. This is the main method for extracting information
    * about how to construct the model. This method relies on the caller for
@@ -464,14 +491,22 @@ private:
   void collectModelValues(const std::set<Node>& termSet,
                           std::map<Node, Node>& arithModel,
                           std::map<Node, Node>& arithModelIllTyped);
-
-  void shutdown(){ }
-
   void presolve();
   void notifyRestart();
-  Theory::PPAssertStatus ppAssert(TrustNode tin,
-                                  TrustSubstitutionMap& outSubstitutions);
-  void ppStaticLearn(TNode in, NodeBuilder& learned);
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions);
+  /**
+   * Make the trust node for the equality (= x t) in solved form, which was
+   * inferred from the equality proven by tin in ppAssert above. When proofs
+   * are enabled, the returned trust node proves (= x t) based on the (lazy)
+   * proof of tin, where the two are related by polynomial normalization.
+   *
+   * @param x The variable we solved for.
+   * @param t The solved form of x.
+   * @param tin The trust node proving the equality we solved.
+   * @return The trust node proving (= x t).
+   */
+  TrustNode mkSolvedEq(const Node& x, const Node& t, TrustNode tin);
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
 
@@ -486,9 +521,9 @@ private:
 
   //--------------------------------- standard check
   /** Pre-check, called before the fact queue of the theory is processed. */
-  bool preCheck(Theory::Effort level);
+  bool preCheck(bool newFacts);
   /** Pre-notify fact. */
-  void preNotifyFact(TNode atom, bool pol, TNode fact);
+  void preNotifyFact(TNode fact);
   /**
    * Post-check, called after the fact queue of the theory is processed. Returns
    * true if a conflict or lemma was emitted.
@@ -504,8 +539,6 @@ private:
    */
   bool foundNonlinear() const;
 
-  /** get the proof checker of this theory */
-  ArithProofRuleChecker* getProofChecker();
   /** get the congruence manager, if we are using one */
   ArithCongruenceManager* getCongruenceManager();
 
@@ -514,7 +547,7 @@ private:
   DeltaRational d_DELTA_ZERO;
 
   /** propagates an arithvar */
-  void propagateArithVar(bool upperbound, ArithVar var );
+  void propagateArithVar(bool upperbound, ArithVar var);
 
   /**
    * Using the simpleKind return the ArithVar associated with the assertion.
@@ -523,15 +556,14 @@ private:
   ArithVar determineArithVar(TNode assertion) const;
 
   /**
-   * Splits the disequalities in d_diseq that are violated using lemmas on demand.
-   * returns true if any lemmas were issued.
-   * returns false if all disequalities are satisfied in the current model.
+   * Splits the disequalities in d_diseq that are violated using lemmas on
+   * demand. returns true if any lemmas were issued. returns false if all
+   * disequalities are satisfied in the current model.
    */
   bool splitDisequalities();
 
   /** A Difference variable is known to be 0.*/
   void zeroDifferenceDetected(ArithVar x);
-
 
   /**
    * Looks for the next integer variable without an integer assignment in a
@@ -555,11 +587,11 @@ private:
   ArithVar nextIntegerViolation(bool assumeBounds) const;
 
   /**
-   * Issues branches for non-auxiliary integer variables with non-integer assignments.
-   * Returns a cut for a lemma.
-   * If there is an integer model, this returns Node::null().
+   * Issues branches for non-auxiliary integer variables with non-integer
+   * assignments. Returns a cut for a lemma. If there is an integer model, this
+   * returns the empty vector.
    */
-  TrustNode roundRobinBranch();
+  std::vector<TrustNode> roundRobinBranch();
 
   bool proofsEnabled() const { return d_pnm; }
 
@@ -574,17 +606,15 @@ private:
    */
   ArithVar requestArithVar(TNode x, bool aux, bool internal);
 
-public:
+ public:
   const BoundsInfo& boundsInfo(ArithVar basic) const;
 
-
-private:
+ private:
   /** Initial (not context dependent) sets up for a variable.*/
   void setupBasicValue(ArithVar x);
 
   /** Initial (not context dependent) sets up for a new auxiliary variable.*/
   void setupAuxiliary(TNode left);
-
 
   /**
    * Assert*(n, orig) takes an bound n that is implied by orig.
@@ -622,28 +652,39 @@ private:
   void dumpUpdatedBoundsToRows();
   bool propagateCandidateRow(RowIndex rid);
   bool propagateMightSucceed(ArithVar v, bool ub) const;
-  /** Attempt to perform a row propagation where there is at most 1 possible variable.*/
+  /** Attempt to perform a row propagation where there is at most 1 possible
+   * variable.*/
   bool attemptSingleton(RowIndex ridx, bool rowUp);
-  /** Attempt to perform a row propagation where every variable is a potential candidate.*/
+  /** Attempt to perform a row propagation where every variable is a potential
+   * candidate.*/
   bool attemptFull(RowIndex ridx, bool rowUp);
-  bool tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, bool vUp, const DeltaRational& bound);
-  bool rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, ConstraintP bestImplied);
-  //void enqueueConstraints(std::vector<ConstraintCP>& out, Node n) const;
-  //ConstraintCPVec resolveOutPropagated(const ConstraintCPVec& v, const std::set<ConstraintCP>& propagated) const;
-  void resolveOutPropagated(std::vector<ConstraintCPVec>& confs, const std::set<ConstraintCP>& propagated) const;
+  bool tryToPropagate(RowIndex ridx,
+                      bool rowUp,
+                      ArithVar v,
+                      bool vUp,
+                      const DeltaRational& bound);
+  bool rowImplicationCanBeApplied(RowIndex ridx,
+                                  bool rowUp,
+                                  ConstraintP bestImplied);
+  // void enqueueConstraints(std::vector<ConstraintCP>& out, Node n) const;
+  // ConstraintCPVec resolveOutPropagated(const ConstraintCPVec& v, const
+  // std::set<ConstraintCP>& propagated) const;
+  void resolveOutPropagated(std::vector<ConstraintCPVec>& confs) const;
   void subsumption(std::vector<ConstraintCPVec>& confs) const;
 
-  Node cutToLiteral(ApproximateSimplex*  approx, const CutInfo& cut) const;
+  Node cutToLiteral(const CutInfo& cut) const;
   Node branchToNode(ApproximateSimplex* approx, const NodeLog& cut) const;
 
   void propagateCandidates();
   void propagateCandidate(ArithVar basic);
   bool propagateCandidateBound(ArithVar basic, bool upperBound);
 
-  inline bool propagateCandidateLowerBound(ArithVar basic){
+  inline bool propagateCandidateLowerBound(ArithVar basic)
+  {
     return propagateCandidateBound(basic, false);
   }
-  inline bool propagateCandidateUpperBound(ArithVar basic){
+  inline bool propagateCandidateUpperBound(ArithVar basic)
+  {
     return propagateCandidateBound(basic, true);
   }
 
@@ -664,8 +705,8 @@ private:
   bool assertionCases(ConstraintP c);
 
   /**
-   * Returns the basic variable with the shorted row containing a non-basic variable.
-   * If no such row exists, return ARITHVAR_SENTINEL.
+   * Returns the basic variable with the shorted row containing a non-basic
+   * variable. If no such row exists, return ARITHVAR_SENTINEL.
    */
   ArithVar findShortestBasicRow(ArithVar variable);
 
@@ -690,33 +731,26 @@ private:
   /** Debugging only routine. Prints the model. */
   void debugPrintModel(std::ostream& out) const;
 
-  bool done() const { return d_containing.done(); }
-  bool isLeaf(TNode x) const { return d_containing.isLeaf(x); }
-  TheoryId theoryOf(TNode x) const { return d_containing.theoryOf(x); }
-  void debugPrintFacts() const { d_containing.debugPrintFacts(); }
+  bool isLeaf(TNode x) const;
+  TheoryId theoryOf(TNode x) const;
   bool outputTrustedLemma(TrustNode lem, InferenceId id);
   bool outputLemma(TNode lem, InferenceId id);
   void outputTrustedConflict(TrustNode conf, InferenceId id);
   void outputConflict(TNode lit, InferenceId id);
   void outputPropagate(TNode lit);
   void outputRestart();
-
-  inline bool isSatLiteral(TNode l) const {
-    return (d_containing.d_valuation).isSatLiteral(l);
-  }
-  inline Node getSatValue(TNode n) const {
-    return (d_containing.d_valuation).getSatValue(n);
-  }
-
+  bool isSatLiteral(TNode l) const;
+  Node getSatValue(TNode n) const;
   /** Used for replaying approximate simplex */
   context::CDQueue<TrustNode> d_approxCuts;
-  /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */
+  /** Also used for replaying approximate simplex. "approximate cuts temporary
+   * storage" */
   std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  TrustNode branchIntegerVariable(ArithVar x) const;
+  std::vector<TrustNode> branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
@@ -727,10 +761,8 @@ private:
   context::CDO<bool> d_guessedCoeffSet;
   ArithRatPairVec d_guessedCoeffs;
 
-
   TreeLog* d_treeLog;
   TreeLog& getTreeLog();
-
 
   ArithVarVec d_replayVariables;
   std::vector<ConstraintP> d_replayConstraints;
@@ -744,17 +776,22 @@ private:
   bool getSolveIntegerResource();
 
   void tryBranchCut(ApproximateSimplex* approx, int nid, BranchCutInfo& bl);
-  std::vector<ConstraintCPVec> replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth);
+  std::vector<ConstraintCPVec> replayLogRec(ApproximateSimplex* approx,
+                                            int nid,
+                                            ConstraintP bc,
+                                            int depth);
 
   std::pair<ConstraintP, ArithVar> replayGetConstraint(const CutInfo& info);
   std::pair<ConstraintP, ArithVar> replayGetConstraint(
       ApproximateSimplex* approx, const NodeLog& nl);
-  std::pair<ConstraintP, ArithVar> replayGetConstraint(const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, bool branch);
+  std::pair<ConstraintP, ArithVar> replayGetConstraint(
+      const DenseMap<Rational>& lhs, Kind k, const Rational& rhs, bool branch);
 
   void replayAssert(ConstraintP c);
 
   static ConstraintCP vectorToIntHoleConflict(const ConstraintCPVec& conflict);
-  static void intHoleConflictToVector(ConstraintCP conflicting, ConstraintCPVec& conflict);
+  static void intHoleConflictToVector(ConstraintCP conflicting,
+                                      ConstraintCPVec& conflict);
 
   // Returns true if the node contains a literal
   // that is an arithmetic literal and is not a sat literal
@@ -777,8 +814,9 @@ private:
   //---------------- end during check
 
   /** These fields are designed to be accessible to TheoryArith methods. */
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
 
     IntStat d_statUserVariables, d_statAuxiliaryVariables;
@@ -809,45 +847,24 @@ private:
     IntStat d_commitsOnConflicts;
     IntStat d_nontrivialSatChecks;
 
-    IntStat d_replayLogRecCount,
-      d_replayLogRecConflictEscalation,
-      d_replayLogRecEarlyExit,
-      d_replayBranchCloseFailures,
-      d_replayLeafCloseFailures,
-      d_replayBranchSkips,
-      d_mirCutsAttempted,
-      d_gmiCutsAttempted,
-      d_branchCutsAttempted,
-      d_cutsReconstructed,
-      d_cutsReconstructionFailed,
-      d_cutsProven,
-      d_cutsProofFailed,
-      d_mipReplayLemmaCalls,
-      d_mipExternalCuts,
-      d_mipExternalBranch;
+    IntStat d_replayLogRecCount, d_replayLogRecConflictEscalation,
+        d_replayLogRecEarlyExit, d_replayBranchCloseFailures,
+        d_replayLeafCloseFailures, d_replayBranchSkips, d_mirCutsAttempted,
+        d_gmiCutsAttempted, d_branchCutsAttempted, d_cutsReconstructed,
+        d_cutsReconstructionFailed, d_cutsProven, d_cutsProofFailed,
+        d_mipReplayLemmaCalls, d_mipExternalCuts, d_mipExternalBranch;
 
-    IntStat d_inSolveInteger,
-      d_branchesExhausted,
-      d_execExhausted,
-      d_pivotsExhausted,
-      d_panicBranches,
-      d_relaxCalls,
-      d_relaxLinFeas,
-      d_relaxLinFeasFailures,
-      d_relaxLinInfeas,
-      d_relaxLinInfeasFailures,
-      d_relaxLinExhausted,
-      d_relaxOthers;
+    IntStat d_inSolveInteger, d_branchesExhausted, d_execExhausted,
+        d_pivotsExhausted, d_panicBranches, d_relaxCalls, d_relaxLinFeas,
+        d_relaxLinFeasFailures, d_relaxLinInfeas, d_relaxLinInfeasFailures,
+        d_relaxLinExhausted, d_relaxOthers;
 
     IntStat d_applyRowsDeleted;
     TimerStat d_replaySimplexTimer;
 
-    TimerStat d_replayLogTimer,
-      d_solveIntTimer,
-      d_solveRealRelaxTimer;
+    TimerStat d_replayLogTimer, d_solveIntTimer, d_solveRealRelaxTimer;
 
-    IntStat d_solveIntCalls,
-      d_solveStandardEffort;
+    IntStat d_solveIntCalls, d_solveStandardEffort;
 
     IntStat d_approxDisabled;
     IntStat d_replayAttemptFailed;
@@ -872,11 +889,9 @@ private:
     Statistics(StatisticsRegistry& reg, const std::string& name);
   };
 
-
   Statistics d_statistics;
 }; /* class TheoryArithPrivate */
 
-
-}  // namespace arith
+}  // namespace arith::linear
 }  // namespace theory
 }  // namespace cvc5::internal

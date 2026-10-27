@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --strings-fmf
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --strings-fmf
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :strings-fmf true)

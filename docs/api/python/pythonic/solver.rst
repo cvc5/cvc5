@@ -7,6 +7,7 @@ Simple Solving
 .. autofunction:: cvc5.pythonic.solve
 .. autofunction:: cvc5.pythonic.solve_using
 .. autofunction:: cvc5.pythonic.prove
+.. autofunction:: cvc5.pythonic.is_tautology
 
 
 The Solver Class

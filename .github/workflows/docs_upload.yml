@@ -10,19 +10,22 @@ jobs:
   upload-docs:
     name: upload-docs
     runs-on: ubuntu-latest
-    continue-on-error: true
-    if: github.repository == 'cvc5/cvc5' && github.event.workflow_run.conclusion == 'success'
+    if: >
+      github.repository == 'cvc5/cvc5' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event != 'schedule' &&
+      !startsWith(github.event.workflow_run.head_branch, 'gh-readonly-queue')
     steps:
       - name: Setup git config
         run: |
           git config --global user.email "docbot@cvc5"
           git config --global user.name "DocBot"
-      
+
       - name: Download artifact
-        uses: actions/github-script@v3.1.0
+        uses: actions/github-script@v8
         with:
           script: |
-            var artifacts = await github.actions.listWorkflowRunArtifacts({
+            var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
                repo: context.repo.repo,
                run_id: ${{github.event.workflow_run.id }},
@@ -30,7 +33,7 @@ jobs:
             var matchArtifact = artifacts.data.artifacts.filter((artifact) => {
               return artifact.name == "documentation"
             })[0];
-            var download = await github.actions.downloadArtifact({
+            var download = await github.rest.actions.downloadArtifact({
                owner: context.repo.owner,
                repo: context.repo.repo,
                artifact_id: matchArtifact.id,
@@ -41,12 +44,14 @@ jobs:
 
       - name: Unpack artifact
         run: unzip download.zip -d docs-new/
-      
-      - name: Check for broken links
-        continue-on-error: true
-        run: |
-          python3 -m pip install linkchecker
-          linkchecker --check-extern docs-new/index.html
+
+      # disabled, causes websites like gmplib.org to trigger their anti-dos
+      # measure, which causes the action to time out
+      #- name: Check for broken links
+      #  continue-on-error: true
+      #  run: |
+      #    python3 -m pip install linkchecker
+      #    linkchecker --check-extern docs-new/index.html
 
 # This workflow is run for commits in PRs (from branches in forks), commits
 # (from branches in main repo, usually main branch) and tags. Unfortunately,
@@ -81,7 +86,6 @@ jobs:
           echo "ISRELEASE=$ISRELEASE" >> $GITHUB_ENV
 
       - name: Update versions
-        continue-on-error: true
         run: |
           python3 -m pip install beautifulsoup4 lxml
 
@@ -100,10 +104,9 @@ jobs:
           pushd target-releases/
           python3 genversions.py
           popd
-          cp -rf "${TARGET_DIR}" docs-new
+          cp -rfT "${TARGET_DIR}" docs-new
 
       - name: Update docs
-        continue-on-error: true
         run: |
           if [ -n "$NAME" ]; then
             eval $(ssh-agent -s)
@@ -134,9 +137,11 @@ jobs:
           fi
 
       - name: Update docs for release
-        continue-on-error: true
         run: |
           if [ "$ISRELEASE" = true ]; then
+            eval $(ssh-agent -s)
+            ssh-add - <<< "${{ secrets.CVC5_DOCS_RELEASE_TOKEN }}"
+
             cd target-releases/
 
             rm -f latest

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Alex Ozdemir, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,8 +26,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
-
 namespace test {
 
 class TestNodeBlackNodeTraversalPostorder : public TestNode
@@ -45,7 +40,7 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, preincrement_iteration)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   auto traversal = NodeDfsIterable(cnd, VisitOrder::POSTORDER);
   NodeDfsIterator i = traversal.begin();
@@ -66,7 +61,7 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, postincrement_iteration)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   auto traversal = NodeDfsIterable(cnd, VisitOrder::POSTORDER);
   NodeDfsIterator i = traversal.begin();
@@ -81,7 +76,7 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, postorder_is_default)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   auto traversal = NodeDfsIterable(cnd);
   NodeDfsIterator i = traversal.begin();
@@ -94,7 +89,7 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, range_for_loop)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   size_t count = 0;
   for (auto i : NodeDfsIterable(cnd, VisitOrder::POSTORDER))
@@ -108,7 +103,7 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, count_if_with_loop)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   size_t count = 0;
   for (auto i : NodeDfsIterable(cnd, VisitOrder::POSTORDER))
@@ -125,8 +120,8 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, stl_count_if)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-  const Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
+  const Node top = d_nodeManager->mkNode(Kind::XOR, cnd, cnd);
 
   auto traversal = NodeDfsIterable(top, VisitOrder::POSTORDER);
 
@@ -139,8 +134,8 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, stl_copy)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-  const Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
+  const Node top = d_nodeManager->mkNode(Kind::XOR, cnd, cnd);
   std::vector<TNode> expected = {tb, eb, cnd, top};
 
   auto traversal = NodeDfsIterable(top, VisitOrder::POSTORDER);
@@ -154,8 +149,8 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, skip_if)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-  const Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
+  const Node top = d_nodeManager->mkNode(Kind::XOR, cnd, cnd);
   std::vector<TNode> expected = {top};
 
   auto traversal = NodeDfsIterable(
@@ -170,12 +165,12 @@ TEST_F(TestNodeBlackNodeTraversalPostorder, skip_all)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-  const Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
+  const Node top = d_nodeManager->mkNode(Kind::XOR, cnd, cnd);
   std::vector<TNode> expected = {};
 
   auto traversal =
-      NodeDfsIterable(top, VisitOrder::POSTORDER, [](TNode n) { return true; });
+      NodeDfsIterable(top, VisitOrder::POSTORDER, [](TNode) { return true; });
 
   std::vector<TNode> actual;
   std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
@@ -186,7 +181,7 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, preincrement_iteration)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   auto traversal = NodeDfsIterable(cnd, VisitOrder::PREORDER);
   NodeDfsIterator i = traversal.begin();
@@ -207,7 +202,7 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, postincrement_iteration)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   auto traversal = NodeDfsIterable(cnd, VisitOrder::PREORDER);
   NodeDfsIterator i = traversal.begin();
@@ -222,7 +217,7 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, range_for_loop)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   size_t count = 0;
   for (auto i : NodeDfsIterable(cnd, VisitOrder::PREORDER))
@@ -236,7 +231,7 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, count_if_with_loop)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
 
   size_t count = 0;
   for (auto i : NodeDfsIterable(cnd, VisitOrder::PREORDER))
@@ -253,8 +248,8 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, stl_count_if)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-  const Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
+  const Node top = d_nodeManager->mkNode(Kind::XOR, cnd, cnd);
 
   auto traversal = NodeDfsIterable(top, VisitOrder::PREORDER);
 
@@ -267,8 +262,8 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, stl_copy)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-  const Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
+  const Node top = d_nodeManager->mkNode(Kind::XOR, cnd, cnd);
   std::vector<TNode> expected = {top, cnd, tb, eb};
 
   auto traversal = NodeDfsIterable(top, VisitOrder::PREORDER);
@@ -282,8 +277,8 @@ TEST_F(TestNodeBlackNodeTraversalPreorder, skip_if)
 {
   const Node tb = d_nodeManager->mkConst(true);
   const Node eb = d_nodeManager->mkConst(false);
-  const Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
-  const Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+  const Node cnd = d_nodeManager->mkNode(Kind::XOR, tb, eb);
+  const Node top = d_nodeManager->mkNode(Kind::XOR, cnd, cnd);
   std::vector<TNode> expected = {top, cnd, eb};
 
   auto traversal = NodeDfsIterable(

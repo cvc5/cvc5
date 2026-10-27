@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,12 +22,10 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee)
-{
-}
+NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee) {}
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
-    int effort,
+    CVC5_UNUSED int effort,
     const std::vector<Node>& vars,
     std::vector<Node>& subs,
     std::map<Node, std::vector<Node>>& exp)
@@ -64,8 +59,11 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
   return retVal;
 }
 
-bool NlExtTheoryCallback::isExtfReduced(
-    int effort, Node n, Node on, std::vector<Node>& exp, ExtReducedId& id)
+bool NlExtTheoryCallback::isExtfReduced(CVC5_UNUSED int effort,
+                                        Node n,
+                                        Node on,
+                                        std::vector<Node>& exp,
+                                        ExtReducedId& id)
 {
   if (isTranscendentalKind(on.getKind()))
   {
@@ -75,8 +73,8 @@ bool NlExtTheoryCallback::isExtfReduced(
   if (!isZero(n))
   {
     Kind k = n.getKind();
-    if (k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND
-        && k != POW2)
+    if (k != Kind::NONLINEAR_MULT && !isTranscendentalKind(k) && k != Kind::IAND
+        && k != Kind::PIAND && k != Kind::POW2)
     {
       // we consider an extended function to be reduced if it simplifies to
       // something that is not a non-linear term. For example, if we know
@@ -91,7 +89,7 @@ bool NlExtTheoryCallback::isExtfReduced(
   // simplified to zero, for example, if (= x 0) ^ (= y 5) => (= (* x y) 0),
   // we minimize the explanation to (= x 0) => (= (* x y) 0).
   id = ExtReducedId::ARITH_SR_ZERO;
-  if (on.getKind() == NONLINEAR_MULT)
+  if (on.getKind() == Kind::NONLINEAR_MULT)
   {
     Trace("nl-ext-zero-exp")
         << "Infer zero : " << on << " == " << n << std::endl;
@@ -103,15 +101,15 @@ bool NlExtTheoryCallback::isExtfReduced(
       Trace("nl-ext-zero-exp")
           << "  exp[" << i << "] = " << exp[i] << std::endl;
       std::vector<Node> eqs;
-      if (exp[i].getKind() == EQUAL)
+      if (exp[i].getKind() == Kind::EQUAL && exp[i][0].getType().isRealOrInt())
       {
         eqs.push_back(exp[i]);
       }
-      else if (exp[i].getKind() == AND)
+      else if (exp[i].getKind() == Kind::AND)
       {
         for (const Node& ec : exp[i])
         {
-          if (ec.getKind() == EQUAL)
+          if (ec.getKind() == Kind::EQUAL && ec[0].getType().isRealOrInt())
           {
             eqs.push_back(ec);
           }

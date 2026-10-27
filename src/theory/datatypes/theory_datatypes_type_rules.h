@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,7 +29,9 @@ namespace datatypes {
  * so that the arguments of type S1 ... Sn are specializations of T1 ... Tn
  * for type substitution sigma, and returns T * sigma.
  */
-struct DatatypeConstructorTypeRule {
+struct DatatypeConstructorTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -50,7 +49,9 @@ struct DatatypeConstructorTypeRule {
  * for selectors ensures that the argument is T1 and returns T2.
  * This rule is generalized for parametric datatypes.
  */
-struct DatatypeSelectorTypeRule {
+struct DatatypeSelectorTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -62,7 +63,9 @@ struct DatatypeSelectorTypeRule {
  * for testers ensures that the argument is T1 and returns Bool.
  * This rule is generalized for parametric datatypes.
  */
-struct DatatypeTesterTypeRule {
+struct DatatypeTesterTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -76,6 +79,7 @@ struct DatatypeTesterTypeRule {
  */
 struct DatatypeUpdateTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -89,6 +93,7 @@ struct DatatypeUpdateTypeRule
  */
 struct DatatypeAscriptionTypeRule
 {
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -103,8 +108,10 @@ struct ConstructorProperties
 /**
  * The datatype size function expects any datatype and returns the integer type.
  */
-class DtSizeTypeRule {
+class DtSizeTypeRule
+{
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -115,8 +122,10 @@ class DtSizeTypeRule {
  * The datatype bound predicate expects any datatype, a constant integer, and
  * returns the Boolean type.
  */
-class DtBoundTypeRule {
+class DtBoundTypeRule
+{
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -132,6 +141,7 @@ class DtBoundTypeRule {
 class DtSygusEvalTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -158,6 +168,7 @@ class DtSygusEvalTypeRule
 class MatchTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -171,6 +182,7 @@ class MatchTypeRule
 class MatchCaseTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -185,6 +197,7 @@ class MatchCaseTypeRule
 class MatchBindCaseTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -200,6 +213,7 @@ class MatchBindCaseTypeRule
 class TupleProjectTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nm,
                               TNode n,
                               bool check,
@@ -213,11 +227,27 @@ class TupleProjectTypeRule
 class CodatatypeBoundVariableTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
                               std::ostream* errOut);
 };
+
+/**
+ * Lifting a function to nullable terms.
+ * The type rule checks that all arguments of the function
+ * are nullables, and their element types match the
+ * types of the function arguments.
+ */
+struct NullableLiftTypeRule
+{
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+}; /* struct NullableLiftTypeRule */
 
 }  // namespace datatypes
 }  // namespace theory

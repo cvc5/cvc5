@@ -6,10 +6,10 @@
 ; EXIT: 1
 (set-logic QF_UFBVLIA)
 (declare-const x (_ BitVec 4))
-(assert (= (bv2nat x) 0))
+(assert (= (ubv_to_int x) 0))
 (check-sat)
 (reset)
 (set-logic QF_BV)
 (declare-const x (_ BitVec 4))
-(assert (= (bv2nat x) 0))
+(assert (= (ubv_to_int x) 0))
 (check-sat)

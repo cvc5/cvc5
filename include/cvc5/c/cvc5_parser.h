@@ -1,0 +1,389 @@
+/******************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * The cvc5 C Parser API.
+ */
+
+#ifndef CVC5__C_API__CVC5_PARSER_H
+#define CVC5__C_API__CVC5_PARSER_H
+
+#include <cvc5/c/cvc5.h>
+#include <cvc5/cvc5_export.h>
+
+#if __cplusplus
+extern "C" {
+#endif
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Symbol manager. Internally, the symbol manager manages a symbol table and
+ * other meta-information pertaining to SMT2 file inputs (e.g. named
+ * assertions, declared functions, etc.).
+ *
+ * A symbol manager can be modified by invoking commands, see
+ * `cvc5_cmd_invoke()`.
+ *
+ * A symbol manager can be provided when constructing a Cvc5InputParser, in
+ * which case that input parser has symbols of this symbol manager preloaded.
+ *
+ * The symbol manager's interface is otherwise not publicly available.
+ */
+typedef struct Cvc5SymbolManager Cvc5SymbolManager;
+
+/**
+ * Encapsulation of a command.
+ *
+ * Commands are constructed by the input parser and can be invoked on
+ * the solver and symbol manager.
+ */
+typedef struct cvc5_cmd_t* Cvc5Command;
+
+/**
+ * This struct is the main interface for retrieving commands and expressions
+ * from an input using a parser.
+ *
+ * After construction, it is expected that an input is first configure via,
+ * e.g., `cvc5_parser_set_file_input()`, `cvc5_parser_set_str_input()` or
+ * `cvc5_parser_set_inc_str_input()` and `cvc5_parser_append_inc_str_input()`.
+ * Then, functions `cvc5_parser_next_command()` and
+ * `cvc5_parser_next_term()` can be invoked to parse the input.
+ *
+ * The input parser interacts with a symbol manager, which determines which
+ * symbols are defined in the current context, based on the background logic
+ * and user-defined symbols. If no symbol manager is provided, then the
+ * input parser will construct (an initially empty) one.
+ *
+ * If provided, the symbol manager must have a logic that is compatible
+ * with the provided solver. That is, if both the solver and symbol
+ * manager have their logics set (`cvc5_sm_is_logic_set()` and
+ * `cvc5_is_logic_set()`), then their logics must be the same.
+ *
+ * Upon setting an input source, if either the solver (resp. symbol manager)
+ * has its logic set, then the symbol manager (resp. solver) is set to use that
+ * logic, if its logic is not already set.
+ */
+typedef struct Cvc5InputParser Cvc5InputParser;
+
+/* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5symbolmanager
+ *  @{
+ */
+
+/**
+ * Construct a new instance of a cvc5 symbol manager.
+ *
+ * @note A symbol manager keeps its associated term manager alive, i.e., it
+ *       remains usable after the term manager has been deleted via
+ *       `cvc5_term_manager_delete()`.
+ *
+ * @param tm The associated term manager instance.
+ * @return The cvc5 symbol manager instance.
+ */
+CVC5_EXPORT Cvc5SymbolManager* cvc5_symbol_manager_new(Cvc5TermManager* tm);
+
+/**
+ * Delete a cvc5 symbol manager instance.
+ *
+ * Input parser instances (`Cvc5InputParser`) created with this symbol manager
+ * keep it alive and thus remain usable after the symbol manager has been
+ * deleted, until they are deleted themselves (see `cvc5_parser_delete()`).
+ * The memory of the symbol manager is only freed once it has been deleted and
+ * all input parsers using it have been freed.
+ *
+ * @note A symbol manager instance keeps its associated term manager alive.
+ *       Symbol manager and term manager instances may thus be deleted in any
+ *       order.
+ *
+ * @param sm The symbol manager instance.
+ */
+CVC5_EXPORT void cvc5_symbol_manager_delete(Cvc5SymbolManager* sm);
+
+/**
+ * Determine if the logic of a given symbol manager has been set.
+ * @param sm The symbol manager instance.
+ * @return True if the logic has been set.
+ */
+CVC5_EXPORT bool cvc5_sm_is_logic_set(Cvc5SymbolManager* sm);
+
+/**
+ * Get the logic configured for a given symbol manager.
+ * @note Asserts `cvc5_sm_is_logic_set()`.
+ * @param sm The symbol manager instance.
+ * @return The configured logic.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_sm_get_logic(Cvc5SymbolManager* sm);
+
+/**
+ * Get the list of sorts that have been declared via `declare-sort` commands.
+ * These are the sorts that are printed as part of a response to a
+ * `get-model` command.
+ *
+ * @param sm   The symbol manager instance.
+ * @param size The size of the resulting sorts array.
+ * @return The declared sorts.
+ */
+CVC5_EXPORT const Cvc5Sort* cvc5_sm_get_declared_sorts(Cvc5SymbolManager* sm,
+                                                       size_t* size);
+
+/**
+ * Get the list of terms that have been declared via `declare-fun` and
+ * `declare-const`. These are the terms that are printed in response to a
+ * `get-model` command.
+ *
+ * @param sm   The symbol manager instance.
+ * @param size The size of the resulting sorts array.
+ * @return The declared terms.terms
+ */
+CVC5_EXPORT const Cvc5Term* cvc5_sm_get_declared_terms(Cvc5SymbolManager* sm,
+                                                       size_t* size);
+
+/**
+ * Get the named terms that have been given to them via the :named attribute.
+ *
+ * @param sm    The symbol manager instance.
+ * @param size  The resulting size of `terms` and `names`.
+ * @param terms The resulting term that are mapped to the resulting `names`.
+ * @param names The resulting names.
+ *
+ * @note The resulting `terms` and `names` array pointers are only valid
+ *       until the next call to this function.
+ */
+CVC5_EXPORT void cvc5_sm_get_named_terms(Cvc5SymbolManager* sm,
+                                         size_t* size,
+                                         Cvc5Term* terms[],
+                                         const char** names[]);
+
+/** @} */
+
+/* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5command
+ *  @{
+ */
+
+/**
+ * Invoke a given command on the solver and symbol manager sm and return any
+ * resulting output as a string.
+ * @param cmd  The command to invoke.
+ * @param cvc5 The solver to invoke the command on.
+ * @param sm   The symbol manager to invoke the command on.
+ * @return The output of invoking the command.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_cmd_invoke(Cvc5Command cmd,
+                                        Cvc5* cvc5,
+                                        Cvc5SymbolManager* sm);
+
+/**
+ * Get a string representation of this command.
+ * @param cmd  The command to invoke.
+ * @return The string representation.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_cmd_to_string(const Cvc5Command cmd);
+
+/**
+ * Get the name for a given command, e.g., "assert".
+ * @param cmd  The command to invoke.
+ * @return The name of the command.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_cmd_get_name(const Cvc5Command cmd);
+
+/**
+ * Make copy of command, increases reference counter of `cmd`.
+ *
+ * @param cmd The command to copy.
+ * @return The same command with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Command cvc5_cmd_copy(Cvc5Command cmd);
+
+/**
+ * Release copy of command, decrements reference counter of `cmd`.
+ *
+ * @param cmd The command to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_cmd_release(Cvc5Command cmd);
+
+/** @} */
+
+/* -------------------------------------------------------------------------- */
+
+/** \addtogroup c_cvc5inputparser
+ *  @{
+ */
+
+/**
+ * Construct a new instance of a cvc5 input parser.
+ *
+ * @note An input parser keeps its associated solver and symbol manager
+ *       instances alive, i.e., it remains usable after they have been deleted
+ *       via `cvc5_delete()` resp. `cvc5_symbol_manager_delete()`. Parser,
+ *       solver and symbol manager instances may thus be deleted in any order.
+ *
+ * @param cvc5 The associated solver instance.
+ * @param sm   The associated symbol manager instance, contains a symbol table
+ *             that maps symbols to terms and sorts. Must have a logic that is
+ *             compatible with the solver. May be NULL to start with and
+ *             initially empty symbol manager.
+ * @return The cvc5 symbol manager instance.
+ */
+CVC5_EXPORT Cvc5InputParser* cvc5_parser_new(Cvc5* cvc5, Cvc5SymbolManager* sm);
+
+/**
+ * Delete a cvc5 input parser instance.
+ *
+ * Command objects created via the parser are managed by the parser. They keep
+ * the parser alive and thus remain valid after the parser has been deleted,
+ * until they are released via `cvc5_cmd_release()`. The memory of the parser
+ * is only freed once it has been deleted and all of its commands have been
+ * released, either individually or all at once via `cvc5_parser_release()`.
+ *
+ * @note Consequently, if commands are still alive when this function is
+ *       called, it does not free the parser: it only decrements its reference
+ *       count, and the parser is freed later, when the last of its commands is
+ *       released. To free everything right away, call
+ *       `cvc5_parser_release()` before this function.
+ *
+ * Terms and sorts obtained via the parser are managed by the term manager and
+ * remain valid independently of the parser (see
+ * `cvc5_term_manager_delete()`).
+ *
+ * The solver and symbol manager instances associated with the parser are kept
+ * alive by it and are thus only freed once the parser has been freed (see
+ * `cvc5_delete()` and `cvc5_symbol_manager_delete()`).
+ *
+ * @param parser The input parser instance.
+ */
+CVC5_EXPORT void cvc5_parser_delete(Cvc5InputParser* parser);
+
+/**
+ * Release all objects managed by the parser.
+ *
+ * This will free all memory used by any managed objects allocated by the
+ * parser.
+ *
+ * @note This invalidates all managed objects created by the parser.
+ *
+ * @param parser The parser instance.
+ */
+CVC5_EXPORT void cvc5_parser_release(Cvc5InputParser* parser);
+
+/**
+ * Get the associated solver instance of a given parser.
+ * @param parser The parser instance.
+ * @return The solver.
+ */
+CVC5_EXPORT Cvc5* cvc5_parser_get_solver(Cvc5InputParser* parser);
+
+/**
+ * Get the associated symbol manager of a given parser.
+ *
+ * @note If no symbol manager was given to `cvc5_parser_new()`, the returned
+ *       symbol manager is the one the parser created. It is freed with the
+ *       parser (unless it is kept alive by another parser created with it)
+ *       and must not be deleted via `cvc5_symbol_manager_delete()`.
+ *
+ * @param parser The parser instance.
+ * @return The symbol manager.
+ */
+CVC5_EXPORT Cvc5SymbolManager* cvc5_parser_get_sm(Cvc5InputParser* parser);
+
+/**
+ * Configure given file as input to a given input parser.
+ * @param parser The input parser instance.
+ * @param lang the input language (e.g., #CVC5_INPUT_LANGUAGE_SMT_LIB_2_6)
+ * @param filename The name of the file to configure.
+ */
+CVC5_EXPORT void cvc5_parser_set_file_input(Cvc5InputParser* parser,
+                                            Cvc5InputLanguage lang,
+                                            const char* filename);
+/**
+ * Configure a given concrete input string as the input to a given input parser.
+ * @param parser The input parser instance.
+ * @param lang  The input language of the input string.
+ * @param input The input string.
+ * @param name  The name to use as input stream name for error messages.
+ */
+CVC5_EXPORT void cvc5_parser_set_str_input(Cvc5InputParser* parser,
+                                           Cvc5InputLanguage lang,
+                                           const char* input,
+                                           const char* name);
+/**
+ * Configure that we will be feeding strings to a given input parser via
+ * `cvc5_parser_append_inc_str_input()` below.
+ * @param parser The input parser instance.
+ * @param lang  The input language of the input string.
+ * @param name  The name to use as input stream name for error messages.
+ */
+CVC5_EXPORT void cvc5_parser_set_inc_str_input(Cvc5InputParser* parser,
+                                               Cvc5InputLanguage lang,
+                                               const char* name);
+/**
+ * Append string to the input being parsed by this parser. Should be
+ * called after calling `cvc5_parser_set_inc_str_input()`.
+ * @param parser The input parser instance.
+ * @param input  The input string.
+ */
+CVC5_EXPORT void cvc5_parser_append_inc_str_input(Cvc5InputParser* parser,
+                                                  const char* input);
+
+/**
+ * Parse and return the next command. Will initialize the logic to "ALL"
+ * or the forced logic if no logic is set prior to this point and a command
+ * is read that requires initializing the logic.
+ *
+ * @param parser     The input parser instance.
+ * @param error_msg  Output parameter for the error message in case of an
+ *                   error (parse error or otherwise), NULL if no error
+ *                   occurred.
+ * @return The parsed command. NULL if no command was read.
+ */
+CVC5_EXPORT Cvc5Command cvc5_parser_next_command(Cvc5InputParser* parser,
+                                                 const char** error_msg);
+
+/**
+ * Parse and return the next term. Requires setting the logic prior
+ * to this point.
+ * @param parser     The input parser instance.
+ * @param error_msg  Output parameter for the error message in case of an
+ *                   error (parse error or otherwise), NULL if no error
+ *                   occurred.
+ * @return           The parsed term. NULL if no term was read.
+ */
+CVC5_EXPORT Cvc5Term cvc5_parser_next_term(Cvc5InputParser* parser,
+                                           const char** error_msg);
+
+/**
+ * Is this parser done reading input?
+ * @param parser The input parser instance.
+ * @return True if parser is done reading input.
+ */
+CVC5_EXPORT bool cvc5_parser_done(Cvc5InputParser* parser);
+
+/** @} */
+
+#if __cplusplus
+}
+#endif
+#endif

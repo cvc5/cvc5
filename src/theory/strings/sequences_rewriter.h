@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,10 +31,38 @@ namespace strings {
 class SequencesRewriter : public TheoryRewriter
 {
  public:
-  SequencesRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics);
+  SequencesRewriter(NodeManager* nm,
+                    ArithEntail& ae,
+                    StringsEntail& se,
+                    HistogramStat<Rewrite>* statistics);
   /** The underlying entailment utilities */
   ArithEntail& getArithEntail();
   StringsEntail& getStringsEntail();
+
+  /**
+   * Rewrite n based on the proof rewrite rule id.
+   * @param id The rewrite rule.
+   * @param n The node to rewrite.
+   * @return The rewritten version of n based on id, or Node::null() if n
+   * cannot be rewritten.
+   */
+  Node rewriteViaRule(ProofRewriteRule id, const Node& n) override;
+  /**
+   * Rewrite based on MACRO_STR_STRIP_ENDPOINTS. We populate nb, nrem, ne such
+   * that n = nb ++ nrem ++ ne, and these components are the appropriate
+   * inputs to a STR_OVERLAP_* rule.
+   */
+  Node rewriteViaMacroStrStripEndpoints(const Node& n,
+                                        std::vector<Node>& nb,
+                                        std::vector<Node>& nrem,
+                                        std::vector<Node>& ne);
+  /**
+   * Rewrite based on MACRO_RE_INTER_UNION_CONST_ELIM. If we rewrite to re.none,
+   * then n is a regexp intersection and conflict is updated to the child of n
+   * that led to the conflict (which is a str.to_re regexp that is not contained
+   * in another child).
+   */
+  Node rewriteViaMacroReInterUnionConstElim(const Node& n, Node& conflict);
 
  protected:
   /** rewrite regular expression all
@@ -128,6 +153,48 @@ class SequencesRewriter : public TheoryRewriter
    * by this function for debugging.
    */
   Node returnRewrite(Node node, Node ret, Rewrite r);
+  //-------------------- ProofRewriteRule
+ protected:
+  /** Rewrite based on STR_EQ_LEN_UNIFY_PREFIX */
+  Node rewriteViaStrEqLenUnifyPrefix(const Node& n);
+  /** Rewrite based on STR_EQ_LEN_UNIFY */
+  Node rewriteViaStrEqLenUnify(const Node& n, Rewrite& rule);
+  /** Rewrite based on RE_LOOP_ELIM */
+  Node rewriteViaReLoopElim(const Node& n);
+  /** Rewrite based on RE_EQ_ELIM */
+  Node rewriteViaReEqElim(const Node& n);
+  /** Rewrite based on MACRO_RE_INTER_UNION_INCLUSION */
+  Node rewriteViaMacroReInterUnionInclusion(const Node& n);
+  /**
+   * Rewrite based on RE_INTER_INCLUSION, or RE_UNION_INCLUSION.
+   */
+  Node rewriteViaReInterUnionInclusion(ProofRewriteRule id, const Node& n);
+  /** Rewrite based on STR_IN_RE_EVAL */
+  Node rewriteViaStrInReEval(const Node& n);
+  /** Rewrite based on STR_IN_RE_CONSUME */
+  Node rewriteViaStrInReConsume(const Node& n);
+  /** Rewrite based on STR_IN_RE_CONCAT_STAR_CHAR */
+  Node rewriteViaStrInReConcatStarChar(const Node& n);
+  /** Rewrite based on STR_IN_RE_SIGMA */
+  Node rewriteViaStrInReSigma(const Node& n);
+  /** Rewrite based on STR_IN_RE_SIGMA_STAR */
+  Node rewriteViaStrInReSigmaStar(const Node& n);
+  /** Rewrite based on MACRO_SUBSTR_STRIP_SYM_LENGTH */
+  Node rewriteViaMacroSubstrStripSymLength(const Node& n,
+                                           Rewrite& rule,
+                                           StringsEntail& sent);
+  /** Rewrite based on MACRO_STR_IN_RE_INCLUSION */
+  Node rewriteViaMacroStrInReInclusion(const Node& n);
+  /** Rewrite based on MACRO_STR_SPLIT_CTN */
+  Node rewriteViaMacroStrSplitCtn(const Node& n);
+  /** Rewrite based on STR_INDEXOF_RE_EVAL */
+  Node rewriteViaStrIndexofReEval(const Node& n);
+  /** Rewrite based on STR_REPLACE_RE_EVAL */
+  Node rewriteViaStrReplaceReEval(const Node& n);
+  /** Rewrite based on STR_REPLACE_RE_ALL_EVAL */
+  Node rewriteViaStrReplaceReAllEval(const Node& n);
+  /** Rewrite based on one of the STR_OVERLAP_* rules */
+  Node rewriteViaOverlap(ProofRewriteRule id, const Node& n);
 
  public:
   RewriteResponse postRewrite(TNode node) override;
@@ -296,28 +363,14 @@ class SequencesRewriter : public TheoryRewriter
    * string consisting of "A" repeated n times. Returns the null node if no such
    * string exists.
    */
-  static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
+  Node canonicalStrForSymbolicLength(Node n, TypeNode stype) const;
 
-  /**
-   * post-process rewrite
-   *
-   * If node is not an equality and ret is an equality,
-   * this method applies an additional rewrite step (rewriteEqualityExt) that
-   * performs additional rewrites on ret, after which we return the result of
-   * this call. Otherwise, this method simply returns ret.
-   */
-  Node postProcessRewrite(Node node, Node ret);
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
-  /**
-   * Pointer to the rewriter. NOTE this is a cyclic dependency, and should
-   * be removed.
-   */
-  Rewriter* d_rr;
   /** The arithmetic entailment module */
-  ArithEntail d_arithEntail;
+  ArithEntail& d_arithEntail;
   /** Instance of the entailment checker for strings. */
-  StringsEntail d_stringsEntail;
+  StringsEntail& d_stringsEntail;
   /** Common constants */
   Node d_sigmaStar;
   Node d_true;

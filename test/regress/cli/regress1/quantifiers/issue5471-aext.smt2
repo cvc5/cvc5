@@ -1,6 +1,6 @@
 (set-logic NRA)
 (set-option :sygus-inst true)
-(set-option :strings-exp true)
+
 (set-info :status unsat)
 (declare-fun a () Real)
 (declare-fun b () Real)

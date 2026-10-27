@@ -1,4 +1,6 @@
-; DISABLE-TESTER: lfsc
+; DISABLE-TESTER: proof
+;; slow conversion
+; DISABLE-TESTER: alethe
 (set-logic QF_BV)
 (set-info :status unsat)
 (declare-fun x1 () (_ BitVec 12))

@@ -1,5 +1,9 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 ; EXPECT: unsat
+;; repeated assumption in local proof lead to confusion with
+;; discharge. Disabling for now while the use of "discharge" is not
+;; properly defined in Alethe
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-fun a () String)
 (assert

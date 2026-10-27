@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +15,11 @@
 #ifndef CVC5__UTIL__RESULT_H
 #define CVC5__UTIL__RESULT_H
 
+#include <cvc5/cvc5_types.h>
+
 #include <iosfwd>
 #include <string>
 
-#include "api/cpp/cvc5_types.h"
 #include "options/language.h"
 
 namespace cvc5::internal {
@@ -59,7 +57,8 @@ class Result
 
   Result(const std::string& s, std::string inputName = "");
 
-  Result(const Result& r, std::string inputName) {
+  Result(const Result& r, std::string inputName)
+  {
     *this = r;
     d_inputName = inputName;
   }
@@ -71,7 +70,17 @@ class Result
 
   UnknownExplanation getUnknownExplanation() const;
 
+  /**
+   * Operator overloading for equality of two results.
+   * @param r The result to compare to for equality.
+   * @return True if the results are equal.
+   */
   bool operator==(const Result& r) const;
+  /**
+   * Operator overloading for disequality of two results.
+   * @param r The result to compare to for disequality.
+   * @return True if the results are disequal.
+   */
   bool operator!=(const Result& r) const;
 
   std::string toString() const;
@@ -84,11 +93,6 @@ class Result
    *
    */
   void toStreamSmt2(std::ostream& out) const;
-
-  /**
-   * Write a Result out to a stream in the Tptp format
-   */
-  void toStreamTptp(std::ostream& out) const;
 
   /**
    * Write a Result out to a stream.

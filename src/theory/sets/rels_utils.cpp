@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -77,24 +74,22 @@ void RelsUtils::computeTC(Node rel,
 Node RelsUtils::constructPair(Node rel, Node a, Node b)
 {
   const DType& dt = rel.getType().getSetElementType().getDType();
-  return NodeManager::currentNM()->mkNode(
-      APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
+  return NodeManager::mkNode(
+      Kind::APPLY_CONSTRUCTOR, dt[0].getConstructor(), a, b);
 }
 
 Node RelsUtils::evaluateGroup(TNode n)
 {
-  Assert(n.getKind() == RELATION_GROUP);
-
-  NodeManager* nm = NodeManager::currentNM();
+  Assert(n.getKind() == Kind::RELATION_GROUP);
 
   Node A = n[0];
   TypeNode setType = A.getType();
   TypeNode partitionType = n.getType();
 
-  if (A.getKind() == SET_EMPTY)
+  if (A.getKind() == Kind::SET_EMPTY)
   {
     // return a nonempty partition
-    return nm->mkNode(SET_SINGLETON, A);
+    return NodeManager::mkNode(Kind::SET_SINGLETON, A);
   }
 
   std::vector<uint32_t> indices =
@@ -154,7 +149,7 @@ Node RelsUtils::evaluateGroup(TNode n)
 
 Node RelsUtils::evaluateRelationAggregate(TNode n)
 {
-  Assert(n.getKind() == RELATION_AGGREGATE);
+  Assert(n.getKind() == Kind::RELATION_AGGREGATE);
   if (!(n[1].isConst() && n[2].isConst()))
   {
     // we can't proceed further.

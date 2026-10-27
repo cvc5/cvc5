@@ -1,5 +1,5 @@
 (set-logic SLIA)
-(set-option :strings-exp true)
+
 (set-info :status sat)
 (declare-fun x () String)
 (assert (not (= (str.indexof x "" 0) (- 1))))

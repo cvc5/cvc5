@@ -1,4 +1,4 @@
-; COMMAND-LINE: --decision=stoponly --strings-exp
+; COMMAND-LINE: --decision=stoponly
 ; EXPECT: sat
 (set-logic QF_NRA) 
 (declare-const a Real) 

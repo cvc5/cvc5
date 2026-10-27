@@ -1,4 +1,4 @@
-; COMMAND-LINE: --decision=internal --strings-code-elim
+; COMMAND-LINE: --decision=internal
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (declare-fun s () String)

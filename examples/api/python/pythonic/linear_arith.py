@@ -1,3 +1,15 @@
+###############################################################################
+# This file is part of the cvc5 project.
+#
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+# in the top-level source directory and their institutional affiliations.
+# All rights reserved.  See the file COPYING in the top-level source
+# directory for licensing information.
+# #############################################################################
+#
+# A simple demonstration of the linear arithmetic solving capabilities and
+# the push pop of cvc5. This also gives an example option.
+##
 from cvc5.pythonic import *
 
 slv = SolverFor('QF_LIRA')

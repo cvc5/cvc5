@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +24,7 @@ FunctionEnumerator::FunctionEnumerator(TypeNode type,
     : TypeEnumeratorBase<FunctionEnumerator>(type),
       d_arrayEnum(FunctionConst::getArrayTypeForFunctionType(type), tep)
 {
-  Assert(type.getKind() == kind::FUNCTION_TYPE);
+  Assert(type.getKind() == Kind::FUNCTION_TYPE);
 }
 
 Node FunctionEnumerator::operator*()
@@ -37,7 +34,7 @@ Node FunctionEnumerator::operator*()
     throw NoMoreValuesException(getType());
   }
   Node a = *d_arrayEnum;
-  return NodeManager::currentNM()->mkConst(FunctionArrayConst(getType(), a));
+  return a.getNodeManager()->mkConst(FunctionArrayConst(getType(), a));
 }
 
 FunctionEnumerator& FunctionEnumerator::operator++()

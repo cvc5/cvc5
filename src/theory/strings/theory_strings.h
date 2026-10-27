@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tianyi Liang, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +21,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "proof/trust_proof_generator.h"
 #include "theory/care_pair_argument_callback.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/array_solver.h"
@@ -62,7 +60,8 @@ namespace strings {
  * Its rewriter is described in:
  * - Reynolds et al, CAV 2019.
  */
-class TheoryStrings : public Theory {
+class TheoryStrings : public Theory
+{
   friend class InferenceManager;
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashSet<TypeNode, std::hash<TypeNode>> TypeNodeSet;
@@ -114,39 +113,45 @@ class TheoryStrings : public Theory {
   void eqNotifyMerge(TNode t1, TNode t2);
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
+  TrustNode ppStaticRewrite(TNode atom) override;
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
  private:
   /** NotifyClass for equality engine */
-  class NotifyClass : public eq::EqualityEngineNotify {
-  public:
-   NotifyClass(TheoryStrings& ts) : d_str(ts) {}
-   bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-   {
-     Trace("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate
-                      << ", " << (value ? "true" : "false") << ")" << std::endl;
-     if (value)
-     {
-       return d_str.propagateLit(predicate);
-     }
-     return d_str.propagateLit(predicate.notNode());
+  class NotifyClass : public eq::EqualityEngineNotify
+  {
+   public:
+    NotifyClass(TheoryStrings& ts) : d_str(ts) {}
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+    {
+      Trace("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate
+                       << ", " << (value ? "true" : "false") << ")"
+                       << std::endl;
+      if (value)
+      {
+        return d_str.propagateLit(predicate);
+      }
+      return d_str.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
                                      TNode t2,
                                      bool value) override
     {
-      Trace("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
-      if (value) {
+      Trace("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag
+                       << ", " << t1 << ", " << t2 << ")" << std::endl;
+      if (value)
+      {
         return d_str.propagateLit(t1.eqNode(t2));
       }
       return d_str.propagateLit(t1.eqNode(t2).notNode());
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
-      Trace("strings") << "NotifyClass::eqNotifyConstantTermMerge(" << t1 << ", " << t2 << ")" << std::endl;
+      Trace("strings") << "NotifyClass::eqNotifyConstantTermMerge(" << t1
+                       << ", " << t2 << ")" << std::endl;
       d_str.conflict(t1, t2);
     }
     void eqNotifyNewClass(TNode t) override
@@ -160,14 +165,16 @@ class TheoryStrings : public Theory {
                        << std::endl;
       d_str.eqNotifyMerge(t1, t2);
     }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
+    void eqNotifyDisequal(CVC5_UNUSED TNode t1,
+                          CVC5_UNUSED TNode t2,
+                          CVC5_UNUSED TNode reason) override
     {
     }
 
    private:
     /** The theory of strings object to notify */
     TheoryStrings& d_str;
-  };/* class TheoryStrings::NotifyClass */
+  }; /* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;
   /** notify shared term */
@@ -248,6 +255,10 @@ class TheoryStrings : public Theory {
   SolverState d_state;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** An arithmetic entailment utility */
+  ArithEntail d_arithEntail;
+  /** A string entailment utility */
+  StringsEntail d_strEntail;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /** The eager solver */
@@ -305,7 +316,9 @@ class TheoryStrings : public Theory {
   size_t d_strGapModelCounter;
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
-};/* class TheoryStrings */
+  /** For proof of ppStaticRewrite */
+  std::shared_ptr<TrustProofGenerator> d_psrewPg;
+}; /* class TheoryStrings */
 
 }  // namespace strings
 }  // namespace theory

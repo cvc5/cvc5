@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,7 +33,7 @@ void QuantRelevance::registerQuantifier(Node f)
 /** compute symbols */
 void QuantRelevance::computeSymbols(Node n, std::vector<Node>& syms)
 {
-  if (n.getKind() == APPLY_UF)
+  if (n.getKind() == Kind::APPLY_UF)
   {
     Node op = n.getOperator();
     if (std::find(syms.begin(), syms.end(), op) == syms.end())
@@ -44,7 +41,7 @@ void QuantRelevance::computeSymbols(Node n, std::vector<Node>& syms)
       syms.push_back(op);
     }
   }
-  if (n.getKind() != FORALL)
+  if (n.getKind() != Kind::FORALL)
   {
     for (int i = 0; i < (int)n.getNumChildren(); i++)
     {

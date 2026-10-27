@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,15 +14,17 @@
 
 #include <utility>
 
+#include "expr/beta_reduce_converter.h"
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
+#include "options/ff_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "smt/assertions.h"
@@ -54,14 +53,15 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
-    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
+    : EnvObj(env),
+      d_slvStats(stats),
+      d_preprocessingPassContext(nullptr),
+      d_simplifyAssertionsDepth(0)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nodeManager()->mkConst(true);
 }
 
-ProcessAssertions::~ProcessAssertions()
-{
-}
+ProcessAssertions::~ProcessAssertions() {}
 
 void ProcessAssertions::finishInit(PreprocessingPassContext* pc)
 {
@@ -97,7 +97,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     std::ostream& outPA = d_env.output(OutputTag::PRE_ASSERTS);
     outPA << ";; pre-asserts start" << std::endl;
-    dumpAssertionsToStream(outPA, ap);
+    dumpAssertionsToStream(outPA, ap, options().smt.printDefs);
     outPA << ";; pre-asserts end" << std::endl;
   }
 
@@ -110,14 +110,6 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     // nothing to do
     return true;
-  }
-
-  // this must be applied to assertions before they are preprocessed, so that
-  // we do not synthesize rewrite rules for internally generated symbols.
-  if (options().quantifiers.sygusRewSynthInput)
-  {
-    // do candidate rewrite rule synthesis
-    applyPass("synth-rr", ap);
   }
 
   if (options().bv.bvGaussElim)
@@ -134,6 +126,32 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
+
+  if (isOutputOn(OutputTag::NORMALIZE))
+  {
+    // For normalization, apply substitutions WITHOUT rewriting, then beta
+    // reduction This preserves the exact structure for normalization purposes
+    BetaReduceNodeConverter bnc(nodeManager());
+    theory::SubstitutionMap& sm =
+        d_preprocessingPassContext->getTopLevelSubstitutions().get();
+
+    for (size_t i = 0, size = ap.size(); i < size; ++i)
+    {
+      Node ar = sm.apply(ap[i]);
+      ar = bnc.convert(ar);
+      ap.replace(i, ar);
+    }
+
+    // Now apply the normalize pass for variable renaming and sorting
+    applyPass("normalize", ap);
+
+    std::ostream& outPA = d_env.output(OutputTag::NORMALIZE);
+    outPA << ";; normalize start" << std::endl;
+    dumpAssertionsToStream(outPA, ap, false);
+    outPA << ";; normalize end" << std::endl;
+    return true;
+  }
+
   // Apply substitutions first. If we are non-incremental, this has only the
   // effect of replacing defined functions with their definitions.
   // We do not call theory-specific expand definitions here, since we want
@@ -161,14 +179,14 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("real-to-int", ap);
   }
 
-  if (options().smt.solveIntAsBV > 0)
-  {
-    applyPass("int-to-bv", ap);
-  }
-
   if (options().smt.ackermann)
   {
     applyPass("ackermann", ap);
+  }
+
+  if (options().smt.solveIntAsBV > 0)
+  {
+    applyPass("int-to-bv", ap);
   }
 
   Trace("smt") << " assertions     : " << ap.size() << endl;
@@ -205,6 +223,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     applyPass("foreign-theory-rewrite", ap);
   }
+  // Eagerly eliminate distinct terms up to the configured threshold. Only run
+  // if the threshold option was explicitly set by the user (a value of 0 means
+  // no limit, i.e. eliminate all distinct terms).
+  if (options().smt.distinctElimThresholdWasSetByUser)
+  {
+    applyPass("distinct-elim", ap);
+  }
 
   // Assertions MUST BE guaranteed to be rewritten by this point
   applyPass("rewrite", ap);
@@ -230,6 +255,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     {
       applyPass("fun-def-fmf", ap);
     }
+    if (options().quantifiers.preSkolemQuant
+        != options::PreSkolemQuantMode::OFF)
+    {
+      // needed since quantifier preprocessing may introduce skolems that were
+      // solved for already
+      applyPass("apply-substs", ap);
+    }
   }
   if (!options().strings.stringLazyPreproc)
   {
@@ -238,7 +270,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     // were already solved for in incremental mode
     applyPass("apply-substs", ap);
   }
-  if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
+  if (options().smt.sortInference)
   {
     applyPass("sort-inference", ap);
   }
@@ -249,7 +281,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (options().quantifiers.sygusInference)
+  if (options().quantifiers.sygusInference != options::SygusInferenceMode::OFF)
   {
     applyPass("sygus-infer", ap);
   }
@@ -312,7 +344,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     applyPass("ho-elim", ap);
   }
-  
+
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
@@ -322,10 +354,29 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
                << endl;
   Trace("smt") << " assertions     : " << ap.size() << endl;
 
+  // ff
+  if (options().ff.ffElimDisjunctiveBit)
+  {
+    applyPass("ff-disjunctive-bit", ap);
+  }
+  if (options().ff.ffBitsum
+      || options().ff.ffSolver == options::FfSolver::SPLIT_GB)
+  {
+    applyPass("ff-bitsum", ap);
+  }
+
   // ensure rewritten
   applyPass("rewrite", ap);
-  // rewrite equalities based on theory-specific rewriting
-  applyPass("theory-rewrite-eq", ap);
+
+  // Note the two passes below are very similar. Ideally, they could be
+  // done in a single traversal, e.g. do both static (ppStaticRewrite) and
+  // normal (ppRewrite) in one pass. However, we do theory-preprocess
+  // separately since it is cached in TheoryPreprocessor, which is subsequently
+  // used for theory preprocessing lemmas as well, whereas a combined
+  // pass could not be used for this purpose.
+
+  // rewrite terms based on static theory-specific rewriting
+  applyPass("static-rewrite", ap);
   // apply theory preprocess, which includes ITE removal
   applyPass("theory-preprocess", ap);
   // notice that we do not apply substitutions as a last step here, since
@@ -343,7 +394,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     std::ostream& outPA = d_env.output(OutputTag::POST_ASSERTS);
     outPA << ";; post-asserts start" << std::endl;
-    dumpAssertionsToStream(outPA, ap);
+    dumpAssertionsToStream(outPA, ap, options().smt.printDefs);
     outPA << ";; post-asserts end" << std::endl;
   }
 
@@ -444,16 +495,17 @@ void ProcessAssertions::dumpAssertions(const std::string& key,
     return;
   }
   std::stringstream ss;
-  dumpAssertionsToStream(ss, ap);
+  dumpAssertionsToStream(ss, ap, options().smt.printDefs);
   Trace(key) << ";;; " << key << " start" << std::endl;
   Trace(key) << ss.str();
   Trace(key) << ";;; " << key << " end " << std::endl;
 }
 
 void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
-                                               const AssertionPipeline& ap)
+                                               const AssertionPipeline& ap,
+                                               bool printDefs)
 {
-  PrintBenchmark pb(Printer::getPrinter(os));
+  PrintBenchmark pb(nodeManager(), Printer::getPrinter(os));
   std::vector<Node> assertions;
   // Notice that users may define ordinary and recursive functions. The latter
   // get added to the list of assertions as quantified formulas. Since we are
@@ -473,9 +525,13 @@ void ProcessAssertions::dumpAssertionsToStream(std::ostream& os,
   std::vector<Node> defs;
   const theory::SubstitutionMap& sm = d_env.getTopLevelSubstitutions().get();
   const std::unordered_map<Node, Node>& ss = sm.getSubstitutions();
-  for (const std::pair<const Node, Node>& s : ss)
+
+  if (printDefs)
   {
-    defs.push_back(s.first.eqNode(s.second));
+    for (const std::pair<const Node, Node>& s : ss)
+    {
+      defs.push_back(s.first.eqNode(s.second));
+    }
   }
   for (size_t i = 0, size = ap.size(); i < size; i++)
   {
@@ -488,7 +544,16 @@ PreprocessingPassResult ProcessAssertions::applyPass(const std::string& pname,
                                                      AssertionPipeline& ap)
 {
   dumpAssertions("assertions::pre-" + pname, ap);
-  PreprocessingPassResult res = d_passes[pname]->apply(&ap);
+  PreprocessingPassResult res;
+  // note we do not apply preprocessing passes if we are already in conflict
+  if (!ap.isInConflict())
+  {
+    res = d_passes[pname]->apply(&ap);
+  }
+  else
+  {
+    res = PreprocessingPassResult::CONFLICT;
+  }
   dumpAssertions("assertions::post-" + pname, ap);
   return res;
 }

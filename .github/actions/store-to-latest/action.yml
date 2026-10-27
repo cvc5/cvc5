@@ -1,0 +1,32 @@
+name: Store to latest
+description: Store an asset on the release page associated to the latest tag
+inputs:
+  asset-filename:
+    description: filename of the asset
+  shell:
+    default: bash
+  
+runs:
+  using: composite
+  steps:
+    - name: Store to latest
+      shell: ${{ inputs.shell }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        PACKAGE: ${{ inputs.asset-filename }}
+      run: |
+        sha="${GITHUB_SHA}"
+        repo="${GITHUB_REPOSITORY}"
+        # Generate filename
+        name="${PACKAGE%.*}"
+        ext="${PACKAGE##*.}"
+        commit_date=$(gh api repos/${repo}/commits/${sha} --jq '.commit.committer.date' | cut -d'T' -f1)
+        # Construct filename
+        filename="${name}-${commit_date}-${sha:0:7}.${ext}"
+        echo "Generated filename: $filename"
+        RENAMED_PACKAGE=$(dirname "$PACKAGE")/$filename
+        mv -- "$PACKAGE" "$RENAMED_PACKAGE"
+        # --clobber: if the asset already exists (e.g., the job is re-run, or
+        # the upload succeeded but its response was lost), replace it instead
+        # of failing.
+        gh release upload latest "$RENAMED_PACKAGE" --repo "${repo}" --clobber

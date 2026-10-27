@@ -1,7 +1,15 @@
 Quickstart Guide
 ================
 
-First, create a cvc5 solver instance:
+First, create a cvc5 term manager instance:
+
+.. literalinclude:: ../../../../examples/api/python/quickstart.py
+   :language: python
+   :dedent: 2
+   :start-after: docs-python-quickstart-0 start
+   :end-before: docs-python-quickstart-0 end
+
+Then, create a cvc5 solver instance:
 
 .. literalinclude:: ../../../../examples/api/python/quickstart.py
    :language: python
@@ -214,6 +222,7 @@ Example
 .. api-examples::
     <examples>/api/python/quickstart.py
     <examples>/api/cpp/quickstart.cpp
+    <examples>/api/c/quickstart.c
     <examples>/api/java/QuickStart.java
     <pythonicapi>/test/pgms/example_quickstart.py
     <examples>/api/smtlib/quickstart.smt2

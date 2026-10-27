@@ -1,4 +1,4 @@
-; COMMAND-LINE: --decision=justification --no-strings-code-elim
+; COMMAND-LINE: --decision=justification
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const size4 String)

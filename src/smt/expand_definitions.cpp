@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,6 +31,11 @@ namespace smt {
 ExpandDefs::ExpandDefs(Env& env) : EnvObj(env) {}
 
 ExpandDefs::~ExpandDefs() {}
+
+Node ExpandDefs::expandDefinitions(TNode n)
+{
+  return expandDefinitions(n, d_cache);
+}
 
 Node ExpandDefs::expandDefinitions(TNode n,
                                    std::unordered_map<Node, Node>& cache)
@@ -79,19 +81,18 @@ Node ExpandDefs::expandDefinitions(TNode n,
         result.push(ret.isNull() ? n : ret);
         continue;
       }
-      theory::TheoryId tid = d_env.theoryOf(node);
+      // ensure rewritten
+      Node nr = rewrite(n);
+      // now get the appropriate theory
+      theory::TheoryId tid = d_env.theoryOf(nr);
       theory::TheoryRewriter* tr = rr->getTheoryRewriter(tid);
 
-      Assert(tr != NULL);
-      TrustNode trn = tr->expandDefinition(n);
-      if (!trn.isNull())
-      {
-        node = trn.getNode();
-      }
-      else
-      {
-        node = n;
-      }
+      Assert(tr != nullptr);
+      Trace("expand") << "Expand definition on " << nr << " (from " << n << ")"
+                      << std::endl;
+      Node nre = tr->expandDefinition(nr);
+      Trace("expand") << "...returns " << nre << std::endl;
+      node = nre.isNull() ? nr : nre;
       // the partial functions can fall through, in which case we still
       // consider their children
       worklist.push(std::make_tuple(
@@ -111,12 +112,10 @@ Node ExpandDefs::expandDefinitions(TNode n,
       Trace("expand") << "cons : " << node << std::endl;
       if (node.getNumChildren() > 0)
       {
-        // cout << "cons : " << node << std::endl;
-        NodeBuilder nb(node.getKind());
+        NodeBuilder nb(nodeManager(), node.getKind());
         if (node.getMetaKind() == metakind::PARAMETERIZED)
         {
           Trace("expand") << "op   : " << node.getOperator() << std::endl;
-          // cout << "op   : " << node.getOperator() << std::endl;
           nb << node.getOperator();
         }
         for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; ++i)
@@ -124,7 +123,6 @@ Node ExpandDefs::expandDefinitions(TNode n,
           Assert(!result.empty());
           Node expanded = result.top();
           result.pop();
-          // cout << "exchld : " << expanded << std::endl;
           Trace("expand") << "exchld : " << expanded << std::endl;
           nb << expanded;
         }

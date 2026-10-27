@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +10,8 @@
  * The cvc5 Java API.
  */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "api_utilities.h"
 #include "io_github_cvc5_Op.h"
 
@@ -38,7 +36,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Op_getNullOp(JNIEnv* env, jclass)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Op_deletePointer(JNIEnv*,
-                                                            jobject,
+                                                            jclass,
                                                             jlong pointer)
 {
   delete reinterpret_cast<Op*>(pointer);
@@ -152,4 +150,19 @@ JNIEXPORT jstring JNICALL Java_io_github_cvc5_Op_toString(JNIEnv* env,
   Op* current = reinterpret_cast<Op*>(pointer);
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_Op
+ * Method:    hashCode
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Op_hashCode(JNIEnv* env,
+                                                        jobject,
+                                                        jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  Op* result = reinterpret_cast<Op*>(pointer);
+  return static_cast<jlong>(std::hash<cvc5::Op>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

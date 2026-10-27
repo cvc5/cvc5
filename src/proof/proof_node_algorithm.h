@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +15,25 @@
 #ifndef CVC5__PROOF__PROOF_NODE_ALGORITHM_H
 #define CVC5__PROOF__PROOF_NODE_ALGORITHM_H
 
+#include <functional>
 #include <vector>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
 class ProofNode;
+class CDProof;
 
 namespace expr {
+
+/**
+ * A strict weak ordering on nodes used to align children of commutative terms
+ * during recursive equality reconstruction.
+ */
+using EqualityNodeLessCallback = std::function<bool(const Node&, const Node&)>;
 
 /**
  * This adds to the vector assump all formulas that are "free assumptions" of
@@ -57,6 +64,26 @@ void getFreeAssumptionsMap(
     std::map<Node, std::vector<std::shared_ptr<ProofNode>>>& amap);
 
 /**
+ * Get the subproofs of pn that have rule r.
+ * @param pn The proof node.
+ * @param r The rule to find.
+ * @param pfs The list of subproofs of pn that have rule r.
+ */
+void getSubproofRule(std::shared_ptr<ProofNode> pn,
+                     ProofRule r,
+                     std::vector<std::shared_ptr<ProofNode>>& pfs);
+
+/**
+ * Get the subproofs of pn that have a rule in rs.
+ * @param pn The proof node.
+ * @param rs The rules to find.
+ * @param pfs The list of subproofs of pn that have rule r.
+ */
+void getSubproofRules(std::shared_ptr<ProofNode> pn,
+                      std::unordered_set<ProofRule> rs,
+                      std::vector<std::shared_ptr<ProofNode>>& pfs);
+
+/**
  * Return true if pn contains a subproof whose rule is ASSUME. Notice that we
  * do *not* distinguish between free vs. non-free assumptions in this call.
  * This call involves at most a single dag traversal over the proof node.
@@ -68,7 +95,15 @@ void getFreeAssumptionsMap(
  * @param pn The proof node.
  * @param caMap Cache of results, mapping proof nodes to whether they contain
  * assumptions.
- * @return true if pn contains assumptions
+ * @param allowed The set of assumptions the proof is allowed to contain, i.e.
+ * if the free assumptions of pn is a subset of this set, we return false.
+ * @return true if pn contains assumptions (not in allowed).
+ */
+bool containsAssumption(const ProofNode* pn,
+                        std::unordered_map<const ProofNode*, bool>& caMap,
+                        const std::unordered_set<Node>& allowed);
+/**
+ * Same as above, but with an empty set of allowed assumptions.
  */
 bool containsAssumption(const ProofNode* pn,
                         std::unordered_map<const ProofNode*, bool>& caMap);
@@ -90,6 +125,80 @@ bool containsSubproof(ProofNode* pn, ProofNode* pnc);
 bool containsSubproof(ProofNode* pn,
                       ProofNode* pnc,
                       std::unordered_set<const ProofNode*>& visited);
+
+/**
+ * Returns the ProofRule that handles congruence for the given term.
+ *
+ * @param n The term, i.e. the lhs or rhs of the conclusion of the cong step.
+ * @param args The arguments to the application of cong for the given term
+ * @return the proof rule for congruence over the given term, which is one
+ * of CONG, NARY_CONG or HO_CONG.
+ */
+ProofRule getCongRule(const Node& n, std::vector<Node>& args);
+
+/**
+ * Prove congruence for left hand side term n.
+ * If n is a term of the form (f t1 ... tn), this proves
+ *  (= (f t1 ... sn) (f s1 .... sn))
+ * where si is different from ti iff premises[i] is the equality (= ti si).
+ * Note that we permit providing null premises[i] in which case si is ti
+ * and we prove (= ti ti) by REFL. For example, given
+ *   n = (f b a c) and premises = { null, a=b, null }
+ * we prove:
+ *   ----- REFL        ---- REFL
+ *   b = b      a = b  c = c
+ *   ------------------------ CONG
+ *   (f b a c) = (f b b c)
+ */
+Node proveCong(Env& env,
+               CDProof* cdp,
+               const Node& n,
+               const std::vector<Node>& premises);
+
+/**
+ * Try to prove (= a b) using rewrite-oriented proof steps and add the proof to
+ * cdp.
+ *
+ * This utility is intended for equalities that can be justified by a
+ * combination of:
+ * - reflexivity,
+ * - ACI normalization,
+ * - arithmetic / bit-vector polynomial normalization,
+ * - rewriting the equality directly to true, and
+ * - recursively proving equalities between corresponding children and lifting
+ *   them with congruence.
+ *
+ * For closure terms, this method only applies congruence when their binder
+ * lists are syntactically equal; it then proves equality of the remaining
+ * children (e.g. body and annotation list) and lifts those equalities via a
+ * closure-aware congruence step.
+ *
+ * For example, to construct proofs for alpha equivalence, we need a way to
+ * impose an arbitrary ordering so that ACI_NORM can lead us to the right
+ * recursive subgoals e.g. say alpha equivalence showed: (or d (and a b) c) =
+ * (or c d (and b a)) This method allows that module to provide the ordering it
+ * used such that we get e.g. (or d (and a b) c) = (or (and a b) c d), (or c d
+ * (and b a)) = (or (and b a) c d), which aligns the subgoals (and a b) = (and b
+ * a), c = c, d = d.
+ *
+ * @param env The proof environment used for rewriting and congruence checks.
+ * @param cdp The proof to extend with the derived steps.
+ * @param a The left-hand side of the equality to prove.
+ * @param b The right-hand side of the equality to prove.
+ * @param allowPredIntro Whether this method may use MACRO_SR_PRED_INTRO when
+ * the equality rewrites directly to true.
+ * @param orderChildren An optional ordering used during pre-rewrite
+ * normalization to reorder commutative terms before recursively proving
+ * equalities between their children.
+ * @return true if a proof of (= a b) was added to cdp.
+ */
+bool proveEqualityWithRewriteSteps(
+    Env& env,
+    CDProof& cdp,
+    const Node& a,
+    const Node& b,
+    bool allowPredIntro = true,
+    const EqualityNodeLessCallback& orderChildren = EqualityNodeLessCallback());
 
 }  // namespace expr
 }  // namespace cvc5::internal

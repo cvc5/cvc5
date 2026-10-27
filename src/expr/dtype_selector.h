@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@
 #define CVC5__EXPR__DTYPE_SELECTOR_H
 
 #include <string>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
 
@@ -42,7 +40,7 @@ class DTypeSelector
   DTypeSelector(std::string name, Node selector, Node updater);
 
   /** Get the name of this constructor argument. */
-  const std::string& getName() const;
+  std::string getName() const;
 
   /**
    * Get the selector for this constructor argument; this call is
@@ -100,4 +98,14 @@ std::ostream& operator<<(std::ostream& os, const DTypeSelector& arg);
 
 }  // namespace cvc5::internal
 
+namespace std {
+/**
+ * A hash function for DTypeSelectors.
+ */
+template <>
+struct hash<cvc5::internal::DTypeSelector>
+{
+  size_t operator()(const cvc5::internal::DTypeSelector& cons) const;
+};
+}  // namespace std
 #endif

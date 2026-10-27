@@ -1,7 +1,10 @@
+; REQUIRES: unrestricted-mode
+; Proof and unsat-core testing are disabled because they enable unsat cores,
+; suppressing the expected get-unsat-core error.
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 ; EXPECT: unsat
-; EXPECT: (error "Cannot get unsat core unless explicitly enabled (try --produce-unsat-cores)")
+; EXPECT: (error "cannot get unsat core unless explicitly enabled (try --produce-unsat-cores)")
 ; EXIT: 1
 (set-logic ALL)
 (set-option :global-declarations true)

@@ -1,7 +1,8 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
-; EXPECT: sat
+; EXPECT: unknown
 (set-logic ALL)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (set-option :fmf-bound true)
 (declare-const x (Bag (Set Bool)))
 (declare-const x1 (Set Bool))

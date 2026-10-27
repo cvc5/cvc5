@@ -1,3 +1,5 @@
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --arrays-exp
 ; EXIT: 1
 ; EXPECT: (error "Array theory solver does not yet support write-chains connecting two different constant arrays")
 (set-logic ALL)

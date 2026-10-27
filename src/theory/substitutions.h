@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Mathias Preiner, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,15 +15,15 @@
 #ifndef CVC5__THEORY__SUBSTITUTIONS_H
 #define CVC5__THEORY__SUBSTITUTIONS_H
 
-//#include <algorithm>
+// #include <algorithm>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
-#include "expr/node.h"
-#include "context/context.h"
-#include "context/cdo.h"
 #include "context/cdhashmap.h"
+#include "context/cdo.h"
+#include "context/context.h"
+#include "expr/node.h"
 #include "util/hash.h"
 
 namespace cvc5::internal {
@@ -70,6 +67,9 @@ class SubstitutionMap
   /** Has the cache been invalidated? */
   bool d_cacheInvalidated;
 
+  /** Are we using substitution compression */
+  bool d_compress;
+
   /** Internal method that performs substitution */
   Node internalSubstitute(TNode t,
                           NodeCache& cache,
@@ -100,10 +100,21 @@ class SubstitutionMap
   CacheInvalidator d_cacheInvalidator;
 
  public:
-  SubstitutionMap(context::Context* context = nullptr);
+  /**
+   * @param context The context this substitution depends on.
+   * @param compress If true, we may update the range of substitutions based
+   * on further substitutions. For example, if we add {y -> f(x)} and later
+   * add {x -> a}, then we may update the substitution to {y -> f(a), x -> a}.
+   */
+  SubstitutionMap(context::Context* context = nullptr, bool compress = true);
 
   /** Get substitutions in this object as a raw map */
   std::unordered_map<Node, Node> getSubstitutions() const;
+  /**
+   * Return a formula that is equivalent to this substitution, e.g. for
+   * [x -> t, y -> s], we return (and (= x t) (= y s)).
+   */
+  Node toFormula(NodeManager* nm) const;
   /**
    * Adds a substitution from x to t.
    */
@@ -113,6 +124,17 @@ class SubstitutionMap
    * Merge subMap into current set of substitutions
    */
   void addSubstitutions(SubstitutionMap& subMap, bool invalidateCache = true);
+
+  /**
+   * Erase substitution. This erases x from the domain of this substitution.
+   * This method should only be called if compression is disabled, since
+   * if compression is enabled, then the substituion of x may have been
+   * applied to the range of other substitutions in this class, and erasing
+   * the entry for x would not undo those changes.
+   * @param x The variable to erase.
+   * @param invalidateCache If true, we clear the cache.
+   */
+  void eraseSubstitution(TNode x, bool invalidateCache = true);
 
   /** Size of the substitutions */
   size_t size() const { return d_substitutions.size(); }
@@ -170,21 +192,23 @@ class SubstitutionMap
    * Print to the output stream
    */
   void print(std::ostream& out) const;
+  /** To string */
+  std::string toString() const;
 
-  void invalidateCache() {
-    d_cacheInvalidated = true;
-  }
+  void invalidateCache() { d_cacheInvalidated = true; }
 
 }; /* class SubstitutionMap */
 
-inline std::ostream& operator << (std::ostream& out, const SubstitutionMap& subst) {
+inline std::ostream& operator<<(std::ostream& out, const SubstitutionMap& subst)
+{
   subst.print(out);
   return out;
 }
 
 }  // namespace theory
 
-std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::iterator& i);
+std::ostream& operator<<(std::ostream& out,
+                         const theory::SubstitutionMap::iterator& i);
 
 }  // namespace cvc5::internal
 

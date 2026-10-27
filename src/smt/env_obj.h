@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,11 +47,19 @@ class EnvObj
   /** Destructor.  */
   virtual ~EnvObj() {}
 
+  /** Get a pointer to the node manager */
+  NodeManager* nodeManager() const;
+
   /**
    * Rewrite a node.
    * This is a wrapper around theory::Rewriter::rewrite via Env.
    */
   Node rewrite(TNode node) const;
+  /**
+   * Rewrite a node.
+   * This is a wrapper around theory::Rewriter::rewriteEqualityExt via Env.
+   */
+  Node rewriteEqualityExt(TNode node) const;
   /**
    * Extended rewrite a node.
    * This is a wrapper around theory::Rewriter::extendedRewrite via Env.

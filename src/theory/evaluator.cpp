@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,6 +12,9 @@
 
 #include "theory/evaluator.h"
 
+#include <cmath>
+
+#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -107,7 +107,7 @@ EvalResult::~EvalResult()
 
 Node EvalResult::toNode(const TypeNode& tn) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   switch (d_tag)
   {
     case EvalResult::BOOL: return nm->mkConst(d_bool);
@@ -240,6 +240,12 @@ EvalResult Evaluator::evalInternal(
           doEval = false;
         }
       }
+      else if (currNode.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+      {
+        // we require special handling below to deal with symbolic indexed
+        // operators.
+        doEval = false;
+      }
     }
     for (const auto& currNodeChild : currNode)
     {
@@ -303,15 +309,39 @@ EvalResult Evaluator::evalInternal(
             // if we are able to turn it into a valid EvalResult.
             currNodeVal = d_rr->rewrite(currNodeVal);
           }
+          else if (currNodeVal.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+          {
+            // To evaluate a symbolic indexed application, we reconstruct
+            // the node here, and verify that all its arguments are constant
+            // using rewriteApplyIndexedSymbolic.
+            // If successful, we evaluate the result in a separate recursive
+            // call, which will only recurse once.
+            Node rr =
+                builtin::TheoryBuiltinRewriter::rewriteApplyIndexedSymbolic(
+                    currNodeVal);
+            if (rr != currNodeVal)
+            {
+              Node rre = eval(rr, args, vals);
+              // only take value if we successfully evaluated, otherwise
+              // it will remain APPLY_INDEXED_SYMBOLIC and fail below.
+              if (!rre.isNull())
+              {
+                currNodeVal = rre;
+              }
+            }
+          }
         }
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
-        if (currNodeVal.getNumChildren() > 0)
+        if (currNodeVal.getNumChildren() > 0
+            && currNodeVal.getKind() != Kind::BITVECTOR_SIZE)
         {
           // We may continue with a valid EvalResult at this point only if
           // we have no children. We must otherwise fail here since some of
           // our children may not have successful evaluations.
+          // bvsize is a rare exception to this, where the evaluation does
+          // not depend on the value of the argument.
           results[currNode] = EvalResult();
           evalAsNode[currNode] = currNodeVal;
           continue;
@@ -327,11 +357,11 @@ EvalResult Evaluator::evalInternal(
       {
         // APPLY_UF is a special case where we look up the operator and apply
         // beta reduction if possible
-        case kind::APPLY_UF:
+        case Kind::APPLY_UF:
         {
           Trace("evaluator") << "Evaluate " << currNode << std::endl;
           TNode op = currNode.getOperator();
-          if (op.getKind() == kind::FUNCTION_ARRAY_CONST)
+          if (op.getKind() == Kind::FUNCTION_ARRAY_CONST)
           {
             // If we have a function constant as the operator, it was not
             // processed. We require converting to a lambda now.
@@ -344,7 +374,7 @@ EvalResult Evaluator::evalInternal(
             op = evalAsNode[op];
           }
           Trace("evaluator") << "Operator evaluated to " << op << std::endl;
-          if (op.getKind() != kind::LAMBDA)
+          if (op.getKind() != Kind::LAMBDA)
           {
             // this node is not evaluatable due to operator, must add to
             // evalAsNode
@@ -391,17 +421,17 @@ EvalResult Evaluator::evalInternal(
           }
         }
         break;
-        case kind::CONST_BOOLEAN:
+        case Kind::CONST_BOOLEAN:
           results[currNode] = EvalResult(currNodeVal.getConst<bool>());
           break;
 
-        case kind::NOT:
+        case Kind::NOT:
         {
           results[currNode] = EvalResult(!(results[currNode[0]].d_bool));
           break;
         }
 
-        case kind::AND:
+        case Kind::AND:
         {
           bool res = results[currNode[0]].d_bool;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -412,7 +442,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::OR:
+        case Kind::OR:
         {
           bool res = results[currNode[0]].d_bool;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -422,22 +452,39 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
+        case Kind::IMPLIES:
+        {
+          bool res =
+              !results[currNode[0]].d_bool || results[currNode[1]].d_bool;
+          results[currNode] = EvalResult(res);
+          break;
+        }
+        case Kind::XOR:
+        {
+          bool res = results[currNode[0]].d_bool;
+          for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
+          {
+            res = res != results[currNode[i]].d_bool;
+          }
+          results[currNode] = EvalResult(res);
+          break;
+        }
 
-        case kind::CONST_RATIONAL:
-        case kind::CONST_INTEGER:
+        case Kind::CONST_RATIONAL:
+        case Kind::CONST_INTEGER:
         {
           const Rational& r = currNodeVal.getConst<Rational>();
           results[currNode] = EvalResult(r);
           break;
         }
-        case kind::UNINTERPRETED_SORT_VALUE:
+        case Kind::UNINTERPRETED_SORT_VALUE:
         {
           const UninterpretedSortValue& av =
               currNodeVal.getConst<UninterpretedSortValue>();
           results[currNode] = EvalResult(av);
           break;
         }
-        case kind::ADD:
+        case Kind::ADD:
         {
           Rational res = results[currNode[0]].d_rat;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -448,7 +495,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::SUB:
+        case Kind::SUB:
         {
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
@@ -456,14 +503,14 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::NEG:
+        case Kind::NEG:
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(-x);
           break;
         }
-        case kind::MULT:
-        case kind::NONLINEAR_MULT:
+        case Kind::MULT:
+        case Kind::NONLINEAR_MULT:
         {
           Rational res = results[currNode[0]].d_rat;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -473,22 +520,53 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
-        case kind::DIVISION:
-        case kind::DIVISION_TOTAL:
+        case Kind::DIVISION:
+        case Kind::DIVISION_TOTAL:
+        case Kind::INTS_DIVISION:
+        case Kind::INTS_DIVISION_TOTAL:
+        case Kind::INTS_MODULUS:
+        case Kind::INTS_MODULUS_TOTAL:
         {
           Rational res = results[currNode[0]].d_rat;
           bool divbyzero = false;
+          Kind k = currNodeVal.getKind();
+          bool isReal = (k == Kind::DIVISION || k == Kind::DIVISION_TOTAL);
+          bool isMod =
+              (k == Kind::INTS_MODULUS || k == Kind::INTS_MODULUS_TOTAL);
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
           {
             if (results[currNode[i]].d_rat.isZero())
             {
-              Trace("evaluator")
-                  << "Division by zero not supported" << std::endl;
-              divbyzero = true;
-              results[currNode] = EvalResult();
-              break;
+              if (k == Kind::DIVISION_TOTAL || k == Kind::INTS_DIVISION_TOTAL)
+              {
+                res = Rational(0);
+                continue;
+              }
+              else if (k == Kind::INTS_MODULUS_TOTAL)
+              {
+                // result is unchanged
+                continue;
+              }
+              else
+              {
+                Trace("evaluator")
+                    << "Division/modulus by zero not supported" << std::endl;
+                divbyzero = true;
+                results[currNode] = EvalResult();
+                break;
+              }
             }
-            res = res / results[currNode[i]].d_rat;
+            if (isReal)
+            {
+              res = res / results[currNode[i]].d_rat;
+            }
+            else
+            {
+              Integer a = res.getNumerator();
+              Integer b = results[currNode[i]].d_rat.getNumerator();
+              res = Rational(isMod ? a.euclidianDivideRemainder(b)
+                                   : a.euclidianDivideQuotient(b));
+            }
           }
           if (divbyzero)
           {
@@ -501,66 +579,110 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-
-        case kind::GEQ:
+        case Kind::GEQ:
         {
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
           results[currNode] = EvalResult(x >= y);
           break;
         }
-        case kind::LEQ:
+        case Kind::LEQ:
         {
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
           results[currNode] = EvalResult(x <= y);
           break;
         }
-        case kind::GT:
+        case Kind::GT:
         {
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
           results[currNode] = EvalResult(x > y);
           break;
         }
-        case kind::LT:
+        case Kind::LT:
         {
           const Rational& x = results[currNode[0]].d_rat;
           const Rational& y = results[currNode[1]].d_rat;
           results[currNode] = EvalResult(x < y);
           break;
         }
-        case kind::ABS:
+        case Kind::ABS:
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x.abs());
           break;
         }
-        case kind::TO_REAL:
+        case Kind::TO_REAL:
         {
           // casting to real is a no-op
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x);
           break;
         }
-        case kind::TO_INTEGER:
+        case Kind::TO_INTEGER:
         {
           // casting to int takes the floor
           const Rational& x = results[currNode[0]].d_rat.floor();
           results[currNode] = EvalResult(x);
           break;
         }
-        case kind::IS_INTEGER:
+        case Kind::IS_INTEGER:
         {
           const Rational& x = results[currNode[0]].d_rat;
           results[currNode] = EvalResult(x.isIntegral());
           break;
         }
-        case kind::CONST_STRING:
+        case Kind::POW2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          bool valid = false;
+          if (x.sgn() < 0)
+          {
+            results[currNode] = EvalResult(Rational(0));
+            valid = true;
+          }
+          else if (x.getNumerator().fitsUnsignedInt())
+          {
+            uint32_t value = x.getNumerator().toUnsignedInt();
+            if (value <= 256)
+            {
+              valid = true;
+              results[currNode] = EvalResult(Rational(Integer(2).pow(value)));
+            }
+          }
+          if (!valid)
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          break;
+        }
+        case Kind::INTS_ISPOW2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          results[currNode] = EvalResult(x.getNumerator().isPow2());
+          break;
+        }
+        case Kind::INTS_LOG2:
+        {
+          const Rational& x = results[currNode[0]].d_rat;
+          if (x.sgn() < 0)
+          {
+            results[currNode] = EvalResult(Rational(0));
+          }
+          else
+          {
+            results[currNode] =
+                EvalResult(Rational(x.getNumerator().length() - 1));
+          }
+          break;
+        }
+        case Kind::CONST_STRING:
           results[currNode] = EvalResult(currNodeVal.getConst<String>());
           break;
 
-        case kind::STRING_CONCAT:
+        case Kind::STRING_CONCAT:
         {
           String res = results[currNode[0]].d_str;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -571,14 +693,14 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_LENGTH:
+        case Kind::STRING_LENGTH:
         {
           const String& s = results[currNode[0]].d_str;
           results[currNode] = EvalResult(Rational(s.size()));
           break;
         }
 
-        case kind::STRING_SUBSTR:
+        case Kind::STRING_SUBSTR:
         {
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
@@ -601,10 +723,10 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-        case kind::SEQ_NTH:
+        case Kind::SEQ_NTH:
         {
           // only strings evaluate
-          Assert (currNode[0].getType().isString());
+          Assert(currNode[0].getType().isString());
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
           Integer i = results[currNode[1]].d_rat.getNumerator();
@@ -614,12 +736,13 @@ EvalResult Evaluator::evalInternal(
           }
           else
           {
-            results[currNode] = EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
+            results[currNode] =
+                EvalResult(Rational(s.getVec()[i.toUnsignedInt()]));
           }
           break;
         }
 
-        case kind::STRING_UPDATE:
+        case Kind::STRING_UPDATE:
         {
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
@@ -636,7 +759,7 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-        case kind::STRING_CHARAT:
+        case Kind::STRING_CHARAT:
         {
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
@@ -652,7 +775,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_CONTAINS:
+        case Kind::STRING_CONTAINS:
         {
           const String& s = results[currNode[0]].d_str;
           const String& t = results[currNode[1]].d_str;
@@ -660,7 +783,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_INDEXOF:
+        case Kind::STRING_INDEXOF:
         {
           const String& s = results[currNode[0]].d_str;
           Integer s_len(s.size());
@@ -686,7 +809,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_REPLACE:
+        case Kind::STRING_REPLACE:
         {
           const String& s = results[currNode[0]].d_str;
           const String& x = results[currNode[1]].d_str;
@@ -694,8 +817,50 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(s.replace(x, y));
           break;
         }
+        case Kind::STRING_REPLACE_ALL:
+        {
+          const String& s = results[currNode[0]].d_str;
+          const String& x = results[currNode[1]].d_str;
+          const String& y = results[currNode[2]].d_str;
+          if (s.empty() || x.empty())
+          {
+            results[currNode] = EvalResult(s);
+          }
+          else
+          {
+            const std::vector<unsigned>& svec = s.getVec();
+            const std::vector<unsigned>& yvec = y.getVec();
+            std::size_t sizeS = s.size();
+            std::size_t sizeX = x.size();
+            std::size_t index = 0;
+            std::size_t curr = 0;
+            std::vector<unsigned> chars;
+            do
+            {
+              curr = s.find(x, index);
+              if (curr != std::string::npos)
+              {
+                if (curr > index)
+                {
+                  chars.insert(
+                      chars.end(), svec.begin() + index, svec.begin() + curr);
+                }
+                chars.insert(chars.end(), yvec.begin(), yvec.end());
+                index = curr + sizeX;
+              }
+              else
+              {
+                chars.insert(
+                    chars.end(), svec.begin() + index, svec.begin() + sizeS);
+              }
+            } while (curr != std::string::npos && curr < sizeS);
+            // constant evaluation
+            results[currNode] = EvalResult(String(chars));
+          }
+          break;
+        }
 
-        case kind::STRING_PREFIX:
+        case Kind::STRING_PREFIX:
         {
           const String& t = results[currNode[0]].d_str;
           const String& s = results[currNode[1]].d_str;
@@ -710,7 +875,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_SUFFIX:
+        case Kind::STRING_SUFFIX:
         {
           const String& t = results[currNode[0]].d_str;
           const String& s = results[currNode[1]].d_str;
@@ -725,7 +890,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_ITOS:
+        case Kind::STRING_ITOS:
         {
           Integer i = results[currNode[0]].d_rat.getNumerator();
           if (i.strictlyNegative())
@@ -739,7 +904,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_STOI:
+        case Kind::STRING_STOI:
         {
           const String& s = results[currNode[0]].d_str;
           if (s.isNumber())
@@ -753,7 +918,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_FROM_CODE:
+        case Kind::STRING_FROM_CODE:
         {
           Integer i = results[currNode[0]].d_rat.getNumerator();
           if (i >= 0 && i < d_alphaCard)
@@ -768,7 +933,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::STRING_TO_CODE:
+        case Kind::STRING_TO_CODE:
         {
           const String& s = results[currNode[0]].d_str;
           if (s.size() == 1)
@@ -781,20 +946,65 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-
-        case kind::CONST_BITVECTOR:
+        case Kind::STRING_REV:
+        {
+          const String& s = results[currNode[0]].d_str;
+          std::vector<unsigned> nvec = s.getVec();
+          std::reverse(nvec.begin(), nvec.end());
+          results[currNode] = EvalResult(String(nvec));
+          break;
+        }
+        case Kind::STRING_TO_LOWER:
+        case Kind::STRING_TO_UPPER:
+        {
+          const String& s = results[currNode[0]].d_str;
+          std::vector<unsigned> nvec = s.getVec();
+          Kind k = currNodeVal.getKind();
+          for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
+          {
+            unsigned newChar = nvec[i];
+            // transform it
+            // upper 65 ... 90
+            // lower 97 ... 122
+            if (k == Kind::STRING_TO_UPPER)
+            {
+              if (newChar >= 97 && newChar <= 122)
+              {
+                newChar = newChar - 32;
+              }
+            }
+            else if (k == Kind::STRING_TO_LOWER)
+            {
+              if (newChar >= 65 && newChar <= 90)
+              {
+                newChar = newChar + 32;
+              }
+            }
+            nvec[i] = newChar;
+          }
+          results[currNode] = EvalResult(String(nvec));
+          break;
+        }
+        case Kind::STRING_LEQ:
+        {
+          const String& s1 = results[currNode[0]].d_str;
+          const String& s2 = results[currNode[1]].d_str;
+          results[currNode] = EvalResult(s1.isLeq(s2));
+          break;
+        }
+        case Kind::CONST_BITVECTOR:
           results[currNode] = EvalResult(currNodeVal.getConst<BitVector>());
           break;
 
-        case kind::BITVECTOR_NOT:
+        case Kind::BITVECTOR_NOT:
           results[currNode] = EvalResult(~results[currNode[0]].d_bv);
           break;
 
-        case kind::BITVECTOR_NEG:
+        case Kind::BITVECTOR_NEG:
           results[currNode] = EvalResult(-results[currNode[0]].d_bv);
           break;
 
-        case kind::BITVECTOR_EXTRACT:
+        case Kind::BITVECTOR_EXTRACT:
         {
           unsigned lo = bv::utils::getExtractLow(currNodeVal);
           unsigned hi = bv::utils::getExtractHigh(currNodeVal);
@@ -803,7 +1013,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::BITVECTOR_CONCAT:
+        case Kind::BITVECTOR_CONCAT:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -814,7 +1024,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::BITVECTOR_ADD:
+        case Kind::BITVECTOR_ADD:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -825,7 +1035,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::BITVECTOR_MULT:
+        case Kind::BITVECTOR_MULT:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -835,7 +1045,7 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
-        case kind::BITVECTOR_AND:
+        case Kind::BITVECTOR_AND:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -846,7 +1056,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::BITVECTOR_OR:
+        case Kind::BITVECTOR_OR:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -857,7 +1067,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::BITVECTOR_XOR:
+        case Kind::BITVECTOR_XOR:
         {
           BitVector res = results[currNode[0]].d_bv;
           for (size_t i = 1, end = currNode.getNumChildren(); i < end; i++)
@@ -867,22 +1077,123 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(res);
           break;
         }
-        case kind::BITVECTOR_UDIV:
+        case Kind::BITVECTOR_UDIV:
         {
           BitVector res = results[currNode[0]].d_bv;
           res = res.unsignedDivTotal(results[currNode[1]].d_bv);
           results[currNode] = EvalResult(res);
           break;
         }
-        case kind::BITVECTOR_UREM:
+        case Kind::BITVECTOR_UREM:
         {
           BitVector res = results[currNode[0]].d_bv;
           res = res.unsignedRemTotal(results[currNode[1]].d_bv);
           results[currNode] = EvalResult(res);
           break;
         }
+        case Kind::BITVECTOR_SHL:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.leftShift(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
+          break;
+        }
+        case Kind::BITVECTOR_ASHR:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.arithRightShift(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
+          break;
+        }
+        case Kind::BITVECTOR_ULT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.unsignedLessThan(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_SLT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.signedLessThan(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_SLE:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.signedLessThanEq(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_ULE:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          bool b = res.unsignedLessThanEq(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_UGT:
+        {
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.unsignedLessThan(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_SGT:
+        {
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.signedLessThan(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_SGE:
+        {
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.signedLessThanEq(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_UGE:
+        {
+          BitVector res = results[currNode[1]].d_bv;
+          bool b = res.unsignedLessThanEq(results[currNode[0]].d_bv);
+          results[currNode] = EvalResult(b);
+          break;
+        }
+        case Kind::BITVECTOR_REPEAT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount =
+              currNode.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
+          BitVector ret = res;
+          for (size_t i = 1; i < amount; i++)
+          {
+            ret = ret.concat(res);
+          }
+          results[currNode] = EvalResult(ret);
+          break;
+        }
+        case Kind::BITVECTOR_SIGN_EXTEND:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount = currNode.getOperator()
+                                .getConst<BitVectorSignExtend>()
+                                .d_signExtendAmount;
+          results[currNode] = EvalResult(res.signExtend(amount));
+          break;
+        }
+        case Kind::BITVECTOR_ZERO_EXTEND:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          unsigned amount = currNode.getOperator()
+                                .getConst<BitVectorZeroExtend>()
+                                .d_zeroExtendAmount;
+          results[currNode] = EvalResult(res.zeroExtend(amount));
+          break;
+        }
 
-        case kind::EQUAL:
+        case Kind::EQUAL:
         {
           EvalResult lhs = results[currNode[0]];
           EvalResult rhs = results[currNode[1]];
@@ -933,7 +1244,7 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
-        case kind::ITE:
+        case Kind::ITE:
         {
           if (results[currNode[0]].d_bool)
           {
@@ -945,18 +1256,67 @@ EvalResult Evaluator::evalInternal(
           }
           break;
         }
-        case kind::BITVECTOR_TO_NAT:
+        case Kind::BITVECTOR_UBV_TO_INT:
         {
           BitVector res = results[currNode[0]].d_bv;
           results[currNode] = EvalResult(Rational(res.toInteger()));
           break;
         }
-        case kind::INT_TO_BITVECTOR:
+        case Kind::BITVECTOR_SBV_TO_INT:
+        {
+          BitVector res = results[currNode[0]].d_bv;
+          const uint32_t size = currNode[0].getType().getBitVectorSize();
+          // should not evaluate on empty bitvectors
+          Assert(size != 0);
+          if (res.isBitSet(size - 1))
+          {
+            Rational ttm = Rational(Integer(2).pow(size));
+            results[currNode] = EvalResult(Rational(res.toInteger()) - ttm);
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(res.toInteger()));
+          }
+          break;
+        }
+        case Kind::INT_TO_BITVECTOR:
         {
           Integer i = results[currNode[0]].d_rat.getNumerator();
           const uint32_t size =
               currNodeVal.getOperator().getConst<IntToBitVector>().d_size;
           results[currNode] = EvalResult(BitVector(size, i));
+          break;
+        }
+        case Kind::CONST_BITVECTOR_SYMBOLIC:
+        {
+          Integer i = results[currNode[0]].d_rat.getNumerator();
+          Integer w = results[currNode[1]].d_rat.getNumerator();
+          if (w.fitsUnsignedInt())
+          {
+            Assert(w.sgn() >= 0);
+            Trace("evaluator") << currNode << " evalutes to "
+                               << BitVector(w.toUnsignedInt(), i) << std::endl;
+            results[currNode] = EvalResult(BitVector(w.toUnsignedInt(), i));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
+          break;
+        }
+        case Kind::BITVECTOR_SIZE:
+        {
+          const TypeNode& tn = currNode[0].getType();
+          if (tn.isBitVector())
+          {
+            results[currNode] = EvalResult(Rational(tn.getBitVectorSize()));
+          }
+          else
+          {
+            processUnhandled(
+                currNode, currNodeVal, evalAsNode, results, needsReconstruct);
+          }
           break;
         }
         default:
@@ -982,7 +1342,7 @@ Node Evaluator::reconstruct(TNode n,
     return n;
   }
   Trace("evaluator") << "Evaluator: reconstruct " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   std::unordered_map<TNode, EvalResult>::iterator itr;
   std::unordered_map<TNode, Node>::iterator itn;
   std::vector<Node> echildren;
@@ -1020,6 +1380,7 @@ Node Evaluator::reconstruct(TNode n,
       // could not evaluate this child, look in the node cache
       itn = evalAsNode.find(currNodeChild);
       Assert(itn != evalAsNode.end());
+      Assert(!itn->second.isNull());
       echildren.push_back(itn->second);
     }
     else
@@ -1044,7 +1405,8 @@ void Evaluator::processUnhandled(TNode n,
                                  bool needsReconstruct) const
 {
   results[n] = EvalResult();
-  evalAsNode[n] = needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
+  evalAsNode[n] =
+      needsReconstruct ? reconstruct(n, results, evalAsNode) : Node(nv);
 }
 
 }  // namespace theory

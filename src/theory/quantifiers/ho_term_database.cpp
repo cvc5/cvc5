@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,7 +26,7 @@ namespace theory {
 namespace quantifiers {
 
 HoTermDb::HoTermDb(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr)
-    : TermDb(env, qs, qr)
+    : TermDb(env, qs, qr), d_hoFunOpPurify(userContext())
 {
 }
 
@@ -42,48 +39,39 @@ void HoTermDb::addTermInternal(Node n)
     // nothing special to do with functions
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  NodeManager* nm = n.getNodeManager();
   Node curr = n;
   std::vector<Node> args;
-  while (curr.getKind() == HO_APPLY)
+  while (curr.getKind() == Kind::HO_APPLY)
   {
     args.insert(args.begin(), curr[1]);
     curr = curr[0];
     if (!curr.isVar())
     {
       // purify the term
-      std::map<Node, Node>::iterator itp = d_hoFunOpPurify.find(curr);
-      Node psk;
-      if (itp == d_hoFunOpPurify.end())
+      context::CDHashSet<Node>::const_iterator itp = d_hoFunOpPurify.find(curr);
+      if (itp != d_hoFunOpPurify.end())
       {
-        psk = sm->mkPurifySkolem(
-            curr, "pfun", "purify for function operator term indexing");
-        d_hoFunOpPurify[curr] = psk;
-        // we do not add it to d_ops since it is an internal operator
+        continue;
       }
-      else
-      {
-        psk = itp->second;
-      }
+      d_hoFunOpPurify.insert(curr);
+      Node psk = SkolemManager::mkPurifySkolem(curr);
+      // we do not add it to d_ops since it is an internal operator
+      Node eq = psk.eqNode(curr);
       std::vector<Node> children;
       children.push_back(psk);
       children.insert(children.end(), args.begin(), args.end());
-      Node p_n = nm->mkNode(APPLY_UF, children);
-      Trace("term-db") << "register term in db (via purify) " << p_n
-                       << std::endl;
-      // also add this one internally
-      DbList* dblp = getOrMkDbListForOp(psk);
-      dblp->d_list.push_back(p_n);
-      // maintain backwards mapping
-      d_hoPurifyToTerm[p_n] = n;
+      Node p_n = nm->mkNode(Kind::APPLY_UF, children);
+      Node eqa = p_n.eqNode(n);
+      Node lem = nm->mkNode(Kind::AND, eq, eqa);
+      d_qim->addPendingLemma(lem, InferenceId::QUANTIFIERS_HO_PURIFY);
     }
   }
   if (!args.empty() && curr.isVar())
   {
     // also add standard application version
     args.insert(args.begin(), curr);
-    Node uf_n = nm->mkNode(APPLY_UF, args);
+    Node uf_n = nm->mkNode(Kind::APPLY_UF, args);
     addTerm(uf_n);
   }
 }
@@ -101,56 +89,28 @@ Node HoTermDb::getOperatorRepresentative(TNode op) const
   {
     return it->second;
   }
-  return op;
-}
-
-bool HoTermDb::resetInternal(Theory::Effort effort)
-{
-  Trace("quant-ho")
-      << "HoTermDb::reset : assert higher-order purify equalities..."
-      << std::endl;
-  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
-  for (std::pair<const Node, Node>& pp : d_hoPurifyToTerm)
+  // The map above only contains operators that have ground terms. If op has
+  // none, it may still be equal to an operator that does, in which case we
+  // use the representative of that operator.
+  if (!d_hoOpRep.empty() && op.getType().isFunction())
   {
-    if (ee->hasTerm(pp.second)
-        && (!ee->hasTerm(pp.first) || !ee->areEqual(pp.second, pp.first)))
+    eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
+    if (ee->hasTerm(op))
     {
-      Node eq;
-      std::map<Node, Node>::iterator itpe = d_hoPurifyToEq.find(pp.first);
-      if (itpe == d_hoPurifyToEq.end())
+      eq::EqClassIterator eqc_i(ee->getRepresentative(op), ee);
+      for (; !eqc_i.isFinished(); ++eqc_i)
       {
-        eq = rewrite(pp.first.eqNode(pp.second));
-        d_hoPurifyToEq[pp.first] = eq;
-      }
-      else
-      {
-        eq = itpe->second;
-      }
-      Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
-      // Note that ee may be the central equality engine, in which case this
-      // equality is explained trivially with "true", since both sides of
-      // eq are HOL and FOL encodings of the same thing.
-      ee->assertEquality(eq, true, d_true);
-      if (!ee->consistent())
-      {
-        // In some rare cases, purification functions (in the domain of
-        // d_hoPurifyToTerm) may escape the term database. For example,
-        // matching algorithms may construct instantiations involving these
-        // functions. As a result, asserting these equalities internally may
-        // cause a conflict. In this case, we insist that the purification
-        // equality is sent out as a lemma here.
-        Trace("term-db-lemma") << "Purify equality lemma: " << eq << std::endl;
-        d_qim->addPendingLemma(eq, InferenceId::QUANTIFIERS_HO_PURIFY);
-        d_qstate.notifyInConflict();
-        d_consistent_ee = false;
-        return false;
+        it = d_hoOpRep.find(*eqc_i);
+        if (it != d_hoOpRep.end())
+        {
+          return it->second;
+        }
       }
     }
   }
-  return true;
+  return op;
 }
-
-bool HoTermDb::finishResetInternal(Theory::Effort effort)
+bool HoTermDb::finishResetInternal(CVC5_UNUSED Theory::Effort effort)
 {
   if (!options().quantifiers.hoMergeTermDb)
   {
@@ -178,15 +138,6 @@ bool HoTermDb::finishResetInternal(Theory::Effort effort)
         if (n.isVar())
         {
           n_use = n;
-        }
-        else
-        {
-          // use its purified variable, if it exists
-          std::map<Node, Node>::iterator itp = d_hoFunOpPurify.find(n);
-          if (itp != d_hoFunOpPurify.end())
-          {
-            n_use = itp->second;
-          }
         }
         Trace("quant-ho") << "  - process " << n_use << ", from " << n
                           << std::endl;
@@ -220,19 +171,20 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
   {
     return false;
   }
-  exp.push_back(a.eqNode(b));
   // operators might be disequal
   Node af = getMatchOperator(a);
   Node bf = getMatchOperator(b);
   if (af != bf)
   {
-    if (a.getKind() == APPLY_UF && b.getKind() == APPLY_UF)
+    if (a.getKind() == Kind::APPLY_UF && b.getKind() == Kind::APPLY_UF)
     {
-      exp.push_back(af.eqNode(bf).negate());
+      exp.push_back(af.eqNode(bf));
+      Assert(d_qstate.areEqual(af, bf))
+          << af << " and " << bf << " are not equal";
     }
     else
     {
-      Assert(false);
+      DebugUnhandled();
       return false;
     }
   }
@@ -241,10 +193,11 @@ bool HoTermDb::checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp)
 
 Node HoTermDb::getHoTypeMatchPredicate(TypeNode tn)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = tn.getNodeManager();
   SkolemManager* sm = nm->getSkolemManager();
   TypeNode ptn = nm->mkFunctionType(tn, nm->booleanType());
-  return sm->mkSkolemFunction(SkolemFunId::HO_TYPE_MATCH_PRED, ptn);
+  return sm->mkInternalSkolemFunction(InternalSkolemId::HO_TYPE_MATCH_PRED,
+                                      ptn);
 }
 
 }  // namespace quantifiers

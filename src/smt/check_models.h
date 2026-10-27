@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,6 +39,11 @@ class CheckModels : protected EnvObj
    *
    * This throws an exception if we fail to verify that m is a proper model
    * given assertion list al based on the model checking policy.
+   *
+   * @param m           The model to check.
+   * @param al          The input assertions.
+   * @param hardFailure True have a failed model check should result in an
+   *                    InternalError rather than only issue a warning.
    */
   void checkModel(theory::TheoryModel* m,
                   const context::CDList<Node>& al,

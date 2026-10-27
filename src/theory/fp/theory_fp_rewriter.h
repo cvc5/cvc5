@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andres Noetzli, Martin Brain, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,12 +25,12 @@ namespace cvc5::internal {
 namespace theory {
 namespace fp {
 
-typedef RewriteResponse (*RewriteFunction) (TNode, bool);
+typedef RewriteResponse (*RewriteFunction)(NodeManager* nm, TNode, bool);
 
 class TheoryFpRewriter : public TheoryRewriter
 {
  public:
-  TheoryFpRewriter(context::UserContext* u);
+  TheoryFpRewriter(NodeManager* nm, bool fpExp);
 
   RewriteResponse preRewrite(TNode node) override;
   RewriteResponse postRewrite(TNode node) override;
@@ -47,15 +44,17 @@ class TheoryFpRewriter : public TheoryRewriter
     return postRewrite(equality).d_node;
   }
   /** Expand definitions in node */
-  TrustNode expandDefinition(Node node) override;
+  Node expandDefinition(Node node) override;
 
  protected:
   /** TODO: document (projects issue #265) */
-  RewriteFunction d_preRewriteTable[kind::LAST_KIND];
-  RewriteFunction d_postRewriteTable[kind::LAST_KIND];
-  RewriteFunction d_constantFoldTable[kind::LAST_KIND];
+  RewriteFunction d_preRewriteTable[static_cast<uint32_t>(Kind::LAST_KIND)];
+  RewriteFunction d_postRewriteTable[static_cast<uint32_t>(Kind::LAST_KIND)];
+  RewriteFunction d_constantFoldTable[static_cast<uint32_t>(Kind::LAST_KIND)];
   /** The expand definitions module. */
   FpExpandDefs d_fpExpDef;
+  /** True if --fp-exp is enabled */
+  bool d_fpExpEnabled;
 }; /* class TheoryFpRewriter */
 
 }  // namespace fp

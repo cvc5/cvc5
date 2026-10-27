@@ -1,4 +1,6 @@
-; DISABLE-TESTER: lfsc
+; REQUIRES: unrestricted-mode
+; Proof testing was disabled in #11927 because it timed out in nightly builds.
+; DISABLE-TESTER: proof
 ; COMMAND-LINE: --fp-lazy-wb
 ; EXPECT: unsat
 (set-logic QF_BVFP)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Ying Sheng, Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +32,6 @@ class ArrayCoreSolver : protected EnvObj
                   SolverState& s,
                   InferenceManager& im,
                   TermRegistry& tr,
-                  CoreSolver& cs,
                   ExtfSolver& es,
                   ExtTheory& extt);
   ~ArrayCoreSolver();
@@ -71,7 +67,8 @@ class ArrayCoreSolver : protected EnvObj
  private:
   void sendInference(const std::vector<Node>& exp,
                      const Node& lem,
-                     const InferenceId iid);
+                     const InferenceId iid,
+                     bool asLemma = false);
 
   /**
    * Perform reasoning about seq.nth operation.
@@ -113,8 +110,6 @@ class ArrayCoreSolver : protected EnvObj
   InferenceManager& d_im;
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
-  /** reference to the core solver, used for certain queries */
-  CoreSolver& d_csolver;
   /** reference to the extended solver, used for certain queries */
   ExtfSolver& d_esolver;
   /** the extended theory object for the theory of strings */

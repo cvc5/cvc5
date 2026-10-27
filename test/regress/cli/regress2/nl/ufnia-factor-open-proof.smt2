@@ -1,5 +1,4 @@
 ; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: proof
 (set-logic QF_UFNIA)
 (set-info :status unsat)
 (declare-fun p2 (Int) Int)

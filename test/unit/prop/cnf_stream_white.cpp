@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Christopher L. Conway, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,7 +39,10 @@ class FakeSatSolver : public SatSolver
  public:
   FakeSatSolver() : d_nextVar(0), d_addClauseCalled(false) {}
 
-  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) override
+  void initialize() override {}
+
+  SatVariable newVar(CVC5_UNUSED bool theoryAtom,
+                     CVC5_UNUSED bool canErase) override
   {
     return d_nextVar++;
   }
@@ -51,31 +51,22 @@ class FakeSatSolver : public SatSolver
 
   SatVariable falseVar() override { return d_nextVar++; }
 
-  ClauseId addClause(SatClause& c, bool lemma) override
+  ClauseId addClause(CVC5_UNUSED const SatClause& c,
+                     CVC5_UNUSED bool lemma) override
   {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
-
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
-  {
-    d_addClauseCalled = true;
-    return ClauseIdUndef;
-  }
-
-  bool nativeXor() override { return false; }
 
   void reset() { d_addClauseCalled = false; }
 
   unsigned int addClauseCalled() { return d_addClauseCalled; }
 
-  unsigned getAssertionLevel() const override { return 0; }
-
   bool isDecision(Node) const { return false; }
 
-  void unregisterVar(SatLiteral lit) {}
+  void unregisterVar(CVC5_UNUSED SatLiteral lit) {}
 
-  void renewVar(SatLiteral lit, int level = -1) {}
+  void renewVar(CVC5_UNUSED SatLiteral lit, CVC5_UNUSED int level = -1) {}
 
   bool spendResource() { return false; }
 
@@ -83,16 +74,37 @@ class FakeSatSolver : public SatSolver
 
   SatValue solve() override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue solve(long unsigned int& resource) override
+  SatValue solve(CVC5_UNUSED long unsigned int& resource) override
   {
     return SAT_VALUE_UNKNOWN;
   }
 
-  SatValue value(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
+  SatValue solve(
+      CVC5_UNUSED const std::vector<SatLiteral>& assumptions) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
 
-  SatValue modelValue(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
+  void getUnsatAssumptions(
+      CVC5_UNUSED std::vector<SatLiteral>& unsat_assumptions) override
+  {
+  }
 
-  bool properExplanation(SatLiteral lit, SatLiteral expl) const { return true; }
+  SatValue value(CVC5_UNUSED SatLiteral l) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
+
+  SatValue modelValue(CVC5_UNUSED SatLiteral l) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
+
+  bool properExplanation(CVC5_UNUSED SatLiteral lit,
+                         CVC5_UNUSED SatLiteral expl) const
+  {
+    return true;
+  }
 
   bool ok() const override { return true; }
 
@@ -149,7 +161,7 @@ TEST_F(TestPropWhiteCnfStream, and)
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::AND, a, b, c), false, false);
+      d_nodeManager->mkNode(Kind::AND, a, b, c), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -163,13 +175,13 @@ TEST_F(TestPropWhiteCnfStream, complex_expr)
   Node f = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
       d_nodeManager->mkNode(
-          kind::IMPLIES,
-          d_nodeManager->mkNode(kind::AND, a, b),
+          Kind::IMPLIES,
+          d_nodeManager->mkNode(Kind::AND, a, b),
           d_nodeManager->mkNode(
-              kind::EQUAL,
-              d_nodeManager->mkNode(kind::OR, c, d),
-              d_nodeManager->mkNode(kind::NOT,
-                                    d_nodeManager->mkNode(kind::XOR, e, f)))),
+              Kind::EQUAL,
+              d_nodeManager->mkNode(Kind::OR, c, d),
+              d_nodeManager->mkNode(Kind::NOT,
+                                    d_nodeManager->mkNode(Kind::XOR, e, f)))),
       false,
       false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
@@ -192,7 +204,7 @@ TEST_F(TestPropWhiteCnfStream, iff)
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::EQUAL, a, b), false, false);
+      d_nodeManager->mkNode(Kind::EQUAL, a, b), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -201,15 +213,15 @@ TEST_F(TestPropWhiteCnfStream, implies)
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::IMPLIES, a, b), false, false);
+      d_nodeManager->mkNode(Kind::IMPLIES, a, b), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
-TEST_F(TestPropWhiteCnfStream, not )
+TEST_F(TestPropWhiteCnfStream, not)
 {
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::NOT, a), false, false);
+      d_nodeManager->mkNode(Kind::NOT, a), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -219,7 +231,7 @@ TEST_F(TestPropWhiteCnfStream, or)
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node c = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::OR, a, b, c), false, false);
+      d_nodeManager->mkNode(Kind::OR, a, b, c), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -239,7 +251,7 @@ TEST_F(TestPropWhiteCnfStream, xor)
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
   d_cnfStream->convertAndAssert(
-      d_nodeManager->mkNode(kind::XOR, a, b), false, false);
+      d_nodeManager->mkNode(Kind::XOR, a, b), false, false);
   ASSERT_TRUE(d_satSolver->addClauseCalled());
 }
 
@@ -247,7 +259,7 @@ TEST_F(TestPropWhiteCnfStream, ensure_literal)
 {
   Node a = d_nodeManager->mkVar(d_nodeManager->booleanType());
   Node b = d_nodeManager->mkVar(d_nodeManager->booleanType());
-  Node a_and_b = d_nodeManager->mkNode(kind::AND, a, b);
+  Node a_and_b = d_nodeManager->mkNode(Kind::AND, a, b);
   d_cnfStream->ensureLiteral(a_and_b);
   // Clauses are necessary to "literal-ize" a_and_b
   ASSERT_TRUE(d_satSolver->addClauseCalled());

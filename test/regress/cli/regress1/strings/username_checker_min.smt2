@@ -1,6 +1,6 @@
 (set-info :smt-lib-version 2.6)
 (set-logic QF_S)
-(set-option :strings-exp true)
+
 (set-info :status unsat)
 
 (declare-const buff String)

@@ -1,0 +1,171 @@
+; define: $compare_geq
+; args:
+; - x T: The first term to compare.
+; - y T: The second term to compare.
+; return: true if x >= y, where x and y are assumed to be arithmetic values.
+(define $compare_geq ((T Type :implicit) (x T) (y T))
+  (eo::ite (eo::eq x y) true (eo::gt x y)))
+
+(declare-const @@Pair (-> Type Type Type))
+
+(define @Pair () @@Pair)
+
+(declare-parameterized-const @@pair ((U Type :implicit) (T Type :implicit))
+  (-> U T (@Pair U T)))
+
+(define @pair () @@pair)
+
+; program: $pair_first
+; args:
+; - t (@Pair T S)
+; return: The first element in the pair
+(program $pair_first ((T Type) (S Type) (t T) (s S))
+  :signature ((@Pair T S)) T
+  (
+  (($pair_first (@pair t s))  t)
+  )
+)
+
+; program: $pair_second
+; args:
+; - t (@Pair T S)
+; return: The second element in the pair
+(program $pair_second ((T Type) (S Type) (t T) (s S))
+  :signature ((@Pair T S)) S
+  (
+  (($pair_second (@pair t s)) s)
+  )
+)
+
+;; =============== untyped list
+; untyped list.
+; note: >
+;   We use this as a synonym for eo::List. We use this syntax as it avoids
+;   the usage of eo:: in proofs.
+(define @List () eo::List)
+
+(define @list.nil () eo::List::nil)
+
+(define @list () eo::List::cons)
+
+;; =============== homogeneous list
+(declare-parameterized-const @@TypedList ((T Type)) Type)
+
+(declare-parameterized-const @@TypedList.nil ((T Type)) (@@TypedList T))
+
+(declare-parameterized-const @@TypedList.cons ((T Type :implicit))
+  (-> T (@@TypedList T) (@@TypedList T))
+  :right-assoc-nil (@@TypedList.nil T))
+
+(define @TList () @@TypedList)
+
+(define @tlist.nil () @@TypedList.nil)
+
+(define @tlist () @@TypedList.cons)
+
+; program: $typed_list_element_type
+; args:
+; - T Type: the type in question
+; return: The element type of T, if it is a typed list.
+(program $typed_list_element_type ((T Type))
+  :signature (Type) Type
+  (
+  (($typed_list_element_type (@TList T))  T)
+  )
+)
+
+;; =============== evaluation utilities
+; note: This is a forward declaration of $evaluate_list defined in Cpc.eo.
+(program $evaluate_list () :signature (@List) @List)
+
+; program: $evaluate_internal
+; args:
+; - t T: The original term.
+; - l @List: A list containing the evaluation of t.
+; return: The evaluation of t.
+(program $evaluate_internal ((T Type) (t T) (tev T))
+  :signature (T @List) T
+  (
+  (($evaluate_internal t (@list tev)) tev)
+  )
+)
+
+; define: $evaluate
+; args:
+; - t S: The term to evaluate.
+; return: The result of evaluating t.
+; note: >
+; This method is defined in terms of the forward declaration $evaluate_list
+; here.
+;   The implementation of this method depends on defining the evaluation for all
+;   theories and thus is contained in Cpc.eo.
+(define $evaluate ((T Type :implicit) (t T))
+  ($evaluate_internal t ($evaluate_list (@list t))))
+
+; program: $get_arg_list_rec
+; args:
+; - t S: The term to inspect.
+; - acc @List: The accumulator storing the arguments we have seen so far.
+; return: >
+;   The list of arguments provided to the function at the head of t appended to
+;   acc, or acc if t is not a function application.
+(program $get_arg_list_rec
+  ((T Type) (S Type) (f (-> T S)) (x T) (y S) (acc @List))
+  :signature (S @List) @List
+  (
+  (($get_arg_list_rec (f x) acc)  ($get_arg_list_rec f (_ @list x acc)))
+  (($get_arg_list_rec y acc)      acc)
+  )
+)
+
+; define: $get_arg_list
+; args:
+; - t T: The term to inspect.
+; return: >
+;   The list of arguments provided to the function at the head of t, or the nil
+;   list if t is not a function application.
+(define $get_arg_list ((T Type :implicit) (t T))
+  ($get_arg_list_rec t @list.nil))
+
+; program: $is_app
+; args:
+; - f (-> T U): The function.
+; - t S: The term to inspect.
+; return: True if and only if t is an application of f.
+(program $is_app ((T Type) (S Type) (U Type) (f (-> T U)) (g (-> T S)) (x T))
+  :signature ((-> T U) S) Bool
+  (
+  (($is_app f (g x))  ($is_app f g))
+  (($is_app f x)      (eo::eq f x))
+  )
+)
+
+; program: $is_var_list
+; args:
+; - xs @List: The list of terms.
+; return: true if all terms in xs are variables.
+(program $is_var_list ((U Type) (x U) (xs @List :list))
+  :signature (@List) Bool
+  (
+  (($is_var_list (@list x xs))
+    (eo::ite (eo::is_var x) ($is_var_list xs) false))
+  (($is_var_list @list.nil) true)
+  )
+)
+
+; define: $compare_var
+; args:
+; - a T: The first term to compare.
+; - b U: The second term to compare.
+; return: true if a should be considered before b in an ordering where a and b
+; are considered to be atomic variables.
+; note: >
+;   This method is used to have a canonical ordering of variables.
+; It could potentially be improved by having a builtin operator, e.g.
+; eo::compare.
+;   The variable ordering always returns true for the variable with the lower
+;   hash. This leads to best case performance if sorting a term with distinct
+;   children, where if we ask for the hash of the children in order and prefer
+;   the ones where this compare returns true, then the term remains unchanged.
+(define $compare_var ((T Type :implicit) (U Type :implicit) (a T) (b U))
+  (eo::cmp b a))

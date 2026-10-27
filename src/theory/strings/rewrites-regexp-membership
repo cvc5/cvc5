@@ -1,0 +1,35 @@
+; =============== Regular expression membership rules
+
+(define-rule re-in-empty ((t String)) (str.in_re t re.none) false)
+(define-rule re-in-sigma ((t String)) (str.in_re t re.allchar) (= (str.len t) 1))
+(define-rule re-in-sigma-star ((t String)) (str.in_re t (re.* re.allchar)) true)
+(define-rule re-in-cstring ((t String) (s String)) (str.in_re t (str.to_re s)) (= t s))
+(define-rule re-in-comp ((t String) (r RegLan)) (str.in_re t (re.comp r)) (not (str.in_re t r)))
+
+(define-rule* str-in-re-union-elim ((s String) (r1 RegLan) (r2 RegLan) (rs RegLan :list))
+  (str.in_re s (re.union r1 r2 rs))
+  (str.in_re s (re.union r2 rs))
+  (or (str.in_re s r1) _))
+
+(define-rule* str-in-re-inter-elim ((s String) (r1 RegLan) (r2 RegLan) (rs RegLan :list))
+  (str.in_re s (re.inter r1 r2 rs))
+  (str.in_re s (re.inter r2 rs))
+  (and (str.in_re s r1) _))
+
+(define-cond-rule str-in-re-range-elim ((s String) (c1 String) (c2 String))
+  (and (= (str.len c1) 1) (= (str.len c2) 1))
+  (str.in_re s (re.range c1 c2))
+  (and (<= (str.to_code c1) (str.to_code s)) (<= (str.to_code s) (str.to_code c2))))
+
+(define-rule str-in-re-contains ((t String) (s String))
+  (str.in_re t (re.++ (re.* re.allchar) (str.to_re s) (re.* re.allchar)))
+  (str.contains t s))
+
+(define-cond-rule str-in-re-from-int-nemp-dig-range ((n Int))
+  (>= n 0)
+  (str.in_re (str.from_int n) (re.++ (re.range "0" "9") (re.* (re.range "0" "9"))))
+  true)
+
+(define-rule str-in-re-from-int-dig-range ((n Int))
+  (str.in_re (str.from_int n) (re.* (re.range "0" "9")))
+  true)

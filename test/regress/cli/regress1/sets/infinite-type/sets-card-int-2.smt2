@@ -1,5 +1,6 @@
+; REQUIRES: unrestricted-mode
 (set-logic QF_ALL)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (set-info :status sat)
 (assert (= (set.card (as set.universe (Set Int))) 10))
 (declare-const universe (Set Int))

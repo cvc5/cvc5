@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -54,7 +51,7 @@ class SolutionFilterStrength : public ExprMiner
    * Dually, if d_isStrong is false, then if this method returns false, then
    * the entailment n |= n_1 V ... V n_m holds.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& filtered) override;
   /** set logically strong */
   void setLogicallyStrong(bool isStrong);
 

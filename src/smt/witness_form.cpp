@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,8 +19,21 @@
 namespace cvc5::internal {
 namespace smt {
 
+std::ostream& operator<<(std::ostream& out, WitnessReq wr)
+{
+  switch (wr)
+  {
+    case WitnessReq::WITNESS_AND_REWRITE: out << "WITNESS_AND_REWRITE"; break;
+    case WitnessReq::WITNESS: out << "WITNESS"; break;
+    case WitnessReq::REWRITE: out << "REWRITE"; break;
+    case WitnessReq::NONE: out << "NONE"; break;
+  }
+  return out;
+}
+
 WitnessFormGenerator::WitnessFormGenerator(Env& env)
-    : d_rewriter(env.getRewriter()),
+    : EnvObj(env),
+      d_rewriter(env.getRewriter()),
       d_tcpg(env,
              nullptr,
              TConvPolicy::FIXPOINT,
@@ -34,11 +44,12 @@ WitnessFormGenerator::WitnessFormGenerator(Env& env)
       d_wintroPf(env, nullptr, nullptr, "WfGenerator::LazyCDProof"),
       d_pskPf(env, nullptr, "WfGenerator::PurifySkolemProof")
 {
+  d_true = nodeManager()->mkConst(true);
 }
 
 std::shared_ptr<ProofNode> WitnessFormGenerator::getProofFor(Node eq)
 {
-  if (eq.getKind() != kind::EQUAL)
+  if (eq.getKind() != Kind::EQUAL)
   {
     // expecting an equality
     return nullptr;
@@ -93,9 +104,9 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           d_eqs.insert(eq);
           // ------- SKOLEM_INTRO
           // k = t
-          d_wintroPf.addStep(eq, PfRule::SKOLEM_INTRO, {}, {cur});
+          d_wintroPf.addStep(eq, ProofRule::SKOLEM_INTRO, {}, {cur});
           d_tcpg.addRewriteStep(
-              cur, curw, &d_wintroPf, true, PfRule::ASSUME, true);
+              cur, curw, &d_wintroPf, true, TrustId::NONE, true);
           // recursively transform
           visit.push_back(curw);
         }
@@ -117,15 +128,35 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
   return tw;
 }
 
-bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s) const
+WitnessReq WitnessFormGenerator::requiresWitnessFormTransform(
+    Node t, Node s, MethodId idr) const
 {
-  return d_rewriter->rewrite(t) != d_rewriter->rewrite(s);
+  Node tr = d_env.rewriteViaMethod(t, idr);
+  Node sr = d_env.rewriteViaMethod(s, idr);
+  if (tr == sr)
+  {
+    // rewriting via the method is enough
+    return WitnessReq::NONE;
+  }
+  if (CVC5_EQUAL(rewrite(tr), rewrite(sr)))
+  {
+    // calling ordinary rewrite after (extended) rewriting is enough
+    return WitnessReq::REWRITE;
+  }
+  Node trw = SkolemManager::getOriginalForm(tr);
+  Node srw = SkolemManager::getOriginalForm(sr);
+  if (trw == srw)
+  {
+    // witness is enough
+    return WitnessReq::WITNESS;
+  }
+  return WitnessReq::WITNESS_AND_REWRITE;
 }
 
-bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
+WitnessReq WitnessFormGenerator::requiresWitnessFormIntro(Node t,
+                                                          MethodId idr) const
 {
-  Node tr = d_rewriter->rewrite(t);
-  return !tr.isConst() || !tr.getConst<bool>();
+  return requiresWitnessFormTransform(t, d_true, idr);
 }
 
 const std::unordered_set<Node>& WitnessFormGenerator::getWitnessFormEqs() const

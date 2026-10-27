@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --finite-model-find --fmf-bound
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --finite-model-find --fmf-bound
 ; EXPECT: sat
 (set-logic ALL)
 (declare-datatypes ((UNIT 0)) (((Unit))

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,24 +18,50 @@ package io.github.cvc5;
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeSelector(long pointer)
+  DatatypeSelector(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, DatatypeSelector::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
+  private static native void deletePointer(long pointer);
 
   // endregion
 
-  /** @return The Name of this Datatype selector. */
+  /**
+   * Syntactic equality operator.
+   *
+   * @param s The datatype selector to compare to for equality.
+   * @return True if the datatype selectors are equal.
+   */
+  @Override
+  public boolean equals(Object s)
+  {
+    if (this == s)
+    {
+      return true;
+    }
+    if (s == null || getClass() != s.getClass())
+    {
+      return false;
+    }
+    DatatypeSelector sel = (DatatypeSelector) s;
+    if (this.pointer == sel.pointer)
+    {
+      return true;
+    }
+    return equals(getPointer(), sel.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
+   * Get the Name of this Datatype selector.
+   *
+   * @return The Name of this Datatype selector.
+   */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
@@ -54,8 +77,8 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getTerm()
   {
-    long termPointer = getTerm(pointer);
-    return new Term(termPointer);
+    long termPointer = getTerm(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getTerm(long pointer);
@@ -71,27 +94,33 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getUpdaterTerm()
   {
-    long termPointer = getUpdaterTerm(pointer);
-    return new Term(termPointer);
+    long termPointer = getUpdaterTerm(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getUpdaterTerm(long pointer);
 
-  /** @return The Codomain sort of this selector. */
+  /**
+   * Get the Codomain sort of this selector.
+   *
+   * @return The Codomain sort of this selector.
+   */
   public Sort getCodomainSort()
   {
-    long sortPointer = getCodomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getCodomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getCodomainSort(long pointer);
 
   /**
+   * Determine if this DatatypeSelector is a null object.
+   *
    * @return True If this DatatypeSelector is a null object.
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -100,4 +129,16 @@ public class DatatypeSelector extends AbstractPointer
    * @return A String representation of this datatype selector.
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a datatype selector.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return Long.hashCode(hashCode(getPointer()));
+  }
+
+  private native long hashCode(long pointer);
 }

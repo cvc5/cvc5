@@ -2,6 +2,6 @@
 (set-info :status sat)
 (declare-fun a () Int)
 (declare-fun v () (_ BitVec 1))
-(assert (= 1 (bv2nat v)))
-(assert (forall ((V Int)) (= (_ bv0 1) ((_ extract 0 0) ((_ int2bv 1) (bv2nat ((_ int2bv 3) a)))))))
+(assert (= 1 (ubv_to_int v)))
+(assert (forall ((V Int)) (= (_ bv0 1) ((_ extract 0 0) ((_ int_to_bv 1) (ubv_to_int ((_ int_to_bv 3) a)))))))
 (check-sat)

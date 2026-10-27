@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +22,6 @@
 
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace context;
 
 namespace test {
@@ -36,7 +32,7 @@ class TestNodeWhiteTypeNode : public TestNode
   void SetUp() override
   {
     TestNode::SetUp();
-    d_slvEngine.reset(new SolverEngine);
+    d_slvEngine.reset(new SolverEngine(d_nodeManager.get()));
   }
   std::unique_ptr<SolverEngine> d_slvEngine;
 };
@@ -50,8 +46,8 @@ TEST_F(TestNodeWhiteTypeNode, sub_types)
   TypeNode bvType = d_nodeManager->mkBitVectorType(32);
 
   Node x = d_nodeManager->mkBoundVar("x", realType);
-  Node xPos =
-      d_nodeManager->mkNode(GT, x, d_nodeManager->mkConstInt(Rational(0)));
+  Node xPos = d_nodeManager->mkNode(
+      Kind::GT, x, d_nodeManager->mkConstInt(Rational(0)));
   TypeNode funtype = d_nodeManager->mkFunctionType(integerType, booleanType);
   Node lambda = d_nodeManager->mkVar("lambda", funtype);
   std::vector<Node> formals;

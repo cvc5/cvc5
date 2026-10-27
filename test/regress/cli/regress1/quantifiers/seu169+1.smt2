@@ -1,5 +1,7 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --relational-triggers
 ; EXPECT: unsat
+
 (set-logic UF)
 (declare-sort $$unsorted 0)
 (declare-fun in ($$unsorted $$unsorted) Bool)

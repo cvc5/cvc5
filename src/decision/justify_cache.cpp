@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,7 +21,7 @@ namespace cvc5::internal {
 namespace decision {
 
 JustifyCache::JustifyCache(context::Context* c,
-                           prop::CDCLTSatSolverInterface* ss,
+                           prop::CDCLTSatSolver* ss,
                            prop::CnfStream* cs)
     : d_justified(c), d_satSolver(ss), d_cnfStream(cs)
 {
@@ -32,9 +29,9 @@ JustifyCache::JustifyCache(context::Context* c,
 
 prop::SatValue JustifyCache::lookupValue(TNode n)
 {
-  bool pol = n.getKind() != NOT;
+  bool pol = n.getKind() != Kind::NOT;
   TNode atom = pol ? n : n[0];
-  Assert(atom.getKind() != NOT);
+  Assert(atom.getKind() != Kind::NOT);
   // check if we have already determined the value
   // notice that d_justified may contain nodes that are not assigned SAT values,
   // since this class infers when the value of nodes can be determined.

@@ -1,5 +1,5 @@
-; DISABLE-TESTER: lfsc
-; COMMAND-LINE: --sets-ext --full-saturate-quant
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sets-exp --full-saturate-quant
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

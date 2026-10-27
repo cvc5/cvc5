@@ -7,7 +7,10 @@ available at http://cvc4.cs.stanford.edu/wiki/Tutorials
 ## Building Examples
 
 The examples provided in this directory are not built by default.
+First, build cvc5 and install it in your system.
+To do so, follow [these](https://github.com/cvc5/cvc5/blob/main/INSTALL.rst) instructions.
 
+Then, proceed as follows:
 ```
   mkdir <build_dir>
   cd <build_dir>
@@ -29,7 +32,11 @@ additionally specify `CMAKE_PREFIX_PATH` to point to the location of
   cmake .. -DCMAKE_PREFIX_PATH=<your-install-prefix>/lib/cmake
 ```
 
-The examples binaries are built into `<build_dir>/bin`.
+The examples binaries are built into directory `<build_dir>/bin`, e.g.,
+`<build_dir>/bin/api/cpp/bags` for `api/cpp/bags.cpp`.
+
+**Note:** The binaries for the C examples in `api/c` are renamed with a `c_`
+          prefix, e.g., `<build_dir>/bin/api/c/c_bags` for `api/c/bags.c`.
 
 ## SimpleVC*, simple_vc*
 
@@ -41,6 +48,6 @@ functionality through each library.
 
 ## Targeted examples
 
-The "api" directory contains some more specifically-targeted
-examples (for bitvectors, for arithmetic, etc.).  The "api/java"
-directory contains the same examples in Java.
+The `api` directory contains some more specifically-targeted examples (for
+bit-vectors, for arithmetic, etc.) for each supported language binding and
+their corresponding encodings in SMT-LIB.

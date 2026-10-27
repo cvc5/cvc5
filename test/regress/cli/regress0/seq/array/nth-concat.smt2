@@ -1,4 +1,5 @@
-; COMMAND-LINE: --incremental --strings-exp --seq-array=eager
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --incremental --seq-array=eager
 ; EXPECT: unsat
 
 (set-logic QF_SLIA)

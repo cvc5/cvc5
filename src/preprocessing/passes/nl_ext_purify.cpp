@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,8 +31,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
                                 std::vector<Node>& var_eq,
                                 bool beneathMult)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  NodeManager* nm = nodeManager();
   if (beneathMult)
   {
     NodeMap::iterator find = bcache.find(n);
@@ -60,7 +56,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
   Node ret = n;
   if (n.getNumChildren() > 0)
   {
-    if (beneathMult && (n.getKind() == kind::ADD || n.getKind() == kind::SUB))
+    if (beneathMult && (n.getKind() == Kind::ADD || n.getKind() == Kind::SUB))
     {
       // don't do it if it rewrites to a constant
       Node nr = rewrite(n);
@@ -72,18 +68,16 @@ Node NlExtPurify::purifyNlTerms(TNode n,
       else
       {
         // new variable
-        ret = sm->mkDummySkolem("__purifyNl_var",
-                                n.getType(),
-                                "Variable introduced in purifyNl pass");
+        ret = NodeManager::mkDummySkolem("__purifyNl_var", n.getType());
         Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
         var_eq.push_back(np.eqNode(ret));
-        Trace("nl-ext-purify") << "Purify : " << ret << " -> " << np
-                               << std::endl;
+        Trace("nl-ext-purify")
+            << "Purify : " << ret << " -> " << np << std::endl;
       }
     }
     else
     {
-      bool beneathMultNew = beneathMult || n.getKind() == kind::MULT;
+      bool beneathMultNew = beneathMult || n.getKind() == Kind::MULT;
       bool childChanged = false;
       std::vector<Node> children;
       for (unsigned i = 0, size = n.getNumChildren(); i < size; ++i)
@@ -110,7 +104,7 @@ Node NlExtPurify::purifyNlTerms(TNode n,
 }
 
 NlExtPurify::NlExtPurify(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "nl-ext-purify"){};
+    : PreprocessingPass(preprocContext, "nl-ext-purify") {};
 
 PreprocessingPassResult NlExtPurify::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -125,20 +119,22 @@ PreprocessingPassResult NlExtPurify::applyInternal(
     Node ap = purifyNlTerms(a, cache, bcache, var_eq);
     if (a != ap)
     {
-      assertionsToPreprocess->replace(i, ap);
+      assertionsToPreprocess->replace(
+          i, ap, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY);
       Trace("nl-ext-purify")
           << "Purify : " << a << " -> " << (*assertionsToPreprocess)[i] << "\n";
     }
   }
   if (!var_eq.empty())
   {
-    unsigned lastIndex = size - 1;
-    Node veq = NodeManager::currentNM()->mkAnd(var_eq);
-    assertionsToPreprocess->conjoin(lastIndex, veq);
+    for (const Node& ve : var_eq)
+    {
+      assertionsToPreprocess->push_back(
+          ve, false, nullptr, TrustId::PREPROCESS_NL_EXT_PURIFY_LEMMA);
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

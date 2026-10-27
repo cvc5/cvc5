@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,12 +28,11 @@ SygusQePreproc::SygusQePreproc(Env& env) : EnvObj(env) {}
 Node SygusQePreproc::preprocess(Node q)
 {
   Node body = q[1];
-  if (body.getKind() == NOT && body[0].getKind() == FORALL)
+  if (body.getKind() == Kind::NOT && body[0].getKind() == Kind::FORALL)
   {
     body = body[0][1];
   }
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  NodeManager* nm = nodeManager();
   Trace("cegqi-qep") << "Compute single invocation for " << q << "..."
                      << std::endl;
   quantifiers::SingleInvocationPartition sip(d_env);
@@ -86,8 +82,7 @@ Node SygusQePreproc::preprocess(Node q)
   // skolemize non-qe variables
   for (unsigned i = 0, size = nqe_vars.size(); i < size; i++)
   {
-    Node k = sm->mkDummySkolem(
-        "k", nqe_vars[i].getType(), "qe for non-ground single invocation");
+    Node k = NodeManager::mkDummySkolem("k", nqe_vars[i].getType());
     orig.push_back(nqe_vars[i]);
     subs.push_back(k);
     Trace("cegqi-qep") << "  subs : " << nqe_vars[i] << " -> " << k
@@ -102,8 +97,7 @@ Node SygusQePreproc::preprocess(Node q)
     Node fv = sip.getFirstOrderVariableForFunction(f);
     Assert(!fi.isNull());
     orig.push_back(fi);
-    Node k = sm->mkDummySkolem(
-        "k", fv.getType(), "qe for function in non-ground single invocation");
+    Node k = NodeManager::mkDummySkolem("k", fv.getType());
     subs.push_back(k);
     Trace("cegqi-qep") << "  subs : " << fi << " -> " << k << std::endl;
   }
@@ -113,7 +107,8 @@ Node SygusQePreproc::preprocess(Node q)
       orig.begin(), orig.end(), subs.begin(), subs.end());
   Assert(!qe_vars.empty());
   conj_se_ngsi_subs = nm->mkNode(
-      EXISTS, nm->mkNode(BOUND_VAR_LIST, qe_vars), conj_se_ngsi_subs.negate());
+      Kind::EXISTS,
+      {nm->mkNode(Kind::BOUND_VAR_LIST, qe_vars), conj_se_ngsi_subs.negate()});
 
   Trace("cegqi-qep") << "Run quantifier elimination on " << conj_se_ngsi_subs
                      << std::endl;
@@ -127,10 +122,11 @@ Node SygusQePreproc::preprocess(Node q)
         qeRes.substitute(subs.begin(), subs.end(), orig.begin(), orig.end());
     if (!nqe_vars.empty())
     {
-      qeRes = nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qeRes);
+      qeRes = nm->mkNode(
+          Kind::EXISTS, nm->mkNode(Kind::BOUND_VAR_LIST, nqe_vars), qeRes);
     }
     Assert(q.getNumChildren() == 3);
-    qeRes = nm->mkNode(FORALL, q[0], qeRes, q[2]);
+    qeRes = nm->mkNode(Kind::FORALL, q[0], qeRes, q[2]);
     Trace("cegqi-qep") << "Converted conjecture after QE : " << qeRes
                        << std::endl;
     qeRes = rewrite(qeRes);

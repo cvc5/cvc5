@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,25 +50,6 @@ std::optional<bool> tryEvaluateRelationReflexive(Kind rel,
 Node buildRelation(Kind kind, Node left, Node right, bool negate = false);
 
 /**
- * Build an integer equality from the given sum. The result is equivalent to the
- * sum being equal to zero. We first normalize the non-constant coefficients to
- * integers (using GCD and LCM). If the coefficient is non-integral after that,
- * the result is false. We then put the term with minimal absolute coefficient
- * to the left side of the equality and make its coefficient positive.
- * The sum is taken as rvalue as it is modified in the process.
- */
-Node buildIntegerEquality(Sum&& sum);
-
-/**
- * Build a real equality from the given sum. The result is equivalent to the sum
- * being equal to zero. We first extract the leading term and normalize its
- * coefficient to be plus or minus one. The result is the (normalized) leading
- * term being equal to the rest of the sum.
- * The sum is taken as rvalue as it is modified in the process.
- */
-Node buildRealEquality(Sum&& sum);
-
-/**
  * Build an integer inequality from the given sum. The result is equivalent to
  * `(k sum 0)`. We first normalize the non-constant coefficients to integers
  * (using GCD and LCM), tighten the inequality if possible and turn it into a
@@ -79,7 +57,7 @@ Node buildRealEquality(Sum&& sum);
  * where the overall inequalit is possibly negated.
  * The sum is taken as rvalue as it is modified in the process.
  */
-Node buildIntegerInequality(Sum&& sum, Kind k);
+Node buildIntegerInequality(NodeManager* nm, Sum&& sum, Kind k);
 
 /**
  * Build a real inequality from the given sum. The result is equivalent to
@@ -87,7 +65,68 @@ Node buildIntegerInequality(Sum&& sum, Kind k);
  * The result is the resulting sum compared with the constant.
  * The sum is taken as rvalue as it is modified in the process.
  */
-Node buildRealInequality(Sum&& sum, Kind k);
+Node buildRealInequality(NodeManager* nm, Sum&& sum, Kind k);
+
+/**
+ * Return the normal form of the arithmetic equality atom, which is computed by
+ * moving all terms to the left hand side and normalizing the resulting sum.
+ * For example, this returns (= x 1) for the input (= (+ x 1) 2). The returned
+ * node is either an equality or a Boolean constant.
+ *
+ * Note that this normalization is *not* applied by the rewriter, since it does
+ * not preserve the terms of the equality, which is incompatible with theory
+ * combination. It is instead applied to equalities in the input via
+ * ppStaticRewrite, by the extended rewriter, by the linear arithmetic solver,
+ * and by utilities that require equalities in normal form.
+ *
+ * If negated is non-null, it is set to true if the difference of the sides of
+ * the returned equality is a *negative* multiple of the difference of the
+ * sides of atom, and false if it is a positive one. This is used by the
+ * rewriter to orient atom in the same direction as its normal form, which
+ * ensures that a normal form is itself in rewritten form.
+ *
+ * @param nm Pointer to the node manager.
+ * @param atom The equality to normalize.
+ * @param negated Whether the returned equality is a negative multiple of atom.
+ * @return The normal form of atom.
+ */
+Node normalizeEquality(NodeManager* nm, TNode atom, bool* negated = nullptr);
+
+/**
+ * Decompose sum into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param sum The sum.
+ * @param negated Updated to true if we negated the sum.
+ * @param followLCoeffSign if true, the leading coefficient is made positive,
+ * possibly negating all other coefficients.
+ * @return a pair p such that p.first + p.second (possibly negated) is
+ * equivalent to sum and p.first does not contain constant sums and p.second is
+ * constant.
+ */
+std::pair<Node, Node> decomposeSum(NodeManager* nm,
+                                   Sum&& sum,
+                                   bool& negated,
+                                   bool followLCoeffSign);
+/**
+ * Decompose sum into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param sum The sum.
+ * @return a pair p such that p.first + p.second is equivalent to sum and
+ * p.first does not contain constant sums and p.second is constant.
+ */
+std::pair<Node, Node> decomposeSum(NodeManager* nm, Sum&& sum);
+
+/**
+ * Decompose relation a <> b into a (non-constant, constant) part.
+ * @param nm Pointer to node manager.
+ * @param a The first term.
+ * @param b The second term.
+ * @return a pair p such that p.first <> p.second is equivalent to a <> b and
+ * p.first does not contain constant sums and p.second is constant.
+ */
+std::pair<Node, Node> decomposeRelation(NodeManager* nm,
+                                        const Node& a,
+                                        const Node& b);
 
 }  // namespace rewriter
 }  // namespace arith

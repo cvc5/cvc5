@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Tianyi Liang
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,7 +67,7 @@ class CoreInferInfo
  * This implements techniques for handling (dis)equalities involving
  * string concatenation terms based on the procedure by Liang et al CAV 2014.
  */
-class CoreSolver : protected EnvObj
+class CoreSolver : public InferSideEffectProcess, protected EnvObj
 {
   friend class InferenceManager;
   using NodeIntMap = context::CDHashMap<Node, int>;
@@ -144,7 +141,7 @@ class CoreSolver : protected EnvObj
    * assignment. For further detail on this terminology, see Liang et al
    * CAV 2014.
    *
-   * Notice that all constant words are implicitly considered concatentation
+   * Notice that all constant words are implicitly considered concatenation
    * of their characters, e.g. "abc" is treated as "a" ++ "b" ++ "c".
    *
    * At a high level, we build normal forms for equivalence classes bottom-up,
@@ -221,13 +218,25 @@ class CoreSolver : protected EnvObj
 
   //--------------------------- query functions
   /**
+   * Get relevant disequalities, which is a list of disequalities that are
+   * asserted in the current context between strings whose lengths are not
+   * already disequal. This list is filtered to not contain pairs of
+   * disequalities that are congruent.
+   *
+   * This list is used, e.g., when implementing the injectivity lemma schema
+   * for str.to_code.
+   */
+  const std::vector<Node>& getRelevantDeq() const;
+  /** Has a normal form for n been computed? */
+  bool hasNormalForm(const Node& n) const;
+  /**
    * Get normal form for string term n. For details on this data structure,
    * see theory/strings/normal_form.h.
    *
    * This query is valid after a successful call to checkNormalFormsEq, e.g.
    * a call where the inference manager was not given any lemmas or inferences.
    */
-  NormalForm& getNormalForm(Node n);
+  NormalForm& getNormalForm(const Node& n);
   /** get normal string
    *
    * This method returns the node that is equivalent to the normal form of x,
@@ -239,71 +248,16 @@ class CoreSolver : protected EnvObj
   Node getNormalString(Node x, std::vector<Node>& nf_exp);
   //-------------------------- end query functions
 
-  /**
-   * This returns the conclusion of the proof rule corresponding to splitting
-   * on the arrangement of terms x and y appearing in an equation of the form
-   *   x ++ x' = y ++ y' or x' ++ x = y' ++ y
-   * where we are in the second case if isRev is true. This method is called
-   * both by the core solver and by the strings proof checker.
-   *
-   * @param x The first term
-   * @param y The second term
-   * @param rule The proof rule whose conclusion we are asking for
-   * @param isRev Whether the equation is in a reverse direction
-   * @param skc The skolem cache (to allocate fresh variables if necessary)
-   * @param newSkolems The vector to add new variables to
-   * @return The conclusion of the inference.
-   */
-  static Node getConclusion(Node x,
-                            Node y,
-                            PfRule rule,
-                            bool isRev,
-                            SkolemCache* skc,
-                            std::vector<Node>& newSkolems);
-  /**
-   * Get sufficient non-empty overlap of string constants c and d.
-   *
-   * This is called when handling equations of the form:
-   *   x ++ d ++ ... = c ++ ...
-   * when x is non-empty and non-constant.
-   *
-   * This returns the maximal index in c which x must have as a prefix, which
-   * notice is an integer >= 1 since x is non-empty.
-   *
-   * @param c The first constant
-   * @param d The second constant
-   * @param isRev Whether the equation is in the reverse direction
-   * @return The position in c.
-   */
-  static size_t getSufficientNonEmptyOverlap(Node c, Node d, bool isRev);
-  /**
-   * This returns the conclusion of the decompose proof rule. This returns
-   * a conjunction of splitting string x into pieces based on length l, e.g.:
-   *   x = k_1 ++ k_2
-   * where k_1 (resp. k_2) is a skolem corresponding to a substring of x of
-   * length l if isRev is false (resp. true). The function also adds a
-   * length constraint len(k_1) = l (resp. len(k_2) = l). Note that adding this
-   * constraint to the conclusion is *not* optional, since the skolems k_1 and
-   * k_2 may be shared, hence their length constraint must be guarded by the
-   * premises of this inference.
-   *
-   * @param x The string term
-   * @param l The length term
-   * @param isRev Whether the equation is in a reverse direction
-   * @param skc The skolem cache (to allocate fresh variables if necessary)
-   * @param newSkolems The vector to add new variables to
-   * @return The conclusion of the inference.
-   */
-  static Node getDecomposeConclusion(Node x,
-                                     Node l,
-                                     bool isRev,
-                                     SkolemCache* skc,
-                                     std::vector<Node>& newSkolems);
+  /** Called when ii is ready to be processed as a fact */
+  void processFact(InferInfo& ii, ProofGenerator*& pg) override;
+  /** Called when ii is ready to be processed as a lemma */
+  TrustNode processLemma(InferInfo& ii, LemmaProperty& p) override;
+
  private:
   /**
    * This returns the index of the inference in pinfer that should be processed
    * based on our heuristics. In particular, we favor certain identifiers
-   * before others, as well as considering the position in a concatentation
+   * before others, as well as considering the position in a concatenation
    * term they reference.
    */
   size_t pickInferInfo(const std::vector<CoreInferInfo>& pinfer);
@@ -399,8 +353,10 @@ class CoreSolver : protected EnvObj
    * pinfer: the set of possible inferences we add to.
    *
    * stype is the string-like type of the equivalence class we are processing.
+   *
+   * @return true if the normal forms are equal
    */
-  void processSimpleNEq(NormalForm& nfi,
+  bool processSimpleNEq(NormalForm& nfi,
                         NormalForm& nfj,
                         unsigned& index,
                         bool isRev,
@@ -522,6 +478,8 @@ class CoreSolver : protected EnvObj
    * on the ordering described in checkCycles.
    */
   std::vector<Node> d_strings_eqc;
+  /** The relevant disequalities */
+  std::vector<Node> d_rlvDeq;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /**

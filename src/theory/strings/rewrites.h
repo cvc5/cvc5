@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +27,8 @@ namespace strings {
  */
 enum class Rewrite : uint32_t
 {
+  // no rewrite
+  NONE,
   CTN_COMPONENT,
   CTN_CONCAT_CHAR,
   CTN_CONST,
@@ -41,11 +40,8 @@ enum class Rewrite : uint32_t
   CTN_NCONST_CTN_CONCAT,
   CTN_REPL,
   CTN_REPL_CHAR,
-  CTN_REPL_CNSTS_TO_CTN,
   CTN_REPL_EMPTY,
   CTN_REPL_LEN_ONE_TO_CTN,
-  CTN_REPL_SELF,
-  CTN_REPL_SIMP_REPL,
   CTN_REPL_TO_CTN,
   CTN_REPL_TO_CTN_DISJ,
   CTN_RHS_EMPTYSTR,
@@ -54,7 +50,9 @@ enum class Rewrite : uint32_t
   CTN_SPLIT_ONES,
   CTN_STRIP_ENDPT,
   CTN_SUBSTR,
-  EQ_LEN_DEQ,
+  CTN_CONCAT_COM_NON_CTN,
+  CTN_CONCAT_CTN_SUBSTR,
+  CTN_ITOS_NON_DIGIT,
   EQ_NCTN,
   EQ_NFIX,
   FROM_CODE_EVAL,
@@ -77,10 +75,12 @@ enum class Rewrite : uint32_t
   INDEXOF_RE_EVAL,
   INDEXOF_RE_INVALID_INDEX,
   INDEXOF_RE_MAX_INDEX,
+  INDEXOF_RE_NONE,
   ITOS_EVAL,
   RE_ALL_ELIM,
   RE_AND_EMPTY,
   RE_ANDOR_FLATTEN,
+  RE_ANDOR_CONST_REMOVE,
   RE_ANDOR_INC_CONFLICT,
   RE_INTER_CONST_CONST_CONFLICT,
   RE_INTER_CONST_RE_CONFLICT,
@@ -97,6 +97,7 @@ enum class Rewrite : uint32_t
   RE_IN_INCLUSION,
   RE_LOOP,
   RE_LOOP_NONE,
+  RE_LOOP_ZERO,
   RE_LOOP_STAR,
   RE_OR_ALL,
   RE_SIMPLE_CONSUME,
@@ -117,24 +118,25 @@ enum class Rewrite : uint32_t
   REPLALL_EMPTY_FIND,
   RPL_CCTN,
   RPL_CCTN_RPL,
-  RPL_CNTS_SUBSTS,
   RPL_CONST_FIND,
   RPL_CONST_NFIND,
-  RPL_EMP_CNTS_SUBSTS,
   RPL_ID,
   RPL_NCTN,
   RPL_PULL_ENDPT,
   RPL_REPLACE,
   RPL_RPL_EMPTY,
   RPL_RPL_LEN_ID,
-  RPL_X_Y_X_SIMP,
   REPLACE_RE_EVAL,
+  REPLACE_RE_NONE,
   REPLACE_RE_ALL_EVAL,
+  REPLACE_RE_ALL_NONE,
   REPLACE_RE_EMP_RE,
   SPLIT_EQ,
   SPLIT_EQ_STRIP_L,
   SPLIT_EQ_STRIP_R,
-  SS_COMBINE,
+  SS_COMBINE_EQ,
+  SS_COMBINE_GEQ_INNER,
+  SS_COMBINE_GEQ_OUTER,
   SS_CONST_END_OOB,
   SS_CONST_LEN_MAX_OOB,
   SS_CONST_LEN_NON_POS,
@@ -175,8 +177,6 @@ enum class Rewrite : uint32_t
   STR_EMP_SUBSTR_LEQ_LEN,
   STR_EMP_SUBSTR_LEQ_Z,
   STR_EQ_CONJ_LEN_ENTAIL,
-  STR_EQ_CONST_NHOMOG,
-  STR_EQ_HOMOG_CONST,
   STR_EQ_REPL_EMP,
   STR_EQ_REPL_NOT_CTN,
   STR_EQ_REPL_TO_DIS,
@@ -204,10 +204,6 @@ enum class Rewrite : uint32_t
   CONCAT_NORM,
   IS_DIGIT_ELIM,
   RE_CONCAT_EMPTY,
-  RE_CONSUME_CCONF,
-  RE_CONSUME_S,
-  RE_CONSUME_S_CCONF,
-  RE_CONSUME_S_FULL,
   RE_IN_EMPTY,
   RE_IN_SIGMA,
   RE_IN_EVAL,
@@ -220,6 +216,7 @@ enum class Rewrite : uint32_t
   STR_LT_ELIM,
   RE_RANGE_SINGLE,
   RE_RANGE_EMPTY,
+  RE_RANGE_NON_SINGLETON,
   RE_OPT_ELIM,
   RE_PLUS_ELIM,
   RE_DIFF_ELIM,
@@ -232,7 +229,10 @@ enum class Rewrite : uint32_t
   SEQ_UNIT_EVAL,
   SEQ_NTH_EVAL,
   SEQ_NTH_EVAL_OOB,
-  SEQ_NTH_EVAL_SYM
+  SEQ_NTH_EVAL_SYM,
+
+  // the rewrite was unspecified
+  UNKNOWN
 };
 
 /**

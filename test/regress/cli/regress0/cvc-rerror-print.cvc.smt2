@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; EXPECT: (error "Cannot get model unless after a SAT or UNKNOWN response.")
+; EXPECT: (error "cannot get model unless after a SAT or UNKNOWN response.")
 (set-option :incremental false)
 (set-logic ALL)
 (set-option :produce-models true)

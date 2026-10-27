@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,11 +30,11 @@ namespace {
 
 bool isBVAtom(TNode n)
 {
-  return (n.getKind() == kind::EQUAL && n[0].getType().isBitVector())
-         || n.getKind() == kind::BITVECTOR_ULT
-         || n.getKind() == kind::BITVECTOR_ULE
-         || n.getKind() == kind::BITVECTOR_SLT
-         || n.getKind() == kind::BITVECTOR_SLE;
+  return (n.getKind() == Kind::EQUAL && n[0].getType().isBitVector())
+         || n.getKind() == Kind::BITVECTOR_ULT
+         || n.getKind() == Kind::BITVECTOR_ULE
+         || n.getKind() == Kind::BITVECTOR_SLT
+         || n.getKind() == Kind::BITVECTOR_SLE;
 }
 
 /* Traverse Boolean nodes and collect BV atoms. */
@@ -83,10 +80,10 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   {
     d_bitblaster->bbAtom(fact);
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Node atom_bb = d_bitblaster->getStoredBBAtom(fact);
-  Node lemma = nm->mkNode(kind::EQUAL, fact, atom_bb);
+  Node lemma = nm->mkNode(Kind::EQUAL, fact, atom_bb);
 
   if (!d_env.isTheoryProofProducing())
   {
@@ -100,16 +97,19 @@ void BVSolverBitblastInternal::addBBLemma(TNode fact)
   }
 }
 
-bool BVSolverBitblastInternal::needsEqualityEngine(EeSetupInfo& esi)
+bool BVSolverBitblastInternal::needsEqualityEngine(CVC5_UNUSED EeSetupInfo& esi)
 {
   // Disable equality engine if --bitblast=eager is enabled.
   return options().bv.bitblastMode != options::BitblastMode::EAGER;
 }
 
-bool BVSolverBitblastInternal::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool BVSolverBitblastInternal::preNotifyFact(CVC5_UNUSED TNode atom,
+                                             CVC5_UNUSED bool pol,
+                                             CVC5_UNUSED TNode fact,
+                                             CVC5_UNUSED bool isPrereg,
+                                             CVC5_UNUSED bool isInternal)
 {
-  if (fact.getKind() == kind::NOT)
+  if (fact.getKind() == Kind::NOT)
   {
     fact = fact[0];
   }
@@ -118,12 +118,12 @@ bool BVSolverBitblastInternal::preNotifyFact(
   {
     addBBLemma(fact);
   }
-  else if (fact.getKind() == kind::BITVECTOR_EAGER_ATOM)
+  else if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
   {
     TNode n = fact[0];
 
-    NodeManager* nm = NodeManager::currentNM();
-    Node lemma = nm->mkNode(kind::EQUAL, fact, n);
+    NodeManager* nm = nodeManager();
+    Node lemma = nm->mkNode(Kind::EQUAL, fact, n);
 
     if (!d_env.isTheoryProofProducing())
     {
@@ -132,7 +132,7 @@ bool BVSolverBitblastInternal::preNotifyFact(
     else
     {
       TrustNode tlem =
-          d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
+          d_epg->mkTrustNode(lemma, ProofRule::BV_EAGER_ATOM, {}, {fact});
       d_im.trustedLemma(tlem, InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA);
     }
 
@@ -168,9 +168,10 @@ Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
     return node;
   }
 
+  NodeManager* nm = node.getNodeManager();
   if (!d_bitblaster->hasBBTerm(node))
   {
-    return initialize ? utils::mkConst(utils::getSize(node), 0u) : Node();
+    return initialize ? utils::mkConst(nm, utils::getSize(node), 0u) : Node();
   }
 
   Valuation& val = d_state.getValuation();
@@ -192,12 +193,7 @@ Node BVSolverBitblastInternal::getValue(TNode node, bool initialize)
     }
     value = value * 2 + bit;
   }
-  return utils::mkConst(bits.size(), value);
-}
-
-BVProofRuleChecker* BVSolverBitblastInternal::getProofChecker()
-{
-  return &d_checker;
+  return utils::mkConst(nm, bits.size(), value);
 }
 
 }  // namespace bv

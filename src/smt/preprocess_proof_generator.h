@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +20,7 @@
 #include "proof/proof.h"
 #include "proof/proof_generator.h"
 #include "proof/proof_set.h"
+#include "proof/trust_id.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 
@@ -63,16 +61,10 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * @param env Reference to the environment
    * @param c The context this class depends on
    * @param name The name of this generator (for debugging)
-   * @param ra The proof rule to use when no generator is provided for new
-   * assertions
-   * @param rpp The proof rule to use when no generator is provided for
-   * preprocessing steps.
    */
   PreprocessProofGenerator(Env& env,
                            context::Context* c = nullptr,
-                           std::string name = "PreprocessProofGenerator",
-                           PfRule ra = PfRule::PREPROCESS_LEMMA,
-                           PfRule rpp = PfRule::PREPROCESS);
+                           std::string name = "PreprocessProofGenerator");
   ~PreprocessProofGenerator() {}
   /**
    * Notify that n is an input (its proof is ASSUME).
@@ -80,17 +72,37 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   void notifyInput(Node n);
   /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
+   *
+   * @param n The formula to assert.
+   * @param pg The proof generator that may provide a proof of n.
+   * @param id The trust id to use, if pg is nullptr.
    */
-  void notifyNewAssert(Node n, ProofGenerator* pg);
-  /**  Notify a new assertion, trust node version. */
-  void notifyNewTrustedAssert(TrustNode tn);
+  void notifyNewAssert(Node n,
+                       ProofGenerator* pg,
+                       TrustId id = TrustId::UNKNOWN_PREPROCESS_LEMMA);
+  /**
+   * Notify a new assertion, trust node version.
+   *
+   * @param tn The trust node
+   * @param id The trust id to use, if the generator of the trust node is null.
+   */
+  void notifyNewTrustedAssert(TrustNode tn,
+                              TrustId id = TrustId::UNKNOWN_PREPROCESS_LEMMA);
   /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
+   * @param n The original formula.
+   * @param np The preprocessed formula.
+   * @param pg The proof generator that may provide a proof of (= n np).
+   * @param id The trust id to use, if the proof generator is null.
    */
-  void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
+  void notifyPreprocessed(Node n,
+                          Node np,
+                          ProofGenerator* pg,
+                          TrustId id = TrustId::UNKNOWN_PREPROCESS);
   /** Notify preprocessed, trust node version */
-  void notifyTrustedPreprocessed(TrustNode tnp);
+  void notifyTrustedPreprocessed(TrustNode tnp,
+                                 TrustId id = TrustId::UNKNOWN_PREPROCESS);
   /**
    * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original
@@ -99,20 +111,13 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
-  /**
-   * Allocate a helper proof. This returns a fresh lazy proof object that
-   * remains alive in the context. This feature is used to construct
-   * helper proofs for preprocessing, e.g. to support the skeleton of proofs
-   * that connect AssertionPipeline::conjoin steps.
-   */
-  LazyCDProof* allocateHelperProof();
 
  private:
   /**
    * Possibly check pedantic failure for null proof generator provided
    * to this class.
    */
-  void checkEagerPedantic(PfRule r);
+  void checkEagerPedantic(TrustId r);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The context used here */
@@ -125,19 +130,18 @@ class PreprocessProofGenerator : protected EnvObj, public ProofGenerator
    * (2) A trust node LEMMA proving n.
    */
   NodeTrustNodeMap d_src;
-  /** A context-dependent list of LazyCDProof, allocated for conjoin steps */
-  CDProofSet<LazyCDProof> d_helperProofs;
   /**
    * A cd proof for input assertions, this is an empty proof that intentionally
    * returns (ASSUME f) for all f.
    */
   CDProof d_inputPf;
+  /**
+   * A cd proof used for when preprocessing steps are not given justification.
+   * Stores only trust steps.
+   */
+  CDProof d_trustPf;
   /** Name for debugging */
   std::string d_name;
-  /** The trust rule for new assertions with no provided proof generator */
-  PfRule d_ra;
-  /** The trust rule for rewrites with no provided proof generator */
-  PfRule d_rpp;
 };
 
 }  // namespace smt

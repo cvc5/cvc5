@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,9 +23,9 @@
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/sets/strategy.h"
 #include "theory/sets/term_registry.h"
 #include "theory/sets/theory_sets_rels.h"
-#include "theory/sets/theory_sets_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -51,17 +48,6 @@ class TheorySetsPrivate : protected EnvObj
 
  private:
   /**
-   * Invoke the decision procedure for this theory, which is run at
-   * full effort. This will either send a lemma or conflict on the output
-   * channel of this class, or otherwise the current set of constraints is
-   * satisfiable w.r.t. the theory of sets.
-   */
-  void fullEffortCheck();
-  /**
-   * Reset the information for a full effort check.
-   */
-  void fullEffortReset();
-  /**
    * This implements an inference schema based on the "downwards closure" of
    * set membership. This roughly corresponds to the rules SET_UNION DOWN I and
    * II, INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for
@@ -80,17 +66,14 @@ class TheorySetsPrivate : protected EnvObj
    * Apply the following rule for filter terms (set.filter p A):
    * (=>
    *   (and (set.member x B) (= A B))
-   *   (or
-   *    (and (p x) (set.member x (set.filter p A)))
-   *    (and (not (p x)) (not (set.member x (set.filter p A))))
-   *   )
+   *   (= (set.member x (set.filter p A)) (p x))
    * )
    */
   void checkFilterUp();
   /**
    * Apply the following rule for filter terms (set.filter p A):
    * (=>
-   *   (bag.member x (set.filter p A))
+   *   (set.member x (set.filter p A))
    *   (and
    *    (p x)
    *    (set.member x A)
@@ -98,7 +81,6 @@ class TheorySetsPrivate : protected EnvObj
    * )
    */
   void checkFilterDown();
-
   /**
    * Apply the following rule for map terms (set.map f A):
    * Positive member rule:
@@ -111,7 +93,6 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * Apply the following rules for map terms (set.map f A) where A has type
    * (Set T):
-   * - General case:
    *   (=>
    *     (set.member y (set.map f A))
    *     (and
@@ -120,14 +101,26 @@ class TheorySetsPrivate : protected EnvObj
    *     )
    *   )
    *   where x is a fresh skolem
-   * - Special case where we can avoid skolems
-   *   (=>
-   *     (set.member (f x) (set.map f A))
-   *     (set.member x A)
-   *   )
    */
   void checkMapDown();
-  void checkGroups();
+  /**
+   * @param f a function of type (-> E T)
+   * @param x a term of type E
+   * @return the application of f to x, beta-reduced if f is defined by a
+   * lambda.
+   *
+   * The terms this solver builds for the map rules are asserted as internal
+   * facts and so never go through preprocessing. We therefore have to perform
+   * the beta reduction that HoExtension::ppRewrite would otherwise have
+   * performed, see FunctionConst::getDefinition.
+   *
+   * Note the filter rules build applications of their predicate in the same
+   * way and have the same problem, but their conclusions are reconstructed by
+   * the SETS_FILTER_UP and SETS_FILTER_DOWN proof rules, which are stated over
+   * the unreduced application. Beta-reducing there requires updating those
+   * rules in lockstep, so it is left alone here.
+   */
+  Node mkApplyFunction(const Node& f, const Node& x);
   void checkGroup(Node n);
   /**
    * @param n has form ((_ rel.group n1 ... nk) A) where A has type T
@@ -271,17 +264,7 @@ class TheorySetsPrivate : protected EnvObj
   /**
    * generate skolem variable for node n and add pending lemma for the equality
    */
-  Node registerAndAssertSkolemLemma(Node& n, const std::string& prefix);
-  /**
-   * This implements a strategy for splitting for set disequalities which
-   * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
-   */
-  void checkDisequalities();
-  /**
-   * Check comprehensions. This adds reduction lemmas for all set comprehensions
-   * in the current context.
-   */
-  void checkReduceComprehensions();
+  Node registerAndAssertSkolemLemma(Node& n);
 
   Node d_true;
   Node d_false;
@@ -292,20 +275,20 @@ class TheorySetsPrivate : protected EnvObj
    * context.
    */
   NodeSet d_termProcessed;
-  
-  //propagation
+
+  // propagation
   class EqcInfo
   {
-  public:
-   EqcInfo(context::Context* c);
-   ~EqcInfo() {}
-   // singleton or emptyset equal to this eqc
-   context::CDO<Node> d_singleton;
+   public:
+    EqcInfo(context::Context* c);
+    ~EqcInfo() {}
+    // singleton or emptyset equal to this eqc
+    context::CDO<Node> d_singleton;
   };
   /** information necessary for equivalence classes */
-  std::map< Node, EqcInfo* > d_eqc_info;
+  std::map<Node, EqcInfo*> d_eqc_info;
   /** get or make eqc info */
-  EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  EqcInfo* getOrMakeEqcInfo(TNode n, bool doMake = false);
 
   /** full check incomplete
    *
@@ -318,7 +301,6 @@ class TheorySetsPrivate : protected EnvObj
   IncompleteId d_fullCheckIncompleteId;
 
  public:
-
   /**
    * Constructs a new instance of TheorySetsPrivate w.r.t. the provided
    * contexts.
@@ -331,8 +313,6 @@ class TheorySetsPrivate : protected EnvObj
                     CarePairArgumentCallback& cpacb);
 
   ~TheorySetsPrivate();
-
-  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
 
   /** Get the solver state */
   SolverState* getSolverState() { return &d_state; }
@@ -350,17 +330,61 @@ class TheorySetsPrivate : protected EnvObj
   void notifyFact(TNode atom, bool polarity, TNode fact);
   //--------------------------------- end standard check
 
+  //--------------------------------- strategy steps
+  // These are the individual steps of the full-effort strategy. They are
+  // invoked by sets::Strategy::runStep in the order set up by
+  // Strategy::initializeStrategy. Each step asserts facts directly and/or
+  // buffers lemmas; the strategy decides when to flush and when to iterate.
+  /**
+   * Reset the per-pass full-effort state (solver state, inference manager,
+   * cardinality solver and incompleteness flags). Runs first on every strategy
+   * pass, before checkBasic registers terms.
+   */
+  void fullEffortReset();
+  /**
+   * Register the relevant terms with the solver state and run the membership
+   * downwards/upwards closure schemas. Returns as soon as a fact or lemma has
+   * been produced, so the strategy can flush and restart.
+   */
+  void checkBasic();
+  /** Run the cardinality subsolver, if cardinality constraints are present. */
+  void checkCardinality();
+  /** Run the relations subsolver, if relational constraints are present. */
+  void checkRelations();
+  /**
+   * Run the transitive-closure down rule, which introduces fresh skolem
+   * elements. One sweep over the current TC members is done per call, so only
+   * finitely many fresh elements are introduced per strategy pass.
+   */
+  void checkTransitiveClosureDown();
+  /**
+   * Run the transitive-closure up rule, which chains the closure graph built by
+   * checkTransitiveClosureDown. It must run in the same strategy pass as the
+   * down rule, since the two share that graph.
+   */
+  void checkTransitiveClosureUp();
+  /** Run the set.filter inference rules (checkFilterUp / checkFilterDown). */
+  void checkFilters();
+  /** Run the set.map inference rules (checkMapUp / checkMapDown). */
+  void checkMaps();
+  /** Run the rel.group / table.group inference rules. */
+  void checkGroups();
+  /**
+   * Split on set disequalities (SET DISEQUALITY rule from Bansal et al IJCAR
+   * 2016). Runs after the operator rules to preserve the original inference
+   * order; running it earlier slows finite model finding (see strategy order).
+   */
+  void checkDisequalities();
+  /** Add reduction lemmas for all set comprehensions in the current context. */
+  void checkReduceComprehensions();
+  //--------------------------------- end strategy steps
+
   /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
 
-  Node explain(TNode);
-
   void preRegisterTerm(TNode node);
-
-  /** ppRewrite, which expands choose and is_singleton.  */
-  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
 
   void presolve();
 
@@ -384,34 +408,41 @@ class TheorySetsPrivate : protected EnvObj
   SolverState& d_state;
   /** The inference manager of the sets solver */
   InferenceManager& d_im;
-  /** Reference to the skolem cache */
-  SkolemCache& d_skCache;
   /** The term registry */
   TermRegistry d_treg;
 
   /** Pointer to the equality engine of theory of sets */
   eq::EqualityEngine* d_equalityEngine;
 
-  bool isCareArg( Node n, unsigned a );
+  bool isCareArg(Node n, unsigned a);
 
-  /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node,
-                                 std::vector<SkolemLemma>& lems);
-  /** expand the definition of is_singleton operator */
-  TrustNode expandIsSingletonOperator(const Node& node);
   /** ensure that the set type is over first class type, throw logic exception
    * if not */
   void ensureFirstClassSetType(TypeNode tn) const;
+  /**
+   * Ensure cardinality is enabled, which may throw a logic exception if
+   * setCardExp is false.
+   */
+  void ensureCardinalityEnabled();
+  /**
+   * Ensure relations are enabled, which may throw a logic exception if
+   * relsExp is false.
+   */
+  void ensureRelationsEnabled();
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
   std::unique_ptr<CardinalityExtension> d_cardSolver;
+  /** Have we ever seen relations? */
+  bool d_hasEnabledRels;
   /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint
    * involving relational constraints is asserted to this theory.
    */
   bool d_rels_enabled;
+  /** Have we ever seen cardinality? */
+  bool d_hasEnabledCard;
   /** is cardinality enabled?
    *
    * This flag is set to true during a full effort check if any constraint
@@ -426,14 +457,16 @@ class TheorySetsPrivate : protected EnvObj
    */
   bool d_higher_order_kinds_enabled;
 
-  /** The theory rewriter for this theory. */
-  TheorySetsRewriter d_rewriter;
-
-  /** a map that maps each set to an existential quantifier generated for
-   * operator is_singleton */
-  std::map<Node, Node> d_isSingletonNodes;
   /** Reference to care pair argument callback, used for theory combination */
   CarePairArgumentCallback& d_cpacb;
+  /**
+   * The relevant terms for the current full-effort check. Collected once per
+   * postCheck and reused by checkBasic while registering terms on each strategy
+   * pass (mirrors the hoist that used to live at the top of fullEffortCheck).
+   */
+  std::set<Node> d_relevantTerms;
+  /** The strategy that drives the full-effort check loop. */
+  Strategy d_strategy;
 }; /* class TheorySetsPrivate */
 
 }  // namespace sets

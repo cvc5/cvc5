@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -72,12 +69,11 @@ bool SygusRandomEnumerator::increment()
 
 Node SygusRandomEnumerator::incrementH()
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+  NodeManager* nm = nodeManager();
   Random& rnd = Random::getRandom();
   double p = options().quantifiers.sygusEnumRandomP;
 
-  Node mainSkolem = sm->mkDummySkolem("sygus_rand", d_tn);
+  Node mainSkolem = NodeManager::mkDummySkolem("sygus_rand", d_tn);
   // List of skolems with no corresponding constructor.
   std::vector<Node> remainingSkolems;
   remainingSkolems.push_back(mainSkolem);
@@ -108,7 +104,7 @@ Node SygusRandomEnumerator::incrementH()
     if (d_argCons[currSkolemType].empty()
         && d_noArgCons[currSkolemType].empty())
     {
-      groundTerm[currSkolem] = nm->mkGroundValue(currSkolemType);
+      groundTerm[currSkolem] = NodeManager::mkGroundValue(currSkolemType);
       continue;
     }
     stack.push_back(currSkolem);
@@ -125,7 +121,7 @@ Node SygusRandomEnumerator::incrementH()
     for (size_t i = 0, n = skolemCons[currSkolem]->getNumArgs(); i < n; ++i)
     {
       TypeNode subSkolemType = skolemCons[currSkolem]->getArgType(i);
-      Node subSkolem = sm->mkDummySkolem("sygus_rand", subSkolemType);
+      Node subSkolem = NodeManager::mkDummySkolem("sygus_rand", subSkolemType);
       remainingSkolems.push_back(subSkolem);
       subSkolems[currSkolem].push_back(subSkolem);
     }
@@ -139,7 +135,7 @@ Node SygusRandomEnumerator::incrementH()
     TypeNode skolemType = skolem.getType();
     if (d_noArgCons[skolemType].empty())
     {
-      groundTerm[skolem] = nm->mkGroundValue(skolemType);
+      groundTerm[skolem] = NodeManager::mkGroundValue(skolemType);
     }
     else
     {
@@ -164,7 +160,7 @@ Node SygusRandomEnumerator::incrementH()
     // We may have already generated a sygus term equivalent to the one we are
     // generating now. In that case, pick the smaller term of the two. This
     // operation allows us to generate more refined terms over time.
-    groundTerm[currSkolem] = getMin(nm->mkNode(kind::APPLY_CONSTRUCTOR, args));
+    groundTerm[currSkolem] = getMin(nm->mkNode(Kind::APPLY_CONSTRUCTOR, args));
   }
 
   return groundTerm[mainSkolem];

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,15 +22,16 @@
 #include "theory/arith/nl/coverings_solver.h"
 #include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
+#include "theory/arith/nl/ext/flatten_monomial_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
-#include "theory/arith/nl/ext/proof_checker.h"
 #include "theory/arith/nl/ext/split_zero_check.h"
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/piand_solver.h"
 #include "theory/arith/nl/pow2_solver.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
@@ -45,7 +43,7 @@
 namespace cvc5::internal {
 namespace theory {
 namespace eq {
-  class EqualityEngine;
+class EqualityEngine;
 }
 namespace arith {
 
@@ -85,12 +83,20 @@ class NonlinearExtension : EnvObj
   typedef context::CDHashSet<Node> NodeSet;
 
  public:
-  NonlinearExtension(Env& env, TheoryArith& containing, ArithState& state);
+  NonlinearExtension(Env& env, TheoryArith& containing);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
+
+  /**
+   * Called once per check-sat after preregistration and preprocessing are
+   * done, before the first full-effort check. This is used to emit structural
+   * lemmas (e.g. preemptive monomial zero-sign lemmas) so they are seen by
+   * the linear solver before it computes its first candidate model.
+   */
+  void presolve();
 
   /**
    * Performs the main checks for nonlinear arithmetic, based on the current
@@ -176,7 +182,6 @@ class NonlinearExtension : EnvObj
   /** compute relevant assertions */
   void computeRelevantAssertions(const std::vector<Node>& assertions,
                                  std::vector<Node>& keep);
-
   /** run check strategy
    *
    * Check assertions for consistency in the effort LAST_CALL with a subset of
@@ -186,8 +191,7 @@ class NonlinearExtension : EnvObj
    *
    * This method adds lemmas to d_im directly.
    */
-  void runStrategy(Theory::Effort effort,
-                   const std::vector<Node>& assertions,
+  void runStrategy(const std::vector<Node>& assertions,
                    const std::vector<Node>& false_asserts,
                    const std::vector<Node>& xts);
 
@@ -196,12 +200,12 @@ class NonlinearExtension : EnvObj
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
   /** A reference to the arithmetic state object */
-  ArithState& d_astate;
+  TheoryState& d_astate;
   InferenceManager& d_im;
   /** The statistics class */
   NlStats d_stats;
   // needs last call effort
-  bool d_hasNlTerms;
+  context::CDO<bool> d_hasNlTerms;
   /**
    * The number of times we have the called main check method
    * (modelBasedRefinement). This counter is used for interleaving strategies.
@@ -224,8 +228,6 @@ class NonlinearExtension : EnvObj
    * transcendental functions.
    */
   transcendental::TranscendentalSolver d_trSlv;
-  /** The proof checker for proofs of the nlext. */
-  ExtProofRuleChecker d_proofChecker;
   /**
    * Holds common lookup data for the checks implemented in the "nl-ext"
    * solvers (from Cimatti et al., TACAS 2017).
@@ -237,6 +239,8 @@ class NonlinearExtension : EnvObj
   MonomialBoundsCheck d_monomialBoundsSlv;
   /** Solver for lemmas about monomials. */
   MonomialCheck d_monomialSlv;
+  /** Solver for flattening monomials */
+  FlattenMonomialCheck d_fmSlv;
   /** Solver for lemmas that split multiplication at zero. */
   SplitZeroCheck d_splitZeroSlv;
   /** Solver for tangent plane lemmas. */
@@ -251,6 +255,13 @@ class NonlinearExtension : EnvObj
    * constraints involving integer and.
    */
   IAndSolver d_iandSlv;
+
+  /** The parametric integer and solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving parametric integer and.
+   */
+  PIAndSolver d_piandSlv;
 
   /** The pow2 solver
    *
@@ -268,4 +279,4 @@ class NonlinearExtension : EnvObj
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC5__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H */

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +34,7 @@ namespace bags {
 Node BagsUtils::computeDisjointUnion(TypeNode bagType,
                                      const std::vector<Node>& bags)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = bagType.getNodeManager();
   if (bags.empty())
   {
     return nm->mkConst(EmptyBag(bagType));
@@ -49,30 +46,31 @@ Node BagsUtils::computeDisjointUnion(TypeNode bagType,
   Node unionDisjoint = bags[0];
   for (size_t i = 1; i < bags.size(); i++)
   {
-    if (bags[i].getKind() == BAG_EMPTY)
+    if (bags[i].getKind() == Kind::BAG_EMPTY)
     {
       continue;
     }
-    unionDisjoint = nm->mkNode(BAG_UNION_DISJOINT, unionDisjoint, bags[i]);
+    unionDisjoint =
+        nm->mkNode(Kind::BAG_UNION_DISJOINT, unionDisjoint, bags[i]);
   }
   return unionDisjoint;
 }
 
 bool BagsUtils::isConstant(TNode n)
 {
-  if (n.getKind() == BAG_EMPTY)
+  if (n.getKind() == Kind::BAG_EMPTY)
   {
     // empty bags are already normalized
     return true;
   }
-  if (n.getKind() == BAG_MAKE)
+  if (n.getKind() == Kind::BAG_MAKE)
   {
     // see the implementation in MkBagTypeRule::computeIsConst
     return n.isConst();
   }
-  if (n.getKind() == BAG_UNION_DISJOINT)
+  if (n.getKind() == Kind::BAG_UNION_DISJOINT)
   {
-    if (!(n[0].getKind() == kind::BAG_MAKE && n[0].isConst()))
+    if (!(n[0].getKind() == Kind::BAG_MAKE && n[0].isConst()))
     {
       // the first child is not a constant
       return false;
@@ -80,9 +78,9 @@ bool BagsUtils::isConstant(TNode n)
     // store the previous element to check the ordering of elements
     Node previousElement = n[0][0];
     Node current = n[1];
-    while (current.getKind() == BAG_UNION_DISJOINT)
+    while (current.getKind() == Kind::BAG_UNION_DISJOINT)
     {
-      if (!(current[0].getKind() == kind::BAG_MAKE && current[0].isConst()))
+      if (!(current[0].getKind() == Kind::BAG_MAKE && current[0].isConst()))
       {
         // the current element is not a constant
         return false;
@@ -96,7 +94,7 @@ bool BagsUtils::isConstant(TNode n)
       current = current[1];
     }
     // check last element
-    if (!(current.getKind() == kind::BAG_MAKE && current.isConst()))
+    if (!(current.getKind() == Kind::BAG_MAKE && current.isConst()))
     {
       // the last element is not a constant
       return false;
@@ -129,25 +127,22 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
   }
   switch (n.getKind())
   {
-    case BAG_MAKE: return evaluateMakeBag(n);
-    case BAG_COUNT: return evaluateBagCount(n);
-    case BAG_DUPLICATE_REMOVAL: return evaluateDuplicateRemoval(n);
-    case BAG_UNION_DISJOINT: return evaluateUnionDisjoint(n);
-    case BAG_UNION_MAX: return evaluateUnionMax(n);
-    case BAG_INTER_MIN: return evaluateIntersectionMin(n);
-    case BAG_DIFFERENCE_SUBTRACT: return evaluateDifferenceSubtract(n);
-    case BAG_DIFFERENCE_REMOVE: return evaluateDifferenceRemove(n);
-    case BAG_CARD: return evaluateCard(n);
-    case BAG_IS_SINGLETON: return evaluateIsSingleton(n);
-    case BAG_FROM_SET: return evaluateFromSet(n);
-    case BAG_TO_SET: return evaluateToSet(n);
-    case BAG_MAP: return evaluateBagMap(n);
-    case BAG_FILTER: return evaluateBagFilter(n);
-    case BAG_FOLD: return evaluateBagFold(n);
-    case TABLE_PRODUCT: return evaluateProduct(n);
-    case TABLE_JOIN: return evaluateJoin(rewriter, n);
-    case TABLE_GROUP: return evaluateGroup(n);
-    case TABLE_PROJECT: return evaluateTableProject(n);
+    case Kind::BAG_MAKE: return evaluateMakeBag(n);
+    case Kind::BAG_COUNT: return evaluateBagCount(n);
+    case Kind::BAG_SETOF: return evaluateSetof(n);
+    case Kind::BAG_UNION_DISJOINT: return evaluateUnionDisjoint(n);
+    case Kind::BAG_UNION_MAX: return evaluateUnionMax(n);
+    case Kind::BAG_INTER_MIN: return evaluateIntersectionMin(n);
+    case Kind::BAG_DIFFERENCE_SUBTRACT: return evaluateDifferenceSubtract(n);
+    case Kind::BAG_DIFFERENCE_REMOVE: return evaluateDifferenceRemove(n);
+    case Kind::BAG_CARD: return evaluateCard(n);
+    case Kind::BAG_MAP: return evaluateBagMap(n);
+    case Kind::BAG_FILTER: return evaluateBagFilter(n);
+    case Kind::BAG_FOLD: return evaluateBagFold(n);
+    case Kind::TABLE_PRODUCT: return evaluateProduct(n);
+    case Kind::TABLE_JOIN: return evaluateJoin(rewriter, n);
+    case Kind::TABLE_GROUP: return evaluateGroup(n);
+    case Kind::TABLE_PROJECT: return evaluateTableProject(n);
     default: break;
   }
   Unhandled() << "Unexpected bag kind '" << n.getKind() << "' in node " << n
@@ -208,19 +203,19 @@ Node BagsUtils::evaluateBinaryOperation(const TNode& n,
 std::map<Node, Rational> BagsUtils::getBagElements(TNode n)
 {
   std::map<Node, Rational> elements;
-  if (n.getKind() == BAG_EMPTY)
+  if (n.getKind() == Kind::BAG_EMPTY)
   {
     return elements;
   }
-  while (n.getKind() == kind::BAG_UNION_DISJOINT)
+  while (n.getKind() == Kind::BAG_UNION_DISJOINT)
   {
-    Assert(n[0].getKind() == kind::BAG_MAKE);
+    Assert(n[0].getKind() == Kind::BAG_MAKE);
     Node element = n[0][0];
     Rational count = n[0][1].getConst<Rational>();
     elements[element] = count;
     n = n[1];
   }
-  Assert(n.getKind() == kind::BAG_MAKE);
+  Assert(n.getKind() == Kind::BAG_MAKE);
   Node lastElement = n[0];
   Rational lastCount = n[1].getConst<Rational>();
   elements[lastElement] = lastCount;
@@ -231,18 +226,18 @@ Node BagsUtils::constructConstantBagFromElements(
     TypeNode t, const std::map<Node, Rational>& elements)
 {
   Assert(t.isBag());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   if (elements.empty())
   {
     return nm->mkConst(EmptyBag(t));
   }
   TypeNode elementType = t.getBagElementType();
   std::map<Node, Rational>::const_reverse_iterator it = elements.rbegin();
-  Node bag = nm->mkNode(BAG_MAKE, it->first, nm->mkConstInt(it->second));
+  Node bag = nm->mkNode(Kind::BAG_MAKE, it->first, nm->mkConstInt(it->second));
   while (++it != elements.rend())
   {
-    Node n = nm->mkNode(BAG_MAKE, it->first, nm->mkConstInt(it->second));
-    bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
+    Node n = nm->mkNode(Kind::BAG_MAKE, it->first, nm->mkConstInt(it->second));
+    bag = nm->mkNode(Kind::BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
 }
@@ -251,18 +246,18 @@ Node BagsUtils::constructBagFromElements(TypeNode t,
                                          const std::map<Node, Node>& elements)
 {
   Assert(t.isBag());
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   if (elements.empty())
   {
     return nm->mkConst(EmptyBag(t));
   }
   TypeNode elementType = t.getBagElementType();
   std::map<Node, Node>::const_reverse_iterator it = elements.rbegin();
-  Node bag = nm->mkNode(BAG_MAKE, it->first, it->second);
+  Node bag = nm->mkNode(Kind::BAG_MAKE, it->first, it->second);
   while (++it != elements.rend())
   {
-    Node n = nm->mkNode(BAG_MAKE, it->first, it->second);
-    bag = nm->mkNode(BAG_UNION_DISJOINT, n, bag);
+    Node n = nm->mkNode(Kind::BAG_MAKE, it->first, it->second);
+    bag = nm->mkNode(Kind::BAG_UNION_DISJOINT, n, bag);
   }
   return bag;
 }
@@ -271,15 +266,15 @@ Node BagsUtils::evaluateMakeBag(TNode n)
 {
   // the case where n is const should be handled earlier.
   // here we handle the case where the multiplicity is zero or negative
-  Assert(n.getKind() == BAG_MAKE && !n.isConst()
+  Assert(n.getKind() == Kind::BAG_MAKE && !n.isConst()
          && n[1].getConst<Rational>().sgn() < 1);
-  Node emptybag = NodeManager::currentNM()->mkConst(EmptyBag(n.getType()));
+  Node emptybag = n.getNodeManager()->mkConst(EmptyBag(n.getType()));
   return emptybag;
 }
 
 Node BagsUtils::evaluateBagCount(TNode n)
 {
-  Assert(n.getKind() == BAG_COUNT);
+  Assert(n.getKind() == Kind::BAG_COUNT);
   // Examples
   // --------
   // - (bag.count "x" (as bag.empty (Bag String))) = 0
@@ -291,7 +286,7 @@ Node BagsUtils::evaluateBagCount(TNode n)
   std::map<Node, Rational> elements = getBagElements(n[1]);
   std::map<Node, Rational>::iterator it = elements.find(n[0]);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   if (it != elements.end())
   {
     Node count = nm->mkConstInt(it->second);
@@ -300,16 +295,16 @@ Node BagsUtils::evaluateBagCount(TNode n)
   return nm->mkConstInt(Rational(0));
 }
 
-Node BagsUtils::evaluateDuplicateRemoval(TNode n)
+Node BagsUtils::evaluateSetof(TNode n)
 {
-  Assert(n.getKind() == BAG_DUPLICATE_REMOVAL);
+  Assert(n.getKind() == Kind::BAG_SETOF);
 
   // Examples
   // --------
-  //  - (bag.duplicate_removal (as bag.empty (Bag String))) = (as bag.empty (Bag
+  //  - (bag.setof (as bag.empty (Bag String))) = (as bag.empty (Bag
   //  String))
-  //  - (bag.duplicate_removal (bag "x" 4)) = (bag "x" 1)
-  //  - (bag.duplicate_removal (bag.disjoint_union (bag "x" 3) (bag "y" 5)) =
+  //  - (bag.setof (bag "x" 4)) = (bag "x" 1)
+  //  - (bag.setof (bag.disjoint_union (bag "x" 3) (bag "y" 5)) =
   //     (bag.disjoint_union (bag "x" 1) (bag "y" 1)
 
   std::map<Node, Rational> oldElements = getBagElements(n[0]);
@@ -327,7 +322,7 @@ Node BagsUtils::evaluateDuplicateRemoval(TNode n)
 
 Node BagsUtils::evaluateUnionDisjoint(TNode n)
 {
-  Assert(n.getKind() == BAG_UNION_DISJOINT);
+  Assert(n.getKind() == Kind::BAG_UNION_DISJOINT);
   // Example
   // -------
   // input: (bag.union_disjoint A B)
@@ -347,17 +342,18 @@ Node BagsUtils::evaluateUnionDisjoint(TNode n)
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // add the element to the result
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // add the element to the result
-    elements[itB->first] = itB->second;
-  };
+  auto greaterOrEqual =
+      [](std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         std::map<Node, Rational>::const_iterator& itB) {
+        // add the element to the result
+        elements[itB->first] = itB->second;
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -387,7 +383,7 @@ Node BagsUtils::evaluateUnionDisjoint(TNode n)
 
 Node BagsUtils::evaluateUnionMax(TNode n)
 {
-  Assert(n.getKind() == BAG_UNION_MAX);
+  Assert(n.getKind() == Kind::BAG_UNION_MAX);
   // Example
   // -------
   // input: (bag.union_max A B)
@@ -407,17 +403,18 @@ Node BagsUtils::evaluateUnionMax(TNode n)
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // add to the result
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // add to the result
-    elements[itB->first] = itB->second;
-  };
+  auto greaterOrEqual =
+      [](std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         std::map<Node, Rational>::const_iterator& itB) {
+        // add to the result
+        elements[itB->first] = itB->second;
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -447,7 +444,7 @@ Node BagsUtils::evaluateUnionMax(TNode n)
 
 Node BagsUtils::evaluateIntersectionMin(TNode n)
 {
-  Assert(n.getKind() == BAG_INTER_MIN);
+  Assert(n.getKind() == Kind::BAG_INTER_MIN);
   // Example
   // -------
   // input: (bag.inter_min A B)
@@ -463,29 +460,32 @@ Node BagsUtils::evaluateIntersectionMin(TNode n)
     elements[itA->first] = std::min(itA->second, itB->second);
   };
 
-  auto less = [](std::map<Node, Rational>& elements,
-                 std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+  auto less = [](CVC5_UNUSED std::map<Node, Rational>& elements,
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // do nothing
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto greaterOrEqual =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
-  auto remainderOfA = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsA,
-                         std::map<Node, Rational>::const_iterator& itA) {
-    // do nothing
-  };
+  auto remainderOfA =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA) {
+        // do nothing
+      };
 
-  auto remainderOfB = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsB,
-                         std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto remainderOfB =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsB,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
   return evaluateBinaryOperation(
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
@@ -493,7 +493,7 @@ Node BagsUtils::evaluateIntersectionMin(TNode n)
 
 Node BagsUtils::evaluateDifferenceSubtract(TNode n)
 {
-  Assert(n.getKind() == BAG_DIFFERENCE_SUBTRACT);
+  Assert(n.getKind() == Kind::BAG_DIFFERENCE_SUBTRACT);
   // Example
   // -------
   // input: (bag.difference_subtract A B)
@@ -511,16 +511,17 @@ Node BagsUtils::evaluateDifferenceSubtract(TNode n)
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // itA->first is not in B, so we add it to the difference subtract
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // itB->first is not in A, so we just skip it
-  };
+  auto greaterOrEqual =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // itB->first is not in A, so we just skip it
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -533,11 +534,12 @@ Node BagsUtils::evaluateDifferenceSubtract(TNode n)
     }
   };
 
-  auto remainderOfB = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsB,
-                         std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto remainderOfB =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsB,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
   return evaluateBinaryOperation(
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
@@ -545,7 +547,7 @@ Node BagsUtils::evaluateDifferenceSubtract(TNode n)
 
 Node BagsUtils::evaluateDifferenceRemove(TNode n)
 {
-  Assert(n.getKind() == BAG_DIFFERENCE_REMOVE);
+  Assert(n.getKind() == Kind::BAG_DIFFERENCE_REMOVE);
   // Example
   // -------
   // input: (bag.difference_remove A B)
@@ -554,24 +556,25 @@ Node BagsUtils::evaluateDifferenceRemove(TNode n)
   // output:
   //    (bag "z" 2)
 
-  auto equal = [](std::map<Node, Rational>& elements,
-                  std::map<Node, Rational>::const_iterator& itA,
-                  std::map<Node, Rational>::const_iterator& itB) {
+  auto equal = [](CVC5_UNUSED std::map<Node, Rational>& elements,
+                  CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+                  CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // skip the shared element by doing nothing
   };
 
   auto less = [](std::map<Node, Rational>& elements,
                  std::map<Node, Rational>::const_iterator& itA,
-                 std::map<Node, Rational>::const_iterator& itB) {
+                 CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
     // itA->first is not in B, so we add it to the difference remove
     elements[itA->first] = itA->second;
   };
 
-  auto greaterOrEqual = [](std::map<Node, Rational>& elements,
-                           std::map<Node, Rational>::const_iterator& itA,
-                           std::map<Node, Rational>::const_iterator& itB) {
-    // itB->first is not in A, so we just skip it
-  };
+  auto greaterOrEqual =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itA,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // itB->first is not in A, so we just skip it
+      };
 
   auto remainderOfA = [](std::map<Node, Rational>& elements,
                          std::map<Node, Rational>& elementsA,
@@ -584,11 +587,12 @@ Node BagsUtils::evaluateDifferenceRemove(TNode n)
     }
   };
 
-  auto remainderOfB = [](std::map<Node, Rational>& elements,
-                         std::map<Node, Rational>& elementsB,
-                         std::map<Node, Rational>::const_iterator& itB) {
-    // do nothing
-  };
+  auto remainderOfB =
+      [](CVC5_UNUSED std::map<Node, Rational>& elements,
+         CVC5_UNUSED std::map<Node, Rational>& elementsB,
+         CVC5_UNUSED std::map<Node, Rational>::const_iterator& itB) {
+        // do nothing
+      };
 
   return evaluateBinaryOperation(
       n, equal, less, greaterOrEqual, remainderOfA, remainderOfB);
@@ -596,12 +600,12 @@ Node BagsUtils::evaluateDifferenceRemove(TNode n)
 
 Node BagsUtils::evaluateChoose(TNode n)
 {
-  Assert(n.getKind() == BAG_CHOOSE);
+  Assert(n.getKind() == Kind::BAG_CHOOSE);
   // Examples
   // --------
   // - (bag.choose (bag "x" 4)) = "x"
 
-  if (n[0].getKind() == BAG_MAKE)
+  if (n[0].getKind() == Kind::BAG_MAKE)
   {
     return n[0][0];
   }
@@ -610,7 +614,7 @@ Node BagsUtils::evaluateChoose(TNode n)
 
 Node BagsUtils::evaluateCard(TNode n)
 {
-  Assert(n.getKind() == BAG_CARD);
+  Assert(n.getKind() == Kind::BAG_CARD);
   // Examples
   // --------
   //  - (card (as bag.empty (Bag String))) = 0
@@ -624,81 +628,14 @@ Node BagsUtils::evaluateCard(TNode n)
     sum += element.second;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node sumNode = nm->mkConstInt(sum);
   return sumNode;
 }
 
-Node BagsUtils::evaluateIsSingleton(TNode n)
-{
-  Assert(n.getKind() == BAG_IS_SINGLETON);
-  // Examples
-  // --------
-  // - (bag.is_singleton (as bag.empty (Bag String))) = false
-  // - (bag.is_singleton (bag "x" 1)) = true
-  // - (bag.is_singleton (bag "x" 4)) = false
-  // - (bag.is_singleton (bag.union_disjoint (bag "x" 1) (bag "y" 1)))
-  // = false
-
-  if (n[0].getKind() == BAG_MAKE && n[0][1].getConst<Rational>().isOne())
-  {
-    return NodeManager::currentNM()->mkConst(true);
-  }
-  return NodeManager::currentNM()->mkConst(false);
-}
-
-Node BagsUtils::evaluateFromSet(TNode n)
-{
-  Assert(n.getKind() == BAG_FROM_SET);
-
-  // Examples
-  // --------
-  //  - (bag.from_set (as set.empty (Set String))) = (as bag.empty (Bag String))
-  //  - (bag.from_set (set.singleton "x")) = (bag "x" 1)
-  //  - (bag.from_set (set.union (set.singleton "x") (set.singleton "y"))) =
-  //     (bag.disjoint_union (bag "x" 1) (bag "y" 1))
-
-  NodeManager* nm = NodeManager::currentNM();
-  std::set<Node> setElements =
-      sets::NormalForm::getElementsFromNormalConstant(n[0]);
-  Rational one = Rational(1);
-  std::map<Node, Rational> bagElements;
-  for (const Node& element : setElements)
-  {
-    bagElements[element] = one;
-  }
-  TypeNode bagType = nm->mkBagType(n[0].getType().getSetElementType());
-  Node bag = constructConstantBagFromElements(bagType, bagElements);
-  return bag;
-}
-
-Node BagsUtils::evaluateToSet(TNode n)
-{
-  Assert(n.getKind() == BAG_TO_SET);
-
-  // Examples
-  // --------
-  //  - (bag.to_set (as bag.empty (Bag String))) = (as set.empty (Set String))
-  //  - (bag.to_set (bag "x" 4)) = (set.singleton "x")
-  //  - (bag.to_set (bag.disjoint_union (bag "x" 3) (bag "y" 5)) =
-  //     (set.union (set.singleton "x") (set.singleton "y")))
-
-  NodeManager* nm = NodeManager::currentNM();
-  std::map<Node, Rational> bagElements = getBagElements(n[0]);
-  std::set<Node> setElements;
-  std::map<Node, Rational>::const_reverse_iterator it;
-  for (it = bagElements.rbegin(); it != bagElements.rend(); it++)
-  {
-    setElements.insert(it->first);
-  }
-  TypeNode setType = nm->mkSetType(n[0].getType().getBagElementType());
-  Node set = sets::NormalForm::elementsToSet(setElements, setType);
-  return set;
-}
-
 Node BagsUtils::evaluateBagMap(TNode n)
 {
-  Assert(n.getKind() == BAG_MAP);
+  Assert(n.getKind() == Kind::BAG_MAP);
 
   // Examples
   // --------
@@ -712,10 +649,10 @@ Node BagsUtils::evaluateBagMap(TNode n)
   std::map<Node, Rational> elements = BagsUtils::getBagElements(n[1]);
   std::map<Node, Rational> mappedElements;
   std::map<Node, Rational>::iterator it = elements.begin();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   while (it != elements.end())
   {
-    Node mappedElement = nm->mkNode(APPLY_UF, n[0], it->first);
+    Node mappedElement = nm->mkNode(Kind::APPLY_UF, n[0], it->first);
     mappedElements[mappedElement] = it->second;
     ++it;
   }
@@ -726,7 +663,7 @@ Node BagsUtils::evaluateBagMap(TNode n)
 
 Node BagsUtils::evaluateBagFilter(TNode n)
 {
-  Assert(n.getKind() == BAG_FILTER);
+  Assert(n.getKind() == Kind::BAG_FILTER);
 
   // - (bag.filter p (as bag.empty (Bag T)) = (as bag.empty (Bag T))
   // - (bag.filter p (bag.union_disjoint (bag "a" 3) (bag "b" 2))) =
@@ -737,7 +674,7 @@ Node BagsUtils::evaluateBagFilter(TNode n)
   Node P = n[0];
   Node A = n[1];
   TypeNode bagType = A.getType();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
   Node empty = nm->mkConst(EmptyBag(bagType));
 
   std::map<Node, Rational> elements = getBagElements(n[1]);
@@ -746,9 +683,9 @@ Node BagsUtils::evaluateBagFilter(TNode n)
   for (const auto& [e, count] : elements)
   {
     Node multiplicity = nm->mkConstInt(count);
-    Node bag = nm->mkNode(BAG_MAKE, e, multiplicity);
-    Node pOfe = nm->mkNode(APPLY_UF, P, e);
-    Node ite = nm->mkNode(ITE, pOfe, bag, empty);
+    Node bag = nm->mkNode(Kind::BAG_MAKE, e, multiplicity);
+    Node pOfe = nm->mkNode(Kind::APPLY_UF, P, e);
+    Node ite = nm->mkNode(Kind::ITE, pOfe, bag, empty);
     bags.push_back(ite);
   }
   Node ret = computeDisjointUnion(bagType, bags);
@@ -757,7 +694,7 @@ Node BagsUtils::evaluateBagFilter(TNode n)
 
 Node BagsUtils::evaluateBagFold(TNode n)
 {
-  Assert(n.getKind() == BAG_FOLD);
+  Assert(n.getKind() == Kind::BAG_FOLD);
 
   // Examples
   // --------
@@ -774,7 +711,6 @@ Node BagsUtils::evaluateBagFold(TNode n)
   std::map<Node, Rational> elements = BagsUtils::getBagElements(A);
 
   std::map<Node, Rational>::iterator it = elements.begin();
-  NodeManager* nm = NodeManager::currentNM();
   while (it != elements.end())
   {
     // apply the combination function n times, where n is the multiplicity
@@ -782,7 +718,7 @@ Node BagsUtils::evaluateBagFold(TNode n)
     Assert(count.sgn() >= 0) << "negative multiplicity" << std::endl;
     while (!count.isZero())
     {
-      ret = nm->mkNode(APPLY_UF, f, it->first, ret);
+      ret = NodeManager::mkNode(Kind::APPLY_UF, f, it->first, ret);
       count = count - 1;
     }
     ++it;
@@ -792,8 +728,8 @@ Node BagsUtils::evaluateBagFold(TNode n)
 
 Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
 {
-  Assert(n.getKind() == BAG_PARTITION);
-  NodeManager* nm = NodeManager::currentNM();
+  Assert(n.getKind() == Kind::BAG_PARTITION);
+  NodeManager* nm = n.getNodeManager();
 
   // Examples
   // --------
@@ -839,7 +775,8 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
     ++j;
     while (j != elements.end())
     {
-      Node sameClass = nm->mkNode(APPLY_UF, r, i->first, j->first);
+      Node sameClass =
+          NodeManager::mkNode(Kind::APPLY_UF, r, i->first, j->first);
       sameClass = rewriter->rewrite(sameClass);
       if (!sameClass.isConst())
       {
@@ -869,7 +806,8 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
     std::vector<Node> bags;
     for (const Node& node : eqc)
     {
-      Node bag = nm->mkNode(BAG_MAKE, node, nm->mkConstInt(elements[node]));
+      Node bag =
+          nm->mkNode(Kind::BAG_MAKE, node, nm->mkConstInt(elements[node]));
       bags.push_back(bag);
     }
     Node part = computeDisjointUnion(bagType, bags);
@@ -881,9 +819,9 @@ Node BagsUtils::evaluateBagPartition(Rewriter* rewriter, TNode n)
   return ret;
 }
 
-Node BagsUtils::evaluateTableAggregate(Rewriter* rewriter, TNode n)
+Node BagsUtils::evaluateTableAggregate(TNode n)
 {
-  Assert(n.getKind() == TABLE_AGGREGATE);
+  Assert(n.getKind() == Kind::TABLE_AGGREGATE);
   if (!(n[1].isConst() && n[2].isConst()))
   {
     // we can't proceed further.
@@ -896,7 +834,7 @@ Node BagsUtils::evaluateTableAggregate(Rewriter* rewriter, TNode n)
 
 Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
 {
-  Assert(n.getKind() == TABLE_PRODUCT || n.getKind() == TABLE_JOIN);
+  Assert(n.getKind() == Kind::TABLE_PRODUCT || n.getKind() == Kind::TABLE_JOIN);
   Node A = n[0];
   Node B = n[1];
   TypeNode typeA = A.getType().getBagElementType();
@@ -911,7 +849,7 @@ Node BagsUtils::constructProductTuple(TNode n, TNode e1, TNode e2)
 
 Node BagsUtils::evaluateProduct(TNode n)
 {
-  Assert(n.getKind() == TABLE_PRODUCT);
+  Assert(n.getKind() == Kind::TABLE_PRODUCT);
 
   // Examples
   // --------
@@ -942,7 +880,7 @@ Node BagsUtils::evaluateProduct(TNode n)
 
 Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
 {
-  Assert(n.getKind() == TABLE_JOIN);
+  Assert(n.getKind() == Kind::TABLE_JOIN);
 
   Node A = n[0];
   Node B = n[1];
@@ -977,9 +915,9 @@ Node BagsUtils::evaluateJoin(Rewriter* rewriter, TNode n)
 
 Node BagsUtils::evaluateGroup(TNode n)
 {
-  Assert(n.getKind() == TABLE_GROUP);
+  Assert(n.getKind() == Kind::TABLE_GROUP);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = n.getNodeManager();
 
   Node A = n[0];
   TypeNode bagType = A.getType();
@@ -1035,7 +973,8 @@ Node BagsUtils::evaluateGroup(TNode n)
     std::vector<Node> bags;
     for (const Node& node : eqc)
     {
-      Node bag = nm->mkNode(BAG_MAKE, node, nm->mkConstInt(elements[node]));
+      Node bag =
+          nm->mkNode(Kind::BAG_MAKE, node, nm->mkConstInt(elements[node]));
       bags.push_back(bag);
     }
     Node part = computeDisjointUnion(bagType, bags);
@@ -1055,7 +994,7 @@ Node BagsUtils::evaluateGroup(TNode n)
 
 Node BagsUtils::evaluateTableProject(TNode n)
 {
-  Assert(n.getKind() == TABLE_PROJECT);
+  Assert(n.getKind() == Kind::TABLE_PROJECT);
   Node bagMap = BagReduction::reduceProjectOperator(n);
   Node ret = evaluateBagMap(bagMap);
   return ret;
@@ -1064,14 +1003,14 @@ Node BagsUtils::evaluateTableProject(TNode n)
 std::pair<std::vector<uint32_t>, std::vector<uint32_t>>
 BagsUtils::splitTableJoinIndices(Node n)
 {
-  Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   size_t joinSize = indices.size() / 2;
   std::vector<uint32_t> indices1(joinSize), indices2(joinSize);
 
-  for (size_t i = 0, index = 0; i < joinSize; i += 2, ++index)
+  // Pairs are (m1 n1 ... mk nk). Type rules reject an odd length.
+  Assert(indices.size() % 2 == 0);
+  for (size_t i = 0, index = 0; i < indices.size(); i += 2, ++index)
   {
     indices1[index] = indices[i];
     indices2[index] = indices[i + 1];

@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andres Noetzli
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -50,7 +47,10 @@ import os
 import re
 import sys
 import textwrap
-import toml
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib
 
 ### Allowed attributes for module/option
 
@@ -61,10 +61,13 @@ OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
     'name', 'short', 'long', 'alias', 'default', 'alternate', 'mode',
     'handler', 'predicates', 'includes', 'minimum', 'maximum', 'help',
-    'help_mode'
+    'help_mode', 'no_support'
 ]
 
 CATEGORY_VALUES = ['common', 'expert', 'regular', 'undocumented']
+
+# legal values for the "no_support" field
+NO_SUPPORT_VALUES = ['proofs', 'models', 'unsat-cores']
 
 ################################################################################
 ################################################################################
@@ -230,7 +233,7 @@ def generate_holder_mem_decls(modules):
 def generate_holder_ref_decls(modules):
     """Render reference declarations for holder members of the Option class"""
     return concat_format('''  const options::Holder{id_cap}& {id};
-  options::Holder{id_cap}& write{id_capitalized}();''', modules)
+  options::Holder{id_cap}& write_{id}();''', modules)
 
 
 ################################################################################
@@ -256,7 +259,7 @@ def generate_holder_ref_inits(modules):
 
 def generate_write_functions(modules):
     """Render write functions for holders within the Option class"""
-    return concat_format('''  options::Holder{id_cap}& Options::write{id_capitalized}()
+    return concat_format('''  options::Holder{id_cap}& Options::write_{id}()
   {{
     return *d_{id};
   }}
@@ -278,7 +281,7 @@ def generate_public_includes(modules):
     headers.add(format_include("<unordered_map>"))
     for _, option in all_options(modules):
         headers.update([format_include(x) for x in option.includes])
-    return '\n'.join(headers)
+    return '\n'.join(sorted(headers))
 
 
 def generate_option_enum_and_table(modules):
@@ -304,7 +307,7 @@ def generate_option_enum_and_table(modules):
     for module, option in all_options(modules, True):
         if not option.long:
             continue
-        for name in option.names:
+        for name in sorted(option.names):
             res.append('  {{ \"{}\", OptionEnum::{} }},'
                        .format(name, option.enum_name()))
     res.append('};')
@@ -344,7 +347,7 @@ def generate_get_impl(modules):
             ret = '{{ std::stringstream s; s << options.{}.{}; return s.str(); }}'.format(
                 module.id, option.name)
         res.append('  case OptionEnum::{}: {}'.format(option.enum_name(), ret))
-    res.append('  default:'.format(option.enum_name()))
+    res.append('  default:')
     res.append('  {')
     res.append('    throw OptionException(\"Ungettable option key or setting: \" + name);')
     res.append('  }')
@@ -398,15 +401,18 @@ def generate_set_impl(modules):
         for pred in _set_predicates(module, option):
             res.append('    {}'.format(pred))
         if option.name:
-            res.append('    opts.write{module}().{name} = value;'.format(
-                module=module.id_capitalized, name=option.name))
-            res.append('    opts.write{module}().{name}WasSetByUser = true;'.format(
-                module=module.id_capitalized, name=option.name))
+            res.append('    opts.write_{module}().{name} = value;'.format(
+                module=module.id, name=option.name))
+            res.append('    opts.write_{module}().{name}WasSetByUser = true;'.format(
+                module=module.id, name=option.name))
         res.append('    break;')
         res.append('  }')
     res.append('}')
     return '\n    '.join(res)
 
+def cpp_category(category):
+    assert category
+    return f'OptionInfo::Category::{category.upper()}'
 
 def generate_getinfo_impl(modules):
     """Generates the implementation for options::getInfo()."""
@@ -426,12 +432,16 @@ def generate_getinfo_impl(modules):
             'type': option.type,
             'value': 'opts.{}.{}'.format(module.id, option.name),
             'setbyuser': 'opts.{}.{}WasSetByUser'.format(module.id, option.name),
+            'no_support': '',
             'default': option.default if option.default else '{}()'.format(option.type),
             'minimum': option.minimum if option.minimum else '{}',
             'maximum': option.maximum if option.maximum else '{}',
+            'category': cpp_category(option.category)
         }
         if option.alias:
             fmt['alias'] = ', '.join(map(lambda s: '"{}"'.format(s), option.alias))
+        if option.no_support:
+            fmt['no_support'] = ', '.join(map(lambda s: '"{}"'.format(s), option.no_support))
         if not option.name:
             fmt['setbyuser'] = 'false'
             constr = 'OptionInfo::VoidInfo{{}}'
@@ -447,7 +457,7 @@ def generate_getinfo_impl(modules):
         else:
             constr = 'OptionInfo::VoidInfo{{}}'
         res.append("  case OptionEnum::{}:".format(option.enum_name()))
-        line = '    return OptionInfo{{"{name}", {{{alias}}}, {setbyuser}, ' + constr + '}};'
+        line = '    return OptionInfo{{"{name}", {{{alias}}}, {{{no_support}}}, {setbyuser}, {category}, ' + constr + '}};'
         res.append(line.format(**fmt))
     res.append("}")
     return '\n  '.join(res)
@@ -491,16 +501,46 @@ def generate_module_mode_decl(module):
 
 
 def generate_module_holder_decl(module):
+    # Buckets to group fields by size to minimize padding
+    size_8 = []  # double, int64_t, uint64_t
+    size_4 = []  # enum
+    size_1 = []  # bool and bool flags
+
+    for option in module.options:
+        if option.name is None:
+            continue
+
+        # Determine the field declaration
+        if option.fqdefault:
+            decl = '{} {} = {};'.format(option.type, option.name, option.fqdefault)
+        else:
+            decl = '{} {};'.format(option.type, option.name)
+
+        flag_decl = 'bool {}WasSetByUser = false;'.format(option.name)
+
+        # Sort into buckets based on type
+        if option.type in ['double', 'int64_t', 'uint64_t']:
+            size_8.append(decl)
+        elif option.type == 'bool':
+            size_1.append(decl)
+        else:
+            # Assuming remaining types are user-defined enums (4 bytes)
+            size_4.append(decl)
+        size_1.append(flag_decl)
+
+    # Combine buckets from largest alignment to smallest
+    all_fields = size_8 + size_4 + size_1
+    return '\n  '.join(all_fields)
+
+def generate_module_long_name_decl(module):
     res = []
     for option in module.options:
         if option.name is None:
             continue
-        if option.fqdefault:
-            res.append('{} {} = {};'.format(option.type, option.name, option.fqdefault))
-        else:
-            res.append('{} {};'.format(option.type, option.name))
-        res.append('bool {}WasSetByUser = false;'.format(option.name))
-    return '\n  '.join(res)
+        if option.long_name:
+            res.append('static constexpr const char* {} = "{}";'.format(
+                       option.name, option.long_name))
+    return '\n    '.join(res)
 
 ################################################################################
 # for options/<module>.cpp
@@ -713,6 +753,7 @@ def _cli_help_wrap(help_msg, opts):
 def generate_cli_help(modules):
     """Generate the output for --help."""
     common = []
+    regular = []
     others = []
     for module in modules:
         if not module.options:
@@ -735,7 +776,9 @@ def generate_cli_help(modules):
                     common.extend(res)
                 else:
                     others.extend(res)
-    return '\n'.join(common), '\n'.join(others)
+                    if option.category == 'regular':
+                        regular.extend(res)
+    return '\n'.join(common), '\n'.join(others), '\n'.join(regular)
 
 
 ################################################################################
@@ -942,6 +985,7 @@ def codegen_module(module, dst_dir, tpls):
         'includes': generate_module_includes(module),
         'modes_decl': generate_module_mode_decl(module),
         'holder_decl': generate_module_holder_decl(module),
+        'long_name_decl': generate_module_long_name_decl(module),
         # module source
         'header': module.header,
         'modes_impl': generate_module_mode_impl(module),
@@ -958,7 +1002,7 @@ def codegen_module(module, dst_dir, tpls):
 def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
     """Generate code for all option modules."""
     short, cmdline_opts, parseinternal = generate_parsing(modules)
-    help_common, help_others = generate_cli_help(modules)
+    help_common, help_others, help_regular = generate_cli_help(modules)
 
     if os.path.isdir('{}/docs/'.format(build_dir)):
         write_file('{}/docs/'.format(build_dir), 'options_generated.rst',
@@ -994,6 +1038,7 @@ def codegen_all_modules(modules, src_dir, build_dir, dst_dir, tpls):
         # main/options.cpp
         'help_common': help_common,
         'help_others': help_others,
+        'help_regular': help_regular,
         'cmdoptions_long': cmdline_opts,
         'cmdoptions_short': short,
         'parseinternal_impl': parseinternal,
@@ -1103,6 +1148,12 @@ class Checker:
                     self.__check_option_long(o, alias)
                     if o.alternate:
                         self.__check_option_long(o, 'no-' + alias)
+        if o.no_support:
+            if o.category != "regular":
+                self.perr("has a no_support field but is not a regular option", option=o)
+            for ns in o.no_support:
+                if ns not in NO_SUPPORT_VALUES:
+                    self.perr("has invalid no_support field '{}'", ns, option=o)
         return o
 
 
@@ -1162,7 +1213,8 @@ def mkoptions_main():
     checker = Checker()
     modules = []
     for filename in filenames:
-        data = toml.load(filename)
+        with open(filename, "rb") as f:
+            data = tomllib.load(f)
         module = checker.check_module(data, filename)
         if 'option' in data:
             module.options = sorted(

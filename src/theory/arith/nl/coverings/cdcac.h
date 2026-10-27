@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,8 +52,11 @@ class CDCAC : protected EnvObj
   /** Reset this instance. */
   void reset();
 
-  /** Collect variables from the constraints and compute a variable ordering. */
-  void computeVariableOrdering();
+  /**
+   * Collect variables from the constraints and compute a variable ordering,
+   * possibly reversed.
+   */
+  void computeVariableOrdering(bool reverse = false);
 
   /**
    * Extract an initial assignment from the given model.
@@ -151,6 +151,12 @@ class CDCAC : protected EnvObj
    */
   std::vector<CACInterval> getUnsatCover(bool returnFirstInterval = false);
 
+  /**
+   * Whether getUnsatCover() was aborted because a polynomial was nullified
+   * over the current assignment, in which case its result is meaningless.
+   */
+  bool foundNullifiedPolynomial() const { return d_nullified; }
+
   void startNewProof();
   /**
    * Finish the generated proof (if proofs are enabled) with a scope over the
@@ -162,6 +168,13 @@ class CDCAC : protected EnvObj
   CoveringsProofGenerator* getProof() { return d_proof.get(); }
 
  private:
+  /** Return the variable_printer for a given libpoly variable. */
+  poly::detail::variable_printer get_stream_variable(const poly::Variable& v);
+
+  /** Map a vector of libpoly variables to a vector of variable_printers. */
+  std::vector<poly::detail::variable_printer> get_stream_variables(
+      const std::vector<poly::Variable>& vars);
+
   /** Check whether proofs are enabled */
   bool isProofEnabled() const { return d_proof != nullptr; }
 
@@ -233,6 +246,9 @@ class CDCAC : protected EnvObj
 
   /** The next interval id */
   size_t d_nextIntervalId = 1;
+
+  /** See foundNullifiedPolynomial() */
+  bool d_nullified = false;
 };
 
 }  // namespace coverings

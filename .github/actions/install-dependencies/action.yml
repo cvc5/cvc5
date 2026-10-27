@@ -3,22 +3,34 @@ description: Install necessary dependencies on the target system
 inputs:
   with-documentation:
     default: false
-  with-python-bindings:
+  use-clang:
     default: false
-  with-python-packaging:
+    type: boolean
+  use-libcxx:
     default: false
+    type: boolean
   windows-build:
     default: false
     type: boolean
+  wasm-build:
+    default: false
+    type: boolean
+  cross-compile:
+    default: false
+    type: boolean
+  shell:
+    default: bash
+
 runs:
   using: composite
   steps:
     - name: Install Linux software
       if: runner.os == 'Linux'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install Linux software"
-        sudo apt-get update
+        # Temporarily disabled: apt-get update hangs in CI
+        # sudo apt-get update
         sudo apt-get install -y \
           build-essential \
           ccache \
@@ -27,29 +39,45 @@ runs:
           libedit-dev \
           libgmp-dev \
           libtinfo-dev \
-          flex \
-          libfl-dev \
-          flexc++
-        python3 -m pip install --user pexpect setuptools toml
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
+          libfl-dev
         echo "SED=sed" >> $GITHUB_ENV
-        echo "CCACHE_CONFIGPATH=/home/runner/.ccache/ccache.conf" >> $GITHUB_ENV
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
-        echo "num_proc=$(( $(nproc) + 1 ))" >> $GITHUB_ENV
-        echo "/usr/lib/ccache" >> $GITHUB_PATH
         echo "::endgroup::"
 
-    - name: Install software for cross-compiling for Windows
+    - name: Set Clang as the compiler
+      if: inputs.use-clang == 'true'
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Install and set up libc++ as the standard C++ library
+      if: inputs.use-libcxx == 'true'
+      shell: ${{ inputs.shell }}
+      run: |
+        sudo apt-get install -y libc++-dev libc++abi-dev
+        CLANG_DIR="$(dirname $(realpath $(which clang++)))"
+        echo "-stdlib=libc++ -lc++abi" > clang++.cfg
+        sudo cp clang++.cfg $CLANG_DIR/
+
+    - name: Install software for cross-compiling for arm64 Linux
+      if: runner.os == 'Linux' && inputs.cross-compile == 'true' && inputs.windows-build != 'true'
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Install software for cross-compiling for arm64 Linux"
+        sudo apt-get install -y \
+          gcc-aarch64-linux-gnu \
+          g++-aarch64-linux-gnu
+        echo "::endgroup::"
+
+    - name: Install software for cross-compiling for Windows x86_64
       # Boolean inputs are actually strings:
       # https://github.com/actions/runner/issues/1483
-      if: inputs.windows-build == 'true'
-      shell: bash
+      if: runner.os == 'Linux' && inputs.cross-compile == 'true' && inputs.windows-build == 'true'
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install software for cross-compiling for Windows"
-        sudo apt-get update
+        # Temporarily disabled: apt-get update hangs in CI
+        # sudo apt-get update
         sudo apt-get install -y \
           mingw-w64
 
@@ -59,68 +87,97 @@ runs:
         sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
         echo "::endgroup::"
 
+    - name: Install software for WebAssembly compilation
+      # Boolean inputs are actually strings:
+      # https://github.com/actions/runner/issues/1483
+      if: inputs.wasm-build == 'true'
+      shell: bash
+      run: |
+        echo "::group::Install software for WebAssembly compilation"
+        # Temporarily disabled: apt-get update hangs in CI
+        # sudo apt-get update
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk/
+        ./emsdk install '6.0.8'
+        ./emsdk activate '6.0.8'
+        echo "$(pwd)" >> $GITHUB_PATH
+        echo "$(pwd)/upstream/emscripten" >> $GITHUB_PATH
+
+    # Pin MSYS2 installation to use Clang 22.1.7 (required by lean-cvc5)
+    - name: Install Windows x86_64 software
+      if: runner.os == 'Windows' && runner.arch == 'X64' && inputs.windows-build == 'true'
+      uses: msys2/setup-msys2@v2.32.0
+      with:
+        update: false
+        msystem: CLANG64
+        path-type: inherit
+        install: |
+          make
+          mingw-w64-clang-x86_64-autotools
+          mingw-w64-clang-x86_64-ccache
+          mingw-w64-clang-x86_64-clang
+          mingw-w64-clang-x86_64-cmake
+          mingw-w64-clang-x86_64-gmp
+          mingw-w64-clang-x86_64-mpfr
+          zip
+
+    # Pin MSYS2 installation to use Clang 22.1.7 (required by lean-cvc5)
+    - name: Install Windows arm64 software
+      if: runner.os == 'Windows' && runner.arch == 'ARM64' && inputs.windows-build == 'true'
+      uses: msys2/setup-msys2@v2.32.0
+      with:
+        update: false
+        msystem: CLANGARM64
+        path-type: inherit
+        install: |
+          make
+          mingw-w64-clang-aarch64-autotools
+          mingw-w64-clang-aarch64-ccache
+          mingw-w64-clang-aarch64-clang
+          mingw-w64-clang-aarch64-cmake
+          mingw-w64-clang-aarch64-gmp
+          mingw-w64-clang-aarch64-mpfr
+          zip
+
+    - name: Set up num_proc variable for Linux and Windows
+      if: runner.os == 'Linux' || runner.os == 'Windows'
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Set up num_proc variable for Linux and Windows"
+        echo "num_proc=$(( $(nproc) + 1 ))" >> $GITHUB_ENV
+        echo "::endgroup::"
+
     # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install macOS software
       if: runner.os == 'macOS'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install macOS software"
-        brew update --quiet
-
-        # Temporary workaround while versions of python greater than 3.10 are not supported:
-        # Hardcoding python version to 3.10 on macOS CI.
-        brew link --overwrite python@3.10
-        ln -s -f /usr/local/bin/python3.10 /usr/local/bin/python3
-
-        brew install \
+        if [[ $RUNNER_ARCH == "ARM64" ]]; then
+          AUTOTOOLS="autoconf libtool"
+        fi
+        brew install $AUTOTOOLS \
+          automake \
           ccache \
-          cln \
-          gmp \
-          pkgconfig \
-          flex \
           gnu-sed
-        python3 -m pip install --user pexpect setuptools toml pyparsing
-        # Make ImageVersion accessible as env.image_version. Environment
-        # variables of the runner are not automatically imported:
-        #
-        # https://github.com/actions/runner/blob/master/docs/adrs/0278-env-context.md#dont-populate-the-env-context-with-environment-variables-from-runner-machine
         echo "SED=gsed" >> $GITHUB_ENV
-        echo "CCACHE_CONFIGPATH=/Users/runner/Library/Preferences/ccache/ccache.conf" >> $GITHUB_ENV
-        echo "image_version=$ImageVersion" >> $GITHUB_ENV
         echo "num_proc=$(( $(sysctl -n hw.logicalcpu) + 1 ))" >> $GITHUB_ENV
-        echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
         echo "::endgroup::"
 
-    - name: Install software for Python bindings
-      if: inputs.with-python-bindings == 'true'
-      shell: bash
+    # Required by PEP-668
+    - name: Set up Python virtual environment
+      if: runner.os == 'macOS'
+      shell: ${{ inputs.shell }}
       run: |
-        echo "::group::Install software for Python bindings"
-        python3 -m pip install -q --upgrade pip
-        python3 -m pip install --user pytest scikit-build
-        python3 -m pytest --version
-        python3 -m pip install --user Cython==0.29.*
-        # Add binary path of user site-packages to PATH
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+        echo "::group::Set up Python virtual environment"
+        python3 -m venv ~/.venv
+        echo "$HOME/.venv/bin" >> $GITHUB_PATH
         echo "::endgroup::"
 
-    - name: Install software for Python packaging
-      if: inputs.with-python-packaging == 'true'
-      shell: bash
-      run: |
-        echo "::group::Install software for Python packaging"
-        python3 -m pip install -q --upgrade pip
-        python3 -m pip install --user twine
-        python3 -m pip install --user -U urllib3 requests
-        echo "::endgroup::"
-    
     - name: Install software for documentation
       if: inputs.with-documentation == 'true'
-      shell: bash
+      shell: ${{ inputs.shell }}
       run: |
         echo "::group::Install software for documentation"
-        sudo apt-get install -y doxygen python3-docutils python3-jinja2
-        python3 -m pip install --user \
-          sphinxcontrib-bibtex sphinx-tabs sphinx-rtd-theme breathe \
-          sphinxcontrib-programoutput
+        sudo apt-get install -y doxygen
         echo "::endgroup::"

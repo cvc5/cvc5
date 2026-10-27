@@ -1,16 +1,19 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Finite fields theory
+ * Finite fields theory.
+ *
+ * There is a subtheory for each prime p that handles the field Fp. Essentially
+ * the common theory just multiplexes the sub-theories.
+ *
+ * NB: while most of FF does not build without CoCoA, this class does. So, it
+ * has many ifdef blocks that throw errors without CoCoA.
  */
 
 #include "theory/ff/theory_ff.h"
@@ -24,8 +27,10 @@
 
 #include "expr/node_traversal.h"
 #include "options/ff_options.h"
+#include "theory/ff/util.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
+#include "util/result.h"
 #include "util/statistics_registry.h"
 #include "util/utility.h"
 
@@ -46,6 +51,7 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
                                        OutputChannel& out,
                                        Valuation valuation)
     : Theory(THEORY_FF, env, out, valuation),
+      d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, getStatsPrefix(THEORY_FF)),
       d_eqNotify(d_im),
@@ -58,7 +64,14 @@ TheoryFiniteFields::TheoryFiniteFields(Env& env,
 
 TheoryFiniteFields::~TheoryFiniteFields() {}
 
-TheoryRewriter* TheoryFiniteFields::getTheoryRewriter() { return &d_rewriter; }
+TheoryRewriter* TheoryFiniteFields::getTheoryRewriter()
+{
+  if (!options().ff.ff)
+  {
+    return nullptr;
+  }
+  return &d_rewriter;
+}
 
 ProofRuleChecker* TheoryFiniteFields::getProofChecker() { return nullptr; }
 
@@ -78,19 +91,25 @@ void TheoryFiniteFields::finishInit()
   d_equalityEngine->addFunctionKind(Kind::FINITE_FIELD_ADD);
 }
 
-void TheoryFiniteFields::postCheck(Effort level)
+void TheoryFiniteFields::postCheck(CVC5_UNUSED Effort level)
 {
 #ifdef CVC5_USE_COCOA
-  Trace("ff::check") << "ff::check : " << level << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  Trace("ff::check") << "ff::check : " << level << " @ level "
+                     << context()->getLevel() << std::endl;
+  NodeManager* nm = nodeManager();
   for (auto& subTheory : d_subTheories)
   {
-    subTheory.second.postCheck(level);
-    if (subTheory.second.inConflict())
+    Result r = subTheory.second.postCheck(level);
+    if (r.getStatus() == Result::UNKNOWN && level >= EFFORT_FULL)
     {
-      d_im.conflict(
-          nm->mkAnd(subTheory.second.conflict()),
-          InferenceId::FF_LEMMA);
+      d_im.setModelUnsound(IncompleteId::UNKNOWN);
+    }
+    else if (r.getStatus() == Result::UNSAT)
+    {
+      Assert(subTheory.second.inConflict());
+      const Node conflict = nm->mkAnd(subTheory.second.conflict());
+      Trace("ff::conflict") << "ff::conflict : " << conflict << std::endl;
+      d_im.conflict(conflict, InferenceId::FF_LEMMA);
     }
   }
 #else  /* CVC5_USE_COCOA */
@@ -98,10 +117,10 @@ void TheoryFiniteFields::postCheck(Effort level)
 #endif /* CVC5_USE_COCOA */
 }
 
-void TheoryFiniteFields::notifyFact(TNode atom,
-                                    bool polarity,
-                                    TNode fact,
-                                    bool isInternal)
+void TheoryFiniteFields::notifyFact(CVC5_UNUSED TNode atom,
+                                    CVC5_UNUSED bool polarity,
+                                    CVC5_UNUSED TNode fact,
+                                    CVC5_UNUSED bool isInternal)
 {
 #ifdef CVC5_USE_COCOA
   Trace("ff::check") << "ff::notifyFact : " << fact << " @ level "
@@ -112,8 +131,8 @@ void TheoryFiniteFields::notifyFact(TNode atom,
 #endif /* CVC5_USE_COCOA */
 }
 
-bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
-                                            const std::set<Node>& termSet)
+bool TheoryFiniteFields::collectModelValues(
+    CVC5_UNUSED TheoryModel* m, CVC5_UNUSED const std::set<Node>& termSet)
 {
 #ifdef CVC5_USE_COCOA
   Trace("ff::model") << "Term set: " << termSet << std::endl;
@@ -139,7 +158,7 @@ bool TheoryFiniteFields::collectModelValues(TheoryModel* m,
 void TheoryFiniteFields::preRegisterWithEe(TNode node)
 {
   Assert(d_equalityEngine != nullptr);
-  if (node.getKind() == kind::EQUAL)
+  if (node.getKind() == Kind::EQUAL)
   {
     d_state.addEqualityEngineTriggerPredicate(node);
   }
@@ -161,12 +180,16 @@ void TheoryFiniteFields::preRegisterTerm(TNode node)
     Assert(node.getKind() == Kind::EQUAL);
     fieldTy = node[0].getType();
   }
+  else if (!options().ff.ff)
+  {
+    std::stringstream ss;
+    ss << "Finite fields not available in this configuration, try --ff.";
+    throw SafeLogicException(ss.str());
+  }
   if (d_subTheories.count(fieldTy) == 0)
   {
-    d_subTheories.try_emplace(
-        fieldTy, d_env, d_stats.get(), ty.getFfSize());
+    d_subTheories.try_emplace(fieldTy, d_env, d_stats.get(), ty.getFfSize());
   }
-  d_subTheories.at(fieldTy).preRegisterTerm(node);
 #else  /* CVC5_USE_COCOA */
   noCoCoA();
 #endif /* CVC5_USE_COCOA */

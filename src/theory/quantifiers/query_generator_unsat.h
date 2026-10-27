@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -49,7 +46,7 @@ class QueryGeneratorUnsat : public QueryGenerator
    * Add term to this module. This may trigger the printing and/or checking of
    * new queries.
    */
-  bool addTerm(Node n, std::ostream& out) override;
+  bool addTerm(Node n, std::vector<Node>& queries) override;
 
  private:
   /**
@@ -58,9 +55,9 @@ class QueryGeneratorUnsat : public QueryGenerator
    * d_cores. If it is satisfiable, we add its model to currModel for
    * its free variables (which are ExprMiner::d_skolems).
    */
-  Result checkCurrent(const std::vector<Node>& activeTerms,
-                      std::ostream& out,
-                      std::vector<Node>& currModel);
+  Result checkCurrent(const Node& qy,
+                      std::vector<Node>& currModel,
+                      std::vector<Node>& queries);
   /**
    * Get next random index, which returns a random index [0, d_terms.size()-1]
    * that is not already in processed.

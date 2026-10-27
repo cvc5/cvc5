@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,23 +22,34 @@ namespace expr {
 
 // Definition of an attribute for the variable name.
 namespace attr {
-  struct VarNameTag { };
-  struct SortArityTag { };
-  struct TypeTag { };
-  struct TypeCheckedTag { };
-  struct UnresolvedDatatypeTag
-  {
-  };
-  struct TupleDatatypeTag
-  {
-  };
-  struct DatatypeIndexTag
-  {
-  };
-  struct OracleIndexTag
-  {
-  };
-  }  // namespace attr
+struct VarNameTag
+{
+};
+struct SortArityTag
+{
+};
+struct TypeTag
+{
+};
+struct TypeCheckedTag
+{
+};
+struct UnresolvedDatatypeTag
+{
+};
+struct TupleDatatypeTag
+{
+};
+struct NullableDatatypeTag
+{
+};
+struct DatatypeIndexTag
+{
+};
+struct OracleIndexTag
+{
+};
+}  // namespace attr
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
@@ -55,6 +63,10 @@ using UnresolvedDatatypeAttr =
 /** Mapping tuples to their datatype type encoding */
 using TupleDatatypeAttr =
     expr::Attribute<expr::attr::TupleDatatypeTag, TypeNode>;
+
+/** Mapping nullables to their datatype type encoding */
+using NullableDatatypeAttr =
+    expr::Attribute<expr::attr::NullableDatatypeTag, TypeNode>;
 
 /** Mapping datatype types to the index of their datatype in node manager */
 using DatatypeIndexAttr = Attribute<attr::DatatypeIndexTag, uint64_t>;

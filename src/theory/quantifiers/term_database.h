@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,6 +33,7 @@ namespace quantifiers {
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
+class DeqCongProofGenerator;
 
 /** Context-dependent list of nodes */
 class DbList
@@ -64,7 +62,8 @@ class DbList
  * notice that TNodeTrie objects are computed
  * lazily for performance reasons.
  */
-class TermDb : public QuantifiersUtil {
+class TermDb : public QuantifiersUtil
+{
   using NodeBoolMap = context::CDHashMap<Node, bool>;
   using NodeList = context::CDList<Node>;
   using NodeSet = context::CDHashSet<Node>;
@@ -90,23 +89,24 @@ class TermDb : public QuantifiersUtil {
   /** get operator at index i */
   Node getOperator(size_t i) const;
   /** ground terms for operator
-  * Get the number of ground terms with operator f that have been added to the
-  * database
-  */
+   * Get the number of ground terms with operator f that have been added to the
+   * database
+   */
   size_t getNumGroundTerms(TNode f) const;
   /** get ground term for operator
-  * Get the i^th ground term with operator f that has been added to the database
-  */
+   * Get the i^th ground term with operator f that has been added to the
+   * database
+   */
   Node getGroundTerm(TNode f, size_t i) const;
   /** Get ground term list */
   DbList* getGroundTermList(TNode f) const;
   /** get num type terms
-  * Get the number of ground terms of tn that have been added to the database
-  */
+   * Get the number of ground terms of tn that have been added to the database
+   */
   size_t getNumTypeGroundTerms(TypeNode tn) const;
   /** get type ground term
-  * Returns the i^th ground term of type tn
-  */
+   * Returns the i^th ground term of type tn
+   */
   Node getTypeGroundTerm(TypeNode tn, size_t i) const;
   /** get or make ground term
    *
@@ -115,16 +115,18 @@ class TermDb : public QuantifiersUtil {
    */
   Node getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar = false);
   /** make fresh variable
-  * Returns a fresh variable of type tn.
-  * This will return only a single fresh
-  * variable per type.
-  */
+   * Returns a fresh variable of type tn.
+   * This will return only a single fresh
+   * variable per type.
+   */
   Node getOrMakeTypeFreshVariable(TypeNode tn);
   /**
    * Add a term to the database, which registers it as a term that may be
    * matched with via E-matching, and can be used in entailment tests below.
    */
   void addTerm(Node n);
+  /** notification when master equality engine merges two classes*/
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** Get the currently added ground terms of the given type */
   DbList* getOrMkDbListForType(TypeNode tn);
   /** Get the currently added ground terms for the given operator */
@@ -160,11 +162,11 @@ class TermDb : public QuantifiersUtil {
    */
   TNodeTrie* getTermArgTrie(Node eqc, Node f);
   /** get congruent term
-  * If possible, returns a term t such that:
-  * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) and n is of the form f( s1, ..., sk ),
-  *     where ti is in the equivalence class of si for i=1...k.
-  */
+   * If possible, returns a term t such that:
+   * (1) t is a term that is currently indexed by this database,
+   * (2) t is of the form f( t1, ..., tk ) and n is of the form f( s1, ..., sk
+   * ), where ti is in the equivalence class of si for i=1...k.
+   */
   TNode getCongruentTerm(Node f, Node n);
   /** get congruent term
    * If possible, returns a term t such that:
@@ -175,23 +177,23 @@ class TermDb : public QuantifiersUtil {
    */
   TNode getCongruentTerm(Node f, const std::vector<TNode>& args);
   /** in relevant domain
-  * Returns true if there is at least one term t such that:
-  * (1) t is a term that is currently indexed by this database,
-  * (2) t is of the form f( t1, ..., tk ) and ti is in the
-  *     equivalence class of r.
-  */
+   * Returns true if there is at least one term t such that:
+   * (1) t is a term that is currently indexed by this database,
+   * (2) t is of the form f( t1, ..., tk ) and ti is in the
+   *     equivalence class of r.
+   */
   bool inRelevantDomain(TNode f, size_t i, TNode r);
   /** is the term n active in the current context?
    *
-  * By default, all terms are active. A term is inactive if:
-  * (1) it is congruent to another term
-  * (2) it is irrelevant based on the term database mode. This includes terms
-  * that only appear in literals that are not relevant.
-  * (3) it contains instantiation constants (used for CEGQI and cannot be used
-  * in instantiation).
-  * (4) it is explicitly set inactive by a call to setTermInactive(...).
-  * We store whether a term is inactive in a SAT-context-dependent map.
-  */
+   * By default, all terms are active. A term is inactive if:
+   * (1) it is congruent to another term
+   * (2) it is irrelevant based on the term database mode. This includes terms
+   * that only appear in literals that are not relevant.
+   * (3) it contains instantiation constants (used for CEGQI and cannot be used
+   * in instantiation).
+   * (4) it is explicitly set inactive by a call to setTermInactive(...).
+   * We store whether a term is inactive in a SAT-context-dependent map.
+   */
   bool isTermActive(Node n);
   /** set that term n is inactive in this context. */
   void setTermInactive(Node n);
@@ -206,11 +208,20 @@ class TermDb : public QuantifiersUtil {
    * the option termDbMode.
    * Otherwise, it returns the lookup in the map d_has_map.
    */
-  bool hasTermCurrent(Node n, bool useMode = true);
+  bool hasTermCurrent(const Node& n, bool useMode = true) const;
   /** is term eligble for instantiation? */
   bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
+  /**
+   * Set has term. This marks that n should be added to the term indicies
+   * used for E-matching when term-db is RELEVANT or RELEVANT_ALL_DELAY. This
+   * method is called on all terms that appear in assertions, and on all terms
+   * that appear in the master equality engine at last call effort if term-db is
+   * RELEVANT_ALL_DELAY.
+   * @param n the term to add.
+   */
+  void setHasTerm(Node n);
 
  protected:
   /** The quantifiers state object */
@@ -219,6 +230,8 @@ class TermDb : public QuantifiersUtil {
   QuantifiersInferenceManager* d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Whether we are tracking relevant terms */
+  bool d_trackRlv;
   /** A context for the data structures below, when not context-dependent */
   context::Context d_termsContext;
   /** The context we are using for the data structures below */
@@ -232,9 +245,7 @@ class TermDb : public QuantifiersUtil {
   /** map from operators to ground terms for that operator */
   NodeDbListMap d_opMap;
   /** select op map */
-  std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
-  /** whether master equality engine is UF-inconsistent */
-  bool d_consistent_ee;
+  std::map<Node, std::map<TypeNode, Node>> d_par_op_map;
   /** boolean terms */
   Node d_true;
   Node d_false;
@@ -243,9 +254,9 @@ class TermDb : public QuantifiersUtil {
   /** inactive map */
   NodeBoolMap d_inactive_map;
   /** count of the number of non-redundant ground terms per operator */
-  std::map< Node, int > d_op_nonred_count;
+  std::map<Node, int> d_op_nonred_count;
   /** mapping from terms to representatives of their arguments */
-  std::map< TNode, std::vector< TNode > > d_arg_reps;
+  std::map<TNode, std::vector<TNode>> d_arg_reps;
   /** map from operators to trie */
   std::map<Node, TNodeTrie> d_func_map_trie;
   std::map<Node, TNodeTrie> d_func_map_eqc_trie;
@@ -257,7 +268,7 @@ class TermDb : public QuantifiersUtil {
    */
   std::map<Node, std::vector<std::vector<TNode>>> d_fmapRelDom;
   /** has map */
-  std::map< Node, bool > d_has_map;
+  context::CDHashSet<Node> d_has_map;
   /** map from reps to a term in eqc in d_has_map */
   std::map<Node, Node> d_term_elig_eqc;
   /**
@@ -265,12 +276,9 @@ class TermDb : public QuantifiersUtil {
    * of equality engine (for higher-order).
    */
   std::map<TypeNode, Node> d_ho_type_match_pred;
+  /** A proof generator for disequal congruent terms */
+  std::shared_ptr<DeqCongProofGenerator> d_dcproof;
   //----------------------------- implementation-specific
-  /**
-   * Reset internal, called when reset(e) is called. Returning false will cause
-   * the overall reset to terminate early, returning false.
-   */
-  virtual bool resetInternal(Theory::Effort e);
   /**
    * Finish reset internal, called at the end of reset(e). Returning false will
    * cause the overall reset to return false.
@@ -286,26 +294,24 @@ class TermDb : public QuantifiersUtil {
    * This method is called when terms a and b are indexed by the same operator,
    * and have equivalent arguments. This method checks if we are in conflict,
    * which is the case if a and b are disequal in the equality engine.
-   * If so, it adds the set of literals that are implied but do not hold, e.g.
-   * the equality (= a b).
+   * If so, it adds any additional arguments that explain why a = b, e.g. the
+   * equivalence of their operators if their operators are different.
    */
   virtual bool checkCongruentDisequal(TNode a, TNode b, std::vector<Node>& exp);
   //----------------------------- end implementation-specific
-  /** set has term */
-  void setHasTerm( Node n );
   /** compute uf eqc terms :
-  * Ensure entries for f are in d_func_map_eqc_trie for all equivalence classes
-  */
-  void computeUfEqcTerms( TNode f );
+   * Ensure entries for f are in d_func_map_eqc_trie for all equivalence classes
+   */
+  void computeUfEqcTerms(TNode f);
   /** compute uf terms
-  * Ensure that an entry for f is in d_func_map_trie
-  */
-  void computeUfTerms( TNode f );
+   * Ensure that an entry for f is in d_func_map_trie
+   */
+  void computeUfTerms(TNode f);
   /** compute arg reps
-  * Ensure that an entry for n is in d_arg_reps
-  */
+   * Ensure that an entry for n is in d_arg_reps
+   */
   void computeArgReps(TNode n);
-};/* class TermDb */
+}; /* class TermDb */
 
 }  // namespace quantifiers
 }  // namespace theory

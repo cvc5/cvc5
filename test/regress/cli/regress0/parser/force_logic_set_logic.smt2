@@ -1,10 +1,7 @@
-; This regression ensures that we detect repeated set-logic commands even when
+; Note that we do not detect repeated set-logic commands when
 ; --force-logic is used.
 
-; DISABLE-TESTER: dump
 ; COMMAND-LINE: --force-logic="QF_BV"
-; SCRUBBER: grep -o "Only one set-logic is allowed."
-; EXPECT: Only one set-logic is allowed.
-; EXIT: 1
+; EXIT: 0
 (set-logic QF_BV)
 (set-logic QF_BV)

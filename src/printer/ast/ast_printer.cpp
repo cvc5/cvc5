@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Abdalrhman Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,10 +32,13 @@ void AstPrinter::toStream(std::ostream& out, TNode n) const
 {
   size_t dag = options::ioutils::getDagThresh(out);
   int toDepth = options::ioutils::getNodeDepth(out);
-  if(dag != 0) {
-    LetBinding lbind(dag + 1);
+  if (dag != 0)
+  {
+    LetBinding lbind("_let_", dag + 1);
     toStreamWithLetify(out, n, toDepth, &lbind);
-  } else {
+  }
+  else
+  {
     toStream(out, n, toDepth);
   }
 }
@@ -54,13 +54,15 @@ void AstPrinter::toStream(std::ostream& out,
                           LetBinding* lbind) const
 {
   // null
-  if(n.getKind() == kind::NULL_EXPR) {
+  if (n.getKind() == Kind::NULL_EXPR)
+  {
     out << "null";
     return;
   }
 
   // variable
-  if(n.getMetaKind() == kind::metakind::VARIABLE) {
+  if (n.getMetaKind() == kind::metakind::VARIABLE)
+  {
     if (n.hasName())
     {
       out << n.getName();
@@ -73,7 +75,8 @@ void AstPrinter::toStream(std::ostream& out,
   }
 
   out << '(' << n.getKind();
-  if(n.getMetaKind() == kind::metakind::CONSTANT) {
+  if (n.getMetaKind() == kind::metakind::CONSTANT)
+  {
     // constant
     out << ' ';
     n.constToStream(out);
@@ -82,6 +85,7 @@ void AstPrinter::toStream(std::ostream& out,
   {
     for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
     {
+      out << ' ';
       // body is re-letified
       if (i == 1)
       {
@@ -94,31 +98,37 @@ void AstPrinter::toStream(std::ostream& out,
   else
   {
     // operator
-    if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
+    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
       out << ' ';
-      if(toDepth != 0) {
+      if (toDepth != 0)
+      {
         toStream(
             out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
-      } else {
+      }
+      else
+      {
         out << "(...)";
       }
     }
-    for(TNode::iterator i = n.begin(),
-          iend = n.end();
-        i != iend;
-        ++i) {
-      if(i != iend) {
+    for (TNode::iterator i = n.begin(), iend = n.end(); i != iend; ++i)
+    {
+      if (i != iend)
+      {
         out << ' ';
       }
-      if(toDepth != 0) {
+      if (toDepth != 0)
+      {
         toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, lbind);
-      } else {
+      }
+      else
+      {
         out << "(...)";
       }
     }
   }
   out << ')';
-}/* AstPrinter::toStream(TNode) */
+} /* AstPrinter::toStream(TNode) */
 
 void AstPrinter::toStream(std::ostream& out, const smt::Model& m) const
 {
@@ -242,17 +252,21 @@ void AstPrinter::toStreamCmdQuit(std::ostream& out) const
   out << "Quit()" << std::endl;
 }
 
-void AstPrinter::toStreamCmdDeclareFunction(std::ostream& out,
-                                            const std::string& id,
-                                            TypeNode type) const
+void AstPrinter::toStreamCmdDeclareFunction(
+    std::ostream& out,
+    const std::string& id,
+    const std::vector<TypeNode>& argTypes,
+    TypeNode type) const
 {
-  out << "Declare(" << id << "," << type << ')' << std::endl;
+  out << "Declare(" << id << ",";
+  copy(argTypes.begin(), argTypes.end(), ostream_iterator<TypeNode>(out, ", "));
+  out << "," << type << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
                                            const std::string& id,
                                            const std::vector<Node>& formals,
-                                           TypeNode range,
+                                           CVC5_UNUSED TypeNode range,
                                            Node formula) const
 {
   out << "DefineFunction( \"" << id << "\", [";
@@ -265,9 +279,10 @@ void AstPrinter::toStreamCmdDefineFunction(std::ostream& out,
 }
 
 void AstPrinter::toStreamCmdDeclareType(std::ostream& out,
-                                        TypeNode type) const
+                                        const std::string& id,
+                                        size_t arity) const
 {
-  out << "DeclareType(" << type << ')' << std::endl;
+  out << "DeclareType(" << id << ", " << arity << ')' << std::endl;
 }
 
 void AstPrinter::toStreamCmdDefineType(std::ostream& out,
@@ -400,12 +415,12 @@ void AstPrinter::toStreamWithLetify(std::ostream& out,
       Node nl = letList[i];
       uint32_t id = lbind->getId(nl);
       out << "_let_" << id << " := ";
-      Node nlc = lbind->convert(nl, "_let_", false);
+      Node nlc = lbind->convert(nl, false);
       toStream(out, nlc, toDepth, lbind);
     }
     out << " IN ";
   }
-  Node nc = lbind->convert(n, "_let_");
+  Node nc = lbind->convert(n);
   // print the body, passing the lbind object
   toStream(out, nc, toDepth, lbind);
   out << cparen.str();

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -56,38 +53,17 @@ class TermRegistry : protected EnvObj
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
-  TermRegistry(Env& env,
-               Theory& t,
-               SolverState& s,
-               SequencesStatistics& statistics);
+  TermRegistry(Env& env, Theory& t, SolverState& s);
   ~TermRegistry();
   /** get the cardinality of the alphabet used, based on the options */
   uint32_t getAlphabetCardinality() const;
   /** Finish initialize, which sets the inference manager */
   void finishInit(InferenceManager* im);
-  /** The eager reduce routine
-   *
-   * Constructs a lemma for t that is incomplete, but communicates pertinent
-   * information about t. This is analogous to StringsPreprocess::reduce.
-   *
-   * In practice, we send this lemma eagerly, as soon as t is registered.
-   *
-   * @param t The node to reduce,
-   * @param sc The Skolem cache to use for new variables,
-   * @param alphaCard The cardinality of the alphabet we are assuming
-   * @return The eager reduction for t.
-   */
-  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
   /**
-   * Returns a lemma indicating that the length of a term t whose type is
-   * string-like has positive length. The exact form of this lemma depends
-   * on what works best in practice, currently:
-   *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
-   *
-   * @param t The node to reduce,
-   * @return The positive length lemma for t.
+   * Return a TrustNode of kind LEMMA that provides the eager reduction lemma
+   * for t, or the null trust node if it does not exist.
    */
-  static Node lengthPositive(Node t);
+  TrustNode eagerReduceTrusted(const Node& t);
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
    * This does the following:
@@ -138,7 +114,7 @@ class TermRegistry : protected EnvObj
    * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
    *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
    * This method also ensures that, when applicable, the left branch is taken
-   * first via calls to requirePhase.
+   * first via calls to preferPhase.
    *
    * If the status is LENGTH_IGNORE, then no lemma is sent. This status is used
    * e.g. when the length of n is already implied by other constraints.
@@ -227,7 +203,7 @@ class TermRegistry : protected EnvObj
   Node mkNConcat(Node n1, Node n2, Node n3) const;
 
   /**
-   * Returns the rewritten form of the concatentation from vector c of
+   * Returns the rewritten form of the concatenation from vector c of
    * (string-like) type tn.
    */
   Node mkNConcat(const std::vector<Node>& c, TypeNode tn) const;
@@ -265,8 +241,6 @@ class TermRegistry : protected EnvObj
   SolverState& d_state;
   /** Pointer to the inference manager of the theory of strings. */
   InferenceManager* d_im;
-  /** Reference to the statistics for the theory of strings/sequences. */
-  SequencesStatistics& d_statistics;
   /** have we asserted any str.code terms? */
   bool d_hasStrCode;
   /** have we asserted any seq.update/seq.nth terms? */

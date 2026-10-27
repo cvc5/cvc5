@@ -1,0 +1,25 @@
+(define-rule array-read-over-write ((t ?Array) (i ?) (e ?))
+  (select (store t i e) i) e)
+
+(define-cond-rule array-read-over-write2 ((t ?Array) (i ?) (j ?) (e ?))
+  (not (= i j))
+  (select (store t i e) j)
+  (select t j))
+
+(define-rule array-store-overwrite ((t ?Array) (i ?) (e ?) (f ?))
+  (store (store t i e) i f)
+  (store t i f))
+
+(define-rule array-store-self ((t ?Array) (i ?))
+  (store t i (select t i))
+  t)
+
+(define-rule* array-read-over-write-split ((t ?Array) (i ?) (e ?) (j ?))
+  (select (store t j e) i)
+  (select t i)
+  (ite (= i j) e _))
+
+(define-cond-rule array-store-swap ((t ?Array) (i ?) (j ?) (e ?) (f ?))
+  (not (= i j)) 
+  (store (store t i e) j f)
+  (store (store t j f) i e))

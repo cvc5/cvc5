@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Abdalrhman Mohamed, Haniel Barbosa
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +37,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-class CegGrammarConstructor;
+class EmbeddingConverter;
 class SygusPbe;
 class SygusStatistics;
 class EnumValueManager;
@@ -100,7 +97,7 @@ class SynthConjecture : protected EnvObj
    * sol_map[q] to contain the entry:
    *   f -> (lambda x. x+1)
    */
-  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
+  bool getSynthSolutions(std::map<Node, std::map<Node, Node>>& sol_map);
   /** is ground */
   bool isGround() const { return d_innerVars.empty(); }
   /** are we using single invocation techniques */
@@ -147,6 +144,9 @@ class SynthConjecture : protected EnvObj
   /** get a reference to the statistics of parent */
   SygusStatistics& getSygusStatistics() { return d_stats; };
 
+  /** exclude the current solution { enums -> values } due to id */
+  void excludeCurrentSolution(const std::vector<Node>& values, InferenceId id);
+
  private:
   /** do refinement
    *
@@ -172,7 +172,7 @@ class SynthConjecture : protected EnvObj
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
-  QuantifiersRegistry& d_qreg;
+  CVC5_UNUSED_FIELD QuantifiersRegistry& d_qreg;  // Only used in DEBUG
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** reference to the statistics of parent */
@@ -210,7 +210,7 @@ class SynthConjecture : protected EnvObj
   /** utility for static preprocessing and analysis of conjectures */
   std::unique_ptr<SynthConjectureProcess> d_ceg_proc;
   /** grammar utility */
-  std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
+  std::unique_ptr<EmbeddingConverter> d_embConv;
   /** repair constant utility */
   std::unique_ptr<SygusRepairConst> d_sygus_rconst;
   /** example inference utility */
@@ -328,10 +328,6 @@ class SynthConjecture : protected EnvObj
    * current solution should be printed and then immediately excluded.
    */
   bool runExprMiner();
-  //-------------------------------- sygus stream
-  /** exclude the current solution { enums -> values } */
-  void excludeCurrentSolution(const std::vector<Node>& values);
-  //-------------------------------- end sygus stream
   /** expression miner managers for each function-to-synthesize
    *
    * Notice that for each function-to-synthesize, we enumerate a stream of
@@ -342,6 +338,8 @@ class SynthConjecture : protected EnvObj
    * rewrite rules.
    */
   std::map<Node, std::unique_ptr<ExpressionMinerManager>> d_exprm;
+  /** Have we given a warning for a candidate that failed verification? */
+  bool d_verifyWarned;
 };
 
 }  // namespace quantifiers

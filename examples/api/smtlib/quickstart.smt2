@@ -6,7 +6,7 @@
 (set-option :incremental true)
 ; print unsat cores, include assertions in the unsat core that have not been named
 (set-option :produce-unsat-cores true)
-(set-option :dump-unsat-cores-full true)
+(set-option :print-cores-full true)
 ;! [docs-smt2-quickstart-2 end]
 
 ;! [docs-smt2-quickstart-3 start]

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Andrew Reynolds, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,28 +30,24 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-//Sets of Nodes
+// Sets of Nodes
 typedef std::unordered_set<Node> NodeSet;
 typedef std::unordered_set<TNode> TNodeSet;
 typedef context::CDHashSet<Node> CDNodeSet;
 
-inline Node mkBoolNode(bool b){
-  return NodeManager::currentNM()->mkConst<bool>(b);
-}
+inline Node mkBoolNode(NodeManager* nm, bool b) { return nm->mkConst<bool>(b); }
 
 /** \f$ k \in {LT, LEQ, EQ, GEQ, GT} \f$ */
-inline bool isRelationOperator(Kind k){
-  using namespace kind;
-
-  switch(k){
-  case LT:
-  case LEQ:
-  case EQUAL:
-  case GEQ:
-  case GT:
-    return true;
-  default:
-    return false;
+inline bool isRelationOperator(Kind k)
+{
+  switch (k)
+  {
+    case Kind::LT:
+    case Kind::LEQ:
+    case Kind::EQUAL:
+    case Kind::GEQ:
+    case Kind::GT: return true;
+    default: return false;
   }
 }
 
@@ -65,51 +58,49 @@ inline bool isRelationOperator(Kind k){
  * The following equivalence should hold,
  *   (k l r) <=> (k' r l)
  */
-inline Kind reverseRelationKind(Kind k){
-  using namespace kind;
+inline Kind reverseRelationKind(Kind k)
+{
+  switch (k)
+  {
+    case Kind::LT: return Kind::GT;
+    case Kind::LEQ: return Kind::GEQ;
+    case Kind::EQUAL: return Kind::EQUAL;
+    case Kind::GEQ: return Kind::LEQ;
+    case Kind::GT: return Kind::LT;
 
-  switch(k){
-  case LT:    return GT;
-  case LEQ:   return GEQ;
-  case EQUAL: return EQUAL;
-  case GEQ:   return LEQ;
-  case GT:    return LT;
-
-  default:
-    Unreachable();
+    default: Unreachable();
   }
 }
 
-inline bool evaluateConstantPredicate(Kind k, const Rational& left, const Rational& right){
-  using namespace kind;
-
-  switch(k){
-  case LT:    return left <  right;
-  case LEQ:   return left <= right;
-  case EQUAL: return left == right;
-  case GEQ:   return left >= right;
-  case GT:    return left >  right;
-  default:
-    Unreachable();
-    return true;
+inline bool evaluateConstantPredicate(Kind k,
+                                      const Rational& left,
+                                      const Rational& right)
+{
+  switch (k)
+  {
+    case Kind::LT: return left < right;
+    case Kind::LEQ: return left <= right;
+    case Kind::EQUAL: return left == right;
+    case Kind::GEQ: return left >= right;
+    case Kind::GT: return left > right;
+    default: Unreachable(); return true;
   }
 }
 
 /**
  * Returns the appropriate coefficient for the infinitesimal given the kind
- * for an arithmetic atom inorder to represent strict inequalities as inequalities.
- *   x < c  becomes  x <= c + (-1) * \f$ \delta \f$
- *   x > c  becomes  x >= x + ( 1) * \f$ \delta \f$
- * Non-strict inequalities have a coefficient of zero.
+ * for an arithmetic atom inorder to represent strict inequalities as
+ * inequalities. x < c  becomes  x <= c + (-1) * \f$ \delta \f$ x > c  becomes
+ * x >= x + ( 1) * \f$ \delta \f$ Non-strict inequalities have a coefficient of
+ * zero.
  */
-inline int deltaCoeff(Kind k){
-  switch(k){
-  case kind::LT:
-    return -1;
-  case kind::GT:
-    return 1;
-  default:
-    return 0;
+inline int deltaCoeff(Kind k)
+{
+  switch (k)
+  {
+    case Kind::LT: return -1;
+    case Kind::GT: return 1;
+    default: return 0;
   }
 }
 
@@ -125,59 +116,62 @@ inline int deltaCoeff(Kind k){
  * - (NOT (GT left right))    -> LEQ
  * If none of these match, it returns UNDEFINED_KIND.
  */
-inline Kind oldSimplifiedKind(TNode literal){
-  switch(literal.getKind()){
-  case kind::LT:
-  case kind::GT:
-  case kind::LEQ:
-  case kind::GEQ:
-  case kind::EQUAL:
-    return literal.getKind();
-  case  kind::NOT:
+inline Kind oldSimplifiedKind(TNode literal)
+{
+  switch (literal.getKind())
+  {
+    case Kind::LT:
+    case Kind::GT:
+    case Kind::LEQ:
+    case Kind::GEQ:
+    case Kind::EQUAL: return literal.getKind();
+    case Kind::NOT:
     {
       TNode atom = literal[0];
-      switch(atom.getKind()){
-      case  kind::LEQ: //(not (LEQ x c)) <=> (GT x c)
-        return  kind::GT;
-      case  kind::GEQ: //(not (GEQ x c)) <=> (LT x c)
-        return  kind::LT;
-      case  kind::LT: //(not (LT x c)) <=> (GEQ x c)
-        return  kind::GEQ;
-      case  kind::GT: //(not (GT x c) <=> (LEQ x c)
-        return  kind::LEQ;
-      case  kind::EQUAL:
-        return  kind::DISTINCT;
-      default:
-        Unreachable();
-        return  kind::UNDEFINED_KIND;
+      switch (atom.getKind())
+      {
+        case Kind::LEQ:  //(not (LEQ x c)) <=> (GT x c)
+          return Kind::GT;
+        case Kind::GEQ:  //(not (GEQ x c)) <=> (LT x c)
+          return Kind::LT;
+        case Kind::LT:  //(not (LT x c)) <=> (GEQ x c)
+          return Kind::GEQ;
+        case Kind::GT:  //(not (GT x c) <=> (LEQ x c)
+          return Kind::LEQ;
+        case Kind::EQUAL: return Kind::DISTINCT;
+        default: Unreachable(); return Kind::UNDEFINED_KIND;
       }
     }
-  default:
-    Unreachable();
-    return kind::UNDEFINED_KIND;
+    default: Unreachable(); return Kind::UNDEFINED_KIND;
   }
 }
 
-inline Kind negateKind(Kind k){
-  switch(k){
-  case kind::LT:       return kind::GEQ;
-  case kind::GT:       return kind::LEQ;
-  case kind::LEQ:      return kind::GT;
-  case kind::GEQ:      return kind::LT;
-  case kind::EQUAL:    return kind::DISTINCT;
-  case kind::DISTINCT: return kind::EQUAL;
-  default:
-    return kind::UNDEFINED_KIND;
+inline Kind negateKind(Kind k)
+{
+  switch (k)
+  {
+    case Kind::LT: return Kind::GEQ;
+    case Kind::GT: return Kind::LEQ;
+    case Kind::LEQ: return Kind::GT;
+    case Kind::GEQ: return Kind::LT;
+    case Kind::EQUAL: return Kind::DISTINCT;
+    case Kind::DISTINCT: return Kind::EQUAL;
+    default: return Kind::UNDEFINED_KIND;
   }
 }
 
-inline Node negateConjunctionAsClause(TNode conjunction){
-  Assert(conjunction.getKind() == kind::AND);
-  NodeBuilder orBuilder(kind::OR);
+inline Node negateConjunctionAsClause(TNode conjunction)
+{
+  Assert(conjunction.getKind() == Kind::AND);
+  NodeBuilder orBuilder(conjunction.getNodeManager(), Kind::OR);
 
-  for(TNode::iterator i = conjunction.begin(), end=conjunction.end(); i != end; ++i){
+  for (TNode::iterator i = conjunction.begin(), end = conjunction.end();
+       i != end;
+       ++i)
+  {
     TNode child = *i;
-    Node negatedChild = NodeBuilder(kind::NOT) << (child);
+    Node negatedChild = NodeBuilder(conjunction.getNodeManager(), Kind::NOT)
+                        << (child);
     orBuilder << negatedChild;
   }
   return orBuilder;
@@ -185,32 +179,41 @@ inline Node negateConjunctionAsClause(TNode conjunction){
 
 inline Node maybeUnaryConvert(NodeBuilder& builder)
 {
-  Assert(builder.getKind() == kind::OR || builder.getKind() == kind::AND
-         || builder.getKind() == kind::ADD || builder.getKind() == kind::MULT);
+  Assert(builder.getKind() == Kind::OR || builder.getKind() == Kind::AND
+         || builder.getKind() == Kind::ADD || builder.getKind() == Kind::MULT);
   Assert(builder.getNumChildren() >= 1);
-  if(builder.getNumChildren() == 1){
+  if (builder.getNumChildren() == 1)
+  {
     return builder[0];
-  }else{
+  }
+  else
+  {
     return builder;
   }
 }
 
-inline void flattenAnd(Node n, std::vector<TNode>& out){
-  Assert(n.getKind() == kind::AND);
-  for(Node::iterator i=n.begin(), i_end=n.end(); i != i_end; ++i){
+inline void flattenAnd(Node n, std::vector<TNode>& out)
+{
+  Assert(n.getKind() == Kind::AND);
+  for (Node::iterator i = n.begin(), i_end = n.end(); i != i_end; ++i)
+  {
     Node curr = *i;
-    if(curr.getKind() == kind::AND){
+    if (curr.getKind() == Kind::AND)
+    {
       flattenAnd(curr, out);
-    }else{
+    }
+    else
+    {
       out.push_back(curr);
     }
   }
 }
 
-inline Node flattenAnd(Node n){
+inline Node flattenAnd(Node n)
+{
   std::vector<TNode> out;
   flattenAnd(n, out);
-  return NodeManager::currentNM()->mkNode(kind::AND, out);
+  return n.getNodeManager()->mkNode(Kind::AND, out);
 }
 
 /** Make zero of the given type */
@@ -227,23 +230,21 @@ inline Node getIdentityType(const TypeNode& tn, Kind k)
 {
   switch (k)
   {
-    case kind::ADD: return mkZero(tn);
-    case kind::MULT:
-    case kind::NONLINEAR_MULT:
-      return NodeManager::currentNM()->mkConstRealOrInt(tn, 1);
+    case Kind::ADD: return mkZero(tn);
+    case Kind::MULT:
+    case Kind::NONLINEAR_MULT: return NodeManager::mkConstRealOrInt(tn, 1);
     default: Unreachable(); return Node::null();  // silence warning
   }
 }
 
-inline Node mkAndFromBuilder(NodeBuilder& nb)
+inline Node mkAndFromBuilder(NodeManager* nm, NodeBuilder& nb)
 {
-  Assert(nb.getKind() == kind::AND);
-  switch (nb.getNumChildren()) {
-    case 0: return mkBoolNode(true);
-    case 1:
-      return nb[0];
-    default:
-      return (Node)nb;
+  Assert(nb.getKind() == Kind::AND);
+  switch (nb.getNumChildren())
+  {
+    case 0: return mkBoolNode(nm, true);
+    case 1: return nb[0];
+    default: return (Node)nb;
   }
 }
 
@@ -255,36 +256,37 @@ inline Node safeConstructNaryType(const TypeNode& tn,
   {
     case 0: return getIdentityType(tn, k);
     case 1: return children[0];
-    default: return NodeManager::currentNM()->mkNode(k, children);
+    default: return tn.getNodeManager()->mkNode(k, children);
   }
 }
 
 // Returns the multiplication of a and b.
-inline Node mkMult(Node a, Node b) {
-  return NodeManager::currentNM()->mkNode(kind::MULT, a, b);
+inline Node mkMult(Node a, Node b)
+{
+  return NodeManager::mkNode(Kind::MULT, a, b);
 }
 
 // Return a constraint that is equivalent to term being is in the range
 // [start, end). This includes start and excludes end.
-inline Node mkInRange(Node term, Node start, Node end) {
-  NodeManager* nm = NodeManager::currentNM();
-  Node above_start = nm->mkNode(kind::LEQ, start, term);
-  Node below_end = nm->mkNode(kind::LT, term, end);
-  return nm->mkNode(kind::AND, above_start, below_end);
+inline Node mkInRange(Node term, Node start, Node end)
+{
+  Node above_start = NodeManager::mkNode(Kind::LEQ, start, term);
+  Node below_end = NodeManager::mkNode(Kind::LT, term, end);
+  return NodeManager::mkNode(Kind::AND, above_start, below_end);
 }
 
 // Creates an expression that constrains q to be equal to one of two expressions
 // when n is 0 or not. Useful for division by 0 logic.
 //   (ite (= n 0) (= q if_zero) (= q not_zero))
-inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero) {
+inline Node mkOnZeroIte(Node n, Node q, Node if_zero, Node not_zero)
+{
   Node zero = mkZero(n.getType());
-  return n.eqNode(zero).iteNode(q.eqNode(if_zero), q.eqNode(not_zero));
+  return n.eqNode(zero).iteNode({q.eqNode(if_zero), q.eqNode(not_zero)});
 }
 
-inline Node mkPi()
+inline Node mkPi(NodeManager* nm)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNullaryOperator(nm->realType(), kind::PI);
+  return nm->mkNullaryOperator(nm->realType(), Kind::PI);
 }
 /** Join kinds, where k1 and k2 are arithmetic relations returns an
  * arithmetic relation ret such that
@@ -300,6 +302,17 @@ Kind transKinds(Kind k1, Kind k2);
 
 /** Is k a transcendental function kind? */
 bool isTranscendentalKind(Kind k);
+
+/**
+ * Is k an extended non-linear function kind? These kinds are treated by the
+ * non-linear solver. We distinguish these kinds by the fact that they do not
+ * generate irrational outputs given rational inputs. Examples of extended
+ * non-linear kinds include IAND and POW2. All kinds that are non-linear
+ * and arithmetic should return true for either isTranscendentalKind or
+ * isExtendedNonLinearKind.
+ */
+bool isExtendedNonLinearKind(Kind k);
+
 /**
  * Get a lower/upper approximation of the constant r within the given
  * level of precision. In other words, this returns a constant c' such that
@@ -336,10 +349,16 @@ Node multConstants(const Node& c1, const Node& c2);
 Node mkEquality(const Node& a, const Node& b);
 
 /**
+ * Return the real cast of n. If n is a constant integer, we return a
+ * constant real. Otherwise we apply TO_REAL to n.
+ */
+Node castToReal(NodeManager* nm, const Node& n);
+
+/**
  * Ensures that the returned pair has equal type, where a and b have
  * real or integer type. We add TO_REAL if not.
  */
-std::pair<Node,Node> mkSameType(const Node& a, const Node& b);
+std::pair<Node, Node> mkSameType(const Node& a, const Node& b);
 
 /**
  * Returns the rewritten form of node, which is a term of the form bv2nat(x).

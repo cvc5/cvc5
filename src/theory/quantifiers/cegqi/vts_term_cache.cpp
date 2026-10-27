@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +14,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/sort_to_term.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/rewriter.h"
@@ -45,7 +43,7 @@ void VtsTermCache::getVtsTerms(std::vector<Node>& t,
       t.push_back(delta);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (unsigned r = 0; r < 2; r++)
   {
     TypeNode tn = r == 0 ? nm->realType() : nm->integerType();
@@ -61,21 +59,17 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
 {
   if (create)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     if (d_vts_delta_free.isNull())
     {
       d_hasAllocated = true;
-      d_vts_delta_free =
-          sm->mkDummySkolem("delta_free",
-                            nm->realType(),
-                            "free delta for virtual term substitution");
+      d_vts_delta_free = sm->mkSkolemFunction(SkolemId::ARITH_VTS_DELTA_FREE);
     }
     if (d_vts_delta.isNull())
     {
       d_hasAllocated = true;
-      d_vts_delta = sm->mkDummySkolem(
-          "delta", nm->realType(), "delta for virtual term substitution");
+      d_vts_delta = sm->mkSkolemFunction(SkolemId::ARITH_VTS_DELTA);
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_delta.setAttribute(vtsa, true);
@@ -86,21 +80,22 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
 
 Node VtsTermCache::getVtsInfinity(TypeNode tn, bool isFree, bool create)
 {
+  Assert(tn.isRealOrInt());
   if (create)
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
+    Node stt = nm->mkConst(SortToTerm(tn));
     if (d_vts_inf_free[tn].isNull())
     {
       d_hasAllocated = true;
-      d_vts_inf_free[tn] = sm->mkDummySkolem(
-          "inf_free", tn, "free infinity for virtual term substitution");
+      d_vts_inf_free[tn] =
+          sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY_FREE, stt);
     }
     if (d_vts_inf[tn].isNull())
     {
       d_hasAllocated = true;
-      d_vts_inf[tn] = sm->mkDummySkolem(
-          "inf", tn, "infinity for virtual term substitution");
+      d_vts_inf[tn] = sm->mkSkolemFunction(SkolemId::ARITH_VTS_INFINITY, stt);
       // mark as a virtual term
       VirtualTermSkolemAttribute vtsa;
       d_vts_inf[tn].setAttribute(vtsa, true);
@@ -126,8 +121,9 @@ Node VtsTermCache::substituteVtsFreeTerms(Node n)
 
 Node VtsTermCache::rewriteVtsSymbols(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  if ((n.getKind() == EQUAL || n.getKind() == GEQ))
+  NodeManager* nm = nodeManager();
+  if (((n.getKind() == Kind::EQUAL && n[0].getType().isRealOrInt())
+       || n.getKind() == Kind::GEQ))
   {
     Trace("quant-vts-debug") << "VTS : process " << n << std::endl;
     Node rew_vts_inf;
@@ -207,12 +203,12 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
           {
             if (!rew_vts_inf.isNull())
             {
-              nlit = nm->mkConst(n.getKind() == GEQ && res == 1);
+              nlit = nm->mkConst(n.getKind() == Kind::GEQ && res == 1);
             }
             else
             {
               Assert(iso_n[res == 1 ? 0 : 1] == d_vts_delta);
-              if (n.getKind() == EQUAL)
+              if (n.getKind() == Kind::EQUAL)
               {
                 nlit = nm->mkConst(false);
               }
@@ -221,11 +217,11 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
                 Node zero = nm->mkConstRealOrInt(slv.getType(), Rational(0));
                 if (res == 1)
                 {
-                  nlit = nm->mkNode(GEQ, zero, slv);
+                  nlit = nm->mkNode(Kind::GEQ, zero, slv);
                 }
                 else
                 {
-                  nlit = nm->mkNode(GT, slv, zero);
+                  nlit = nm->mkNode(Kind::GT, slv, zero);
                 }
               }
             }
@@ -247,7 +243,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
     }
     return n;
   }
-  else if (n.getKind() == FORALL)
+  else if (n.getKind() == Kind::FORALL)
   {
     // cannot traverse beneath quantifiers
     return substituteVtsFreeTerms(n);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -52,12 +49,14 @@ namespace quantifiers {
 class ExtendedRewriter
 {
  public:
-  ExtendedRewriter(Rewriter& rew, bool aggr = true);
+  ExtendedRewriter(NodeManager* nm, Rewriter& rew, bool aggr = true);
   ~ExtendedRewriter() {}
   /** return the extended rewritten form of n */
   Node extendedRewrite(Node n) const;
 
  private:
+  /** Pointer to the underlying node manager */
+  NodeManager* d_nm;
   /** The underlying rewriter that we are extending  */
   Rewriter& d_rew;
   /** cache that the extended rewritten form of n is ret */
@@ -139,10 +138,10 @@ class ExtendedRewriter
    *   ( A V B ) ^ ( A V C ) ----> A V ( B ^ C )
    *   ( A ^ B ) V ( A ^ C ) ----> A ^ ( B V C )
    *
-   * This function takes as arguments the kinds that specify AND, OR, NOT.
+   * This function takes as arguments the kinds that specify AND, OR.
    * We assume that the children of n do not contain duplicates.
    */
-  Node extendedRewriteFactoring(Kind andk, Kind ork, Kind notk, Node n) const;
+  Node extendedRewriteFactoring(Kind andk, Kind ork, Node n) const;
   /** (type-independent) equality resolution, for example:
    *
    *   ( A V C ) & ( A = B ) ---> ( B V C ) & ( A = B )
@@ -243,6 +242,7 @@ class ExtendedRewriter
    */
   Node extendedRewriteStrings(const Node& ret) const;
   Node extendedRewriteSets(const Node& ret) const;
+  Node extendedRewriteArith(const Node& ret) const;
   //--------------------------------------end theory-specific top-level calls
 
   /**

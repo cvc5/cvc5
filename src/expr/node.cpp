@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Tim King, Yoni Zohar
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,6 +19,7 @@
 #include "base/output.h"
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 
 using namespace std;
@@ -35,7 +33,8 @@ TypeCheckingExceptionPrivate::TypeCheckingExceptionPrivate(TNode node,
 #ifdef CVC5_DEBUG
   std::stringstream ss;
   LastExceptionBuffer* current = LastExceptionBuffer::getCurrent();
-  if(current != NULL){
+  if (current != NULL)
+  {
     // Since this node is malformed, we cannot use toString().
     // Instead, we print the kind and the children.
     ss << "node kind: " << node.getKind() << ". children: ";
@@ -55,7 +54,9 @@ TypeCheckingExceptionPrivate::~TypeCheckingExceptionPrivate() { delete d_node; }
 
 void TypeCheckingExceptionPrivate::toStream(std::ostream& os) const
 {
-  os << "Error during type checking: " << d_msg << std::endl << *d_node << endl << "The ill-typed expression: " << *d_node;
+  os << "Error during type checking: " << d_msg << std::endl
+     << *d_node << endl
+     << "The ill-typed expression: " << *d_node;
 }
 
 NodeTemplate<true> TypeCheckingExceptionPrivate::getNode() const
@@ -73,37 +74,56 @@ UnknownTypeException::UnknownTypeException(TNode n)
 }
 
 /** Is this node constant? (and has that been computed yet?) */
-struct IsConstTag { };
-struct IsConstComputedTag { };
+struct IsConstTag
+{
+};
+struct IsConstComputedTag
+{
+};
 typedef expr::Attribute<IsConstTag, bool> IsConstAttr;
 typedef expr::Attribute<IsConstComputedTag, bool> IsConstComputedAttr;
 
 template <bool ref_count>
-bool NodeTemplate<ref_count>::isConst() const {
+bool NodeTemplate<ref_count>::isConst() const
+{
   assertTNodeNotExpired();
   Trace("isConst") << "Node::isConst() for: " << *this << std::endl;
-  if(isNull()) {
+  if (isNull())
+  {
     return false;
   }
-  switch(getMetaKind()) {
-  case kind::metakind::CONSTANT:
-    Trace("isConst") << "Node::isConst() returning true, it's a CONSTANT" << std::endl;
-    return true;
-  case kind::metakind::VARIABLE:
-    Trace("isConst") << "Node::isConst() returning false, it's a VARIABLE" << std::endl;
-    return false;
-  default:
-    if(getAttribute(IsConstComputedAttr())) {
-      bool bval = getAttribute(IsConstAttr());
-      Trace("isConst") << "Node::isConst() returning cached value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
-      return bval;
-    } else {
-      bool bval = expr::TypeChecker::computeIsConst(NodeManager::currentNM(), *this);
-      Trace("isConst") << "Node::isConst() computed value " << (bval ? "true" : "false") << " for: " << *this << std::endl;
-      const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstAttr(), bval);
-      const_cast< NodeTemplate<ref_count>* >(this)->setAttribute(IsConstComputedAttr(), true);
-      return bval;
-    }
+  switch (getMetaKind())
+  {
+    case kind::metakind::CONSTANT:
+      Trace("isConst") << "Node::isConst() returning true, it's a CONSTANT"
+                       << std::endl;
+      return true;
+    case kind::metakind::VARIABLE:
+      Trace("isConst") << "Node::isConst() returning false, it's a VARIABLE"
+                       << std::endl;
+      return false;
+    default:
+      if (getAttribute(IsConstComputedAttr()))
+      {
+        bool bval = getAttribute(IsConstAttr());
+        Trace("isConst") << "Node::isConst() returning cached value "
+                         << (bval ? "true" : "false") << " for: " << *this
+                         << std::endl;
+        return bval;
+      }
+      else
+      {
+        bool bval =
+            expr::TypeChecker::computeIsConst(d_nv->getNodeManager(), *this);
+        Trace("isConst") << "Node::isConst() computed value "
+                         << (bval ? "true" : "false") << " for: " << *this
+                         << std::endl;
+        const_cast<NodeTemplate<ref_count>*>(this)->setAttribute(IsConstAttr(),
+                                                                 bval);
+        const_cast<NodeTemplate<ref_count>*>(this)->setAttribute(
+            IsConstComputedAttr(), true);
+        return bval;
+      }
   }
 }
 
@@ -113,7 +133,7 @@ template bool NodeTemplate<false>::isConst() const;
 template <bool ref_count>
 bool NodeTemplate<ref_count>::hasName() const
 {
-  return NodeManager::currentNM()->hasAttribute(*this, expr::VarNameAttr());
+  return d_nv->getNodeManager()->hasAttribute(*this, expr::VarNameAttr());
 }
 
 template bool NodeTemplate<true>::hasName() const;
@@ -122,22 +142,60 @@ template bool NodeTemplate<false>::hasName() const;
 template <bool ref_count>
 std::string NodeTemplate<ref_count>::getName() const
 {
-  return NodeManager::currentNM()->getAttribute(*this, expr::VarNameAttr());
+  return d_nv->getNodeManager()->getAttribute(*this, expr::VarNameAttr());
 }
 
 template std::string NodeTemplate<true>::getName() const;
 template std::string NodeTemplate<false>::getName() const;
 
+template <bool ref_count>
+bool NodeTemplate<ref_count>::isSkolem() const
+{
+  return getKind() == Kind::SKOLEM;
+}
+
+template bool NodeTemplate<true>::isSkolem() const;
+template bool NodeTemplate<false>::isSkolem() const;
+
+template <bool ref_count>
+SkolemId NodeTemplate<ref_count>::getSkolemId() const
+{
+  return d_nv->getNodeManager()->getSkolemManager()->getId(*this);
+}
+
+template SkolemId NodeTemplate<true>::getSkolemId() const;
+template SkolemId NodeTemplate<false>::getSkolemId() const;
+
+template <bool ref_count>
+std::vector<Node> NodeTemplate<ref_count>::getSkolemIndices() const
+{
+  return d_nv->getNodeManager()->getSkolemManager()->getIndices(*this);
+}
+
+template std::vector<Node> NodeTemplate<true>::getSkolemIndices() const;
+template std::vector<Node> NodeTemplate<false>::getSkolemIndices() const;
+
+template <bool ref_count>
+InternalSkolemId NodeTemplate<ref_count>::getInternalSkolemId() const
+{
+  return d_nv->getNodeManager()->getSkolemManager()->getInternalId(*this);
+}
+
+template InternalSkolemId NodeTemplate<true>::getInternalSkolemId() const;
+template InternalSkolemId NodeTemplate<false>::getInternalSkolemId() const;
+
 }  // namespace cvc5::internal
 
 namespace std {
 
-size_t hash<cvc5::internal::Node>::operator()(const cvc5::internal::Node& node) const
+size_t hash<cvc5::internal::Node>::operator()(
+    const cvc5::internal::Node& node) const
 {
   return node.getId();
 }
 
-size_t hash<cvc5::internal::TNode>::operator()(const cvc5::internal::TNode& node) const
+size_t hash<cvc5::internal::TNode>::operator()(
+    const cvc5::internal::TNode& node) const
 {
   return node.getId();
 }

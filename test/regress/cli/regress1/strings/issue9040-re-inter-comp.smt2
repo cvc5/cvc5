@@ -1,4 +1,5 @@
-; COMMAND-LINE: --re-inter=all --strings-exp
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --re-inter=all
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun e () String)

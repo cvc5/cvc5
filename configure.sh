@@ -5,14 +5,22 @@ set -e -o pipefail
 
 usage () {
 cat <<EOF
-Usage: $0 [<build type>] [<option> ...]
+Usage: $0 <build type> [<option> ...]
 
-Build types:
-  production
+Build types (exactly one must be specified):
+  unrestricted
+    Optimized, assertions and tracing disabled, all features enabled
+  stable
+    Like unrestricted, but features that are not robust are disabled
+  safe
+    Like unrestricted, but features that are not robust or that lack full
+    proof and model support are disabled
   debug
+    Unrestricted, unoptimized, debug symbols, assertions, and tracing enabled
   testing
+    Unrestricted, optimized debug build
   competition
-  competition-inc
+    Unrestricted, maximally optimized, assertions and tracing disabled, muzzled
 
 
 General options;
@@ -24,8 +32,11 @@ General options;
   --gpl                    permit GPL dependencies, if available
   --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
+  --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
+  --ccache                 use ccache to speed up rebuilds
   --docs                   build Api documentation
+  --docs-ga                build API documentation with Google Analytics
 
 
 Features:
@@ -40,10 +51,13 @@ The following flags enable optional features (disable with --no-<option name>).
   --assertions             turn on assertions
   --tracing                include tracing code
   --muzzle                 complete silence (no non-result output)
+  --clang-tidy             enable clang-tidy static analysis during build
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
+  --slow-tests             enable slow (exhaustive) unit tests
   --python-bindings        build Python bindings based on new C++ API
+  --python-only-src        create only Python bindings source files
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
@@ -61,10 +75,13 @@ The following flags enable optional packages (disable with --no-<option name>).
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
   --editline               support the editline library
+  --mpfr                   use MPFR for FP constant folding instead of SymFPU
+  --normaliz               use the Normaliz library
 
 Optional Path to Optional Packages:
   --glpk-dir=PATH          path to top level of GLPK installation
   --dep-path=PATH          path to a dependency installation dir
+  --pythonic-path=PATH     path to the Pythonic API's repository
 
 CMake Options (Advanced)
   -DVAR=VALUE              manually add CMake options
@@ -72,6 +89,10 @@ CMake Options (Advanced)
 Wasm Options
   --wasm=VALUE             set compilation extension for WebAssembly <WASM, JS or HTML>
   --wasm-flags='STR'       Emscripten flags used in the WebAssembly binary compilation
+  --wasm-web=CONFIG        use predefined web configuration for WASM compilation
+                           (takes precedence over --wasm and --wasm-flags)
+                           Available configurations:
+                             no-modular-static-page - Configuration for static web pages
 
 EOF
   exit 0
@@ -90,13 +111,22 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-[ ! -e src/theory ] && die "$0 not called from CVC4 base directory"
+[ ! -e src/theory ] && die "$0 not called from cvc5 base directory"
 
 #--------------------------------------------------------------------------#
 
 build_dir=build
 install_prefix=default
 program_prefix=""
+
+# Converts a relative path (from the script directory) into
+# an absolute path.
+make_abs_path() {
+  local input_path="$1"
+  local script_dir="$(dirname -- "${BASH_SOURCE[0]}")"
+  local abs_script_dir="$(cd -- "$script_dir" &>/dev/null && pwd)"
+  echo "$abs_script_dir/$input_path"
+}
 
 #--------------------------------------------------------------------------#
 
@@ -105,25 +135,34 @@ buildtype=default
 asan=default
 assertions=default
 auto_download=default
+ccache=default
 cln=default
-comp_inc=default
+clang_tidy=default
 coverage=default
 cryptominisat=default
 debug_context_mm=default
 debug_symbols=default
 docs=default
+docs_ga=default
 glpk=default
 gpl=default
 kissat=default
 poly=ON
 cocoa=default
+normaliz=default
 muzzle=default
 ninja=default
 profiling=default
 python_bindings=default
+python_only_src=default
+pyvenv=default
 java_bindings=default
 editline=default
+mpfr=ON
 build_shared=ON
+safe_mode=default
+slow_tests=default
+stable_mode=default
 static_binary=default
 statistics=default
 tracing=default
@@ -132,6 +171,7 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+win64_native=default
 arm64=default
 werror=default
 ipo=default
@@ -140,10 +180,23 @@ glpk_dir=default
 
 wasm=default
 wasm_flags=""
+wasm_web=default
 
 #--------------------------------------------------------------------------#
 
+uname_output=$(uname)
+
+if [[ $uname_output =~ ^MSYS || $uname_output =~ ^MINGW ]]; then
+  win64_native=ON
+fi
+
 cmake_opts=""
+
+# Set python3 interpreter executable to make sure that CMake picks up the
+# correct Python version.
+if command -v python3 &> /dev/null; then
+  cmake_opts="$cmake_opts -DPython_EXECUTABLE=$(command -v python3)"
+fi
 
 while [ $# -gt 0 ]
 do
@@ -197,6 +250,9 @@ do
     --cln) cln=ON;;
     --no-cln) cln=OFF;;
 
+    --clang-tidy) clang_tidy=ON;;
+    --no-clang-tidy) clang_tidy=OFF;;
+
     --coverage) coverage=ON;;
     --no-coverage) coverage=OFF;;
 
@@ -217,12 +273,19 @@ do
 
     --win64) win64=ON;;
 
+    --win64-native) win64_native=ON;;
+
     --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
 
+    --ccache) ccache=ON;;
+
     --docs) docs=ON;;
     --no-docs) docs=OFF;;
+
+    --docs-ga) docs_ga=ON;;
+    --no-docs-ga) docs_ga=OFF;;
 
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
@@ -232,6 +295,9 @@ do
 
     --cocoa) cocoa=ON;;
     --no-cocoa) cocoa=OFF;;
+
+    --normaliz) normaliz=ON;;
+    --no-normaliz) normaliz=OFF;;
 
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
@@ -245,6 +311,9 @@ do
     --auto-download) auto_download=ON;;
     --no-auto-download) auto_download=OFF;;
 
+    --pyvenv) pyvenv=ON;;
+    --no-pyvenv) pyvenv=OFF;;
+
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
 
@@ -254,8 +323,13 @@ do
     --unit-testing) unit_testing=ON;;
     --no-unit-testing) unit_testing=OFF;;
 
+    --slow-tests) slow_tests=ON;;
+    --no-slow-tests) slow_tests=OFF;;
+
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
+    --python-only-src) python_only_src=ON;;
+    --no-python-only-src) python_only_src=OFF;;
 
     --java-bindings) java_bindings=ON;;
     --no-java-bindings) java_bindings=OFF;;
@@ -273,28 +347,91 @@ do
     --editline) editline=ON;;
     --no-editline) editline=OFF;;
 
+    --mpfr) mpfr=ON;;
+    --no-mpfr) mpfr=OFF;;
+
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
     --dep-path) die "missing argument to $1 (try -h)" ;;
     --dep-path=*) dep_path="${dep_path};${1##*=}" ;;
 
-    --wasm) wasm=WASM ;;
-    --wasm=*) wasm="${1##*=}" ;;
+    --pythonic-path) die "missing argument to $1 (try -h)" ;;
+    --pythonic-path=*)
+        pythonic_path="${1##*=}"
+        # Check if pythonic is an absolute path and if not, make it
+        # absolute.
+        case $pythonic_path in
+          /*) ;;                                    # absolute path
+          *) pythonic_path=$(pwd)/$pythonic_path ;; # make absolute path
+        esac
+        ;;
 
-    --wasm-flags) die "missing argument to $1 (try -h)" ;;
-    --wasm-flags=*) wasm_flags="${1#*=}" ;;
+    --wasm-web) die "missing argument to $1 (try -h)" ;;
+    --wasm-web=*)
+        wasm_web_config="${1##*=}"
+        case $wasm_web_config in
+          no-modular-static-page)
+            wasm=HTML
+            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\", \"instantiateWasm\"]' -s ASSERTIONS=1 -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
+            wasm_web=ON
+            ;;
+          *)
+            die "invalid wasm-web configuration '$wasm_web_config' (available: no-modular-static-page)"
+            ;;
+        esac
+        ;;
+
+    --wasm) 
+        if [ "$wasm_web" = default ]; then
+          wasm=WASM
+        else
+          echo "Warning: --wasm ignored because --wasm-web configuration is active"
+        fi
+        ;;
+    --wasm=*) 
+        if [ "$wasm_web" = default ]; then
+          wasm="${1##*=}"
+        else
+          echo "Warning: --wasm ignored because --wasm-web configuration is active"
+        fi
+        ;;
+
+    --wasm-flags) 
+        if [ "$wasm_web" = default ]; then
+          die "missing argument to $1 (try -h)"
+        else
+          echo "Warning: --wasm-flags ignored because --wasm-web configuration is active"
+        fi
+        ;;
+    --wasm-flags=*) 
+        if [ "$wasm_web" = default ]; then
+          wasm_flags="${1#*=}"
+        else
+          echo "Warning: --wasm-flags ignored because --wasm-web configuration is active"
+        fi
+        ;;
 
     -D*) cmake_opts="${cmake_opts} $1" ;;
 
     -*) die "invalid option '$1' (try -h)";;
 
-    *) case $1 in
-         production)      buildtype=Production;;
+    *) [ $buildtype != default ] && die "more than one build type specified (try -h)"
+       case $1 in
+         unrestricted)    buildtype=Production;;
+         stable)          buildtype=Production; stable_mode=ON;;
+         safe)            buildtype=Production; safe_mode=ON;;
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
-         competition-inc) buildtype=Competition; comp_inc=ON;;
+         production)      die "build type 'production' is no longer available." \
+                              "Use 'unrestricted' to have the previous behavior." \
+                              "Alternatively, the build types 'safe' and 'stable'" \
+                              "are available (try -h)";;
+         safe-mode)       die "build type 'safe-mode' is no longer available." \
+                              "Use 'safe' instead";;
+         stable-mode)     die "build type 'stable-mode' is no longer available." \
+                              "Use 'stable' instead";;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
@@ -304,18 +441,22 @@ done
 
 #--------------------------------------------------------------------------#
 
+[ $buildtype = default ] && die "no build type specified (try -h)"
+
 if [ $werror != default ]; then
   export CFLAGS=-Werror
   export CXXFLAGS=-Werror
+  cmake_opts="$cmake_opts -DTREAT_WARNING_AS_ERROR=$werror"
 fi
 
-[ $buildtype != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
+cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
 
 [ $asan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
 [ $auto_download != default ] \
   && cmake_opts="$cmake_opts -DENABLE_AUTO_DOWNLOAD=$auto_download"
+[ $pyvenv != default ] \
+  && cmake_opts="$cmake_opts -DUSE_PYTHON_VENV=$pyvenv"
 [ $ubsan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UBSAN=$ubsan"
 [ $tsan != default ] \
@@ -324,8 +465,12 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_IPO=$ipo"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
-[ $comp_inc != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
+[ $safe_mode != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
+[ $stable_mode != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STABLE_MODE=$stable_mode"
+[ $clang_tidy != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_CLANG_TIDY=$clang_tidy"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
 [ $debug_symbols != default ] \
@@ -335,10 +480,19 @@ fi
 [ $gpl != default ] \
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-mingw64.cmake')"
+# Because 'MSYS Makefiles' has a space in it, we set the variable vs. adding to 'cmake_opts'
+[ $win64_native != default ] \
+  && [ $ninja == default ] && export CMAKE_GENERATOR="MSYS Makefiles"
 [ $arm64 != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-aarch64.cmake')"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
+if [ $ccache != default ]; then
+  command -v ccache &> /dev/null \
+    || die "ccache not found (required by --ccache)"
+  cmake_opts="$cmake_opts -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+  cmake_opts="$cmake_opts -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+fi
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $build_shared != default ] \
@@ -351,10 +505,16 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing"
 [ $unit_testing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
+[ $slow_tests != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_SLOW_TESTS=$slow_tests"
 [ $docs != default ] \
   && cmake_opts="$cmake_opts -DBUILD_DOCS=$docs"
+[ $docs_ga != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_DOCS_GA=$docs_ga"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
+[ $python_only_src != default ] \
+  && cmake_opts="$cmake_opts -DONLY_PYTHON_EXT_SRC=$python_only_src"
 [ $java_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
 [ $valgrind != default ] \
@@ -375,10 +535,16 @@ fi
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
+[ $mpfr != default ] \
+  && cmake_opts="$cmake_opts -DUSE_MPFR=$mpfr"
+[ $normaliz != default ] \
+  && cmake_opts="$cmake_opts -DUSE_NORMALIZ=$normaliz"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_PREFIX_PATH=$dep_path"
+[ "$pythonic_path" != default ] \
+  && cmake_opts="$cmake_opts -DPYTHONIC_PATH=$pythonic_path"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

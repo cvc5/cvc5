@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Elizabeth Polgreen
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +15,7 @@
 #ifndef CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 #define CVC5__THEORY__QUANTIFIERS__ORACLE_ENGINE_H
 
+#include "theory/decision_strategy.h"
 #include "theory/quantifiers/oracle_checker.h"
 #include "theory/quantifiers/quant_module.h"
 
@@ -111,6 +109,16 @@ class OracleEngine : public QuantifiersModule
    * oracle interface quantified formulas?
    */
   bool d_consistencyCheckPassed;
+  /**
+   * A decision strategy that prefers equating arguments of oracles to
+   * values that we have already evaluated the oracle on. For example, if
+   * we have an application (f a) of oracle function f, then if a=5 in one
+   * model, we may generate the lemma (=> (= a 5) (= (f a) 10)), where 10 is
+   * result of calling f on 5. This decision strategy will henceforth decide
+   * (= a 5) -> true. This ensures that we don't invoke f for evaluating (f a)
+   * again until we are sure that (= a 5) cannot be made true.
+   */
+  DecisionStrategyVector d_dstrat;
 };
 
 }  // namespace quantifiers

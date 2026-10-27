@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,16 +16,20 @@
 
 #include <CoCoA/GlobalManager.H>
 
+#include <mutex>
+
 namespace cvc5::internal {
 
 CoCoA::GlobalManager* s_cocoaGlobalManager = nullptr;
 
 void initCocoaGlobalManager()
 {
-  if (s_cocoaGlobalManager == nullptr)
-  {
-    s_cocoaGlobalManager = new CoCoA::GlobalManager();
-  }
+  // CoCoA allows a single GlobalManager per process and throws if a second
+  // one is constructed. Solvers may be created concurrently in different
+  // threads, so the initialization must be synchronized.
+  static std::once_flag s_initialized;
+  std::call_once(s_initialized,
+                 []() { s_cocoaGlobalManager = new CoCoA::GlobalManager(); });
 }
 
 }  // namespace cvc5::internal

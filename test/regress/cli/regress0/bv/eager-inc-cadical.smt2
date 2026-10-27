@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --bv-sat-solver=cadical --bitblast=eager
 (set-logic QF_BV)
 (set-option :incremental true)

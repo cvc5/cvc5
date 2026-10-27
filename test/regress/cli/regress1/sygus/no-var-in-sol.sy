@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --sygus-si=all --dag-thresh=0
 ; EXPECT: (
 ; EXPECT: (define-fun f1 ((x Bool) (y Bool)) Bool (ite true true false))
-; EXPECT: (define-fun f2 ((x Bool) (y Bool)) Bool (ite x (ite y false (not false)) (not (ite false false (not false)))))
+; EXPECT: (define-fun f2 ((x Bool) (y Bool)) Bool (ite false false (not (ite x y (not false)))))
 ; EXPECT: )
 
 ; Test ensures that the solution does not contain a random variable

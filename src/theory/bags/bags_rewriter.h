@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -31,7 +28,6 @@ struct BagsRewriteResponse
 {
   BagsRewriteResponse();
   BagsRewriteResponse(Node n, Rewrite rewrite);
-  BagsRewriteResponse(const BagsRewriteResponse& r);
   /** the rewritten node */
   Node d_node;
   /** type of rewrite used by bags */
@@ -42,7 +38,9 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(Rewriter* r, HistogramStat<Rewrite>* statistics = nullptr);
+  BagsRewriter(NodeManager* nm,
+               Rewriter* r,
+               HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: BAG_MAKE, BAG_COUNT, BAG_UNION_MAX,
@@ -95,10 +93,10 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (bag.duplicate_removal (bag x n)) = (bag x 1)
+   *  - (bag.setof (bag x n)) = (bag x 1)
    *     where n is a positive constant
    */
-  BagsRewriteResponse rewriteDuplicateRemoval(const TNode& n) const;
+  BagsRewriteResponse rewriteSetof(const TNode& n) const;
 
   /**
    * rewrites for n include:
@@ -191,25 +189,6 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteCard(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.is_singleton (bag x c)) = (c == 1)
-   */
-  BagsRewriteResponse rewriteIsSingleton(const TNode& n) const;
-
-  /**
-   *  rewrites for n include:
-   *  - (bag.from_set (set.singleton x)) = (bag x 1)
-   */
-  BagsRewriteResponse rewriteFromSet(const TNode& n) const;
-
-  /**
-   *  rewrites for n include:
-   *  - (bag.to_set (bag x n)) = (set.singleton x)
-   *     where n is a positive constant and T is the type of the bag's elements
-   */
-  BagsRewriteResponse rewriteToSet(const TNode& n) const;
-
-  /**
    *  rewrites for n include:
    *  - (= A A) = true
    *  - (= A B) = false if A and B are different bag constants
@@ -239,6 +218,28 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
+   *  - (bag.all p (as bag.empty (Bag T)) is rewritten as true
+   *  - (bag.all p (bag x n)) is rewritten as ((p x) or (<= n 0))
+   *  - (bag.all p (bag.union_disjoint A B)) is rewritten as
+   *       (and (bag.all p A) (bag.all p B))
+   *  - otherwise (bag.all p A) is rewritten as (= (bag.filter p A) A)
+   *  where p: T -> Bool
+   */
+  BagsRewriteResponse postRewriteAll(TNode n);
+  /**
+   *  rewrites for n include:
+   *  - (bag.some p (as bag.empty (Bag T)) is rewritten as false
+   *  - (bag.some p (bag x n)) is rewritten as (and (> n 0) (p x))
+   *  - (bag.some p (bag.union A B)) is rewritten as
+   *       (or (bag.some p A) (bag.some p B))
+   *  - otherwise (bag.some p A) is rewritten as
+   *       (distinct (bag.filter p A) (as bag.empty (Bag T)))
+   *  where p: T -> Bool
+   */
+  BagsRewriteResponse postRewriteSome(TNode n);
+
+  /**
+   *  rewrites for n include:
    *  - (bag.fold f t (as bag.empty (Bag T1))) = t
    *  - (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, where n > 0
    *  - (bag.fold f t (bag.union_disjoint A B)) =
@@ -261,7 +262,6 @@ class BagsRewriter : public TheoryRewriter
 
  private:
   /** Reference to the rewriter statistics. */
-  NodeManager* d_nm;
   Node d_zero;
   Node d_one;
   /**

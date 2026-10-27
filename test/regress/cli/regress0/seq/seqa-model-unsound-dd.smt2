@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --seq-array=eager
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --seq-array=eager
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-sort T 0)

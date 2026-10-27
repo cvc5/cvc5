@@ -4,6 +4,7 @@ Theory of Sets
 
 .. api-examples::
     <examples>/api/cpp/sets.cpp
+    <examples>/api/c/sets.c
     <examples>/api/java/Sets.java
     <examples>/api/python/pythonic/sets.py
     <examples>/api/python/sets.py

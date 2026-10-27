@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Matthew Sotoudeh, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -92,6 +89,8 @@ class HistogramStat
     }
     return *this;
   }
+  /** Get the current value for key `val` */
+  uint64_t getValue(Integral val) { return d_data->getValue(val); }
 
  private:
   /** Construct from a pointer to the internal data */
@@ -250,18 +249,26 @@ class CodeTimer
   CodeTimer& operator=(const CodeTimer& timer) = delete;
   /**
    * Start the timer.
-   * If `allow_reentrant` is true we check whether the timer is already
+   * @param timer Reference to the timer.
+   * @param allow_reentrant If true we check whether the timer is already
    * running. If so, this particular instance of `CodeTimer` neither starts
    * nor stops the actual timer, but leaves this to the first (or outermost)
    * `CodeTimer`.
    */
-  CodeTimer(TimerStat& timer, bool allow_reentrant = false);
+  explicit CodeTimer(TimerStat& timer, bool allow_reentrant = false);
+  /**
+   * Starts the timer.
+   *
+   * @param timer Pointer to the timer, may be nullptr.
+   * @param allow_reentrant see above
+   */
+  explicit CodeTimer(TimerStat* timer, bool allow_reentrant = false);
   /** Stop the timer */
   ~CodeTimer();
 
  private:
-  /** Reference to the timer this utility works on */
-  TimerStat& d_timer;
+  /** Pointer to the timer this utility works on */
+  TimerStat* const d_timer;
   /** Whether this timer is reentrant (i.e. does not do anything) */
   bool d_reentrant;
 };

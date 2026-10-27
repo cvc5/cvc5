@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Makai Mann, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +23,6 @@
 #include "util/rational.h"
 namespace cvc5::internal {
 
-using namespace kind;
 using namespace theory;
 
 namespace test {
@@ -46,7 +42,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_constants)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // bit-vector constant representing the integer 7, with 4 bits
@@ -68,7 +64,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_symbolic_constant)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // bit-vector variable
@@ -89,7 +85,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_uf)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
 
   // uf from integers and bit-vectors to Bools
@@ -125,7 +121,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::SUM, 1);
 
@@ -144,37 +140,37 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   Node result;
 
   // sum
-  original = d_nodeManager->mkNode(BITVECTOR_ADD, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_ADD, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // multiplication
-  original = d_nodeManager->mkNode(BITVECTOR_MULT, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_MULT, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // division 1
-  original = d_nodeManager->mkNode(BITVECTOR_UDIV, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_UDIV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // division 2
-  original = d_nodeManager->mkNode(BITVECTOR_UREM, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_UREM, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bit-wise negation
-  original = d_nodeManager->mkNode(BITVECTOR_NOT, v1);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_NOT, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // arithmetic negation
-  original = d_nodeManager->mkNode(BITVECTOR_NEG, v1);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_NEG, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bv2nat
-  original = d_nodeManager->mkNode(BITVECTOR_TO_NAT, v1);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_UBV_TO_INT, v1);
   result = intBlaster.translateWithChildren(original, {i1}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
@@ -200,7 +196,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
 
   // extract + BV ITE
   Node extract = theory::bv::utils::mkExtract(v1, 0, 0);
-  original = d_nodeManager->mkNode(BITVECTOR_ITE, extract, v2, v1);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_ITE, extract, v2, v1);
   Node intExtract = intBlaster.translateWithChildren(extract, {i1}, lemmas);
   result =
       intBlaster.translateWithChildren(original, {intExtract, i1, i2}, lemmas);
@@ -208,60 +204,77 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_with_children)
   ASSERT_TRUE(intExtract.getType().isInteger());
 
   // left shift
-  original = d_nodeManager->mkNode(BITVECTOR_SHL, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_SHL, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // logical right shift
-  original = d_nodeManager->mkNode(BITVECTOR_LSHR, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_LSHR, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // arithmetic right shift
-  original = d_nodeManager->mkNode(BITVECTOR_ASHR, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_ASHR, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bvand
-  original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_AND, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // bvor
-  original = d_nodeManager->mkNode(BITVECTOR_OR, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_OR, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // concat
-  original = d_nodeManager->mkNode(BITVECTOR_CONCAT, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_CONCAT, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
 
   // predicates
-  original = d_nodeManager->mkNode(EQUAL, v1, v2);
+  original = d_nodeManager->mkNode(Kind::EQUAL, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
-  original = d_nodeManager->mkNode(BITVECTOR_ULT, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_ULT, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
-  original = d_nodeManager->mkNode(BITVECTOR_ULE, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_ULE, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
-  original = d_nodeManager->mkNode(BITVECTOR_UGT, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_UGT, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
-  original = d_nodeManager->mkNode(BITVECTOR_UGE, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_UGE, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isBoolean());
 
   // BVULT with a BV result
-  original = d_nodeManager->mkNode(BITVECTOR_ULTBV, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_ULTBV, v1, v2);
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   ASSERT_TRUE(result.getType().isInteger());
+
+  // FORALL with patterns
+  Node z = d_nodeManager->mkBoundVar("z", bvType);
+  Node bvl = d_nodeManager->mkNode(Kind::BOUND_VAR_LIST, z);
+  Node body = d_nodeManager->mkNode(Kind::BITVECTOR_ULT, z, v2);
+  Node bvnot = d_nodeManager->mkNode(Kind::BITVECTOR_NOT, z);
+  Node pattern = d_nodeManager->mkNode(Kind::INST_PATTERN, bvnot);
+  Node list = d_nodeManager->mkNode(Kind::INST_PATTERN_LIST, pattern);
+  original = d_nodeManager->mkNode(Kind::FORALL, bvl, body, list);
+  std::vector<Node> dummylemmas;
+  result = intBlaster.intBlast(original, dummylemmas, skolems);
+  ASSERT_TRUE(result.getType().isBoolean());
+  ASSERT_TRUE(result[1].getType().isBoolean());
+  ASSERT_TRUE(result.getNumChildren() == 3);
+  ASSERT_TRUE(result[2].getKind() == Kind::INST_PATTERN_LIST);
+  ASSERT_TRUE(result[2].getNumChildren() == 1);
+  ASSERT_TRUE(result[2][0].getKind() == Kind::INST_PATTERN);
 }
 
 /** Check AND translation for bitwise option.
@@ -273,7 +286,7 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
 {
   Env& env = d_slvEngine->getEnv();
   // place holders for lemmas and skolem
-  std::vector<Node> lemmas;
+  std::vector<TrustNode> lemmas;
   std::map<Node, Node> skolems;
   IntBlaster intBlaster(env, options::SolveBVAsIntMode::BITWISE, 1);
 
@@ -292,11 +305,11 @@ TEST_F(TestTheoryWhiteBvIntblaster, intblaster_bitwise)
   Node result;
 
   // bvand
-  original = d_nodeManager->mkNode(BITVECTOR_AND, v1, v2);
+  original = d_nodeManager->mkNode(Kind::BITVECTOR_AND, v1, v2);
   size_t orig_num_lemmas = lemmas.size();
   result = intBlaster.translateWithChildren(original, {i1, i2}, lemmas);
   // should have kind skolem, would use bitwise comparisons to refine
-  ASSERT_TRUE(result.getKind() == kind::SKOLEM);
+  ASSERT_TRUE(result.getKind() == Kind::SKOLEM);
   // check that a lemma was added
   ASSERT_TRUE(lemmas.size() > orig_num_lemmas);
 }

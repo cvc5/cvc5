@@ -1,4 +1,6 @@
-; COMMAND-LINE: --strings-exp
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE:
+; COMMAND-LINE: --conflict-process=min
 (set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)
 (set-info :status unsat)

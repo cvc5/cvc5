@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,7 +24,7 @@ InferInfo::InferInfo(InferenceManagerBuffered* im, InferenceId id)
 {
 }
 
-TrustNode InferInfo::processLemma(LemmaProperty& p)
+TrustNode InferInfo::processLemma(CVC5_UNUSED LemmaProperty& p)
 {
   Node lemma = getLemma();
 
@@ -38,10 +35,10 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
 
 Node InferInfo::getLemma() const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_im->getNodeManager();
   std::vector<Node> nodes;
   Node premises = nm->mkAnd(d_premises);
-  Node lemma = nm->mkNode(kind::IMPLIES, premises, d_conclusion);
+  Node lemma = nm->mkNode(Kind::IMPLIES, premises, d_conclusion);
   nodes.push_back(lemma);
   // send lemmas corresponding to the skolems introduced
   for (const auto& pair : d_skolems)
@@ -53,7 +50,7 @@ Node InferInfo::getLemma() const
   {
     return lemma;
   }
-  return nm->mkNode(kind::AND, nodes);
+  return nm->mkNode(Kind::AND, nodes);
 }
 
 bool InferInfo::isTrivial() const
@@ -72,8 +69,8 @@ bool InferInfo::isFact() const
 {
   Assert(!d_conclusion.isNull());
   TNode atom =
-      d_conclusion.getKind() == kind::NOT ? d_conclusion[0] : d_conclusion;
-  return !atom.isConst() && atom.getKind() != kind::OR;
+      d_conclusion.getKind() == Kind::NOT ? d_conclusion[0] : d_conclusion;
+  return !atom.isConst() && atom.getKind() != Kind::OR;
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)

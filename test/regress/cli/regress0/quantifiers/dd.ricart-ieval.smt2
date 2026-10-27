@@ -1,5 +1,8 @@
-; COMMAND-LINE: --ieval=use
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --ieval=use --term-db-mode=all
 ; EXPECT: unsat
+;; Unary OR implicitly removed by cvc5
+; DISABLE-TESTER: alethe
 (set-logic ALL)
 (declare-const x9 Bool)
 (declare-fun p () Int)

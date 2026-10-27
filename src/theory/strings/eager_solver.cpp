@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,12 +22,11 @@ namespace cvc5::internal {
 namespace theory {
 namespace strings {
 
-EagerSolver::EagerSolver(Env& env, SolverState& state, TermRegistry& treg)
+EagerSolver::EagerSolver(Env& env, SolverState& state)
     : EnvObj(env),
       d_state(state),
-      d_treg(treg),
-      d_aent(env.getRewriter()),
-      d_rent(env.getRewriter())
+      d_aent(env.getNodeManager(), env.getRewriter()),
+      d_rent(env.getNodeManager(), env.getRewriter())
 {
 }
 
@@ -39,7 +35,7 @@ EagerSolver::~EagerSolver() {}
 void EagerSolver::eqNotifyNewClass(TNode t)
 {
   Kind k = t.getKind();
-  if (k == STRING_LENGTH)
+  if (k == Kind::STRING_LENGTH)
   {
     // also assume it as upper/lower bound as applicable for the equivalence
     // class info of t.
@@ -75,7 +71,7 @@ void EagerSolver::eqNotifyNewClass(TNode t)
       ei->d_secondBound = t;
     }
   }
-  else if (k == STRING_CONCAT)
+  else if (k == Kind::STRING_CONCAT)
   {
     addEndpointsToEqcInfo(t, t, t);
   }
@@ -94,8 +90,8 @@ void EagerSolver::eqNotifyMerge(EqcInfo* e1, TNode t1, EqcInfo* e2, TNode t2)
 
 bool EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
-  Assert(concat.getKind() == STRING_CONCAT
-         || concat.getKind() == REGEXP_CONCAT);
+  Assert(concat.getKind() == Kind::STRING_CONCAT
+         || concat.getKind() == Kind::REGEXP_CONCAT);
   EqcInfo* ei = nullptr;
   // check each side
   for (size_t r = 0; r < 2; r++)
@@ -126,7 +122,7 @@ bool EagerSolver::checkForMergeConflict(Node a,
                                         EqcInfo* eb)
 {
   Assert(eb != nullptr && ea != nullptr);
-  Assert(a.getType() == b.getType())
+  AssertEqual(a.getType(), b.getType())
       << "bad types for merge " << a << ", " << b;
   // usages of isRealOrInt are only due to subtyping, where seq.nth for
   // sequences of Real are merged to integer equivalence classes
@@ -160,12 +156,12 @@ bool EagerSolver::checkForMergeConflict(Node a,
 
 void EagerSolver::notifyFact(TNode atom,
                              bool polarity,
-                             TNode fact,
-                             bool isInternal)
+                             CVC5_UNUSED TNode fact,
+                             CVC5_UNUSED bool isInternal)
 {
-  if (atom.getKind() == STRING_IN_REGEXP)
+  if (atom.getKind() == Kind::STRING_IN_REGEXP)
   {
-    if (polarity && atom[1].getKind() == REGEXP_CONCAT)
+    if (polarity && atom[1].getKind() == Kind::REGEXP_CONCAT)
     {
       eq::EqualityEngine* ee = d_state.getEqualityEngine();
       Node eqc = ee->getRepresentative(atom[0]);
@@ -193,7 +189,7 @@ void EagerSolver::notifyFact(TNode atom,
             if (blenEqc == nullptr)
             {
               Node lenTerm =
-                  NodeManager::currentNM()->mkNode(STRING_LENGTH, atom[0]);
+                  nodeManager()->mkNode(Kind::STRING_LENGTH, atom[0]);
               if (!ee->hasTerm(lenTerm))
               {
                 break;
@@ -288,11 +284,11 @@ bool EagerSolver::addArithmeticBound(EqcInfo* e, Node t, bool isLower)
 
 Node EagerSolver::getBoundForLength(Node t, bool isLower) const
 {
-  if (t.getKind() == STRING_IN_REGEXP)
+  if (t.getKind() == Kind::STRING_IN_REGEXP)
   {
     return d_rent.getConstantBoundLengthForRegexp(t[1], isLower);
   }
-  Assert(t.getKind() == STRING_LENGTH);
+  Assert(t.getKind() == Kind::STRING_LENGTH);
   // it is prohibitively expensive to convert to original form and rewrite,
   // since this may invoke the rewriter on lengths of complex terms. Instead,
   // we convert to original term the argument, then call the utility method

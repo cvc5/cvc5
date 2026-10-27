@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tianyi Liang
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,8 +33,8 @@ SolverState::SolverState(Env& env, Valuation& v)
       d_pendingConflict(InferenceId::UNKNOWN),
       d_modelCons(nullptr)
 {
-  d_zero = NodeManager::currentNM()->mkConstInt(Rational(0));
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = nodeManager()->mkConstInt(Rational(0));
+  d_false = nodeManager()->mkConst(false);
 }
 
 SolverState::~SolverState()
@@ -85,7 +82,7 @@ Node SolverState::getLengthExp(Node t,
   // if we are minimizing explanations
   if (minExp)
   {
-    Node lt = NodeManager::currentNM()->mkNode(STRING_LENGTH, te);
+    Node lt = nodeManager()->mkNode(Kind::STRING_LENGTH, te);
     lt = rewrite(lt);
     if (hasTerm(lt))
     {
@@ -111,7 +108,7 @@ Node SolverState::getLengthExp(Node t,
   {
     exp.push_back(te.eqNode(lengthTerm));
   }
-  return rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, lengthTerm));
+  return rewrite(nodeManager()->mkNode(Kind::STRING_LENGTH, lengthTerm));
 }
 
 Node SolverState::getLength(Node t, std::vector<Node>& exp, bool minExp)
@@ -127,7 +124,7 @@ Node SolverState::explainNonEmpty(Node s)
   {
     return s.eqNode(emp).negate();
   }
-  Node sLen = NodeManager::currentNM()->mkNode(STRING_LENGTH, s);
+  Node sLen = nodeManager()->mkNode(Kind::STRING_LENGTH, s);
   sLen = rewrite(sLen);
   if (areDisequal(sLen, d_zero))
   {
@@ -162,7 +159,7 @@ void SolverState::setPendingMergeConflict(Node conf, InferenceId id, bool rev)
   // if the explanation can be minimized
   iiPrefixConf.d_idRev = rev;
   iiPrefixConf.d_conc = d_false;
-  utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
+  utils::flattenOp(Kind::AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);
 }
 
@@ -223,7 +220,7 @@ void SolverState::separateByLength(const std::vector<Node>& n,
   // Collection of eqc for each identifier. Notice that some identifiers may
   // not have an associated length in the mappings above, if the length of
   // an equivalence class is unknown.
-  std::map<unsigned, std::vector<Node> > eqc_to_strings;
+  std::map<unsigned, std::vector<Node>> eqc_to_strings;
   for (const Node& eqc : n)
   {
     Assert(d_ee->getRepresentative(eqc) == eqc);
@@ -246,7 +243,7 @@ void SolverState::separateByLength(const std::vector<Node>& n,
       leqc_counter++;
     }
   }
-  for (const std::pair<const unsigned, std::vector<Node> >& p : eqc_to_strings)
+  for (const std::pair<const unsigned, std::vector<Node>>& p : eqc_to_strings)
   {
     Assert(!p.second.empty());
     cols.emplace_back(p.second.begin(), p.second.end());

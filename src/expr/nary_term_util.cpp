@@ -1,24 +1,26 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Rewrite database
+ * N-ary term utilities
  */
 
 #include "expr/nary_term_util.h"
 
+#include "expr/aci_norm.h"
 #include "expr/attribute.h"
+#include "expr/emptyset.h"
+#include "expr/node_algorithm.h"
+#include "expr/sort_to_term.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/strings/word.h"
 #include "util/bitvector.h"
+#include "util/finite_field_value.h"
 #include "util/rational.h"
 #include "util/regexp.h"
 #include "util/string.h"
@@ -35,7 +37,7 @@ using IsListAttr = expr::Attribute<IsListTag, bool>;
 
 void markListVar(TNode fv)
 {
-  Assert(fv.getKind() == BOUND_VARIABLE);
+  Assert(fv.isVar());
   fv.setAttribute(IsListAttr(), true);
 }
 
@@ -67,11 +69,11 @@ bool hasListVar(TNode n)
   return false;
 }
 
-bool getListVarContext(TNode n, std::map<Node, Kind>& context)
+bool getListVarContext(TNode n, std::map<Node, Node>& context)
 {
   std::unordered_set<TNode> visited;
   std::unordered_set<TNode>::iterator it;
-  std::map<Node, Kind>::iterator itc;
+  std::map<Node, Node>::iterator itc;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -95,9 +97,13 @@ bool getListVarContext(TNode n, std::map<Node, Kind>& context)
           itc = context.find(cn);
           if (itc == context.end())
           {
-            context[cn] = cur.getKind();
+            if (!NodeManager::isNAryKind(cur.getKind()))
+            {
+              return false;
+            }
+            context[cn] = cur;
           }
-          else if (itc->second != cur.getKind())
+          else if (itc->second.getKind() != cur.getKind())
           {
             return false;
           }
@@ -110,67 +116,21 @@ bool getListVarContext(TNode n, std::map<Node, Kind>& context)
   return true;
 }
 
-Node getNullTerminator(Kind k, TypeNode tn)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Node nullTerm;
-  switch (k)
-  {
-    case OR: nullTerm = nm->mkConst(false); break;
-    case AND:
-    case SEP_STAR: nullTerm = nm->mkConst(true); break;
-    case ADD:
-      // Note that we ignore the type. This is safe since ADD is permissive
-      // for subtypes.
-      nullTerm = nm->mkConstInt(Rational(0));
-      break;
-    case MULT:
-    case NONLINEAR_MULT:
-      // Note that we ignore the type. This is safe since multiplication is
-      // permissive for subtypes.
-      nullTerm = nm->mkConstInt(Rational(1));
-      break;
-    case STRING_CONCAT:
-      // handles strings and sequences
-      nullTerm = theory::strings::Word::mkEmptyWord(tn);
-      break;
-    case REGEXP_CONCAT:
-      // the language containing only the empty string
-      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
-      break;
-    case REGEXP_UNION:
-      // empty language
-      nullTerm = nm->mkNode(REGEXP_NONE);
-      break;
-    case REGEXP_INTER:
-      // universal language
-      nullTerm = nm->mkNode(REGEXP_ALL);
-      break;
-    case BITVECTOR_AND:
-      nullTerm = theory::bv::utils::mkOnes(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_OR:
-    case BITVECTOR_ADD:
-    case BITVECTOR_XOR:
-      nullTerm = theory::bv::utils::mkZero(tn.getBitVectorSize());
-      break;
-    case BITVECTOR_MULT:
-      nullTerm = theory::bv::utils::mkOne(tn.getBitVectorSize());
-      break;
-    default:
-      // not handled as null-terminated
-      break;
-  }
-  return nullTerm;
-}
-
 Node narySubstitute(Node src,
                     const std::vector<Node>& vars,
                     const std::vector<Node>& subs)
 {
-  // assumes all variables are list variables
-  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node> visited;
+  return narySubstitute(src, vars, subs, visited);
+}
+
+Node narySubstitute(Node src,
+                    const std::vector<Node>& vars,
+                    const std::vector<Node>& subs,
+                    std::unordered_map<TNode, Node>& visited)
+{
+  // assumes all variables are list variables
+  NodeManager* nm = src.getNodeManager();
   std::unordered_map<TNode, Node>::iterator it;
   std::vector<TNode> visit;
   std::vector<Node>::const_iterator itv;
@@ -182,6 +142,12 @@ Node narySubstitute(Node src,
     it = visited.find(cur);
     if (it == visited.end())
     {
+      if (!expr::hasBoundVar(cur))
+      {
+        visited[cur] = cur;
+        visit.pop_back();
+        continue;
+      }
       // if it is a non-list variable, do the replacement
       itv = std::find(vars.begin(), vars.end(), cur);
       if (itv != vars.end())
@@ -215,7 +181,7 @@ Node narySubstitute(Node src,
           Node sd = subs[d];
           if (isListVar(vars[d]))
           {
-            Assert(sd.getKind() == SEXPR);
+            Assert(sd.getKind() == Kind::SEXPR);
             // add its children
             children.insert(children.end(), sd.begin(), sd.end());
           }
@@ -237,11 +203,20 @@ Node narySubstitute(Node src,
         {
           // n-ary operators cannot be parameterized
           Assert(cur.getMetaKind() != metakind::PARAMETERIZED);
-          ret = children.empty()
-                    ? getNullTerminator(cur.getKind(), cur.getType())
-                    : (children.size() == 1
-                           ? children[0]
-                           : nm->mkNode(cur.getKind(), children));
+          if (children.empty())
+          {
+            ret = getNullTerminator(nm, cur.getKind(), cur.getType());
+            // if we don't know the null terminator, just return null now
+            if (ret.isNull())
+            {
+              return ret;
+            }
+          }
+          else
+          {
+            ret = (children.size() == 1 ? children[0]
+                                        : nm->mkNode(cur.getKind(), children));
+          }
         }
         else
         {
@@ -249,7 +224,40 @@ Node narySubstitute(Node src,
           {
             children.insert(children.begin(), cur.getOperator());
           }
-          ret = nm->mkNode(cur.getKind(), children);
+          Kind k = cur.getKind();
+          // We treat @set.empty_of_type, @seq.empty_of_type, @type_of as
+          // macros in this method, meaning they are immediately evaluated
+          // as soon as RARE rules are instantiated.
+          switch (k)
+          {
+            case Kind::SET_EMPTY_OF_TYPE:
+            case Kind::SEQ_EMPTY_OF_TYPE:
+            {
+              if (children[0].getKind() == Kind::SORT_TO_TERM)
+              {
+                const SortToTerm& st = children[0].getConst<SortToTerm>();
+                TypeNode tn = st.getType();
+                if (k == Kind::SET_EMPTY_OF_TYPE)
+                {
+                  ret = nm->mkConst(EmptySet(tn));
+                }
+                else
+                {
+                  Assert(k == Kind::SEQ_EMPTY_OF_TYPE);
+                  ret = theory::strings::Word::mkEmptyWord(tn);
+                }
+              }
+              else
+              {
+                ret = nm->mkNode(k, children);
+              }
+            }
+            break;
+            case Kind::TYPE_OF:
+              ret = nm->mkConst(SortToTerm(children[0].getType()));
+              break;
+            default: ret = nm->mkNode(k, children); break;
+          }
         }
       }
       visited[cur] = ret;

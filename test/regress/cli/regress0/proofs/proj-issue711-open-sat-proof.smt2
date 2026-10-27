@@ -1,0 +1,11 @@
+; EXPECT: unsat
+(set-logic QF_LIA)
+(declare-const c Bool)
+(declare-const b Bool)
+(declare-const a Bool)
+(declare-fun z () Int)
+(declare-fun y () Int)
+(declare-fun w () Int)
+(assert (and (distinct y 0) (= z (ite (or (and c (= w 1)) (and c (= w y)) (and a (not a) (= z 0))) 0 z))))
+(assert (and (or (not c) (= w (ite b 0 z))) (or (and c (= w 1)) (and c (= w y)) (and a (not a) (= z 0)))))
+(check-sat)

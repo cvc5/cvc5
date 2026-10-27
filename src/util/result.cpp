@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,12 +25,16 @@ using namespace std;
 namespace cvc5::internal {
 
 Result::Result()
-    : d_status(NONE), d_unknownExplanation(UNKNOWN_REASON), d_inputName("")
+    : d_status(NONE),
+      d_unknownExplanation(UnknownExplanation::UNKNOWN_REASON),
+      d_inputName("")
 {
 }
 
 Result::Result(Status s, std::string inputName)
-    : d_status(s), d_unknownExplanation(UNKNOWN_REASON), d_inputName(inputName)
+    : d_status(s),
+      d_unknownExplanation(UnknownExplanation::UNKNOWN_REASON),
+      d_inputName(inputName)
 {
   Assert(s != UNKNOWN)
       << "Must provide a reason for satisfiability being unknown";
@@ -51,7 +52,7 @@ Result::Result(Status s,
 
 Result::Result(const std::string& instr, std::string inputName)
     : d_status(NONE),
-      d_unknownExplanation(UNKNOWN_REASON),
+      d_unknownExplanation(UnknownExplanation::UNKNOWN_REASON),
       d_inputName(inputName)
 {
   std::string s = instr;
@@ -67,27 +68,27 @@ Result::Result(const std::string& instr, std::string inputName)
   else if (s == "incomplete")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = INCOMPLETE;
+    d_unknownExplanation = UnknownExplanation::INCOMPLETE;
   }
   else if (s == "timeout")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = TIMEOUT;
+    d_unknownExplanation = UnknownExplanation::TIMEOUT;
   }
   else if (s == "resourceout")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = RESOURCEOUT;
+    d_unknownExplanation = UnknownExplanation::RESOURCEOUT;
   }
   else if (s == "memout")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = MEMOUT;
+    d_unknownExplanation = UnknownExplanation::MEMOUT;
   }
   else if (s == "interrupted")
   {
     d_status = UNKNOWN;
-    d_unknownExplanation = INTERRUPTED;
+    d_unknownExplanation = UnknownExplanation::INTERRUPTED;
   }
   else if (s.size() >= 7 && s.compare(0, 7, "unknown") == 0)
   {
@@ -109,7 +110,8 @@ UnknownExplanation Result::getUnknownExplanation() const
   return d_unknownExplanation;
 }
 
-bool Result::operator==(const Result& r) const {
+bool Result::operator==(const Result& r) const
+{
   return d_status == r.d_status
          && (d_status != UNKNOWN
              || d_unknownExplanation == r.d_unknownExplanation);
@@ -117,7 +119,8 @@ bool Result::operator==(const Result& r) const {
 
 bool Result::operator!=(const Result& r) const { return !(*this == r); }
 
-string Result::toString() const {
+string Result::toString() const
+{
   stringstream ss;
   ss << *this;
   return ss.str();
@@ -125,25 +128,23 @@ string Result::toString() const {
 
 ostream& operator<<(ostream& out, enum Result::Status s)
 {
-  switch (s) {
+  switch (s)
+  {
     case Result::NONE: out << "NONE"; break;
-    case Result::UNSAT:
-      out << "UNSAT";
-      break;
-    case Result::SAT:
-      out << "SAT";
-      break;
+    case Result::UNSAT: out << "UNSAT"; break;
+    case Result::SAT: out << "SAT"; break;
     case Result::UNKNOWN: out << "UNKNOWN"; break;
     default: Unhandled() << s;
   }
   return out;
 }
 
-ostream& operator<<(ostream& out, const Result& r) {
+ostream& operator<<(ostream& out, const Result& r)
+{
   Language language = options::ioutils::getOutputLanguage(out);
-  switch (language) {
+  switch (language)
+  {
     case Language::LANG_SYGUS_V2: r.toStreamSmt2(out); break;
-    case Language::LANG_TPTP: r.toStreamTptp(out); break;
     default:
       if (language::isLangSmt2(language))
       {
@@ -157,7 +158,8 @@ ostream& operator<<(ostream& out, const Result& r) {
   return out;
 }
 
-void Result::toStreamDefault(std::ostream& out) const {
+void Result::toStreamDefault(std::ostream& out) const
+{
   switch (d_status)
   {
     case Result::NONE: out << "none"; break;
@@ -174,7 +176,8 @@ void Result::toStreamDefault(std::ostream& out) const {
   }
 }
 
-void Result::toStreamSmt2(ostream& out) const {
+void Result::toStreamSmt2(ostream& out) const
+{
   if (d_status == Result::UNKNOWN)
   {
     // to avoid printing the reason
@@ -182,23 +185,6 @@ void Result::toStreamSmt2(ostream& out) const {
     return;
   }
   toStreamDefault(out);
-}
-
-void Result::toStreamTptp(std::ostream& out) const {
-  out << "% SZS status ";
-  if (d_status == Result::SAT)
-  {
-    out << "Satisfiable";
-  }
-  else if (d_status == Result::UNSAT)
-  {
-    out << "Unsatisfiable";
-  }
-  else
-  {
-    out << "GaveUp";
-  }
-  out << " for " << getInputName();
 }
 
 }  // namespace cvc5::internal

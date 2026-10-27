@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Tim King, Aina Niemetz, Clark Barrett
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +34,7 @@ namespace ite {
 
 inline static bool isTermITE(TNode e)
 {
-  return (e.getKind() == kind::ITE && !e.getType().isBoolean());
+  return (e.getKind() == Kind::ITE && !e.getType().isBoolean());
 }
 
 inline static bool triviallyContainsNoTermITEs(TNode e)
@@ -50,27 +47,27 @@ static bool isTheoryAtom(TNode a)
   using namespace kind;
   switch (a.getKind())
   {
-    case EQUAL:
-    case DISTINCT: return !(a[0].getType().isBoolean());
+    case Kind::EQUAL:
+    case Kind::DISTINCT: return !(a[0].getType().isBoolean());
 
     /* from uf */
-    case APPLY_UF: return a.getType().isBoolean();
-    case CARDINALITY_CONSTRAINT:
-    case DIVISIBLE:
-    case LT:
-    case LEQ:
-    case GT:
-    case GEQ:
-    case IS_INTEGER:
-    case BITVECTOR_COMP:
-    case BITVECTOR_ULT:
-    case BITVECTOR_ULE:
-    case BITVECTOR_UGT:
-    case BITVECTOR_UGE:
-    case BITVECTOR_SLT:
-    case BITVECTOR_SLE:
-    case BITVECTOR_SGT:
-    case BITVECTOR_SGE: return true;
+    case Kind::APPLY_UF: return a.getType().isBoolean();
+    case Kind::CARDINALITY_CONSTRAINT:
+    case Kind::DIVISIBLE:
+    case Kind::LT:
+    case Kind::LEQ:
+    case Kind::GT:
+    case Kind::GEQ:
+    case Kind::IS_INTEGER:
+    case Kind::BITVECTOR_COMP:
+    case Kind::BITVECTOR_ULT:
+    case Kind::BITVECTOR_ULE:
+    case Kind::BITVECTOR_UGT:
+    case Kind::BITVECTOR_UGE:
+    case Kind::BITVECTOR_SLT:
+    case Kind::BITVECTOR_SLE:
+    case Kind::BITVECTOR_SGT:
+    case Kind::BITVECTOR_SGE: return true;
     default: return false;
   }
 }
@@ -88,24 +85,24 @@ struct CTIVStackElement
 ITEUtilities::ITEUtilities(Env& env)
     : EnvObj(env),
       d_containsVisitor(new ContainsTermITEVisitor()),
-      d_compressor(NULL),
-      d_simplifier(NULL),
-      d_careSimp(NULL)
+      d_compressor(nullptr),
+      d_simplifier(nullptr),
+      d_careSimp(nullptr)
 {
-  Assert(d_containsVisitor != NULL);
+  Assert(d_containsVisitor != nullptr);
 }
 
 ITEUtilities::~ITEUtilities()
 {
-  if (d_simplifier != NULL)
+  if (d_simplifier != nullptr)
   {
     delete d_simplifier;
   }
-  if (d_compressor != NULL)
+  if (d_compressor != nullptr)
   {
     delete d_compressor;
   }
-  if (d_careSimp != NULL)
+  if (d_careSimp != nullptr)
   {
     delete d_careSimp;
   }
@@ -113,7 +110,7 @@ ITEUtilities::~ITEUtilities()
 
 Node ITEUtilities::simpITE(TNode assertion)
 {
-  if (d_simplifier == NULL)
+  if (d_simplifier == nullptr)
   {
     d_simplifier = new ITESimplifier(d_env, d_containsVisitor.get());
   }
@@ -122,7 +119,7 @@ Node ITEUtilities::simpITE(TNode assertion)
 
 bool ITEUtilities::simpIteDidALotOfWorkHeuristic() const
 {
-  if (d_simplifier == NULL)
+  if (d_simplifier == nullptr)
   {
     return false;
   }
@@ -135,7 +132,7 @@ bool ITEUtilities::simpIteDidALotOfWorkHeuristic() const
 /* returns false if an assertion is discovered to be equal to false. */
 bool ITEUtilities::compress(AssertionPipeline* assertionsToPreprocess)
 {
-  if (d_compressor == NULL)
+  if (d_compressor == nullptr)
   {
     d_compressor = new ITECompressor(d_env, d_containsVisitor.get());
   }
@@ -144,24 +141,24 @@ bool ITEUtilities::compress(AssertionPipeline* assertionsToPreprocess)
 
 Node ITEUtilities::simplifyWithCare(TNode e)
 {
-  if (d_careSimp == NULL)
+  if (d_careSimp == nullptr)
   {
-    d_careSimp = new ITECareSimplifier();
+    d_careSimp = new ITECareSimplifier(nodeManager());
   }
   return d_careSimp->simplifyWithCare(e);
 }
 
 void ITEUtilities::clear()
 {
-  if (d_simplifier != NULL)
+  if (d_simplifier != nullptr)
   {
     d_simplifier->clearSimpITECaches();
   }
-  if (d_compressor != NULL)
+  if (d_compressor != nullptr)
   {
     d_compressor->garbageCollect();
   }
-  if (d_careSimp != NULL)
+  if (d_careSimp != nullptr)
   {
     d_careSimp->clear();
   }
@@ -174,7 +171,7 @@ ContainsTermITEVisitor::~ContainsTermITEVisitor() {}
 bool ContainsTermITEVisitor::containsTermITE(TNode e)
 {
   /* throughout execution skip through NOT nodes. */
-  e = (e.getKind() == kind::NOT) ? e[0] : e;
+  e = (e.getKind() == Kind::NOT) ? e[0] : e;
   if (ite::triviallyContainsNoTermITEs(e))
   {
     return false;
@@ -205,7 +202,7 @@ bool ContainsTermITEVisitor::containsTermITE(TNode e)
     {
       // this is someone's child
       TNode child = curr[top.pos];
-      child = (child.getKind() == kind::NOT) ? child[0] : child;
+      child = (child.getKind() == Kind::NOT) ? child[0] : child;
       ++top.pos;
       if (ite::triviallyContainsNoTermITEs(child))
       {
@@ -290,14 +287,14 @@ void IncomingArcCounter::clear() { d_reachCount.clear(); }
 ITECompressor::ITECompressor(Env& env, ContainsTermITEVisitor* contains)
     : EnvObj(env),
       d_contains(contains),
-      d_assertions(NULL),
+      d_assertions(nullptr),
       d_incoming(true, true),
       d_statistics(env.getStatisticsRegistry())
 {
-  Assert(d_contains != NULL);
+  Assert(d_contains != nullptr);
 
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 ITECompressor::~ITECompressor() { reset(); }
@@ -336,7 +333,7 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
     return res;
   }
   else if (rewritten.isVar()
-           || (rewritten.getKind() == kind::NOT && rewritten[0].isVar()))
+           || (rewritten.getKind() == Kind::NOT && rewritten[0].isVar()))
   {
     d_compressed[original] = rewritten;
     d_compressed[compressed] = rewritten;
@@ -345,9 +342,8 @@ Node ITECompressor::push_back_boolean(Node original, Node compressed)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    Node skolem = sm->mkDummySkolem("compress", nm->booleanType());
+    NodeManager* nm = nodeManager();
+    Node skolem = NodeManager::mkDummySkolem("compress", nm->booleanType());
     d_compressed[rewritten] = skolem;
     d_compressed[original] = skolem;
     d_compressed[compressed] = skolem;
@@ -366,7 +362,7 @@ bool ITECompressor::multipleParents(TNode c)
 
 Node ITECompressor::compressBooleanITEs(Node toCompress)
 {
-  Assert(toCompress.getKind() == kind::ITE);
+  Assert(toCompress.getKind() == Kind::ITE);
   Assert(toCompress.getType().isBoolean());
 
   if (!(toCompress[1] == d_false || toCompress[2] == d_false))
@@ -395,9 +391,9 @@ Node ITECompressor::compressBooleanITEs(Node toCompress)
     }
   }
 
-  NodeBuilder nb(kind::AND);
+  NodeBuilder nb(nodeManager(), Kind::AND);
   Node curr = toCompress;
-  while (curr.getKind() == kind::ITE
+  while (curr.getKind() == Kind::ITE
          && (curr[1] == d_false || curr[2] == d_false)
          && (!multipleParents(curr) || curr == toCompress))
   {
@@ -439,7 +435,7 @@ Node ITECompressor::compressTerm(Node toCompress)
   {
     return d_compressed[toCompress];
   }
-  if (toCompress.getKind() == kind::ITE)
+  if (toCompress.getKind() == Kind::ITE)
   {
     Node cmpCnd = compressBoolean(toCompress[0]);
     if (cmpCnd.isConst())
@@ -459,7 +455,7 @@ Node ITECompressor::compressTerm(Node toCompress)
     }
   }
 
-  NodeBuilder nb(toCompress.getKind());
+  NodeBuilder nb(nodeManager(), toCompress.getKind());
 
   if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
@@ -481,8 +477,6 @@ Node ITECompressor::compressTerm(Node toCompress)
 
 Node ITECompressor::compressBoolean(Node toCompress)
 {
-  static int instance = 0;
-  ++instance;
   if (toCompress.isConst() || toCompress.isVar())
   {
     return toCompress;
@@ -491,14 +485,14 @@ Node ITECompressor::compressBoolean(Node toCompress)
   {
     return d_compressed[toCompress];
   }
-  else if (toCompress.getKind() == kind::ITE)
+  else if (toCompress.getKind() == Kind::ITE)
   {
     return compressBooleanITEs(toCompress);
   }
   else
   {
     bool ta = ite::isTheoryAtom(toCompress);
-    NodeBuilder nb(toCompress.getKind());
+    NodeBuilder nb(nodeManager(), toCompress.getKind());
     if (toCompress.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       nb << (toCompress.getOperator());
@@ -548,7 +542,7 @@ bool ITECompressor::compress(AssertionPipeline* assertionsToPreprocess)
     nofalses = (rewritten != d_false);
   }
 
-  d_assertions = NULL;
+  d_assertions = nullptr;
 
   return nofalses;
 }
@@ -609,7 +603,7 @@ uint32_t TermITEHeightCounter::termITEHeight(TNode e)
     }
     else
     {
-      if (top.pos == 0 && curr.getKind() == kind::ITE)
+      if (top.pos == 0 && curr.getKind() == Kind::ITE)
       {
         ++top.pos;
         returnValue = 0;
@@ -655,9 +649,9 @@ ITESimplifier::ITESimplifier(Env& env, ContainsTermITEVisitor* contains)
       d_simpITECache(),
       d_statistics(env.getStatisticsRegistry())
 {
-  Assert(d_containsVisitor != NULL);
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  Assert(d_containsVisitor != nullptr);
+  d_true = nodeManager()->mkConst<bool>(true);
+  d_false = nodeManager()->mkConst<bool>(false);
 }
 
 ITESimplifier::~ITESimplifier()
@@ -698,19 +692,23 @@ bool ITESimplifier::doneALotOfWorkHeuristic() const
 {
   static const size_t SIZE_BOUND = 1000;
   verbose(2) << "d_citeEqConstApplications size " << d_citeEqConstApplications
-         << endl;
+             << endl;
   return (d_citeEqConstApplications > SIZE_BOUND);
 }
 
 ITESimplifier::Statistics::Statistics(StatisticsRegistry& reg)
     : d_maxNonConstantsFolded(
-        reg.registerInt("ite-simp::maxNonConstantsFolded")),
+          reg.registerInt("ite-simp::maxNonConstantsFolded")),
       d_unexpected(reg.registerInt("ite-simp::unexpected")),
       d_unsimplified(reg.registerInt("ite-simp::unsimplified")),
       d_exactMatchFold(reg.registerInt("ite-simp::exactMatchFold")),
       d_binaryPredFold(reg.registerInt("ite-simp::binaryPredFold")),
       d_specialEqualityFolds(reg.registerInt("ite-simp::specialEqualityFolds")),
       d_simpITEVisits(reg.registerInt("ite-simp::simpITE.visits")),
+      d_numBranches(0),
+      d_numFalseBranches(0),
+      d_itesMade(0),
+      d_instance(0),
       d_inSmaller(reg.registerHistogram<uint32_t>("ite-simp::inSmaller"))
 {
 }
@@ -724,7 +722,7 @@ bool ITESimplifier::isConstantIte(TNode e)
   else if (ite::isTermITE(e))
   {
     NodeVec* constants = computeConstantLeaves(e);
-    return constants != NULL;
+    return constants != nullptr;
   }
   else
   {
@@ -756,12 +754,12 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite)
     return pair;
   }
   // At least 1 is an ITE
-  if (!(thenB.isConst() || thenB.getKind() == kind::ITE)
-      || !(elseB.isConst() || elseB.getKind() == kind::ITE))
+  if (!(thenB.isConst() || thenB.getKind() == Kind::ITE)
+      || !(elseB.isConst() || elseB.getKind() == Kind::ITE))
   {
     // Cannot be a termITE tree
-    d_constantLeaves[ite] = NULL;
-    return NULL;
+    d_constantLeaves[ite] = nullptr;
+    return nullptr;
   }
 
   // At least 1 is not a constant
@@ -769,15 +767,15 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite)
   TNode maybeITE = thenB.isConst() ? thenB : elseB;
 
   NodeVec* defChildren = computeConstantLeaves(definitelyITE);
-  if (defChildren == NULL)
+  if (defChildren == nullptr)
   {
-    d_constantLeaves[ite] = NULL;
-    return NULL;
+    d_constantLeaves[ite] = nullptr;
+    return nullptr;
   }
 
   NodeVec scratch;
-  NodeVec* maybeChildren = NULL;
-  if (maybeITE.getKind() == kind::ITE)
+  NodeVec* maybeChildren = nullptr;
+  if (maybeITE.getKind() == Kind::ITE)
   {
     maybeChildren = computeConstantLeaves(maybeITE);
   }
@@ -786,10 +784,10 @@ ITESimplifier::NodeVec* ITESimplifier::computeConstantLeaves(TNode ite)
     scratch.push_back(maybeITE);
     maybeChildren = &scratch;
   }
-  if (maybeChildren == NULL)
+  if (maybeChildren == nullptr)
   {
-    d_constantLeaves[ite] = NULL;
-    return NULL;
+    d_constantLeaves[ite] = nullptr;
+    return nullptr;
   }
 
   NodeVec* both = new NodeVec(defChildren->size() + maybeChildren->size());
@@ -848,7 +846,7 @@ void iteTreeSearch(Node e, int depth, IteTreeSearchData& search)
       search.failure = true;
     }
   }
-  else if (e.getKind() == kind::ITE)
+  else if (e.getKind() == Kind::ITE)
   {
     iteTreeSearch(e[1], depth + 1, search);
     iteTreeSearch(e[2], depth + 1, search);
@@ -883,7 +881,7 @@ Node ITESimplifier::replaceOver(Node n, Node replaceWith, Node simpVar)
     return d_replaceOverCache[p];
   }
 
-  NodeBuilder builder(n.getKind());
+  NodeBuilder builder(nodeManager(), n.getKind());
   if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << n.getOperator();
@@ -902,7 +900,7 @@ Node ITESimplifier::replaceOver(Node n, Node replaceWith, Node simpVar)
 
 Node ITESimplifier::replaceOverTermIte(Node e, Node simpAtom, Node simpVar)
 {
-  if (e.getKind() == kind::ITE)
+  if (e.getKind() == Kind::ITE)
   {
     pair<Node, Node> p = make_pair(e, simpAtom);
     if (d_replaceOverTermIteCache.find(p) != d_replaceOverTermIteCache.end())
@@ -925,16 +923,16 @@ Node ITESimplifier::replaceOverTermIte(Node e, Node simpAtom, Node simpVar)
 
 Node ITESimplifier::attemptLiftEquality(TNode atom)
 {
-  if (atom.getKind() == kind::EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     TNode left = atom[0];
     TNode right = atom[1];
-    if ((left.getKind() == kind::ITE || right.getKind() == kind::ITE)
-        && !(left.getKind() == kind::ITE && right.getKind() == kind::ITE))
+    if ((left.getKind() == Kind::ITE || right.getKind() == Kind::ITE)
+        && !(left.getKind() == Kind::ITE && right.getKind() == Kind::ITE))
     {
       // exactly 1 is an ite
-      TNode ite = left.getKind() == kind::ITE ? left : right;
-      TNode notIte = left.getKind() == kind::ITE ? right : left;
+      TNode ite = left.getKind() == Kind::ITE ? left : right;
+      TNode notIte = left.getKind() == Kind::ITE ? right : left;
 
       if (notIte == ite[1])
       {
@@ -949,7 +947,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
       if (notIte.isConst() && (ite[1].isConst() || ite[2].isConst()))
       {
         ++(d_statistics.d_exactMatchFold);
-        return ite[0].iteNode(notIte.eqNode(ite[1]), notIte.eqNode(ite[2]));
+        return ite[0].iteNode({notIte.eqNode(ite[1]), notIte.eqNode(ite[2])});
       }
     }
   }
@@ -960,11 +958,11 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
   {
     TNode left = atom[0];
     TNode right = atom[1];
-    if ((left.getKind() == kind::ITE || right.getKind() == kind::ITE)
-        && !(left.getKind() == kind::ITE && right.getKind() == kind::ITE))
+    if ((left.getKind() == Kind::ITE || right.getKind() == Kind::ITE)
+        && !(left.getKind() == Kind::ITE && right.getKind() == Kind::ITE))
     {
       // exactly 1 is an ite
-      bool leftIsIte = left.getKind() == kind::ITE;
+      bool leftIsIte = left.getKind() == Kind::ITE;
       Node ite = leftIsIte ? left : right;
       Node notIte = leftIsIte ? right : left;
 
@@ -979,7 +977,7 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
               search.nonConstants.size());
           Trace("ite::simpite") << "used " << search.nonConstants.size()
                                 << " nonconstants" << endl;
-          NodeManager* nm = NodeManager::currentNM();
+          NodeManager* nm = nodeManager();
           Node simpVar = getSimpVar(notIte.getType());
           TNode newLeft = leftIsIte ? simpVar : notIte;
           TNode newRight = leftIsIte ? notIte : simpVar;
@@ -993,8 +991,8 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
   }
 
   // TODO "This is way too tailored. Must generalize!"
-  if (atom.getKind() == kind::EQUAL && atom.getNumChildren() == 2
-      && ite::isTermITE(atom[0]) && atom[1].getKind() == kind::MULT
+  if (atom.getKind() == Kind::EQUAL && atom.getNumChildren() == 2
+      && ite::isTermITE(atom[0]) && atom[1].getKind() == Kind::MULT
       && atom[1].getNumChildren() == 2 && atom[1][0].isConst()
       && atom[1][0].getConst<Rational>().isNegativeOne()
       && ite::isTermITE(atom[1][1])
@@ -1012,11 +1010,11 @@ Node ITESimplifier::attemptLiftEquality(TNode atom)
     Node lT = lite[1];
     Node lE = lite[2];
 
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node negRite = atom[1][1];
     Node rC = negRite[0];
-    Node rT = nm->mkNode(kind::MULT, negOne, negRite[1]);
-    Node rE = nm->mkNode(kind::MULT, negOne, negRite[2]);
+    Node rT = nm->mkNode(Kind::MULT, negOne, negRite[1]);
+    Node rE = nm->mkNode(Kind::MULT, negOne, negRite[2]);
 
     // (ite lC lT lE) = (ite rC rT rE)
     // (ite lc (= lT (ite rC rT rE) (= lE (ite rC rT rE))))
@@ -1044,10 +1042,10 @@ Node ITESimplifier::transformAtom(TNode atom)
 {
   if (!d_containsVisitor->containsTermITE(atom))
   {
-    if (atom.getKind() == kind::EQUAL && atom[0].isConst() && atom[1].isConst())
+    if (atom.getKind() == Kind::EQUAL && atom[0].isConst() && atom[1].isConst())
     {
       // constant equality
-      return NodeManager::currentNM()->mkConst<bool>(atom[0] == atom[1]);
+      return nodeManager()->mkConst<bool>(atom[0] == atom[1]);
     }
     return Node::null();
   }
@@ -1066,21 +1064,18 @@ Node ITESimplifier::transformAtom(TNode atom)
   }
 }
 
-static unsigned numBranches = 0;
-static unsigned numFalseBranches = 0;
-static unsigned itesMade = 0;
-
 Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
 {
-  static int instance = 0;
-  ++instance;
+  d_statistics.d_instance = 0;
+  ++(d_statistics.d_instance);
   Trace("ite::constantIteEqualsConstant")
-      << instance << "constantIteEqualsConstant(" << cite << ", " << constant
-      << ")" << endl;
+      << (d_statistics.d_instance) << "constantIteEqualsConstant(" << cite
+      << ", " << constant << ")" << endl;
   if (cite.isConst())
   {
     Node res = (cite == constant) ? d_true : d_false;
-    Trace("ite::constantIteEqualsConstant") << instance << "->" << res << endl;
+    Trace("ite::constantIteEqualsConstant")
+        << (d_statistics.d_instance) << "->" << res << endl;
     return res;
   }
   std::pair<Node, Node> pair = make_pair(cite, constant);
@@ -1090,14 +1085,14 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
   if (eq_pos != d_constantIteEqualsConstantCache.end())
   {
     Trace("ite::constantIteEqualsConstant")
-        << instance << "->" << (*eq_pos).second << endl;
+        << (d_statistics.d_instance) << "->" << (*eq_pos).second << endl;
     return (*eq_pos).second;
   }
 
   ++d_citeEqConstApplications;
 
   NodeVec* leaves = computeConstantLeaves(cite);
-  Assert(leaves != NULL);
+  Assert(leaves != nullptr);
   if (std::binary_search(leaves->begin(), leaves->end(), constant))
   {
     if (leaves->size() == 1)
@@ -1105,12 +1100,12 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
       // probably unreachable
       d_constantIteEqualsConstantCache[pair] = d_true;
       Trace("ite::constantIteEqualsConstant")
-          << instance << "->" << d_true << endl;
+          << (d_statistics.d_instance) << "->" << d_true << endl;
       return d_true;
     }
     else
     {
-      Assert(cite.getKind() == kind::ITE);
+      Assert(cite.getKind() == Kind::ITE);
       TNode cnd = cite[0];
       TNode tB = cite[1];
       TNode fB = cite[2];
@@ -1119,13 +1114,13 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
       Node boolIte = cnd.iteNode(tEqs, fEqs);
       if (!(tEqs.isConst() || fEqs.isConst()))
       {
-        ++numBranches;
+        ++(d_statistics.d_numBranches);
       }
       if (!(tEqs == d_false || fEqs == d_false))
       {
-        ++numFalseBranches;
+        ++(d_statistics.d_numFalseBranches);
       }
-      ++itesMade;
+      ++(d_statistics.d_itesMade);
       d_constantIteEqualsConstantCache[pair] = boolIte;
       // Trace("ite::constantIteEqualsConstant") << instance << "->" << boolIte
       // << endl;
@@ -1136,7 +1131,7 @@ Node ITESimplifier::constantIteEqualsConstant(TNode cite, TNode constant)
   {
     d_constantIteEqualsConstantCache[pair] = d_false;
     Trace("ite::constantIteEqualsConstant")
-        << instance << "->" << d_false << endl;
+        << (d_statistics.d_instance) << "->" << d_false << endl;
     return d_false;
   }
 }
@@ -1152,17 +1147,18 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
     TNode cite = lIsConst ? rcite : lcite;
 
     (d_statistics.d_inSmaller) << 1;
-    unsigned preItesMade = itesMade;
-    unsigned preNumBranches = numBranches;
-    unsigned preNumFalseBranches = numFalseBranches;
+    unsigned preItesMade = d_statistics.d_itesMade;
+    unsigned preNumBranches = d_statistics.d_numBranches;
+    unsigned preNumFalseBranches = d_statistics.d_numFalseBranches;
     Node bterm = constantIteEqualsConstant(cite, constant);
-    Trace("intersectConstantIte") << (numBranches - preNumBranches) << " "
-                                  << (numFalseBranches - preNumFalseBranches)
-                                  << " " << (itesMade - preItesMade) << endl;
+    Trace("intersectConstantIte")
+        << ((d_statistics.d_numBranches) - preNumBranches) << " "
+        << ((d_statistics.d_numFalseBranches) - preNumFalseBranches) << " "
+        << ((d_statistics.d_itesMade) - preItesMade) << endl;
     return bterm;
   }
-  Assert(lcite.getKind() == kind::ITE);
-  Assert(rcite.getKind() == kind::ITE);
+  Assert(lcite.getKind() == Kind::ITE);
+  Assert(rcite.getKind() == Kind::ITE);
 
   NodeVec* leftValues = computeConstantLeaves(lcite);
   NodeVec* rightValues = computeConstantLeaves(rcite);
@@ -1184,7 +1180,7 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
   }
   else
   {
-    NodeBuilder nb(kind::OR);
+    NodeBuilder nb(nodeManager(), Kind::OR);
     NodeVec::const_iterator it = intersection.begin(), end = intersection.end();
     for (; it != end; ++it)
     {
@@ -1201,12 +1197,12 @@ Node ITESimplifier::intersectConstantIte(TNode lcite, TNode rcite)
 
 Node ITESimplifier::attemptEagerRemoval(TNode atom)
 {
-  if (atom.getKind() == kind::EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     TNode left = atom[0];
     TNode right = atom[1];
-    if ((left.isConst() && right.getKind() == kind::ITE && isConstantIte(right))
-        || (right.isConst() && left.getKind() == kind::ITE
+    if ((left.isConst() && right.getKind() == Kind::ITE && isConstantIte(right))
+        || (right.isConst() && left.getKind() == Kind::ITE
             && isConstantIte(left)))
     {
       TNode constant = left.isConst() ? left : right;
@@ -1229,7 +1225,7 @@ Node ITESimplifier::attemptEagerRemoval(TNode atom)
       }
 
       NodeVec* leaves = computeConstantLeaves(cite);
-      Assert(leaves != NULL);
+      Assert(leaves != nullptr);
       if (!std::binary_search(leaves->begin(), leaves->end(), constant))
       {
         d_constantIteEqualsConstantCache[pair] = d_false;
@@ -1242,7 +1238,7 @@ Node ITESimplifier::attemptEagerRemoval(TNode atom)
 
 Node ITESimplifier::attemptConstantRemoval(TNode atom)
 {
-  if (atom.getKind() == kind::EQUAL)
+  if (atom.getKind() == Kind::EQUAL)
   {
     TNode left = atom[0];
     TNode right = atom[1];
@@ -1256,7 +1252,7 @@ Node ITESimplifier::attemptConstantRemoval(TNode atom)
 
 bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
 {
-  Assert((e.getKind() == kind::ITE && !e.getType().isBoolean())
+  Assert((e.getKind() == Kind::ITE && !e.getType().isBoolean())
          || d_env.theoryOf(e) != theory::THEORY_BOOL);
   if (e.isConst())
   {
@@ -1279,7 +1275,7 @@ bool ITESimplifier::leavesAreConst(TNode e, theory::TheoryId tid)
   Assert(e.getNumChildren() > 0);
   size_t k = 0, sz = e.getNumChildren();
 
-  if (e.getKind() == kind::ITE)
+  if (e.getKind() == Kind::ITE)
   {
     k = 1;
   }
@@ -1307,9 +1303,9 @@ Node ITESimplifier::simpConstants(TNode simpContext,
     return (*it).second;
   }
 
-  if (iteNode.getKind() == kind::ITE)
+  if (iteNode.getKind() == Kind::ITE)
   {
-    NodeBuilder builder(kind::ITE);
+    NodeBuilder builder(nodeManager(), Kind::ITE);
     builder << iteNode[0];
     unsigned i = 1;
     for (; i < iteNode.getNumChildren(); ++i)
@@ -1362,9 +1358,7 @@ Node ITESimplifier::getSimpVar(TypeNode t)
   {
     return (*it).second;
   }
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
-  Node var = sm->mkDummySkolem(
-      "iteSimp", t, "is a variable resulting from ITE simplification");
+  Node var = NodeManager::mkDummySkolem("iteSimp", t);
   d_simpVars[t] = var;
   return var;
 }
@@ -1384,7 +1378,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
     return c;
   }
 
-  if (c.getKind() == kind::ITE && !c.getType().isBoolean())
+  if (c.getKind() == Kind::ITE && !c.getType().isBoolean())
   {
     // Currently only support one ite node in a simp context
     // Return Null if more than one is found
@@ -1402,7 +1396,7 @@ Node ITESimplifier::createSimpContext(TNode c, Node& iteNode, Node& simpVar)
     return simpVar;
   }
 
-  NodeBuilder builder(c.getKind());
+  NodeBuilder builder(nodeManager(), c.getKind());
   if (c.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << c.getOperator();
@@ -1459,8 +1453,8 @@ Node ITESimplifier::simpITEAtom(TNode atom)
     Node rewritten = rewrite(attempt);
     Trace("ite::print-success")
         << instance << " "
-        << "rewriting " << countReachable(rewritten, kind::ITE) << " from "
-        << countReachable(atom, kind::ITE) << endl
+        << "rewriting " << countReachable(rewritten, Kind::ITE) << " from "
+        << countReachable(atom, Kind::ITE) << endl
         << "\t rewritten " << rewritten << endl
         << "\t input " << atom << endl;
     return rewritten;
@@ -1498,7 +1492,7 @@ Node ITESimplifier::simpITEAtom(TNode atom)
   }
   if (TraceIsOn("ite::simpite"))
   {
-    if (countReachable(atom, kind::ITE) > 0)
+    if (countReachable(atom, Kind::ITE) > 0)
     {
       Trace("ite::simpite") << instance << " "
                             << "remaining " << atom << endl;
@@ -1523,14 +1517,8 @@ Node ITESimplifier::simpITE(TNode assertion)
   vector<preprocess_stack_element> toVisit;
   toVisit.push_back(assertion);
 
-  static int call = 0;
-  ++call;
-  int iteration = 0;
-
   while (!toVisit.empty())
   {
-    iteration++;
-    // cout << "call  " << call << " : " << iteration << endl;
     // The current node we are processing
     preprocess_stack_element& stackHead = toVisit.back();
     TNode current = stackHead.d_node;
@@ -1558,7 +1546,7 @@ Node ITESimplifier::simpITE(TNode assertion)
     if (stackHead.d_children_added)
     {
       // Children have been processed, so substitute
-      NodeBuilder builder(current.getKind());
+      NodeBuilder builder(nodeManager(), current.getKind());
       if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         builder << current.getOperator();
@@ -1579,11 +1567,6 @@ Node ITESimplifier::simpITE(TNode assertion)
       {
         result = simpITEAtom(result);
       }
-
-      // if(current != result && result.isConst()){
-      //   static int instance = 0;
-      //   //cout << instance << " " << result << current << endl;
-      // }
 
       result = rewrite(result);
       d_simpITECache[current] = result;
@@ -1621,10 +1604,11 @@ Node ITESimplifier::simpITE(TNode assertion)
   return d_simpITECache[assertion];
 }
 
-ITECareSimplifier::ITECareSimplifier() : d_careSetsOutstanding(0), d_usedSets()
+ITECareSimplifier::ITECareSimplifier(NodeManager* nm)
+    : d_careSetsOutstanding(0), d_usedSets()
 {
-  d_true = NodeManager::currentNM()->mkConst<bool>(true);
-  d_false = NodeManager::currentNM()->mkConst<bool>(false);
+  d_true = nm->mkConst<bool>(true);
+  d_false = nm->mkConst<bool>(false);
 }
 
 ITECareSimplifier::~ITECareSimplifier()
@@ -1705,7 +1689,7 @@ Node ITECareSimplifier::substitute(TNode e,
     return e;
   }
 
-  NodeBuilder builder(e.getKind());
+  NodeBuilder builder(e.getNodeManager(), e.getKind());
   if (e.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
     builder << e.getOperator();
@@ -1756,7 +1740,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
 
       switch (v.getKind())
       {
-        case kind::ITE:
+        case Kind::ITE:
         {
           iCare = css.find(v[0]);
           if (iCare != iCareEnd)
@@ -1791,7 +1775,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
           done = true;
           break;
         }
-        case kind::AND:
+        case Kind::AND:
         {
           for (i = 0; i < v.getNumChildren(); ++i)
           {
@@ -1818,7 +1802,7 @@ Node ITECareSimplifier::simplifyWithCare(TNode e)
           done = true;
           break;
         }
-        case kind::OR:
+        case Kind::OR:
         {
           for (i = 0; i < v.getNumChildren(); ++i)
           {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,16 +27,15 @@
 namespace cvc5::internal {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(
-    Env& env, context::Context* c, std::string name, PfRule ra, PfRule rpp)
+PreprocessProofGenerator::PreprocessProofGenerator(Env& env,
+                                                   context::Context* c,
+                                                   std::string name)
     : EnvObj(env),
       d_ctx(c ? c : &d_context),
       d_src(d_ctx),
-      d_helperProofs(env, d_ctx),
       d_inputPf(env, c, "InputProof"),
-      d_name(name),
-      d_ra(ra),
-      d_rpp(rpp)
+      d_trustPf(env, c, "PreprocessTrustProof"),
+      d_name(name)
 {
 }
 
@@ -48,7 +44,9 @@ void PreprocessProofGenerator::notifyInput(Node n)
   notifyNewAssert(n, &d_inputPf);
 }
 
-void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
+void PreprocessProofGenerator::notifyNewAssert(Node n,
+                                               ProofGenerator* pg,
+                                               TrustId id)
 {
   if (n.isConst() && n.getConst<bool>())
   {
@@ -63,7 +61,10 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
     // if no proof generator provided for (non-true) assertion
     if (pg == nullptr)
     {
-      checkEagerPedantic(d_ra);
+      Assert(id != TrustId::UNKNOWN_PREPROCESS_LEMMA);
+      // if no proof generator provided, use a trust step
+      d_trustPf.addTrustedStep(n, id, {}, {});
+      pg = &d_trustPf;
     }
     d_src[n] = TrustNode::mkTrustLemma(n, pg);
   }
@@ -73,14 +74,15 @@ void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
   }
 }
 
-void PreprocessProofGenerator::notifyNewTrustedAssert(TrustNode tn)
+void PreprocessProofGenerator::notifyNewTrustedAssert(TrustNode tn, TrustId id)
 {
-  notifyNewAssert(tn.getProven(), tn.getGenerator());
+  notifyNewAssert(tn.getProven(), tn.getGenerator(), id);
 }
 
 void PreprocessProofGenerator::notifyPreprocessed(Node n,
                                                   Node np,
-                                                  ProofGenerator* pg)
+                                                  ProofGenerator* pg,
+                                                  TrustId id)
 {
   // only do anything if indeed it rewrote
   if (n == np)
@@ -88,10 +90,11 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
     return;
   }
   // call the trusted version
-  notifyTrustedPreprocessed(TrustNode::mkTrustRewrite(n, np, pg));
+  notifyTrustedPreprocessed(TrustNode::mkTrustRewrite(n, np, pg), id);
 }
 
-void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp)
+void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp,
+                                                         TrustId id)
 {
   if (tnp.isNull())
   {
@@ -106,7 +109,9 @@ void PreprocessProofGenerator::notifyTrustedPreprocessed(TrustNode tnp)
   {
     if (tnp.getGenerator() == nullptr)
     {
-      checkEagerPedantic(d_rpp);
+      // if no proof generator provided, use a trust step
+      d_trustPf.addTrustedStep(tnp.getProven(), id, {}, {});
+      tnp = TrustNode::mkReplaceGenTrustNode(tnp, &d_trustPf);
     }
     d_src[np] = tnp;
   }
@@ -162,7 +167,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       std::shared_ptr<ProofNode> pfr = (*it).second.toProofNode();
       if (pfr != nullptr)
       {
-        Trace("smt-pppg-debug") << "...add provided " << *pfr << std::endl;
+        Trace("smt-pppg-debug")
+            << "...add provided " << *pfr << " from "
+            << (*it).second.getGenerator()->identify() << std::endl;
         Assert(pfr->getResult() == proven);
         cdp.addProof(pfr);
         proofStepProcessed = true;
@@ -174,19 +181,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       {
         Trace("smt-pppg-debug")
             << "...rewritten from " << proven[0] << std::endl;
-        Assert(proven.getKind() == kind::EQUAL);
-        if (!proofStepProcessed)
-        {
-          // maybe its just an (extended) rewrite?
-          Node pr = extendedRewrite(proven[0]);
-          if (proven[1] == pr)
-          {
-            Node idr = mkMethodId(MethodId::RW_EXT_REWRITE);
-            Trace("smt-pppg-debug") << "...add simple rewrite" << std::endl;
-            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0], idr});
-            proofStepProcessed = true;
-          }
-        }
+        Assert(proven.getKind() == Kind::EQUAL);
         transChildren.push_back(proven);
         // continue with source
         curr = proven[0];
@@ -201,14 +196,19 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Assert(tnk == TrustNodeKind::LEMMA);
       }
 
+      Assert(proofStepProcessed) << "Failed to get proof for preprocess step";
+      // if we had a dynamic failure, e.g. the provided proof generator did
+      // not generate a proof
       if (!proofStepProcessed)
       {
+        // if in production, we get an unknown trust step
+        TrustId id = (tnk == TrustNodeKind::LEMMA)
+                         ? TrustId::UNKNOWN_PREPROCESS_LEMMA
+                         : TrustId::UNKNOWN_PREPROCESS;
         Trace("smt-pppg-debug")
-            << "...justify missing step with "
-            << (tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp) << std::endl;
+            << "...justify missing step with " << id << std::endl;
         // add trusted step, the rule depends on the kind of trust node
-        cdp.addStep(
-            proven, tnk == TrustNodeKind::LEMMA ? d_ra : d_rpp, {}, {proven});
+        cdp.addTrustedStep(proven, id, {}, {});
       }
     }
   } while (success);
@@ -222,11 +222,11 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     {
       Trace("smt-pppg") << "...apply trans to get " << fullRewrite << std::endl;
       std::reverse(transChildren.begin(), transChildren.end());
-      cdp.addStep(fullRewrite, PfRule::TRANS, transChildren, {});
+      cdp.addStep(fullRewrite, ProofRule::TRANS, transChildren, {});
     }
     Trace("smt-pppg") << "...eq_resolve to prove" << std::endl;
     // prove f
-    cdp.addStep(f, PfRule::EQ_RESOLVE, {curr, fullRewrite}, {});
+    cdp.addStep(f, ProofRule::EQ_RESOLVE, {curr, fullRewrite}, {});
     Trace("smt-pppg") << "...finished" << std::endl;
   }
 
@@ -242,25 +242,21 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   return cdp.getProofFor(f);
 }
 
-LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
-{
-  return d_helperProofs.allocateProof(nullptr, d_ctx);
-}
-
 std::string PreprocessProofGenerator::identify() const { return d_name; }
 
-void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
+void PreprocessProofGenerator::checkEagerPedantic(TrustId r)
 {
   if (options().proof.proofCheck == options::ProofCheckMode::EAGER)
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation
     ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-    std::stringstream serr;
-    if (pc->isPedanticFailure(r, serr))
+    if (pc->isPedanticFailure(ProofRule::TRUST, nullptr))
     {
-      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic: "
-                  << serr.str();
+      std::stringstream serr;
+      pc->isPedanticFailure(ProofRule::TRUST, &serr);
+      Unhandled() << "PreprocessProofGenerator::checkEagerPedantic (" << r
+                  << "): " << serr.str();
     }
   }
 }

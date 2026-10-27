@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -24,6 +21,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
 
@@ -44,12 +42,12 @@ struct ExtRewriteAggAttributeId
 };
 typedef expr::Attribute<ExtRewriteAggAttributeId, Node> ExtRewriteAggAttribute;
 
-ExtendedRewriter::ExtendedRewriter(Rewriter& rew, bool aggr)
-    : d_rew(rew), d_aggr(aggr)
+ExtendedRewriter::ExtendedRewriter(NodeManager* nm, Rewriter& rew, bool aggr)
+    : d_nm(nm), d_rew(rew), d_aggr(aggr)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_intZero = NodeManager::currentNM()->mkConstInt(Rational(0));
+  d_true = d_nm->mkConst(true);
+  d_false = d_nm->mkConst(false);
+  d_intZero = d_nm->mkConstInt(Rational(0));
 }
 
 void ExtendedRewriter::setCache(Node n, Node ret) const
@@ -101,6 +99,7 @@ bool ExtendedRewriter::addToChildren(Node nc,
 
 Node ExtendedRewriter::extendedRewrite(Node n) const
 {
+  Trace("q-ext-rewrite-debug") << "extendedRewrite: " << n << std::endl;
   n = d_rew.rewrite(n);
 
   // has it already been computed?
@@ -111,23 +110,23 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   }
 
   Node ret = n;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
 
   //--------------------pre-rewrite
   if (d_aggr)
   {
     Node pre_new_ret;
-    if (ret.getKind() == IMPLIES)
+    if (ret.getKind() == Kind::IMPLIES)
     {
-      pre_new_ret = nm->mkNode(OR, ret[0].negate(), ret[1]);
+      pre_new_ret = nm->mkNode(Kind::OR, ret[0].negate(), ret[1]);
       debugExtendedRewrite(ret, pre_new_ret, "IMPLIES elim");
     }
-    else if (ret.getKind() == XOR)
+    else if (ret.getKind() == Kind::XOR)
     {
-      pre_new_ret = nm->mkNode(EQUAL, ret[0].negate(), ret[1]);
+      pre_new_ret = nm->mkNode(Kind::EQUAL, ret[0].negate(), ret[1]);
       debugExtendedRewrite(ret, pre_new_ret, "XOR elim");
     }
-    else if (ret.getKind() == NOT)
+    else if (ret.getKind() == Kind::NOT)
     {
       pre_new_ret = extendedRewriteNnf(ret);
       debugExtendedRewrite(ret, pre_new_ret, "NNF");
@@ -217,24 +216,57 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   Node new_ret;
 
   //---------------------- theory-independent post-rewriting
-  if (ret.getKind() == ITE)
+  if (ret.getKind() == Kind::ITE)
   {
-    new_ret = extendedRewriteIte(ITE, ret);
+    new_ret = extendedRewriteIte(Kind::ITE, ret);
   }
-  else if (ret.getKind() == AND || ret.getKind() == OR)
+  else if (ret.getKind() == Kind::AND || ret.getKind() == Kind::OR)
   {
     new_ret = extendedRewriteAndOr(ret);
   }
-  else if (ret.getKind() == EQUAL)
+  else if (ret.getKind() == Kind::EQUAL)
   {
-    new_ret = extendedRewriteEqChain(EQUAL, AND, OR, NOT, ret);
-    debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
+    new_ret = extendedRewriteEqChain(
+        Kind::EQUAL, Kind::AND, Kind::OR, Kind::NOT, ret);
+    if (!new_ret.isNull())
+    {
+      debugExtendedRewrite(ret, new_ret, "Bool eq-chain simplify");
+    }
+    else
+    {
+      TypeNode tret = ret[0].getType();
+      if (tret.isInteger())
+      {
+        strings::ArithEntail ae(nm, &d_rew);
+        new_ret = ae.rewritePredViaEntailment(ret);
+        if (!new_ret.isNull())
+        {
+          debugExtendedRewrite(ret, new_ret, "String EQUAL len entailment");
+        }
+      }
+      else if (tret.isStringLike())
+      {
+        new_ret = extendedRewriteStrings(ret);
+      }
+    }
+  }
+  else if (ret.getKind() == Kind::GEQ)
+  {
+    if (ret[0].getType().isInteger())
+    {
+      strings::ArithEntail ae(nm, &d_rew);
+      new_ret = ae.rewritePredViaEntailment(ret);
+      if (!new_ret.isNull())
+      {
+        debugExtendedRewrite(ret, new_ret, "String GEQ len entailment");
+      }
+    }
   }
   Assert(new_ret.isNull() || new_ret != ret);
-  if (new_ret.isNull() && ret.getKind() != ITE)
+  if (new_ret.isNull() && ret.getKind() != Kind::ITE)
   {
     // simple ITE pulling
-    new_ret = extendedRewritePullIte(ITE, ret);
+    new_ret = extendedRewritePullIte(Kind::ITE, ret);
   }
   //----------------------end theory-independent post-rewriting
 
@@ -242,7 +274,7 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   if (new_ret.isNull())
   {
     TheoryId tid;
-    if (ret.getKind() == ITE)
+    if (ret.getKind() == Kind::ITE)
     {
       tid = Theory::theoryOf(ret.getType());
     }
@@ -250,12 +282,13 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
     {
       tid = Theory::theoryOf(ret);
     }
-    Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
-                                 << std::endl;
+    Trace("q-ext-rewrite-debug")
+        << "theoryOf( " << ret << " )= " << tid << std::endl;
     switch (tid)
     {
       case THEORY_STRINGS: new_ret = extendedRewriteStrings(ret); break;
       case THEORY_SETS: new_ret = extendedRewriteSets(ret); break;
+      case THEORY_ARITH: new_ret = extendedRewriteArith(ret); break;
       default: break;
     }
   }
@@ -273,8 +306,8 @@ Node ExtendedRewriter::extendedRewrite(Node n) const
   {
     ret = extendedRewrite(new_ret);
   }
-  Trace("q-ext-rewrite-debug") << "...ext-rewrite : " << n << " -> " << ret
-                               << std::endl;
+  Trace("q-ext-rewrite-debug")
+      << "...ext-rewrite : " << n << " -> " << ret << std::endl;
   if (TraceIsOn("q-ext-rewrite-nf"))
   {
     if (n == ret)
@@ -291,10 +324,10 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
   Node new_ret;
   Trace("q-ext-rewrite-debug2")
       << "Do aggressive rewrites on " << n << std::endl;
-  bool polarity = n.getKind() != NOT;
-  Node ret_atom = n.getKind() == NOT ? n[0] : n;
-  if ((ret_atom.getKind() == EQUAL && ret_atom[0].getType().isRealOrInt())
-      || ret_atom.getKind() == GEQ)
+  bool polarity = n.getKind() != Kind::NOT;
+  Node ret_atom = n.getKind() == Kind::NOT ? n[0] : n;
+  if ((ret_atom.getKind() == Kind::EQUAL && ret_atom[0].getType().isRealOrInt())
+      || ret_atom.getKind() == Kind::GEQ)
   {
     // ITE term removal in polynomials
     // e.g. ite( x=0, x, y ) = x+1 ---> ( x=0 ^ y = x+1 )
@@ -310,7 +343,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
         Node v = itm->first;
         Trace("q-ext-rewrite-debug2")
             << itm->first << " * " << itm->second << std::endl;
-        if (v.getKind() == ITE)
+        if (v.getKind() == Kind::ITE)
         {
           Node veq;
           int res = ArithMSum::isolate(v, msum, veq, ret_atom.getKind());
@@ -319,7 +352,7 @@ Node ExtendedRewriter::extendedRewriteAggr(Node n) const
             Trace("q-ext-rewrite-debug")
                 << "  have ITE relation, solved form : " << veq << std::endl;
             // try pulling ITE
-            new_ret = extendedRewritePullIte(ITE, veq);
+            new_ret = extendedRewritePullIte(Kind::ITE, veq);
             if (!new_ret.isNull())
             {
               if (!polarity)
@@ -352,23 +385,23 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
   Assert(n.getKind() == itek);
   Assert(n[1] != n[2]);
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
 
   Trace("ext-rew-ite") << "Rewrite ITE : " << n << std::endl;
 
   Node flip_cond;
-  if (n[0].getKind() == NOT)
+  if (n[0].getKind() == Kind::NOT)
   {
     flip_cond = n[0][0];
   }
-  else if (n[0].getKind() == OR)
+  else if (n[0].getKind() == Kind::OR)
   {
     // a | b ---> ~( ~a & ~b )
     flip_cond = TermUtil::simpleNegate(n[0]);
   }
   if (!flip_cond.isNull())
   {
-    Node new_ret = nm->mkNode(ITE, flip_cond, n[2], n[1]);
+    Node new_ret = nm->mkNode(Kind::ITE, flip_cond, n[2], n[1]);
     // only print debug trace if full=true
     if (full)
     {
@@ -386,10 +419,10 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
       {
         Node cond = i == 1 ? n[0] : n[0].negate();
         Node other = n[i == 1 ? 2 : 1];
-        Kind retk = AND;
+        Kind retk = Kind::AND;
         if (n[i].getConst<bool>())
         {
-          retk = OR;
+          retk = Kind::OR;
         }
         else
         {
@@ -412,15 +445,15 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
   // get entailed equalities in the condition
   std::vector<Node> eq_conds;
   Kind ck = n[0].getKind();
-  if (ck == EQUAL)
+  if (ck == Kind::EQUAL)
   {
     eq_conds.push_back(n[0]);
   }
-  else if (ck == AND)
+  else if (ck == Kind::AND)
   {
     for (const Node& cn : n[0])
     {
-      if (cn.getKind() == EQUAL)
+      if (cn.getKind() == Kind::EQUAL)
       {
         eq_conds.push_back(cn);
       }
@@ -458,7 +491,7 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
     // merging branches
     for (unsigned i = 1; i <= 2; i++)
     {
-      if (n[i].getKind() == ITE)
+      if (n[i].getKind() == Kind::ITE)
       {
         Node no = n[3 - i];
         for (unsigned j = 1; j <= 2; j++)
@@ -469,8 +502,8 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full) const
             // ite( C1, ite( C2, t1, t2 ), t1 ) ----> ite( C1 ^ ~C2, t2, t1 )
             Node nc1 = i == 2 ? n[0].negate() : n[0];
             Node nc2 = j == 1 ? n[i][0].negate() : n[i][0];
-            Node new_cond = nm->mkNode(AND, nc1, nc2);
-            new_ret = nm->mkNode(ITE, new_cond, n[i][3 - j], no);
+            Node new_cond = nm->mkNode(Kind::AND, nc1, nc2);
+            new_ret = nm->mkNode(Kind::ITE, new_cond, n[i][3 - j], no);
             ss_reason << "ITE merge branch";
             break;
           }
@@ -576,14 +609,14 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
   // we allow substitutions to recurse over any kind, except WITNESS which is
   // managed by partialSubstitute.
   std::map<Kind, bool> bcp_kinds;
-  new_ret = extendedRewriteBcp(AND, OR, NOT, bcp_kinds, n);
+  new_ret = extendedRewriteBcp(Kind::AND, Kind::OR, Kind::NOT, bcp_kinds, n);
   if (!new_ret.isNull())
   {
     debugExtendedRewrite(n, new_ret, "Bool bcp");
     return new_ret;
   }
   // factoring
-  new_ret = extendedRewriteFactoring(AND, OR, NOT, n);
+  new_ret = extendedRewriteFactoring(Kind::AND, Kind::OR, n);
   if (!new_ret.isNull())
   {
     debugExtendedRewrite(n, new_ret, "Bool factoring");
@@ -591,20 +624,21 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n) const
   }
 
   // equality resolution
-  new_ret = extendedRewriteEqRes(AND, OR, EQUAL, NOT, bcp_kinds, n, false);
+  new_ret = extendedRewriteEqRes(
+      Kind::AND, Kind::OR, Kind::EQUAL, Kind::NOT, bcp_kinds, n, false);
   debugExtendedRewrite(n, new_ret, "Bool eq res");
   return new_ret;
 }
 
 Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
 {
-  Assert(n.getKind() != ITE);
+  Assert(n.getKind() != Kind::ITE);
   if (n.isClosure())
   {
     // don't pull ITE out of quantifiers
     return n;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
   TypeNode tn = n.getType();
   std::vector<Node> children;
   bool hasOp = (n.getMetaKind() == metakind::PARAMETERIZED);
@@ -647,7 +681,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
       {
         // always pull variable or constant with binary (theory) predicate
         // e.g. P( x, ite( A, t1, t2 ) ) ---> ite( A, P( x, t1 ), P( x, t2 ) )
-        Node new_ret = nm->mkNode(ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
+        Node new_ret = nm->mkNode(Kind::ITE, n[i][0], ite_c[i][0], ite_c[i][1]);
         debugExtendedRewrite(n, new_ret, "ITE pull var predicate");
         return new_ret;
       }
@@ -667,9 +701,9 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
             bool pol = pullr.getConst<bool>();
             std::vector<Node> new_children;
             new_children.push_back((j == 0) == pol ? n[i][0]
-                                                    : n[i][0].negate());
+                                                   : n[i][0].negate());
             new_children.push_back(ite_c[i][1 - j]);
-            new_ret = nm->mkNode(pol ? OR : AND, new_children);
+            new_ret = nm->mkNode(pol ? Kind::OR : Kind::AND, new_children);
             debugExtendedRewrite(n, new_ret, "ITE Bool single elim");
           }
           else
@@ -691,7 +725,7 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
       // now, simply pull the ITE and try ITE rewrites
       Node pull_ite = nm->mkNode(itek, nite[0], ip.second[0], ip.second[1]);
       pull_ite = d_rew.rewrite(pull_ite);
-      if (pull_ite.getKind() == ITE)
+      if (pull_ite.getKind() == Kind::ITE)
       {
         Node new_pull_ite = extendedRewriteIte(itek, pull_ite, false);
         if (!new_pull_ite.isNull())
@@ -719,32 +753,32 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n) const
 
 Node ExtendedRewriter::extendedRewriteNnf(Node ret) const
 {
-  Assert(ret.getKind() == NOT);
+  Assert(ret.getKind() == Kind::NOT);
 
   Kind nk = ret[0].getKind();
   bool neg_ch = false;
   bool neg_ch_1 = false;
-  if (nk == AND || nk == OR)
+  if (nk == Kind::AND || nk == Kind::OR)
   {
     neg_ch = true;
-    nk = nk == AND ? OR : AND;
+    nk = nk == Kind::AND ? Kind::OR : Kind::AND;
   }
-  else if (nk == IMPLIES)
-  {
-    neg_ch = true;
-    neg_ch_1 = true;
-    nk = AND;
-  }
-  else if (nk == ITE)
+  else if (nk == Kind::IMPLIES)
   {
     neg_ch = true;
     neg_ch_1 = true;
+    nk = Kind::AND;
   }
-  else if (nk == XOR)
+  else if (nk == Kind::ITE)
   {
-    nk = EQUAL;
+    neg_ch = true;
+    neg_ch_1 = true;
   }
-  else if (nk == EQUAL && ret[0][0].getType().isBoolean())
+  else if (nk == Kind::XOR)
+  {
+    nk = Kind::EQUAL;
+  }
+  else if (nk == Kind::EQUAL && ret[0][0].getType().isBoolean())
   {
     neg_ch_1 = true;
   }
@@ -760,7 +794,7 @@ Node ExtendedRewriter::extendedRewriteNnf(Node ret) const
     c = (i == 0 ? neg_ch_1 : false) != neg_ch ? c.negate() : c;
     new_children.push_back(c);
   }
-  return NodeManager::currentNM()->mkNode(nk, new_children);
+  return d_nm->mkNode(nk, new_children);
 }
 
 Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
@@ -773,7 +807,7 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
   Assert(k == andk || k == ork);
   Trace("ext-rew-bcp") << "BCP: **** INPUT: " << ret << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
 
   TypeNode tn = ret.getType();
   Node truen = TermUtil::mkTypeMaxValue(tn);
@@ -825,8 +859,8 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
           // add it to the assignment
           Node val = gpol == pol ? truen : falsen;
           std::map<Node, Node>::iterator it = assign.find(cln);
-          Trace("ext-rew-bcp") << "BCP: assign " << cln << " -> " << val
-                               << std::endl;
+          Trace("ext-rew-bcp")
+              << "BCP: assign " << cln << " -> " << val << std::endl;
           if (it != assign.end())
           {
             if (val != it->second)
@@ -887,8 +921,8 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
         }
         Node ccs = nm->mkNode(ca.getKind(), ccs_children);
         ccs = cpol ? ccs : TermUtil::mkNegate(notk, ccs);
-        Trace("ext-rew-bcp") << "BCP: propagated " << c << " -> " << ccs
-                             << std::endl;
+        Trace("ext-rew-bcp")
+            << "BCP: propagated " << c << " -> " << ccs << std::endl;
         ccs = d_rew.rewrite(ccs);
         Trace("ext-rew-bcp") << "BCP: rewritten to " << ccs << std::endl;
         to_process.push_back(ccs);
@@ -930,11 +964,10 @@ Node ExtendedRewriter::extendedRewriteBcp(Kind andk,
 
 Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
                                                 Kind ork,
-                                                Kind notk,
                                                 Node n) const
 {
   Trace("ext-rew-factoring") << "Factoring: *** INPUT: " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
 
   Kind nk = n.getKind();
   Assert(nk == andk || nk == ork);
@@ -1019,7 +1052,7 @@ Node ExtendedRewriter::extendedRewriteFactoring(Kind andk,
 }
 
 Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
-                                            Kind ork,
+                                            CVC5_UNUSED Kind ork,
                                             Kind eqk,
                                             Kind notk,
                                             std::map<Kind, bool>& bcp_kinds,
@@ -1029,7 +1062,7 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
   Assert(n.getKind() == andk || n.getKind() == ork);
   Trace("ext-rew-eqres") << "Eq res: **** INPUT: " << n << std::endl;
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
   Kind nk = n.getKind();
   bool gpol = (nk == andk);
   for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
@@ -1042,22 +1075,24 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
       if (gpol == isXor)
       {
         // can only turn disequality into equality if types are the same
-        if (lit[1].getType() == lit.getType())
+        if (CVC5_EQUAL(lit[1].getType(), lit.getType()))
         {
           // t != s ---> ~t = s
           if (lit[1].getKind() == notk && lit[0].getKind() != notk)
           {
-            eq = nm->mkNode(EQUAL, lit[0], TermUtil::mkNegate(notk, lit[1]));
+            eq = nm->mkNode(
+                Kind::EQUAL, lit[0], TermUtil::mkNegate(notk, lit[1]));
           }
           else
           {
-            eq = nm->mkNode(EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
+            eq = nm->mkNode(
+                Kind::EQUAL, TermUtil::mkNegate(notk, lit[0]), lit[1]);
           }
         }
       }
       else
       {
-        eq = eqk == EQUAL ? lit : nm->mkNode(EQUAL, lit[0], lit[1]);
+        eq = eqk == Kind::EQUAL ? lit : nm->mkNode(Kind::EQUAL, lit[0], lit[1]);
       }
       if (!eq.isNull())
       {
@@ -1181,7 +1216,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     return Node::null();
   }
 
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = d_nm;
 
   TypeNode tn = ret[0].getType();
 
@@ -1233,7 +1268,7 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 
   if (cstatus.empty())
   {
-    return TermUtil::mkTypeConst(tn, gpol);
+    return TermUtil::mkTypeConst(ret.getType(), gpol);
   }
 
   children.clear();
@@ -1351,8 +1386,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
     Node c = cp.first;
     std::map<Node, std::map<Node, bool> >::iterator itc = atoms.find(c);
     Assert(itc != atoms.end());
-    Trace("ext-rew-eqchain") << "  - add term " << c << " with atom list "
-                             << alist[c] << "...\n";
+    Trace("ext-rew-eqchain")
+        << "  - add term " << c << " with atom list " << alist[c] << "...\n";
     std::vector<Node> subsumes;
     sst.addTerm(c, alist[c], subsumes);
     for (const Node& cc : subsumes)
@@ -1362,8 +1397,8 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         // subsumes a child that was already eliminated
         continue;
       }
-      Trace("ext-rew-eqchain") << "  eqchain-simplify: " << c << " subsumes "
-                               << cc << std::endl;
+      Trace("ext-rew-eqchain")
+          << "  eqchain-simplify: " << c << " subsumes " << cc << std::endl;
       // for each of the atoms in cc
       std::map<Node, std::map<Node, bool> >::iterator itcc = atoms.find(cc);
       Assert(itcc != atoms.end());
@@ -1376,9 +1411,9 @@ Node ExtendedRewriter::extendedRewriteEqChain(
         bool polcc = ap.second;
         Assert(itc->second.find(a) != itc->second.end());
         bool polc = itc->second[a];
-        Trace("ext-rew-eqchain") << "    eqchain-simplify: atom " << a
-                                 << " has polarities : " << polc << " " << polcc
-                                 << "\n";
+        Trace("ext-rew-eqchain")
+            << "    eqchain-simplify: atom " << a
+            << " has polarities : " << polc << " " << polcc << "\n";
         Node lit = polc ? a : TermUtil::mkNegate(notk, a);
         if (polc != polcc)
         {
@@ -1562,7 +1597,8 @@ Node ExtendedRewriter::partialSubstitute(
         // we disallow witness here, due to unsoundness when applying contextual
         // substitutions over witness terms (see #4620).
         Kind k = cur.getKind();
-        if (k != WITNESS && (rkinds.empty() || rkinds.find(k) != rkinds.end()))
+        if (k != Kind::WITNESS
+            && (rkinds.empty() || rkinds.find(k) != rkinds.end()))
         {
           visited[cur] = Node::null();
           visit.push_back(cur);
@@ -1596,7 +1632,7 @@ Node ExtendedRewriter::partialSubstitute(
       }
       if (childChanged)
       {
-        ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+        ret = d_nm->mkNode(cur.getKind(), children);
       }
       visited[cur] = ret;
     }
@@ -1617,17 +1653,17 @@ Node ExtendedRewriter::partialSubstitute(
   return partialSubstitute(n, assign, rkinds);
 }
 
-Node ExtendedRewriter::solveEquality(Node n) const
+Node ExtendedRewriter::solveEquality(CVC5_UNUSED Node n) const
 {
   // TODO (#1706) : implement
-  Assert(n.getKind() == EQUAL);
+  Assert(n.getKind() == Kind::EQUAL);
 
   return Node::null();
 }
 
 bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
 {
-  if (n.getKind() == AND)
+  if (n.getKind() == Kind::AND)
   {
     bool ret = false;
     for (const Node& nc : n)
@@ -1637,7 +1673,7 @@ bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
     }
     return ret;
   }
-  if (n.getKind() == EQUAL)
+  if (n.getKind() == Kind::EQUAL)
   {
     // see if it can be put into form x = y
     Node slv_eq = solveEquality(n);
@@ -1684,9 +1720,9 @@ bool ExtendedRewriter::inferSubstitution(Node n, Subs& subs, bool usePred) const
   }
   if (usePred)
   {
-    bool negated = n.getKind() == NOT;
+    bool negated = n.getKind() == Kind::NOT;
     Node var = negated ? n[0] : n;
-    Node s = NodeManager::currentNM()->mkConst(!negated);
+    Node s = d_nm->mkConst(!negated);
     subs.add(var, s);
     return true;
   }
@@ -1698,20 +1734,163 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
   Trace("q-ext-rewrite-debug")
       << "Extended rewrite strings : " << node << std::endl;
 
+  // allow recursive approximations
+  strings::ArithEntail ae(d_nm, &d_rew, true);
+  strings::StringsEntail se(&d_rew, ae);
+  strings::SequencesRewriter sr(d_nm, ae, se, nullptr);
+
   Kind k = node.getKind();
-  if (k == EQUAL)
+  if (k == Kind::EQUAL)
   {
-    strings::SequencesRewriter sr(&d_rew, nullptr);
-    return sr.rewriteEqualityExt(node);
+    // we invoke the extended equality rewriter, which does standard
+    // rewrites, which notice are only invoked at preprocessing
+    // and not during Rewriter::rewrite.
+    Node ret = sr.rewriteEqualityExt(node);
+    if (ret != node)
+    {
+      debugExtendedRewrite(node, ret, "STR_EXT_EQ_REWRITE");
+      return ret;
+    }
+
+    // ------- length entailment
+    Node len0 = d_nm->mkNode(Kind::STRING_LENGTH, node[0]);
+    Node len1 = d_nm->mkNode(Kind::STRING_LENGTH, node[1]);
+    Node len_eq = len0.eqNode(len1);
+    len_eq = d_rew.rewrite(len_eq);
+    if (len_eq == d_false)
+    {
+      debugExtendedRewrite(node, d_false, "String EQUAL len entailment");
+      return d_false;
+    }
+
+    TypeNode stype = node[0].getType();
+    std::vector<Node> c[2];
+    for (unsigned i = 0; i < 2; i++)
+    {
+      strings::utils::getConcat(node[i], c[i]);
+    }
+
+    // ------- homogeneous constants
+    for (unsigned i = 0; i < 2; i++)
+    {
+      Node cn = se.checkHomogeneousString(node[i]);
+      if (!cn.isNull() && !strings::Word::isEmpty(cn))
+      {
+        Assert(cn.isConst());
+        Assert(strings::Word::getLength(cn) == 1);
+
+        // The operands of the concat on each side of the equality without
+        // constant strings
+        std::vector<Node> trimmed[2];
+        // Counts the number of `cn`s on each side
+        size_t numCns[2] = {0, 0};
+        for (size_t j = 0; j < 2; j++)
+        {
+          // Sort the operands of the concats on both sides of the equality
+          // (since both sides may only contain one char, the order does not
+          // matter)
+          std::sort(c[j].begin(), c[j].end());
+          for (const Node& cc : c[j])
+          {
+            if (cc.isConst())
+            {
+              // Count the number of `cn`s in the string constant and make
+              // sure that all chars are `cn`s
+              std::vector<Node> veccc = strings::Word::getChars(cc);
+              for (const Node& cv : veccc)
+              {
+                if (cv != cn)
+                {
+                  // This conflict case should mostly should be taken care of by
+                  // multiset reasoning in the strings rewriter, but we
+                  // recognize this conflict just in case.
+                  debugExtendedRewrite(node, d_false, "STR_EQ_CONST_NHOMOG");
+                  return d_false;
+                }
+                numCns[j]++;
+              }
+            }
+            else
+            {
+              trimmed[j].push_back(cc);
+            }
+          }
+        }
+
+        // We have to remove the same number of `cn`s from both sides, so the
+        // side with less `cn`s determines how many we can remove
+        size_t trimmedConst = std::min(numCns[0], numCns[1]);
+        for (size_t j = 0; j < 2; j++)
+        {
+          size_t diff = numCns[j] - trimmedConst;
+          if (diff != 0)
+          {
+            // Add a constant string to the side with more `cn`s to restore
+            // the difference in number of `cn`s
+            std::vector<Node> vec(diff, cn);
+            trimmed[j].push_back(strings::Word::mkWordFlatten(vec));
+          }
+        }
+
+        Node lhs = strings::utils::mkConcat(trimmed[i], stype);
+        Node ss = strings::utils::mkConcat(trimmed[1 - i], stype);
+        if (lhs != node[i] || ss != node[1 - i])
+        {
+          // e.g.
+          //  "AA" = y ++ x ---> "AA" = x ++ y if x < y
+          //  "AAA" = y ++ "A" ++ z ---> "AA" = y ++ z
+          //
+          // We generally don't apply the extended equality rewriter if the
+          // original node was an equality but we may be able to do additional
+          // rewriting here.
+          Node new_ret = lhs.eqNode(ss);
+          debugExtendedRewrite(node, new_ret, "STR_EQ_CONST_NHOMOG");
+          return new_ret;
+        }
+      }
+    }
   }
-  else if (k == STRING_SUBSTR)
+  else if (k == Kind::STRING_CONCAT)
   {
-    NodeManager* nm = NodeManager::currentNM();
-    Node tot_len = d_rew.rewrite(nm->mkNode(STRING_LENGTH, node[0]));
-    strings::ArithEntail aent(&d_rew);
+    // Sort adjacent operands in str.++ that all result in the same string or
+    // the empty string.
+    //
+    // E.g.: (str.++ ... (str.replace "A" x "") "A" (str.substr "A" 0 z) ...)
+    // --> (str.++ ... [sort those 3 arguments] ... )
+    std::vector<Node> vec(node.begin(), node.end());
+    size_t lastIdx = 0;
+    Node lastX;
+    for (size_t i = 0, nsize = vec.size(); i < nsize; i++)
+    {
+      Node s = se.getStringOrEmpty(vec[i]);
+      bool nextX = false;
+      if (s != lastX)
+      {
+        nextX = true;
+      }
+      if (nextX)
+      {
+        std::sort(vec.begin() + lastIdx, vec.begin() + i);
+        lastX = s;
+        lastIdx = i;
+      }
+    }
+    std::sort(vec.begin() + lastIdx, vec.end());
+    TypeNode tn = node.getType();
+    Node retNode = strings::utils::mkConcat(vec, tn);
+    if (retNode != node)
+    {
+      debugExtendedRewrite(node, retNode, "CONCAT_NORM_SORT");
+      return retNode;
+    }
+  }
+  else if (k == Kind::STRING_SUBSTR)
+  {
+    NodeManager* nm = d_nm;
+    Node tot_len = d_rew.rewrite(nm->mkNode(Kind::STRING_LENGTH, node[0]));
     // (str.substr s x y) --> "" if x < len(s) |= 0 >= y
-    Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(LT, node[1], tot_len));
-    if (aent.checkWithAssumption(n1_lt_tot_len, d_intZero, node[2], false))
+    Node n1_lt_tot_len = d_rew.rewrite(nm->mkNode(Kind::LT, node[1], tot_len));
+    if (ae.checkWithAssumption(n1_lt_tot_len, d_intZero, node[2], false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_START_ENTAILS_ZERO_LEN");
@@ -1719,29 +1898,212 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
     }
 
     // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
-    Node non_zero_len = d_rew.rewrite(nm->mkNode(LT, d_intZero, node[2]));
-    if (aent.checkWithAssumption(non_zero_len, node[1], tot_len, false))
+    Node non_zero_len = d_rew.rewrite(nm->mkNode(Kind::LT, d_intZero, node[2]));
+    if (ae.checkWithAssumption(non_zero_len, node[1], tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_NON_ZERO_LEN_ENTAILS_OOB");
       return ret;
     }
     // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
-    Node geq_zero_start = d_rew.rewrite(nm->mkNode(GEQ, node[1], d_intZero));
-    if (aent.checkWithAssumption(geq_zero_start, d_intZero, tot_len, false))
+    Node geq_zero_start =
+        d_rew.rewrite(nm->mkNode(Kind::GEQ, node[1], d_intZero));
+    if (ae.checkWithAssumption(geq_zero_start, d_intZero, tot_len, false))
     {
       Node ret = strings::Word::mkEmptyWord(node.getType());
       debugExtendedRewrite(node, ret, "SS_GEQ_ZERO_START_ENTAILS_EMP_S");
       return ret;
     }
   }
+  else if (k == Kind::STRING_REPLACE)
+  {
+    if (node[0] == node[2])
+    {
+      // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
+      // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
+      if (se.checkLengthOne(node[0]))
+      {
+        TypeNode stype = node.getType();
+        Node empty = strings::Word::mkEmptyWord(stype);
+        Node rn1 = d_rew.rewrite(d_rew.rewriteEqualityExt(
+            d_nm->mkNode(Kind::EQUAL, node[1], empty)));
+        if (rn1 != node[1])
+        {
+          std::vector<Node> emptyNodes;
+          bool allEmptyEqs;
+          std::tie(allEmptyEqs, emptyNodes) =
+              strings::utils::collectEmptyEqs(rn1);
 
+          if (allEmptyEqs)
+          {
+            Node nn1 = strings::utils::mkConcat(emptyNodes, stype);
+            if (node[1] != nn1)
+            {
+              Node ret =
+                  d_nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, node[2]);
+              debugExtendedRewrite(node, ret, "RPL_X_Y_X_SIMP");
+              return ret;
+            }
+          }
+        }
+      }
+    }
+    Node cmp_con = d_nm->mkNode(Kind::STRING_CONTAINS, node[0], node[1]);
+    // note we make a full recursive call to extended rewrite here, which should
+    // be fine since the term we are rewriting is simpler than the current one.
+    Node cmp_conr = extendedRewrite(cmp_con);
+    if (cmp_conr.getKind() == Kind::EQUAL || cmp_conr.getKind() == Kind::AND)
+    {
+      TypeNode stype = node.getType();
+      // Rewriting the str.contains may return equalities of the form (= x "").
+      // In that case, we can substitute the variables appearing in those
+      // equalities with the empty string in the third argument of the
+      // str.replace. For example:
+      //
+      // (str.replace x (str.++ x y) y) --> (str.replace x (str.++ x y) "")
+      //
+      // This can be done because str.replace changes x iff (str.++ x y) is in x
+      // but that means that y must be empty in that case. Thus, we can
+      // substitute y with "" in the third argument. Note that the third
+      // argument does not matter when the str.replace does not apply.
+      //
+      Node empty = strings::Word::mkEmptyWord(stype);
+      std::vector<Node> emptyNodes;
+      bool allEmptyEqs;
+      std::tie(allEmptyEqs, emptyNodes) =
+          strings::utils::collectEmptyEqs(cmp_conr);
+      if (emptyNodes.size() > 0)
+      {
+        // Perform the substitutions
+        std::vector<TNode> substs(emptyNodes.size(), TNode(empty));
+        Node nn2 = node[2].substitute(
+            emptyNodes.begin(), emptyNodes.end(), substs.begin(), substs.end());
+
+        // If the contains rewrites to a conjunction of empty-string equalities
+        // and we are doing the replacement in an empty string, we can rewrite
+        // the string-to-replace with a concatenation of all the terms that must
+        // be empty:
+        //
+        // (str.replace "" y z) ---> (str.replace "" (str.++ y1 ... yn)  z)
+        // if (str.contains "" y) ---> (and (= y1 "") ... (= yn ""))
+        if (node[0] == empty && allEmptyEqs)
+        {
+          std::vector<Node> emptyNodesList(emptyNodes.begin(),
+                                           emptyNodes.end());
+          Node nn1 = strings::utils::mkConcat(emptyNodesList, stype);
+          if (nn1 != node[1] || nn2 != node[2])
+          {
+            Node res = d_nm->mkNode(Kind::STRING_REPLACE, node[0], nn1, nn2);
+            debugExtendedRewrite(node, res, "RPL_EMP_CNTS_SUBSTS");
+            return res;
+          }
+        }
+
+        if (nn2 != node[2])
+        {
+          Node res = d_nm->mkNode(Kind::STRING_REPLACE, node[0], node[1], nn2);
+          debugExtendedRewrite(node, res, "RPL_CNTS_SUBSTS");
+          return res;
+        }
+      }
+    }
+  }
+  else if (k == Kind::STRING_CONTAINS)
+  {
+    if (node[0].getKind() == Kind::STRING_REPLACE)
+    {
+      TypeNode stype = node[0].getType();
+      Node empty = strings::Word::mkEmptyWord(stype);
+      if (node[1].isConst() && node[0][1].isConst() && node[0][2].isConst())
+      {
+        if (node[1] != empty && node[0][1] != empty && node[0][2] != empty
+            && !strings::Word::hasBidirectionalOverlap(node[1], node[0][1])
+            && !strings::Word::hasBidirectionalOverlap(node[1], node[0][2]))
+        {
+          // (str.contains (str.replace x c1 c2) c3) ---> (str.contains x c3)
+          // if there is no overlap between c1 and c3 and none between c2 and c3
+          Node ret = d_nm->mkNode(Kind::STRING_CONTAINS, node[0][0], node[1]);
+          debugExtendedRewrite(node, ret, "CTN_REPL_CNSTS_TO_CTN");
+          return ret;
+        }
+      }
+      // (str.contains (str.replace x y z) w) --->
+      //   (str.contains (str.replace x y "") w)
+      // if (str.contains z w) ---> false and (str.len w) = 1
+      if (se.checkLengthOne(node[1]))
+      {
+        Node ctn = se.checkContains(node[0][2], node[1]);
+        if (!ctn.isNull() && !ctn.getConst<bool>())
+        {
+          Node ret = d_nm->mkNode(
+              Kind::STRING_CONTAINS,
+              d_nm->mkNode(Kind::STRING_REPLACE, node[0][0], node[0][1], empty),
+              node[1]);
+          debugExtendedRewrite(node, ret, "CTN_REPL_SIMP_REPL");
+          return ret;
+        }
+      }
+    }
+    std::vector<Node> nc1;
+    strings::utils::getConcat(node[0], nc1);
+    std::vector<Node> nc2;
+    strings::utils::getConcat(node[1], nc2);
+
+    // extended component-wise containment
+    std::vector<Node> nc1rb;
+    std::vector<Node> nc1re;
+    if (se.componentContainsExt(nc1, nc2, nc1rb, nc1re) != -1)
+    {
+      debugExtendedRewrite(node, d_true, "CTN_COMPONENT_EXT");
+      return d_true;
+    }
+
+    for (const Node& n : nc2)
+    {
+      // (str.contains x (str.++ w (str.replace x y x) z)) --->
+      //   (= x (str.++ w (str.replace x y x) z))
+      //
+      if (n.getKind() == Kind::STRING_REPLACE && node[0] == n[0]
+          && node[0] == n[2])
+      {
+        Node ret = d_nm->mkNode(Kind::EQUAL, node[0], node[1]);
+        debugExtendedRewrite(node, ret, "CTN_REPL_SELF");
+        return ret;
+      }
+    }
+  }
+  // otherwise, the use of recursive approximations and rewriting via
+  // the entailment utilities may make a standard conditional rewrite
+  // applicable.
+  RewriteResponse rr = sr.postRewrite(node);
+  if (rr.d_node != node)
+  {
+    return rr.d_node;
+  }
+
+  return Node::null();
+}
+
+Node ExtendedRewriter::extendedRewriteArith(const Node& node) const
+{
+  if (node.getKind() == Kind::EQUAL)
+  {
+    // We invoke the extended equality rewriter, which normalizes the equality.
+    // Notice this is not applied by Rewriter::rewrite, since it does not
+    // preserve the terms of the equality, see rewriter::normalizeEquality.
+    Node ret = d_rew.rewriteEqualityExt(node);
+    if (ret != node)
+    {
+      debugExtendedRewrite(node, ret, "ARITH_EXT_EQ_REWRITE");
+      return ret;
+    }
+  }
   return Node::null();
 }
 
 Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
 {
-  if (node.getKind() == SET_MINUS && node[1].getKind() == SET_MINUS
+  if (node.getKind() == Kind::SET_MINUS && node[1].getKind() == Kind::SET_MINUS
       && node[1][0] == node[0])
   {
     // Note this cannot be a rewrite rule or a ppRewrite, since it impacts the
@@ -1749,8 +2111,8 @@ Node ExtendedRewriter::extendedRewriteSets(const Node& node) const
     // (setminus A B)), for instance if we are splitting the Venn regions of A
     // and (set.minus A B), then we should not transform this to an intersection
     // term. (set.minus A (set.minus A B)) = (set.inter A B)
-    NodeManager* nm = NodeManager::currentNM();
-    Node ret = nm->mkNode(SET_INTER, node[0], node[1][1]);
+    NodeManager* nm = d_nm;
+    Node ret = nm->mkNode(Kind::SET_INTER, node[0], node[1][1]);
     debugExtendedRewrite(node, ret, "SET_MINUS_MINUS");
     return ret;
   }
@@ -1761,6 +2123,8 @@ void ExtendedRewriter::debugExtendedRewrite(Node n,
                                             Node ret,
                                             const char* c) const
 {
+  Assert(ret.isNull() || n.getType().isComparableTo(ret.getType()))
+      << "Extended rewrite does not preserve type: " << n << " --> " << ret;
   if (TraceIsOn("q-ext-rewrite"))
   {
     if (!ret.isNull())

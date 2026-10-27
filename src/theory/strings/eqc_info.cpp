@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -121,16 +118,16 @@ Node EqcInfo::mkMergeConflict(Node t, Node prev, bool isArith)
 {
   Trace("strings-eager-debug")
       << "mkMergeConflict " << t << ", " << prev << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = t.getNodeManager();
   std::vector<Node> ccs;
   Node r[2];
   for (unsigned i = 0; i < 2; i++)
   {
     Node tp = i == 0 ? t : prev;
-    if (tp.getKind() == STRING_IN_REGEXP)
+    if (tp.getKind() == Kind::STRING_IN_REGEXP)
     {
       ccs.push_back(tp);
-      r[i] = isArith ? nm->mkNode(STRING_LENGTH, tp[0]) : tp[0];
+      r[i] = isArith ? nm->mkNode(Kind::STRING_LENGTH, tp[0]) : tp[0];
     }
     else
     {

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Mathias Preiner, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,7 +25,7 @@ namespace bags {
 
 BagEnumerator::BagEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<BagEnumerator>(type),
-      d_nodeManager(NodeManager::currentNM()),
+      d_nodeManager(type.getNodeManager()),
       d_elementTypeEnumerator(type.getBagElementType(), tep)
 {
   d_currentBag = d_nodeManager->mkConst(EmptyBag(type));
@@ -56,12 +53,12 @@ Node BagEnumerator::operator*()
 
 BagEnumerator& BagEnumerator::operator++()
 {
-  if (d_currentBag.getKind() == kind::BAG_EMPTY)
+  if (d_currentBag.getKind() == Kind::BAG_EMPTY)
   {
     // return (bag d_element 1)
     Node one = d_nodeManager->mkConstInt(Rational(1));
     TypeNode elementType = d_elementTypeEnumerator.getType();
-    Node singleton = d_nodeManager->mkNode(BAG_MAKE, d_element, one);
+    Node singleton = d_nodeManager->mkNode(Kind::BAG_MAKE, d_element, one);
     d_currentBag = singleton;
   }
   else

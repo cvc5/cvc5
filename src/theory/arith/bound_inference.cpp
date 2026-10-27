@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +15,7 @@
 #include "smt/env.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/linear/normal_form.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -26,7 +24,8 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-std::ostream& operator<<(std::ostream& os, const Bounds& b) {
+std::ostream& operator<<(std::ostream& os, const Bounds& b)
+{
   return os << (b.lower_strict ? '(' : '[') << b.lower_value << " .. "
             << b.upper_value << (b.upper_strict ? ')' : ']');
 }
@@ -58,6 +57,18 @@ const std::map<Node, Bounds>& BoundInference::get() const { return d_bounds; }
 bool BoundInference::add(const Node& n, bool onlyVariables)
 {
   Node tmp = rewrite(n);
+  if (tmp.getKind() == Kind::NOT && tmp[0].getKind() == Kind::EQUAL)
+  {
+    // Disequalities are not used for bound inference. Note we return here,
+    // since a disequality cannot necessarily be parsed as a comparison below.
+    return false;
+  }
+  if (tmp.getKind() == Kind::EQUAL)
+  {
+    // Normalize the equality, so that it can be parsed as a comparison below,
+    // see rewriter::normalizeEquality.
+    tmp = rewriter::normalizeEquality(nodeManager(), tmp);
+  }
   if (tmp.getKind() == Kind::CONST_BOOLEAN)
   {
     return false;
@@ -79,7 +90,7 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
   if (lhs.getType().isInteger())
   {
     Rational br = bound.getConst<Rational>();
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     switch (relation)
     {
       case Kind::LEQ: bound = nm->mkConstInt(br.floor()); break;
@@ -111,7 +122,7 @@ bool BoundInference::add(const Node& n, bool onlyVariables)
       break;
     case Kind::GT: update_lower_bound(n, lhs, bound, true); break;
     case Kind::GEQ: update_lower_bound(n, lhs, bound, false); break;
-    default: Assert(false);
+    default: DebugUnhandled();
   }
   return true;
 }
@@ -170,7 +181,7 @@ void BoundInference::update_lower_bound(const Node& origin,
   if (b.lower_value.isNull()
       || b.lower_value.getConst<Rational>() < value.getConst<Rational>())
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.lower_value = value;
     b.lower_strict = strict;
 
@@ -178,7 +189,12 @@ void BoundInference::update_lower_bound(const Node& origin,
 
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      Node eq = mkEquality(lhs, value);
+      // If both bounds come from the same origin, then that origin already is
+      // (equivalent to) the equality we would construct here. We use it, which
+      // avoids constructing an equality of a different form, e.g. one whose
+      // sides are cast to real.
+      Node eq = b.lower_origin == b.upper_origin ? b.lower_origin
+                                                 : mkEquality(lhs, value);
       b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
@@ -189,7 +205,7 @@ void BoundInference::update_lower_bound(const Node& origin,
   }
   else if (strict && b.lower_value == value)
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.lower_strict = strict;
     b.lower_bound = rewrite(nm->mkNode(Kind::GT, lhs, value));
     b.lower_origin = origin;
@@ -207,13 +223,18 @@ void BoundInference::update_upper_bound(const Node& origin,
   if (b.upper_value.isNull()
       || b.upper_value.getConst<Rational>() > value.getConst<Rational>())
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.upper_value = value;
     b.upper_strict = strict;
     b.upper_origin = origin;
     if (!b.lower_strict && !b.upper_strict && b.lower_value == b.upper_value)
     {
-      Node eq = mkEquality(lhs, value);
+      // If both bounds come from the same origin, then that origin already is
+      // (equivalent to) the equality we would construct here. We use it, which
+      // avoids constructing an equality of a different form, e.g. one whose
+      // sides are cast to real.
+      Node eq = b.lower_origin == b.upper_origin ? b.lower_origin
+                                                 : mkEquality(lhs, value);
       b.lower_bound = b.upper_bound = rewrite(eq);
     }
     else
@@ -224,7 +245,7 @@ void BoundInference::update_upper_bound(const Node& origin,
   }
   else if (strict && b.upper_value == value)
   {
-    auto* nm = NodeManager::currentNM();
+    auto* nm = nodeManager();
     b.upper_strict = strict;
     b.upper_bound = rewrite(nm->mkNode(Kind::LT, lhs, value));
     b.upper_origin = origin;

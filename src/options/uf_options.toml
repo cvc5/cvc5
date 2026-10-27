@@ -3,10 +3,11 @@ name   = "Uninterpreted Functions Theory"
 
 [[option]]
   name       = "ufSymmetryBreaker"
-  category   = "expert"
+  category   = "regular"
   long       = "symmetry-breaker"
   type       = "bool"
   default    = "true"
+  no_support = ["proofs"]
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
@@ -44,14 +45,6 @@ name   = "Uninterpreted Functions Theory"
   help       = "use fair strategy for finite model finding multiple sorts"
 
 [[option]]
-  name       = "ufssFairnessMonotone"
-  category   = "expert"
-  long       = "uf-ss-fair-monotone"
-  type       = "bool"
-  default    = "false"
-  help       = "group monotone sorts when enforcing fairness for finite model finding"
-
-[[option]]
   name       = "ufHoExt"
   category   = "expert"
   long       = "uf-ho-ext"
@@ -64,13 +57,45 @@ name   = "Uninterpreted Functions Theory"
   category   = "regular"
   long       = "uf-lazy-ll"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "do lambda lifting lazily"
 
 [[option]]
-  name       = "eagerArithBvConv"
+  name       = "ufHoLambdaQe"
   category   = "expert"
+  long       = "uf-lambda-qe"
+  type       = "bool"
+  default    = "false"
+  help       = "apply quantifier elimination eagerly when two lambdas are equated"
+
+[[option]]
+  name       = "eagerArithBvConv"
+  category   = "regular"
   long       = "eager-arith-bv-conv"
   type       = "bool"
   default    = "false"
   help       = "eagerly expand bit-vector to arithmetic conversions during preprocessing"
+
+[[option]]
+  name       = "modelBasedArithBvConv"
+  category   = "expert"
+  long       = "model-based-arith-bv-conv"
+  type       = "bool"
+  default    = "false"
+  help       = "model-based inferences for bit-vector to arithmetic conversions"
+
+[[option]]
+  name       = "ufHoExp"
+  category   = "expert"
+  long       = "uf-ho-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enables the higher-order logic solver in applicable logics"
+
+[[option]]
+  name       = "ufCardExp"
+  category   = "expert"
+  long       = "uf-card-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "allows logics with UF+cardinality"

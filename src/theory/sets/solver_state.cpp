@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,6 +13,7 @@
 #include "theory/sets/solver_state.h"
 
 #include "expr/emptyset.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
 
@@ -35,8 +33,8 @@ SolverState::SolverState(Env& env, Valuation val, SkolemCache& skc)
       d_members(env.getContext()),
       d_partElementSkolems(env.getUserContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void SolverState::reset()
@@ -70,57 +68,60 @@ void SolverState::registerEqc(TypeNode tn, Node r)
 void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
-  if (nk == SET_MEMBER)
+  int polarityIndex = r == d_true ? 0 : (r == d_false ? 1 : -1);
+  if (nk == Kind::SET_MEMBER)
   {
     if (r.isConst())
     {
       Node s = d_ee->getRepresentative(n[1]);
       Node x = d_ee->getRepresentative(n[0]);
-      int pindex = r == d_true ? 0 : (r == d_false ? 1 : -1);
-      if (pindex != -1)
+      if (polarityIndex != -1)
       {
-        if (d_pol_mems[pindex][s].find(x) == d_pol_mems[pindex][s].end())
+        if (d_pol_mems[polarityIndex][s].find(x)
+            == d_pol_mems[polarityIndex][s].end())
         {
-          d_pol_mems[pindex][s][x] = n;
-          Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n
-                               << ", pindex = " << pindex << std::endl;
+          d_pol_mems[polarityIndex][s][x] = n;
+          Trace("sets-debug2")
+              << "Membership[" << x << "][" << s << "] : " << n
+              << ", polarityIndex = " << polarityIndex << std::endl;
         }
         if (d_members_index[s].find(x) == d_members_index[s].end())
         {
           d_members_index[s][x] = n;
-          d_op_list[SET_MEMBER].push_back(n);
+          d_op_list[Kind::SET_MEMBER].push_back(n);
         }
       }
       else
       {
-        Assert(false);
+        DebugUnhandled();
       }
     }
   }
-  else if (nk == SET_SINGLETON || nk == SET_UNION || nk == SET_INTER
-           || nk == SET_MINUS || nk == SET_EMPTY || nk == SET_UNIVERSE)
+  else if (nk == Kind::SET_SINGLETON || nk == Kind::SET_UNION
+           || nk == Kind::SET_INTER || nk == Kind::SET_MINUS
+           || nk == Kind::SET_EMPTY || nk == Kind::SET_UNIVERSE)
   {
-    if (nk == SET_SINGLETON)
+    if (nk == Kind::SET_SINGLETON)
     {
       Node re = d_ee->getRepresentative(n[0]);
       if (d_singleton_index.find(re) == d_singleton_index.end())
       {
         d_singleton_index[re] = n;
         d_eqc_singleton[r] = n;
-        d_op_list[SET_SINGLETON].push_back(n);
+        d_op_list[Kind::SET_SINGLETON].push_back(n);
       }
       else
       {
         d_congruent[n] = d_singleton_index[re];
       }
     }
-    else if (nk == SET_EMPTY)
+    else if (nk == Kind::SET_EMPTY)
     {
       d_eqc_emptyset[tnn] = r;
     }
-    else if (nk == SET_UNIVERSE)
+    else if (nk == Kind::SET_UNIVERSE)
     {
-      Assert(options().sets.setsExt);
+      Assert(options().sets.setsExp);
       d_eqc_univset[tnn] = r;
     }
     else
@@ -137,16 +138,18 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       else
       {
         d_congruent[n] = itb->second;
+        // consider it regardless of whether congruent
+        d_bop_index[nk][n[0]][n[1]] = n;
       }
     }
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
-  else if (nk == SET_FILTER)
+  else if (nk == Kind::SET_FILTER)
   {
     d_filterTerms.push_back(n);
   }
-  else if (nk == SET_MAP)
+  else if (nk == Kind::SET_MAP)
   {
     d_mapTerms.insert(n);
     if (d_mapSkolemElements.find(n) == d_mapSkolemElements.end())
@@ -156,25 +159,32 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       d_mapSkolemElements[n] = set;
     }
   }
-  else if (nk == RELATION_GROUP)
+  else if (nk == Kind::RELATION_GROUP)
   {
     d_groupTerms.insert(n);
     std::shared_ptr<context::CDHashSet<Node>> set =
         std::make_shared<context::CDHashSet<Node>>(d_env.getUserContext());
     d_partElementSkolems[n] = set;
   }
-  else if (nk == SET_COMPREHENSION)
+  else if (nk == Kind::SET_COMPREHENSION)
   {
     d_compSets[r].push_back(n);
     d_allCompSets.push_back(n);
     Trace("sets-debug2") << "Comp-set[" << r << "] : " << n << std::endl;
   }
-  else if (Theory::isLeafOf(n, THEORY_SETS) && !d_skCache.isSkolem(n))
+  else if ((nk == Kind::SET_CHOOSE || Theory::isLeafOf(n, THEORY_SETS))
+           && !d_skCache.isSkolem(n))
   {
+    if (nk == Kind::SET_CHOOSE)
+    {
+      // for computing the care graph
+      d_op_list[nk].push_back(n);
+    }
     // It is important that we check it is a leaf, due to parametric theories
     // that may be used to construct terms of set type. It is also important to
     // exclude internally introduced skolems, due to the semantics of the
-    // universe set.
+    // universe set. We treat applications of set.choose as variables, since
+    // they are not otherwise interpreted by this solver.
     if (tnn.isSet())
     {
       if (d_var_set.find(r) == d_var_set.end())
@@ -231,13 +241,13 @@ Node SolverState::getSingletonEqClass(Node r) const
 
 Node SolverState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
 {
-  std::map<Kind, std::map<Node, std::map<Node, Node> > >::const_iterator itk =
+  std::map<Kind, std::map<Node, std::map<Node, Node>>>::const_iterator itk =
       d_bop_index.find(k);
   if (itk == d_bop_index.end())
   {
     return Node::null();
   }
-  std::map<Node, std::map<Node, Node> >::const_iterator it1 =
+  std::map<Node, std::map<Node, Node>>::const_iterator it1 =
       itk->second.find(r1);
   if (it1 == itk->second.end())
   {
@@ -253,11 +263,11 @@ Node SolverState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
 
 bool SolverState::isEntailed(Node n, bool polarity) const
 {
-  if (n.getKind() == NOT)
+  if (n.getKind() == Kind::NOT)
   {
     return isEntailed(n[0], !polarity);
   }
-  else if (n.getKind() == EQUAL)
+  else if (n.getKind() == Kind::EQUAL)
   {
     if (polarity)
     {
@@ -265,7 +275,7 @@ bool SolverState::isEntailed(Node n, bool polarity) const
     }
     return areDisequal(n[0], n[1]);
   }
-  else if (n.getKind() == SET_MEMBER)
+  else if (n.getKind() == Kind::SET_MEMBER)
   {
     if (areEqual(n, polarity ? d_true : d_false))
     {
@@ -281,9 +291,9 @@ bool SolverState::isEntailed(Node n, bool polarity) const
       }
     }
   }
-  else if (n.getKind() == AND || n.getKind() == OR)
+  else if (n.getKind() == Kind::AND || n.getKind() == Kind::OR)
   {
-    bool conj = (n.getKind() == AND) == polarity;
+    bool conj = (n.getKind() == Kind::AND) == polarity;
     for (const Node& nc : n)
     {
       bool isEnt = isEntailed(nc, polarity);
@@ -324,7 +334,7 @@ bool SolverState::isSetDisequalityEntailedInternal(Node a,
                                                    Node re) const
 {
   // if there are members in a
-  std::map<Node, std::map<Node, Node> >::const_iterator itpma =
+  std::map<Node, std::map<Node, Node>>::const_iterator itpma =
       d_pol_mems[0].find(a);
   if (itpma == d_pol_mems[0].end())
   {
@@ -348,7 +358,7 @@ bool SolverState::isSetDisequalityEntailedInternal(Node a,
     return false;
   }
   std::map<Node, Node>::const_iterator itsb = d_eqc_singleton.find(b);
-  std::map<Node, std::map<Node, Node> >::const_iterator itpmb =
+  std::map<Node, std::map<Node, Node>>::const_iterator itpmb =
       d_pol_mems[1].find(b);
   std::vector<Node> prev;
   for (const std::pair<const Node, Node>& itm : itpma->second)
@@ -409,7 +419,7 @@ bool SolverState::isCongruent(Node n) const
 }
 const std::vector<Node>& SolverState::getNonVariableSets(Node r) const
 {
-  std::map<Node, std::vector<Node> >::const_iterator it = d_nvar_sets.find(r);
+  std::map<Node, std::vector<Node>>::const_iterator it = d_nvar_sets.find(r);
   if (it == d_nvar_sets.end())
   {
     return d_emptyVec;
@@ -429,7 +439,7 @@ Node SolverState::getVariableSet(Node r) const
 
 const std::vector<Node>& SolverState::getComprehensionSets(Node r) const
 {
-  std::map<Node, std::vector<Node> >::const_iterator it = d_compSets.find(r);
+  std::map<Node, std::vector<Node>>::const_iterator it = d_compSets.find(r);
   if (it == d_compSets.end())
   {
     return d_emptyVec;
@@ -450,7 +460,7 @@ const std::map<Node, Node>& SolverState::getNegativeMembers(Node r) const
 const std::map<Node, Node>& SolverState::getMembersInternal(Node r,
                                                             unsigned i) const
 {
-  std::map<Node, std::map<Node, Node> >::const_iterator itp =
+  std::map<Node, std::map<Node, Node>>::const_iterator itp =
       d_pol_mems[i].find(r);
   if (itp == d_pol_mems[i].end())
   {
@@ -461,7 +471,7 @@ const std::map<Node, Node>& SolverState::getMembersInternal(Node r,
 
 bool SolverState::hasMembers(Node r) const
 {
-  std::map<Node, std::map<Node, Node> >::const_iterator it =
+  std::map<Node, std::map<Node, Node>>::const_iterator it =
       d_pol_mems[0].find(r);
   if (it == d_pol_mems[0].end())
   {
@@ -469,7 +479,7 @@ bool SolverState::hasMembers(Node r) const
   }
   return !it->second.empty();
 }
-const std::map<Kind, std::map<Node, std::map<Node, Node> > >&
+const std::map<Kind, std::map<Node, std::map<Node, Node>>>&
 SolverState::getBinaryOpIndex() const
 {
   return d_bop_index;
@@ -481,14 +491,20 @@ const std::map<Node, std::map<Node, Node>>& SolverState::getBinaryOpIndex(
   return d_bop_index[k];
 }
 
-const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
+const std::map<Kind, std::vector<Node>>& SolverState::getOperatorList() const
 {
   return d_op_list;
 }
 
-const std::vector<Node>& SolverState::getFilterTerms() const { return d_filterTerms; }
+const std::vector<Node>& SolverState::getFilterTerms() const
+{
+  return d_filterTerms;
+}
 
-const context::CDHashSet<Node>& SolverState::getMapTerms() const { return d_mapTerms; }
+const context::CDHashSet<Node>& SolverState::getMapTerms() const
+{
+  return d_mapTerms;
+}
 
 const context::CDHashSet<Node>& SolverState::getGroupTerms() const
 {
@@ -525,7 +541,7 @@ bool SolverState::isMember(TNode x, TNode s) const
   NodeIntMap::const_iterator mem_i = d_members.find(s);
   if (mem_i != d_members.end())
   {
-    std::map<Node, std::vector<Node> >::const_iterator itd =
+    std::map<Node, std::vector<Node>>::const_iterator itd =
         d_members_data.find(s);
     Assert(itd != d_members_data.end());
     const std::vector<Node>& members = itd->second;
@@ -580,14 +596,14 @@ bool SolverState::merge(TNode t1,
   for (size_t i = 0, nmem2 = (*mem_i2).second; i < nmem2; i++)
   {
     Assert(i < d_members_data[t2].size()
-           && d_members_data[t2][i].getKind() == SET_MEMBER);
+           && d_members_data[t2][i].getKind() == Kind::SET_MEMBER);
     Node m2 = d_members_data[t2][i];
     // check if redundant
     bool add = true;
     for (size_t j = 0; j < n_members; j++)
     {
       Assert(j < d_members_data[t1].size()
-             && d_members_data[t1][j].getKind() == SET_MEMBER);
+             && d_members_data[t1][j].getKind() == Kind::SET_MEMBER);
       if (areEqual(m2[0], d_members_data[t1][j][0]))
       {
         add = false;
@@ -599,17 +615,17 @@ bool SolverState::merge(TNode t1,
       // if there is a concrete set in t1, propagate new facts or conflicts
       if (!cset.isNull())
       {
-        NodeManager* nm = NodeManager::currentNM();
+        NodeManager* nm = nodeManager();
         Assert(areEqual(m2[1], cset));
-        Node exp = nm->mkNode(AND, m2[1].eqNode(cset), m2);
-        if (cset.getKind() == SET_SINGLETON)
+        Node exp = nm->mkNode(Kind::AND, m2[1].eqNode(cset), m2);
+        if (cset.getKind() == Kind::SET_SINGLETON)
         {
           if (cset[0] != m2[0])
           {
             Node eq = cset[0].eqNode(m2[0]);
             Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
                                << " => " << eq << std::endl;
-            Node fact = nm->mkNode(IMPLIES, exp, eq);
+            Node fact = nm->mkNode(Kind::IMPLIES, exp, eq);
             facts.push_back(fact);
           }
         }
@@ -640,23 +656,23 @@ bool SolverState::merge(TNode t1,
 
 void SolverState::registerMapSkolemElement(const Node& n, const Node& element)
 {
-  Assert(n.getKind() == kind::SET_MAP);
-  Assert(element.getKind() == SKOLEM
-         && element.getType() == n[1].getType().getSetElementType());
+  Assert(n.getKind() == Kind::SET_MAP);
+  Assert(element.getKind() == Kind::SKOLEM
+         && CVC5_EQUAL(element.getType(), n[1].getType().getSetElementType()));
   d_mapSkolemElements[n].get()->insert(element);
 }
 
 void SolverState::registerPartElementSkolem(Node group, Node skolemElement)
 {
-  Assert(group.getKind() == RELATION_GROUP);
-  Assert(skolemElement.getType() == group[0].getType().getSetElementType());
+  Assert(group.getKind() == Kind::RELATION_GROUP);
+  AssertEqual(skolemElement.getType(), group[0].getType().getSetElementType());
   d_partElementSkolems[group].get()->insert(skolemElement);
 }
 
 std::shared_ptr<context::CDHashSet<Node>> SolverState::getPartElementSkolems(
     Node n)
 {
-  Assert(n.getKind() == RELATION_GROUP);
+  Assert(n.getKind() == Kind::RELATION_GROUP);
   return d_partElementSkolems[n];
 }
 

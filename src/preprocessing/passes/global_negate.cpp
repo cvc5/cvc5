@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Yoni Zohar, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,6 +15,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
@@ -35,33 +33,24 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   Assert(!assertions.empty());
   Trace("cegqi-gn") << "Global negate : " << std::endl;
   // collect free variables in all assertions
-  std::vector<Node> free_vars;
-  std::vector<TNode> visit;
+  std::unordered_set<Node> syms;
   std::unordered_set<TNode> visited;
   for (const Node& as : assertions)
   {
     Trace("cegqi-gn") << "  " << as << std::endl;
-    TNode cur = as;
-    // compute free variables
-    visit.push_back(cur);
-    do
-    {
-      cur = visit.back();
-      visit.pop_back();
-      if (visited.find(cur) == visited.end())
-      {
-        visited.insert(cur);
-        if (cur.isVar() && cur.getKind() != BOUND_VARIABLE)
-        {
-          free_vars.push_back(cur);
-        }
-        for (const TNode& cn : cur)
-        {
-          visit.push_back(cn);
-        }
-      }
-    } while (!visit.empty());
+    expr::getSymbols(as, syms, visited);
   }
+  for (const Node& s : syms)
+  {
+    if (s.getType().isFirstClass())
+    {
+      // We have a symbol whose type is not first class. For example, a
+      // datatype selector. In such cases, this preprocessing pass cannot be
+      // applied.
+      return Node::null();
+    }
+  }
+  std::vector<Node> fvs(syms.begin(), syms.end());
 
   Node body;
   if (assertions.size() == 1)
@@ -70,27 +59,26 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
   }
   else
   {
-    body = nm->mkNode(AND, assertions);
+    body = nm->mkNode(Kind::AND, assertions);
   }
 
   // do the negation
   body = body.negate();
 
-  if (!free_vars.empty())
+  if (!fvs.empty())
   {
     std::vector<Node> bvs;
-    for (const Node& v : free_vars)
+    for (const Node& v : fvs)
     {
-      Node bv = nm->mkBoundVar(v.getType());
+      Node bv = NodeManager::mkBoundVar(v.getType());
       bvs.push_back(bv);
     }
 
-    body = body.substitute(
-        free_vars.begin(), free_vars.end(), bvs.begin(), bvs.end());
+    body = body.substitute(fvs.begin(), fvs.end(), bvs.begin(), bvs.end());
 
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, bvs);
+    Node bvl = nm->mkNode(Kind::BOUND_VAR_LIST, bvs);
 
-    body = nm->mkNode(FORALL, bvl, body);
+    body = nm->mkNode(Kind::FORALL, bvl, body);
   }
 
   Trace("cegqi-gn-debug") << "...got (pre-rewrite) : " << body << std::endl;
@@ -100,19 +88,30 @@ Node GlobalNegate::simplify(const std::vector<Node>& assertions,
 }
 
 GlobalNegate::GlobalNegate(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "global-negate"){};
+    : PreprocessingPass(preprocContext, "global-negate") {};
 
 PreprocessingPassResult GlobalNegate::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
+  if (simplifiedNode.isNull())
+  {
+    // failed to convert, possibly due to an unhandled symbol
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
   Node trueNode = nm->mkConst(true);
+  // mark as negated
+  assertionsToPreprocess->markNegated();
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     if (i == 0)
     {
       assertionsToPreprocess->replace(i, simplifiedNode);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
     else
     {
@@ -121,7 +120,6 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

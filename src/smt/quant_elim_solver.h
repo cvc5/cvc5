@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +23,7 @@ namespace cvc5::internal {
 namespace smt {
 
 class SmtSolver;
+class ContextManager;
 
 /**
  * A solver for quantifier elimination queries.
@@ -38,7 +36,7 @@ class SmtSolver;
 class QuantElimSolver : protected EnvObj
 {
  public:
-  QuantElimSolver(Env& env, SmtSolver& sms);
+  QuantElimSolver(Env& env, SmtSolver& sms, ContextManager* ctx);
   ~QuantElimSolver();
 
   /**
@@ -95,6 +93,8 @@ class QuantElimSolver : protected EnvObj
  private:
   /** The SMT solver, which is used during doQuantifierElimination. */
   SmtSolver& d_smtSolver;
+  /** The underlying context manager. */
+  ContextManager* d_ctx;
 };
 
 }  // namespace smt

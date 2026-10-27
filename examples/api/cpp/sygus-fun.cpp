@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Abdalrhman Mohamed, Mathias Preiner, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,7 +23,8 @@ using namespace cvc5;
 
 int main()
 {
-  Solver slv;
+  TermManager tm;
+  Solver slv(tm);
 
   // required options
   slv.setOption("sygus", "true");
@@ -35,28 +33,28 @@ int main()
   // set the logic
   slv.setLogic("LIA");
 
-  Sort integer = slv.getIntegerSort();
-  Sort boolean = slv.getBooleanSort();
+  Sort integer = tm.getIntegerSort();
+  Sort boolean = tm.getBooleanSort();
 
   // declare input variables for the functions-to-synthesize
-  Term x = slv.mkVar(integer, "x");
-  Term y = slv.mkVar(integer, "y");
+  Term x = tm.mkVar(integer, "x");
+  Term y = tm.mkVar(integer, "y");
 
   // declare the grammar non-terminals
-  Term start = slv.mkVar(integer, "Start");
-  Term start_bool = slv.mkVar(boolean, "StartBool");
+  Term start = tm.mkVar(integer, "Start");
+  Term start_bool = tm.mkVar(boolean, "StartBool");
 
   // define the rules
-  Term zero = slv.mkInteger(0);
-  Term one = slv.mkInteger(1);
+  Term zero = tm.mkInteger(0);
+  Term one = tm.mkInteger(1);
 
-  Term plus = slv.mkTerm(ADD, {start, start});
-  Term minus = slv.mkTerm(SUB, {start, start});
-  Term ite = slv.mkTerm(ITE, {start_bool, start, start});
+  Term plus = tm.mkTerm(Kind::ADD, {start, start});
+  Term minus = tm.mkTerm(Kind::SUB, {start, start});
+  Term ite = tm.mkTerm(Kind::ITE, {start_bool, start, start});
 
-  Term And = slv.mkTerm(AND, {start_bool, start_bool});
-  Term Not = slv.mkTerm(NOT, {start_bool});
-  Term leq = slv.mkTerm(LEQ, {start, start});
+  Term And = tm.mkTerm(Kind::AND, {start_bool, start_bool});
+  Term Not = tm.mkTerm(Kind::NOT, {start_bool});
+  Term leq = tm.mkTerm(Kind::LEQ, {start, start});
 
   // create the grammar object
   Grammar g = slv.mkGrammar({x, y}, {start, start_bool});
@@ -74,27 +72,27 @@ int main()
   Term varX = slv.declareSygusVar("x", integer);
   Term varY = slv.declareSygusVar("y", integer);
 
-  Term max_x_y = slv.mkTerm(APPLY_UF, {max, varX, varY});
-  Term min_x_y = slv.mkTerm(APPLY_UF, {min, varX, varY});
+  Term max_x_y = tm.mkTerm(Kind::APPLY_UF, {max, varX, varY});
+  Term min_x_y = tm.mkTerm(Kind::APPLY_UF, {min, varX, varY});
 
   // add semantic constraints
   // (constraint (>= (max x y) x))
-  slv.addSygusConstraint(slv.mkTerm(GEQ, {max_x_y, varX}));
+  slv.addSygusConstraint(tm.mkTerm(Kind::GEQ, {max_x_y, varX}));
 
   // (constraint (>= (max x y) y))
-  slv.addSygusConstraint(slv.mkTerm(GEQ, {max_x_y, varY}));
+  slv.addSygusConstraint(tm.mkTerm(Kind::GEQ, {max_x_y, varY}));
 
   // (constraint (or (= x (max x y))
   //                 (= y (max x y))))
-  slv.addSygusConstraint(slv.mkTerm(OR,
-                                    {slv.mkTerm(EQUAL, {max_x_y, varX}),
-                                     slv.mkTerm(EQUAL, {max_x_y, varY})}));
+  slv.addSygusConstraint(tm.mkTerm(Kind::OR,
+                                   {tm.mkTerm(Kind::EQUAL, {max_x_y, varX}),
+                                    tm.mkTerm(Kind::EQUAL, {max_x_y, varY})}));
 
   // (constraint (= (+ (max x y) (min x y))
   //                (+ x y)))
-  slv.addSygusConstraint(slv.mkTerm(
-      EQUAL,
-      {slv.mkTerm(ADD, {max_x_y, min_x_y}), slv.mkTerm(ADD, {varX, varY})}));
+  slv.addSygusConstraint(tm.mkTerm(Kind::EQUAL,
+                                   {tm.mkTerm(Kind::ADD, {max_x_y, min_x_y}),
+                                    tm.mkTerm(Kind::ADD, {varX, varY})}));
 
   // print solutions if available
   if (slv.checkSynth().hasSolution())

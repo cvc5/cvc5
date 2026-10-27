@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -59,6 +56,11 @@ PreprocessingPassResult ApplySubsts::applyInternal(
         tlsm.applyTrusted((*assertionsToPreprocess)[i], d_env.getRewriter()));
     Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                           << std::endl;
+    // if rewritten to false, we are done
+    if (assertionsToPreprocess->isInConflict())
+    {
+      return PreprocessingPassResult::CONFLICT;
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

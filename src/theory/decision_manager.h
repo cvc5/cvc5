@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@
 #define CVC5__THEORY__DECISION_MANAGER__H
 
 #include <map>
+
 #include "context/cdlist.h"
 #include "theory/decision_strategy.h"
 
@@ -70,6 +68,7 @@ class DecisionManager
     //  other words, if these strategies did not go before other decisions, we
     //  might be non-terminating instead of answering "sat" with a solution
     //  within a given a bound.
+    STRAT_ORACLE_ARG_VALUE,
     STRAT_UF_COMBINED_CARD,
     STRAT_UF_CARD,
     STRAT_DT_SYGUS_ENUM_ACTIVE,

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -43,7 +40,6 @@ class EnumValueManager : protected EnvObj
 {
  public:
   EnumValueManager(Env& env,
-                   QuantifiersState& qs,
                    QuantifiersInferenceManager& qim,
                    TermRegistry& tr,
                    SygusStatistics& s,
@@ -74,8 +70,6 @@ class EnumValueManager : protected EnvObj
   Node getModelValue(Node n);
   /** The enumerator */
   Node d_enum;
-  /** Reference to the quantifiers state */
-  QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** Reference to the term registry */
@@ -87,7 +81,7 @@ class EnumValueManager : protected EnvObj
   /** Sygus sampler (for --sygus-rr-verify) */
   std::unique_ptr<SygusSampler> d_samplerRrV;
   /** if we allocated a default sygus enumerator callback */
-  std::unique_ptr<SygusEnumeratorCallbackDefault> d_secd;
+  std::unique_ptr<SygusEnumeratorCallback> d_secd;
   /** enumerator generators for each actively-generated enumerator */
   std::unique_ptr<EnumValGenerator> d_evg;
   /** example evaluation cache utility for each enumerator */

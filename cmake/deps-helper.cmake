@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andrew V. Jones
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -16,9 +13,9 @@
 ##
 
 # where to build dependencies
-set(DEPS_PREFIX "${CMAKE_BINARY_DIR}/deps")
+set(DEPS_PREFIX "${PROJECT_BINARY_DIR}/deps")
 # base path to installed dependencies
-set(DEPS_BASE "${CMAKE_BINARY_DIR}/deps")
+set(DEPS_BASE "${PROJECT_BINARY_DIR}/deps")
 # CMake wants directories specified via INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
 # (and similar) to exist when target property is set.
 file(MAKE_DIRECTORY "${DEPS_BASE}/include/")
@@ -37,6 +34,21 @@ if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14")
         LOG_MERGED_STDOUTERR ON
         LOG_OUTPUT_ON_FAILURE ON
     )
+endif()
+
+# On Windows, DLL libraries are runtime artifacts
+if(BUILD_SHARED_LIBS AND WIN32)
+  set(LIB_BUILD_TYPE BIN)
+else()
+  set(LIB_BUILD_TYPE LIB)
+endif()
+
+# On Windows, we need to have a shell interpreter to call 'configure'
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    find_program (SHELL "sh" REQUIRED)
+    message(STATUS "Found shell interpreter: ${SHELL}")
+else()
+    set(SHELL "")
 endif()
 
 macro(force_static_library)
@@ -91,8 +103,15 @@ macro(check_system_version name)
     # we ignore the EXACT option and version ranges here
     if (${name}_FIND_VERSION)
         if(${name}_VERSION VERSION_LESS ${name}_FIND_VERSION)
-            message(VERBOSE "System version for ${name} has incompatible \
-version: required ${${name}_FIND_VERSION} but found ${${name}_VERSION}")
+            message(STATUS "System version for ${name} has incompatible \
+version: minimum required ${${name}_FIND_VERSION} but found ${${name}_VERSION}")
+            set(${name}_FOUND_SYSTEM FALSE)
+        endif()
+    endif()
+    if (${name}_FIND_VERSION_MAX)
+        if(${name}_VERSION VERSION_GREATER ${name}_FIND_VERSION_MAX)
+            message(STATUS "System version for ${name} has incompatible \
+version: maximum required ${${name}_FIND_VERSION_MAX} but found ${${name}_VERSION}")
             set(${name}_FOUND_SYSTEM FALSE)
         endif()
     endif()

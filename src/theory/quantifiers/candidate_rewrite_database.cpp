@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,15 +30,15 @@ namespace theory {
 namespace quantifiers {
 
 CandidateRewriteDatabase::CandidateRewriteDatabase(
-    Env& env, bool doCheck, bool rewAccel, bool silent, bool filterPairs)
+    Env& env, bool doCheck, bool rewAccel, bool filterPairs, bool rec)
     : ExprMiner(env),
       d_tds(nullptr),
       d_useExtRewriter(false),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
-      d_silent(silent),
       d_filterPairs(filterPairs),
       d_using_sygus(false),
+      d_rec(rec),
       d_crewrite_filter(env)
 {
   // determine the options to use for the verification subsolvers we spawn
@@ -82,10 +79,13 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   ExprMiner::initialize(vars, ss);
 }
 
-Node CandidateRewriteDatabase::addTerm(Node sol,
-                                       bool rec,
-                                       std::ostream& out,
-                                       bool& rew_print)
+bool CandidateRewriteDatabase::wasVerified(const Node& rewrite) const
+{
+  return d_verified.find(rewrite) != d_verified.end();
+}
+
+Node CandidateRewriteDatabase::addOrGetTerm(Node sol,
+                                            std::vector<Node>& rewrites)
 {
   // have we added this term before?
   std::unordered_map<Node, Node>::iterator itac = d_add_term_cache.find(sol);
@@ -94,19 +94,19 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
     return itac->second;
   }
 
-  if (rec)
+  if (d_rec)
   {
     // if recursive, we first add all subterms
     for (const Node& solc : sol)
     {
       // whether a candidate rewrite is printed for any subterm is irrelevant
-      bool rew_printc = false;
-      addTerm(solc, rec, out, rew_printc);
+      addTerm(solc, rewrites);
     }
   }
   // register the term
   bool is_unique_term = true;
   Node eq_sol = d_sampler->registerTerm(sol);
+  Trace("rr-check-r") << sol << " returns " << eq_sol << std::endl;
   // eq_sol is a candidate solution that is equivalent to sol
   if (eq_sol != sol)
   {
@@ -155,7 +155,6 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         if (r.getStatus() == Result::SAT)
         {
           Trace("rr-check") << "...rewrite does not hold for: " << std::endl;
-          NodeManager* nm = NodeManager::currentNM();
           is_unique_term = true;
           std::vector<Node> vars;
           d_sampler->getVariables(vars);
@@ -166,13 +165,13 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
             Node refv = v;
             // if a bound variable, map to the skolem we introduce before
             // looking up the model value
-            if (v.getKind() == BOUND_VARIABLE)
+            if (v.getKind() == Kind::BOUND_VARIABLE)
             {
               std::map<Node, Node>::iterator itf = d_fv_to_skolem.find(v);
               if (itf == d_fv_to_skolem.end())
               {
                 // not in conjecture, can use arbitrary value
-                val = nm->mkGroundTerm(v.getType());
+                val = NodeManager::mkGroundTerm(v.getType());
               }
               else
               {
@@ -182,7 +181,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
             }
             if (val.isNull())
             {
-              Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
+              Assert(!refv.isNull() && refv.getKind() != Kind::BOUND_VARIABLE);
               val = rrChecker->getValue(refv);
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
@@ -219,28 +218,17 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.
-        if (!d_silent)
+        Node eq = solb.eqNode(eq_sol);
+        rewrites.push_back(eq);
+        if (verified)
         {
-          out << "(" << (verified ? "" : "candidate-") << "rewrite ";
-          if (d_using_sygus)
-          {
-            TermDbSygus::toStreamSygus(out, sol);
-            out << " ";
-            TermDbSygus::toStreamSygus(out, eq_sol);
-          }
-          else
-          {
-            out << sol << " " << eq_sol;
-          }
-          out << ")" << std::endl;
+          d_verified.insert(eq);
         }
-        // we count this as printed, despite not literally printing it
-        rew_print = true;
         // debugging information
         if (TraceIsOn("sygus-rr-debug"))
         {
-          Trace("sygus-rr-debug") << "; candidate #1 ext-rewrites to: " << solbr
-                                  << std::endl;
+          Trace("sygus-rr-debug")
+              << "; candidate #1 ext-rewrites to: " << solbr << std::endl;
           Trace("sygus-rr-debug")
               << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
         }
@@ -263,8 +251,8 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
           Node x = d_tds->getFreeVar(ptn, 0);
           Node lem = d_tds->getExplain()->getExplanationForEquality(x, exc_sol);
           lem = lem.negate();
-          Trace("sygus-rr-sb") << "Symmetry breaking lemma : " << lem
-                               << std::endl;
+          Trace("sygus-rr-sb")
+              << "Symmetry breaking lemma : " << lem << std::endl;
           d_tds->registerSymBreakLemma(d_candidate, lem, ptn, sz);
         }
       }
@@ -295,18 +283,11 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
   return eq_sol;
 }
 
-Node CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
+bool CandidateRewriteDatabase::addTerm(Node sol, std::vector<Node>& rewrites)
 {
-  bool rew_print = false;
-  return addTerm(sol, rec, out, rew_print);
-}
-bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
-{
-  Node rsol = addTerm(sol, false, out);
+  Node rsol = addOrGetTerm(sol, rewrites);
   return sol == rsol;
 }
-
-void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
 void CandidateRewriteDatabase::enableExtendedRewriter()
 {

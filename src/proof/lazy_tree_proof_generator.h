@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +37,7 @@ struct TreeProofNode
   /** Storage for some custom object identifier, used for pruning */
   size_t d_objectId;
   /** The proof rule */
-  PfRule d_rule = PfRule::UNKNOWN;
+  ProofRule d_rule = ProofRule::UNKNOWN;
   /** Assumptions used as premise for this proof step */
   std::vector<Node> d_premise;
   /** Arguments for this proof step */
@@ -151,10 +148,18 @@ class LazyTreeProofGenerator : protected EnvObj, public ProofGenerator
   detail::TreeProofNode& getCurrent();
   /** Set the current node / proof step */
   void setCurrent(size_t objectId,
-                  PfRule rule,
+                  ProofRule rule,
                   const std::vector<Node>& premise,
                   std::vector<Node> args,
                   Node proven);
+  /**
+   * Same as above, but with a trusted proof step.
+   */
+  void setCurrentTrust(size_t objectId,
+                       TrustId tid,
+                       const std::vector<Node>& premise,
+                       std::vector<Node> args,
+                       Node proven);
   /** Construct the proof as a ProofNode */
   std::shared_ptr<ProofNode> getProof() const;
   /** Return the constructed proof. Checks that we have proven f */

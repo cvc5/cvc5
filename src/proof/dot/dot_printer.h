@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Diego Della Rocca de Camargos, Haniel Barbosa, Vinícius Braga Freire
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,14 +37,14 @@ enum class ProofNodeClusterType : uint8_t
   FIRST_SCOPE = 0,
   // ======== SAT
   // Type of proof node cluster that is between FIRST_SCOPE and CNF.
-  // The rules are: CHAIN_RESOLUTION, FACTORING, REORDERING, MACRO_RESOLUTION
-  // and MACRO_RESOLUTION_TRUST.
+  // The rules are: CHAIN_RESOLUTION, FACTORING, REORDERING and
+  // CHAIN_M_RESOLUTION.
   SAT,
   // ======== CNF
   // Type of proof node cluster that is below SAT and above THEORY_LEMMA or
   // PRE_PROCESSING.
-  // The rules, that are described by the PfRule enumeration, are in the range
-  // between NOT_NOT_ELIM and CNF_ITE_NEG3.
+  // The rules, that are described by the ProofRule enumeration, are in the
+  // range between NOT_NOT_ELIM and CNF_ITE_NEG3.
   CNF,
   // ======== THEORY_LEMMA
   // Proof nodes contained in a SCOPE which starts just after a SAT or CNF proof
@@ -167,40 +164,39 @@ class DotPrinter : protected EnvObj
    */
   inline bool isInput(const ProofNode* pn);
 
-  /** Verify if the rule is in the SAT range (i.e. a PfRule that is
-   * CHAIN_RESOLUTION, FACTORING, REORDERING, MACRO_RESOLUTION or
-   * MACRO_RESOLUTION_TRUST).
+  /** Verify if the rule is in the SAT range (i.e. a ProofRule that is
+   * CHAIN_RESOLUTION, FACTORING, REORDERING or CHAIN_M_RESOLUTION).
    * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not in the SAT range.
    */
-  inline bool isSat(const PfRule& rule);
+  inline bool isSat(const ProofRule& rule);
 
   /** Verify if the rule is in the CNF range (between NOT_NOT_ELIM and
-   * CNF_ITE_NEG3) in the PfRule enumeration.
+   * CNF_ITE_NEG3) in the ProofRule enumeration.
    * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not in the CNF range.
    */
-  inline bool isCNF(const PfRule& rule);
+  inline bool isCNF(const ProofRule& rule);
 
   /** Verify if the rule is a SCOPE
    * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not a SCOPE.
    */
-  inline bool isSCOPE(const PfRule& rule);
+  inline bool isSCOPE(const ProofRule& rule);
 
   /** Verify if the rule is in the theory lemma range (open interval between
-   * CNF_ITE_NEG3 and LFSC_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
+   * CNF_ITE_NEG3 and ALETHE_RULE) or if the rule is a SCOPE or THEORY_LEMMA.
    * @param rule The rule to be verified.
    * @return The bool indicating whether the rule is for a theory lemma
    * range.
    */
-  inline bool isTheoryLemma(const PfRule& rule);
+  inline bool isTheoryLemma(const ProofNode* pn);
 
   /** Verify if the rule is an ASSUME
    * @param rule The rule to be verified.
    * @return The bool indicating if the rule is or not an ASSUME.
    */
-  inline bool isASSUME(const PfRule& rule);
+  inline bool isASSUME(const ProofRule& rule);
 
   /** All unique subproofs of a given proof node (counting itself). */
   std::map<const ProofNode*, size_t> d_subpfCounter;

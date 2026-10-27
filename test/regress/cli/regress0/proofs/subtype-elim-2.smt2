@@ -1,0 +1,12 @@
+; EXPECT: unsat
+(set-option :simplification none)
+(set-logic LRA)
+(declare-const a Real)
+(declare-const b Real)
+(declare-const c Real)
+(assert (< (- (+ a b) c) 3.0))
+(assert (< c (- 10.0)))
+(assert (< 5.0 b))
+(assert (< 0.0 a))
+(assert (not false))
+(check-sat)

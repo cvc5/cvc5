@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -46,10 +43,14 @@ bool InstStrategyPool::needsCheck(Theory::Effort e)
   return d_qstate.getInstWhenNeedsCheck(e);
 }
 
-void InstStrategyPool::reset_round(Theory::Effort e) {}
+void InstStrategyPool::reset_round(CVC5_UNUSED Theory::Effort e) {}
 
 void InstStrategyPool::registerQuantifier(Node q)
 {
+  if (options().quantifiers.userPoolQuant == options::UserPoolMode::IGNORE)
+  {
+    return;
+  }
   // take into account user pools
   if (q.getNumChildren() == 3)
   {
@@ -57,27 +58,102 @@ void InstStrategyPool::registerQuantifier(Node q)
     // add patterns
     for (const Node& p : subsPat)
     {
-      if (p.getKind() == INST_POOL)
+      if (p.getKind() == Kind::INST_POOL)
       {
-        d_userPools[q].push_back(p);
+        if (hasTupleSemantics(q, p) || hasProductSemantics(q, p))
+        {
+          d_userPools[q].push_back(p);
+        }
+        else
+        {
+          Warning() << "Cannot find semantics of pool " << p << " in " << q
+                    << std::endl;
+        }
       }
     }
   }
 }
 
-void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
+void InstStrategyPool::checkOwnership(Node q)
+{
+  if (options().quantifiers.userPoolQuant == options::UserPoolMode::TRUST
+      && q.getNumChildren() == 3)
+  {
+    // if only using pools for instantiation, take ownership of this quantified
+    // formula
+    for (const Node& p : q[2])
+    {
+      if (p.getKind() == Kind::INST_POOL)
+      {
+        d_qreg.setOwner(q, this, 1);
+        return;
+      }
+    }
+  }
+}
+
+bool InstStrategyPool::hasProductSemantics(Node q, Node p)
+{
+  Assert(q.getKind() == Kind::EXISTS || q.getKind() == Kind::FORALL);
+  Assert(p.getKind() == Kind::INST_POOL);
+  size_t nchild = p.getNumChildren();
+  if (nchild != q[0].getNumChildren())
+  {
+    return false;
+  }
+  for (size_t i = 0; i < nchild; i++)
+  {
+    Assert(p[i].getType().isSet());
+    TypeNode tn = p[i].getType().getSetElementType();
+    if (tn != q[0][i].getType())
+    {
+      // the i^th pool in the annotation does not match the i^th variable
+      return false;
+    }
+  }
+  return true;
+}
+
+bool InstStrategyPool::hasTupleSemantics(Node q, Node p)
+{
+  Assert(q.getKind() == Kind::EXISTS || q.getKind() == Kind::FORALL);
+  Assert(p.getKind() == Kind::INST_POOL);
+  if (p.getNumChildren() != 1)
+  {
+    return false;
+  }
+  Assert(p[0].getType().isSet());
+  TypeNode ptn = p[0].getType().getSetElementType();
+  if (!ptn.isTuple())
+  {
+    return false;
+  }
+  std::vector<TypeNode> targs = ptn.getTupleTypes();
+  size_t nchild = targs.size();
+  if (nchild != q[0].getNumChildren())
+  {
+    return false;
+  }
+  for (size_t i = 0; i < nchild; i++)
+  {
+    if (targs[i] != q[0][i].getType())
+    {
+      // the i^th component type of the pool in the annotation does not match
+      // the i^th variable
+      return false;
+    }
+  }
+  return true;
+}
+
+void InstStrategyPool::check(CVC5_UNUSED Theory::Effort e,
+                             CVC5_UNUSED QEffort quant_e)
 {
   if (d_userPools.empty())
   {
     return;
   }
-  double clSet = 0;
-  if (TraceIsOn("pool-engine"))
-  {
-    clSet = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
-                         << std::endl;
-  }
+  beginCallDebug();
   FirstOrderModel* fm = d_treg.getModel();
   bool inConflict = false;
   uint64_t addedLemmas = 0;
@@ -92,9 +168,9 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       // no user pools for this
       continue;
     }
-    if (!d_qreg.hasOwnership(q, this) || !fm->isQuantifierActive(q))
+    if (!d_qreg.hasOwnership(q, this))
     {
-      // quantified formula is not owned by this or is inactive
+      // quantified formula is not owned by this
       continue;
     }
     // process with each user pool
@@ -111,22 +187,21 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       break;
     }
   }
-  if (TraceIsOn("pool-engine"))
-  {
-    Trace("pool-engine") << "Added lemmas = " << addedLemmas << std::endl;
-    double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
-    Trace("pool-engine") << "Finished pool instantiation, time = "
-                         << (clSet2 - clSet) << std::endl;
-  }
+  endCallDebug();
 }
 
-std::string InstStrategyPool::identify() const
-{
-  return std::string("InstStrategyPool");
-}
+std::string InstStrategyPool::identify() const { return "pool-inst"; }
 
 bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
+  Assert(q.getKind() == Kind::FORALL && p.getKind() == Kind::INST_POOL);
+  // maybe has tuple semantics?
+  if (hasTupleSemantics(q, p))
+  {
+    return processTuple(q, p, addedLemmas);
+  }
+  Assert(hasProductSemantics(q, p));
+  // otherwise, process standard
   Instantiate* ie = d_qim.getInstantiate();
   TermTupleEnumeratorEnv ttec;
   ttec.d_fullEffort = true;
@@ -159,6 +234,40 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
       Trace("pool-inst") << "Fail with " << terms << std::endl;
       // notify the enumerator of the failure
       enumerator->failureReason(failMask);
+    }
+  }
+  return false;
+}
+
+bool InstStrategyPool::processTuple(Node q, Node p, uint64_t& addedLemmas)
+{
+  Instantiate* ie = d_qim.getInstantiate();
+  TermPools* tp = d_treg.getTermPools();
+  // get the terms
+  std::vector<Node> terms;
+  tp->getTermsForPool(p[0], terms);
+  // instantiation for each term in pool
+  for (const Node& t : terms)
+  {
+    if (d_qstate.isInConflict())
+    {
+      return true;
+    }
+    if (t.getKind() != Kind::APPLY_CONSTRUCTOR)
+    {
+      // a symbolic tuple is in the pool, we ignore it.
+      continue;
+    }
+    std::vector<Node> inst(t.begin(), t.end());
+    Assert(inst.size() == q[0].getNumChildren());
+    if (ie->addInstantiation(q, inst, InferenceId::QUANTIFIERS_INST_POOL_TUPLE))
+    {
+      Trace("pool-inst") << "Success (tuple) with " << inst << std::endl;
+      addedLemmas++;
+    }
+    else
+    {
+      Trace("pool-inst") << "Fail (tuple) with " << inst << std::endl;
     }
   }
   return false;

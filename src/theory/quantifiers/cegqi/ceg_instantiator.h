@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,8 +18,10 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/valid_witness_proof_generator.h"
 #include "smt/env_obj.h"
 #include "theory/inference_id.h"
+#include "theory/quantifiers/cegqi/ceg_utils.h"
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
@@ -33,169 +32,9 @@ class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
 class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
 class TermRegistry;
-
-/**
- * Descriptions of the types of constraints that a term was solved for in.
- */
-enum CegTermType
-{
-  // invalid
-  CEG_TT_INVALID,
-  // term was the result of solving an equality
-  CEG_TT_EQUAL,
-  // term was the result of solving a non-strict lower bound x >= t
-  CEG_TT_LOWER,
-  // term was the result of solving a strict lower bound x > t
-  CEG_TT_LOWER_STRICT,
-  // term was the result of solving a non-strict upper bound x <= t
-  CEG_TT_UPPER,
-  // term was the result of solving a strict upper bound x < t
-  CEG_TT_UPPER_STRICT,
-};
-/** make (non-strict term type) c a strict term type */
-CegTermType mkStrictCTT(CegTermType c);
-/** negate c (lower/upper bounds are swapped) */
-CegTermType mkNegateCTT(CegTermType c);
-/** is c a strict term type? */
-bool isStrictCTT(CegTermType c);
-/** is c a lower bound? */
-bool isLowerBoundCTT(CegTermType c);
-/** is c an upper bound? */
-bool isUpperBoundCTT(CegTermType c);
-
-/** Term Properties
- *
- * Stores properties for a variable to solve for in counterexample-guided
- * instantiation.
- *
- * For LIA, this includes the coefficient of the variable, and the bound type
- * for the variable.
- */
-class TermProperties {
- public:
-  TermProperties() : d_type(CEG_TT_EQUAL) {}
-  virtual ~TermProperties() {}
-
-  /**
-   * Type for the solution term. For arithmetic this corresponds to bound type
-   * of the constraint that the constraint the term was solved for in.
-   */
-  CegTermType d_type;
-  // for arithmetic
-  Node d_coeff;
-  // get cache node
-  // we consider terms + TermProperties that are unique up to their cache node
-  // (see constructInstantiationInc)
-  Node getCacheNode() const { return d_coeff; }
-  // is non-basic
-  bool isBasic() const { return d_coeff.isNull(); }
-  // get modified term
-  Node getModifiedTerm(Node pv) const
-  {
-    if( !d_coeff.isNull() ){
-      return NodeManager::currentNM()->mkNode( kind::MULT, d_coeff, pv );
-    }else{
-      return pv;
-    }
-  }
-  // compose property, should be such that: 
-  //   p.getModifiedTerm( this.getModifiedTerm( x ) ) = this_updated.getModifiedTerm( x )
-  void composeProperty(TermProperties& p);
-};
-
-/** Solved form
- *  This specifies a substitution:
- *  { d_props[i].getModifiedTerm(d_vars[i]) -> d_subs[i] | i = 0...|d_vars| }
- */
-class SolvedForm {
-public:
-  // list of variables
-  std::vector< Node > d_vars;
-  // list of terms that they are substituted to
-  std::vector< Node > d_subs;
-  // properties for each variable
-  std::vector< TermProperties > d_props;
-  // the variables that have non-basic information regarding how they are substituted
-  //   an example is for linear arithmetic, we store "substitution with coefficients".
-  std::vector<Node> d_non_basic;
-  // push the substitution pv_prop.getModifiedTerm(pv) -> n
-  void push_back(Node pv, Node n, TermProperties& pv_prop);
-  // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-  void pop_back(Node pv, Node n, TermProperties& pv_prop);
-  // is this solved form empty?
-  bool empty() { return d_vars.empty(); }
-public:
-  // theta values (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
-  std::vector< Node > d_theta;
-  // get the current value for theta (for LIA, see Section 4 of Reynolds/King/Kuncak FMSD 2017)
-  Node getTheta() {
-    if( d_theta.empty() ){
-      return Node::null();
-    }else{
-      return d_theta[d_theta.size()-1];
-    }
-  }
-};
-
-/** instantiation effort levels
- *
- * This effort is used to stratify the construction of
- * instantiations for some theories that may result to
- * using model value instantiations.
- */
-enum CegInstEffort
-{
-  // uninitialized
-  CEG_INST_EFFORT_NONE,
-  // standard effort level
-  CEG_INST_EFFORT_STANDARD,
-  // standard effort level, but we have used model values
-  CEG_INST_EFFORT_STANDARD_MV,
-  // full effort level
-  CEG_INST_EFFORT_FULL
-};
-
-std::ostream& operator<<(std::ostream& os, CegInstEffort e);
-
-/** instantiation phase for variables
- *
- * This indicates the phase in which we constructed
- * a substitution for individual variables.
- */
-enum CegInstPhase
-{
-  // uninitialized
-  CEG_INST_PHASE_NONE,
-  // instantiation constructed during traversal of equivalence classes
-  CEG_INST_PHASE_EQC,
-  // instantiation constructed during solving equalities
-  CEG_INST_PHASE_EQUAL,
-  // instantiation constructed by looking at theory assertions
-  CEG_INST_PHASE_ASSERTION,
-  // instantiation constructed by querying model value
-  CEG_INST_PHASE_MVALUE,
-};
-
-std::ostream& operator<<(std::ostream& os, CegInstPhase phase);
-
-/**
- * The handled status of a sort/term/quantified formula, indicating whether
- * counterexample-guided instantiation handles it.
- */
-enum CegHandledStatus
-{
-  // the sort/term/quantified formula is unhandled by cegqi
-  CEG_UNHANDLED,
-  // the sort/term/quantified formula is partially handled by cegqi
-  CEG_PARTIALLY_HANDLED,
-  // the sort/term/quantified formula is handled by cegqi
-  CEG_HANDLED,
-  // the sort/term/quantified formula is handled by cegqi, regardless of
-  // additional factors
-  CEG_HANDLED_UNCONDITIONAL,
-};
-std::ostream& operator<<(std::ostream& os, CegHandledStatus status);
 
 /** Ceg instantiator
  *
@@ -215,8 +54,9 @@ class CegInstantiator : protected EnvObj
   CegInstantiator(Env& env,
                   Node q,
                   QuantifiersState& qs,
-                  TermRegistry& tr,
-                  InstStrategyCegqi* parent);
+                  QuantifiersInferenceManager& qim,
+                  QuantifiersRegistry& qr,
+                  TermRegistry& tr);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -357,19 +197,21 @@ class CegInstantiator : protected EnvObj
   Node d_quant;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
+  /** Reference to the quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** The parent of this instantiator */
-  InstStrategyCegqi* d_parent;
 
   //-------------------------------globally cached
   /** cache from nodes to the set of variables it contains
-    * (from the quantified formula we are instantiating).
-    */
+   * (from the quantified formula we are instantiating).
+   */
   std::unordered_map<Node, std::unordered_set<Node>> d_prog_var;
   /** cache of the set of terms that we have established are
    * ineligible for instantiation.
-    */
+   */
   std::unordered_set<Node> d_inelig;
   /** ensures n is in d_prog_var and d_inelig. */
   void computeProgVars(Node n);
@@ -377,11 +219,11 @@ class CegInstantiator : protected EnvObj
 
   //-------------------------------cached per round
   /** current assertions per theory */
-  std::map<TheoryId, std::vector<Node> > d_curr_asserts;
+  std::map<TheoryId, std::vector<Node>> d_curr_asserts;
   /** map from representatives to the terms in their equivalence class */
-  std::map<Node, std::vector<Node> > d_curr_eqc;
+  std::map<Node, std::vector<Node>> d_curr_eqc;
   /** map from types to representatives of that type */
-  std::map<TypeNode, std::vector<Node> > d_curr_type_eqc;
+  std::map<TypeNode, std::vector<Node>> d_curr_type_eqc;
   /** solved asserts */
   std::unordered_set<Node> d_solved_asserts;
   /** process assertions
@@ -454,8 +296,8 @@ class CegInstantiator : protected EnvObj
   bool d_is_nested_quant;
   /** the atoms of the CE lemma */
   std::vector<Node> d_ce_atoms;
-  /** collect atoms */
-  void collectCeAtoms(Node n, std::map<Node, bool>& visited);
+  /** collect atoms in n, store in d_ce_atoms */
+  void collectCeAtoms(Node n);
   //-------------------------------end quantified formula info
 
   //-------------------------------current state
@@ -473,7 +315,7 @@ class CegInstantiator : protected EnvObj
   /** map from variables to the phase in which we instantiated them */
   std::map<Node, CegInstPhase> d_curr_iphase;
   /** cache of current substitutions tried between activate/deactivate */
-  std::map<Node, std::map<Node, std::map<Node, bool> > > d_curr_subs_proc;
+  std::map<Node, std::map<Node, std::map<Node, bool>>> d_curr_subs_proc;
   /** stack of temporary variables we are solving for,
    * e.g. subfields of datatypes.
    */
@@ -504,30 +346,55 @@ class CegInstantiator : protected EnvObj
 
   //---------------------------------for applying substitutions
   /** can use basic substitution */
-  bool canApplyBasicSubstitution( Node n, std::vector< Node >& non_basic );
+  bool canApplyBasicSubstitution(Node n, std::vector<Node>& non_basic);
   /** apply substitution
-  * We wish to process the substitution: 
-  *   ( pv = n * sf )
-  * where pv is a variable with type tn, and * denotes application of substitution.
-  * The return value "ret" and pv_prop is such that the above equality is equivalent to
-  *   ( pv_prop.getModifiedTerm(pv) = ret )
-  */
-  Node applySubstitution( TypeNode tn, Node n, SolvedForm& sf, TermProperties& pv_prop, bool try_coeff = true ) {
-    return applySubstitution( tn, n, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic, pv_prop, try_coeff );
+   * We wish to process the substitution:
+   *   ( pv = n * sf )
+   * where pv is a variable with type tn, and * denotes application of
+   * substitution. The return value "ret" and pv_prop is such that the above
+   * equality is equivalent to ( pv_prop.getModifiedTerm(pv) = ret )
+   */
+  Node applySubstitution(TypeNode tn,
+                         Node n,
+                         SolvedForm& sf,
+                         TermProperties& pv_prop,
+                         bool try_coeff = true)
+  {
+    return applySubstitution(tn,
+                             n,
+                             sf.d_vars,
+                             sf.d_subs,
+                             sf.d_props,
+                             sf.d_non_basic,
+                             pv_prop,
+                             try_coeff);
   }
-  /** apply substitution, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitution( TypeNode tn, Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
-                          std::vector< Node >& non_basic, TermProperties& pv_prop, bool try_coeff = true );
-  /** apply substitution to literal lit 
-  * The return value is equivalent to ( lit * sf )
-  * where * denotes application of substitution.
-  */
-  Node applySubstitutionToLiteral( Node lit, SolvedForm& sf ) {
-    return applySubstitutionToLiteral( lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic );
+  /** apply substitution, with solved form expanded to subs/prop/non_basic/vars
+   */
+  Node applySubstitution(TypeNode tn,
+                         Node n,
+                         std::vector<Node>& vars,
+                         std::vector<Node>& subs,
+                         std::vector<TermProperties>& prop,
+                         std::vector<Node>& non_basic,
+                         TermProperties& pv_prop,
+                         bool try_coeff = true);
+  /** apply substitution to literal lit
+   * The return value is equivalent to ( lit * sf )
+   * where * denotes application of substitution.
+   */
+  Node applySubstitutionToLiteral(Node lit, SolvedForm& sf)
+  {
+    return applySubstitutionToLiteral(
+        lit, sf.d_vars, sf.d_subs, sf.d_props, sf.d_non_basic);
   }
-  /** apply substitution to literal lit, with solved form expanded to subs/prop/non_basic/vars */
-  Node applySubstitutionToLiteral( Node lit, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< TermProperties >& prop, 
-                                   std::vector< Node >& non_basic );
+  /** apply substitution to literal lit, with solved form expanded to
+   * subs/prop/non_basic/vars */
+  Node applySubstitutionToLiteral(Node lit,
+                                  std::vector<Node>& vars,
+                                  std::vector<Node>& subs,
+                                  std::vector<TermProperties>& prop,
+                                  std::vector<Node>& non_basic);
   //---------------------------------end for applying substitutions
 
   /** map from variables to their instantiators */
@@ -569,259 +436,10 @@ class CegInstantiator : protected EnvObj
   static CegHandledStatus isCbqiSort(
       TypeNode tn, std::map<TypeNode, CegHandledStatus>& visited);
   //------------------------------------ end  static queries
-};
-
-/** Instantiator class
- *
- * This is a virtual class that is used for methods for constructing
- * substitutions for individual variables in counterexample-guided
- * instantiation techniques.
- *
- * This class contains a set of interface functions below, which are called
- * based on a fixed instantiation method implemented by CegInstantiator.
- * In these calls, the Instantiator in turn makes calls to methods in
- * CegInstanatior (primarily constructInstantiationInc).
- */
-class Instantiator : protected EnvObj
-{
- public:
-  Instantiator(Env& env, TypeNode tn);
-  virtual ~Instantiator() {}
-  /** reset
-   * This is called once, prior to any of the below methods are called.
-   * This function sets up any initial information necessary for constructing
-   * instantiations for pv based on the current context.
+  /**
+   * A proof generator for witness terms.
    */
-  virtual void reset(CegInstantiator* ci,
-                     SolvedForm& sf,
-                     Node pv,
-                     CegInstEffort effort)
-  {
-  }
-
-  /** has process equal term
-   *
-   * Whether this instantiator implements processEqualTerm and
-   * processEqualTerms.
-   */
-  virtual bool hasProcessEqualTerm(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   CegInstEffort effort)
-  {
-    return false;
-  }
-  /** process equal term
-   *
-   * This method is called when the entailment:
-   *   E |= pv_prop.getModifiedTerm(pv) = n
-   * holds in the current context E, and n is eligible for instantiation.
-   *
-   * Returns true if an instantiation was successfully added via a call to
-   * CegInstantiator::constructInstantiationInc.
-   */
-  virtual bool processEqualTerm(CegInstantiator* ci,
-                                SolvedForm& sf,
-                                Node pv,
-                                TermProperties& pv_prop,
-                                Node n,
-                                CegInstEffort effort);
-  /** process equal terms
-   *
-   * This method is called after process equal term, where eqc is the list of
-   * eligible terms in the equivalence class of pv.
-   *
-   * Returns true if an instantiation was successfully added via a call to
-   * CegInstantiator::constructInstantiationInc.
-   */
-  virtual bool processEqualTerms(CegInstantiator* ci,
-                                 SolvedForm& sf,
-                                 Node pv,
-                                 std::vector<Node>& eqc,
-                                 CegInstEffort effort)
-  {
-    return false;
-  }
-
-  /** whether the instantiator implements processEquality */
-  virtual bool hasProcessEquality(CegInstantiator* ci,
-                                  SolvedForm& sf,
-                                  Node pv,
-                                  CegInstEffort effort)
-  {
-    return false;
-  }
-  /** process equality
-   *  The input is such that term_props.size() = terms.size() = 2
-   *  This method is called when the entailment:
-   *    E ^ term_props[0].getModifiedTerm(x0) =
-   *    terms[0] ^ term_props[1].getModifiedTerm(x1) = terms[1] |= x0 = x1
-   *  holds in current context E for fresh variables xi, terms[i] are eligible,
-   *  and at least one terms[i] contains pv for i = 0,1.
-   *  Notice in the basic case, E |= terms[0] = terms[1].
-   *
-   *  Returns true if an instantiation was successfully added via a call to
-   *  CegInstantiator::constructInstantiationInc.
-   */
-  virtual bool processEquality(CegInstantiator* ci,
-                               SolvedForm& sf,
-                               Node pv,
-                               std::vector<TermProperties>& term_props,
-                               std::vector<Node>& terms,
-                               CegInstEffort effort)
-  {
-    return false;
-  }
-
-  /** whether the instantiator implements processAssertion for any literal */
-  virtual bool hasProcessAssertion(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   CegInstEffort effort)
-  {
-    return false;
-  }
-  /** has process assertion
-  *
-  * This method is called when the entailment:
-  *   E |= lit
-  * holds in current context E. Typically, lit belongs to the list of current
-  * assertions.
-  *
-  * This method is used to determine whether the instantiator implements
-  * processAssertion for literal lit.
-  *   If this method returns null, then this intantiator does not handle the
-  *   literal lit. Otherwise, this method returns a literal lit' such that:
-  *   (1) lit' is true in the current model,
-  *   (2) lit' implies lit.
-  *   where typically lit' = lit.
-  */
-  virtual Node hasProcessAssertion(CegInstantiator* ci,
-                                   SolvedForm& sf,
-                                   Node pv,
-                                   Node lit,
-                                   CegInstEffort effort)
-  {
-    return Node::null();
-  }
-  /** process assertion
-   * This method processes the assertion slit for variable pv.
-   * lit : the substituted form (under sf) of a literal returned by
-   *       hasProcessAssertion
-   * alit : the asserted literal, given as input to hasProcessAssertion
-   *
-   *  Returns true if an instantiation was successfully added via a call to
-   *  CegInstantiator::constructInstantiationInc.
-   */
-  virtual bool processAssertion(CegInstantiator* ci,
-                                SolvedForm& sf,
-                                Node pv,
-                                Node lit,
-                                Node alit,
-                                CegInstEffort effort)
-  {
-    return false;
-  }
-  /** process assertions
-   *
-   * Called after processAssertion is called for each literal asserted to the
-   * instantiator.
-   *
-   * Returns true if an instantiation was successfully added via a call to
-   * CegInstantiator::constructInstantiationInc.
-   */
-  virtual bool processAssertions(CegInstantiator* ci,
-                                 SolvedForm& sf,
-                                 Node pv,
-                                 CegInstEffort effort)
-  {
-    return false;
-  }
-
-  /** do we use the model value as instantiation for pv?
-   * This method returns true if we use model value instantiations
-   * at the same effort level as those determined by this instantiator.
-   */
-  virtual bool useModelValue(CegInstantiator* ci,
-                             SolvedForm& sf,
-                             Node pv,
-                             CegInstEffort effort)
-  {
-    return effort > CEG_INST_EFFORT_STANDARD;
-  }
-  /** do we allow the model value as instantiation for pv? */
-  virtual bool allowModelValue(CegInstantiator* ci,
-                               SolvedForm& sf,
-                               Node pv,
-                               CegInstEffort effort)
-  {
-    return d_closed_enum_type;
-  }
-
-  /** do we need to postprocess the solved form for pv? */
-  virtual bool needsPostProcessInstantiationForVariable(CegInstantiator* ci,
-                                                        SolvedForm& sf,
-                                                        Node pv,
-                                                        CegInstEffort effort)
-  {
-    return false;
-  }
-  /** postprocess the solved form for pv
-   *
-   * This method returns true if we successfully postprocessed the solved form.
-   * lemmas is a set of lemmas we wish to return along with the instantiation.
-   */
-  virtual bool postProcessInstantiationForVariable(CegInstantiator* ci,
-                                                   SolvedForm& sf,
-                                                   Node pv,
-                                                   CegInstEffort effort)
-  {
-    return true;
-  }
-
-  /** Identify this module (for debugging) */
-  virtual std::string identify() const { return "Default"; }
- protected:
-  /** the type of the variable we are instantiating */
-  TypeNode d_type;
-  /** whether d_type is a closed enumerable type */
-  bool d_closed_enum_type;
-};
-
-class ModelValueInstantiator : public Instantiator {
-public:
- ModelValueInstantiator(Env& env, TypeNode tn) : Instantiator(env, tn) {}
- virtual ~ModelValueInstantiator() {}
- bool useModelValue(CegInstantiator* ci,
-                    SolvedForm& sf,
-                    Node pv,
-                    CegInstEffort effort) override
- {
-   return true;
- }
-  std::string identify() const override { return "ModelValue"; }
-};
-
-/** instantiator preprocess
- *
- * This class implements techniques for preprocessing the counterexample lemma
- * generated for counterexample-guided quantifier instantiation.
- */
-class InstantiatorPreprocess
-{
- public:
-  InstantiatorPreprocess() {}
-  virtual ~InstantiatorPreprocess() {}
-  /** register counterexample lemma
-   * This implements theory-specific preprocessing and registration
-   * of counterexample lemmas, with the same contract as
-   * CegInstantiation::registerCounterexampleLemma.
-   */
-  virtual void registerCounterexampleLemma(Node lem,
-                                           std::vector<Node>& ceVars,
-                                           std::vector<Node>& auxLems)
-  {
-  }
+  std::unique_ptr<ValidWitnessProofGenerator> d_vwpg;
 };
 
 }  // namespace quantifiers

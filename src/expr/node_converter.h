@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC4__EXPR__NODE_CONVERTER_H
-#define CVC4__EXPR__NODE_CONVERTER_H
+#ifndef CVC5__EXPR__NODE_CONVERTER_H
+#define CVC5__EXPR__NODE_CONVERTER_H
 
 #include <iostream>
 #include <map>
@@ -41,7 +38,7 @@ class NodeConverter
    * @param forceIdem If true, this assumes that terms returned by postConvert
    * and postConvertType should not be converted again.
    */
-  NodeConverter(bool forceIdem = true);
+  NodeConverter(NodeManager* nm, bool forceIdem = true);
   virtual ~NodeConverter() {}
   /**
    * This converts node n based on the preConvert/postConvert methods that can
@@ -109,6 +106,10 @@ class NodeConverter
    */
   virtual TypeNode postConvertType(TypeNode n);
   //------------------------- end virtual interface
+ protected:
+  /** The underlying node manager */
+  NodeManager* d_nm;
+
  private:
   /** Add to cache */
   void addToCache(TNode cur, TNode ret);

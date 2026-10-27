@@ -1,6 +1,6 @@
 (set-logic ALL)
 (set-info :status unsat)
-(set-option :strings-exp true)
+
  
 (declare-fun s () String)
 (assert (or (= s "Id like cookies.") (= s "Id not like cookies.")))

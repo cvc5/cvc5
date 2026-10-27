@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --no-strings-lazy-pp
+; REQUIRES: no-safe-mode
+; COMMAND-LINE: --no-strings-lazy-pp
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun x_9 () String)                                                        

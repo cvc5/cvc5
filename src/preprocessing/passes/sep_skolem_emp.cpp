@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,7 +34,8 @@ using namespace cvc5::internal::theory;
 
 namespace {
 
-Node preSkolemEmp(TypeNode locType,
+Node preSkolemEmp(NodeManager* nm,
+                  TypeNode locType,
                   TypeNode dataType,
                   Node n,
                   bool pol,
@@ -46,27 +44,22 @@ Node preSkolemEmp(TypeNode locType,
   std::map<Node, Node>::iterator it = visited[pol].find(n);
   if (it == visited[pol].end())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    Trace("sep-preprocess") << "Pre-skolem emp " << n << " with pol " << pol
-                            << std::endl;
+    Trace("sep-preprocess")
+        << "Pre-skolem emp " << n << " with pol " << pol << std::endl;
     Node ret = n;
-    if (n.getKind() == kind::SEP_EMP)
+    if (n.getKind() == Kind::SEP_EMP)
     {
       if (!pol)
       {
-        Node x =
-            sm->mkDummySkolem("ex", locType, "skolem location for negated emp");
-        Node y =
-            sm->mkDummySkolem("ey", dataType, "skolem data for negated emp");
+        Node x = NodeManager::mkDummySkolem("ex", locType);
+        Node y = NodeManager::mkDummySkolem("ey", dataType);
         return nm
-            ->mkNode(kind::SEP_STAR,
-                     nm->mkNode(kind::SEP_PTO, x, y),
-                     nm->mkConst(true))
+            ->mkNode(Kind::SEP_STAR,
+                     {nm->mkNode(Kind::SEP_PTO, x, y), nm->mkConst(true)})
             .negate();
       }
     }
-    else if (n.getKind() != kind::FORALL && n.getNumChildren() > 0)
+    else if (n.getKind() != Kind::FORALL && n.getNumChildren() > 0)
     {
       std::vector<Node> children;
       bool childChanged = false;
@@ -81,7 +74,7 @@ Node preSkolemEmp(TypeNode locType,
         Node nc = n[i];
         if (newHasPol)
         {
-          nc = preSkolemEmp(locType, dataType, n[i], newPol, visited);
+          nc = preSkolemEmp(nm, locType, dataType, n[i], newPol, visited);
           childChanged = childChanged || nc != n[i];
         }
         children.push_back(nc);
@@ -103,7 +96,7 @@ Node preSkolemEmp(TypeNode locType,
 }  // namespace
 
 SepSkolemEmp::SepSkolemEmp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "sep-skolem-emp"){};
+    : PreprocessingPass(preprocContext, "sep-skolem-emp") {};
 
 PreprocessingPassResult SepSkolemEmp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -122,19 +115,19 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
   {
     Node prev = (*assertionsToPreprocess)[i];
     bool pol = true;
-    Node next = preSkolemEmp(locType, dataType, prev, pol, visited);
+    Node next =
+        preSkolemEmp(nodeManager(), locType, dataType, prev, pol, visited);
     if (next != prev)
     {
       assertionsToPreprocess->replace(i, rewrite(next));
       Trace("sep-preprocess") << "*** Preprocess sep " << prev << endl;
-      Trace("sep-preprocess") << "   ...got " << (*assertionsToPreprocess)[i]
-                              << endl;
+      Trace("sep-preprocess")
+          << "   ...got " << (*assertionsToPreprocess)[i] << endl;
     }
     visited.clear();
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

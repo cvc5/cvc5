@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,12 +17,21 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 
+#include "context/cdhashset.h"
+#include "theory/quantifiers/mbqi_enum.h"
 #include "theory/quantifiers/quant_module.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace cvc5::internal {
+
+class SolverEngine;
+
 namespace theory {
 namespace quantifiers {
+
+class MbqiEnum;
 
 /**
  * InstStrategyMbqi
@@ -40,6 +46,8 @@ namespace quantifiers {
  */
 class InstStrategyMbqi : public QuantifiersModule
 {
+  friend class MbqiEnum;
+
  public:
   InstStrategyMbqi(Env& env,
                    QuantifiersState& qs,
@@ -57,8 +65,12 @@ class InstStrategyMbqi : public QuantifiersModule
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Check was complete for quantified formula q */
   bool checkCompleteFor(Node q) override;
+  /** For collecting global terms from all available assertions. */
+  void ppNotifyAssertions(const std::vector<Node>& assertions) override;
+  /** Get the symbols appearing in assertions */
+  const context::CDHashSet<Node>& getGlobalSyms() const;
   /** identify */
-  std::string identify() const override { return "InstStrategyMbqi"; }
+  std::string identify() const override { return "mbqi"; }
 
  private:
   /**
@@ -95,10 +107,43 @@ class InstStrategyMbqi : public QuantifiersModule
   Node convertFromModel(Node t,
                         std::unordered_map<Node, Node>& cmap,
                         const std::map<Node, Node>& mvToFreshVar);
+  /**
+   * Make skolem for term. We use a separate skolem identifier MBQI_INPUT
+   * to refer to the variables of a quantified formula. While purification
+   * skolems could also suffice, this avoids further complications due to
+   * purification skolems for Boolean variables being treated as UF atoms,
+   * which can lead to logic exceptions in subsolvers.
+   */
+  Node mkMbqiSkolem(const Node& t);
+  /**
+   * Try instantiation. This attempts to add the instantiation mvs for q,
+   * where mvs may require post-processing, e.g. to map from uninterpreted
+   * sort values to canonical skolems.
+   *
+   * @param q The quantified formula.
+   * @param mvs The vector of terms to instantiate with.
+   * @param id The identifier (for stats, debugging).
+   * @param mvToFreshVar Maps from uninterpreted sort values to the skolems
+   * we should replace them with.
+   * @return true if we successfully converted mvs to a legal instantiation
+   * and successfully added it to the inference manager of this class.
+   */
+  bool tryInstantiation(const Node& q,
+                        const std::vector<Node>& mvs,
+                        InferenceId id,
+                        const std::map<Node, Node>& mvToFreshVar);
+  /** Check with subsolver, which takes into account options */
+  Result checkWithSubsolverSimple(Node query, const SubsolverSetupInfo& info);
   /** The quantified formulas that we succeeded in checking */
   std::unordered_set<Node> d_quantChecked;
   /** Kinds that cannot appear in queries */
   std::unordered_set<Kind, kind::KindHashFunction> d_nonClosedKinds;
+  /** Submodule for sygus enum */
+  std::unique_ptr<MbqiEnum> d_msenum;
+  /** The options for subsolver calls */
+  Options d_subOptions;
+  /* Set of global ground terms in assertions (outside of quantifiers). */
+  context::CDHashSet<Node> d_globalSyms;
 };
 
 }  // namespace quantifiers

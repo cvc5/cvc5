@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,25 +29,26 @@
 
 namespace cvc5::internal {
 
-template <bool ref_count> class NodeTemplate;
+template <bool ref_count>
+class NodeTemplate;
 class TypeNode;
 class NodeBuilder;
 class NodeManager;
 
 namespace expr {
-  class NodeValue;
+class NodeValue;
 }
 
 namespace kind {
-  namespace metakind {
+namespace metakind {
 
-  template <cvc5::internal::Kind k, class T, bool pool>
-  struct NodeValueConstCompare;
+template <cvc5::internal::Kind k, class T, bool pool>
+struct NodeValueConstCompare;
 
-  struct NodeValueCompare;
+struct NodeValueCompare;
 
-  }  // namespace metakind
-  }  // namespace kind
+}  // namespace metakind
+}  // namespace kind
 
 namespace expr {
 
@@ -97,7 +95,7 @@ class CVC5_EXPORT NodeValue
     explicit iterator(const_nv_iterator i) : d_i(i) {}
 
     /** Conversion of a TNode iterator to a Node iterator. */
-    inline operator NodeValue::iterator<NodeTemplate<true> >()
+    inline operator NodeValue::iterator<NodeTemplate<true> >() const
     {
       return iterator<NodeTemplate<true> >(d_i);
     }
@@ -136,11 +134,11 @@ class CVC5_EXPORT NodeValue
       return *this;
     }
 
-    iterator operator+(difference_type p) { return iterator(d_i + p); }
+    iterator operator+(difference_type p) const { return iterator(d_i + p); }
 
-    iterator operator-(difference_type p) { return iterator(d_i - p); }
+    iterator operator-(difference_type p) const { return iterator(d_i - p); }
 
-    difference_type operator-(iterator i) { return d_i - i.d_i; }
+    difference_type operator-(iterator i) const { return d_i - i.d_i; }
 
    private:
     const_nv_iterator d_i;
@@ -152,6 +150,8 @@ class CVC5_EXPORT NodeValue
   Kind getKind() const { return dKindToKind(d_kind); }
 
   kind::MetaKind getMetaKind() const { return kind::metaKindOf(getKind()); }
+
+  NodeManager* getNodeManager() const { return d_nm; }
 
   uint32_t getNumChildren() const
   {
@@ -223,7 +223,7 @@ class CVC5_EXPORT NodeValue
 
   static inline Kind dKindToKind(uint32_t d)
   {
-    return (d == kindMask) ? kind::UNDEFINED_KIND : Kind(d);
+    return (d == kindMask) ? Kind::UNDEFINED_KIND : Kind(d);
   }
 
   std::string toString() const;
@@ -286,9 +286,7 @@ class CVC5_EXPORT NodeValue
       (static_cast<uint32_t>(1) << NBITS_KIND) - 1;
 
   /** Uninitializing constructor for NodeBuilder's use.  */
-  NodeValue()
-  { /* do not initialize! */
-  }
+  NodeValue() { /* do not initialize! */ }
   /** Private constructor for the null value. */
   NodeValue(int);
 
@@ -307,7 +305,6 @@ class CVC5_EXPORT NodeValue
 
   void dec()
   {
-    // FIXME multithreading
     if (__builtin_expect((d_rc < MAX_RC), true))
     {
       --d_rc;
@@ -358,6 +355,9 @@ class CVC5_EXPORT NodeValue
   /** Number of children */
   uint32_t d_nchildren : NBITS_NCHILDREN;
 
+  /** Associated node manager. */
+  NodeManager* d_nm = nullptr;
+
   /** Variable number of child nodes */
   NodeValue* d_children[0];
 }; /* class NodeValue */
@@ -384,84 +384,99 @@ NodeValue::iterator<NodeTemplate<false> > operator+(
  * PERFORMING for other uses!  NodeValue::poolHash() will lead to
  * collisions for all VARIABLEs.
  */
-struct NodeValuePoolHashFunction {
-  inline size_t operator()(const NodeValue* nv) const {
-    return (size_t) nv->poolHash();
+struct NodeValuePoolHashFunction
+{
+  inline size_t operator()(const NodeValue* nv) const
+  {
+    return (size_t)nv->poolHash();
   }
-};/* struct NodeValuePoolHashFunction */
+}; /* struct NodeValuePoolHashFunction */
 
 /**
  * For hash_maps, hash_sets, etc.
  */
-struct NodeValueIDHashFunction {
-  inline size_t operator()(const NodeValue* nv) const {
-    return (size_t) nv->getId();
+struct NodeValueIDHashFunction
+{
+  inline size_t operator()(const NodeValue* nv) const
+  {
+    return (size_t)nv->getId();
   }
-};/* struct NodeValueIDHashFunction */
-
+}; /* struct NodeValueIDHashFunction */
 
 /**
  * An equality predicate that is applicable between pointers to fully
  * constructed NodeValues.
  */
-struct NodeValueIDEquality {
-  inline bool operator()(const NodeValue* a, const NodeValue* b) const {
+struct NodeValueIDEquality
+{
+  inline bool operator()(const NodeValue* a, const NodeValue* b) const
+  {
     return a->getId() == b->getId();
   }
 };
 
 std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 
-inline NodeValue::NodeValue(int) :
-  d_id(0),
-  d_rc(MAX_RC),
-  d_kind(kind::NULL_EXPR),
-  d_nchildren(0) {
+inline NodeValue::NodeValue(int)
+    : d_id(0),
+      d_rc(MAX_RC),
+      d_kind(static_cast<uint32_t>(Kind::NULL_EXPR)),
+      d_nchildren(0)
+{
 }
 
-inline void NodeValue::decrRefCounts() {
-  for(nv_iterator i = nv_begin(); i != nv_end(); ++i) {
+inline void NodeValue::decrRefCounts()
+{
+  for (nv_iterator i = nv_begin(); i != nv_end(); ++i)
+  {
     (*i)->dec();
   }
 }
 
-inline NodeValue::nv_iterator NodeValue::nv_begin() {
-  return d_children;
-}
+inline NodeValue::nv_iterator NodeValue::nv_begin() { return d_children; }
 
-inline NodeValue::nv_iterator NodeValue::nv_end() {
+inline NodeValue::nv_iterator NodeValue::nv_end()
+{
   return d_children + d_nchildren;
 }
 
-inline NodeValue::const_nv_iterator NodeValue::nv_begin() const {
+inline NodeValue::const_nv_iterator NodeValue::nv_begin() const
+{
   return d_children;
 }
 
-inline NodeValue::const_nv_iterator NodeValue::nv_end() const {
+inline NodeValue::const_nv_iterator NodeValue::nv_end() const
+{
   return d_children + d_nchildren;
 }
 
 template <typename T>
-inline NodeValue::iterator<T> NodeValue::begin() const {
+inline NodeValue::iterator<T> NodeValue::begin() const
+{
   NodeValue* const* firstChild = d_children;
-  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+  if (getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
     ++firstChild;
   }
   return iterator<T>(firstChild);
 }
 
 template <typename T>
-inline NodeValue::iterator<T> NodeValue::end() const {
+inline NodeValue::iterator<T> NodeValue::end() const
+{
   return iterator<T>(d_children + d_nchildren);
 }
 
-inline NodeValue* NodeValue::getOperator() const {
+inline NodeValue* NodeValue::getOperator() const
+{
   Assert(getMetaKind() == kind::metakind::PARAMETERIZED);
   return d_children[0];
 }
 
-inline NodeValue* NodeValue::getChild(int i) const {
-  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+inline NodeValue* NodeValue::getChild(int i) const
+{
+  if (getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
     ++i;
   }
 

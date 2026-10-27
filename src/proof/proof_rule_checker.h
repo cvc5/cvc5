@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +17,8 @@
 
 #include <vector>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
-#include "proof/proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -32,7 +29,7 @@ class ProofNode;
 class ProofRuleChecker
 {
  public:
-  ProofRuleChecker() {}
+  ProofRuleChecker(NodeManager* nm) : d_nm(nm) {}
   virtual ~ProofRuleChecker() {}
   /**
    * This checks a single step in a proof.
@@ -52,7 +49,7 @@ class ProofRuleChecker
    * @return The conclusion of the proof node, in Skolem form, if successful or
    * null if such a proof node is malformed.
    */
-  Node check(PfRule id,
+  Node check(ProofRule id,
              const std::vector<Node>& children,
              const std::vector<Node>& args);
 
@@ -63,10 +60,10 @@ class ProofRuleChecker
   /** get a Kind from a node, return false if we fail */
   static bool getKind(TNode n, Kind& k);
   /** Make a Kind into a node */
-  static Node mkKindNode(Kind k);
+  static Node mkKindNode(NodeManager* nm, Kind k);
 
   /** Register all rules owned by this rule checker into pc. */
-  virtual void registerTo(ProofChecker* pc) {}
+  virtual void registerTo(CVC5_UNUSED ProofChecker* pc) {}
 
  protected:
   /**
@@ -80,9 +77,13 @@ class ProofRuleChecker
    * @return The conclusion of the proof node if successful or null if such a
    * proof node is malformed.
    */
-  virtual Node checkInternal(PfRule id,
+  virtual Node checkInternal(ProofRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args) = 0;
+  /** Get a pointer to the node manager */
+  NodeManager* nodeManager() const;
+  /** The underlying node manager */
+  NodeManager* d_nm;
 };
 
 }  // namespace cvc5::internal

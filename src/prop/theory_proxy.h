@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,6 +23,7 @@
 #include "expr/node.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
+#include "prop/lemma_inprocess.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
 #include "prop/theory_preregistrar.h"
@@ -67,10 +65,12 @@ class TheoryProxy : protected EnvObj, public Registrar
   ~TheoryProxy();
 
   /** Finish initialize */
-  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
+  void finishInit(CDCLTSatSolver* ss, CnfStream* cs);
 
   /** Presolve, which calls presolve for the modules managed by this class */
   void presolve();
+  /** Postsolve, which calls postsolve for the modules managed by this class */
+  void postsolve(SatValue result);
 
   /**
    * Notify that lhs was substituted by rhs during preprocessing. This impacts
@@ -98,37 +98,40 @@ class TheoryProxy : protected EnvObj, public Registrar
    */
   void notifyAssertion(Node lem,
                        TNode skolem = TNode::null(),
-                       bool isLemma = false);
+                       bool isLemma = false,
+                       bool local = false);
 
   void theoryCheck(theory::Theory::Effort effort);
 
   /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
-  /** Notify that current propagation inserted at lower level than current.
-   *
-   * This method should be called by the SAT solver when the explanation of the
-   * current propagation is added at lower level than the current user level.
-   * It'll trigger a call to the ProofCnfStream to notify it that the proof of
-   * this propagation should be saved in case it's needed after this user
-   * context is popped.
+  /**
+   * Notify SAT clause. This should be called whenever the SAT solver learns
+   * a SAT clause. It notifies user plugins of the added clauses.
    */
-  void notifyCurrPropagationInsertedAtLevel(int explLevel);
-  /** Notify that added clause was inserted at lower level than current.
-   *
-   * As above, but for clauses asserted into the SAT solver. This cannot be done
-   * in terms of "current added clause" because the clause added at a lower
-   * level could be for example a lemma derived at a prior moment whose
-   * assertion the SAT solver delayed.
-   */
-  void notifyClauseInsertedAtLevel(const SatClause& clause, int clLevel);
+  void notifySatClause(const SatClause& clause);
 
   void theoryPropagate(SatClause& output);
 
   void enqueueTheoryLiteral(const SatLiteral& l);
 
-  SatLiteral getNextTheoryDecisionRequest();
-
-  SatLiteral getNextDecisionEngineRequest(bool& stopSearch);
+  /**
+   * Get the next decision request.
+   *
+   * This first queries the theory engine for a decision request. If the theory
+   * engine does not request a decision, the decision engine is queried.
+   *
+   * If `requirePhase` is true, the decision must be decided as is, in the
+   * given polarity. Else it should respect the polarity configured via
+   * PropEngine::requirePhase, if any.
+   *
+   * @param requirePhase True if the returned SatLiteral must be decided
+   *                     as-is, in its given polarity.
+   * @param stopSearch   True if the current search should be terminated. In
+   *                     this case, lit_Undef is returned.
+   * @return The next decision.
+   */
+  SatLiteral getNextDecisionRequest(bool& requirePhase, bool& stopSearch);
 
   bool theoryNeedCheck() const;
 
@@ -141,11 +144,6 @@ class TheoryProxy : protected EnvObj, public Registrar
   /** Get unsound id, valid when isRefutationUnsound is true. */
   theory::IncompleteId getRefutationUnsoundId() const;
 
-  /**
-   * Notifies of a new variable at a decision level.
-   */
-  void variableNotify(SatVariable var);
-
   TNode getNode(SatLiteral lit);
 
   void notifyRestart();
@@ -154,11 +152,11 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   bool isDecisionEngineDone();
 
-  bool isDecisionRelevant(SatVariable var);
-
-  SatValue getDecisionPolarity(SatVariable var);
-
-  CnfStream* getCnfStream();
+  /**
+   * Get the associated CNF stream.
+   * @return The CNF stream.
+   */
+  CnfStream* getCnfStream() const;
 
   /**
    * Call the preprocessor on node, return trust node corresponding to the
@@ -191,6 +189,11 @@ class TheoryProxy : protected EnvObj, public Registrar
    */
   void notifySatLiteral(Node n) override;
 
+  /**
+   * Callback to notify that the SAT solver backtracked.
+   */
+  void notifyBacktrack();
+
   /** Get the zero-level assertions */
   std::vector<Node> getLearnedZeroLevelLiterals(
       modes::LearnedLitType ltype) const;
@@ -198,6 +201,9 @@ class TheoryProxy : protected EnvObj, public Registrar
   std::vector<Node> getLearnedZeroLevelLiteralsForRestart() const;
   /** Get literal type using ZLL utility */
   modes::LearnedLitType getLiteralType(const Node& lit) const;
+
+  /** Inprocess lemma */
+  TrustNode inprocessLemma(TrustNode& trn);
 
  private:
   /** The prop engine we are using. */
@@ -210,16 +216,27 @@ class TheoryProxy : protected EnvObj, public Registrar
   std::unique_ptr<decision::DecisionEngine> d_decisionEngine;
 
   /**
-   * Whether the decision engine needs notification of active skolem
-   * definitions, see DecisionEngine::needsActiveSkolemDefs.
+   * True if we need to track active skolem definitions for the preregistrar,
+   * false to track for the decision engine.
    */
   bool d_trackActiveSkDefs;
+  /**
+   * Whether the decision engine needs to track active skolem definitions as
+   * local assertions.
+   */
+  bool d_dmTrackActiveSkDefs;
+  /**
+   * Are we in solve?
+   * This is true if there was a call to presolve() after the last call to
+   * postsolve(), if any.
+   */
+  bool d_inSolve;
 
   /** The theory engine we are using. */
   TheoryEngine* d_theoryEngine;
 
-  /** Queue of asserted facts */
-  context::CDQueue<TNode> d_queue;
+  /** Queue of asserted facts and their decision level. */
+  context::CDQueue<std::pair<TNode, int32_t>> d_queue;
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
@@ -229,6 +246,9 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** The zero level learner */
   std::unique_ptr<ZeroLevelLearner> d_zll;
+
+  /** The inprocess utility */
+  std::unique_ptr<LemmaInprocess> d_lemip;
 
   /** Preregister policy */
   std::unique_ptr<TheoryPreregistrar> d_prr;

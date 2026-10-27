@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,6 +14,7 @@
 
 #include <sstream>
 
+#include "expr/bound_var_manager.h"
 // TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 
@@ -25,46 +23,20 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace expr {
 
-TermCanonize::TermCanonize(TypeClassCallback* tcc)
-    : d_tcc(tcc), d_op_id_count(0), d_typ_id_count(0)
-{
-}
-
-int TermCanonize::getIdForOperator(Node op)
-{
-  std::map<Node, int>::iterator it = d_op_id.find(op);
-  if (it == d_op_id.end())
-  {
-    d_op_id[op] = d_op_id_count;
-    d_op_id_count++;
-    return d_op_id[op];
-  }
-  return it->second;
-}
-
-int TermCanonize::getIdForType(TypeNode t)
-{
-  std::map<TypeNode, int>::iterator it = d_typ_id.find(t);
-  if (it == d_typ_id.end())
-  {
-    d_typ_id[t] = d_typ_id_count;
-    d_typ_id_count++;
-    return d_typ_id[t];
-  }
-  return it->second;
-}
+TermCanonize::TermCanonize(TypeClassCallback* tcc) : d_tcc(tcc) {}
 
 bool TermCanonize::getTermOrder(Node a, Node b)
 {
-  if (a.getKind() == BOUND_VARIABLE)
+  if (a.getKind() == Kind::BOUND_VARIABLE)
   {
-    if (b.getKind() == BOUND_VARIABLE)
+    if (b.getKind() == Kind::BOUND_VARIABLE)
     {
-      return getIndexForFreeVariable(a) < getIndexForFreeVariable(b);
+      // just use builtin node comparison
+      return a < b;
     }
     return true;
   }
-  if (b.getKind() != BOUND_VARIABLE)
+  if (b.getKind() != Kind::BOUND_VARIABLE)
   {
     Node aop = a.hasOperator() ? a.getOperator() : a;
     Node bop = b.hasOperator() ? b.getOperator() : b;
@@ -74,7 +46,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
     {
       if (a.getNumChildren() == b.getNumChildren())
       {
-        for (unsigned i = 0, size = a.getNumChildren(); i < size; i++)
+        for (size_t i = 0, size = a.getNumChildren(); i < size; i++)
         {
           if (a[i] != b[i])
           {
@@ -85,12 +57,12 @@ bool TermCanonize::getTermOrder(Node a, Node b)
       }
       else
       {
-        return aop.getNumChildren() < bop.getNumChildren();
+        return a.getNumChildren() < b.getNumChildren();
       }
     }
     else
     {
-      return getIdForOperator(aop) < getIdForOperator(bop);
+      return aop < bop;
     }
   }
   return false;
@@ -99,7 +71,6 @@ bool TermCanonize::getTermOrder(Node a, Node b)
 Node TermCanonize::getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc)
 {
   Assert(!tn.isNull());
-  NodeManager* nm = NodeManager::currentNM();
   std::pair<TypeNode, uint32_t> key(tn, tc);
   std::vector<Node>& tvars = d_cn_free_var[key];
   while (tvars.size() <= i)
@@ -120,7 +91,11 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, size_t i, uint32_t tc)
       }
       os << typ_name[0] << i;
     }
-    Node x = nm->mkBoundVar(os.str().c_str(), tn);
+    NodeManager* nm = tn.getNodeManager();
+    BoundVarManager* bvm = nm->getBoundVarManager();
+    Node cacheVal = BoundVarManager::getCacheValue(
+        BoundVarManager::getCacheValue(nm, tc), i);
+    Node x = bvm->mkBoundVar(BoundVarId::TERM_CANONIZE, cacheVal, os.str(), tn);
     d_fvIndex[x] = tvars.size();
     tvars.push_back(x);
   }
@@ -162,7 +137,7 @@ Node TermCanonize::getCanonicalTerm(
   }
 
   Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
-  if (n.getKind() == BOUND_VARIABLE)
+  if (n.getKind() == Kind::BOUND_VARIABLE)
   {
     uint32_t tc = getTypeClass(n);
     TypeNode tn = n.getType();
@@ -184,7 +159,14 @@ Node TermCanonize::getCanonicalTerm(
     {
       cchildren.push_back(cn);
     }
-    // if applicable, first sort by term order
+    // now make canonical
+    Trace("canon-term-debug") << "Make canonical children" << std::endl;
+    for (unsigned i = 0, size = cchildren.size(); i < size; i++)
+    {
+      cchildren[i] = getCanonicalTerm(
+          cchildren[i], apply_torder, doHoVar, var_count, visited);
+    }
+    // if applicable, sort by term order
     if (apply_torder && theory::quantifiers::TermUtil::isComm(n.getKind()))
     {
       Trace("canon-term-debug")
@@ -192,13 +174,6 @@ Node TermCanonize::getCanonicalTerm(
       sortTermOrder sto;
       sto.d_tu = this;
       std::sort(cchildren.begin(), cchildren.end(), sto);
-    }
-    // now make canonical
-    Trace("canon-term-debug") << "Make canonical children" << std::endl;
-    for (unsigned i = 0, size = cchildren.size(); i < size; i++)
-    {
-      cchildren[i] = getCanonicalTerm(
-          cchildren[i], apply_torder, doHoVar, var_count, visited);
     }
     if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
@@ -212,7 +187,7 @@ Node TermCanonize::getCanonicalTerm(
     }
     Trace("canon-term-debug")
         << "...constructing for " << n << "." << std::endl;
-    Node ret = NodeManager::currentNM()->mkNode(n.getKind(), cchildren);
+    Node ret = n.getNodeManager()->mkNode(n.getKind(), cchildren);
     Trace("canon-term-debug")
         << "...constructed " << ret << " for " << n << "." << std::endl;
     visited[n] = ret;

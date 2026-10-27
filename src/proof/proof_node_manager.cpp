@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -28,18 +25,19 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 
-ProofNodeManager::ProofNodeManager(const Options& opts,
+ProofNodeManager::ProofNodeManager(NodeManager* nm,
+                                   const Options& opts,
                                    theory::Rewriter* rr,
                                    ProofChecker* pc)
     : d_opts(opts), d_rewriter(rr), d_checker(pc)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  d_true = nm->mkConst(true);
   // we always allocate a proof checker, regardless of the proof checking mode
   Assert(d_checker != nullptr);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected)
@@ -61,23 +59,36 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return pn;
 }
 
+std::shared_ptr<ProofNode> ProofNodeManager::mkTrustedNode(
+    TrustId id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    const Node& conc)
+{
+  std::vector<Node> sargs;
+  sargs.push_back(mkTrustId(conc.getNodeManager(), id));
+  sargs.push_back(conc);
+  sargs.insert(sargs.end(), args.begin(), args.end());
+  return mkNode(ProofRule::TRUST, children, sargs);
+}
+
 std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
 {
   Assert(!fact.isNull());
   Assert(fact.getType().isBoolean());
-  return mkNode(PfRule::ASSUME, {}, {fact}, fact);
+  return mkNode(ProofRule::ASSUME, {}, {fact}, fact);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkSymm(
     std::shared_ptr<ProofNode> child, Node expected)
 {
-  if (child->getRule() == PfRule::SYMM)
+  if (child->getRule() == ProofRule::SYMM)
   {
     Assert(expected.isNull()
            || child->getChildren()[0]->getResult() == expected);
     return child->getChildren()[0];
   }
-  return mkNode(PfRule::SYMM, {child}, {}, expected);
+  return mkNode(ProofRule::SYMM, {child}, {}, expected);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
@@ -89,7 +100,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkTrans(
     Assert(expected.isNull() || children[0]->getResult() == expected);
     return children[0];
   }
-  return mkNode(PfRule::TRANS, children, {}, expected);
+  return mkNode(ProofRule::TRANS, children, {}, expected);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
@@ -99,9 +110,9 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     bool doMinimize,
     Node expected)
 {
-  if (!ensureClosed)
+  if (!ensureClosed && !doMinimize)
   {
-    return mkNode(PfRule::SCOPE, {pf}, assumps, expected);
+    return mkNode(ProofRule::SCOPE, {pf}, assumps, expected);
   }
   Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
   // we first ensure the assumptions are flattened
@@ -150,7 +161,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         for (std::shared_ptr<ProofNode> pfs : fa.second)
         {
           Assert(pfs->getResult() == a);
-          updateNode(pfs.get(), PfRule::MACRO_SR_PRED_INTRO, {}, {a});
+          updateNode(pfs.get(), ProofRule::MACRO_SR_PRED_INTRO, {}, {a});
         }
         Trace("pnm-scope") << "...finished" << std::endl;
         acu.insert(a);
@@ -190,22 +201,27 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         // use SYMM if possible
         if (aMatch == aeqSym)
         {
-          if (pfaa->getRule() == PfRule::SYMM)
+          if (pfaa->getRule() == ProofRule::SYMM)
           {
             updateNode(pfs.get(), pfaa->getChildren()[0].get());
           }
           else
           {
-            updateNode(pfs.get(), PfRule::SYMM, children, {});
+            updateNode(pfs.get(), ProofRule::SYMM, children, {});
           }
         }
         else
         {
-          updateNode(pfs.get(), PfRule::MACRO_SR_PRED_TRANSFORM, children, {a});
+          updateNode(
+              pfs.get(), ProofRule::MACRO_SR_PRED_TRANSFORM, children, {a});
         }
       }
       Trace("pnm-scope") << "...finished" << std::endl;
       acu.insert(aMatch);
+      continue;
+    }
+    if (!ensureClosed)
+    {
       continue;
     }
     // If we did not find a match, it is an error, since all free assumptions
@@ -255,7 +271,6 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     assumps.insert(assumps.end(), ac.begin(), ac.end());
   }
   Node minExpected;
-  NodeManager* nm = NodeManager::currentNM();
   Node exp;
   if (assumps.empty())
   {
@@ -263,21 +278,22 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     return pf;
   }
   Node conc = pf->getResult();
-  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
+  NodeManager* nm = conc.getNodeManager();
+  exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(Kind::AND, assumps);
   if (conc.isConst() && !conc.getConst<bool>())
   {
     minExpected = exp.notNode();
   }
   else
   {
-    minExpected = nm->mkNode(IMPLIES, exp, conc);
+    minExpected = nm->mkNode(Kind::IMPLIES, exp, conc);
   }
-  return mkNode(PfRule::SCOPE, {pf}, assumps, minExpected);
+  return mkNode(ProofRule::SCOPE, {pf}, assumps, minExpected);
 }
 
 bool ProofNodeManager::updateNode(
     ProofNode* pn,
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
@@ -319,7 +335,7 @@ void ProofNodeManager::ensureChecked(ProofNode* pn)
 }
 
 Node ProofNodeManager::checkInternal(
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     Node expected,
@@ -345,70 +361,14 @@ Node ProofNodeManager::checkInternal(
 
 ProofChecker* ProofNodeManager::getChecker() const { return d_checker; }
 
-std::shared_ptr<ProofNode> ProofNodeManager::clone(
-    std::shared_ptr<ProofNode> pn) const
-{
-  const ProofNode* orig = pn.get();
-  std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>> visited;
-  std::unordered_map<const ProofNode*, std::shared_ptr<ProofNode>>::iterator it;
-  std::vector<const ProofNode*> visit;
-  std::shared_ptr<ProofNode> cloned;
-  visit.push_back(orig);
-  const ProofNode* cur;
-  while (!visit.empty())
-  {
-    cur = visit.back();
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited[cur] = nullptr;
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : children)
-      {
-        visit.push_back(cp.get());
-      }
-      continue;
-    }
-    visit.pop_back();
-    if (it->second.get() == nullptr)
-    {
-      std::vector<std::shared_ptr<ProofNode>> cchildren;
-      const std::vector<std::shared_ptr<ProofNode>>& children =
-          cur->getChildren();
-      for (const std::shared_ptr<ProofNode>& cp : children)
-      {
-        it = visited.find(cp.get());
-        Assert(it != visited.end());
-        // if we encounter nullptr here, then this child is currently being
-        // traversed at a higher level, hence this corresponds to a cyclic
-        // proof.
-        if (it->second == nullptr)
-        {
-          Unreachable() << "Cyclic proof encountered when cloning a proof node";
-        }
-        cchildren.push_back(it->second);
-      }
-      cloned = std::make_shared<ProofNode>(
-          cur->getRule(), cchildren, cur->getArguments());
-      visited[cur] = cloned;
-      // we trust the above cloning does not change what is proven
-      cloned->d_proven = cur->d_proven;
-      cloned->d_provenChecked = cur->d_provenChecked;
-    }
-  }
-  Assert(visited.find(orig) != visited.end());
-  return visited[orig];
-}
-
 ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 {
   // processed is almost always size <= 1
   std::vector<ProofNode*> processed;
-  while (pn->getRule() == PfRule::SYMM)
+  while (pn->getRule() == ProofRule::SYMM)
   {
     std::shared_ptr<ProofNode> pnc = pn->getChildren()[0];
-    if (pnc->getRule() == PfRule::SYMM)
+    if (pnc->getRule() == ProofRule::SYMM)
     {
       pn = pnc->getChildren()[0].get();
       if (std::find(processed.begin(), processed.end(), pn) != processed.end())
@@ -428,7 +388,7 @@ ProofNode* ProofNodeManager::cancelDoubleSymm(ProofNode* pn)
 
 bool ProofNodeManager::updateNodeInternal(
     ProofNode* pn,
-    PfRule id,
+    ProofRule id,
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args,
     bool needsCheck)

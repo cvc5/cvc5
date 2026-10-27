@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --seq-array=lazy --strings-code-elim
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --seq-array=lazy
 ; EXPECT: sat
 (set-logic QF_SLIA)
 (declare-const x String)

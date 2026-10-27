@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,7 +20,7 @@ namespace sets {
 
 SetEnumerator::SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
     : TypeEnumeratorBase<SetEnumerator>(type),
-      d_nodeManager(NodeManager::currentNM()),
+      d_nodeManager(type.getNodeManager()),
       d_elementEnumerator(type.getSetElementType(), tep),
       d_isFinished(false),
       d_currentSetIndex(0),
@@ -90,7 +87,7 @@ SetEnumerator& SetEnumerator::operator++()
     // get a new element and return it as a singleton set
     Node element = *d_elementEnumerator;
     d_elementsSoFar.push_back(element);
-    d_currentSet = d_nodeManager->mkNode(kind::SET_SINGLETON, element);
+    d_currentSet = d_nodeManager->mkNode(Kind::SET_SINGLETON, element);
     d_elementEnumerator++;
   }
   else

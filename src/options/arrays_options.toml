@@ -55,5 +55,5 @@ name   = "Arrays Theory"
   long       = "arrays-exp"
   type       = "bool"
   default    = "false"
-  help       = "enable experimental features in the theory of arrays"
+  help       = "use a theory of arrays that includes constant arrays, and other experimental features"
 

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -29,8 +26,9 @@ class TheoryEngine;
 
 namespace prop {
 
-class CDCLTSatSolverInterface;
+class CDCLTSatSolver;
 class CnfStream;
+class TheoryPreregistrarNotify;
 
 /**
  * Implements the policy for preregistration to TheoryEngine based on
@@ -38,40 +36,59 @@ class CnfStream;
  */
 class TheoryPreregistrar : protected EnvObj
 {
+  friend TheoryPreregistrarNotify;
+
  public:
   TheoryPreregistrar(Env& env,
                      TheoryEngine* te,
-                     CDCLTSatSolverInterface* ss,
+                     CDCLTSatSolver* ss,
                      CnfStream* cs);
-  ~TheoryPreregistrar();
+  virtual ~TheoryPreregistrar();
   /** Do we need to be informed of activated skolem definitions? */
-  bool needsActiveSkolemDefs() const;
+  virtual bool needsActiveSkolemDefs() const;
   /** theory check */
-  void check();
+  virtual void check();
   /** Notify assertion */
-  void addAssertion(TNode n, TNode skolem, bool isLemma);
+  virtual void addAssertion(TNode n, TNode skolem, bool isLemma);
   /** Notify that skolem definitions have become active */
-  void notifyActiveSkolemDefs(std::vector<TNode>& defs);
+  virtual void notifyActiveSkolemDefs(std::vector<TNode>& defs);
   /**
    * Notify that a SAT literal for atom n has been allocated in the SAT solver.
+   * @param n The node to preregister.
    */
-  void notifySatLiteral(TNode n);
+  virtual void notifySatLiteral(TNode n);
+  /**
+   * Callback to notify that the SAT solver backtracked.
+   */
+  virtual void notifyBacktrack();
   /**
    * Notify that n is asserted from SAT solver, return true if we should
    * assert n to the theory engine.
    *
    * An example of when this method returns false is when n is a Boolean
-   * variable that does not have kind BOOLEAN_TERM_VARIABLE. Note we only
+   * variable that does not have skolem function id PURIFY (which marks that
+   * it requires sending to the theory). Note we only
    * call this method for such terms when the TRACK_AND_NOTIFY(_VAR) policy
    * is used in the CNF stream.
    */
-  bool notifyAsserted(TNode n);
+  virtual bool notifyAsserted(TNode n);
 
  private:
   /** pre-register to theory */
   void preRegisterToTheory(const std::vector<TNode>& toPreregister);
   /** Theory engine */
   TheoryEngine* d_theoryEngine;
+  /**
+   * Cache preregistered SAT literals, mapped to the SAT context level they
+   * were registered at. On backtrack, all literals that were registered at
+   * a level higher than the current (backtracked) level need registration.
+   * This is due to the fact that they get popped from the SAT context on
+   * backtrack but remain in the SAT solver.
+   * This cache is cleared on user context pop.
+   */
+  std::vector<std::pair<Node, uint32_t>> d_sat_literals;
+  /* Notifies on SAT context pop. */
+  std::unique_ptr<TheoryPreregistrarNotify> d_notify;
 };
 
 }  // namespace prop

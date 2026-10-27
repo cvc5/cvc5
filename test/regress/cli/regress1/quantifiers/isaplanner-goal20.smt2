@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --quant-ind --conjecture-gen
 ; EXPECT: unsat
 (set-logic UFDTLIA)

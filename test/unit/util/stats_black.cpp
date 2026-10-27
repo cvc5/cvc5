@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +17,8 @@
 #include <string>
 #include <thread>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "lib/clock_gettime.h"
-#include "proof/proof_rule.h"
 #include "test_env.h"
 #include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
@@ -48,7 +45,7 @@ class TestUtilBlackStats : public TestEnv
 TEST_F(TestUtilBlackStats, stats)
 {
 #ifdef CVC5_STATISTICS_ON
-  StatisticsRegistry reg(*d_env.get(), false);
+  StatisticsRegistry reg(false, false, false);
   std::string empty, bar = "bar", baz = "baz";
 
   AverageStat avg = reg.registerAverage("avg");
@@ -57,9 +54,9 @@ TEST_F(TestUtilBlackStats, stats)
   HistogramStat<int64_t> histInt = reg.registerHistogram<int64_t>("hist-int");
   histInt << 15 << 16 << 15 << 14 << 16;
 
-  HistogramStat<PfRule> histPfRule =
-      reg.registerHistogram<PfRule>("hist-pfrule");
-  histPfRule << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
+  HistogramStat<ProofRule> histProofRule =
+      reg.registerHistogram<ProofRule>("hist-pfrule");
+  histProofRule << ProofRule::ASSUME << ProofRule::SCOPE << ProofRule::ASSUME;
 
   IntStat intstat = reg.registerInt("int");
   intstat = 5;

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -17,7 +14,8 @@
 #ifndef CVC5_PRIVATE_H
 #define CVC5_PRIVATE_H
 
-#if !(defined(__BUILDING_CVC5LIB) || defined(__BUILDING_CVC5LIB_UNIT_TEST))
+#if !(defined(__BUILDING_CVC5LIB) || defined(__BUILDING_CVC5PARSERLIB) \
+      || defined(__BUILDING_CVC5LIB_UNIT_TEST))
 #  error A private cvc5 header was included when not building the library or private unit test code.
 #endif
 

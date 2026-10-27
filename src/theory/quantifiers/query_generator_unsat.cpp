@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,19 +24,19 @@ namespace quantifiers {
 
 QueryGeneratorUnsat::QueryGeneratorUnsat(Env& env) : QueryGenerator(env)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
   // determine the options to use for the verification subsolvers we spawn
   // we start with the provided options
   d_subOptions.copyValues(d_env.getOptions());
-  d_subOptions.writeQuantifiers().sygus = false;
-  d_subOptions.writeSmt().produceProofs = true;
-  d_subOptions.writeSmt().checkProofs = true;
-  d_subOptions.writeSmt().produceModels = true;
-  d_subOptions.writeSmt().checkModels = true;
+  d_subOptions.write_quantifiers().sygus = false;
+  d_subOptions.write_smt().produceProofs = true;
+  d_subOptions.write_smt().checkProofs = true;
+  d_subOptions.write_smt().produceModels = true;
+  d_subOptions.write_smt().checkModels = true;
 }
 
-bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
+bool QueryGeneratorUnsat::addTerm(Node n, std::vector<Node>& queries)
 {
   Trace("sygus-qgen") << "Add term: " << n << std::endl;
   ensureBoolean(n);
@@ -57,6 +54,7 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   activeTerms.push_back(n);
   bool addSuccess = true;
   size_t checkCount = 0;
+  NodeManager* nm = nodeManager();
   while (checkCount < 10)
   {
     // if we just successfully added a term, do a satisfiability check
@@ -71,7 +69,8 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
       // the same assertion order for a subsequence.
       std::vector<Node> aTermCurr = activeTerms;
       std::shuffle(aTermCurr.begin(), aTermCurr.end(), Random::getRandom());
-      Result r = checkCurrent(aTermCurr, out, currModel);
+      Node qy = nm->mkAnd(activeTerms);
+      Result r = checkCurrent(qy, currModel, queries);
       if (r.getStatus() == Result::UNSAT)
       {
         // exclude the last active term
@@ -121,34 +120,31 @@ bool QueryGeneratorUnsat::addTerm(Node n, std::ostream& out)
   return true;
 }
 
-Result QueryGeneratorUnsat::checkCurrent(const std::vector<Node>& activeTerms,
-                                         std::ostream& out,
-                                         std::vector<Node>& currModel)
+Result QueryGeneratorUnsat::checkCurrent(const Node& qy,
+                                         std::vector<Node>& currModel,
+                                         std::vector<Node>& queries)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node qy = nm->mkAnd(activeTerms);
-  Trace("sygus-qgen-check") << "Check: " << qy << std::endl;
-  out << "(query " << qy << ")" << std::endl;
+  Trace("expr-miner-check") << "Check (qgu): " << qy << std::endl;
   std::unique_ptr<SolverEngine> queryChecker;
   SubsolverSetupInfo ssi(d_env, d_subOptions);
   initializeChecker(queryChecker, qy, ssi);
   Result r = queryChecker->checkSat();
-  Trace("sygus-qgen-check") << "..finished check got " << r << std::endl;
+  Trace("expr-miner-check") << "...result: " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
     // if unsat, get the unsat core
     std::vector<Node> unsatCore;
     getUnsatCoreFromSubsolver(*queryChecker.get(), unsatCore);
     Assert(!unsatCore.empty());
-    Trace("sygus-qgen-check") << "...unsat core: " << unsatCore << std::endl;
+    Trace("expr-miner-check") << "...unsat core: " << unsatCore << std::endl;
     d_cores.add(d_false, unsatCore);
   }
   else if (r.getStatus() == Result::SAT)
   {
     getModelFromSubsolver(*queryChecker.get(), d_skolems, currModel);
-    Trace("sygus-qgen-check") << "...model: " << currModel << std::endl;
+    Trace("expr-miner-check") << "...model: " << currModel << std::endl;
   }
-  dumpQuery(qy, r);
+  dumpQuery(qy, r, queries);
   return r;
 }
 
@@ -157,7 +153,7 @@ size_t QueryGeneratorUnsat::getNextRandomIndex(
 {
   Assert(!d_terms.empty());
   Assert(processed.size() < d_terms.size());
-  size_t rindex = Random::getRandom().pick(0, d_terms.size() - 1);
+  size_t rindex = Random::getRandom().pick<size_t>(0, d_terms.size() - 1);
   while (processed.find(rindex) != processed.end())
   {
     rindex++;

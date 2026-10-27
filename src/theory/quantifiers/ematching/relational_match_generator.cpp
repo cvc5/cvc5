@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,21 +30,22 @@ RelationalMatchGenerator::RelationalMatchGenerator(
       d_pol(pol),
       d_counter(0)
 {
-  Assert((rtrigger.getKind() == EQUAL && rtrigger[0].getType().isRealOrInt())
-         || rtrigger.getKind() == GEQ);
+  Assert(
+      (rtrigger.getKind() == Kind::EQUAL && rtrigger[0].getType().isRealOrInt())
+      || rtrigger.getKind() == Kind::GEQ);
   Trace("relational-match-gen")
       << "Relational trigger: " << rtrigger << ", hasPol/pol = " << hasPol
       << "/" << pol << std::endl;
   for (size_t i = 0; i < 2; i++)
   {
-    if (rtrigger[i].getKind() == INST_CONSTANT)
+    if (rtrigger[i].getKind() == Kind::INST_CONSTANT)
     {
       d_var = rtrigger[i];
       d_vindex = d_var.getAttribute(InstVarNumAttribute());
       d_rhs = rtrigger[1 - i];
       Assert(!quantifiers::TermUtil::hasInstConstAttr(d_rhs));
       Kind k = rtrigger.getKind();
-      d_rel = (i == 0 ? k : (k == GEQ ? LEQ : k));
+      d_rel = (i == 0 ? k : (k == Kind::GEQ ? Kind::LEQ : k));
       break;
     }
   }
@@ -57,7 +55,7 @@ RelationalMatchGenerator::RelationalMatchGenerator(
       << "Failed to initialize RelationalMatchGenerator";
 }
 
-bool RelationalMatchGenerator::reset(Node eqc)
+bool RelationalMatchGenerator::reset(CVC5_UNUSED Node eqc)
 {
   d_counter = 0;
   return true;
@@ -87,15 +85,15 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
       // try the opposite polarity
       checkPol = !d_pol;
     }
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     // falsify ( d_var <d_rel> d_rhs ) = checkPol
     s = rhs;
     if (!checkPol)
     {
-      s = nm->mkNode(
-          ADD,
-          s,
-          nm->mkConstRealOrInt(s.getType(), Rational(d_rel == GEQ ? -1 : 1)));
+      s = nm->mkNode(Kind::ADD,
+                     s,
+                     nm->mkConstRealOrInt(
+                         s.getType(), Rational(d_rel == Kind::GEQ ? -1 : 1)));
     }
     d_counter++;
     Trace("relational-match-gen")
@@ -103,8 +101,7 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
     if (m.set(d_vindex, s))
     {
       Trace("relational-match-gen") << "...success" << std::endl;
-      int ret = continueNextMatch(
-          m, InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL);
+      int ret = continueNextMatch(m);
       if (ret > 0)
       {
         Trace("relational-match-gen") << "...returned " << ret << std::endl;
@@ -119,6 +116,11 @@ int RelationalMatchGenerator::getNextMatch(InstMatch& m)
     }
   }
   return -1;
+}
+
+InferenceId RelationalMatchGenerator::getInferenceId()
+{
+  return InferenceId::QUANTIFIERS_INST_E_MATCHING_RELATIONAL;
 }
 
 }  // namespace inst

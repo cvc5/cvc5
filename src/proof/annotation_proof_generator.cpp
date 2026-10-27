@@ -1,85 +1,81 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of the annotation proof generator class.
+ * Implementation of annotation proof generator utility.
  */
 
 #include "proof/annotation_proof_generator.h"
 
-#include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "proof/proof_node_manager.h"
+#include "smt/env.h"
 
 namespace cvc5::internal {
 
-AnnotationProofGenerator::AnnotationProofGenerator(ProofNodeManager* pnm,
+AnnotationProofGenerator::AnnotationInfo::AnnotationInfo(
+    ProofGenerator* pg,
+    const std::vector<Node>& args,
+    TrustId tid,
+    const std::vector<Node>& targs)
+    : d_pg(pg), d_args(args), d_tid(tid), d_targs(targs)
+{
+}
+
+AnnotationProofGenerator::AnnotationProofGenerator(Env& env,
                                                    context::Context* c,
-                                                   std::string name)
-    : d_pnm(pnm),
-      d_name(name),
-      d_exps(c == nullptr ? &d_context : c),
-      d_proofs(c == nullptr ? &d_context : c)
+                                                   const std::string& name)
+    : EnvObj(env), d_annotations(c ? c : d_env.getUserContext()), d_name(name)
 {
 }
 
-void AnnotationProofGenerator::setExplanationFor(Node f,
-                                                 ProofGenerator* pg,
-                                                 Annotator* a)
+void AnnotationProofGenerator::addAnnotation(Node fact,
+                                             ProofGenerator* pg,
+                                             const std::vector<Node>& args,
+                                             TrustId tid,
+                                             const std::vector<Node>& targs)
 {
-  Assert(pg != nullptr);
-  d_exps[f] = std::pair<ProofGenerator*, Annotator*>(pg, a);
+  Assert(pg != nullptr || tid != TrustId::NONE);
+  Assert(!args.empty());
+  d_annotations[fact] = std::make_shared<AnnotationInfo>(pg, args, tid, targs);
 }
 
-std::shared_ptr<ProofNode> AnnotationProofGenerator::getProofFor(Node f)
+std::shared_ptr<ProofNode> AnnotationProofGenerator::getProofFor(Node fact)
 {
-  // is the proof already cached?
-  NodeProofNodeMap::iterator it = d_proofs.find(f);
-  if (it != d_proofs.end())
-  {
-    return (*it).second;
-  }
-  // make it into an actual proof now
-  NodeExpMap::iterator itx = d_exps.find(f);
-  if (itx == d_exps.end())
+  NodeAnnotationInfoMap::const_iterator it = d_annotations.find(fact);
+  if (it == d_annotations.end())
   {
     return nullptr;
   }
-  // get the proof from the proof generator
-  std::shared_ptr<ProofNode> pf = itx->second.first->getProofFor(f);
-  if (pf == nullptr)
+  const AnnotationInfo& info = *it->second;
+  std::shared_ptr<ProofNode> child;
+  if (info.d_pg != nullptr)
   {
-    d_proofs[f] = nullptr;
-    return nullptr;
+    child = info.d_pg->getProofFor(fact);
+    if (child == nullptr)
+    {
+      return nullptr;
+    }
   }
-  // now anntoate it if an annotator was provided
-  std::shared_ptr<ProofNode> pfa = pf;
-  if (itx->second.second != nullptr)
+  else
   {
-    pfa = itx->second.second->annotate(pf);
+    ProofNodeManager* pnm = d_env.getProofNodeManager();
+    Assert(pnm != nullptr);
+    child = pnm->mkTrustedNode(info.d_tid, {}, info.d_targs, fact);
   }
-  d_proofs[f] = pfa;
-  return pfa;
+  ProofNodeManager* pnm = d_env.getProofNodeManager();
+  Assert(pnm != nullptr);
+  return pnm->mkNode(ProofRule::ANNOTATE, {child}, info.d_args, fact);
 }
 
-TrustNode AnnotationProofGenerator::transform(const TrustNode& trn,
-                                              Annotator* a)
+bool AnnotationProofGenerator::hasProofFor(Node fact)
 {
-  setExplanationFor(trn.getProven(), trn.getGenerator(), a);
-  return TrustNode::mkReplaceGenTrustNode(trn, this);
-}
-
-bool AnnotationProofGenerator::hasProofFor(Node f)
-{
-  return d_exps.find(f) != d_exps.end();
+  return d_annotations.find(fact) != d_annotations.end();
 }
 
 std::string AnnotationProofGenerator::identify() const { return d_name; }

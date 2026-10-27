@@ -1,4 +1,7 @@
 contact_links:
   - name: Bugs found with fuzzers
-    url: https://github.com/CVC4/CVC4/wiki/Fuzzing-CVC4
+    url: https://github.com/cvc5/cvc5/wiki/Fuzzing-cvc5
     about: Please read the guidelines before submitting bugs found with a fuzzer
+  - name: Questions
+    url: https://github.com/cvc5/cvc5/discussions
+    about: For questions, please use the discussions feature of GitHub

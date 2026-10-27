@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -15,8 +12,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__QUANT_MODULE_H
-#define CVC5__THEORY__QUANT_MODULE_H
+#ifndef CVC5__THEORY__QUANTIFIERS__QUANT_MODULE_H
+#define CVC5__THEORY__QUANTIFIERS__QUANT_MODULE_H
 
 #include <iostream>
 #include <map>
@@ -34,7 +31,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 class TermDb;
-}  // namespace quantifiers
 
 /** QuantifiersModule class
  *
@@ -93,7 +89,7 @@ class QuantifiersModule : protected EnvObj
    *
    * Called at the beginning of QuantifiersEngine::check(e).
    */
-  virtual void reset_round(Theory::Effort e) {}
+  virtual void reset_round(CVC5_UNUSED Theory::Effort e) {}
   /** Check.
    *
    *   Called during QuantifiersEngine::check(e) depending
@@ -111,7 +107,7 @@ class QuantifiersModule : protected EnvObj
    * If this method returns false, it should update incId to the reason for
    * why the module was incomplete.
    */
-  virtual bool checkComplete(IncompleteId& incId) { return true; }
+  virtual bool checkComplete(CVC5_UNUSED IncompleteId& incId) { return true; }
   /** Check was complete for quantified formula q
    *
    * If for each quantified formula q, some module returns true for
@@ -120,14 +116,14 @@ class QuantifiersModule : protected EnvObj
    * "sat", unless
    * we are incomplete for other reasons.
    */
-  virtual bool checkCompleteFor(Node q) { return false; }
+  virtual bool checkCompleteFor(CVC5_UNUSED Node q) { return false; }
   /** Check ownership
    *
    * Called once for new quantified formulas that are registered by the
    * quantifiers theory. The primary purpose of this function is to establish
    * if this module is the owner of quantified formula q.
    */
-  virtual void checkOwnership(Node q) {}
+  virtual void checkOwnership(CVC5_UNUSED Node q) {}
   /** Register quantifier
    *
    * Called once for new quantified formulas q that are pre-registered by the
@@ -135,20 +131,28 @@ class QuantifiersModule : protected EnvObj
    * finalized. This does context-independent initialization of this module
    * for quantified formula q.
    */
-  virtual void registerQuantifier(Node q) {}
+  virtual void registerQuantifier(CVC5_UNUSED Node q) {}
   /** Pre-register quantifier
    *
    * Called once for new quantified formulas that are
    * pre-registered by the quantifiers theory, after
    * internal ownership of quantified formulas is finalized.
    */
-  virtual void preRegisterQuantifier(Node q) {}
+  virtual void preRegisterQuantifier(CVC5_UNUSED Node q) {}
   /** Assert node.
    *
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
-  virtual void assertNode(Node q) {}
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  virtual void assertNode(CVC5_UNUSED Node q) {}
+  /** notify preprocessed assertion */
+  virtual void ppNotifyAssertions(
+      CVC5_UNUSED const std::vector<Node>& assertions)
+  {
+  }
+  /**
+   * Identify this module (for debugging, dynamic configuration, etc..).
+   * This name is printed in -o inst-strategy.
+   */
   virtual std::string identify() const = 0;
   //----------------------------general queries
   /** get currently used the equality engine */
@@ -171,6 +175,10 @@ class QuantifiersModule : protected EnvObj
   quantifiers::TermRegistry& getTermRegistry();
   //----------------------------end general queries
  protected:
+  /** Begin debug call for -t inst-strategy and -o inst-strategy */
+  void beginCallDebug();
+  /** End debug call for -t inst-strategy and -o inst-strategy */
+  void endCallDebug();
   /** Reference to the state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
@@ -181,7 +189,8 @@ class QuantifiersModule : protected EnvObj
   quantifiers::TermRegistry& d_treg;
 }; /* class QuantifiersModule */
 
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif /* CVC5__THEORY__QUANT_UTIL_H */
+#endif /* CVC5__THEORY__QUANTIFIERS__QUANT_MODULE_H */

@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --ext-rewrite-quant -q
 ; EXPECT: sat
 (set-logic NIA)

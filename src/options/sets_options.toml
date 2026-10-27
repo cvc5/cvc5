@@ -10,17 +10,25 @@ name   = "Sets Theory"
   help       = "introduce proxy variables eagerly to shorten lemmas"
 
 [[option]]
-  name       = "setsInferAsLemmas"
+  name       = "setsExp"
   category   = "expert"
-  long       = "sets-infer-as-lemmas"
-  type       = "bool"
-  default    = "true"
-  help       = "send inferences as lemmas"
-
-[[option]]
-  name       = "setsExt"
-  category   = "regular"
-  long       = "sets-ext"
+  long       = "sets-exp"
   type       = "bool"
   default    = "false"
   help       = "enable extended symbols such as complement and universe in theory of sets"
+
+[[option]]
+  name       = "relsExp"
+  category   = "expert"
+  long       = "rels-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enable the relations extension of the theory of sets"
+
+[[option]]
+  name       = "setsCardExp"
+  category   = "expert"
+  long       = "sets-card-exp"
+  type       = "bool"
+  default    = "true"
+  help       = "enable the cardinality extension of the theory of sets"

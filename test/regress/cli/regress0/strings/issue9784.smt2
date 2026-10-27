@@ -1,0 +1,5 @@
+(set-logic QF_S)
+(set-info :status sat)
+(declare-const c String)
+(assert (not (str.in_re c ((_ re.^ 0) re.all))))
+(check-sat)

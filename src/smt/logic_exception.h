@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Morgan Deters, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -27,19 +24,41 @@ namespace cvc5::internal {
 class LogicException : public cvc5::internal::Exception
 {
  public:
-  LogicException() :
-    Exception("Feature used while operating in "
-              "incorrect state") {
+  LogicException()
+      : Exception(
+            "Feature used while operating in "
+            "incorrect state")
+  {
   }
 
-  LogicException(const std::string& msg) :
-    Exception(msg) {
-  }
+  LogicException(const std::string& msg) : Exception(msg) {}
 
-  LogicException(const char* msg) :
-    Exception(msg) {
-  }
+  LogicException(const char* msg) : Exception(msg) {}
 }; /* class LogicException */
+
+/**
+ * Prepends a logic exception with the text "Logic restricted in safe mode" or
+ * "Logic restricted in stable mode".
+ * This kind of logic exception should be thrown for any failure that is
+ * admissible in safe mode or stable mode. Note that a regression that throws
+ * this exception must be marked with "REQUIRES: unrestricted-mode" (or
+ * "REQUIRES: no-safe-mode" if it is admissible in stable mode), as the
+ * regression testers do not infer this from the output of cvc5.
+ */
+class SafeLogicException : public LogicException
+{
+ public:
+  SafeLogicException(const std::string& s)
+#if defined(CVC5_SAFE_MODE)
+      : LogicException("Logic restricted in safe mode. " + s)
+#elif defined(CVC5_STABLE_MODE)
+      : LogicException("Logic restricted in stable mode. " + s)
+#else
+      : LogicException(s)
+#endif
+  {
+  }
+};
 
 }  // namespace cvc5::internal
 

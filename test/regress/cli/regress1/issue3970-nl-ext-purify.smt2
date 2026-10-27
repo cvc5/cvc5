@@ -1,10 +1,12 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
 ; EXPECT: unsat
+; --sygus-inference is not supported with full proofs.
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic QF_UFNRA)
 (set-option :nl-ext-purify true)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (set-info :status unsat)
 (declare-const v0 Bool)
 (declare-const v1 Bool)

@@ -1,5 +1,5 @@
 (set-logic QF_S)
-(set-option :strings-exp true)
+
 (set-info :status sat)
 
 (declare-fun x () String)

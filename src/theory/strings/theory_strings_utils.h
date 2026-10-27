@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,11 +17,15 @@
 
 #include <vector>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace strings {
+
+class SkolemCache;
+
 namespace utils {
 
 /** get the default cardinality of the alphabet used */
@@ -34,7 +35,7 @@ uint32_t getDefaultAlphabetCardinality();
  * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
  * true if a is empty, and a single literal if a has size 1.
  */
-Node mkAnd(const std::vector<Node>& a);
+Node mkAnd(NodeManager* nm, const std::vector<Node>& a);
 
 /**
  * Adds all (non-duplicate) children of <k> applications from n to conj. For
@@ -49,13 +50,14 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj);
  * when n = str.++( x, y ), c is { x, y }
  * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
  * when n = x, c is { x }
+ * when n = "", c is { "" }
  *
  * Also applies to regular expressions (re.++ above).
  */
 void getConcat(Node n, std::vector<Node>& c);
 
 /**
- * Make the concatentation from vector c of (string-like or regular
+ * Make the concatenation from vector c of (string-like or regular
  * expression) type tn.
  */
 Node mkConcat(const std::vector<Node>& c, TypeNode tn);
@@ -69,6 +71,15 @@ Node mkPrefix(Node t, Node n);
  * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
  */
 Node mkSuffix(Node t, Node n);
+
+/**
+ * Returns (str.substr t 0 (- (str.len t) n)).
+ */
+Node mkPrefixExceptLen(Node t, Node n);
+/**
+ * Returns (str.substr t (- (str.len t) n) n).
+ */
+Node mkSuffixOfLen(Node t, Node n);
 
 /**
  * Make a unit, returns either (str.unit n) or (seq.unit n) depending
@@ -112,6 +123,11 @@ Node mkSubstrChain(Node base,
                    const std::vector<Node>& ls);
 
 /**
+ * Make the concatenation of seq.unit chains for a given constant sequence.
+ */
+Node mkConcatForConstSequence(const Node& c);
+
+/**
  * Collects equal-to-empty nodes from a conjunction or a single
  * node. Returns a list of nodes that are compared to empty nodes
  * and a boolean that indicates whether all nodes in the
@@ -139,6 +155,11 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
  * @return true if n is constant-like.
  */
 bool isConstantLike(Node n);
+
+/**
+ * Return true if the arguments of REGEXP_RANGE term t are characters.
+ */
+bool isCharacterRange(TNode t);
 
 /**
  * Given a vector of regular expression nodes and a start index that points to
@@ -173,9 +194,9 @@ bool isSimpleRegExp(Node r);
  */
 void getRegexpComponents(Node r, std::vector<Node>& result);
 
-/** Print the vector n as a concatentation term on output stream out */
+/** Print the vector n as a concatenation term on output stream out */
 void printConcat(std::ostream& out, std::vector<Node>& n);
-/** Print the vector n as a concatentation term on trace given by c */
+/** Print the vector n as a concatenation term on trace given by c */
 void printConcatTrace(std::vector<Node>& n, const char* c);
 
 /** Is k a string-specific kind? */
@@ -208,7 +229,7 @@ unsigned getLoopMinOccurrences(TNode node);
  * FORALL returned by this method. This ensures that E-matching is not applied
  * to the quantified formula.
  */
-Node mkForallInternal(Node bvl, Node body);
+Node mkForallInternal(NodeManager* nm, Node bvl, Node body);
 
 /**
  * Make abstract value for string-like term n whose length is given by len.
@@ -221,6 +242,108 @@ Node mkAbstractStringValueForLength(Node n, Node len, size_t id);
  * Make the formula (and (>= t 0) (< t alphaCard)).
  */
 Node mkCodeRange(Node t, uint32_t alphaCard);
+
+/** The eager reduce routine
+ *
+ * Constructs a lemma for t that is incomplete, but communicates pertinent
+ * information about t. This is analogous to StringsPreprocess::reduce.
+ *
+ * In practice, we send this lemma eagerly, as soon as t is registered.
+ *
+ * @param t The node to reduce,
+ * @param sc The Skolem cache to use for new variables,
+ * @param alphaCard The cardinality of the alphabet we are assuming
+ * @return The eager reduction for t.
+ */
+Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
+/**
+ * Returns a lemma indicating that the length of a term t whose type is
+ * string-like has positive length. The exact form of this lemma depends
+ * on what works best in practice, currently:
+ *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
+ *
+ * @param t The node to reduce,
+ * @return The positive length lemma for t.
+ */
+Node lengthPositive(Node t);
+/**
+ * This returns the conclusion of the proof rule corresponding to splitting
+ * on the arrangement of terms x and y appearing in an equation of the form
+ *   x ++ x' = y ++ y' or x' ++ x = y' ++ y
+ * where we are in the second case if isRev is true. This method is called
+ * both by the core solver and by the strings proof checker.
+ *
+ * @param nm Pointer to the node manager
+ * @param x The first term
+ * @param y The second term
+ * @param rule The proof rule whose conclusion we are asking for
+ * @param isRev Whether the equation is in a reverse direction
+ * @param skc The skolem cache (to allocate fresh variables if necessary)
+ * @param newSkolems The vector to add new variables to
+ * @return The conclusion of the inference.
+ */
+Node getConcatConclusion(NodeManager* nm,
+                         Node x,
+                         Node y,
+                         ProofRule rule,
+                         bool isRev,
+                         SkolemCache* skc,
+                         std::vector<Node>& newSkolems);
+/**
+ * Get sufficient non-empty overlap of string constants c and d.
+ *
+ * This is called when handling equations of the form:
+ *   x ++ d ++ ... = c ++ ...
+ * when x is non-empty and non-constant.
+ *
+ * This returns the maximal index in c which x must have as a prefix, which
+ * notice is an integer >= 1 since x is non-empty.
+ *
+ * @param c The first constant
+ * @param d The second constant
+ * @param isRev Whether the equation is in the reverse direction
+ * @return The position in c.
+ */
+size_t getSufficientNonEmptyOverlap(Node c, Node d, bool isRev);
+/**
+ * This returns the conclusion of the decompose proof rule. This returns
+ * a conjunction of splitting string x into pieces based on length l, e.g.:
+ *   x = k_1 ++ k_2
+ * where k_1 (resp. k_2) is a skolem corresponding to a substring of x of
+ * length l if isRev is false (resp. true). The function also adds a
+ * length constraint len(k_1) = l (resp. len(k_2) = l). Note that adding this
+ * constraint to the conclusion is *not* optional, since the skolems k_1 and
+ * k_2 may be shared, hence their length constraint must be guarded by the
+ * premises of this inference.
+ *
+ * @param nm Pointer to the node manager
+ * @param x The string term
+ * @param l The length term
+ * @param isRev Whether the equation is in a reverse direction
+ * @param skc The skolem cache (to allocate fresh variables if necessary)
+ * @param newSkolems The vector to add new variables to
+ * @return The conclusion of the inference.
+ */
+Node getDecomposeConclusion(NodeManager* nm,
+                            Node x,
+                            Node l,
+                            bool isRev,
+                            SkolemCache* skc,
+                            std::vector<Node>& newSkolems);
+/**
+ * This returns the conclusion of the extensionality rule, see
+ * ProofRule::STRING_EXT.
+ *
+ * @param nm Pointer to the node manager
+ * @param a The first string term
+ * @param b The second string term
+ * @param skc The skolem cache (to allocate fresh variables if necessary)
+ * @return The conclusion of the inference.
+ */
+Node getExtensionalityConclusion(NodeManager* nm,
+                                 const Node& a,
+                                 const Node& b,
+                                 SkolemCache* skc);
 
 }  // namespace utils
 }  // namespace strings

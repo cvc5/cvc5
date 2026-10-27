@@ -2,7 +2,7 @@ Theory Reference: Strings
 =========================
 
 cvc5 supports all operators of the `SMT-LIB standard for strings
-<https://smtlib.cs.uiowa.edu/theories-UnicodeStrings.shtml>`_. It additionally
+<https://smt-lib.org/theories-UnicodeStrings.shtml>`_. It additionally
 supports some non-standard operators that are described below.
 
 Semantics
@@ -14,13 +14,13 @@ Semantics
 
      Let w₂ = ⟦str.substr⟧(w, i, |w| - i)
 
-     - ⟦str.indexof_re⟧(w, L, i) = -1     if no substring of w₂ is in L or i < 0
+     - ⟦str.indexof_re⟧(w, L, i) = -1     if no substring of w₂ is in L or i < 0 or |w| < i
 
-     - ⟦str.indexof_re⟧(w, L, i) = |u₁|
-       where u₁, w₁ are the shortest words such that 
+     - ⟦str.indexof_re⟧(w, L, i) = |u₁| + i
+       where u₁ is the shortest word such that
          - w₂ = u₁w₁u₂
          - w₁ ∈ L
-                                          if some substring of w₂ is in L and i > 0
+                                          if some substring w₁ of w₂ is in L and 0 <= i <= |w|
 
    * (str.update String Int String)
 

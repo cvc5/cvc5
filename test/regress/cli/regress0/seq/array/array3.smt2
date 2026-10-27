@@ -1,4 +1,5 @@
-; COMMAND-LINE: --incremental --strings-exp --seq-array=lazy
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --incremental --seq-array=lazy
 ; EXPECT: sat
 
 (set-logic ALL)

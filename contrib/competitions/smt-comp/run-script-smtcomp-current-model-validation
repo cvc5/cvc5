@@ -3,28 +3,20 @@
 cvc5=$(dirname "$(readlink -f "$0")")/cvc5
 bench="$1"
 
-logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+# Output other than "sat"/"unsat" is either written to stderr or to "err.log"
+# in the directory specified by $2 if it has been set (e.g. when running on
+# StarExec).
+out_file=/dev/stderr
 
-# use: finishwith [params..]
-# to run cvc5 and let it output whatever it will to stdout.
-function finishwith {
-  $cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive --fp-exp "$@" $bench
-}
+if [ -n "$STAREXEC_WALLCLOCK_LIMIT" ]; then
+  # If we are running on StarExec, don't print to `/dev/stderr/` even when $2
+  # is not provided.
+  out_file="/dev/null"
+fi
 
-case "$logic" in
+if [ -n "$2" ]; then
+  out_file="$2/err.log"
+fi
 
-QF_LRA)
-  finishwith --no-restrict-pivots --use-soi --new-prop
-  ;;
-QF_LIA)
-  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi --pb-rewrites --ite-simp --simp-ite-compress
-  ;;
-QF_BV)
-  finishwith --bv-assert-input
-  ;;
-*)
-  # just run the default
-  finishwith
-  ;;
+$cvc5 -L smt2.6 --no-incremental --no-type-checking --no-interactive --fp-exp --use-portfolio $bench
 
-esac

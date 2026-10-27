@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Dejan Jovanovic, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -80,7 +77,10 @@ ${post_rewrite_set_cache}
   }
 }
 
-Rewriter::Rewriter() : d_resourceManager(nullptr), d_tpg(nullptr) {}
+Rewriter::Rewriter(NodeManager* nm)
+    : d_nm(nm), d_resourceManager(nullptr), d_tpg(nullptr)
+{
+}
 
 }  // namespace theory
 }  // namespace cvc5::internal

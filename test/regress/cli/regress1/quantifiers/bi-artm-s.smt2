@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-bound-lazy
 ; EXPECT: unsat
 (set-option :incremental false)

@@ -1,4 +1,4 @@
-; DISABLE-TESTER: lfsc
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fp-exp
 ; EXPECT: unsat
 

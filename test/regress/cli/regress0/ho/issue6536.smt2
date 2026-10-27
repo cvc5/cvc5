@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --mbqi
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --mbqi
 ; EXPECT: sat
 (set-logic HO_ALL)
 (declare-datatypes ((a 0) (b 0)) (((c) (d)) ((h (j b)) (e))))

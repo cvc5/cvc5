@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,11 +42,11 @@ class KindMap
   /** Convert kind to std::size_t and check bounds */
   static std::size_t fromKind(Kind k)
   {
-    AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
+    AssertArgument(k >= Kind(0) && k < Kind::LAST_KIND, k, "invalid kind");
     return static_cast<std::size_t>(k);
   }
   /** The bitmap */
-  std::bitset<kind::LAST_KIND> d_bits;
+  std::bitset<static_cast<size_t>(Kind::LAST_KIND)> d_bits;
 };
 
 }  // namespace cvc5::internal

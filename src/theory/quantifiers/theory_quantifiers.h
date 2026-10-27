@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -35,7 +32,8 @@ namespace quantifiers {
 
 class QuantifiersMacros;
 
-class TheoryQuantifiers : public Theory {
+class TheoryQuantifiers : public Theory
+{
  public:
   TheoryQuantifiers(Env& env, OutputChannel& out, Valuation valuation);
   ~TheoryQuantifiers();
@@ -56,8 +54,7 @@ class TheoryQuantifiers : public Theory {
   /**
    * Preprocess assert, which solves for quantifier macros when enabled.
    */
-  PPAssertStatus ppAssert(TrustNode tin,
-                          TrustSubstitutionMap& outSubstitutions) override;
+  bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions) override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
@@ -94,7 +91,7 @@ class TheoryQuantifiers : public Theory {
   std::unique_ptr<QuantifiersEngine> d_qengine;
   /** The quantifiers macro module, used for ppAssert. */
   std::unique_ptr<QuantifiersMacros> d_qmacros;
-};/* class TheoryQuantifiers */
+}; /* class TheoryQuantifiers */
 
 }  // namespace quantifiers
 }  // namespace theory

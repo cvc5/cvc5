@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Christopher L. Conway
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,12 +15,13 @@
 #ifndef CVC5__SYMBOL_TABLE_H
 #define CVC5__SYMBOL_TABLE_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "base/exception.h"
-#include "cvc5_export.h"
 
 namespace cvc5 {
 class Solver;
@@ -73,6 +71,19 @@ class CVC5_EXPORT SymbolTable
   bool bind(const std::string& name, cvc5::Term obj, bool doOverload = false);
 
   /**
+   * This binds a "dummy" constant t to the given name for a user sort. This
+   * ensures that this name is reserved for this sort. If it is already bound,
+   * we throw an error. If any later term is given the name of t, we throw
+   * an error.
+   * @param name an identifier for a sort
+   * @param t the expression to bind to <code>name</code>
+   * @returns true iff name is successfully bound to t.
+   *
+   * Returns false if the binding was invalid.
+   */
+  bool bindDummySortTerm(const std::string& name, cvc5::Term t);
+
+  /**
    * Bind a type to a name in the current scope.  If <code>name</code>
    * is already bound to a type in the current level, then the binding
    * is replaced. If <code>name</code> is bound in a previous level,
@@ -81,6 +92,7 @@ class CVC5_EXPORT SymbolTable
    *
    * @param name an identifier
    * @param t the type to bind to <code>name</code>
+   * @returns true iff name is successfully bound to t.
    */
   void bindType(const std::string& name, cvc5::Sort t);
 

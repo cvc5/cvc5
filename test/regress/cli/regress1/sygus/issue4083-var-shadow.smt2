@@ -1,10 +1,12 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
 ; EXPECT: unsat
+; --sygus-inference is not supported with full proofs.
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic ALL)
 (set-option :miniscope-quant conj-and-fv)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (set-option :var-ineq-elim-quant false)
 (set-info :status unsat)
 (declare-fun b ( Int ) Bool)

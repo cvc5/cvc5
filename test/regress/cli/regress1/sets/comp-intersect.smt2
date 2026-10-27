@@ -1,5 +1,5 @@
-; DISABLE-TESTER: lfsc
-; COMMAND-LINE: --sets-ext
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --sets-exp
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

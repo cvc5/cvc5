@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mathias Preiner, Liana Hadarean, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,7 +30,7 @@ using NodeMap = std::unordered_map<Node, Node>;
 using namespace cvc5::internal::theory;
 
 BvIntroPow2::BvIntroPow2(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-intro-pow2"){};
+    : PreprocessingPass(preprocContext, "bv-intro-pow2") {};
 
 PreprocessingPassResult BvIntroPow2::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -45,8 +42,9 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
     Node res = pow2Rewrite(cur, cache);
     if (res != cur)
     {
-      res = rewrite(res);
-      assertionsToPreprocess->replace(i, res);
+      assertionsToPreprocess->replace(
+          i, res, nullptr, TrustId::PREPROCESS_BV_INTRO_POW2);
+      assertionsToPreprocess->ensureRewritten(i);
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
@@ -54,12 +52,12 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
 
 bool BvIntroPow2::isPowerOfTwo(TNode node)
 {
-  if (node.getKind() != kind::EQUAL)
+  if (node.getKind() != Kind::EQUAL)
   {
     return false;
   }
-  if (node[0].getKind() != kind::BITVECTOR_AND
-      && node[1].getKind() != kind::BITVECTOR_AND)
+  if (node[0].getKind() != Kind::BITVECTOR_AND
+      && node[1].getKind() != Kind::BITVECTOR_AND)
   {
     return false;
   }
@@ -73,26 +71,25 @@ bool BvIntroPow2::isPowerOfTwo(TNode node)
   TNode a = t[0];
   TNode b = t[1];
   if (bv::utils::getSize(t) < 2) return false;
-  Node diff =
-      rewrite(NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, a, b));
+  Node diff = rewrite(nodeManager()->mkNode(Kind::BITVECTOR_SUB, a, b));
   return (diff.isConst()
           && (bv::utils::isOne(diff) || bv::utils::isOnes(diff)));
 }
 
 Node BvIntroPow2::rewritePowerOfTwo(TNode node)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   TNode term = bv::utils::isZero(node[0]) ? node[1] : node[0];
   TNode a = term[0];
   TNode b = term[1];
   uint32_t size = bv::utils::getSize(term);
-  Node diff = rewrite(nm->mkNode(kind::BITVECTOR_SUB, a, b));
+  Node diff = rewrite(nm->mkNode(Kind::BITVECTOR_SUB, a, b));
   Assert(diff.isConst());
-  Node one = bv::utils::mkOne(size);
+  Node one = bv::utils::mkOne(nm, size);
   TNode x = diff == one ? a : b;
-  Node sk = bv::utils::mkVar(size);
-  Node sh = nm->mkNode(kind::BITVECTOR_SHL, one, sk);
-  Node x_eq_sh = nm->mkNode(kind::EQUAL, x, sh);
+  Node sk = bv::utils::mkVar(nm, size);
+  Node sh = nm->mkNode(Kind::BITVECTOR_SHL, one, sk);
+  Node x_eq_sh = nm->mkNode(Kind::EQUAL, x, sh);
   return x_eq_sh;
 }
 
@@ -108,7 +105,7 @@ Node BvIntroPow2::pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache)
   Node res = Node::null();
   switch (node.getKind())
   {
-    case kind::AND:
+    case Kind::AND:
     {
       bool changed = false;
       std::vector<Node> children;
@@ -121,12 +118,12 @@ Node BvIntroPow2::pow2Rewrite(Node node, std::unordered_map<Node, Node>& cache)
       }
       if (changed)
       {
-        res = NodeManager::currentNM()->mkNode(kind::AND, children);
+        res = nodeManager()->mkNode(Kind::AND, children);
       }
     }
     break;
 
-    case kind::EQUAL:
+    case Kind::EQUAL:
       if (node[0].getType().isBitVector() && isPowerOfTwo(node))
       {
         res = rewritePowerOfTwo(node);

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,19 +19,41 @@ package io.github.cvc5;
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeConstructorDecl(long pointer)
+  DatatypeConstructorDecl(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, DatatypeConstructorDecl::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
+  private static native void deletePointer(long pointer);
 
   // endregion
+
+  /**
+   * Syntactic equality operator.
+   *
+   * @param d The datatype constructor declaration to compare to for equality.
+   * @return True if the datatype constructor declarations are equal.
+   */
+  @Override
+  public boolean equals(Object d)
+  {
+    if (this == d)
+    {
+      return true;
+    }
+    if (d == null || getClass() != d.getClass())
+    {
+      return false;
+    }
+    DatatypeConstructorDecl decl = (DatatypeConstructorDecl) d;
+    if (this.pointer == decl.pointer)
+    {
+      return true;
+    }
+    return equals(getPointer(), decl.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
 
   /**
    * Add datatype selector declaration.
@@ -43,7 +62,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelector(String name, Sort sort)
   {
-    addSelector(pointer, name, sort.getPointer());
+    addSelector(getPointer(), name, sort.getPointer());
   }
 
   private native void addSelector(long pointer, String name, long sortPointer);
@@ -55,7 +74,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorSelf(String name)
   {
-    addSelectorSelf(pointer, name);
+    addSelectorSelf(getPointer(), name);
   }
 
   private native void addSelectorSelf(long pointer, String name);
@@ -70,17 +89,19 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorUnresolved(String name, String unresDataypeName)
   {
-    addSelectorUnresolved(pointer, name, unresDataypeName);
+    addSelectorUnresolved(getPointer(), name, unresDataypeName);
   }
 
   private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
 
   /**
+   * Determine if this DatatypeConstructorDecl is a null declaration.
+   *
    * @return True If this DatatypeConstructorDecl is a null declaration.
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -89,4 +110,16 @@ public class DatatypeConstructorDecl extends AbstractPointer
    * @return A String representation of this datatype constructor declaration
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a datatype constructor declaration.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return Long.hashCode(hashCode(getPointer()));
+  }
+
+  private native long hashCode(long pointer);
 }

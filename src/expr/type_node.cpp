@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +31,7 @@ using namespace std;
 
 namespace cvc5::internal {
 
-TypeNode TypeNode::s_null( &expr::NodeValue::null() );
+TypeNode TypeNode::s_null(&expr::NodeValue::null());
 
 TypeNode TypeNode::substitute(
     const TypeNode& type,
@@ -43,7 +40,8 @@ TypeNode TypeNode::substitute(
 {
   // in cache?
   std::unordered_map<TypeNode, TypeNode>::const_iterator i = cache.find(*this);
-  if(i != cache.end()) {
+  if (i != cache.end())
+  {
     return (*i).second;
   }
   else if (*this == type)
@@ -57,8 +55,9 @@ TypeNode TypeNode::substitute(
   }
 
   // otherwise compute
-  NodeBuilder nb(getKind());
-  if(getMetaKind() == kind::metakind::PARAMETERIZED) {
+  NodeBuilder nb(getNodeManager(), getKind());
+  if (getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
   }
@@ -80,7 +79,8 @@ TypeNode TypeNode::substitute(
   return tn;
 }
 
-Cardinality TypeNode::getCardinality() const {
+Cardinality TypeNode::getCardinality() const
+{
   return kind::getCardinality(*this);
 }
 
@@ -197,11 +197,36 @@ CardinalityClass TypeNode::getCardinalityClass()
     else
     {
       // all types we care about should be handled above
-      Assert(false);
+      DebugUnhandled() << *this;
     }
   }
   setAttribute(TypeCardinalityClassAttr(), static_cast<uint64_t>(ret));
   return ret;
+}
+
+bool TypeNode::isBoolean() const
+{
+  return (getKind() == Kind::TYPE_CONSTANT
+          && getConst<TypeConstant>() == BOOLEAN_TYPE);
+}
+
+bool TypeNode::isString() const
+{
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == STRING_TYPE;
+}
+
+/** Is this a regexp type */
+bool TypeNode::isRegExp() const
+{
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == REGEXP_TYPE;
+}
+
+bool TypeNode::isRoundingMode() const
+{
+  return getKind() == Kind::TYPE_CONSTANT
+         && getConst<TypeConstant>() == ROUNDINGMODE_TYPE;
 }
 
 bool TypeNode::isCardinalityLessThan(size_t n)
@@ -293,27 +318,24 @@ bool TypeNode::isClosedEnumerable()
 bool TypeNode::isFirstClass() const
 {
   Kind k = getKind();
-  return k != kind::CONSTRUCTOR_TYPE && k != kind::SELECTOR_TYPE
-         && k != kind::TESTER_TYPE && k != kind::UPDATER_TYPE
-         && k != kind::ABSTRACT_TYPE
-         && (k != kind::TYPE_CONSTANT
-             || (getConst<TypeConstant>() != REGEXP_TYPE
-                 && getConst<TypeConstant>() != SEXPR_TYPE));
+  return k != Kind::CONSTRUCTOR_TYPE && k != Kind::SELECTOR_TYPE
+         && k != Kind::TESTER_TYPE && k != Kind::UPDATER_TYPE
+         && k != Kind::ABSTRACT_TYPE
+         && (k != Kind::TYPE_CONSTANT
+             || getConst<TypeConstant>() != SEXPR_TYPE);
 }
 
-bool TypeNode::isWellFounded() const {
-  return kind::isWellFounded(*this);
-}
+bool TypeNode::isWellFounded() const { return kind::isWellFounded(*this); }
 
 bool TypeNode::isInteger() const
 {
-  return getKind() == kind::TYPE_CONSTANT
+  return getKind() == Kind::TYPE_CONSTANT
          && getConst<TypeConstant>() == INTEGER_TYPE;
 }
 
 bool TypeNode::isReal() const
 {
-  return getKind() == kind::TYPE_CONSTANT
+  return getKind() == Kind::TYPE_CONSTANT
          && getConst<TypeConstant>() == REAL_TYPE;
 }
 
@@ -344,7 +366,7 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
   if (t.isAbstract())
   {
     Kind tak = t.getAbstractedKind();
-    if (tak == kind::ABSTRACT_TYPE)
+    if (tak == Kind::ABSTRACT_TYPE)
     {
       // everything is unifiable with the fully abstract type
       return isLub ? *this : t;
@@ -359,7 +381,7 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
   if (isAbstract())
   {
     Kind ak = getAbstractedKind();
-    if (ak == kind::ABSTRACT_TYPE)
+    if (ak == Kind::ABSTRACT_TYPE)
     {
       return isLub ? t : *this;
     }
@@ -369,8 +391,30 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
     }
   }
   Kind k = getKind();
-  if (k == kind::TYPE_CONSTANT || k != t.getKind())
+  Kind tk = t.getKind();
+  if (k == Kind::TYPE_CONSTANT)
   {
+    // Special case: String is comparable to (Seq ?). This must be a special
+    // case since String is defined in RARE/Eunoia to be (Seq Char), but
+    // String
+    // is a base type in cvc5's internals. This special case could be removed
+    // if `String` was a macro for `(Seq Char)`, however this would lead to
+    // complications, since `Char` is intentionally a sort we do not export
+    // in our API.
+    if (tk == Kind::SEQUENCE_TYPE && t[0].isFullyAbstract() && isString())
+    {
+      return isLub ? *this : t;
+    }
+    return TypeNode::null();
+  }
+  if (k != tk)
+  {
+    // Symmetric special case as above for comparing String and (Seq ?).
+    if (k == Kind::SEQUENCE_TYPE && (*this)[0].isFullyAbstract()
+        && t.isString())
+    {
+      return isLub ? t : *this;
+    }
     // different kinds, or distinct constants
     return TypeNode::null();
   }
@@ -380,7 +424,7 @@ TypeNode TypeNode::unifyInternal(const TypeNode& t, bool isLub) const
     // different arities
     return TypeNode::null();
   }
-  NodeBuilder nb(k);
+  NodeBuilder nb(getNodeManager(), k);
   for (size_t i = 0; i < nchild; i++)
   {
     TypeNode c = (*this)[i];
@@ -416,7 +460,8 @@ TypeNode TypeNode::getSequenceElementType() const
   return (*this)[0];
 }
 
-std::vector<TypeNode> TypeNode::getArgTypes() const {
+std::vector<TypeNode> TypeNode::getArgTypes() const
+{
   vector<TypeNode> args;
   if (isDatatypeTester())
   {
@@ -446,19 +491,23 @@ std::vector<TypeNode> TypeNode::getInstantiatedParamTypes() const
   return params;
 }
 
-bool TypeNode::isTuple() const { return getKind() == kind::TUPLE_TYPE; }
+bool TypeNode::isTuple() const { return getKind() == Kind::TUPLE_TYPE; }
+
+bool TypeNode::isNullable() const { return getKind() == Kind::NULLABLE_TYPE; }
 
 bool TypeNode::isRecord() const
 {
-  return (getKind() == kind::DATATYPE_TYPE && getDType().isRecord());
+  return (getKind() == Kind::DATATYPE_TYPE && getDType().isRecord());
 }
 
-size_t TypeNode::getTupleLength() const {
+size_t TypeNode::getTupleLength() const
+{
   Assert(isTuple());
   return getNumChildren();
 }
 
-vector<TypeNode> TypeNode::getTupleTypes() const {
+vector<TypeNode> TypeNode::getTupleTypes() const
+{
   Assert(isTuple());
   std::vector<TypeNode> args;
   for (uint32_t i = 0, i_end = getNumChildren(); i < i_end; ++i)
@@ -468,14 +517,22 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
   return args;
 }
 
+TypeNode TypeNode::getNullableElementType() const
+{
+  Assert(isNullable());
+  return (*this)[0];
+}
+
 /** Is this an instantiated datatype type */
-bool TypeNode::isInstantiatedDatatype() const {
+bool TypeNode::isInstantiatedDatatype() const
+{
   Kind k = getKind();
-  if (k == kind::DATATYPE_TYPE || k == kind::TUPLE_TYPE)
+  if (k == Kind::DATATYPE_TYPE || k == Kind::TUPLE_TYPE
+      || k == Kind::NULLABLE_TYPE)
   {
     return true;
   }
-  if (k != kind::PARAMETRIC_DATATYPE)
+  if (k != Kind::PARAMETRIC_DATATYPE)
   {
     return false;
   }
@@ -494,7 +551,7 @@ bool TypeNode::isInstantiatedDatatype() const {
 
 bool TypeNode::isInstantiatedUninterpretedSort() const
 {
-  return getKind() == kind::INSTANTIATED_SORT_TYPE;
+  return getKind() == Kind::INSTANTIATED_SORT_TYPE;
 }
 
 bool TypeNode::isInstantiated() const
@@ -504,13 +561,13 @@ bool TypeNode::isInstantiated() const
 
 TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = getNodeManager();
   Kind k = getKind();
   TypeNode ret;
   // Note that parametric datatypes we instantiate have an AST where they are
   // applied to their default parameters. In constrast, sort constructors have
   // no children.
-  if (k == kind::PARAMETRIC_DATATYPE)
+  if (k == Kind::PARAMETRIC_DATATYPE)
   {
     Assert(params.size() == getNumChildren() - 1);
     TypeNode cons = (*this)[0];
@@ -520,7 +577,7 @@ TypeNode TypeNode::instantiate(const std::vector<TypeNode>& params) const
     {
       paramsNodes.push_back(t);
     }
-    ret = nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
+    ret = nm->mkTypeNode(Kind::PARAMETRIC_DATATYPE, paramsNodes);
   }
   else
   {
@@ -542,10 +599,7 @@ bool TypeNode::isUnresolvedDatatype() const
   return getAttribute(expr::UnresolvedDatatypeAttr());
 }
 
-bool TypeNode::hasName() const
-{
-  return hasAttribute(expr::VarNameAttr());
-}
+bool TypeNode::hasName() const { return hasAttribute(expr::VarNameAttr()); }
 
 std::string TypeNode::getName() const
 {
@@ -554,13 +608,13 @@ std::string TypeNode::getName() const
 
 TypeNode TypeNode::getUninterpretedSortConstructor() const
 {
-  Assert(getKind() == kind::INSTANTIATED_SORT_TYPE);
+  Assert(getKind() == Kind::INSTANTIATED_SORT_TYPE);
   return (*this)[0];
 }
 
 bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
 {
-  Assert(getKind() == kind::PARAMETRIC_DATATYPE);
+  Assert(getKind() == Kind::PARAMETRIC_DATATYPE);
   const DType& dt = (*this)[0].getDType();
   Assert(n < dt.getNumParameters());
   return dt.getParameter(n) != (*this)[n + 1];
@@ -570,60 +624,71 @@ bool TypeNode::isParameterInstantiatedDatatype(size_t n) const
 bool TypeNode::isUninterpretedSort() const
 {
   Kind k = getKind();
-  return k == kind::INSTANTIATED_SORT_TYPE
-         || (k == kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()));
+  return k == Kind::INSTANTIATED_SORT_TYPE
+         || (k == Kind::SORT_TYPE && !hasAttribute(expr::SortArityAttr()));
 }
 
 /** Is this a sort constructor kind */
 bool TypeNode::isUninterpretedSortConstructor() const
 {
-  return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
+  return getKind() == Kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
+}
+
+bool TypeNode::isRawSymbolType() const
+{
+  return getKind() == Kind::RAW_SYMBOL_TYPE;
+}
+
+std::string TypeNode::getRawSymbol() const
+{
+  Assert(isRawSymbolType());
+  return getName();
 }
 
 bool TypeNode::isFloatingPoint() const
 {
-  return getKind() == kind::FLOATINGPOINT_TYPE;
+  return getKind() == Kind::FLOATINGPOINT_TYPE;
 }
 
 bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const
 {
-  return (getKind() == kind::FLOATINGPOINT_TYPE
+  return (getKind() == Kind::FLOATINGPOINT_TYPE
           && getConst<FloatingPointSize>().exponentWidth() == exp
           && getConst<FloatingPointSize>().significandWidth() == sig);
 }
 
-bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
+bool TypeNode::isBitVector() const { return getKind() == Kind::BITVECTOR_TYPE; }
 
 bool TypeNode::isDatatype() const
 {
   Kind k = getKind();
-  return k == kind::DATATYPE_TYPE || k == kind::PARAMETRIC_DATATYPE
-         || k == kind::TUPLE_TYPE;
+  return k == Kind::DATATYPE_TYPE || k == Kind::PARAMETRIC_DATATYPE
+         || k == Kind::TUPLE_TYPE || k == Kind::NULLABLE_TYPE;
 }
 
 bool TypeNode::isParametricDatatype() const
 {
-  return getKind() == kind::PARAMETRIC_DATATYPE;
+  return getKind() == Kind::PARAMETRIC_DATATYPE;
 }
 
 bool TypeNode::isDatatypeConstructor() const
 {
-  return getKind() == kind::CONSTRUCTOR_TYPE;
+  return getKind() == Kind::CONSTRUCTOR_TYPE;
 }
 
 bool TypeNode::isDatatypeSelector() const
 {
-  return getKind() == kind::SELECTOR_TYPE;
+  return getKind() == Kind::SELECTOR_TYPE;
 }
 
 bool TypeNode::isDatatypeTester() const
 {
-  return getKind() == kind::TESTER_TYPE;
+  return getKind() == Kind::TESTER_TYPE;
 }
 
 bool TypeNode::isDatatypeUpdater() const
 {
-  return getKind() == kind::UPDATER_TYPE;
+  return getKind() == Kind::UPDATER_TYPE;
 }
 
 bool TypeNode::isCodatatype() const
@@ -644,12 +709,12 @@ bool TypeNode::isSygusDatatype() const
   return false;
 }
 
-bool TypeNode::isAbstract() const { return getKind() == kind::ABSTRACT_TYPE; }
+bool TypeNode::isAbstract() const { return getKind() == Kind::ABSTRACT_TYPE; }
 
 bool TypeNode::isFullyAbstract() const
 {
-  return getKind() == kind::ABSTRACT_TYPE
-         && getAbstractedKind() == kind::ABSTRACT_TYPE;
+  return getKind() == Kind::ABSTRACT_TYPE
+         && getAbstractedKind() == Kind::ABSTRACT_TYPE;
 }
 
 Kind TypeNode::getAbstractedKind() const
@@ -666,15 +731,16 @@ bool TypeNode::isMaybeKind(Kind k) const
   {
     return true;
   }
-  if (tk == kind::ABSTRACT_TYPE)
+  if (tk == Kind::ABSTRACT_TYPE)
   {
     Kind tak = getAbstractedKind();
-    return tak == kind::ABSTRACT_TYPE || tak == k;
+    return tak == Kind::ABSTRACT_TYPE || tak == k;
   }
   return false;
 }
 
-std::string TypeNode::toString() const {
+std::string TypeNode::toString() const
+{
   std::stringstream ss;
   toStream(ss);
   return ss.str();
@@ -682,13 +748,16 @@ std::string TypeNode::toString() const {
 
 const DType& TypeNode::getDType() const
 {
-  return NodeManager::currentNM()->getDTypeFor(*this);
+  return getNodeManager()->getDTypeFor(*this);
 }
 
-bool TypeNode::isBag() const
+bool TypeNode::isRelation() const
 {
-  return getKind() == kind::BAG_TYPE;
+  return getKind() == Kind::SET_TYPE
+         && (*this)[0].getKind() == Kind::TUPLE_TYPE;
 }
+
+bool TypeNode::isBag() const { return getKind() == Kind::BAG_TYPE; }
 
 TypeNode TypeNode::getBagElementType() const
 {
@@ -698,7 +767,7 @@ TypeNode TypeNode::getBagElementType() const
 
 bool TypeNode::isBitVector(unsigned size) const
 {
-  return (getKind() == kind::BITVECTOR_TYPE
+  return (getKind() == Kind::BITVECTOR_TYPE
           && getConst<BitVectorSize>() == size);
 }
 
@@ -722,7 +791,7 @@ uint32_t TypeNode::getBitVectorSize() const
 
 const Integer& TypeNode::getFfSize() const
 {
-  Assert(getKind() == kind::FINITE_FIELD_TYPE);
+  Assert(getKind() == Kind::FINITE_FIELD_TYPE);
   return getConst<FfSize>();
 }
 
@@ -730,7 +799,7 @@ TypeNode TypeNode::getRangeType() const
 {
   if (isDatatypeTester())
   {
-    return NodeManager::currentNM()->booleanType();
+    return getNodeManager()->booleanType();
   }
   Assert(isFunction() || isDatatypeConstructor() || isDatatypeSelector()
          || isDatatypeUpdater())
@@ -742,7 +811,8 @@ TypeNode TypeNode::getRangeType() const
 
 namespace std {
 
-size_t hash<cvc5::internal::TypeNode>::operator()(const cvc5::internal::TypeNode& tn) const
+size_t hash<cvc5::internal::TypeNode>::operator()(
+    const cvc5::internal::TypeNode& tn) const
 {
   return tn.getId();
 }

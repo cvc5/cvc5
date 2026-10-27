@@ -1,7 +1,6 @@
-; EXPECT: 
-; SCRUBBER: grep -v "quantified.variables"
-; COMMAND-LINE: --solve-bv-as-int=iand
-; EXIT: 1
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --solve-bv-as-int=iand --mbqi
+; EXPECT: sat
 (set-logic UFBV)
 (declare-fun x ((_ BitVec 1)) (_ BitVec 1))
 (assert (exists ((y (_ BitVec 1))) (= (x y) (_ bv0 1))))

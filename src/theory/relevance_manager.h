@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -142,15 +139,22 @@ class RelevanceManager : public TheoryEngineModule
   std::unordered_set<TNode> getRelevantAssertions(bool& success);
   /** Notify lemma, for difficulty measurements */
   void notifyLemma(TNode n,
-                   theory::LemmaProperty p,
+                   InferenceId id,
+                   LemmaProperty p,
                    const std::vector<Node>& skAsserts,
                    const std::vector<Node>& sks) override;
+  /** Needs candidate model, return true if the method below requires calling */
+  bool needsCandidateModel() override;
   /** Notify that m is a (candidate) model, for difficulty measurements */
   void notifyCandidateModel(TheoryModel* m) override;
   /**
    * Get difficulty map
+   *
+   * @param dmap The difficulty map to populate.
+   * @param includeLemmas Whether to include difficulty of lemmas in the domain
+   * of dmap.
    */
-  void getDifficultyMap(std::map<Node, Node>& dmap);
+  void getDifficultyMap(std::map<Node, Node>& dmap, bool includeLemmas);
 
  private:
   /**

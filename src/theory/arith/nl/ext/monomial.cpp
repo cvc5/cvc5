@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,6 +22,21 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 namespace nl {
+
+namespace {
+
+const char* toString(MonomialRelation relation)
+{
+  switch (relation)
+  {
+    case MonomialRelation::EQUAL: return "equal";
+    case MonomialRelation::SUPERSET: return "superset";
+    case MonomialRelation::SUBSET: return "subset";
+    default: return "invalid";
+  }
+}
+
+}  // namespace
 
 // Returns a[key] if key is in a or value otherwise.
 unsigned getCountWithDefault(const NodeMultiset& a, Node key, unsigned value)
@@ -60,14 +72,13 @@ std::vector<Node> ExpandMultiset(const NodeMultiset& a)
   return expansion;
 }
 
-// status 0 : n equal, -1 : n superset, 1 : n subset
 void MonomialIndex::addTerm(Node n,
                             const std::vector<Node>& reps,
                             MonomialDb* nla,
-                            int status,
+                            MonomialRelation status,
                             unsigned argIndex)
 {
-  if (status == 0)
+  if (status == MonomialRelation::EQUAL)
   {
     if (argIndex == reps.size())
     {
@@ -82,19 +93,25 @@ void MonomialIndex::addTerm(Node n,
        it != d_data.end();
        ++it)
   {
-    if (status != 0 || argIndex == reps.size() || it->first != reps[argIndex])
+    if (status != MonomialRelation::EQUAL || argIndex == reps.size()
+        || it->first != reps[argIndex])
     {
-      // if we do not contain this variable, then if we were a superset,
-      // fail (-2), otherwise we are subset.  if we do contain this
-      // variable, then if we were equal, we are superset since variables
-      // are ordered, otherwise we remain the same.
-      int new_status =
-          std::find(reps.begin(), reps.end(), it->first) == reps.end()
-              ? (status >= 0 ? 1 : -2)
-              : (status == 0 ? -1 : status);
-      if (new_status != -2)
+      const bool childInQuery =
+          std::find(reps.begin(), reps.end(), it->first) != reps.end();
+      MonomialRelation newStatus = status;
+      if (!childInQuery)
       {
-        it->second.addTerm(n, reps, nla, new_status, argIndex);
+        newStatus = status == MonomialRelation::SUPERSET
+                        ? MonomialRelation::INVALID
+                        : MonomialRelation::SUBSET;
+      }
+      else if (status == MonomialRelation::EQUAL)
+      {
+        newStatus = MonomialRelation::SUPERSET;
+      }
+      if (newStatus != MonomialRelation::INVALID)
+      {
+        it->second.addTerm(n, reps, nla, newStatus, argIndex);
       }
     }
   }
@@ -104,16 +121,24 @@ void MonomialIndex::addTerm(Node n,
     Node m = d_monos[i];
     if (m != n)
     {
-      // we are superset if we are equal and haven't traversed all variables
-      int cstatus = status == 0 ? (argIndex == reps.size() ? 0 : -1) : status;
-      Trace("nl-ext-mindex-debug") << "  compare " << n << " and " << m
-                                   << ", status = " << cstatus << std::endl;
-      if (cstatus <= 0 && nla->isMonomialSubset(m, n))
+      MonomialRelation relation = status;
+      if (relation == MonomialRelation::EQUAL && argIndex != reps.size())
+      {
+        relation = MonomialRelation::SUPERSET;
+      }
+      Trace("nl-ext-mindex-debug")
+          << "  compare " << n << " and " << m
+          << ", status = " << toString(relation) << std::endl;
+      if ((relation == MonomialRelation::EQUAL
+           || relation == MonomialRelation::SUPERSET)
+          && nla->isMonomialSubset(m, n))
       {
         nla->registerMonomialSubset(m, n);
         Trace("nl-ext-mindex-debug") << "...success" << std::endl;
       }
-      else if (cstatus >= 0 && nla->isMonomialSubset(n, m))
+      else if ((relation == MonomialRelation::EQUAL
+                || relation == MonomialRelation::SUBSET)
+               && nla->isMonomialSubset(n, m))
       {
         nla->registerMonomialSubset(n, m);
         Trace("nl-ext-mindex-debug") << "...success (rev)" << std::endl;
@@ -122,10 +147,7 @@ void MonomialIndex::addTerm(Node n,
   }
 }
 
-MonomialDb::MonomialDb()
-{
-  d_one = NodeManager::currentNM()->mkConstReal(Rational(1));
-}
+MonomialDb::MonomialDb() {}
 
 void MonomialDb::registerMonomial(Node n)
 {
@@ -136,7 +158,7 @@ void MonomialDb::registerMonomial(Node n)
   d_monomials.push_back(n);
   Trace("nl-ext-debug") << "Register monomial : " << n << std::endl;
   Kind k = n.getKind();
-  if (k == NONLINEAR_MULT)
+  if (k == Kind::NONLINEAR_MULT)
   {
     // get exponent count
     unsigned nchild = n.getNumChildren();
@@ -150,15 +172,16 @@ void MonomialDb::registerMonomial(Node n)
     }
     d_m_degree[n] = nchild;
   }
-  else if (n == d_one)
+  else if (n.isConst())
   {
+    Assert(n.getConst<Rational>().isOne());
     d_m_exp[n].clear();
     d_m_vlist[n].clear();
     d_m_degree[n] = 0;
   }
   else
   {
-    Assert(k != ADD && k != MULT);
+    Assert(k != Kind::ADD && k != Kind::MULT);
     d_m_exp[n][n] = 1;
     d_m_vlist[n].push_back(n);
     d_m_degree[n] = 1;
@@ -183,9 +206,10 @@ void MonomialDb::registerMonomialSubset(Node a, Node b)
   d_m_contain_children[b].push_back(a);
 
   // currently use real type here
-  TypeNode tn = NodeManager::currentNM()->realType();
-  Node mult_term = safeConstructNaryType(tn, MULT, diff_children);
-  Node nlmult_term = safeConstructNaryType(tn, NONLINEAR_MULT, diff_children);
+  TypeNode tn = a.getNodeManager()->realType();
+  Node mult_term = safeConstructNaryType(tn, Kind::MULT, diff_children);
+  Node nlmult_term =
+      safeConstructNaryType(tn, Kind::NONLINEAR_MULT, diff_children);
   d_m_contain_mult[a][b] = mult_term;
   d_m_contain_umult[a][b] = nlmult_term;
   Trace("nl-ext-mindex") << "..." << a << " is a subset of " << b
@@ -327,7 +351,7 @@ Node MonomialDb::mkMonomialRemFactor(Node n,
         << "......rem, now " << inc << " factors of " << v << std::endl;
     children.insert(children.end(), inc, v);
   }
-  Node ret = safeConstructNaryType(n.getType(), MULT, children);
+  Node ret = safeConstructNaryType(n.getType(), Kind::MULT, children);
   Trace("nl-ext-mono-factor") << "...return : " << ret << std::endl;
   return ret;
 }

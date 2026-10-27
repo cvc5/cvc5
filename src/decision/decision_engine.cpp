@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,7 +17,7 @@ namespace cvc5::internal {
 namespace decision {
 
 DecisionEngine::DecisionEngine(Env& env,
-                               prop::CDCLTSatSolverInterface* ss,
+                               prop::CDCLTSatSolver* ss,
                                prop::CnfStream* cs)
     : EnvObj(env), d_satSolver(ss), d_cnfStream(cs)
 {
@@ -37,8 +34,12 @@ DecisionEngineEmpty::DecisionEngineEmpty(Env& env)
 {
 }
 bool DecisionEngineEmpty::isDone() { return false; }
-void DecisionEngineEmpty::addAssertion(TNode lem, TNode skolem, bool isLemma) {}
-prop::SatLiteral DecisionEngineEmpty::getNextInternal(bool& stopSearch)
+void DecisionEngineEmpty::addAssertions(
+    CVC5_UNUSED const std::vector<TNode>& lems)
+{
+}
+prop::SatLiteral DecisionEngineEmpty::getNextInternal(
+    CVC5_UNUSED bool& stopSearch)
 {
   return prop::undefSatLiteral;
 }

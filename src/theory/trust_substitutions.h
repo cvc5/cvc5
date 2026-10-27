@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,7 +41,7 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   TrustSubstitutionMap(Env& env,
                        context::Context* c,
                        std::string name = "TrustSubstitutionMap",
-                       PfRule trustId = PfRule::PREPROCESS_LEMMA,
+                       TrustId trustId = TrustId::UNKNOWN_PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();
@@ -59,7 +56,7 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    */
   void addSubstitution(TNode x,
                        TNode t,
-                       PfRule id,
+                       ProofRule id,
                        const std::vector<Node>& children,
                        const std::vector<Node>& args);
   /**
@@ -123,10 +120,10 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   /** Name for debugging */
   std::string d_name;
   /**
-   * The placeholder trusted PfRule identifier for calls to addSubstitution
+   * The placeholder trusted ProofRule identifier for calls to addSubstitution
    * that are not given proof generators.
    */
-  PfRule d_trustId;
+  TrustId d_trustId;
   /** The method id for which form of substitution to apply */
   MethodId d_ids;
   /**

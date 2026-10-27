@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Haniel Barbosa, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,9 @@ RealToInt::RealToInt(PreprocessingPassContext* preprocContext)
 {
 }
 
-Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
+Node RealToInt::realToIntInternal(TNode n,
+                                  NodeMap& cache,
+                                  std::vector<Node>& var_eq)
 {
   Trace("real-as-int-debug") << "Convert : " << n << std::endl;
   NodeMap::iterator find = cache.find(n);
@@ -49,21 +48,21 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     SkolemManager* sm = nm->getSkolemManager();
     Node ret = n;
     if (n.getNumChildren() > 0)
     {
-      if ((n.getKind() == kind::EQUAL && n[0].getType().isReal())
-          || n.getKind() == kind::GEQ || n.getKind() == kind::LT
-          || n.getKind() == kind::GT || n.getKind() == kind::LEQ)
+      if ((n.getKind() == Kind::EQUAL && n[0].getType().isReal())
+          || n.getKind() == Kind::GEQ || n.getKind() == Kind::LT
+          || n.getKind() == Kind::GT || n.getKind() == Kind::LEQ)
       {
         ret = rewrite(n);
         Trace("real-as-int-debug") << "Now looking at : " << ret << std::endl;
         if (!ret.isConst())
         {
-          Node ret_lit = ret.getKind() == kind::NOT ? ret[0] : ret;
-          bool ret_pol = ret.getKind() != kind::NOT;
+          Node ret_lit = ret.getKind() == Kind::NOT ? ret[0] : ret;
+          bool ret_pol = ret.getKind() != Kind::NOT;
           std::map<Node, Node> msum;
           if (ArithMSum::getMonomialSumLit(ret_lit, msum))
           {
@@ -84,10 +83,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             }
             Node cc = coeffs.empty()
                           ? Node::null()
-                          : (coeffs.size() == 1
-                                 ? coeffs[0]
-                                 : rewrite(NodeManager::currentNM()->mkNode(
-                                     kind::MULT, coeffs)));
+                          : (coeffs.size() == 1 ? coeffs[0]
+                                                : rewrite(nodeManager()->mkNode(
+                                                      Kind::MULT, coeffs)));
             std::vector<Node> sum;
             for (std::map<Node, Node>::iterator itm = msum.begin();
                  itm != msum.end();
@@ -98,9 +96,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
               Node s;
               if (c.isNull())
               {
-                c = cc.isNull()
-                        ? NodeManager::currentNM()->mkConstInt(Rational(1))
-                        : cc;
+                c = cc.isNull() ? nodeManager()->mkConstInt(Rational(1)) : cc;
               }
               else
               {
@@ -120,8 +116,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 Node vv = realToIntInternal(v, cache, var_eq);
                 if (vv.getType().isInteger())
                 {
-                  sum.push_back(
-                      NodeManager::currentNM()->mkNode(kind::MULT, c, vv));
+                  sum.push_back(nodeManager()->mkNode(Kind::MULT, c, vv));
                 }
                 else
                 {
@@ -134,7 +129,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
             Node sumt =
                 sum.empty()
                     ? nm->mkConstInt(Rational(0))
-                    : (sum.size() == 1 ? sum[0] : nm->mkNode(kind::ADD, sum));
+                    : (sum.size() == 1 ? sum[0] : nm->mkNode(Kind::ADD, sum));
             ret = nm->mkNode(
                 ret_lit.getKind(), sumt, nm->mkConstInt(Rational(0)));
             if (!ret_pol)
@@ -152,8 +147,14 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         bool childChanged = false;
         std::vector<Node> children;
         Kind k = n.getKind();
-        // we change Real equalities to Int equalities
-        bool preserveTypes = k != EQUAL && (kindToTheoryId(k) != THEORY_ARITH);
+        bool preserveTypes = true;
+        // We change Real equalities to Int equalities, we handle other kinds
+        // here as well.
+        if (k == Kind::EQUAL || k == Kind::MULT || k == Kind::NONLINEAR_MULT
+            || k == Kind::ADD || k == Kind::SUB || k == Kind::NEG)
+        {
+          preserveTypes = false;
+        }
         for (size_t i = 0; i < n.getNumChildren(); i++)
         {
           Node nc = realToIntInternal(n[i], cache, var_eq);
@@ -162,7 +163,7 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
           {
             if (!n[i].getType().isInteger() && nc.getType().isInteger())
             {
-              nc = nm->mkNode(TO_REAL, nc);
+              nc = nm->mkNode(Kind::TO_REAL, nc);
             }
           }
           childChanged = childChanged || nc != n[i];
@@ -181,9 +182,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
     else
     {
       TypeNode tn = n.getType();
-      if (tn.isReal() && !tn.isInteger())
+      if (tn.isReal())
       {
-        if (n.getKind() == kind::BOUND_VARIABLE)
+        if (n.getKind() == Kind::BOUND_VARIABLE)
         {
           // cannot change the type of quantified variables, since this leads
           // to incompleteness.
@@ -194,9 +195,9 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         }
         else if (n.isVar())
         {
-          Node toIntN = nm->mkNode(kind::TO_INTEGER, n);
-          ret = sm->mkPurifySkolem(toIntN, "__realToIntInternal_var");
-          Node retToReal = nm->mkNode(kind::TO_REAL, ret);
+          Node toIntN = nm->mkNode(Kind::TO_INTEGER, n);
+          ret = sm->mkPurifySkolem(toIntN);
+          Node retToReal = nm->mkNode(Kind::TO_REAL, ret);
           var_eq.push_back(n.eqNode(retToReal));
           // add the substitution to the preprocessing context, which ensures
           // the model for n is correct, as well as substituting it in the input
@@ -219,12 +220,24 @@ PreprocessingPassResult RealToInt::applyInternal(
   std::vector<Node> var_eq;
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(
-        i, realToIntInternal((*assertionsToPreprocess)[i], d_cache, var_eq));
+    Node a = (*assertionsToPreprocess)[i];
+    Node ac = realToIntInternal(a, d_cache, var_eq);
+    if (ac != a)
+    {
+      // this pass is refutation unsound, "unsat" will be "unknown"
+      assertionsToPreprocess->markRefutationUnsound();
+      Trace("real-to-int") << "Converted " << a << " to " << ac << std::endl;
+      assertionsToPreprocess->replace(
+          i, ac, nullptr, TrustId::PREPROCESS_REAL_TO_INT);
+      assertionsToPreprocess->ensureRewritten(i);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
+    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

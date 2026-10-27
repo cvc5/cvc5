@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,10 +39,11 @@ HigherOrderTrigger::HigherOrderTrigger(
     TermRegistry& tr,
     Node q,
     std::vector<Node>& nodes,
-    std::map<Node, std::vector<Node> >& ho_apps)
-    : Trigger(env, qs, qim, qr, tr, q, nodes), d_ho_var_apps(ho_apps)
+    std::map<Node, std::vector<Node> >& ho_apps,
+    bool isUser)
+    : Trigger(env, qs, qim, qr, tr, q, nodes, isUser), d_ho_var_apps(ho_apps)
 {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   // process the higher-order variable applications
   for (std::pair<const Node, std::vector<Node> >& as : d_ho_var_apps)
   {
@@ -56,8 +54,8 @@ HigherOrderTrigger::HigherOrderTrigger(
     if (TraceIsOn("ho-quant-trigger"))
     {
       Trace("ho-quant-trigger") << "  have " << as.second.size();
-      Trace("ho-quant-trigger") << " patterns with variable operator " << n
-                                << ":" << std::endl;
+      Trace("ho-quant-trigger")
+          << " patterns with variable operator " << n << ":" << std::endl;
       for (unsigned j = 0; j < as.second.size(); j++)
       {
         Trace("ho-quant-trigger") << "  " << as.second[j] << std::endl;
@@ -65,8 +63,8 @@ HigherOrderTrigger::HigherOrderTrigger(
     }
     if (d_ho_var_types.find(tn) == d_ho_var_types.end())
     {
-      Trace("ho-quant-trigger") << "  type " << tn
-                                << " needs higher-order matching." << std::endl;
+      Trace("ho-quant-trigger")
+          << "  type " << tn << " needs higher-order matching." << std::endl;
       d_ho_var_types.insert(tn);
     }
     // make the bound variable lists
@@ -90,7 +88,9 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
 }
 
 void HigherOrderTrigger::collectHoVarApplyTerms(
-    Node q, std::vector<Node>& ns, std::map<Node, std::vector<Node> >& apps)
+    CVC5_UNUSED Node q,
+    std::vector<Node>& ns,
+    std::map<Node, std::vector<Node> >& apps)
 {
   std::unordered_map<TNode, Node> visited;
   std::unordered_map<TNode, Node>::iterator it;
@@ -111,7 +111,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
       if (it == visited.end())
       {
         // do not look in nested quantifiers
-        if (cur.getKind() == FORALL)
+        if (cur.getKind() == Kind::FORALL)
         {
           visited[cur] = cur;
         }
@@ -147,34 +147,34 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
         }
         if (childChanged)
         {
-          ret = NodeManager::currentNM()->mkNode(cur.getKind(), children);
+          ret = cur.getNodeManager()->mkNode(cur.getKind(), children);
         }
         // now, convert and store the application
         if (!withinApply[cur])
         {
           TNode op;
-          if (ret.getKind() == kind::APPLY_UF)
+          if (ret.getKind() == Kind::APPLY_UF)
           {
             // could be a fully applied function variable
             op = ret.getOperator();
           }
-          else if (ret.getKind() == kind::HO_APPLY)
+          else if (ret.getKind() == Kind::HO_APPLY)
           {
             op = ret;
-            while (op.getKind() == kind::HO_APPLY)
+            while (op.getKind() == Kind::HO_APPLY)
             {
               op = op[0];
             }
           }
           if (!op.isNull())
           {
-            if (op.getKind() == kind::INST_CONSTANT)
+            if (op.getKind() == Kind::INST_CONSTANT)
             {
               Assert(TermUtil::getInstConstAttr(ret) == q);
               Trace("ho-quant-trigger-debug")
                   << "Ho variable apply term : " << ret << " with head " << op
                   << std::endl;
-              if (ret.getKind() == kind::APPLY_UF)
+              if (ret.getKind() == Kind::APPLY_UF)
               {
                 Node prev = ret;
                 // for consistency, convert to HO_APPLY if fully applied
@@ -203,7 +203,7 @@ uint64_t HigherOrderTrigger::addInstantiations()
   return addedHoLemmas + addedFoLemmas;
 }
 
-bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
+bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m)
 {
   if (options().quantifiers.hoMatching)
   {
@@ -229,8 +229,8 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
         Node sapp =
             app.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
         ho_var_apps_subs[var].push_back(sapp);
-        Trace("ho-unif-debug") << "  app[" << var << "] : " << app << " -> "
-                               << sapp << std::endl;
+        Trace("ho-unif-debug")
+            << "  app[" << var << "] : " << app << " -> " << sapp << std::endl;
       }
     }
 
@@ -246,8 +246,8 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
       TNode value = m[vnum];
       Trace("ho-unif-debug") << "  val[" << var << "] = " << value << std::endl;
 
-      Trace("ho-unif-debug2") << "initialize lambda information..."
-                              << std::endl;
+      Trace("ho-unif-debug2")
+          << "initialize lambda information..." << std::endl;
       // initialize the lambda children
       d_lchildren[vnum].push_back(value);
       std::map<TNode, std::vector<Node> >::iterator ithb =
@@ -343,8 +343,8 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
               // although this order could be changed.
               d_arg_vector[vnum][index].push_back(bv_at_index);
               d_arg_vector[vnum][index].push_back(itf->second);
-              Trace("ho-unif-debug") << " = { self, " << itf->second << " } "
-                                     << std::endl;
+              Trace("ho-unif-debug")
+                  << " = { self, " << itf->second << " } " << std::endl;
             }
           }
           else
@@ -372,7 +372,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
   else
   {
     // do not run higher-order matching
-    return d_qim.getInstantiate()->addInstantiation(d_quant, m, id);
+    return Trigger::sendInstantiation(m);
   }
 }
 
@@ -427,9 +427,9 @@ bool HigherOrderTrigger::sendInstantiationArg(std::vector<Node>& m,
       Trace("ho-unif-debug2")
           << "  make lambda from children: " << d_lchildren[vnum] << std::endl;
       Node body =
-          NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
+          lbvl.getNodeManager()->mkNode(Kind::APPLY_UF, d_lchildren[vnum]);
       Trace("ho-unif-debug2") << "  got " << body << std::endl;
-      Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, lbvl, body);
+      Node lam = NodeManager::mkNode(Kind::LAMBDA, lbvl, body);
       m[vnum] = lam;
       Trace("ho-unif-debug2") << "  try " << vnum << " -> " << lam << std::endl;
     }
@@ -475,7 +475,6 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
   // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
   TermDb* tdb = d_treg.getTermDatabase();
   unsigned size = tdb->getNumOperators();
-  NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < size; j++)
   {
     Node f = tdb->getOperator(j);
@@ -495,14 +494,14 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           std::vector<TypeNode> sargts;
           sargts.insert(sargts.begin(), argTypes.begin() + a, argTypes.end());
           Assert(sargts.size() > 0);
-          TypeNode stn = nm->mkFunctionType(sargts, range);
+          TypeNode stn = range.getNodeManager()->mkFunctionType(sargts, range);
           Trace("ho-quant-trigger-debug")
               << "For " << f << ", check " << stn << "..." << std::endl;
           // if a variable of this type occurs in this trigger
           if (d_ho_var_types.find(stn) != d_ho_var_types.end())
           {
             Node u = HoTermDb::getHoTypeMatchPredicate(tn);
-            Node au = nm->mkNode(kind::APPLY_UF, u, f);
+            Node au = NodeManager::mkNode(Kind::APPLY_UF, u, f);
             if (d_qim.addPendingLemma(au,
                                       InferenceId::QUANTIFIERS_HO_MATCH_PRED))
             {

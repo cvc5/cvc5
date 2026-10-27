@@ -1,8 +1,0 @@
-(set-logic ALL)
-(set-info :status sat)
-(set-option :produce-models true)
-(declare-fun A () (Bag String))
-(declare-fun B () (Bag String))
-(assert (= B (bag.duplicate_removal A)))
-(assert (distinct (as bag.empty (Bag String)) A B))
-(check-sat)

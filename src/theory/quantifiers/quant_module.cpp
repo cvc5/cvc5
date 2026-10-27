@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -19,6 +16,7 @@ using namespace cvc5::internal::kind;
 
 namespace cvc5::internal {
 namespace theory {
+namespace quantifiers {
 
 QuantifiersModule::QuantifiersModule(
     Env& env,
@@ -30,7 +28,8 @@ QuantifiersModule::QuantifiersModule(
 {
 }
 
-QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort QuantifiersModule::needsModel(
+    CVC5_UNUSED Theory::Effort e)
 {
   return QEFFORT_NONE;
 }
@@ -81,5 +80,10 @@ quantifiers::TermRegistry& QuantifiersModule::getTermRegistry()
   return d_treg;
 }
 
+void QuantifiersModule::beginCallDebug() { d_qim.beginCallDebug(this); }
+
+void QuantifiersModule::endCallDebug() { d_qim.endCallDebug(); }
+
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace cvc5::internal

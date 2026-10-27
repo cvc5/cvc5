@@ -1,4 +1,6 @@
 ; EXPECT: unsat
+;; slow conversion
+; DISABLE-TESTER: alethe
 (set-logic QF_UFLIRA)
 (declare-sort FArray 2)
 
@@ -719,3 +721,4 @@
 
 (check-sat)
 (exit)
+

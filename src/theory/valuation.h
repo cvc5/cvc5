@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,8 @@ class SortInference;
 /**
  * The status of an equality in the current context.
  */
-enum EqualityStatus {
+enum EqualityStatus
+{
   /** The equality is known to be true and has been propagated */
   EQUALITY_TRUE_AND_PROPAGATED,
   /** The equality is known to be false and has been propagated */
@@ -54,7 +52,7 @@ enum EqualityStatus {
   EQUALITY_FALSE_IN_MODEL,
   /** The equality is completely unknown */
   EQUALITY_UNKNOWN
-};/* enum EqualityStatus */
+}; /* enum EqualityStatus */
 
 std::ostream& operator<<(std::ostream& os, EqualityStatus s);
 
@@ -64,12 +62,12 @@ std::ostream& operator<<(std::ostream& os, EqualityStatus s);
  */
 bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2);
 
-class Valuation {
+class Valuation
+{
   TheoryEngine* d_engine;
-public:
-  Valuation(TheoryEngine* engine) :
-    d_engine(engine) {
-  }
+
+ public:
+  Valuation(TheoryEngine* engine) : d_engine(engine) {}
 
   /**
    * Return true if n has an associated SAT literal
@@ -104,8 +102,8 @@ public:
   bool hasSatValue(TNode n) const;
 
   /**
-   * Returns the equality status of the two terms, from the theory that owns the domain type.
-   * The types of a and b must be the same.
+   * Returns the equality status of the two terms, from the theory that owns the
+   * domain type. The types of a and b must be the same.
    */
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
@@ -184,27 +182,17 @@ public:
 
   /**
    * Returns whether the given lit (which must be a SAT literal) is a decision
-   * literal or not.  Throws an exception if lit is not a SAT literal.  "lit" may
-   * be in either phase; that is, if "lit" is a SAT literal, this function returns
-   * true both for lit and the negation of lit.
+   * literal or not.  Throws an exception if lit is not a SAT literal.  "lit"
+   * may be in either phase; that is, if "lit" is a SAT literal, this function
+   * returns true both for lit and the negation of lit.
    */
   bool isDecision(Node lit) const;
 
   /**
-   * Return SAT context level at which `lit` was decided on.
-   *
-   * @param lit: The node in question, must have an associated SAT literal.
-   * @return Decision level of the SAT variable of `lit` (phase is disregarded),
-   *         or -1 if `lit` has not been assigned yet.
+   * Return whether lit has a fixed SAT assignment (i.e., implied by input
+   * assertions).
    */
-  int32_t getDecisionLevel(Node lit) const;
-
-  /**
-   * Return the user-context level when `lit` was introduced..
-   *
-   * @return User-context level or -1 if not yet introduced.
-   */
-  int32_t getIntroLevel(Node lit) const;
+  bool isFixed(TNode lit) const;
 
   /**
    * Get the assertion level of the SAT solver.
@@ -221,11 +209,35 @@ public:
   bool needCheck() const;
 
   /**
+   * Has some theory determined that the model cannot be trusted, i.e., called
+   * TheoryInferenceManager::setModelUnsound() in the current SAT context?
+   */
+  bool isModelUnsound() const;
+
+  /**
    * Is the literal lit (possibly) critical for satisfying the input formula in
    * the current context? This call is applicable only during collectModelInfo
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
+
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x. This is
+   * useful for ppAssert, when x = val is an entailed equality. This function
+   * determines whether indeed x can be eliminated from the problem via the
+   * substitution x -> val.
+   *
+   * The following criteria imply that x -> val is *not* a legal elimination:
+   * (1) If x is contained in val,
+   * (2) If the type of val is not the same as the type of x,
+   * (3) If val contains an operator that cannot be evaluated, and
+   * produceModels is true. For example, x -> sqrt(2) is not a legal
+   * elimination if we are producing models. This is because we care about the
+   * value of x, and its value must be computed (approximated) by the
+   * non-linear solver.
+   */
+  bool isLegalElimination(TNode x, TNode val);
 
   //------------------------------------------- access methods for assertions
   /**
@@ -237,7 +249,7 @@ public:
   context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
   /** The beginning iterator of facts for theory tid.*/
   context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
-};/* class Valuation */
+}; /* class Valuation */
 
 }  // namespace theory
 }  // namespace cvc5::internal

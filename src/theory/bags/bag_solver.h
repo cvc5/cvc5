@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -37,15 +34,21 @@ class TermRegistry;
 class BagSolver : protected EnvObj
 {
  public:
-  BagSolver(Env& env, SolverState& s, InferenceManager& im, TermRegistry& tr);
+  BagSolver(Env& env, SolverState& s, InferenceManager& im);
   ~BagSolver();
 
   /**
-   * apply inference rules for basic bag operators:
+   * apply inference rules for basic bag operators without quantifiers:
    * BAG_MAKE, BAG_UNION_DISJOINT, BAG_UNION_MAX, BAG_INTER_MIN,
-   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_DUPLICATE_REMOVAL
+   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_SETOF
    */
   void checkBasicOperations();
+
+  /**
+   * apply inference rules for operators with quantifiers:
+   * BAG_MAP
+   */
+  void checkQuantifiedOperations();
 
   /**
    * apply inference rules for BAG_MAKE terms.
@@ -89,7 +92,7 @@ class BagSolver : protected EnvObj
   /** apply inference rules for difference remove */
   void checkDifferenceRemove(const Node& n);
   /** apply inference rules for duplicate removal operator */
-  void checkDuplicateRemoval(Node n);
+  void checkSetof(Node n);
   /** apply non negative constraints for multiplicities */
   void checkNonNegativeCountTerms(const Node& bag, const Node& element);
   /** apply inference rules for disequal bag terms */
@@ -111,8 +114,6 @@ class BagSolver : protected EnvObj
   InferenceGenerator d_ig;
   /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
-  /** Reference to the term registry of theory of bags */
-  TermRegistry& d_termReg;
 
   /**
    * a map where the keys are nodes of the form (bag.map f A)

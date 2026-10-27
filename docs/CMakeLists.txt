@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Aina Niemetz
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -13,26 +10,70 @@
 # The build system configuration.
 ##
 find_package(Sphinx REQUIRED)
-check_python_module(breathe)
+check_python_module(breathe "breathe!=5.0.0")
 check_python_module(sphinxcontrib.bibtex sphinxcontrib-bibtex)
 check_python_module(sphinx_tabs.tabs sphinx-tabs)
-check_python_module(sphinxcontrib.programoutput sphinxcontrib.programoutput)
+check_python_module(sphinxcontrib.programoutput sphinxcontrib-programoutput)
 check_python_module(sphinx_rtd_theme sphinx-rtd-theme)
 
 add_subdirectory(api)
 
 set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
+if(BUILD_DOCS_GA)
+  check_python_module(sphinxcontrib.googleanalytics sphinxcontrib-googleanalytics)
+  # sphinxcontrib-googleanalytics <= 0.5 installs a sphinxcontrib/__init__.py
+  # that declares the namespace via pkg_resources, which was removed in
+  # setuptools 82. This breaks the import of every sphinxcontrib.* extension.
+  # Remove that file from our venv so that sphinxcontrib is treated as an
+  # implicit namespace package. This is fixed upstream but not yet released
+  # (see https://github.com/sphinx-contrib/googleanalytics/pull/22).
+  if(DEFINED VENV_PATH)
+    execute_process(
+      COMMAND
+        ${Python_EXECUTABLE} -c "print(__import__('sysconfig').get_path('purelib'))"
+      OUTPUT_VARIABLE Python_PURELIB
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(SPHINXCONTRIB_INIT "${Python_PURELIB}/sphinxcontrib/__init__.py")
+    if(EXISTS "${SPHINXCONTRIB_INIT}")
+      file(READ "${SPHINXCONTRIB_INIT}" SPHINXCONTRIB_INIT_CONTENTS)
+      if(SPHINXCONTRIB_INIT_CONTENTS MATCHES "pkg_resources")
+        message(STATUS "Removing obsolete ${SPHINXCONTRIB_INIT}")
+        file(REMOVE "${SPHINXCONTRIB_INIT}")
+      endif()
+    endif()
+  endif()
+  set(GOOGLE_ANALYTICS_ENABLE "True")
+else()
+  set(GOOGLE_ANALYTICS_ENABLE "False")
+endif()
+
+# Use permanent links to the tagged sources in the documentation of a release
+# (e.g. .../blob/cvc5-x.y.z/...), and links to the main branch otherwise, so
+# that links keep pointing at the files as they were at release time (#12194).
+if(CVC5_IS_RELEASE STREQUAL "true")
+  set(CVC5_GIT_REF "cvc5-${CVC5_VERSION_NUMBER}")
+else()
+  set(CVC5_GIT_REF "main")
+endif()
 
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
+configure_file(references.bib ${CMAKE_CURRENT_BINARY_DIR}/references.bib COPYONLY)
+
+set(SPHINX_WARNING_AS_ERROR "")
+if(TREAT_WARNING_AS_ERROR)
+  set(SPHINX_WARNING_AS_ERROR "-W")
+endif()
 
 add_custom_target(
   docs
-  DEPENDS docs-cpp docs-java docs-python gen-options cvc5-bin
+  DEPENDS docs-cpp docs-c docs-java docs-python gen-options cvc5-bin
   COMMAND
-    ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
+    ${Sphinx_EXECUTABLE} -v ${SPHINX_WARNING_AS_ERROR} -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
     -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_DIR}
+    -Dbreathe_projects.cvc5_c=${C_DOXYGEN_XML_DIR}
     -Dbreathe_projects.std=${CPP_DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
     ${SPHINX_OUTPUT_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}

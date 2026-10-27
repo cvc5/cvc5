@@ -1,6 +1,6 @@
 (set-logic SLIA)
 (set-info :status sat)
-(set-option :strings-exp true)
+
 (declare-fun string () String)
 (assert (and
      (and (not (not (not (= (ite (> (str.indexof string ";" 0) 0) 1 0)

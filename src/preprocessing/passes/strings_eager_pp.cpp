@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -26,13 +23,13 @@ namespace preprocessing {
 namespace passes {
 
 StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "strings-eager-pp"){};
+    : PreprocessingPass(preprocContext, "strings-eager-pp") {};
 
 PreprocessingPassResult StringsEagerPp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  theory::strings::SkolemCache skc(nullptr);
+  NodeManager* nm = nodeManager();
+  theory::strings::SkolemCache skc(nm, nullptr);
   theory::strings::StringsPreprocess pp(d_env, &skc);
   for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
        ++i)
@@ -49,7 +46,13 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
     }
     if (prev != rew)
     {
-      assertionsToPreprocess->replace(i, rewrite(rew));
+      assertionsToPreprocess->replace(
+          i, rew, nullptr, TrustId::PREPROCESS_STRINGS_EAGER_PP);
+      assertionsToPreprocess->ensureRewritten(i);
+      if (assertionsToPreprocess->isInConflict())
+      {
+        return PreprocessingPassResult::CONFLICT;
+      }
     }
   }
 

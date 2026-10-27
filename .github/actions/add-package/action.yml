@@ -1,0 +1,81 @@
+name: Add package
+description: Create a package and store it to the latest tag or the current release
+inputs:
+  build-dir:
+    description: path to the build directory
+  package-name:
+    description: target name of the package
+  shell:
+    default: bash
+  dry-run:
+    default: false
+outputs:
+  install-path:
+    description: path to the installation directory
+    value: ${{ steps.create-zip.outputs.install-path }}
+runs:
+  using: composite
+  steps:
+    - name: Create ZIP file
+      id: create-zip
+      shell: ${{ inputs.shell }}
+      run: |
+        echo "::group::Create ZIP file"
+        # Run 'make install' on build directory
+        pushd ${{ inputs.build-dir }}
+        make install
+        popd
+
+        # Remove Python bindings (if any).
+        # They are built for testing purposes, but
+        # only work for the specific CI Python version.
+        rm -rf ${{ inputs.build-dir }}/install/lib/python*
+        rm -rf ${{ inputs.build-dir }}/install/lib/site-packages
+
+        if [[ "$MSYSTEM" == "CLANG64" ]]; then
+          if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ]; then
+            cp /clang64/bin/libc++.dll ${{ inputs.build-dir }}/install/bin/
+          else
+            cp /clang64/lib/libgmp.a ${{ inputs.build-dir }}/install/lib/
+          fi
+        fi
+
+        if [[ "$MSYSTEM" == "CLANGARM64" ]]; then
+          if [ -f ${{ inputs.build-dir }}/install/bin/libcvc5.dll ]; then
+            cp /clangarm64/bin/libc++.dll ${{ inputs.build-dir }}/install/bin/
+          else
+            cp /clangarm64/lib/libgmp.a ${{ inputs.build-dir }}/install/bin/
+          fi
+        fi
+
+        # Copy AUTHORS and COPYING files and licenses directory to install directory
+        cp AUTHORS COPYING ${{ inputs.build-dir }}/install/
+        cp -r licenses ${{ inputs.build-dir }}/install/
+
+        # Create ZIP file
+        pushd ${{ inputs.build-dir }}
+        mv install ${{ inputs.package-name }}
+        echo "install-path=${{ inputs.build-dir }}/${{ inputs.package-name }}" >> $GITHUB_OUTPUT
+        zip -r ${{ inputs.package-name }} ${{ inputs.package-name }}
+        popd
+
+        # Move package to root directory
+        mv ${{ inputs.build-dir }}/${{ inputs.package-name }}.zip .
+        echo "::endgroup::"
+
+    - name: Store to latest
+      if: ${{ github.ref == 'refs/heads/main' && inputs.dry-run != 'true' }}
+      uses: ./.github/actions/store-to-latest
+      with:
+        asset-filename: ${{ inputs.package-name }}.zip
+        shell: ${{ inputs.shell }}
+
+    - name: Store to release
+      if: ${{ startsWith(github.ref, 'refs/tags/') && inputs.dry-run != 'true' }}
+      shell: ${{ inputs.shell }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release upload $GITHUB_REF_NAME \
+          ${{ inputs.package-name }}.zip \
+          --repo $GITHUB_REPOSITORY

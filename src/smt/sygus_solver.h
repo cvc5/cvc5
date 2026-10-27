@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -88,15 +85,8 @@ class SygusSolver : protected EnvObj
    *
    * vars contains the arguments of the function-to-synthesize. These variables
    * are also stored to be used during solving.
-   *
-   * isInv determines whether the function-to-synthesize is actually an
-   * invariant. This information is necessary if we are dumping a command
-   * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(Node func,
-                       TypeNode type,
-                       bool isInv,
-                       const std::vector<Node>& vars);
+  void declareSynthFun(Node func, TypeNode type, const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint or assumption.*/
   void assertSygusConstraint(Node n, bool isAssume);
@@ -167,6 +157,18 @@ class SygusSolver : protected EnvObj
    */
   bool getSubsolverSynthSolutions(std::map<Node, Node>& solMap);
 
+  /**
+   * Returns true if we can trust the results of synthesis solutions for
+   * solvers that use the given options. This is false e.g. if we are using an
+   * approximate checking algorithm for solution correctness.
+   */
+  static bool canTrustSynthesisResult(const Options& opts);
+  /**
+   * Get the list of synthesis functions in the current context, each paired
+   * with their corresponding grammar (if one exists).
+   */
+  std::vector<std::pair<Node, TypeNode>> getSynthFunctions() const;
+
  private:
   /**
    * Check that a solution to a synthesis conjecture is indeed a solution.
@@ -183,17 +185,12 @@ class SygusSolver : protected EnvObj
    */
   void checkSynthSolution(Assertions& as, const std::map<Node, Node>& solMap);
   /**
-   * Expand definitions in sygus datatype tn, which ensures that all
-   * sygus constructors that are used to build values of sygus datatype
-   * tn are associated with their expanded definition form.
-   *
-   * This method is required at this level since sygus grammars may include
-   * user-defined functions. Thus, we must use the preprocessor here to
-   * associate the use of those functions with their expanded form, since
-   * the internal sygus solver must reason about sygus operators after
-   * expansion.
+   * Check definitions in sygus datatype tn, which ensures that all
+   * sygus constructors do not have illegal free variables.
+   * We do not yet compute expanded definition form, which is done in the
+   * internal solver.
    */
-  void expandDefinitionsSygusDt(TypeNode tn) const;
+  void checkDefinitionsSygusDt(const Node& fn, TypeNode tn) const;
   /** List to vector helper */
   static std::vector<Node> listToVector(const NodeList& list);
   /**
@@ -223,6 +220,11 @@ class SygusSolver : protected EnvObj
   NodeList d_sygusFunSymbols;
   /** The current sygus conjecture */
   Node d_conj;
+  /**
+   * The list of synthesis functions that were trivial (not contained in the
+   * conjecture but were specified via synth-fun).
+   */
+  std::vector<Node> d_trivialFuns;
   /**
    * Whether we need to reconstruct the sygus conjecture.
    *

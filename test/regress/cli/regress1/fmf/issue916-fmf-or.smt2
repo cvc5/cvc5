@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-fun
 ; EXPECT: sat
 ; DISABLE-TESTER: model
@@ -24,7 +25,7 @@
 )
 
 (declare-datatypes ((List 1)) ((par (T)((Nil) (Cstr (head T) (tail (List T)))))))
-(declare-datatypes ((Pair 2)) ((par (T S)((Pair (first T) (second S))))))
+(declare-datatypes ((Pair 2)) ((par (T S)((mkPair (first T) (second S))))))
 
 (define-funs-rec
   (

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -30,6 +27,8 @@ class Skolemize;
 class QuantifiersRegistry;
 class TermRegistry;
 class FirstOrderModel;
+class QuantifiersModule;
+
 /**
  * The quantifiers inference manager.
  */
@@ -51,11 +50,24 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
    */
   void doPending();
 
+  // ----- For printing -o inst-strategy
+  /** Begin timing call */
+  void beginCallDebug(QuantifiersModule* qm);
+  /** End timing call */
+  void endCallDebug();
+
  private:
   /** instantiate utility */
   std::unique_ptr<Instantiate> d_instantiate;
   /** skolemize utility */
   std::unique_ptr<Skolemize> d_skolemize;
+  // ----- for printing -o inst-strategy
+  /** For debug output, the quantifiers module called in beginCallDebug */
+  QuantifiersModule* d_debugQm;
+  /** The number of pending lemmas */
+  size_t d_debugNumPendingLemmas;
+  /** The time stamp */
+  clock_t d_debugTimeStamp;
 };
 
 }  // namespace quantifiers

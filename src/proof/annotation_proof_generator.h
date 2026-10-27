@@ -1,16 +1,13 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * The annotation proof generator class.
+ * Annotation proof generator utility.
  */
 
 #include "cvc5_private.h"
@@ -19,82 +16,67 @@
 #define CVC5__PROOF__ANNOTATION_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
-#include "expr/node.h"
 #include "proof/proof_generator.h"
-#include "proof/trust_node.h"
+#include "proof/trust_id.h"
+#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 
-class ProofNodeManager;
+class ProofNode;
 
 /**
- * Base class for annotators. An annotator is a utility that implements a
- * simple transformation on proofs: `annotate` below.
+ * This class wraps proofs with an ANNOTATE step.
  */
-class Annotator
+class AnnotationProofGenerator : protected EnvObj, public ProofGenerator
 {
  public:
-  Annotator() {}
-  virtual ~Annotator() {}
-  /**
-   * Annotate the proof node. This must return a proof node that concludes the
-   * same thing as p.
-   */
-  virtual std::shared_ptr<ProofNode> annotate(std::shared_ptr<ProofNode> p) = 0;
-};
+  AnnotationProofGenerator(
+      Env& env,
+      context::Context* c = nullptr,
+      const std::string& name = "AnnotationProofGenerator");
+  ~AnnotationProofGenerator() override = default;
 
-/**
- * Annotation proof generator, used to "wrap" proofs of other proof generators
- * via the annotate method above.
- */
-class AnnotationProofGenerator : public ProofGenerator
-{
-  typedef context::CDHashMap<Node, std::pair<ProofGenerator*, Annotator*>>
-      NodeExpMap;
-  typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>> NodeProofNodeMap;
-
- public:
-  AnnotationProofGenerator(ProofNodeManager* pnm,
-                           context::Context* c = nullptr,
-                           std::string name = "AnnotationProofGenerator");
-  ~AnnotationProofGenerator() {}
-  /** Get the proof for formula f. */
-  std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Can we give the proof for formula f? */
-  bool hasProofFor(Node f) override;
   /**
-   * Set explanation for fact f, called when pg has a proof for f.
+   * Register an annotation for fact.
    *
-   * @param f The fact proven by pg,
-   * @param pg The proof generator that can prove f.
-   * @param a The annotator that will annotate the proof of f, if necessary.
+   * The child proof is obtained either from pg, or if pg is null, from the
+   * trusted fallback identified by tid and targs.
    */
-  void setExplanationFor(Node f, ProofGenerator* pg, Annotator* a);
-  /**
-   * Transform trust node, will be annotated by the given annotator.
-   */
-  TrustNode transform(const TrustNode& trn, Annotator* a);
-  /** identify */
+  void addAnnotation(Node fact,
+                     ProofGenerator* pg,
+                     const std::vector<Node>& args,
+                     TrustId tid = TrustId::NONE,
+                     const std::vector<Node>& targs = {});
+
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
+  bool hasProofFor(Node fact) override;
   std::string identify() const override;
 
- protected:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
-  /** Name identifier */
+ private:
+  struct AnnotationInfo
+  {
+    AnnotationInfo(ProofGenerator* pg,
+                   const std::vector<Node>& args,
+                   TrustId tid,
+                   const std::vector<Node>& targs);
+
+    /** The generator for the child proof, if any. */
+    ProofGenerator* d_pg;
+    /** The arguments for the ANNOTATE step. */
+    std::vector<Node> d_args;
+    /** Fallback trust identifier if d_pg is null. */
+    TrustId d_tid;
+    /** Additional arguments for the fallback trust step. */
+    std::vector<Node> d_targs;
+  };
+
+  using NodeAnnotationInfoMap =
+      context::CDHashMap<Node, std::shared_ptr<AnnotationInfo>>;
+
+  /** Mapping from facts to their annotation information. */
+  NodeAnnotationInfoMap d_annotations;
+  /** Name for debugging. */
   std::string d_name;
-  /** A dummy context used by this class if none is provided */
-  context::Context d_context;
-  /**
-   * A context-dependent map from formulas to a generator + annotation
-   * pair, which will be used to generate the proof of formulas if asked.
-   * We use the context provided to this class or otherwise d_context above.
-   */
-  NodeExpMap d_exps;
-  /**
-   * A context-dependent map from formulas to the proof nodes we have
-   * returned in calls to getProofFor.
-   */
-  NodeProofNodeMap d_proofs;
 };
 
 }  // namespace cvc5::internal

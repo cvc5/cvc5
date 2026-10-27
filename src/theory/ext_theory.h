@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Tim King, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,7 +15,7 @@
  *
  * At a high level, this technique implements a generic inference scheme based
  * on the combination of SAT-context-dependent equality reasoning and
- * SAT-context-indepedent rewriting.
+ * SAT-context-independent rewriting.
  *
  * As a simple example, say
  * (1) TheoryStrings tells us that the following facts hold in the SAT context:
@@ -41,6 +38,7 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "proof/proof.h"
 #include "smt/env_obj.h"
 #include "theory/theory_inference_manager.h"
 
@@ -52,7 +50,8 @@ class OutputChannel;
 /** Reasons for why a term was marked reduced */
 enum class ExtReducedId
 {
-  UNKNOWN,
+  // the extended function is not marked reduced
+  NONE,
   // the extended function substitutes+rewrites to a constant
   SR_CONST,
   // the extended function was reduced by the callback
@@ -81,6 +80,8 @@ enum class ExtReducedId
   STRINGS_REGEXP_PDERIVATIVE,
   // reduction for seq.nth over seq.rev
   STRINGS_NTH_REV,
+  // the reason for the reduction is unknown
+  UNKNOWN,
 };
 /**
  * Converts an ext reduced identifier to a string.
@@ -168,7 +169,7 @@ class ExtTheoryCallback
  * underlying theory for a "derivable substitution", whereby extended functions
  * may be reducable.
  */
-class ExtTheory : protected EnvObj
+class ExtTheory : protected EnvObj, public ProofGenerator
 {
   using NodeBoolMap = context::CDHashMap<Node, bool>;
   using NodeExtReducedIdMap = context::CDHashMap<Node, ExtReducedId>;
@@ -214,20 +215,13 @@ class ExtTheory : protected EnvObj
                            const std::vector<Node>& terms,
                            std::vector<Node>& sterms,
                            std::vector<std::vector<Node> >& exp);
-  /**
-   * Same as above, but for a single term. We return the substituted form of
-   * term and add its explanation to exp.
-   */
-  Node getSubstitutedTerm(int effort, Node term, std::vector<Node>& exp);
   /** doInferences
    *
    * This function performs "context-dependent simplification". The method takes
    * as input:
    *  effort: an identifier used to determine which terms we reduce and the
    *          form of the derivable substitution we will use,
-   *  terms: the set of terms to simplify,
-   *  batch: if this flag is true, we send lemmas for all terms; if it is false
-   *         we send a lemma for the first applicable term.
+   *  terms: the set of terms to simplify
    *
    * Sends rewriting lemmas of the form ( exp => t = c ) where t is in terms
    * and c is a constant, c = rewrite( t*sigma ) where exp |= sigma. These
@@ -242,24 +236,12 @@ class ExtTheory : protected EnvObj
    */
   bool doInferences(int effort,
                     const std::vector<Node>& terms,
-                    std::vector<Node>& nred,
-                    bool batch = true);
+                    std::vector<Node>& nred);
   /**
    * Calls the above function, where terms is getActive(), the set of currently
    * active terms.
    */
-  bool doInferences(int effort, std::vector<Node>& nred, bool batch = true);
-  /** doReductions
-   *
-   * This method has the same interface as doInferences. In contrast to
-   * doInfereces, this method will send reduction lemmas of the form ( t = t' )
-   * where t is in terms and t' is an equivalent reduced term.
-   */
-  bool doReductions(int effort,
-                    const std::vector<Node>& terms,
-                    std::vector<Node>& nred,
-                    bool batch = true);
-  bool doReductions(int effort, std::vector<Node>& nred, bool batch = true);
+  bool doInferences(int effort, std::vector<Node>& nred);
 
   /** get the set of all extended function terms from d_ext_func_terms */
   void getTerms(std::vector<Node>& terms);
@@ -277,6 +259,15 @@ class ExtTheory : protected EnvObj
   /** get the set of active terms from d_ext_func_terms of kind k */
   std::vector<Node> getActive(Kind k) const;
 
+  /**
+   * Get proof for a lemma sent via this class, which is of the form
+   *   (t1 = s1 ^ ... ^ tn = sn) => (t = s)
+   * where the conclusion can be shown via substitution + rewriting.
+   */
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
+  /** identify */
+  std::string identify() const override;
+
  private:
   /** returns the set of variable subterms of n */
   static std::vector<Node> collectVars(Node n);
@@ -290,11 +281,9 @@ class ExtTheory : protected EnvObj
   /** do inferences internal */
   bool doInferencesInternal(int effort,
                             const std::vector<Node>& terms,
-                            std::vector<Node>& nred,
-                            bool batch,
-                            bool isRed);
+                            std::vector<Node>& nred);
   /** send lemma on the output channel */
-  bool sendLemma(Node lem, InferenceId id, bool preprocess = false);
+  bool sendLemma(TrustNode lem, InferenceId id);
   /** reference to the callback */
   ExtTheoryCallback& d_parent;
   /** inference manager used to send lemmas */
@@ -329,7 +318,6 @@ class ExtTheory : protected EnvObj
 
   // cache of all lemmas sent
   NodeSet d_lemmas;
-  NodeSet d_pp_lemmas;
 };
 
 }  // namespace theory

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Tianyi Liang
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,7 +36,7 @@ namespace strings {
 class EagerSolver : protected EnvObj
 {
  public:
-  EagerSolver(Env& env, SolverState& state, TermRegistry& treg);
+  EagerSolver(Env& env, SolverState& state);
   ~EagerSolver();
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
@@ -52,7 +49,7 @@ class EagerSolver : protected EnvObj
   /** add endpoints to eqc info
    *
    * This method is called when term t is the explanation for why equivalence
-   * class eqc may have a constant endpoint due to a concatentation term concat.
+   * class eqc may have a constant endpoint due to a concatenation term concat.
    * For example, we may call this method on:
    *   t := (str.++ x y), concat := (str.++ x y), eqc
    * for some eqc that is currently equal to t. Another example is:
@@ -76,8 +73,6 @@ class EagerSolver : protected EnvObj
   Node getBoundForLength(Node t, bool isLower) const;
   /** Reference to the solver state */
   SolverState& d_state;
-  /** Reference to the term registry */
-  TermRegistry& d_treg;
   /** Arithmetic entailment */
   ArithEntail d_aent;
   /** Regular expression entailment */

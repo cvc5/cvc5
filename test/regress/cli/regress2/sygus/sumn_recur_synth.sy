@@ -1,5 +1,6 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: feasible
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status -q
 (set-logic UFLIA)
 
 (declare-var x Int)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mathias Preiner, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +18,6 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
-#include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/env.h"
 #include "smt/preprocess_proof_generator.h"
@@ -34,27 +30,26 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
-Preprocessor::Preprocessor(Env& env,
-                           SolverEngineStatistics& stats)
+Preprocessor::Preprocessor(Env& env, SolverEngineStatistics& stats)
     : EnvObj(env),
       d_pppg(nullptr),
       d_propagator(env, true, true),
       d_assertionsProcessed(env.getUserContext(), false),
       d_processor(env, stats)
 {
-
 }
 
 Preprocessor::~Preprocessor() {}
 
-void Preprocessor::finishInit(TheoryEngine* te, prop::PropEngine* pe)
+void Preprocessor::finishInit(TheoryEngine* te,
+                              prop::PropEngine* pe,
+                              PreprocessProofGenerator* pppg)
 {
   // set up the preprocess proof generator, if necessary
-  if (options().smt.produceProofs && d_pppg == nullptr)
+  if (d_pppg == nullptr && pppg != nullptr)
   {
-    d_pppg = std::make_unique<PreprocessProofGenerator>(
-        d_env, userContext(), "smt::PreprocessProofGenerator");
-    d_propagator.enableProofs(userContext(), d_pppg.get());
+    d_pppg = pppg;
+    d_propagator.enableProofs(userContext(), d_pppg);
   }
 
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
@@ -130,7 +125,7 @@ void Preprocessor::applySubstitutions(std::vector<Node>& ns)
 
 PreprocessProofGenerator* Preprocessor::getPreprocessProofGenerator()
 {
-  return d_pppg.get();
+  return d_pppg;
 }
 
 }  // namespace smt

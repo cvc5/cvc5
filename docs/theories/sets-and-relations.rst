@@ -1,5 +1,3 @@
-.. _theory_reference_sets:
-
 Theory Reference: Sets and Relations
 ====================================
 
@@ -21,7 +19,7 @@ a `cvc5::Solver solver` object.
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 | Sort                 | ``(Set <Sort>)``                             | ``solver.mkSetSort(cvc5::Sort elementSort);``                             |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Constants            | ``(declare-const X (Set Int)``               | ``Sort s = solver.mkSetSort(solver.getIntegerSort());``                   |
+| Constants            | ``(declare-const X (Set Int))``              | ``Sort s = solver.mkSetSort(solver.getIntegerSort());``                   |
 |                      |                                              |                                                                           |
 |                      |                                              | ``Term X = solver.mkConst(s, "X");``                                      |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
@@ -39,9 +37,13 @@ a `cvc5::Solver solver` object.
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 | Subset               | ``(set.subset X Y)``                         | ``Term t = solver.mkTerm(Kind::SET_SUBSET, {X, Y});``                     |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Emptyset             | ``(as set.empty (Set Int)``                  | ``Term t = solver.mkEmptySet(s);``                                        |
+| Emptyset             | ``(as set.empty (Set Int))``                 | ``Term t = solver.mkEmptySet(s);``                                        |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 | Singleton Set        | ``(set.singleton 1)``                        | ``Term t = solver.mkTerm(Kind::SET_SINGLETON, {solver.mkInteger(1)});``   |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Emptyset tester      | ``(set.is_empty X)``                         | ``Term t = solver.mkTerm(Kind::SET_IS_EMPTY, {X});``                      |
++----------------------+----------------------------------------------+---------------------------------------------------------------------------+
+| Singleton tester     | ``(set.is_singleton X)``                     | ``Term t = solver.mkTerm(Kind::SET_IS_SINGLETON, {X});``                  |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 | Cardinality          | ``(set.card X)``                             | ``Term t = solver.mkTerm(Kind::SET_CARD, {X});``                          |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
@@ -134,9 +136,11 @@ Below is a more extensive example on how to use finite sets:
 
 .. api-examples::
     <examples>/api/cpp/sets.cpp
+    <examples>/api/c/sets.c
     <examples>/api/java/Sets.java
     <examples>/api/python/sets.py
     <examples>/api/smtlib/sets.smt2
+    :skip: py-pythonicapi
 
 
 Finite Relations
@@ -161,9 +165,13 @@ More details can be found in :cite:`MengRTB17`.
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term t = solver.mkConst(s, "t");``                                               |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = solver.mkTuple({<Sort_1>, ..., <Sort_n>}, {Term_1>, ..., <Term_n>});``  |
+| Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = solver.mkTuple({Term_1>, ..., <Term_n>});``                             |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Selector       | ``((_ tuple_select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
+| Unit Tuple Sort      | ``UnitTuple``                                | ``Sort s = solver.mkTupleSort({});``                                               |
++----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
+| Unit Tuple           | ``tuple.unit``                               | ``Term t = solver.mkTuple({});``                                                   |
++----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
+| Tuple Selector       | ``((_ tuple.select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Datatype dt = s.getDatatype();``                                                 |
 |                      |                                              |                                                                                    |
@@ -194,6 +202,8 @@ Example:
 
 .. api-examples::
     <examples>/api/cpp/relations.cpp
+    <examples>/api/c/relations.c
     <examples>/api/java/Relations.java
     <examples>/api/python/relations.py
     <examples>/api/smtlib/relations.smt2
+    :skip: py-pythonicapi

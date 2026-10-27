@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp -i
+; COMMAND-LINE: -i
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun uf6_2 (Bool Bool Bool Bool Bool Bool) Bool)

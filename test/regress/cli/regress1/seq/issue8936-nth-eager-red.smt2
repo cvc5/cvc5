@@ -1,4 +1,5 @@
-; COMMAND-LINE: --strings-exp --no-strings-lazy-pp
+; REQUIRES: no-safe-mode
+; COMMAND-LINE: --no-strings-lazy-pp
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun a () (Seq Int))

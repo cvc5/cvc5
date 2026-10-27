@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,8 +17,8 @@
 
 #include <memory>
 
+#include "cvc5/cvc5_proof_rule.h"
 #include "expr/node.h"
-#include "proof/proof_rule.h"
 
 namespace cvc5::internal {
 
@@ -39,7 +36,7 @@ namespace booleans {
 class ProofCircuitPropagator
 {
  public:
-  ProofCircuitPropagator(ProofNodeManager* pnm);
+  ProofCircuitPropagator(NodeManager* nm, ProofNodeManager* pnm);
 
   /** Assuming the given node */
   std::shared_ptr<ProofNode> assume(Node n);
@@ -93,7 +90,7 @@ class ProofCircuitPropagator
 
   /** Construct proof using the given rule, children and args */
   std::shared_ptr<ProofNode> mkProof(
-      PfRule rule,
+      ProofRule rule,
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args = {});
   /**
@@ -117,6 +114,8 @@ class ProofCircuitPropagator
   /** Apply NOT_NOT_ELIM rule if n.getResult() is a nested negation */
   std::shared_ptr<ProofNode> mkNot(const std::shared_ptr<ProofNode>& n);
 
+  /** The associated node manager */
+  NodeManager* d_nm;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 };
@@ -128,7 +127,8 @@ class ProofCircuitPropagator
 class ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 {
  public:
-  ProofCircuitPropagatorBackward(ProofNodeManager* pnm,
+  ProofCircuitPropagatorBackward(NodeManager* nm,
+                                 ProofNodeManager* pnm,
                                  TNode parent,
                                  bool parentAssignment);
 
@@ -172,9 +172,9 @@ class ProofCircuitPropagatorBackward : public ProofCircuitPropagator
 class ProofCircuitPropagatorForward : public ProofCircuitPropagator
 {
  public:
-  ProofCircuitPropagatorForward(ProofNodeManager* pnm,
+  ProofCircuitPropagatorForward(NodeManager* nm,
+                                ProofNodeManager* pnm,
                                 Node child,
-                                bool childAssignment,
                                 Node parent);
 
   /** All children are true  -->  and is true */
@@ -203,8 +203,6 @@ class ProofCircuitPropagatorForward : public ProofCircuitPropagator
  private:
   /** The current child that triggered the propagations */
   Node d_child;
-  /** The assignment of d_child */
-  bool d_childAssignment;
   /** The parent node used for propagation */
   Node d_parent;
 };

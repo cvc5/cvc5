@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Tim King
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -40,7 +37,7 @@ TangentPlaneCheck::TangentPlaneCheck(Env& env, ExtState* data)
 void TangentPlaneCheck::check(bool asWaitingLemmas)
 {
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   const std::map<Node, std::vector<Node> >& ccMap =
       d_data->d_mdb.getContainsChildrenMap();
   unsigned kstart = d_data->d_ms_vars.size();
@@ -120,12 +117,12 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             Node a_v = pts[0][p];
             Node b_v = pts[1][p];
 
+            Node mult_bv_a = nm->mkNode(Kind::MULT, b_v, a);
+            Node mult_av_b = nm->mkNode(Kind::MULT, a_v, b);
+            Node add_mults = nm->mkNode(Kind::ADD, mult_bv_a, mult_av_b);
+            Node mult_av_bv = nm->mkNode(Kind::MULT, a_v, b_v);
             // tangent plane
-            Node tplane = nm->mkNode(Kind::SUB,
-                                     nm->mkNode(Kind::ADD,
-                                                nm->mkNode(Kind::MULT, b_v, a),
-                                                nm->mkNode(Kind::MULT, a_v, b)),
-                                     nm->mkNode(Kind::MULT, a_v, b_v));
+            Node tplane = nm->mkNode(Kind::SUB, add_mults, mult_av_bv);
             // construct the following lemmas:
             // t <= tplane  <=>  ((a <= a_v ^ b >= b_v) v (a >= a_v ^ b <= b_v))
             // t >= tplane  <=>  ((a <= a_v ^ b <= b_v) v (a >= a_v ^ b >= b_v))
@@ -134,14 +131,15 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
             {
               Node b1 = nm->mkNode(d == 0 ? Kind::GEQ : Kind::LEQ, b, b_v);
               Node b2 = nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, b, b_v);
-              Node tlem = nm->mkNode(
-                  Kind::EQUAL,
-                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t, tplane),
-                  nm->mkNode(
-                      Kind::OR,
-                      nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1),
-                      nm->mkNode(
-                          Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2)));
+              Node t2 = nm->mkNode(Kind::NONLINEAR_MULT, a, b);
+              Node eq_lhs =
+                  nm->mkNode(d == 0 ? Kind::LEQ : Kind::GEQ, t2, tplane);
+              Node or1 =
+                  nm->mkNode(Kind::AND, nm->mkNode(Kind::LEQ, a, a_v), b1);
+              Node or2 =
+                  nm->mkNode(Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2);
+              Node eq_rhs = nm->mkNode(Kind::OR, or1, or2);
+              Node tlem = nm->mkNode(Kind::EQUAL, eq_lhs, eq_rhs);
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
               CDProof* proof = nullptr;
@@ -149,14 +147,9 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
               {
                 proof = d_data->getProof();
                 proof->addStep(tlem,
-                               PfRule::ARITH_MULT_TANGENT,
+                               ProofRule::ARITH_MULT_TANGENT,
                                {},
-                               {t,
-                                a,
-                                b,
-                                a_v,
-                                b_v,
-                                nm->mkConstReal(Rational(d == 0 ? -1 : 1))});
+                               {a, b, a_v, b_v, nm->mkConst(d == 1)});
               }
               d_data->d_im.addPendingLemma(tlem,
                                            InferenceId::ARITH_NL_TANGENT_PLANE,

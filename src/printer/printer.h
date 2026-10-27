@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,18 +15,31 @@
 #ifndef CVC5__PRINTER__PRINTER_H
 #define CVC5__PRINTER__PRINTER_H
 
-#include <string>
+#include <cvc5/cvc5_export.h>
 
-#include "expr/node.h"
+#include <memory>
+#include <string>
+#include <vector>
+
+#include "expr/kind.h"
 #include "options/language.h"
-#include "smt/model.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
 
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
+typedef NodeTemplate<false> TNode;
+class TypeNode;
 class UnsatCore;
 struct InstantiationList;
 struct SkolemList;
+class LetBinding;
+
+namespace smt {
+class Model;
+}
 
 class CVC5_EXPORT Printer
 {
@@ -48,6 +58,20 @@ class CVC5_EXPORT Printer
 
   /** Write a Node out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, TNode n) const = 0;
+
+  /**
+   * Write a Node out to a stream with this Printer, with the provided
+   * let binding.
+   * @param out The output stream to write to.
+   * @param n The node to print.
+   * @param lbind The let binding, which determines which nodes are letified.
+   * @param lbindTop If false, the topmost term in n does not take into account
+   * lbind.
+   */
+  virtual void toStream(std::ostream& out,
+                        TNode n,
+                        const LetBinding* lbind,
+                        bool lbindTop) const;
 
   /** Write a Kind out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, Kind k) const = 0;
@@ -101,6 +125,7 @@ class CVC5_EXPORT Printer
   /** Print declare-fun command */
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
+                                          const std::vector<TypeNode>& argTypes,
                                           TypeNode type) const;
   /** Variant of above for a pre-existing variable */
   void toStreamCmdDeclareFunction(std::ostream& out, const Node& v) const;
@@ -110,14 +135,19 @@ class CVC5_EXPORT Printer
                                       TypeNode type,
                                       const std::vector<Node>& initValue) const;
   /** Print declare-oracle-fun command */
-  virtual void toStreamCmdDeclareOracleFun(std::ostream& out,
-                                           const std::string& id,
-                                           TypeNode type,
-                                           const std::string& binName) const;
+  virtual void toStreamCmdDeclareOracleFun(
+      std::ostream& out,
+      const std::string& id,
+      const std::vector<TypeNode>& argTypes,
+      TypeNode type,
+      const std::string& binName) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
-                                      TypeNode type) const;
+                                      const std::string& id,
+                                      size_t arity) const;
+  /** Variant of above that takes the type */
+  void toStreamCmdDeclareType(std::ostream& out, TypeNode type) const;
 
   /** Print define-sort command */
   virtual void toStreamCmdDefineType(std::ostream& out,
@@ -162,15 +192,15 @@ class CVC5_EXPORT Printer
 
   /** Print declare-var command */
   virtual void toStreamCmdDeclareVar(std::ostream& out,
-                                     Node var,
+                                     const std::string& id,
                                      TypeNode type) const;
 
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
-                                   Node f,
+                                   const std::string& id,
                                    const std::vector<Node>& vars,
-                                   bool isInv,
-                                   TypeNode sygusType = TypeNode::null()) const;
+                                   TypeNode rangeType,
+                                   TypeNode sygusType) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;
@@ -188,12 +218,24 @@ class CVC5_EXPORT Printer
   /** Print check-synth-next command */
   virtual void toStreamCmdCheckSynthNext(std::ostream& out) const;
 
+  /** Print find-synth command */
+  virtual void toStreamCmdFindSynth(std::ostream& out,
+                                    modes::FindSynthTarget fst,
+                                    TypeNode sygusType) const;
+
+  /** Print find-synth-next command */
+  virtual void toStreamCmdFindSynthNext(std::ostream& out) const;
+
   /** Print simplify command */
   virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
 
   /** Print get-value command */
   virtual void toStreamCmdGetValue(std::ostream& out,
                                    const std::vector<Node>& nodes) const;
+
+  /** Print get-model-domain-elements command */
+  virtual void toStreamCmdGetModelDomainElements(std::ostream& out,
+                                                 TypeNode type) const;
 
   /** Print get-assignment command */
   virtual void toStreamCmdGetAssignment(std::ostream& out) const;
@@ -247,6 +289,13 @@ class CVC5_EXPORT Printer
 
   /** Print get-difficulty command */
   virtual void toStreamCmdGetDifficulty(std::ostream& out) const;
+
+  /** Print get-timeout-core command */
+  virtual void toStreamCmdGetTimeoutCore(std::ostream& out) const;
+
+  /** Print get-timeout-core-assuming command */
+  virtual void toStreamCmdGetTimeoutCoreAssuming(
+      std::ostream& out, const std::vector<Node>& assumptions) const;
 
   /** Print get-learned-literals command */
   virtual void toStreamCmdGetLearnedLiterals(std::ostream& out,
@@ -340,10 +389,6 @@ class CVC5_EXPORT Printer
 
   /** Make a Printer for a given Language */
   static std::unique_ptr<Printer> makePrinter(Language lang);
-
-  /** Printers for each Language */
-  static std::unique_ptr<Printer>
-      d_printers[static_cast<size_t>(Language::LANG_MAX)];
 
 }; /* class Printer */
 

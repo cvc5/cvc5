@@ -1,0 +1,348 @@
+/******************************************************************************
+ * This file is part of the cvc5 project.
+ *
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
+ * in the top-level source directory and their institutional affiliations.
+ * All rights reserved.  See the file COPYING in the top-level source
+ * directory for licensing information.
+ * ****************************************************************************
+ *
+ * Multivariate root finding. Implements "FindZero" from [OKTB23].
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
+ */
+
+#ifdef CVC5_USE_COCOA
+
+#include "theory/ff/multi_roots.h"
+
+#include <CoCoA/BigIntOps.H>
+#include <CoCoA/RingFp.H>
+#include <CoCoA/SparsePolyOps-MinPoly.H>
+#include <CoCoA/SparsePolyOps-RingElem.H>
+#include <CoCoA/SparsePolyOps-ideal.H>
+#include <CoCoA/ring.H>
+
+#include <algorithm>
+#include <memory>
+#include <sstream>
+
+#include "theory/ff/cocoa_util.h"
+#include "theory/ff/uni_roots.h"
+#include "theory/ff/util.h"
+#include "util/resource_manager.h"
+
+namespace cvc5::internal {
+namespace theory {
+namespace ff {
+
+AssignmentEnumerator::~AssignmentEnumerator() = default;
+
+ListEnumerator::ListEnumerator(std::vector<CoCoA::RingElem>&& options)
+    : d_remainingOptions(std::move(options))
+{
+  std::reverse(d_remainingOptions.begin(), d_remainingOptions.end());
+}
+
+ListEnumerator::~ListEnumerator() {};
+
+std::optional<CoCoA::RingElem> ListEnumerator::next()
+{
+  if (d_remainingOptions.empty())
+  {
+    return {};
+  }
+  else
+  {
+    CoCoA::RingElem v = d_remainingOptions.back();
+    d_remainingOptions.pop_back();
+    return v;
+  }
+}
+
+std::string ListEnumerator::name() { return "list"; }
+
+std::unique_ptr<ListEnumerator> factorEnumerator(CoCoA::RingElem univariatePoly)
+{
+  long varIdx = CoCoA::UnivariateIndetIndex(univariatePoly);
+  Assert(varIdx >= 0);
+  Trace("ff::model::factor") << "roots for: " << univariatePoly << std::endl;
+  std::vector<CoCoA::RingElem> theRoots = roots(univariatePoly);
+  std::vector<CoCoA::RingElem> linears{};
+  CoCoA::RingElem var = CoCoA::indet(CoCoA::owner(univariatePoly), varIdx);
+  for (const auto& r : theRoots)
+  {
+    linears.push_back(var - r);
+  }
+  return std::make_unique<ListEnumerator>(std::move(linears));
+}
+
+RoundRobinEnumerator::RoundRobinEnumerator(
+    const std::vector<CoCoA::RingElem>& vars, const CoCoA::ring& ring)
+    : d_vars(vars),
+      d_ring(ring),
+      d_idx(),
+      d_maxIdx(
+          CoCoA::power(CoCoA::characteristic(ring), CoCoA::LogCardinality(ring))
+          * vars.size())
+{
+}
+
+RoundRobinEnumerator::~RoundRobinEnumerator() {}
+
+std::optional<CoCoA::RingElem> RoundRobinEnumerator::next()
+{
+  std::optional<CoCoA::RingElem> ret{};
+  if (d_idx != d_maxIdx)
+  {
+    size_t whichVar = d_idx % d_vars.size();
+    CoCoA::BigInt whichVal = d_idx / d_vars.size();
+    CoCoA::RingElem val = d_ring->myZero();
+    val += whichVal;
+    ret = d_vars[whichVar] - val;
+    ++d_idx;
+  }
+  return ret;
+}
+
+std::string RoundRobinEnumerator::name() { return "round-robin"; }
+
+bool isUnsat(const CoCoA::ideal& ideal)
+{
+  const auto& gens = CoCoA::GBasis(ideal);
+  return gens.size() == 1 && !CoCoA::IsZero(gens[0])
+         && CoCoA::deg(gens[0]) <= 0;
+}
+
+// True if a Groebner basis for `ideal` is available without (re)computation.
+//
+// Since CoCoALib 0.99850, computing the GBasis of the zero ideal no longer
+// marks it as stored (CoCoA::GBasis returns the trivially empty basis but
+// CoCoA::HasGBasis stays false); 0.99800 did mark it. The empty basis is always
+// available for the zero ideal, so treat that case as "has GBasis" too.
+bool hasGBasis(const CoCoA::ideal& ideal)
+{
+  return CoCoA::HasGBasis(ideal) || CoCoA::IsZero(ideal);
+}
+
+template <typename T>
+std::string ostring(const T& t)
+{
+  std::ostringstream o;
+  o << t;
+  return o.str();
+}
+
+std::pair<size_t, CoCoA::RingElem> extractAssignment(
+    const CoCoA::RingElem& elem)
+{
+  Assert(CoCoA::deg(elem) == 1);
+  Assert(CoCoA::NumTerms(elem) <= 2);
+  const CoCoA::RingElem m = CoCoA::monic(elem);
+  long varNumber = CoCoA::UnivariateIndetIndex(elem);
+  Assert(varNumber >= 0);
+  return {varNumber, -CoCoA::ConstantCoeff(m)};
+}
+
+std::unordered_set<std::string> assignedVars(const CoCoA::ideal& ideal)
+{
+  std::unordered_set<std::string> ret{};
+  Assert(hasGBasis(ideal));
+  for (const auto& g : CoCoA::GBasis(ideal))
+  {
+    if (CoCoA::deg(g) == 1)
+    {
+      long varNumber = CoCoA::UnivariateIndetIndex(g);
+      if (varNumber >= 0)
+      {
+        ret.insert(ostring(CoCoA::indet(ideal->myRing(), varNumber)));
+      }
+    }
+  }
+  return ret;
+}
+
+bool allVarsAssigned(const CoCoA::ideal& ideal)
+{
+  return assignedVars(ideal).size()
+         == (size_t)CoCoA::NumIndets(ideal->myRing());
+}
+
+std::unique_ptr<AssignmentEnumerator> applyRule(const CoCoA::ideal& ideal,
+                                                FfStatistics* stats = nullptr)
+{
+  CoCoA::PolyRing polyRing(ideal->myRing());
+  Assert(!isUnsat(ideal));
+  // first, we look for super-linear univariate polynomials.
+  Assert(hasGBasis(ideal));
+  const auto& gens = CoCoA::GBasis(ideal);
+  for (const auto& p : gens)
+  {
+    long varNumber = CoCoA::UnivariateIndetIndex(p);
+    if (varNumber >= 0 && CoCoA::deg(p) > 1)
+    {
+      return factorEnumerator(p);
+    }
+  }
+  // now, we check the dimension
+  if (CoCoA::IsZeroDim(ideal))
+  {
+    if (stats) ++stats->d_idealMinPoly;
+    // If zero-dimensional, we compute a minimal polynomial in some unset
+    // variable.
+    std::unordered_set<std::string> alreadySet = assignedVars(ideal);
+    for (const auto& var : CoCoA::indets(polyRing))
+    {
+      std::string varName = ostring(var);
+      if (!alreadySet.count(ostring(var)))
+      {
+        CoCoA::RingElem minPoly = CoCoA::MinPolyQuot(var, ideal, var);
+        return factorEnumerator(minPoly);
+      }
+    }
+    Unreachable()
+        << "There should be no unset variables in zero-dimensional ideal";
+  }
+  else
+  {
+    if (stats) ++stats->d_idealPosDim;
+    // If positive dimensional, we make a list of unset variables and
+    // round-robin guess.
+    //
+    // TODO(aozdemir): better model construction (cvc5-wishues/issues/138)
+    std::unordered_set<std::string> alreadySet = assignedVars(ideal);
+    std::vector<CoCoA::RingElem> toGuess{};
+    for (const auto& var : CoCoA::indets(polyRing))
+    {
+      std::string varName = ostring(var);
+      if (!alreadySet.count(ostring(var)))
+      {
+        toGuess.push_back(var);
+      }
+    }
+    return std::make_unique<RoundRobinEnumerator>(toGuess,
+                                                  polyRing->myBaseRing());
+  }
+}
+
+std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
+                                      const Env& env,
+                                      FfStatistics* stats)
+{
+  CoCoA::ring polyRing = initialIdeal->myRing();
+  // We maintain two stacks:
+  // * one of ideals
+  // * one of branchers
+  //
+  // If brancher B has the same index as ideal I, then B represents possible
+  // expansions of ideal I (equivalently, restrictions of I's variety).
+  //
+  // NB: FindZero of [OKTB23] also takes a partial map M as input. GB(I)
+  // implicitly represents M: GB(I) contains a univariate linear polynomial
+  // Xi - k, if and only iff M[Xi] = k.
+  //
+  // NB: FindZero of [OKTB23] is recursive. That recursion is flattened here
+  // using the two stacks. The stack of ideals represents the input to
+  // recursive FindZero: GB(I). The stack of branchers represents the
+  // continuation context (which iteration of the for loop to return to).
+
+  // goal: find a zero for any ideal in the stack.
+  std::vector<CoCoA::ideal> ideals{initialIdeal};
+  if (TraceIsOn("ff::model::branch"))
+  {
+    Trace("ff::model::branch") << "init polys: " << std::endl;
+    for (const auto& p : CoCoA::gens(initialIdeal))
+    {
+      Trace("ff::model::branch") << " * " << p << std::endl;
+    }
+  }
+
+  std::vector<std::unique_ptr<AssignmentEnumerator>> branchers{};
+  // while some ideal might have a zero.
+  while (!ideals.empty())
+  {
+    // check for timeout
+    if (env.getResourceManager()->outOfTime())
+    {
+      throw FfTimeoutException("findZero");
+    }
+    // choose one ideal
+    const auto& ideal = ideals.back();
+    // make sure we have a GBasis:
+    GBasisTimeout(ideal, env.getResourceManager());
+    Assert(hasGBasis(ideal));
+    // If the ideal is UNSAT, drop it.
+    if (isUnsat(ideal))
+    {
+      ideals.pop_back();
+    }
+    // If the ideal has a linear polynomial in each variable, we've found a
+    // variety element (a model).
+    else if (allVarsAssigned(ideal))
+    {
+      std::unordered_map<size_t, CoCoA::RingElem> varNumToValue{};
+      Assert(hasGBasis(ideal));
+      const auto& gens = CoCoA::GBasis(ideal);
+      size_t numIndets = CoCoA::NumIndets(polyRing);
+      Assert(gens.size() == numIndets);
+      for (const auto& g : gens)
+      {
+        varNumToValue.insert(extractAssignment(g));
+      }
+      std::vector<CoCoA::RingElem> values{};
+      for (size_t i = 0; i < numIndets; ++i)
+      {
+        values.push_back(varNumToValue[i]);
+      }
+      return values;
+    }
+    // If there are more ideals than branchers, branch
+    else if (ideals.size() > branchers.size())
+    {
+      Assert(ideals.size() == branchers.size() + 1);
+      branchers.push_back(applyRule(ideal, stats));
+      Trace("ff::model::branch")
+          << "brancher: " << branchers.back()->name() << std::endl;
+      if (TraceIsOn("ff::model::branch"))
+      {
+        Trace("ff::model::branch") << "ideal polys: " << std::endl;
+        for (const auto& p : CoCoA::gens(ideal))
+        {
+          Trace("ff::model::branch") << " * " << p << std::endl;
+        }
+      }
+    }
+    // Otherwise, this ideal should have a brancher; get the next branch
+    else
+    {
+      Assert(ideals.size() == branchers.size());
+      std::optional<CoCoA::RingElem> choicePoly = branchers.back()->next();
+      // construct a new ideal from the branch
+      if (choicePoly.has_value())
+      {
+        Trace("ff::model::branch")
+            << "level: " << branchers.size()
+            << ", brancher: " << branchers.back()->name()
+            << ", branch: " << choicePoly.value() << std::endl;
+        Assert(hasGBasis(ideal));
+        std::vector<CoCoA::RingElem> newGens = CoCoA::GBasis(ideal);
+        newGens.push_back(choicePoly.value());
+        ideals.push_back(CoCoA::ideal(newGens));
+      }
+      // or drop this ideal & brancher if we're out of branches.
+      else
+      {
+        branchers.pop_back();
+        ideals.pop_back();
+      }
+    }
+  }
+  // Could not find any solution; return empty.
+  return {};
+}
+
+}  // namespace ff
+}  // namespace theory
+}  // namespace cvc5::internal
+
+#endif /* CVC5_USE_COCOA */

@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 ###############################################################################
-# Top contributors (to current version):
-#   Andres Noetzli, Aina Niemetz, Yoni Zohar
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -21,13 +18,19 @@ import difflib
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
 import threading
+import time
 
 g_args = None
 
+# For maximum reliability, we get a fully qualified path for the executable.
+bash_bin = shutil.which("bash")
+if bash_bin is None:
+    raise FileNotFoundError("Bash executable is required but not found.")
 
 class Color:
     BLUE = "\033[94m"
@@ -36,18 +39,24 @@ class Color:
     RED = "\033[91m"
     ENDC = "\033[0m"
 
+is_windows = sys.platform.startswith('win')
+
+class BulletSymbol:
+    # On Windows, the special characters cause this error:
+    #   UnicodeEncodeError: 'charmap' codec can't encode character
+    # when ctest runs the Python script
+    INFO = "▶ " if not is_windows else "> "
+    OK = "✓ " if not is_windows else "> "
+    ERROR = "✖ " if not is_windows else "> "
 
 def print_info(msg):
-    print(Color.BLUE + "▶ " + msg + Color.ENDC)
-
+    print(Color.BLUE + BulletSymbol.INFO + msg + Color.ENDC)
 
 def print_ok(msg):
-    print(Color.GREEN + "✓ " + msg + Color.ENDC)
-
+    print(Color.GREEN + BulletSymbol.OK + msg + Color.ENDC)
 
 def print_error(err):
-    print(Color.RED + "✖ " + err + Color.ENDC)
-
+    print(Color.RED + BulletSymbol.ERROR + err + Color.ENDC)
 
 class Tester:
 
@@ -59,9 +68,11 @@ class Tester:
 
     def check_exit_status(self, expected_exit_status, exit_status, output,
                           error, flags):
-        if exit_status == STATUS_TIMEOUT:
+        if is_timeout(exit_status, output, error):
             print_error("Timeout")
-            return EXIT_SKIP if g_args.skip_timeout else EXIT_FAILURE
+            return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
+        elif exit_status == EXIT_SKIP:
+            return EXIT_SKIP
         elif exit_status != expected_exit_status:
             print_error(
                 'Unexpected exit status: expected "{}" but got "{}"'.format(
@@ -85,7 +96,8 @@ class Tester:
         exit_code = self.check_exit_status(benchmark_info.expected_exit_status,
                                            exit_status, output, error,
                                            benchmark_info.command_line_args)
-        if exit_code == EXIT_SKIP:
+
+        if exit_code == EXIT_SKIP or exit_code == EXIT_TIMEOUT:
             return exit_code
 
         if benchmark_info.compare_outputs and output != benchmark_info.expected_output:
@@ -103,6 +115,14 @@ class Tester:
         if exit_code == EXIT_OK:
             print_ok("OK")
         return exit_code
+
+    def strip_proof_body(self, output):
+        # strip the unsat and parentheses
+        if not output.startswith("unsat\n(\n".encode()) or not output.endswith("\n)\n".encode()):
+            print_error("Failed to parse result for proof")
+            return output, EXIT_FAILURE
+        output = output[8:-2]
+        return output, EXIT_OK
 
 
 ################################################################################
@@ -170,15 +190,14 @@ class ProofTester(Tester):
         return super().run_internal(
             benchmark_info._replace(
                 command_line_args=benchmark_info.command_line_args +
-                ["--check-proofs", "--proof-granularity=theory-rewrite", "--proof-check=lazy"]
+                ["--check-proofs",
+                 "--proof-check=lazy"]
             )
         )
 
-
-class LfscTester(Tester):
-
+class AletheTester(Tester):
     def __init__(self):
-        super().__init__("lfsc")
+        super().__init__("alethe")
 
     def applies(self, benchmark_info):
         return (
@@ -188,13 +207,18 @@ class LfscTester(Tester):
 
     def run_internal(self, benchmark_info):
         exit_code = EXIT_OK
-        with tempfile.NamedTemporaryFile() as tmpf:
+        # alethe is not supported in safe mode
+        if benchmark_info.safe_mode:
+            return EXIT_SKIP
+        with tempfile.NamedTemporaryFile(suffix=".smt2.proof") as tmpf:
             cvc5_args = benchmark_info.command_line_args + [
                 "--dump-proofs",
-                "--proof-format=lfsc",
-                "--proof-granularity=theory-rewrite",
-                "--proof-check=lazy",
+                "--proof-format=alethe",
+                "--proof-granularity=dsl-rewrite",
+                "--proof-alethe-testing"
             ]
+            # remove duplicates
+            cvc5_args = list(dict.fromkeys(cvc5_args))
             output, error, exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + cvc5_args
@@ -202,28 +226,42 @@ class LfscTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
-            tmpf.write(output.strip("unsat\n".encode()))
-            tmpf.flush()
-            output, error = output.decode(), error.decode()
+            if (re.search(r'Proof unsupported by Alethe', output.decode()) or re.search(r'Proof unsupported by Alethe', error.decode())):
+                return EXIT_SKIP
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if "check" not in output:
-                print_error("Empty proof")
-                print()
-                print_outputs(output, error)
-                return EXIT_FAILURE
             if exit_code != EXIT_OK:
                 return exit_code
+            # strip the unsat and parentheses
+            output, exit_code = self.strip_proof_body(output)
+            if exit_code == EXIT_FAILURE:
+                return EXIT_FAILURE
+            tmpf.write(output)
+            tmpf.flush()
+            output, error = output.decode(), error.decode()
+            original_file = benchmark_info.benchmark_dir + '/' + benchmark_info.benchmark_basename
+            carcara_args = [
+                "--allow-int-real-subtyping",
+                "--expand-let-bindings",
+                "--allowed-rules",
+                "undefined",
+                "la_mult_sign",
+                "la_mult_abs_comparison",
+                "--rare-file",
+                benchmark_info.carcara_rare,
+            ]
             output, error, exit_status = run_process(
-                [benchmark_info.lfsc_binary] +
-                benchmark_info.lfsc_sigs + [tmpf.name],
+                [benchmark_info.carcara_binary] + ["check"] +
+                carcara_args + [tmpf.name] + [original_file],
                 benchmark_info.benchmark_dir,
                 timeout=benchmark_info.timeout,
             )
             output, error = output.decode(), error.decode()
             exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
                                                error, cvc5_args)
-            if "success" not in output:
+            if exit_code != EXIT_OK:
+                return exit_code
+            if "valid" not in output:
                 print_error("Invalid proof")
                 print()
                 print_outputs(output, error)
@@ -232,6 +270,172 @@ class LfscTester(Tester):
             print_ok("OK")
         return exit_code
 
+class CpcTesterBase(Tester):
+    """Base class for the testers that check proofs in the Cooperating Proof
+    Calculus (CPC). Subclasses generate the proof via `gen_proof` and pass it
+    to their proof checker."""
+
+    def applies(self, benchmark_info):
+        return (
+            benchmark_info.benchmark_ext != ".sy"
+            and benchmark_info.expected_output.strip() == "unsat"
+        )
+
+    def gen_proof(self, benchmark_info, cvc5_args):
+        """Runs cvc5 to generate a CPC proof for the given benchmark. Returns
+        a pair, where the first component is the body of the proof (as bytes)
+        and the second is the exit code, which is EXIT_OK if the proof was
+        generated successfully."""
+        output, error, exit_status = run_process(
+            [benchmark_info.cvc5_binary]
+            + cvc5_args
+            + [benchmark_info.benchmark_basename],
+            benchmark_info.benchmark_dir,
+            benchmark_info.timeout,
+        )
+        exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                           error, cvc5_args)
+        if exit_code != EXIT_OK:
+            return output, exit_code
+        # strip the unsat and parentheses
+        output, exit_code = self.strip_proof_body(output)
+        if exit_code != EXIT_OK:
+            return output, exit_code
+        if (b"step" not in output) and (b"assume" not in output):
+            print_error("Empty proof")
+            return output, EXIT_FAILURE
+        return output, EXIT_OK
+
+
+class CpcTester(CpcTesterBase):
+
+    def __init__(self):
+        super().__init__("cpc")
+
+    def run_internal(self, benchmark_info):
+        with tempfile.NamedTemporaryFile() as tmpf:
+            cvc5_args = [
+                "--dump-proofs",
+                "--proof-print-conclusion",
+            ] + benchmark_info.command_line_args
+            proof, exit_code = self.gen_proof(benchmark_info, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
+            cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
+            tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/Cpc.eo\")").encode())
+            # note this line is not necessary if in a safe build
+            if not benchmark_info.safe_mode:
+                tmpf.write(("(include \"" + cpc_sig_dir + "/cpc/expert/CpcExpert.eo\")").encode())
+            tmpf.write(proof)
+            tmpf.flush()
+            # Require a step concluding false, in addition to the non-empty
+            # proof check in gen_proof.
+            output, error, exit_status = run_process(
+                [benchmark_info.ethos_binary] +
+                ["--require-proof-of-false"] +
+                [tmpf.name],
+                benchmark_info.benchmark_dir,
+                timeout=benchmark_info.timeout,
+            )
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                               error, cvc5_args)
+            if exit_code != EXIT_OK:
+                if exit_code == EXIT_FAILURE:
+                    # print the output of ethos, which says why it failed, e.g.
+                    # a step did not check or the proof did not conclude false.
+                    print()
+                    print_outputs(output, error)
+                return exit_code
+            # Proofs that contain trust steps are reported as "incomplete" by
+            # ethos. These are tolerated, apart from in safe mode, where all
+            # features that lack proof support are disabled and hence proofs
+            # are expected to be complete.
+            valid = ["correct"] if benchmark_info.safe_mode \
+                else ["correct", "incomplete"]
+            if not any(v in output for v in valid):
+                print_error("Incomplete proof" if "incomplete" in output
+                            else "Invalid proof")
+                print()
+                print_outputs(output, error)
+                return EXIT_FAILURE
+        if exit_code == EXIT_OK:
+            print_ok("OK")
+        return exit_code
+
+
+class CpcLogosTester(CpcTesterBase):
+    """Checks CPC proofs with the Logos proof checker. In contrast to Ethos,
+    Logos does not read Eunoia signatures, but instead has the definition of
+    CPC built in."""
+
+    def __init__(self):
+        super().__init__("cpc-logos")
+
+    def run_internal(self, benchmark_info):
+        # Logos only models the fragment of CPC that is covered by the base
+        # signature, hence it is only applicable to safe builds.
+        if not benchmark_info.safe_mode:
+            print_info("Skipped: requires a safe build")
+            return EXIT_SKIP
+        with tempfile.NamedTemporaryFile(suffix=".cpc") as tmpf:
+            # Logos does not support trust steps. In a safe build,
+            # --check-proofs implies --check-proofs-complete unless the
+            # benchmark explicitly requests a granularity below dsl-rewrite.
+            # Such coarse proofs may still be rejected by Logos. We cannot
+            # pass --check-proofs-complete directly, as it is an expert option.
+            cvc5_args = [
+                "--dump-proofs",
+                "--proof-print-conclusion",
+                "--check-proofs",
+            ] + benchmark_info.command_line_args
+            proof, exit_code = self.gen_proof(benchmark_info, cvc5_args)
+            if exit_code != EXIT_OK:
+                return exit_code
+            # A benchmark may print more than one parenthesized block, e.g. if
+            # it has several queries, or if it prints an unsat core or a
+            # difficulty map in addition to its proof. Stripping the result
+            # above then leaves the further blocks in the proof body, which
+            # Logos rejects as trailing input. A block always ends with a line
+            # that consists of a single closing parenthesis, and the body no
+            # longer contains the one that closed the first block, so any such
+            # line means that a further block follows.
+            if b"\n)\n" in b"\n" + proof:
+                print_info("Skipped: benchmark prints more than one block")
+                return EXIT_SKIP
+            # Logos does not support lambda, which cvc5 prints in the
+            # preamble of the proof for benchmarks that use define-fun. Note
+            # that plain definitions are printed as define, which is supported.
+            if b"(lambda " in proof:
+                print_info("Skipped: proof contains a lambda")
+                return EXIT_SKIP
+            tmpf.write(proof)
+            tmpf.flush()
+            output, error, exit_status = run_process(
+                [benchmark_info.logos_binary] +
+                [tmpf.name],
+                benchmark_info.benchmark_dir,
+                timeout=benchmark_info.timeout,
+            )
+            output, error = output.decode(), error.decode()
+            exit_code = self.check_exit_status(EXIT_OK, exit_status, output,
+                                               error, cvc5_args)
+            if exit_code != EXIT_OK:
+                # Logos explains why it rejected a proof on standard error.
+                if exit_code == EXIT_FAILURE:
+                    print()
+                    print_outputs(output, error)
+                return exit_code
+            # Logos prints its verdict as the only line on standard output.
+            # We do not accept the verdict "incomplete" here, since Logos
+            # must check a complete proof.
+            if output.strip() != "correct":
+                print_error("Invalid proof")
+                print()
+                print_outputs(output, error)
+                return EXIT_FAILURE
+        print_ok("OK")
+        return EXIT_OK
 
 class ModelTester(Tester):
 
@@ -308,7 +512,7 @@ class DumpTester(Tester):
         super().__init__("dump")
 
     def applies(self, benchmark_info):
-        return benchmark_info.benchmark_ext != ".p"
+        return True
 
     def run_internal(self, benchmark_info):
         ext_to_lang = {
@@ -324,7 +528,7 @@ class DumpTester(Tester):
                 "raw-benchmark",
                 "--output-lang={}".format(ext_to_lang[benchmark_info.benchmark_ext]),
             ]
-            dump_output, _, _ = run_process(
+            dump_output, dump_error, dump_exit_status = run_process(
                 [benchmark_info.cvc5_binary]
                 + benchmark_info.command_line_args
                 + dump_args
@@ -332,6 +536,9 @@ class DumpTester(Tester):
                 benchmark_info.benchmark_dir,
                 benchmark_info.timeout,
             )
+            if is_timeout(dump_exit_status, dump_output, dump_error):
+                print_error("Timeout")
+                return EXIT_SKIP if g_args.skip_timeout else EXIT_TIMEOUT
 
             tmpf_name = tmpf.name
             tmpf.write(dump_output)
@@ -359,11 +566,13 @@ g_testers = {
     "base": BaseTester(),
     "unsat-core": UnsatCoreTester(),
     "proof": ProofTester(),
-    "lfsc": LfscTester(),
     "model": ModelTester(),
     "synth": SynthTester(),
     "abduct": AbductTester(),
     "dump": DumpTester(),
+    "alethe": AletheTester(),
+    "cpc": CpcTester(),
+    "cpc-logos": CpcLogosTester()
 }
 
 g_default_testers = [
@@ -386,8 +595,10 @@ BenchmarkInfo = collections.namedtuple(
         "error_scrubber",
         "timeout",
         "cvc5_binary",
-        "lfsc_binary",
-        "lfsc_sigs",
+        "carcara_binary",
+        "carcara_rare",
+        "ethos_binary",
+        "logos_binary",
         "benchmark_dir",
         "benchmark_basename",
         "benchmark_ext",
@@ -397,6 +608,7 @@ BenchmarkInfo = collections.namedtuple(
         "expected_exit_status",
         "command_line_args",
         "compare_outputs",
+        "safe_mode",
     ],
 )
 
@@ -412,7 +624,57 @@ DISABLE_TESTER = "DISABLE-TESTER:"
 EXIT_OK = 0
 EXIT_FAILURE = 1
 EXIT_SKIP = 77
-STATUS_TIMEOUT = 124
+EXIT_TIMEOUT = 124
+STATUS_TIMEOUT = EXIT_TIMEOUT
+CTEST_TIMEOUT_ENV = "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT"
+CTEST_TIMEOUT_MARKER = "CVC5_REGRESSION_CTEST_TIMEOUT"
+CTEST_TIMEOUT_SLEEP = 2
+# Some testers run cvc5 plus an external checker or scrubbers.
+CTEST_TIMEOUT_PROCESS_FACTOR = 4
+CTEST_TIMEOUT_MARGIN = 60
+
+
+def ctest_timeout_enabled():
+    return os.environ.get(CTEST_TIMEOUT_ENV) == "1"
+
+
+def emit_ctest_timeout_marker():
+    print(CTEST_TIMEOUT_MARKER)
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+
+def ctest_timeout_watchdog():
+    emit_ctest_timeout_marker()
+    while True:
+        time.sleep(CTEST_TIMEOUT_SLEEP)
+
+
+def start_ctest_timeout_watchdog(timeout, num_tests):
+    if not ctest_timeout_enabled():
+        return None
+
+    watchdog_timeout = int(
+        timeout * max(1, num_tests) * CTEST_TIMEOUT_PROCESS_FACTOR
+        + CTEST_TIMEOUT_MARGIN
+    )
+    watchdog = threading.Timer(max(1, watchdog_timeout), ctest_timeout_watchdog)
+    watchdog.daemon = True
+    watchdog.start()
+    return watchdog
+
+
+def is_timeout(exit_status, output, error):
+    """Returns true if the process result indicates a timeout."""
+    if exit_status == STATUS_TIMEOUT:
+        return True
+
+    for stream in (output, error):
+        if isinstance(stream, bytes):
+            stream = stream.decode(errors="replace")
+        if "interrupted by timeout" in stream:
+            return True
+    return False
 
 
 def print_colored(color, text):
@@ -477,7 +739,7 @@ def run_process(args, cwd, timeout, s_input=None):
         # shell=True seems to produce different exit codes on different
         # platforms under certain circumstances.
         res = subprocess.run(
-            ["bash", "-c", cmd],
+            [bash_bin,"-c", cmd],
             cwd=cwd,
             input=s_input,
             timeout=timeout,
@@ -493,10 +755,15 @@ def run_process(args, cwd, timeout, s_input=None):
     return out, err, exit_status
 
 
-def get_cvc5_features(cvc5_binary):
+def get_cvc5_features(cvc5_binary, timeout):
     """Returns a list of features supported by the cvc5 binary `cvc5_binary`."""
 
-    output, _, _ = run_process([cvc5_binary, "--show-config"], None, None)
+    output, error, exit_status = run_process([cvc5_binary, "--show-config"],
+                                             None, timeout)
+    if is_timeout(exit_status, output, error):
+        print_error("Timeout")
+        return None, None
+
     if isinstance(output, bytes):
         output = output.decode()
 
@@ -511,8 +778,27 @@ def get_cvc5_features(cvc5_binary):
             elif value == "no":
                 disabled_features.append(key)
 
+    # Safe and stable builds are both "restricted" builds. This synthetic
+    # feature allows a benchmark that is not admissible in either to be
+    # excluded with a single "REQUIRES: unrestricted-mode".
+    if "safe-mode" in features or "stable-mode" in features:
+        disabled_features.append("unrestricted-mode")
+    else:
+        features.append("unrestricted-mode")
+
     return features, disabled_features
 
+def check_scrubber(scrubber_error, scrubber):
+    if len(scrubber_error) != 0:
+        print_error("The scrubber's error output is not empty")
+        print()
+        print("  Command: {}".format(scrubber))
+        print()
+        print("  Error output")
+        print("  " + "=" * 78)
+        print(scrubber_error)
+        print("  " + "=" * 78)
+        return EXIT_FAILURE
 
 def run_benchmark(benchmark_info):
     """Runs cvc5 on a benchmark with the given `benchmark_info`. It runs on the
@@ -534,22 +820,39 @@ def run_benchmark(benchmark_info):
         benchmark_info.benchmark_dir,
         benchmark_info.timeout,
     )
+    if is_timeout(exit_status, output, error):
+        return (output, error, STATUS_TIMEOUT)
 
     # If a scrubber command has been specified then apply it to the output.
+    scrubber_error = ""
     if benchmark_info.scrubber:
-        output, _, _ = run_process(
+        output, scrubber_error, scrubber_exit_status = run_process(
             benchmark_info.scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             output,
         )
+        if scrubber_exit_status == STATUS_TIMEOUT:
+            return (output, scrubber_error, STATUS_TIMEOUT)
+    # Make sure that the scrubber itself did not print anything to its error output
+    check_result =  check_scrubber(scrubber_error, benchmark_info.scrubber)
+    if check_result != None:
+      return check_result
+
+    scrubber_error = ""
     if benchmark_info.error_scrubber:
-        error, _, _ = run_process(
+        error, scrubber_error, scrubber_exit_status = run_process(
             benchmark_info.error_scrubber,
             benchmark_info.benchmark_dir,
             benchmark_info.timeout,
             error,
         )
+        if scrubber_exit_status == STATUS_TIMEOUT:
+            return (output, scrubber_error, STATUS_TIMEOUT)
+    # Make sure that the error scrubber itself did not print anything to its error output
+    check_result =  check_scrubber(scrubber_error, benchmark_info.error_scrubber)
+    if check_result != None:
+      return check_result
 
     # Popen in Python 3 returns a bytes object instead of a string for
     # stdout/stderr.
@@ -568,21 +871,25 @@ def run_regression(
     testers,
     wrapper,
     cvc5_binary,
-    lfsc_binary,
-    lfsc_sigs,
+    carcara_binary,
+    carcara_rare,
+    ethos_binary,
+    logos_binary,
     benchmark_path,
     timeout,
 ):
     """Determines the expected output for a benchmark, runs cvc5 on it using
     all the specified `testers` and then checks whether the output corresponds
     to the expected output. Optionally uses a wrapper `wrapper`."""
-
     if not os.access(cvc5_binary, os.X_OK):
         sys.exit('"{}" does not exist or is not executable'.format(cvc5_binary))
     if not os.path.isfile(benchmark_path):
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
-    cvc5_features, cvc5_disabled_features = get_cvc5_features(cvc5_binary)
+    cvc5_features, cvc5_disabled_features = get_cvc5_features(cvc5_binary,
+                                                              timeout)
+    if cvc5_features is None:
+        return EXIT_TIMEOUT
 
     basic_command_line_args = []
 
@@ -595,17 +902,10 @@ def run_regression(
     if benchmark_ext == ".smt2":
         status_regex = r"set-info\s*:status\s*(sat|unsat)"
         comment_char = ";"
-    elif benchmark_ext == ".p":
-        status_regex = (
-            r"% Status\s*:\s*(Theorem|Unsatisfiable|CounterSatisfiable|Satisfiable)"
-        )
-        status_to_output = lambda s: "% SZS status {} for {}".format(
-            s, benchmark_filename
-        )
     elif benchmark_ext == ".sy":
         comment_char = ";"
     else:
-        sys.exit('"{}" must be *.smt2 or *.p or *.sy'.format(benchmark_basename))
+        sys.exit('"{}" must be *.smt2 or *.sy'.format(benchmark_basename))
 
     benchmark_lines = None
     with open(benchmark_path, "r") as benchmark_file:
@@ -647,8 +947,14 @@ def run_regression(
                 return EXIT_FAILURE
             if disable_tester in testers:
                 testers.remove(disable_tester)
-                if disable_tester == "proof" and "lfsc" in testers:
-                    testers.remove("lfsc")
+            if disable_tester == "proof":
+                if "alethe" in testers:
+                    testers.remove("alethe")
+                if "cpc" in testers:
+                    testers.remove("cpc")
+            if disable_tester in ("proof", "cpc"):
+                if "cpc-logos" in testers:
+                    testers.remove("cpc-logos")
 
     expected_output = expected_output.strip()
     expected_error = expected_error.strip()
@@ -711,8 +1017,10 @@ def run_regression(
             error_scrubber=error_scrubber,
             timeout=timeout,
             cvc5_binary=cvc5_binary,
-            lfsc_binary=lfsc_binary,
-            lfsc_sigs=lfsc_sigs,
+            carcara_binary=carcara_binary,
+            carcara_rare=carcara_rare,
+            ethos_binary=ethos_binary,
+            logos_binary=logos_binary,
             benchmark_dir=benchmark_dir,
             benchmark_basename=benchmark_basename,
             benchmark_ext=benchmark_ext,
@@ -722,6 +1030,7 @@ def run_regression(
             expected_exit_status=expected_exit_status,
             command_line_args=all_args,
             compare_outputs=True,
+            safe_mode=("safe-mode" in cvc5_features),
         )
         for tester_name, tester in g_testers.items():
             if tester_name in testers and tester.applies(benchmark_info):
@@ -733,13 +1042,21 @@ def run_regression(
 
     # Run cvc5 on the benchmark with the different testers and check whether
     # the exit status, stdout output, stderr output are as expected.
-    exit_code = EXIT_OK
-    for tester, benchmark_info in tests:
-        test_exit_code = tester.run(benchmark_info)
-        if exit_code == EXIT_FAILURE or test_exit_code == EXIT_FAILURE:
-            exit_code = EXIT_FAILURE
-        else:
-            exit_code = test_exit_code
+    # Report a skip only if every tester skips.
+    exit_code = EXIT_SKIP
+    watchdog = start_ctest_timeout_watchdog(timeout, len(tests))
+    try:
+        for tester, benchmark_info in tests:
+            test_exit_code = tester.run(benchmark_info)
+            if exit_code == EXIT_FAILURE or test_exit_code == EXIT_FAILURE:
+                exit_code = EXIT_FAILURE
+            elif exit_code == EXIT_TIMEOUT or test_exit_code == EXIT_TIMEOUT:
+                exit_code = EXIT_TIMEOUT
+            elif test_exit_code == EXIT_OK:
+                exit_code = EXIT_OK
+    finally:
+        if watchdog is not None:
+            watchdog.cancel()
 
     return exit_code
 
@@ -753,12 +1070,18 @@ def main():
     parser = argparse.ArgumentParser(
         description="Runs benchmark and checks for correct exit status and output."
     )
-    tester_choices = ["all"] + list(g_testers.keys())
+
+    g_testers_keys = list(g_testers.keys())
+    tester_choices = ["all"] + g_testers_keys
     parser.add_argument("--use-skip-return-code", action="store_true")
     parser.add_argument("--skip-timeout", action="store_true")
     parser.add_argument("--tester", choices=tester_choices, action="append")
-    parser.add_argument("--lfsc-binary", default="")
-    parser.add_argument("--lfsc-sig-dir", default="")
+    parser.add_argument("--tester-exc", choices=g_testers_keys, action="append")
+    parser.add_argument("--carcara-binary", default="")
+    parser.add_argument("--carcara-rare", default="")
+    parser.add_argument("--ethos-binary", default="")
+    parser.add_argument("--logos-binary", default="")
+    parser.add_argument("--cpc-sig-dir", default="")
     parser.add_argument("wrapper", nargs="*")
     parser.add_argument("cvc5_binary")
     parser.add_argument("benchmark")
@@ -771,7 +1094,10 @@ def main():
     g_args = parser.parse_args(argv)
 
     cvc5_binary = os.path.abspath(g_args.cvc5_binary)
-    lfsc_binary = os.path.abspath(g_args.lfsc_binary)
+    carcara_binary = os.path.abspath(g_args.carcara_binary)
+    carcara_rare = os.path.abspath(g_args.carcara_rare)
+    ethos_binary = os.path.abspath(g_args.ethos_binary)
+    logos_binary = os.path.abspath(g_args.logos_binary)
 
     wrapper = g_args.wrapper
     if os.environ.get("VALGRIND") == "1" and not wrapper:
@@ -783,29 +1109,29 @@ def main():
     if not testers:
         testers = g_default_testers
     elif "all" in testers:
-        testers = list(g_testers.keys())
+        testers = g_testers_keys
 
-    lfsc_sigs = []
-    if not g_args.lfsc_sig_dir == "":
-        lfsc_sig_dir = os.path.abspath(g_args.lfsc_sig_dir)
-        # `os.listdir` would be more appropriate if lfsc did not force us to
-        # list the signatures in order.
-        lfsc_sigs = ["core_defs", "util_defs", "theory_def", "nary_programs",
-                     "boolean_programs", "boolean_rules", "cnf_rules",
-                     "equality_rules", "arith_programs", "arith_rules",
-                     "strings_programs", "strings_rules", "quantifiers_rules"]
-        lfsc_sigs = [os.path.join(lfsc_sig_dir, sig + ".plf")
-                     for sig in lfsc_sigs]
+    if g_args.tester_exc:
+        testers = [t for t in testers if t not in g_args.tester_exc]
 
-    return run_regression(
+    cpc_sig_dir = os.path.abspath(g_args.cpc_sig_dir)
+    exit_code = run_regression(
         testers,
         wrapper,
         cvc5_binary,
-        lfsc_binary,
-        lfsc_sigs,
+        carcara_binary,
+        carcara_rare,
+        ethos_binary,
+        logos_binary,
         g_args.benchmark,
         timeout,
     )
+    if exit_code == EXIT_TIMEOUT and ctest_timeout_enabled():
+        # Let CTest terminate this process so its native summary reports the
+        # test as a timeout.
+        emit_ctest_timeout_marker()
+        time.sleep(CTEST_TIMEOUT_SLEEP)
+    return exit_code
 
 
 if __name__ == "__main__":

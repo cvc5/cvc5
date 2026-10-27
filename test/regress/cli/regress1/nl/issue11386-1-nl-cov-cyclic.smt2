@@ -1,0 +1,15 @@
+; REQUIRES: poly
+; EXPECT: sat
+(set-logic QF_UFNRA)
+(declare-fun x1 () Real)
+(declare-fun x2 () Real)
+(declare-fun x3 () Real)
+(declare-fun x4 () Real)
+(declare-fun x5 () Real)
+(declare-fun x6 () Real)
+(declare-fun generated_0 (Bool Real Real) Real)
+(declare-fun generated_1 () Bool)
+(assert (and (or (= x1 (/ 1 100000)) (= x1 (/ 1 100002))) (or (= x2 (* (generated_0 false (generated_0 (=> (or (distinct x4 x2) (not true) (and false true) true (=> false false)) (distinct x2 x4)) (ite (= (ite false x6 x6) x5) (generated_0 (ite false false true) (ite true x4 x2) (ite true x5 x5)) x4) (ite (= (generated_0 true x4 x1) (ite false x1 x5)) x1 (generated_0 (or false true) (ite false x2 x5) (generated_0 false x5 x1)))) (generated_0 false (ite (distinct (= false true) (distinct x2 x3)) (ite (ite true true false) x3 (generated_0 false x6 x1)) (ite (and true false false false) (ite false x4 x6) (generated_0 false x2 x1))) (generated_0 false (ite (=> true generated_1) (generated_0 false x4 x3) x6) (ite (and true true) (ite false x5 x1) (generated_0 false x5 x4))))) x1)) (= x2 (* (/ 1 10003) x1))) (or (= x3 (* (/ 1 100310) x2)) (= x3 (* (/ 1 199900) x2))) (or (= x4 (* (/ 1 400000) x3)) (= x4 (* (/ 1 (ite (not (or (xor (=> false true) (= false true) (= x4 x3) (and false false) (not true)) (and true (not false)) (= (generated_0 false x2 x3) (ite true x6 x5)) (=> (not true) (=> true true)) (not false))) (ite (and (xor (=> false false) (= x6 x5) (not false) (and true false) (not false)) (not (or true true)) (= (ite true x6 x2) (ite true x5 x1))) (ite false (ite (not true) (ite true x4 x1) x1) (ite (= x6 x3) x6 x2)) x6) (ite (=> true (ite false (xor false false false false) (or true true true false true))) (ite (and (= x4 x2) (or true true) (ite true true false) (xor true false false false false)) (ite (xor false false) x4 (ite false x1 x5)) (ite false x6 x6)) (ite (ite (not false) (=> false false) false) (ite (not true) x2 (ite false x6 x3)) x4)))) x3))) (or (= x5 (* (/ (- 1) 40000) x4)) (= x5 (* (/ (- 1) 8000) x4))) (or (= x6 (* (/ (- 1) 3000) x5)) (= x6 (* (/ (- 1) 2000) x5))) (> x6 0)))
+(assert (= false generated_1))
+(check-sat)
+(exit)

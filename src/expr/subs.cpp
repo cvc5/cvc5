@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -55,9 +52,8 @@ std::optional<Node> Subs::find(TNode v) const
 
 void Subs::add(Node v)
 {
-  SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
   // default, use a fresh skolem of the same type
-  Node s = sm->mkDummySkolem("sk", v.getType());
+  Node s = NodeManager::mkDummySkolem("sk", v.getType());
   add(v, s);
 }
 
@@ -71,7 +67,7 @@ void Subs::add(const std::vector<Node>& vs)
 
 void Subs::add(const Node& v, const Node& s)
 {
-  Assert(s.isNull() || v.getType() == s.getType());
+  Assert(s.isNull() || v.getType().isComparableTo(s.getType()));
   d_vars.push_back(v);
   d_subs.push_back(s);
 }
@@ -87,7 +83,7 @@ void Subs::add(const std::vector<Node>& vs, const std::vector<Node>& ss)
 
 void Subs::addEquality(Node eq)
 {
-  Assert(eq.getKind() == kind::EQUAL);
+  Assert(eq.getKind() == Kind::EQUAL);
   add(eq[0], eq[1]);
 }
 

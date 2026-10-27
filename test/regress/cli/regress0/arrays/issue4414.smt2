@@ -1,3 +1,5 @@
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --arrays-exp
 ; EXPECT: sat
 (set-logic QF_AUFLIA)
 (declare-const a (Array Int Int))

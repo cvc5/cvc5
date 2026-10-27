@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -36,9 +33,9 @@ QueryGeneratorSampleSat::QueryGeneratorSampleSat(Env& env, unsigned deqThresh)
 {
 }
 
-bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
+bool QueryGeneratorSampleSat::addTerm(Node n, std::vector<Node>& foundQueries)
 {
-  Node nn = n.getKind() == NOT ? n[0] : n;
+  Node nn = n.getKind() == Kind::NOT ? n[0] : n;
   if (d_terms.find(nn) != d_terms.end())
   {
     return false;
@@ -119,7 +116,7 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
     Trace("sygus-qgen-debug")
         << "; " << tIndices.size() << "/" << npts << std::endl;
     AlwaysAssert(!tIndices.empty());
-    checkQuery(qy, tIndices[0], out);
+    checkQuery(qy, tIndices[0], foundQueries);
     // add information
     for (unsigned& ti : tIndices)
     {
@@ -129,55 +126,53 @@ bool QueryGeneratorSampleSat::addTerm(Node n, std::ostream& out)
     }
   }
   // for each new index, we may have a new conjunctive query
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   for (const unsigned& i : indices)
   {
     std::vector<Node>& qsi = d_ptToQueries[i];
     if (qsi.size() > 1)
     {
       // take two random queries
-      size_t rindex = Random::getRandom().pick(0, qsi.size() - 1);
-      size_t rindex2 = Random::getRandom().pick(0, qsi.size() - 2);
+      size_t rindex = Random::getRandom().pick<size_t>(0, qsi.size() - 1);
+      size_t rindex2 = Random::getRandom().pick<size_t>(0, qsi.size() - 2);
       if (rindex2 >= rindex)
       {
         rindex2 = rindex2 + 1;
       }
-      Node qy = nm->mkNode(AND, qsi[rindex], qsi[rindex2]);
-      checkQuery(qy, i, out);
+      Node qy = nm->mkNode(Kind::AND, qsi[rindex], qsi[rindex2]);
+      checkQuery(qy, i, foundQueries);
     }
   }
-  Trace("sygus-qgen-check") << "...finished." << std::endl;
+  Trace("expr-miner-check") << "...finished." << std::endl;
   return true;
 }
 
 void QueryGeneratorSampleSat::checkQuery(Node qy,
                                          unsigned spIndex,
-                                         std::ostream& out)
+                                         std::vector<Node>& foundQueries)
 {
   if (d_allQueries.find(qy) != d_allQueries.end())
   {
     return;
   }
   d_allQueries.insert(qy);
-  out << "(query " << qy << ")" << std::endl;
   // external query
 
   Result r;
-  Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
+  Trace("expr-miner-check") << "Check (qgss): " << qy << "..." << std::endl;
   // make the satisfiability query
   SubsolverSetupInfo ssi(d_env);
   std::unique_ptr<SolverEngine> queryChecker;
   initializeChecker(queryChecker, qy, ssi);
   r = queryChecker->checkSat();
-  Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
+  Trace("expr-miner-check") << "...result: " << r << std::endl;
   if (r.getStatus() == Result::UNSAT)
   {
     std::stringstream ss;
     ss << "--sygus-rr-query-gen detected unsoundness in cvc5 on input " << qy
        << "!" << std::endl;
     ss << "This query has a model : " << std::endl;
-    std::vector<Node> pt;
-    d_sampler->getSamplePoint(spIndex, pt);
+    const std::vector<Node>& pt = d_sampler->getSamplePoint(spIndex);
     Assert(pt.size() == d_vars.size());
     for (unsigned i = 0, size = pt.size(); i < size; i++)
     {
@@ -186,7 +181,7 @@ void QueryGeneratorSampleSat::checkQuery(Node qy,
     ss << "but cvc5 answered unsat!" << std::endl;
     AlwaysAssert(false) << ss.str();
   }
-  dumpQuery(qy, r);
+  dumpQuery(qy, r, foundQueries);
 }
 
 void QueryGeneratorSampleSat::findQueries(

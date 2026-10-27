@@ -1,16 +1,17 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * A field-specific theory
+ * A field-specific theory.
+ * That is, the sub-theory for GF(p) for some fixed p.
+ * Implements Figure 2, "DecisionProcedure" from [OKTB23].
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #include "cvc5_private.h"
@@ -22,23 +23,18 @@
 
 #include <CoCoA/RingFp.H>
 
-#include <optional>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "context/cdlist_forward.h"
-#include "context/cdo.h"
-#include "context/context.h"
 #include "expr/node.h"
-#include "options/ff_options.h"
 #include "smt/env_obj.h"
-#include "theory/ff/core.h"
-#include "theory/ff/groebner.h"
 #include "theory/ff/stats.h"
+#include "theory/ff/util.h"
 #include "theory/theory.h"
 #include "util/integer.h"
+#include "util/result.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -56,7 +52,7 @@ namespace ff {
  *
  * For now, our implementation assumes that the finite field has prime order.
  */
-class SubTheory : protected EnvObj, protected context::ContextNotifyObj
+class SubTheory : protected EnvObj, public FieldObj
 {
  public:
   /**
@@ -65,14 +61,7 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
    * Parameters:
    * * modulus: the size of this field for this theory, a prime.
    */
-  SubTheory(Env& env, FfStatistics* stats, Integer modulus);
-
-  /**
-   * Notify this theory of a node it may need to handle.
-   *
-   * All nodes this theory sees in the future must be pre-registered.
-   */
-  void preRegisterTerm(TNode);
+  SubTheory(Env& env, FfStatistics* stats, const Integer& modulus);
 
   /**
    * Assert a fact to this theory.
@@ -81,8 +70,10 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
 
   /**
    * Check the current facts.
+   *
+   * Does nothing below full effort.
    */
-  void postCheck(Theory::Effort);
+  Result postCheck(Theory::Effort);
 
   /**
    * Has a conflict been detected?
@@ -104,66 +95,6 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
 
  private:
   /**
-   * Called on SAT pop; we pop the incremental ideal if needed.
-   */
-  void contextNotifyPop() override;
-
-  /**
-   * Compute a Groebner basis for the facts up to (not including) this index.
-   */
-  void computeBasis(size_t factIndex);
-
-  void extractModel();
-
-  /**
-   * Initialize the polynomial ring, set up post-registration data structures.
-   */
-  void ensureInitPolyRing();
-
-  /**
-   * Uninitialize the polynomial ring, clear post-registration data structures.
-   */
-  void clearPolyRing();
-
-  /**
-   * Ensure we have at least `numDisequalities` spare inverses.
-   *
-   * If more inverses are added, this will call clearPolyRing.
-   */
-  void ensureInverses(size_t numDisequalities);
-
-  /**
-   * Translate t to CoCoA, and cache the result.
-   *
-   * This will never call clearPolyRing.
-   */
-  void translate(TNode t);
-
-  /**
-   * Is registration done and the polynomial ring initialized?
-   */
-  bool d_registrationDone();
-
-  /**
-   * Manages the incremental GB.
-   */
-  std::optional<IncrementalIdeal> d_incrementalIdeal{};
-
-  /**
-   * For an atom x == y, contains the potential inverse of (x - y).
-   *
-   * Used to make x != y.
-   *
-   * Perhaps this could be contextual, to more eagerly free inverses.
-   */
-  std::unordered_map<Node, CoCoA::RingElem> d_atomInverses{};
-
-  /**
-   * An array of inverses. They're used from index 0 upward.
-   */
-  std::vector<CoCoA::RingElem> d_inverses{};
-
-  /**
    * Facts, in notification order.
    *
    * Contains only the facts in *this specific field*.
@@ -173,78 +104,20 @@ class SubTheory : protected EnvObj, protected context::ContextNotifyObj
   context::CDList<Node> d_facts;
 
   /**
-   * The length of that fact list at each check.
-   */
-  std::vector<size_t> d_checkIndices{};
-
-  /**
-   * The length of that fact list at each point where we updated the ideal.
-   */
-  std::vector<size_t> d_updateIndices{};
-
-  /**
-   * Non-empty if we're in a conflict.
+   * Non-empty if we're in a conflict. The vector is the conflict.
    */
   std::vector<Node> d_conflict{};
 
   /**
-   * Cache from nodes to CoCoA polynomials.
-   */
-  std::unordered_map<Node, CoCoA::RingElem> d_translationCache{};
-
-  /**
    * A model, if we've found one. A map from variable nodes to their constant
-   * values.
+   * values. Meaningless if d_conflict is non-empty.
    */
   std::unordered_map<Node, Node> d_model{};
-
-  /**
-   * Theory leaves
-   */
-  context::CDList<Node> d_leaves;
-
-  /**
-   * Map from CoCoA Indeterminate symbol indexes to leaves
-   */
-  std::unordered_map<size_t, Node> d_symbolIdxLeaves{};
-
-  /**
-   * When asserted, a diseq (not (= a b))
-   * is represented internally to FF as (= (* (- a b) w) 1)
-   * for fresh w, called an "inverse".
-   *
-   * We don't know how many inverses we will need before DPLL(T) search,
-   * since we could get a new diseq at any time.
-   *
-   * We also have to tell CoCoA which variables we want before creating *any*
-   * CoCoA polynomials.
-   *
-   * So we guess a number of inverses, use them incrementally, and double the
-   * number (clearing all CoCoA polynomials) whenever we exceed the bound.
-   */
-  size_t d_numInverses = 10;
 
   /**
    * Statistics shared among all finite-field sub-theories.
    */
   FfStatistics* d_stats;
-  /**
-   * The base field of the multivariate polynomial ring.
-   *
-   * That is, the field that the polynomial coefficients live in/the
-   * finite-field constants live in.
-   *
-   * For now, we assume this is a prime-order finite-field.
-   */
-  CoCoA::ring d_baseRing;
-  /**
-   * The prime modulus for the base field.
-   */
-  Integer d_modulus;
-  /**
-   * Set after registration is done.
-   */
-  std::optional<CoCoA::ring> d_polyRing{};
 };
 
 }  // namespace ff

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -32,61 +29,94 @@ public class SynthResult extends AbstractPointer
    */
   public SynthResult()
   {
-    super(getNullSynthResult());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null SynthResult instances. It is never freed. */
+  private static final long NULL_POINTER = getNullSynthResult();
 
   private static native long getNullSynthResult();
 
-  SynthResult(long pointer)
+  SynthResult(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, SynthResult::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
-
-  public long getPointer()
-  {
-    return pointer;
-  }
+  private static native void deletePointer(long pointer);
 
   /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  @Override
+  public boolean equals(Object r)
+  {
+    if (this == r)
+    {
+      return true;
+    }
+    if (r == null || getClass() != r.getClass())
+    {
+      return false;
+    }
+    SynthResult result = (SynthResult) r;
+    if (this.pointer == result.pointer)
+    {
+      return true;
+    }
+    return equals(getPointer(), result.getPointer());
+  }
+
+  private native boolean equals(long pointer1, long pointer2);
+
+  /**
+   * Determine if SynthResult is empty, i.e., a nullary SynthResult, and not
+   * an actual result returned from a synthesis query.
+   *
    * @return True if SynthResult is empty, i.e., a nullary SynthResult, and not
    * an actual result returned from a synthesis query.
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
 
   /**
+   * Determine if the synthesis query has a solution.
+   *
    * @return True if the synthesis query has a solution.
    */
   public boolean hasSolution()
   {
-    return hasSolution(pointer);
+    return hasSolution(getPointer());
   }
 
   private native boolean hasSolution(long pointer);
 
   /**
+   * Determine if the synthesis query has no solution.
+   *
    * @return True if the synthesis query has no solution. In this case, it was
    * determined there was no solution.
    */
   public boolean hasNoSolution()
   {
-    return hasNoSolution(pointer);
+    return hasNoSolution(getPointer());
   }
 
   private native boolean hasNoSolution(long pointer);
 
   /**
+   * Determine if the result of the synthesis query could not be determined.
+   *
    * @return True if the result of the synthesis query could not be determined.
    */
   public boolean isUnknown()
   {
-    return isUnknown(pointer);
+    return isUnknown(getPointer());
   }
 
   private native boolean isUnknown(long pointer);
@@ -95,4 +125,16 @@ public class SynthResult extends AbstractPointer
    * @return A string representation of this result.
    */
   protected native String toString(long pointer);
+
+  /**
+   * Get the hash value of a synthesis result.
+   * @return The hash value.
+   */
+  @Override
+  public int hashCode()
+  {
+    return Long.hashCode(hashCode(getPointer()));
+  }
+
+  private native long hashCode(long pointer);
 }

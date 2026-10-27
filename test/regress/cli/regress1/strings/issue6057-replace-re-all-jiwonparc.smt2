@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-logic QF_SLIA)
 (declare-fun a () String)
 ; A complicated way of saying a = "b"

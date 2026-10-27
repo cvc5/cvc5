@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -45,7 +42,6 @@ class SynthResult
     UNKNOWN
   };
 
- public:
   /** Default constructor */
   SynthResult();
   /** Constructor when the solution is not successful */
@@ -58,6 +54,19 @@ class SynthResult
 
   /** Get the unknown explanation */
   UnknownExplanation getUnknownExplanation() const;
+
+  /**
+   * Operator overloading for equality of two synthesis results.
+   * @param r The synthesis result to compare to for equality.
+   * @return True if the synthesis results are equal.
+   */
+  bool operator==(const SynthResult& r) const;
+  /**
+   * Operator overloading for disequality of two synthesis results.
+   * @param r The synthesis result to compare to for disequality.
+   * @return True if the synthesis results are disequal.
+   */
+  bool operator!=(const SynthResult& r) const;
 
   /** Get the string representation */
   std::string toString() const;

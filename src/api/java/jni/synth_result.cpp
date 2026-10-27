@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -13,7 +10,8 @@
  * The cvc5 Java API.
  */
 
-#include "api/cpp/cvc5.h"
+#include <cvc5/cvc5.h>
+
 #include "api_utilities.h"
 #include "io_github_cvc5_SynthResult.h"
 
@@ -39,7 +37,7 @@ Java_io_github_cvc5_SynthResult_getNullSynthResult(JNIEnv* env, jclass)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_SynthResult_deletePointer(JNIEnv*, jobject, jlong pointer)
+Java_io_github_cvc5_SynthResult_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
   delete ((SynthResult*)pointer);
 }
@@ -56,6 +54,22 @@ JNIEXPORT jboolean JNICALL Java_io_github_cvc5_SynthResult_isNull(JNIEnv* env,
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
   SynthResult* current = (SynthResult*)pointer;
   return (jboolean)current->isNull();
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
+}
+
+/*
+ * Class:     io_github_cvc5_SynthResult
+ * Method:    equals
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_io_github_cvc5_SynthResult_equals(
+    JNIEnv* env, jobject, jlong pointer1, jlong pointer2)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  SynthResult* result1 = (SynthResult*)pointer1;
+  SynthResult* result2 = (SynthResult*)pointer2;
+  // We compare the actual terms, not their pointers.
+  return (jboolean)(*result1 == *result2);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, (jboolean) false);
 }
 
@@ -113,4 +127,19 @@ Java_io_github_cvc5_SynthResult_toString(JNIEnv* env, jobject, jlong pointer)
   SynthResult* current = (SynthResult*)pointer;
   return env->NewStringUTF(current->toString().c_str());
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, nullptr);
+}
+
+/*
+ * Class:     io_github_cvc5_SynthResult
+ * Method:    hashCode
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_SynthResult_hashCode(JNIEnv* env,
+                                                                 jobject,
+                                                                 jlong pointer)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  SynthResult* result = reinterpret_cast<SynthResult*>(pointer);
+  return static_cast<jlong>(std::hash<cvc5::SynthResult>()(*result));
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -50,6 +47,8 @@ enum TheoryId
 
   THEORY_LAST,
   THEORY_NONE
+  // Note theory engine modules use theory identifiers THEORY_NONE + n for n>0
+  // for the purposes of identifying the source of lemmas.
 };
 
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
@@ -57,7 +56,7 @@ const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
 
 TheoryId& operator++(TheoryId& id);
 
-std::string toString(TheoryId theoryId);
+const char* toString(TheoryId theoryId);
 std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
 
 std::string getStatsPrefix(TheoryId theoryId);

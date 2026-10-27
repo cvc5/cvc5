@@ -1,0 +1,47 @@
+(include "../programs/Utils.eo")
+(include "../theories/Builtin.eo")
+(include "../theories/Arith.eo")
+(include "../theories/Datatypes.eo")
+
+; disclaimer: >
+;   This sort is not in the SMT-LIB standard. All further
+;   function symbols over this sort are also not part of the SMT-LIB standard.
+(declare-const Set (-> Type Type))
+
+; Constants for the theory of sets.
+(declare-parameterized-const set.empty ((T Type :implicit)) (Set T))
+
+; Operators for the theory of sets.
+(declare-parameterized-const set.singleton ((T Type :implicit)) (-> T (Set T)))
+
+(declare-parameterized-const set.union ((T Type :implicit))
+  (-> (Set T) (Set T) (Set T)))
+
+(declare-parameterized-const set.inter ((T Type :implicit))
+  (-> (Set T) (Set T) (Set T)))
+
+(declare-parameterized-const set.minus ((T Type :implicit))
+  (-> (Set T) (Set T) (Set T)))
+
+(declare-parameterized-const set.member ((T Type :implicit))
+  (-> T (Set T) Bool))
+
+(declare-parameterized-const set.subset ((T Type :implicit))
+  (-> (Set T) (Set T) Bool))
+
+(declare-parameterized-const set.choose ((T Type :implicit)) (-> (Set T) T))
+
+(declare-parameterized-const set.is_empty ((T Type :implicit))
+  (-> (Set T) Bool))
+
+(declare-parameterized-const set.is_singleton ((T Type :implicit))
+  (-> (Set T) Bool))
+
+(declare-parameterized-const set.insert ((T Type :implicit))
+  (-> T (Set T) (Set T))
+  :right-assoc)
+
+; Skolems for the theory of sets.
+(declare-parameterized-const @sets_deq_diff
+  ((T Type :implicit) (s (Set T)) (t (Set T)))
+  T)

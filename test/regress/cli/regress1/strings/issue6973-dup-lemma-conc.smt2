@@ -1,5 +1,6 @@
-; COMMAND-LINE: --strings-exp
-; COMMAND-LINE: --strings-exp --re-elim=agg
+; REQUIRES: no-safe-mode
+; COMMAND-LINE:
+; COMMAND-LINE: --re-elim=agg
 (set-logic QF_SLIA)
 (set-info :status unsat)
 (declare-fun a () String)

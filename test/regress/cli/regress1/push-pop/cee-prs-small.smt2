@@ -1,5 +1,6 @@
-; COMMAND-LINE: -i --ee-mode=distributed
-; COMMAND-LINE: -i --ee-mode=central
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --arrays-exp -i --ee-mode=distributed
+; COMMAND-LINE: --arrays-exp -i --ee-mode=central
 ; EXPECT: sat
 ; EXPECT: unsat
 (set-logic ALL)

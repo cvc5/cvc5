@@ -8,6 +8,7 @@ The two checks are separated by using :code:`push` and :code:`pop`.
 
 .. api-examples::
     <examples>/api/cpp/linear_arith.cpp
+    <examples>/api/c/linear_arith.c
     <examples>/api/java/LinearArith.java
     <examples>/api/python/pythonic/linear_arith.py
     <examples>/api/python/linear_arith.py

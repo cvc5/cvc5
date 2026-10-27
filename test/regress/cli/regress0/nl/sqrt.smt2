@@ -1,6 +1,7 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q
 ; EXPECT: sat
-; EXPECT: sat
+; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: sat
 ; EXPECT: unsat

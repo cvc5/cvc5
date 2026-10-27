@@ -1,4 +1,5 @@
-; COMMAND-LINE: --incremental --fmf-fun --strings-exp
+; REQUIRES: unrestricted-mode
+; COMMAND-LINE: --incremental --fmf-fun
 ; DISABLE-TESTER: model
 (set-logic ALL)
 (declare-datatypes ((List_T_C 0) (T_CustomerType 0)) (

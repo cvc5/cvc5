@@ -2,7 +2,7 @@
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (declare-fun a () Real)
 (declare-fun b () Real)
 (declare-fun c () Real)

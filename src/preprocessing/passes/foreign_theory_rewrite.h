@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Yoni Zohar, Andrew Reynolds, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,10 +36,6 @@ class ForeignTheoryRewriter : protected EnvObj
    * does a traversal on n and call rewriting fucntions.
    */
   Node simplify(Node n);
-  /** A specific simplification function specific for GEQ
-   * constraints in strings.
-   */
-  Node rewriteStringsGeq(Node n);
   /** invoke rewrite functions for n.
    * based on the structure of n (typically its kind)
    * we invoke rewrites from other theories.

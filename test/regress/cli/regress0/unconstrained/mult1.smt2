@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --unconstrained-simp
 (set-logic QF_LIA)
 (set-info :status sat)

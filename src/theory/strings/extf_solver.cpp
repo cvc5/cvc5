@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -53,29 +50,29 @@ ExtfSolver::ExtfSolver(Env& env,
       d_extfInferCache(context()),
       d_reduced(userContext())
 {
-  d_extt.addFunctionKind(kind::STRING_SUBSTR);
-  d_extt.addFunctionKind(kind::STRING_UPDATE);
-  d_extt.addFunctionKind(kind::STRING_INDEXOF);
-  d_extt.addFunctionKind(kind::STRING_INDEXOF_RE);
-  d_extt.addFunctionKind(kind::STRING_ITOS);
-  d_extt.addFunctionKind(kind::STRING_STOI);
-  d_extt.addFunctionKind(kind::STRING_REPLACE);
-  d_extt.addFunctionKind(kind::STRING_REPLACE_ALL);
-  d_extt.addFunctionKind(kind::STRING_REPLACE_RE);
-  d_extt.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
-  d_extt.addFunctionKind(kind::STRING_CONTAINS);
-  d_extt.addFunctionKind(kind::STRING_IN_REGEXP);
-  d_extt.addFunctionKind(kind::STRING_LEQ);
-  d_extt.addFunctionKind(kind::STRING_TO_CODE);
-  d_extt.addFunctionKind(kind::STRING_TO_LOWER);
-  d_extt.addFunctionKind(kind::STRING_TO_UPPER);
-  d_extt.addFunctionKind(kind::STRING_REV);
-  d_extt.addFunctionKind(kind::STRING_UNIT);
-  d_extt.addFunctionKind(kind::SEQ_UNIT);
-  d_extt.addFunctionKind(kind::SEQ_NTH);
+  d_extt.addFunctionKind(Kind::STRING_SUBSTR);
+  d_extt.addFunctionKind(Kind::STRING_UPDATE);
+  d_extt.addFunctionKind(Kind::STRING_INDEXOF);
+  d_extt.addFunctionKind(Kind::STRING_INDEXOF_RE);
+  d_extt.addFunctionKind(Kind::STRING_ITOS);
+  d_extt.addFunctionKind(Kind::STRING_STOI);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE_ALL);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE_RE);
+  d_extt.addFunctionKind(Kind::STRING_REPLACE_RE_ALL);
+  d_extt.addFunctionKind(Kind::STRING_CONTAINS);
+  d_extt.addFunctionKind(Kind::STRING_IN_REGEXP);
+  d_extt.addFunctionKind(Kind::STRING_LEQ);
+  d_extt.addFunctionKind(Kind::STRING_TO_CODE);
+  d_extt.addFunctionKind(Kind::STRING_TO_LOWER);
+  d_extt.addFunctionKind(Kind::STRING_TO_UPPER);
+  d_extt.addFunctionKind(Kind::STRING_REV);
+  d_extt.addFunctionKind(Kind::STRING_UNIT);
+  d_extt.addFunctionKind(Kind::SEQ_UNIT);
+  d_extt.addFunctionKind(Kind::SEQ_NTH);
 
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 ExtfSolver::~ExtfSolver() {}
@@ -101,19 +98,20 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
   }
   Kind k = n.getKind();
   // determine if it is the right effort
-  if (k == STRING_SUBSTR || (k == STRING_CONTAINS && pol == 1))
+  if (k == Kind::STRING_SUBSTR || (k == Kind::STRING_CONTAINS && pol == 1))
   {
     // we reduce these semi-eagerly, at effort 1
     return (effort == 1);
   }
-  else if (k == STRING_CONTAINS && pol == -1)
+  else if (k == Kind::STRING_CONTAINS && pol == -1)
   {
     // negative contains reduces at level 2, or 3 if guessing model
     int reffort = options().strings.stringModelBasedReduction ? 3 : 2;
     return (effort == reffort);
   }
-  else if (k == SEQ_UNIT || k == STRING_UNIT || k == STRING_IN_REGEXP
-           || k == STRING_TO_CODE || (n.getType().isBoolean() && pol == 0))
+  else if (k == Kind::SEQ_UNIT || k == Kind::STRING_UNIT
+           || k == Kind::STRING_IN_REGEXP || k == Kind::STRING_TO_CODE
+           || (n.getType().isBoolean() && pol == 0))
   {
     // never necessary to reduce seq.unit. str.to_code or str.in_re here.
     // also, we do not reduce str.contains that are preregistered but not
@@ -122,12 +120,12 @@ bool ExtfSolver::shouldDoReduction(int effort, Node n, int pol)
   }
   else if (options().strings.seqArray != options::SeqArrayMode::NONE)
   {
-    if (k == SEQ_NTH)
+    if (k == Kind::SEQ_NTH)
     {
       // don't need to reduce seq.nth when sequence update solver is used
       return false;
     }
-    else if ((k == STRING_UPDATE || k == STRING_SUBSTR)
+    else if ((k == Kind::STRING_UPDATE || k == Kind::STRING_SUBSTR)
              && d_termReg.isHandledUpdateOrSubstr(n))
     {
       // don't need to reduce certain seq.update
@@ -145,7 +143,7 @@ void ExtfSolver::doReduction(Node n, int pol)
       << "doReduction " << n << ", pol " << pol << std::endl;
   // polarity : 1 true, -1 false, 0 neither
   Kind k = n.getKind();
-  if (k == STRING_CONTAINS && pol == -1)
+  if (k == Kind::STRING_CONTAINS && pol == -1)
   {
     Node x = n[0];
     Node s = n[1];
@@ -177,19 +175,20 @@ void ExtfSolver::doReduction(Node n, int pol)
   Node nn = pol == -1 ? n.notNode() : n;
   Trace("strings-process-debug")
       << "Process reduction for " << n << ", pol = " << pol << std::endl;
-  if (k == STRING_CONTAINS && pol == 1)
+  if (k == Kind::STRING_CONTAINS && pol == 1)
   {
     Node x = n[0];
     Node s = n[1];
     // positive contains reduces to a equality
     SkolemCache* skc = d_termReg.getSkolemCache();
-    Node eq = d_termReg.eagerReduce(n, skc, d_termReg.getAlphabetCardinality());
+    Node eq = utils::eagerReduce(n, skc, d_termReg.getAlphabetCardinality());
     Assert(!eq.isNull());
-    Assert(eq.getKind() == ITE && eq[0] == n);
+    Assert(eq.getKind() == Kind::ITE && eq[0] == n);
     eq = eq[1];
     std::vector<Node> expn;
     expn.push_back(n);
-    d_im.sendInference(expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
+    d_im.sendInference(
+        expn, expn, eq, InferenceId::STRINGS_CTN_POS, false, true);
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
@@ -201,20 +200,34 @@ void ExtfSolver::doReduction(Node n, int pol)
   }
   else
   {
-    NodeManager* nm = NodeManager::currentNM();
-    Assert(k == STRING_SUBSTR || k == STRING_UPDATE || k == STRING_CONTAINS
-           || k == STRING_INDEXOF || k == STRING_INDEXOF_RE || k == STRING_ITOS
-           || k == STRING_STOI || k == STRING_REPLACE || k == STRING_REPLACE_ALL
-           || k == SEQ_NTH || k == STRING_REPLACE_RE
-           || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
-           || k == STRING_TO_LOWER || k == STRING_TO_UPPER || k == STRING_REV)
+    NodeManager* nm = nodeManager();
+    Assert(k == Kind::STRING_SUBSTR || k == Kind::STRING_UPDATE
+           || k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
+           || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_ITOS
+           || k == Kind::STRING_STOI || k == Kind::STRING_REPLACE
+           || k == Kind::STRING_REPLACE_ALL || k == Kind::SEQ_NTH
+           || k == Kind::STRING_REPLACE_RE || k == Kind::STRING_REPLACE_RE_ALL
+           || k == Kind::STRING_LEQ || k == Kind::STRING_TO_LOWER
+           || k == Kind::STRING_TO_UPPER || k == Kind::STRING_REV)
         << "Unknown reduction: " << k;
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
+    // If we reduced a Boolean extended function (e.g. str.<=), then n is
+    // replaced by a fresh purification skolem standing for a Boolean term.
+    // Register it as a Boolean term skolem, so that it is consistently treated
+    // as a theory atom (and not as a plain Boolean variable). This matters in
+    // incremental mode, where the skolem may be reused as a Boolean term in a
+    // term position (e.g. an array element) in a subsequent check-sat: its CNF
+    // classification is fixed when its literal is first created here, so it
+    // must be registered before that point.
+    if (res.isVar() && res.getType().isBoolean())
+    {
+      d_env.registerBooleanTermSkolem(res);
+    }
     new_nodes.push_back(n.eqNode(res));
     Node nnlem =
-        new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(AND, new_nodes);
+        new_nodes.size() == 1 ? new_nodes[0] : nm->mkNode(Kind::AND, new_nodes);
     // in rare case where it rewrites to true, just record it is reduced
     if (rewrite(nnlem) == d_true)
     {
@@ -226,11 +239,13 @@ void ExtfSolver::doReduction(Node n, int pol)
     else
     {
       InferInfo ii(InferenceId::STRINGS_REDUCTION);
+      // ensure that we are called to process the side effects
+      ii.d_sim = this;
       ii.d_conc = nnlem;
       d_im.sendInference(ii, true);
       Trace("strings-extf-debug")
           << "  resolve extf : " << n << " based on reduction." << std::endl;
-      d_reduced.insert(nn);
+      d_reductionWaitingMap[nnlem] = nn;
     }
   }
 }
@@ -238,17 +253,17 @@ void ExtfSolver::doReduction(Node n, int pol)
 void ExtfSolver::checkExtfReductionsEager()
 {
   // return value is ignored
-  checkExtfReductionsInternal(1, true);
+  checkExtfReductionsInternal(1);
 }
 
 void ExtfSolver::checkExtfReductions(Theory::Effort e)
 {
   int effort = e == Theory::EFFORT_LAST_CALL ? 3 : 2;
   // return value is ignored
-  checkExtfReductionsInternal(effort, true);
+  checkExtfReductionsInternal(effort);
 }
 
-bool ExtfSolver::checkExtfReductionsInternal(int effort, bool doSend)
+bool ExtfSolver::checkExtfReductionsInternal(int effort)
 {
   // Notice we don't make a standard call to ExtTheory::doReductions here,
   // since certain optimizations like context-dependent reductions and
@@ -292,7 +307,8 @@ void ExtfSolver::checkExtfEval(int effort)
   Trace("strings-extf-list")
       << "Active extended functions, effort=" << effort << " : " << std::endl;
   d_extfInfoTmp.clear();
-  NodeManager* nm = NodeManager::currentNM();
+  d_extfToOrig.clear();
+  NodeManager* nm = nodeManager();
   bool has_nreduce = false;
   std::vector<Node> terms = d_extt.getActive();
   // the set of terms we have done extf inferences for
@@ -320,7 +336,7 @@ void ExtfSolver::checkExtfEval(int effort)
     std::vector<Node> exp;
     std::vector<Node> schildren;
     // seq.unit is parameterized
-    if (n.getMetaKind() == metakind::PARAMETERIZED)
+    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       schildren.push_back(n.getOperator());
     }
@@ -342,6 +358,7 @@ void ExtfSolver::checkExtfEval(int effort)
           << "Check extf " << n << " == " << sn
           << ", constant = " << einfo.d_const << ", effort=" << effort
           << ", exp " << exp << std::endl;
+      einfo.d_initExp.insert(einfo.d_initExp.end(), exp.begin(), exp.end());
       einfo.d_exp.insert(einfo.d_exp.end(), exp.begin(), exp.end());
       // inference is rewriting the substituted node
       Node nrc = rewrite(sn);
@@ -434,7 +451,8 @@ void ExtfSolver::checkExtfEval(int effort)
           {
             Trace("strings-extf")
                 << "  resolve extf : " << sn << " -> " << nrc << std::endl;
-            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF : InferenceId::STRINGS_EXTF_N;
+            InferenceId inf = effort == 0 ? InferenceId::STRINGS_EXTF
+                                          : InferenceId::STRINGS_EXTF_N;
             d_im.sendInference(einfo.d_exp, conc, inf, false, true);
             d_statistics.d_cdSimplifications << n.getKind();
           }
@@ -471,8 +489,8 @@ void ExtfSolver::checkExtfEval(int effort)
           // reduced since this argument may be circular: we may infer than n
           // can be reduced to something else, but that thing may argue that it
           // can be reduced to n, in theory.
-          InferenceId infer =
-              effort == 0 ? InferenceId::STRINGS_EXTF_D : InferenceId::STRINGS_EXTF_D_N;
+          InferenceId infer = effort == 0 ? InferenceId::STRINGS_EXTF_D
+                                          : InferenceId::STRINGS_EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
         to_reduce = nrc;
@@ -497,7 +515,7 @@ void ExtfSolver::checkExtfEval(int effort)
       // not based on the model (effort<3).
       if (effort < 3)
       {
-        checkExtfInference(n, to_reduce, einfo, effort);
+        checkExtfInference(n, to_reduce, einfo);
       }
       if (TraceIsOn("strings-extf-list"))
       {
@@ -526,16 +544,37 @@ void ExtfSolver::checkExtfEval(int effort)
   d_hasExtf = has_nreduce;
 }
 
-void ExtfSolver::checkExtfInference(Node n,
-                                    Node nr,
-                                    ExtfInfoTmp& in,
-                                    int effort)
+void ExtfSolver::checkExtfInference(Node n, Node nr, ExtfInfoTmp& in)
 {
+  // see if any previous term rewrote to nr, if so, we can conclude that
+  // term is equal to n.
+  std::map<Node, Node>::iterator ito = d_extfToOrig.find(nr);
+  if (ito != d_extfToOrig.end())
+  {
+    Node no = ito->second;
+    if (!d_state.areEqual(n, no))
+    {
+      Assert(d_extfInfoTmp.find(no) != d_extfInfoTmp.end());
+      ExtfInfoTmp& eito = d_extfInfoTmp[no];
+      Node conc = n.eqNode(no);
+      Trace("strings-extf-infer")
+          << "infer same rewrite: " << conc << std::endl;
+      std::vector<Node> exp;
+      exp.insert(exp.end(), in.d_initExp.begin(), in.d_initExp.end());
+      exp.insert(exp.end(), eito.d_initExp.begin(), eito.d_initExp.end());
+      Trace("strings-extf-infer") << "..explaination is " << exp << std::endl;
+      d_im.sendInference(exp, conc, InferenceId::STRINGS_EXTF_REW_SAME);
+    }
+    return;
+  }
+  // store that n rewrites to nr
+  d_extfToOrig[nr] = n;
+
   if (in.d_const.isNull())
   {
     return;
   }
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
   Trace("strings-extf-infer")
       << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const
       << " with exp " << in.d_exp << std::endl;
@@ -558,12 +597,12 @@ void ExtfSolver::checkExtfInference(Node n,
   // with a node n,
   // this may need to be generalized if multiple inferences apply
 
-  if (nr.getKind() == STRING_CONTAINS)
+  if (nr.getKind() == Kind::STRING_CONTAINS)
   {
     Assert(in.d_const.isConst());
     bool pol = in.d_const.getConst<bool>();
-    if ((pol && nr[1].getKind() == STRING_CONCAT)
-        || (!pol && nr[0].getKind() == STRING_CONCAT))
+    if ((pol && nr[1].getKind() == Kind::STRING_CONCAT)
+        || (!pol && nr[0].getKind() == Kind::STRING_CONCAT))
     {
       // If str.contains( x, str.++( y1, ..., yn ) ),
       //   we may infer str.contains( x, y1 ), ..., str.contains( x, yn )
@@ -588,7 +627,7 @@ void ExtfSolver::checkExtfInference(Node n,
         for (const Node& nrc : nr[index])
         {
           children[index] = nrc;
-          Node conc = nm->mkNode(STRING_CONTAINS, children);
+          Node conc = nm->mkNode(Kind::STRING_CONTAINS, children);
           conc = rewrite(pol ? conc : conc.negate());
           // check if it already (does not) hold
           if (d_state.hasTerm(conc))
@@ -648,8 +687,8 @@ void ExtfSolver::checkExtfInference(Node n,
              i++)
         {
           Node onr = d_extfInfoTmp[nr[0]].d_ctn[opol][i];
-          Node concOrig =
-              nm->mkNode(STRING_CONTAINS, pol ? nr[1] : onr, pol ? onr : nr[1]);
+          Node concOrig = nm->mkNode(
+              Kind::STRING_CONTAINS, pol ? nr[1] : onr, pol ? onr : nr[1]);
           Node conc = rewrite(concOrig);
           // For termination concerns, we only do the inference if the contains
           // does not rewrite (and thus does not introduce new terms).
@@ -657,9 +696,9 @@ void ExtfSolver::checkExtfInference(Node n,
           {
             bool do_infer = false;
             conc = conc.negate();
-            bool pol2 = conc.getKind() != NOT;
+            bool pol2 = conc.getKind() != Kind::NOT;
             Node lit = pol2 ? conc : conc[0];
-            if (lit.getKind() == EQUAL)
+            if (lit.getKind() == Kind::EQUAL)
             {
               do_infer = pol2 ? !d_state.areEqual(lit[0], lit[1])
                               : !d_state.areDisequal(lit[0], lit[1]);
@@ -701,7 +740,7 @@ void ExtfSolver::checkExtfInference(Node n,
   Node inferEq = nr.eqNode(in.d_const);
   Node inferEqr = rewrite(inferEq);
   Node inferEqrr = inferEqr;
-  if (inferEqr.getKind() == EQUAL)
+  if (inferEqr.getKind() == Kind::EQUAL)
   {
     // try to use the extended rewriter for equalities
     inferEqrr = d_rewriter.rewriteEqualityExt(inferEqr);
@@ -712,7 +751,8 @@ void ExtfSolver::checkExtfInference(Node n,
     Trace("strings-extf-infer")
         << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr
         << " with explanation " << in.d_exp << std::endl;
-    d_im.sendInternalInference(in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
+    d_im.sendInternalInference(
+        in.d_exp, inferEqrr, InferenceId::STRINGS_EXTF_EQ_REW);
   }
 }
 
@@ -732,21 +772,81 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
   if (effort >= 1 && n.getType().isStringLike())
   {
     Assert(effort < 3);
-    // normal forms
-    NormalForm& nfnr = d_csolver.getNormalForm(nr);
-    Node ns = d_csolver.getNormalString(nfnr.d_base, exp);
-    Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
-                          << " " << nr << std::endl;
-    if (!nfnr.d_base.isNull())
+    // Return self if the normal form has not been computed. This may happen
+    // for terms that are not relevant in the current context.
+    if (!d_csolver.hasNormalForm(nr))
     {
-      d_im.addToExplanation(n, nfnr.d_base, exp);
+      return n;
+    }
+    NormalForm& nfnr = d_csolver.getNormalForm(nr);
+    Node ns;
+    if (n.getKind() == Kind::STRING_CONCAT && n != nfnr.d_base)
+    {
+      // if the normal base is a term (str.++ t1 t2), and we are a term
+      // (str.++ s1 s2), then we explain the normal form concatentation of
+      // s1 and s2, instead of explaining (= (str.++ s1 s2) (str.++ t1 t2)) and
+      // concatentating the normal form explanation of t1 and t2. This
+      // ensures the explanation when taking as a substitution does not have
+      // concatentation terms on the LHS of equalities, which can lead to
+      // cyclic proof dependencies.
+      std::vector<Node> vec;
+      for (const Node& nc : n)
+      {
+        Node ncr = d_state.getRepresentative(nc);
+        Assert(d_csolver.hasNormalForm(ncr));
+        NormalForm& nfnrc = d_csolver.getNormalForm(ncr);
+        Node nsc = d_csolver.getNormalString(nfnrc.d_base, exp);
+        d_im.addToExplanation(nc, nfnrc.d_base, exp);
+        vec.push_back(nsc);
+      }
+      TypeNode stype = n.getType();
+      ns = d_termReg.mkNConcat(vec, stype);
+    }
+    else
+    {
+      ns = d_csolver.getNormalString(nfnr.d_base, exp);
+      Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
+                            << " " << nr << std::endl;
+      if (!nfnr.d_base.isNull())
+      {
+        d_im.addToExplanation(n, nfnr.d_base, exp);
+      }
     }
     return ns;
   }
   // otherwise, we use the best content heuristic
-  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
+  std::vector<Node> cexp;
+  Node c = d_bsolver.explainBestContentEqc(n, nr, cexp);
+  if (!c.isNull() && n.getKind() == Kind::STRING_CONCAT)
+  {
+    cexp.clear();
+    // Similar to above, if we are a string concatentation, we ask for the
+    // best content of each of our children and concatenate them together.
+    // We consider the substitution only if at least one child had a best
+    // content. This prevents substitutions with concatenation terms on the
+    // left hand side, which can lead to cycles in the algorithm that elaborates
+    // proofs in very rare cases.
+    std::vector<Node> vec;
+    for (const Node& nc : n)
+    {
+      Node ncr = d_state.getRepresentative(nc);
+      Node cc = d_bsolver.explainBestContentEqc(nc, ncr, cexp);
+      if (!cc.isNull())
+      {
+        vec.push_back(cc);
+      }
+      else
+      {
+        // otherwise keep the same
+        vec.push_back(nc);
+      }
+    }
+    TypeNode stype = n.getType();
+    c = d_termReg.mkNConcat(vec, stype);
+  }
   if (!c.isNull())
   {
+    exp.insert(exp.end(), cexp.begin(), cexp.end());
     return c;
   }
   return n;
@@ -768,7 +868,7 @@ bool ExtfSolver::isActiveInModel(Node n) const
   std::map<Node, ExtfInfoTmp>::const_iterator it = d_extfInfoTmp.find(n);
   if (it == d_extfInfoTmp.end())
   {
-    Assert(false) << "isActiveInModel: Expected extf info for " << n;
+    DebugUnhandled() << "isActiveInModel: Expected extf info for " << n;
     return true;
   }
   return it->second.d_modelActive;
@@ -808,6 +908,25 @@ bool StringsExtfCallback::getCurrentSubstitution(
     subs.push_back(s);
   }
   return true;
+}
+
+void ExtfSolver::processFact(InferInfo& ii, ProofGenerator*& pg)
+{
+  // process it with the inference manager
+  d_im.processFact(ii, pg);
+}
+
+TrustNode ExtfSolver::processLemma(InferInfo& ii, LemmaProperty& p)
+{
+  // if this was the reduction lemma for a term, mark it reduced now
+  std::map<Node, Node>::iterator it = d_reductionWaitingMap.find(ii.d_conc);
+  if (it != d_reductionWaitingMap.end())
+  {
+    d_reduced.insert(it->second);
+    d_reductionWaitingMap.erase(it);
+  }
+  // now process it with the inference manager
+  return d_im.processLemma(ii, p);
 }
 
 std::string ExtfSolver::debugPrintModel()

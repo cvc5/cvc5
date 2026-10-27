@@ -1,0 +1,16 @@
+; COMMAND-LINE: --arith-rewrite-equalities
+; EXPECT: unknown
+(set-logic ALL)
+(set-info :status unknown)
+(declare-fun a (Int) Bool)
+(declare-fun b (Int Int) Bool)
+(declare-fun c () Int)
+(declare-fun d () Int)
+(assert (not (= (and (forall ((?c Int)) (forall ((?d Int)) (=> (a ?c) (not (b ?c ?d)))))
+ (forall ((?c Int)) (forall ((?d Int)) (= (and (< ?d ?c)) (and (not (and (b ?d ?c))))))) 
+(forall ((?d Int)) (= (< c d) (b c ?d)))) (and (forall ((?e Int)) 
+(forall ((?f Int)) (let ((?g (not (= ?e c)))) (=> (a ?e) (not (and ?g (= ?g (b ?e ?f)))))))) 
+(forall ((?e Int)) (forall ((?f Int)) 
+(let ((?h (not (= ?e c))) (?i (not (= ?f c)))) (= (and (< ?f ?e) 
+(or (= ?h (=> ?h (b ?e ?f))))) (and (not (=> ?i (= ?i (b ?f ?e)))))))))))))
+(check-sat)

@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -122,7 +119,7 @@ class DType
   /**
    * Get the datatype of a constructor, selector, or tester operator.
    */
-  static const DType& datatypeOf(Node item);
+  CVC5_NO_DANGLING static const DType& datatypeOf(Node item);
 
   /**
    * Get the index of a constructor or tester in its datatype, or the
@@ -213,6 +210,9 @@ class DType
   /** set that this datatype is a tuple */
   void setTuple();
 
+  /** set that this datatype is a nullable */
+  void setNullable();
+
   /** set that this datatype is a record */
   void setRecord();
 
@@ -242,6 +242,9 @@ class DType
 
   /** is this a tuple datatype? */
   bool isTuple() const;
+
+  /** is this a nullable datatype? */
+  bool isNullable() const;
 
   /** is this a record datatype? */
   bool isRecord() const;
@@ -281,8 +284,8 @@ class DType
    * @param fmfEnabled Whether finite model finding is enabled
    * @return true if finite model finding is enabled
    */
-  bool isFinite(TypeNode t, bool fmfEnabled=false) const;
-  bool isFinite(bool fmfEnabled=false) const;
+  bool isFinite(TypeNode t, bool fmfEnabled = false) const;
+  bool isFinite(bool fmfEnabled = false) const;
 
   /** is well-founded
    *
@@ -570,6 +573,8 @@ class DType
   bool d_isCo;
   /** whether the datatype is a tuple */
   bool d_isTuple;
+  /** whether the datatype is a nullable */
+  bool d_isNullable;
   /** whether the datatype is a record */
   bool d_isRecord;
   /** the constructors of this datatype */
@@ -634,24 +639,19 @@ class DType
   mutable std::map<TypeNode, CardinalityClass> d_cardClass;
 }; /* class DType */
 
-/**
- * A hash function for DTypes.  Needed to store them in hash sets
- * and hash maps.
- */
-struct DTypeHashFunction
-{
-  size_t operator()(const DType& dt) const
-  {
-    return std::hash<std::string>()(dt.getName());
-  }
-  size_t operator()(const DType* dt) const
-  {
-    return std::hash<std::string>()(dt->getName());
-  }
-}; /* struct DTypeHashFunction */
-
 std::ostream& operator<<(std::ostream& os, const DType& dt);
 
 }  // namespace cvc5::internal
+
+namespace std {
+/**
+ * A hash function for DTypes.
+ */
+template <>
+struct hash<cvc5::internal::DType>
+{
+  size_t operator()(const cvc5::internal::DType& dt) const;
+};
+}  // namespace std
 
 #endif

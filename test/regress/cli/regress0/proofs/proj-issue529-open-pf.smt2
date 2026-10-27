@@ -2,7 +2,6 @@
 ; EXPECT: unsat
 ; EXPECT: unsat
 (set-logic ALL)
-(set-option :check-proofs true)
 (set-option :proof-check eager)
 (set-option :incremental true)
 (declare-const x (Set Bool))

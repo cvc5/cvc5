@@ -1,0 +1,8 @@
+; REQUIRES: unrestricted-mode
+(set-logic HO_ALL)
+(set-info :status sat)
+(declare-fun x () Int)
+(declare-fun S () (Set Int))
+(assert (set.member x S))
+(assert (= S (set.filter (lambda ((y Int)) (> y 100)) S)))
+(check-sat)

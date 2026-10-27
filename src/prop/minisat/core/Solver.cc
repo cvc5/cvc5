@@ -20,7 +20,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "prop/minisat/core/Solver.h"
 
-#include <math.h>
+#include <cmath>
 
 #include <iostream>
 #include <unordered_set>
@@ -134,8 +134,6 @@ class ScopedBool
 Solver::Solver(Env& env,
                cvc5::internal::prop::TheoryProxy* proxy,
                context::Context* context,
-               context::UserContext* userContext,
-               ProofNodeManager* pnm,
                bool enableIncremental)
     : EnvObj(env),
       d_proxy(proxy),
@@ -208,11 +206,6 @@ Solver::Solver(Env& env,
       propagation_budget(-1),
       asynch_interrupt(false)
 {
-  if (pnm)
-  {
-    d_pfManager.reset(new SatProofManager(env, this, proxy->getCnfStream()));
-  }
-
   // Create the constant variables
   varTrue = newVar(true, false, false);
   varFalse = newVar(false, false, false);
@@ -222,11 +215,12 @@ Solver::Solver(Env& env,
   uncheckedEnqueue(mkLit(varFalse, true));
 }
 
-
-Solver::~Solver()
+void Solver::attachProofManager(prop::PropPfManager* ppm)
 {
+  Assert(d_pfManager == nullptr);
+  d_pfManager.reset(
+      new SatProofManager(d_env, this, d_proxy->getCnfStream(), ppm));
 }
-
 
 //=================================================================================================
 // Minor methods:
@@ -235,7 +229,7 @@ Solver::~Solver()
 // Creates a new SAT variable in the solver. If 'decision_var' is cleared, variable will not be
 // used as a decision variable (NOTE! This has effects on the meaning of a SATISFIABLE result).
 //
-Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bool canErase)
+Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom)
 {
     int v = nVars();
 
@@ -255,15 +249,6 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 
     Trace("minisat") << "new var " << v << " with assertion level "
                      << assertionLevel << std::endl;
-
-    // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
-    if (preRegister)
-    {
-      Trace("minisat") << "  To register at level " << decisionLevel()
-                       << std::endl;
-      variables_to_register.push(VarIntroInfo(v, decisionLevel()));
-    }
-
     return v;
 }
 
@@ -396,7 +381,7 @@ CRef Solver::reason(Var x) {
     Trace("pf::sat") << "..user level is " << userContext()->getLevel() << "\n";
     Assert(userContext()->getLevel()
            == static_cast<uint32_t>(assertionLevel + 1));
-    d_proxy->notifyCurrPropagationInsertedAtLevel(explLevel);
+    d_pfManager->notifyCurrPropagationInsertedAtLevel(explLevel);
   }
   // Construct the reason
   CRef real_reason = ca.alloc(explLevel, explanation, true);
@@ -526,7 +511,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           SatClause satClause;
           MinisatSatSolver::toSatClause(ca[cr], satClause);
-          d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
+          d_pfManager->notifyClauseInsertedAtLevel(satClause, clauseLevel);
         }
         if (options().smt.produceUnsatCores || needProof())
         {
@@ -565,6 +550,11 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           {
             d_pfManager->registerSatLitAssumption(ps[0]);
           }
+          // Call notifySatClause. This call site handles unit clauses not
+          // learned in the standard way.
+          SatClause satClause;
+          satClause.push_back(MinisatSatSolver::toSatLiteral(ps[0]));
+          d_proxy->notifySatClause(satClause);
         }
         CRef confl = propagate(CHECK_WITHOUT_THEORY);
         if (!(ok = (confl == CRef_Undef)))
@@ -689,11 +679,13 @@ bool Solver::satisfied(const Clause& c) const {
 void Solver::cancelUntil(int level) {
     Trace("minisat") << "minisat::cancelUntil(" << level << ")" << std::endl;
 
-    if (decisionLevel() > level){
-        // Pop the SMT context
-        for (int l = trail_lim.size() - level; l > 0; --l) {
-          d_context->pop();
-        }
+    if (decisionLevel() > level)
+    {
+      // Pop the SMT context
+      for (int l = trail_lim.size() - level; l > 0; --l)
+      {
+        d_context->pop();
+      }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
@@ -709,17 +701,7 @@ void Solver::cancelUntil(int level) {
         trail.shrink(trail.size() - trail_lim[level]);
         trail_lim.shrink(trail_lim.size() - level);
         flipped.shrink(flipped.size() - level);
-
-        // Register variables that have not been registered yet
-        int currentLevel = decisionLevel();
-        for (int i = variables_to_register.size() - 1;
-             i >= 0 && variables_to_register[i].d_level > currentLevel;
-             --i)
-        {
-          variables_to_register[i].d_level = currentLevel;
-          d_proxy->variableNotify(
-              MinisatSatSolver::toSatVariable(variables_to_register[i].d_var));
-        }
+        d_proxy->notifyBacktrack();
     }
 }
 
@@ -732,15 +714,30 @@ void Solver::resetTrail() { cancelUntil(0); }
 Lit Solver::pickBranchLit()
 {
     Lit nextLit;
+    bool stopSearch = false;
+    bool requirePhase = false;
 
     // Theory requests
-    nextLit =
-        MinisatSatSolver::toMinisatLit(d_proxy->getNextTheoryDecisionRequest());
-    while (nextLit != lit_Undef) {
-      if(value(var(nextLit)) == l_Undef) {
-        Trace("theoryDecision")
-            << "getNextTheoryDecisionRequest(): now deciding on " << nextLit
-            << std::endl;
+    nextLit = MinisatSatSolver::toMinisatLit(
+        d_proxy->getNextDecisionRequest(requirePhase, stopSearch));
+    if (stopSearch)
+    {
+      return lit_Undef;
+    }
+    while (nextLit != lit_Undef)
+    {
+      Var next = var(nextLit);
+      if (!requirePhase)
+      {
+        if (polarity[next] & 0x2)
+        {
+          nextLit = mkLit(next, polarity[next] & 0x1);
+        }
+      }
+      if (value(next) == l_Undef)
+      {
+        Trace("theoryDecision") << "getNextDecisionRequest(): now deciding on "
+                                << nextLit << std::endl;
         decisions++;
 
         // org-mode tracing -- theory decision
@@ -760,51 +757,19 @@ Lit Solver::pickBranchLit()
         }
 
         return nextLit;
-      } else {
+      }
+      else
+      {
         Trace("theoryDecision")
-            << "getNextTheoryDecisionRequest(): would decide on " << nextLit
+            << "getNextDecisionRequest(): would decide on " << nextLit
             << " but it already has an assignment" << std::endl;
       }
       nextLit = MinisatSatSolver::toMinisatLit(
-          d_proxy->getNextTheoryDecisionRequest());
-    }
-    Trace("theoryDecision")
-        << "getNextTheoryDecisionRequest(): decide on another literal"
-        << std::endl;
-
-    // DE requests
-    bool stopSearch = false;
-    nextLit = MinisatSatSolver::toMinisatLit(
-        d_proxy->getNextDecisionEngineRequest(stopSearch));
-    if(stopSearch) {
-      return lit_Undef;
-    }
-    if(nextLit != lit_Undef) {
-      Assert(value(var(nextLit)) == l_Undef)
-          << "literal to decide already has value";
-      decisions++;
-      Var next = var(nextLit);
-      if(polarity[next] & 0x2) {
-        nextLit = mkLit(next, polarity[next] & 0x1);
-      }
-
-      // org-mode tracing -- decision engine decision
-      if (TraceIsOn("dtview"))
+          d_proxy->getNextDecisionRequest(requirePhase, stopSearch));
+      if (stopSearch)
       {
-        dtviewDecisionHelper(
-            d_context->getLevel(),
-            d_proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-            "DE",
-            options().base.incrementalSolving);
+        return lit_Undef;
       }
-
-      if (TraceIsOn("dtview::prop"))
-      {
-        dtviewPropagationHeaderHelper(d_context->getLevel(),
-                                      options().base.incrementalSolving);
-      }
-
-      return nextLit;
     }
 
     Var next = var_Undef;
@@ -824,33 +789,15 @@ Lit Solver::pickBranchLit()
             next = order_heap.removeMin();
         }
 
-        if(!decision[next]) continue;
-        // Check with decision engine about relevancy
-        if (d_proxy->isDecisionRelevant(MinisatSatSolver::toSatVariable(next))
-            == false)
-        {
-          next = var_Undef;
-        }
+        if (!decision[next]) continue;
     }
 
     if(next == var_Undef) {
       return lit_Undef;
     } else {
       decisions++;
-      // Check with decision engine if it can tell polarity
-      lbool dec_pol = MinisatSatSolver::toMinisatlbool(
-          d_proxy->getDecisionPolarity(MinisatSatSolver::toSatVariable(next)));
-      Lit decisionLit;
-      if(dec_pol != l_Undef) {
-        Assert(dec_pol == l_True || dec_pol == l_False);
-        decisionLit = mkLit(next, (dec_pol == l_True));
-      }
-      else
-      {
-        // If it can't use internal heuristic to do that
-        decisionLit = mkLit(
-            next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
-      }
+      Lit decisionLit = mkLit(
+          next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
 
       // org-mode tracing -- decision engine decision
       if (TraceIsOn("dtview"))
@@ -1578,12 +1525,20 @@ lbool Solver::search(int nof_conflicts)
         {
           d_pfManager->endResChain(learnt_clause[0]);
         }
+        // Call notifySatClause here.
+        SatClause satClause;
+        satClause.push_back(MinisatSatSolver::toSatLiteral(learnt_clause[0]));
+        d_proxy->notifySatClause(satClause);
       }
       else
       {
         CRef cr = ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
                            learnt_clause,
                            true);
+        // Call notifySatClause here.
+        SatClause satClause;
+        MinisatSatSolver::toSatClause(ca[cr], satClause);
+        d_proxy->notifySatClause(satClause);
         clauses_removable.push(cr);
         attachClause(cr);
         claBumpActivity(ca[cr]);
@@ -1832,6 +1787,7 @@ lbool Solver::solve_()
 
 static Var mapVar(Var x, vec<Var>& map, Var& max)
 {
+    Assert(x >= 0);
     if (map.size() <= x || map[x] == -1){
         map.growTo(x+1, -1);
         map[x] = max++;
@@ -1850,18 +1806,16 @@ void Solver::toDimacs(FILE* f, Clause& c, vec<Var>& map, Var& max)
     fprintf(f, "0\n");
 }
 
-
-void Solver::toDimacs(const char *file, const vec<Lit>& assumps)
+void Solver::toDimacs(const char* file)
 {
     FILE* f = fopen(file, "wr");
-    if (f == NULL)
-        fprintf(stderr, "could not open file %s\n", file), exit(1);
-    toDimacs(f, assumps);
+    if (f == nullptr)
+      fprintf(stderr, "could not open file %s\n", file), exit(1);
+    toDimacs(f);
     fclose(f);
 }
 
-
-void Solver::toDimacs(FILE* f, const vec<Lit>& assumps)
+void Solver::toDimacs(FILE* f)
 {
     // Handle case when solver is in contradictory state:
     if (!ok){
@@ -2026,7 +1980,6 @@ void Solver::pop()
   // Pop the created variables
   resizeVars(assigns_lim.last());
   assigns_lim.pop();
-  variables_to_register.clear();
 
   // Pop the OK
   ok = trail_ok.last();
@@ -2133,7 +2086,7 @@ CRef Solver::updateLemmas() {
         }
         SatClause satClause;
         MinisatSatSolver::toSatClause(ca[lemma_ref], satClause);
-        d_proxy->notifyClauseInsertedAtLevel(satClause, clauseLevel);
+        d_pfManager->notifyClauseInsertedAtLevel(satClause, clauseLevel);
       }
       if (removable) {
         clauses_removable.push(lemma_ref);
@@ -2242,7 +2195,7 @@ const std::vector<Node> Solver::getMiniSatOrderHeap()
   std::vector<Node> heapList;
   for (size_t i = 0, hsize = order_heap.size(); i < hsize; ++i)
   {
-    Node n = d_proxy->getNode(order_heap[i]);
+    Node n = d_proxy->getNode(SatLiteral(order_heap[i]));
     heapList.push_back(n);
   }
   return heapList;

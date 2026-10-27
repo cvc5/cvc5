@@ -1,10 +1,7 @@
 ###############################################################################
-# Top contributors (to current version):
-#   Gereon Kremer, Mathias Preiner, Andres Noetzli
-#
 # This file is part of the cvc5 project.
 #
-# Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+# Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
 # in the top-level source directory and their institutional affiliations.
 # All rights reserved.  See the file COPYING in the top-level source
 # directory for licensing information.
@@ -18,23 +15,63 @@
 
 include(deps-helper)
 
-find_path(CaDiCaL_INCLUDE_DIR NAMES cadical.hpp)
+find_path(CaDiCaL_INCLUDE_DIR NAMES cadical/cadical.hpp cadical/tracer.hpp)
 find_library(CaDiCaL_LIBRARIES NAMES cadical)
 
 set(CaDiCaL_FOUND_SYSTEM FALSE)
 if(CaDiCaL_INCLUDE_DIR AND CaDiCaL_LIBRARIES)
-  set(CaDiCaL_FOUND_SYSTEM TRUE)
 
-  # Unfortunately it is not part of the headers
-  find_program(CaDiCaL_BINARY NAMES cadical)
-  if(CaDiCaL_BINARY)
-    execute_process(
-      COMMAND ${CaDiCaL_BINARY} --version OUTPUT_VARIABLE CaDiCaL_VERSION
-    )
-  else()
+  # Generate our version check file in PROJECT_BINARY_DIR
+  set(CaDiCaL_version_src "${PROJECT_BINARY_DIR}/CaDiCaL_version.cpp")
+  file(WRITE ${CaDiCaL_version_src}
+    "
+    #include <cadical/cadical.hpp>
+    #include <iostream>
+
+    int main(void)
+    {
+      std::cout << CaDiCaL::Solver::version() << std::endl;
+      return 0;
+    }
+    "
+  )
+
+  # `try_run` doesn't have a way to specify a specific include dirs, so we need
+  # to set (and then reset) `CMAKE_CXX_FLAGS`; our version file is a .cpp file,
+  # so CXX_FLAGS are the right flags
+  set(OLD_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+
+  # cvc5 doesn't support MSVC, so we're fine to hard-code `-I` as the include
+  # flag
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CaDiCaL_INCLUDE_DIR}")
+
+  # Try to compile and run our version file
+  try_run(RUN_RESULT_VAR
+    COMPILE_RESULT_VAR
+    ${PROJECT_BINARY_DIR}
+    ${CaDiCaL_version_src}
+    LINK_LIBRARIES ${CaDiCaL_LIBRARIES}
+    RUN_OUTPUT_VARIABLE CaDiCaL_VERSION
+  )
+
+  # Restore our CXX flags after checking with `try_run`
+  set(CMAKE_CXX_FLAGS ${OLD_CXX_FLAGS})
+
+  # If this failed to compile or run, we have bigger issues
+  if (NOT ${RUN_RESULT_VAR} EQUAL 0 OR NOT ${COMPILE_RESULT_VAR})
     set(CaDiCaL_VERSION "")
   endif()
 
+  # Minimum supported version
+  set(CaDiCaL_FIND_VERSION "2.1.0")
+  # Maximum supported version
+  set(CaDiCaL_FIND_VERSION_MAX "2.1.3")
+
+  # Set FOUND_SYSTEM to true; check_system_version will unset this if the
+  # version is less than the minimum required
+  set(CaDiCaL_FOUND_SYSTEM TRUE)
+
+  # Check the version against the required version
   check_system_version("CaDiCaL")
 endif()
 
@@ -47,27 +84,40 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   include(CheckSymbolExists)
   include(ExternalProject)
 
-  set(CaDiCaL_VERSION "rel-1.5.2")
-  set(CaDiCaL_CHECKSUM "8bc2c3bdf4ef3780f001b31c2fe02168f3bb34b8")
+  set(CaDiCaL_VERSION "rel-2.1.3-elevate")
+  set(CaDiCaL_CHECKSUM "15e1e82f7f9a9da0e97070cb8ac41d5b32139f65d54f72d2ff84849b0466ef92")
 
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
   # minimum from the configure script here
-  set(CXXFLAGS "-fPIC -O3 -DNDEBUG -DQUIET -std=c++11")
+  set(CaDiCaL_CXXFLAGS "-fPIC -O3 -DNDEBUG -DQUIET -std=c++11")
   if(CMAKE_CROSSCOMPILING_MACOS)
-    set(CXXFLAGS "${CXXFLAGS} -arch ${CMAKE_OSX_ARCHITECTURES}")
+    set(CaDiCaL_CXXFLAGS "${CaDiCaL_CXXFLAGS} -arch ${CMAKE_OSX_ARCHITECTURES}")
   endif()
 
   # check for getc_unlocked
   check_symbol_exists("getc_unlocked" "cstdio" HAVE_UNLOCKED_IO)
   if(NOT HAVE_UNLOCKED_IO)
-    string(APPEND CXXFLAGS " -DNUNLOCKED")
+    string(APPEND CaDiCaL_CXXFLAGS " -DNUNLOCKED")
+  endif()
+  # check for closefrom
+  check_symbol_exists("closefrom" "fcntl.h" HAVE_CLOSEFROM)
+  if(NOT HAVE_CLOSEFROM)
+    string(APPEND CaDiCaL_CXXFLAGS " -DNCLOSEFROM")
+  endif()
+
+  # emcc defaults to -fignore-exceptions, which emits no landing pads. cvc5
+  # runs as a CaDiCaL::ExternalPropagator callback, so exceptions it throws
+  # from inside the SAT search (e.g. FfTimeoutException) unwind back out
+  # through CaDiCaL frames; without this flag their destructors are skipped.
+  if(EMSCRIPTEN)
+    string(APPEND CaDiCaL_CXXFLAGS " -fexceptions")
   endif()
 
   # On macOS, we have to set `-isysroot` to make sure that include headers are
   # found because they are not necessarily installed at /usr/include anymore.
   if(CMAKE_OSX_SYSROOT)
-    string(APPEND CXXFLAGS " ${CMAKE_CXX_SYSROOT_FLAG} ${CMAKE_OSX_SYSROOT}")
+    string(APPEND CaDiCaL_CXXFLAGS " ${CMAKE_CXX_SYSROOT_FLAG} ${CMAKE_OSX_SYSROOT}")
   endif()
 
   if("${CMAKE_GENERATOR}" STREQUAL "Unix Makefiles")
@@ -78,25 +128,34 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     set(make_cmd "make")
   endif()
 
+  set(USE_EMAR "")
+  if(NOT(WASM STREQUAL "OFF"))
+    set(USE_EMAR  "-e s,ar rc,emar rc,")
+  endif()
+
+  set(CaDiCaL_SOURCE_DIR <SOURCE_DIR>)
   ExternalProject_Add(
     CaDiCaL-EP
     ${COMMON_EP_CONFIG}
     BUILD_IN_SOURCE ON
     URL https://github.com/arminbiere/cadical/archive/${CaDiCaL_VERSION}.tar.gz
-    URL_HASH SHA1=${CaDiCaL_CHECKSUM}
+    URL_HASH SHA256=${CaDiCaL_CHECKSUM}
     CONFIGURE_COMMAND mkdir -p <SOURCE_DIR>/build
     # avoid configure script, prepare the makefile manually
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/makefile.in
             <SOURCE_DIR>/build/makefile
     COMMAND
       sed -i.orig -e "s,@CXX@,${CMAKE_CXX_COMPILER}," -e
-      "s,@CXXFLAGS@,${CXXFLAGS}," -e "s,@MAKEFLAGS@,,"
+      "s,@CXXFLAGS@,${CaDiCaL_CXXFLAGS}," -e
+      "s,@ROOT@,${CaDiCaL_SOURCE_DIR}," -e "s,@CONTRIB@,no," ${USE_EMAR}
       <SOURCE_DIR>/build/makefile
     BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build libcadical.a
     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libcadical.a
                     <INSTALL_DIR>/lib/libcadical.a
     COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/cadical.hpp
-            <INSTALL_DIR>/include/cadical.hpp
+            <INSTALL_DIR>/include/cadical/cadical.hpp
+    COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/src/tracer.hpp
+            <INSTALL_DIR>/include/cadical/tracer.hpp
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libcadical.a
   )
 
@@ -134,4 +193,11 @@ if(CaDiCaL_FOUND_SYSTEM)
 else()
   message(STATUS "Building CaDiCaL ${CaDiCaL_VERSION}: ${CaDiCaL_LIBRARIES}")
   add_dependencies(CaDiCaL CaDiCaL-EP)
+
+  # Install CaDiCaL static library only if it is a static build.
+  # The CaDiCaL static library is required to compile a program that
+  # uses the cvc5 static library.
+  if(NOT BUILD_SHARED_LIBS)
+    install(FILES ${CaDiCaL_LIBRARIES} TYPE ${LIB_BUILD_TYPE})
+  endif()
 endif()

@@ -1,16 +1,20 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Alex Ozdemir
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
  * ****************************************************************************
  *
- * Finite fields UNSAT core construction
+ * Finite fields UNSAT core construction.
+ *
+ * Essentially a dependency graph for polynomials in the ideal.
+ * It is a dependency graph for proofs in IdealCalc (Figure 4 from [OKTB23])
+ *
+ * Hooks into CoCoA.
+ *
+ * [OKTB23]: https://doi.org/10.1007/978-3-031-37703-7_8
  */
 
 #ifdef CVC5_USE_COCOA
@@ -37,10 +41,20 @@ std::string ostring(const T& t)
   return o.str();
 }
 
-IncrementalTracer::IncrementalTracer()
+Tracer::Tracer(const std::vector<CoCoA::RingElem>& inputs) : d_inputNumbers()
 {
-  d_inputs.emplace_back();
-  IncrementalTracer* t = this;
+  for (size_t i = 0, end = inputs.size(); i < end; ++i)
+  {
+    const std::string s = ostring(inputs[i]);
+    d_parents[s] = {};
+    Trace("ff::trace") << "input: " << s << std::endl;
+    d_inputNumbers.emplace(std::move(s), i);
+  }
+};
+
+void Tracer::setFunctionPointers()
+{
+  Tracer* t = this;
   d_sPoly =
       std::function([=](CoCoA::ConstRefRingElem p,
                         CoCoA::ConstRefRingElem q,
@@ -51,60 +65,64 @@ IncrementalTracer::IncrementalTracer()
       std::function([=](CoCoA::ConstRefRingElem p) { t->reductionStep(p); });
   d_reductionEnd =
       std::function([=](CoCoA::ConstRefRingElem p) { t->reductionEnd(p); });
-};
-
-void IncrementalTracer::setFunctionPointers()
-{
+  Assert(!CoCoA::handlersEnabled);
   CoCoA::handlersEnabled = true;
   CoCoA::sPolyHandler = d_sPoly;
   CoCoA::reductionStartHandler = d_reductionStart;
   CoCoA::reductionStepHandler = d_reductionStep;
   CoCoA::reductionEndHandler = d_reductionEnd;
+  d_handlersRegistered = true;
 }
 
-void IncrementalTracer::unsetFunctionPointers()
+void Tracer::unsetFunctionPointers()
 {
   CoCoA::handlersEnabled = false;
+  CoCoA::sPolyHandler = {};
+  CoCoA::reductionStartHandler = {};
+  CoCoA::reductionStepHandler = {};
+  CoCoA::reductionEndHandler = {};
+  d_handlersRegistered = false;
 }
 
-void IncrementalTracer::addInput(const CoCoA::RingElem& i)
+Tracer::~Tracer()
 {
-  Trace("ff::core") << "input: " << i << std::endl;
-  std::string si = ostring(i);
-  d_inputs.back().push_back(si);
-  if (d_parents.count(ostring(i)) == 0)
+  // RAII safety: if an exception unwound the stack between
+  // setFunctionPointers() and unsetFunctionPointers(), the explicit unset
+  // never ran. Detach the global CoCoA handlers here so the next CoCoA
+  // call doesn't invoke a std::function capturing pointers into our
+  // (about to be destroyed) storage.
+  if (d_handlersRegistered)
   {
-    Trace("ff::core") << " keep" << std::endl;
-    d_inputNumbers[si] = d_nInputs;
-    d_parents[si] = {};
+    unsetFunctionPointers();
   }
-  else
-  {
-    Trace("ff::core") << " drop" << std::endl;
-  }
-  d_nInputs++;
 }
 
-std::vector<size_t> IncrementalTracer::trace(const CoCoA::RingElem& i) const
+std::vector<size_t> Tracer::trace(const CoCoA::RingElem& i) const
 {
-  std::vector<size_t> bs;
+  // accumulates ancestors of i that are inputs.
+  std::vector<size_t> inputAncestors;
+  // the q(ueue) contains transitive ancestors of i (initially just i) whose
+  // parent relationships have not been visited yet.
   std::vector<std::string> q{ostring(i)};
   std::unordered_set<std::string> visited{q.back()};
   while (q.size())
   {
     const std::string t = q.back();
-    Trace("ff::core") << "traceback: " << t << std::endl;
+    Trace("ff::trace") << "traceback: " << t << std::endl;
     q.pop_back();
+    // is the ancestor an input?
     if (d_inputNumbers.count(t))
     {
-      Trace("ff::core") << " blame" << std::endl;
-      bs.push_back(d_inputNumbers.at(t));
+      // yes? output it
+      Trace("ff::trace") << " blame" << std::endl;
+      inputAncestors.push_back(d_inputNumbers.at(t));
     }
     else
     {
-      AlwaysAssert(d_parents.count(t) > 0);
+      // no? enqueue its parents
+      AlwaysAssert(d_parents.count(t) > 0) << "Unexplained polynomial " << t;
       const auto& blames = d_parents.at(t);
-      AlwaysAssert(blames.size() > 0);
+      AlwaysAssert(blames.size() > 0) << "Unexplained polynomial " << t;
       for (const auto& b : blames)
       {
         if (!visited.count(b))
@@ -115,98 +133,51 @@ std::vector<size_t> IncrementalTracer::trace(const CoCoA::RingElem& i) const
       }
     }
   }
-  std::sort(bs.begin(), bs.end());
-  return bs;
+  // sort outputs by index in initial input sequence and return
+  std::sort(inputAncestors.begin(), inputAncestors.end());
+  return inputAncestors;
 }
 
-void IncrementalTracer::push()
-{
-  Trace("ff::core") << "push" << std::endl;
-  d_inputs.emplace_back();
-}
-
-void IncrementalTracer::pop()
-{
-  Trace("ff::core") << "pop" << std::endl;
-  Assert(d_inputs.size() > 1);
-  std::vector<std::string> q;
-  for (auto& i : d_inputs.back())
-  {
-    --d_nInputs;
-    if (d_parents[i].empty())
-    {
-      q.push_back(std::move(i));
-    }
-  }
-  d_inputs.pop_back();
-  for (const auto& input : q)
-  {
-    d_inputNumbers.erase(input);
-  }
-  while (q.size())
-  {
-    std::string node = std::move(q.back());
-    q.pop_back();
-    for (auto& child : d_children[node])
-    {
-      if (d_parents.count(child))
-      {
-        q.push_back(std::move(child));
-      }
-    }
-    for (const auto& parent : d_parents[node])
-    {
-      const auto it = d_children.find(parent);
-      if (it != d_children.end())
-      {
-        it->second.erase(node);
-      }
-    }
-    d_children.erase(node);
-    d_parents.erase(node);
-  }
-}
-
-void IncrementalTracer::sPoly(CoCoA::ConstRefRingElem p,
-                              CoCoA::ConstRefRingElem q,
-                              CoCoA::ConstRefRingElem s)
+void Tracer::sPoly(CoCoA::ConstRefRingElem p,
+                   CoCoA::ConstRefRingElem q,
+                   CoCoA::ConstRefRingElem s)
 {
   std::string ss = ostring(s);
-  Trace("ff::core") << "s: " << p << ", " << q << " -> " << s << std::endl;
+  Trace("ff::trace") << "s: " << p << ", " << q << " -> " << s << std::endl;
   if (d_parents.count(ss) == 0)
   {
-    Trace("ff::core") << " keep" << std::endl;
+    Trace("ff::trace") << " keep" << std::endl;
     addDep(ostring(p), ss);
     addDep(ostring(q), ss);
   }
   else
   {
-    Trace("ff::core") << " drop" << std::endl;
+    Trace("ff::trace") << " drop" << std::endl;
   }
 }
 
-void IncrementalTracer::reductionStart(CoCoA::ConstRefRingElem p)
+void Tracer::reductionStart(CoCoA::ConstRefRingElem p)
 {
   Assert(d_reductionSeq.empty());
-  Trace("ff::core") << "reduction start: " << p << std::endl;
+  Trace("ff::trace") << "reduction start: " << p << std::endl;
   d_reductionSeq.push_back(ostring(p));
 }
 
-void IncrementalTracer::reductionStep(CoCoA::ConstRefRingElem q)
+void Tracer::reductionStep(CoCoA::ConstRefRingElem q)
 {
   Assert(!d_reductionSeq.empty());
-  Trace("ff::core") << "reduction step: " << q << std::endl;
+  Trace("ff::trace") << "reduction step: " << q << std::endl;
   d_reductionSeq.push_back(ostring(q));
 }
 
-void IncrementalTracer::reductionEnd(CoCoA::ConstRefRingElem r)
+void Tracer::reductionEnd(CoCoA::ConstRefRingElem r)
 {
   Assert(!d_reductionSeq.empty());
-  Trace("ff::core") << "reduction end: " << r << std::endl;
+  Trace("ff::trace") << "reduction end: " << r << std::endl;
   std::string rr = ostring(r);
   if (d_parents.count(rr) == 0 && rr != d_reductionSeq.front())
   {
-    Trace("ff::core") << " keep" << std::endl;
+    Trace("ff::trace") << " keep" << std::endl;
     for (auto& s : d_reductionSeq)
     {
       addDep(s, rr);
@@ -214,28 +185,26 @@ void IncrementalTracer::reductionEnd(CoCoA::ConstRefRingElem r)
   }
   else
   {
-    if (TraceIsOn("ff::core"))
+    if (TraceIsOn("ff::trace"))
     {
-      Trace("ff::core") << " drop" << std::endl;
+      Trace("ff::trace") << " drop" << std::endl;
       if (d_parents.count(rr))
       {
-        Trace("ff::core") << " parents:";
+        Trace("ff::trace") << " parents:";
         for (const auto& p : d_parents.at(rr))
         {
-          Trace("ff::core") << ", " << p;
+          Trace("ff::trace") << ", " << p;
         }
-        Trace("ff::core") << std::endl;
+        Trace("ff::trace") << std::endl;
       }
     }
   }
   d_reductionSeq.clear();
 }
 
-void IncrementalTracer::addDep(const std::string& parent,
-                               const std::string& child)
+void Tracer::addDep(const std::string& parent, const std::string& child)
 {
   d_parents[child].push_back(parent);
-  d_children[parent].insert(child);
 }
 
 }  // namespace ff

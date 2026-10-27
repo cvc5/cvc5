@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -75,19 +72,18 @@ std::pair<std::size_t, std::size_t> getRootIDs(
  * @param poly The polynomial whose root shall be considered
  * @param vm A variable mapper from cvc5 to libpoly variables
  */
-Node mkIRP(const Node& var,
+Node mkIRP(NodeManager* nm,
+           const Node& var,
            Kind rel,
            const Node& zero,
            std::size_t k,
            const poly::Polynomial& poly,
            VariableMapper& vm)
 {
-  auto* nm = NodeManager::currentNM();
   auto op = nm->mkConst<IndexedRootPredicate>(IndexedRootPredicate(k));
-  return nm->mkNode(Kind::INDEXED_ROOT_PREDICATE,
-                    op,
-                    nm->mkNode(rel, var, zero),
-                    as_cvc_polynomial(poly, vm));
+  return nm->mkNode(
+      Kind::INDEXED_ROOT_PREDICATE,
+      {op, nm->mkNode(rel, var, zero), as_cvc_polynomial(nm, poly, vm)});
 }
 
 }  // namespace
@@ -96,8 +92,8 @@ CoveringsProofGenerator::CoveringsProofGenerator(Env& env,
                                                  context::Context* ctx)
     : EnvObj(env), d_proofs(env, ctx), d_current(nullptr)
 {
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConstReal(Rational(0));
+  d_false = nodeManager()->mkConst(false);
+  d_zero = nodeManager()->mkConstReal(Rational(0));
 }
 
 void CoveringsProofGenerator::startNewProof()
@@ -107,18 +103,18 @@ void CoveringsProofGenerator::startNewProof()
 void CoveringsProofGenerator::startRecursive() { d_current->openChild(); }
 void CoveringsProofGenerator::endRecursive(size_t intervalId)
 {
-  d_current->setCurrent(
-      intervalId, PfRule::ARITH_NL_COVERING_RECURSIVE, {}, {d_false}, d_false);
+  d_current->setCurrentTrust(
+      intervalId, TrustId::ARITH_NL_COVERING_RECURSIVE, {}, {d_false}, d_false);
   d_current->closeChild();
 }
 void CoveringsProofGenerator::startScope()
 {
   d_current->openChild();
-  d_current->getCurrent().d_rule = PfRule::SCOPE;
+  d_current->getCurrent().d_rule = ProofRule::SCOPE;
 }
 void CoveringsProofGenerator::endScope(const std::vector<Node>& args)
 {
-  d_current->setCurrent(0, PfRule::SCOPE, {}, args, d_false);
+  d_current->setCurrent(0, ProofRule::SCOPE, {}, args, d_false);
   d_current->closeChild();
 }
 
@@ -128,24 +124,23 @@ ProofGenerator* CoveringsProofGenerator::getProofGenerator() const
 }
 
 void CoveringsProofGenerator::addDirect(Node var,
-                                  VariableMapper& vm,
-                                  const poly::Polynomial& poly,
-                                  const poly::Assignment& a,
-                                  poly::SignCondition& sc,
-                                  const poly::Interval& interval,
-                                  Node constraint,
-                                  size_t intervalId)
+                                        VariableMapper& vm,
+                                        const poly::Polynomial& poly,
+                                        const poly::Assignment& a,
+                                        const poly::Interval& interval,
+                                        Node constraint,
+                                        size_t intervalId)
 {
   if (is_minus_infinity(get_lower(interval))
       && is_plus_infinity(get_upper(interval)))
   {
     // "Full conflict", constraint excludes (-inf,inf)
     d_current->openChild();
-    d_current->setCurrent(intervalId,
-                          PfRule::ARITH_NL_COVERING_DIRECT,
-                          {constraint},
-                          {d_false},
-                          d_false);
+    d_current->setCurrentTrust(intervalId,
+                               TrustId::ARITH_NL_COVERING_DIRECT,
+                               {constraint},
+                               {d_false},
+                               d_false);
     d_current->closeChild();
     return;
   }
@@ -156,8 +151,13 @@ void CoveringsProofGenerator::addDirect(Node var,
     // Excludes a single point only
     auto ids = getRootIDs(roots, get_lower(interval));
     Assert(ids.first == ids.second);
-    res.emplace_back(
-        mkIRP(var, Kind::EQUAL, mkZero(var.getType()), ids.first, poly, vm));
+    res.emplace_back(mkIRP(nodeManager(),
+                           var,
+                           Kind::EQUAL,
+                           mkZero(var.getType()),
+                           ids.first,
+                           poly,
+                           vm));
   }
   else
   {
@@ -168,7 +168,8 @@ void CoveringsProofGenerator::addDirect(Node var,
       auto ids = getRootIDs(roots, get_lower(interval));
       Assert(ids.first == ids.second);
       Kind rel = poly::get_lower_open(interval) ? Kind::GT : Kind::GEQ;
-      res.emplace_back(mkIRP(var, rel, d_zero, ids.first, poly, vm));
+      res.emplace_back(
+          mkIRP(nodeManager(), var, rel, d_zero, ids.first, poly, vm));
     }
     if (!is_plus_infinity(get_upper(interval)))
     {
@@ -176,26 +177,28 @@ void CoveringsProofGenerator::addDirect(Node var,
       auto ids = getRootIDs(roots, get_upper(interval));
       Assert(ids.first == ids.second);
       Kind rel = poly::get_upper_open(interval) ? Kind::LT : Kind::LEQ;
-      res.emplace_back(mkIRP(var, rel, d_zero, ids.first, poly, vm));
+      res.emplace_back(
+          mkIRP(nodeManager(), var, rel, d_zero, ids.first, poly, vm));
     }
   }
   // Add to proof manager
   startScope();
   d_current->openChild();
-  d_current->setCurrent(intervalId,
-                        PfRule::ARITH_NL_COVERING_DIRECT,
-                        {constraint},
-                        {d_false},
-                        d_false);
+  d_current->setCurrentTrust(intervalId,
+                             TrustId::ARITH_NL_COVERING_DIRECT,
+                             {constraint},
+                             {d_false},
+                             d_false);
   d_current->closeChild();
   endScope(res);
 }
 
-std::vector<Node> CoveringsProofGenerator::constructCell(Node var,
-                                                   const CACInterval& i,
-                                                   const poly::Assignment& a,
-                                                   const poly::Value& s,
-                                                   VariableMapper& vm)
+std::vector<Node> CoveringsProofGenerator::constructCell(
+    Node var,
+    const CACInterval& i,
+    const poly::Assignment& a,
+    const poly::Value& s,
+    VariableMapper& vm)
 {
   if (is_minus_infinity(get_lower(i.d_interval))
       && is_plus_infinity(get_upper(i.d_interval)))
@@ -214,7 +217,8 @@ std::vector<Node> CoveringsProofGenerator::constructCell(Node var,
     if (ids.first == ids.second)
     {
       // Excludes a single point only
-      res.emplace_back(mkIRP(var, Kind::EQUAL, d_zero, ids.first, poly, vm));
+      res.emplace_back(
+          mkIRP(nodeManager(), var, Kind::EQUAL, d_zero, ids.first, poly, vm));
     }
     else
     {
@@ -222,12 +226,14 @@ std::vector<Node> CoveringsProofGenerator::constructCell(Node var,
       if (ids.first > 0)
       {
         // Interval has lower bound that is not -inf
-        res.emplace_back(mkIRP(var, Kind::GT, d_zero, ids.first, poly, vm));
+        res.emplace_back(
+            mkIRP(nodeManager(), var, Kind::GT, d_zero, ids.first, poly, vm));
       }
       if (ids.second <= roots.size())
       {
         // Interval has upper bound that is not inf
-        res.emplace_back(mkIRP(var, Kind::LT, d_zero, ids.second, poly, vm));
+        res.emplace_back(
+            mkIRP(nodeManager(), var, Kind::LT, d_zero, ids.second, poly, vm));
       }
     }
   }

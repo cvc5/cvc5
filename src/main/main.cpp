@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Morgan Deters, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -14,12 +11,16 @@
  */
 #include "main/main.h"
 
+#include <cvc5/cvc5.h>
+
 #include <iostream>
 
-#include "api/cpp/cvc5.h"
 #include "base/configuration.h"
 #include "main/command_executor.h"
 #include "options/option_exception.h"
+#ifdef CVC5_USE_COCOA
+#include <CoCoA/error.H>
+#endif
 
 using namespace cvc5::internal;
 using namespace cvc5::main;
@@ -29,7 +30,8 @@ using namespace cvc5::main;
  */
 int main(int argc, char* argv[])
 {
-  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>();
+  cvc5::TermManager tm;
+  std::unique_ptr<cvc5::Solver> solver = std::make_unique<cvc5::Solver>(tm);
   try
   {
     return runCvc5(argc, argv, solver);
@@ -54,7 +56,7 @@ int main(int argc, char* argv[])
               << "Please use --help to get help on command-line options."
               << std::endl;
   }
-  catch (Exception& e)
+  catch (cvc5::CVC5ApiException& e)
   {
 #ifdef CVC5_COMPETITION_MODE
     solver->getDriverOptions().out() << "unknown" << std::endl;
@@ -74,6 +76,12 @@ int main(int argc, char* argv[])
       pExecutor->printStatistics(solver->getDriverOptions().err());
     }
   }
+#ifdef CVC5_USE_COCOA
+  catch (CoCoA::ErrorInfo& e)
+  {
+    e.myOutputSelf(std::cerr);
+  }
+#endif
   // Make sure that the command executor is destroyed before the node manager.
   pExecutor.reset();
   exit(1);

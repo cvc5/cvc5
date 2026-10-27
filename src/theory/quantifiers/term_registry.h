@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -23,6 +20,7 @@
 
 #include "context/cdhashset.h"
 #include "smt/env_obj.h"
+#include "theory/quantifiers/bv_inverter.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/entailment_check.h"
 #include "theory/quantifiers/ieval/inst_evaluator_manager.h"
@@ -44,23 +42,17 @@ class OracleChecker;
  */
 class TermRegistry : protected EnvObj
 {
-  using NodeSet = context::CDHashSet<Node>;
-
  public:
   TermRegistry(Env& env, QuantifiersState& qs, QuantifiersRegistry& qr);
   /** Finish init, which sets the inference manager on modules of this class */
   void finishInit(FirstOrderModel* fm, QuantifiersInferenceManager* qim);
-  /** Presolve */
-  void presolve();
 
-  /**
-   * Add term n, which notifies the term database that the ground term n
-   * exists in the current context.
-   *
-   * @param n the term to add
-   * @param withinQuant whether n occurs within a quantified formula body
-   */
-  void addTerm(Node n, bool withinQuant = false);
+  /** Add quantified formula body, which may impact term registration */
+  void addQuantifierBody(TNode n);
+  /** notification when master equality engine is updated */
+  void eqNotifyNewClass(TNode t);
+  /** notification when master equality engine merges two classes*/
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   /** get term for type
    *
@@ -84,11 +76,8 @@ class TermRegistry : protected EnvObj
    *
    * @param q The quantified formula
    * @param terms The terms it was instantiated with
-   * @param success Whether the instantiation was successfully added
    */
-  void processInstantiation(Node q,
-                            const std::vector<Node>& terms,
-                            bool success);
+  void processInstantiation(Node q, const std::vector<Node>& terms);
   /**
    * Process skolemization, called when q is skolemized.
    *
@@ -111,6 +100,8 @@ class TermRegistry : protected EnvObj
   TermPools* getTermPools() const;
   /** get the virtual term substitution term cache utility */
   VtsTermCache* getVtsTermCache() const;
+  /** get the bv inverter utility */
+  BvInverter* getBvInverter() const;
   /** get the instantiation evaluator manager */
   ieval::InstEvaluatorManager* getInstEvaluatorManager() const;
   /**
@@ -129,12 +120,14 @@ class TermRegistry : protected EnvObj
   FirstOrderModel* getModel() const;
 
  private:
-  /** has presolve been called */
-  context::CDO<bool> d_presolve;
-  /** Whether we are using the fmc model */
-  bool d_useFmcModel;
-  /** the set of terms we have seen before presolve */
-  NodeSet d_presolveCache;
+  /**
+   * Add term n, which notifies the term database that the ground term n
+   * exists in the current context.
+   *
+   * @param n the term to add
+   * @param withinQuant whether n occurs within a quantified formula body
+   */
+  void addTermInternal(TNode n, bool withinQuant = false);
   /** term enumeration utility */
   std::unique_ptr<TermEnumeration> d_termEnum;
   /** term enumeration utility */
@@ -145,12 +138,14 @@ class TermRegistry : protected EnvObj
   std::unique_ptr<EntailmentCheck> d_echeck;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
-  /** oracle checker */
-  std::unique_ptr<OracleChecker> d_ochecker;
   /** virtual term substitution term cache for arithmetic instantiation */
   std::unique_ptr<VtsTermCache> d_vtsCache;
+  /** oracle checker */
+  std::unique_ptr<OracleChecker> d_ochecker;
   /** the instantiation evaluator manager */
   std::unique_ptr<ieval::InstEvaluatorManager> d_ievalMan;
+  /** inversion utility for BV instantiation */
+  std::unique_ptr<BvInverter> d_bvInvert;
   /** extended model object */
   FirstOrderModel* d_qmodel;
 };

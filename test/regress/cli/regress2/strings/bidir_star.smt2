@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE:
 (set-logic SLIA)
 (declare-fun a () String)
 (assert (>= (str.len a) 2))

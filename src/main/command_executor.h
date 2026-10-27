@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -16,11 +13,11 @@
 #ifndef CVC5__MAIN__COMMAND_EXECUTOR_H
 #define CVC5__MAIN__COMMAND_EXECUTOR_H
 
+#include <cvc5/cvc5.h>
+#include <cvc5/cvc5_parser.h>
+
 #include <iosfwd>
 #include <string>
-
-#include "api/cpp/cvc5.h"
-#include "parser/api/cpp/symbol_manager.h"
 
 namespace cvc5 {
 
@@ -85,6 +82,16 @@ class CommandExecutor
   void storeOptionsAsOriginal();
 
   /**
+   * Set option internal. This method should be used to set options on the
+   * underlying solver that do not originate from the user. We do this to
+   * set expert or undocumented options that should not throw an exception
+   * e.g. when using --safe-options.
+   * @param key The option to set
+   * @param value The value to set
+   */
+  void setOptionInternal(const std::string& key, const std::string& value);
+
+  /**
    * Prints statistics to an output stream.
    * Checks whether statistics should be printed according to the options.
    * Thus, this method can always be called without checking the options.
@@ -101,19 +108,17 @@ class CommandExecutor
 
   void flushOutputStreams();
 
-protected:
+ protected:
   /** Executes treating cmd as a singleton */
- virtual bool doCommandSingleton(cvc5::parser::Command* cmd);
+  virtual bool doCommandSingleton(parser::Cmd* cmd);
 
-private:
+ private:
   CommandExecutor();
 
   bool solverInvoke(cvc5::Solver* solver,
-                    parser::SymbolManager* sm,
-                    parser::Command* cmd,
-                    std::ostream& out);
+                    parser::SymManager* sm,
+                    parser::Cmd* cmd);
 }; /* class CommandExecutor */
-
 
 }  // namespace main
 }  // namespace cvc5

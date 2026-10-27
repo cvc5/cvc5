@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -12,6 +9,8 @@
  *
  * The module for processing proof nodes.
  */
+
+#include <functional>
 
 #include "cvc5_private.h"
 
@@ -23,10 +22,9 @@
 #include <unordered_set>
 
 #include "proof/proof_node_updater.h"
-#include "rewriter/rewrite_db.h"
-#include "rewriter/rewrite_db_proof_cons.h"
+#include "rewriter/rewrites.h"
 #include "smt/env_obj.h"
-#include "smt/proof_final_callback.h"
+#include "smt/proof_post_processor_dsl.h"
 #include "smt/witness_form.h"
 #include "theory/inference_id.h"
 #include "util/statistics_stats.h"
@@ -36,14 +34,14 @@ namespace smt {
 
 /**
  * A callback class used by SolverEngine for post-processing proof nodes by
- * connecting proofs of preprocessing, and expanding macro PfRule applications.
+ * connecting proofs of preprocessing, and expanding macro ProofRule
+ * applications.
  */
-class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvObj
+class ProofPostprocessCallback : public ProofNodeUpdaterCallback,
+                                 protected EnvObj
 {
  public:
-  ProofPostprocessCallback(Env& env,
-                           rewriter::RewriteDb* rdb,
-                           bool updateScopedAssumptions);
+  ProofPostprocessCallback(Env& env, bool updateScopedAssumptions);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -59,14 +57,17 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * elimination include MACRO_*, SUBS and REWRITE. Otherwise, this method
    * has no effect.
    */
-  void setEliminateRule(PfRule rule);
+  void setEliminateRule(ProofRule rule);
   /** Should proof pn be updated? */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     const std::vector<Node>& fa,
                     bool& continueUpdate) override;
+  /** Should proof pn be updated? */
+  bool shouldUpdatePost(std::shared_ptr<ProofNode> pn,
+                        const std::vector<Node>& fa) override;
   /** Update the proof rule application. */
   bool update(Node res,
-              PfRule id,
+              ProofRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
@@ -75,22 +76,29 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
  private:
   /** Common constants */
   Node d_true;
+  /** The proof checker we are using */
+  ProofChecker* d_pc;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
-  /** The rewrite database proof generator */
-  rewriter::RewriteDbProofCons d_rdbPc;
   /** The witness form proof generator */
   WitnessFormGenerator d_wfpm;
   /** The witness form assumptions used in the proof */
   std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
-  std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  std::unordered_set<ProofRule, std::hash<ProofRule>> d_elimRules;
+  /**
+   * Counts number of proof nodes for each rule that were
+   * expanded in macro elimination by this class.
+   */
+  HistogramStat<ProofRule> d_macroExpand;
   /** Whether we post-process assumptions in scope. */
   bool d_updateScopedAssumptions;
   //---------------------------------reset at the begining of each update
   /** Mapping assumptions to their proof from preprocessing */
-  std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
+  std::map<Node, std::shared_ptr<ProofNode>> d_assumpToProof;
   //---------------------------------end reset at the begining of each update
+  /** Return true if id is a proof rule that we should expand */
+  bool shouldExpand(ProofRule id) const;
   /**
    * Expand rules in the given application, add the expanded proof to cdp.
    * The set of rules we expand is configured by calls to setEliminateRule
@@ -103,17 +111,31 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
    * @param cdp The proof to add to
    * @return The conclusion of the rule, or null if this rule is not eliminated.
    */
-  Node expandMacros(PfRule id,
+  Node expandMacros(ProofRule id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
-                    CDProof* cdp);
+                    CDProof* cdp,
+                    Node res = Node::null());
+  /**
+   * Called when we require expanding a macro step from within the method above.
+   * This makes a recursive call to the above method.
+   * @param id The rule of the application
+   * @param children The children of the application
+   * @param args The arguments of the application
+   * @param cdp The proof to add to
+   * @return The conclusion of the rule, or null if this rule is not eliminated.
+   */
+  Node addExpandStep(ProofRule id,
+                     const std::vector<Node>& children,
+                     const std::vector<Node>& args,
+                     CDProof* cdp);
   /**
    * Update the proof rule application, called during expand macros when
    * we wish to apply the update method. This method has the same behavior
    * as update apart from ignoring the continueUpdate flag.
    */
   bool updateInternal(Node res,
-                      PfRule id,
+                      ProofRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
@@ -158,14 +180,13 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback, protected EnvO
   bool addToTransChildren(Node eq,
                           std::vector<Node>& tchildren,
                           bool isSymm = false);
-
 };
 
 /**
  * The proof postprocessor module. This postprocesses the final proof
  * produced by an SolverEngine. Its main two tasks are to:
  * (1) Connect proofs of preprocessing,
- * (2) Expand macro PfRule applications.
+ * (2) Expand macro ProofRule applications.
  */
 class ProofPostprocess : protected EnvObj
 {
@@ -187,23 +208,32 @@ class ProofPostprocess : protected EnvObj
    */
   void process(std::shared_ptr<ProofNode> pf, ProofGenerator* pppg);
   /** set eliminate rule */
-  void setEliminateRule(PfRule rule);
+  void setEliminateRule(ProofRule rule);
+  /** set eliminate all trusted rules via DSL */
+  void setEliminateAllTrustedRules();
+  /**
+   * Set assertions, which impacts which proofs can be merged during
+   * post-processing. In particular, any proof having only free
+   * assumptions in assertions can be used to replace another subproof
+   * of the same formula.
+   *
+   * If doDebug is true, then the assertions are furthermore used to
+   * debug whether the final proof is closed.
+   */
+  void setAssertions(const std::vector<Node>& assertions, bool doDebug);
 
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
+  /** The DSL post processor */
+  std::unique_ptr<ProofPostprocessDsl> d_ppdsl;
+  /** Eliminate trusted rules? */
+  bool d_elimTrustedRules;
   /**
    * The updater, which is responsible for expanding macros in the final proof
    * and connecting preprocessed assumptions to input assumptions.
    */
   ProofNodeUpdater d_updater;
-  /** The post process callback for finalization */
-  ProofFinalCallback d_finalCb;
-  /**
-   * The finalizer, which is responsible for taking stats and checking for
-   * (lazy) pedantic failures.
-   */
-  ProofNodeUpdater d_finalizer;
 };
 
 }  // namespace smt

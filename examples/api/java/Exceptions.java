@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -21,7 +18,7 @@ public class Exceptions
 {
   public static void main(String[] args)
   {
-    Solver solver = new Solver();
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       solver.setOption("produce-models", "true");
 
@@ -39,9 +36,9 @@ public class Exceptions
       // Creating a term with an invalid type
       try
       {
-        Sort integer = solver.getIntegerSort();
-        Term x = solver.mkVar(integer, "x");
-        Term invalidTerm = solver.mkTerm(Kind.AND, x, x);
+        Sort integer = tm.getIntegerSort();
+        Term x = tm.mkVar(integer, "x");
+        Term invalidTerm = tm.mkTerm(Kind.AND, x, x);
         solver.checkSatAssuming(invalidTerm);
         System.exit(1);
       }
@@ -53,7 +50,7 @@ public class Exceptions
       // Asking for a model after unsat result
       try
       {
-        solver.checkSatAssuming(solver.mkBoolean(false));
+        solver.checkSatAssuming(tm.mkBoolean(false));
         solver.getModel(new Sort[] {}, new Term[] {});
         System.exit(1);
       }

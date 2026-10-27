@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Mathias Preiner, Liana Hadarean
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -87,7 +84,10 @@ enum class Resource
   RestartStep,
   RewriteStep,
   SatConflictStep,
+  SygusCheckStep,
   TheoryCheckStep,
+  TheoryFullCheckStep,
+  FindSynthStep,
   Unknown
 };
 
@@ -104,8 +104,8 @@ constexpr std::size_t ResourceMax = static_cast<std::size_t>(Resource::Unknown);
 
 /**
  * This class manages resource limits (cumulative or per call) and (per call)
- * time limits. The available resources are listed in Resource and their individual
- * costs are configured via command line options.
+ * time limits. The available resources are listed in Resource and their
+ * individual costs are configured via command line options.
  */
 class ResourceManager
 {
@@ -151,6 +151,10 @@ class ResourceManager
    */
   void spendResource(Resource r);
   /**
+   * Gets the number of resources spent for r so far.
+   */
+  uint64_t getResource(Resource r) const;
+  /**
    * Spends a given resource. Calls the listener to interrupt the solver if
    * there are no remaining resources.
    */
@@ -166,7 +170,7 @@ class ResourceManager
    * Marks the end of a SolverEngine check call, stops the per
    * call timer.
    */
-  void endCall();
+  void refresh();
 
   /**
    * Registers a listener that is notified on a resource out or (per-call)

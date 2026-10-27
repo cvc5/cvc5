@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +22,7 @@ namespace theory {
 namespace arith {
 
 EqualitySolver::EqualitySolver(Env& env,
-                               ArithState& astate,
+                               TheoryState& astate,
                                InferenceManager& aim)
     : EnvObj(env),
       d_astate(astate),
@@ -48,17 +45,21 @@ void EqualitySolver::finishInit()
 {
   d_ee = d_astate.getEqualityEngine();
   // add the function kinds
-  d_ee->addFunctionKind(kind::NONLINEAR_MULT);
-  d_ee->addFunctionKind(kind::EXPONENTIAL);
-  d_ee->addFunctionKind(kind::SINE);
-  d_ee->addFunctionKind(kind::IAND);
-  d_ee->addFunctionKind(kind::POW2);
+  d_ee->addFunctionKind(Kind::NONLINEAR_MULT);
+  d_ee->addFunctionKind(Kind::EXPONENTIAL);
+  d_ee->addFunctionKind(Kind::SINE);
+  d_ee->addFunctionKind(Kind::IAND);
+  d_ee->addFunctionKind(Kind::PIAND);
+  d_ee->addFunctionKind(Kind::POW2);
 }
 
-bool EqualitySolver::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool EqualitySolver::preNotifyFact(TNode atom,
+                                   CVC5_UNUSED bool pol,
+                                   TNode fact,
+                                   CVC5_UNUSED bool isPrereg,
+                                   CVC5_UNUSED bool isInternal)
 {
-  if (atom.getKind() != EQUAL)
+  if (atom.getKind() != Kind::EQUAL)
   {
     // finished processing, since not beneficial to add non-equality facts
     return true;
@@ -142,7 +143,7 @@ bool EqualitySolver::EqualitySolverNotify::eqNotifyTriggerPredicate(
 }
 
 bool EqualitySolver::EqualitySolverNotify::eqNotifyTriggerTermEquality(
-    TheoryId tag, TNode t1, TNode t2, bool value)
+    CVC5_UNUSED TheoryId tag, TNode t1, TNode t2, bool value)
 {
   Trace("arith-eq-solver") << "...propagate (term eq) " << t1.eqNode(t2)
                            << " -> " << value << std::endl;

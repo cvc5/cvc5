@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -33,490 +30,665 @@ namespace bags {
 
 using namespace datatypes;
 
-TypeNode BinaryOperatorTypeRule::computeType(NodeManager* nodeManager,
-                                             TNode n,
-                                             bool check,
-                                             std::ostream* errOut)
+TypeNode BinaryOperatorTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
 {
-  Assert(n.getKind() == kind::BAG_UNION_MAX
-         || n.getKind() == kind::BAG_UNION_DISJOINT
-         || n.getKind() == kind::BAG_INTER_MIN
-         || n.getKind() == kind::BAG_DIFFERENCE_SUBTRACT
-         || n.getKind() == kind::BAG_DIFFERENCE_REMOVE);
-  TypeNode bagType = n[0].getType(check);
+  return TypeNode::null();
+}
+TypeNode BinaryOperatorTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    bool check,
+    std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::BAG_UNION_MAX
+         || n.getKind() == Kind::BAG_UNION_DISJOINT
+         || n.getKind() == Kind::BAG_INTER_MIN
+         || n.getKind() == Kind::BAG_DIFFERENCE_SUBTRACT
+         || n.getKind() == Kind::BAG_DIFFERENCE_REMOVE);
+  TypeNode bagType = n[0].getTypeOrNull();
+  TypeNode secondBagType = n[1].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "operator expects a bag, first argument is not");
+      if (errOut)
+      {
+        (*errOut) << "operator expects a bag, first argument is not";
+      }
+      return TypeNode::null();
     }
-    TypeNode secondBagType = n[1].getType(check);
     if (secondBagType != bagType)
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind()
-         << " expects two bags of the same type. Found types '" << bagType
-         << "' and '" << secondBagType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects two bags of the same type. Found types '"
+                  << bagType << "' and '" << secondBagType << "'.";
+      }
+      return TypeNode::null();
     }
   }
   return bagType;
 }
 
-bool BinaryOperatorTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool BinaryOperatorTypeRule::computeIsConst(
+    CVC5_UNUSED NodeManager* nodeManager, TNode n)
 {
   // only UNION_DISJOINT has a const rule in kinds.
   // Other binary operators do not have const rules in kinds
-  Assert(n.getKind() == kind::BAG_UNION_DISJOINT);
+  Assert(n.getKind() == Kind::BAG_UNION_DISJOINT);
   return BagsUtils::isConstant(n);
 }
 
+TypeNode SubBagTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode SubBagTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_SUBBAG);
-  TypeNode bagType = n[0].getType(check);
+  Assert(n.getKind() == Kind::BAG_SUBBAG);
+  TypeNode bagType = n[0].getTypeOrNull();
   if (check)
   {
-    if (!bagType.isBag())
+    if (!bagType.isMaybeKind(Kind::BAG_TYPE))
     {
-      throw TypeCheckingExceptionPrivate(n, "BAG_SUBBAG operating on non-bag");
+      if (errOut)
+      {
+        (*errOut) << "BAG_SUBBAG operating on non-bag";
+      }
+      return TypeNode::null();
     }
-    TypeNode secondBagType = n[1].getType(check);
-    if (secondBagType != bagType)
+    TypeNode secondBagType = n[1].getTypeOrNull();
+    if (!secondBagType.isComparableTo(bagType))
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "BAG_SUBBAG operating on bags of different types");
+      if (errOut)
+      {
+        (*errOut) << "BAG_SUBBAG operating on bags of different types";
+      }
+      return TypeNode::null();
     }
   }
   return nodeManager->booleanType();
 }
 
+TypeNode CountTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return nm->integerType();
+}
 TypeNode CountTypeRule::computeType(NodeManager* nodeManager,
                                     TNode n,
                                     bool check,
                                     std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_COUNT);
-  TypeNode bagType = n[1].getType(check);
+  Assert(n.getKind() == Kind::BAG_COUNT);
+  TypeNode bagType = n[1].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "checking for membership in a non-bag");
+      if (errOut)
+      {
+        (*errOut) << "checking for membership in a non-bag";
+      }
+      return TypeNode::null();
     }
-    TypeNode elementType = n[0].getType(check);
+    TypeNode elementType = n[0].getTypeOrNull();
     // e.g. (bag.count 1 (bag (BagMakeOp Real) 1.0 3))) is 3 whereas
     // (bag.count 1.0 (bag (BagMakeOp Int) 1 3)) throws a typing error
     if (elementType != bagType.getBagElementType())
     {
-      std::stringstream ss;
-      ss << "member operating on bags of different types:\n"
-         << "child type:  " << elementType << "\n"
-         << "not type: " << bagType.getBagElementType() << "\n"
-         << "in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "member operating on bags of different types:\n"
+                  << "child type:  " << elementType << "\n"
+                  << "not type: " << bagType.getBagElementType() << "\n"
+                  << "in term : " << n;
+      }
+      return TypeNode::null();
     }
   }
   return nodeManager->integerType();
 }
 
+TypeNode MemberTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
 TypeNode MemberTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_MEMBER);
-  TypeNode bagType = n[1].getType(check);
+  Assert(n.getKind() == Kind::BAG_MEMBER);
+  TypeNode bagType = n[1].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "checking for membership in a non-bag");
+      if (errOut)
+      {
+        (*errOut) << "checking for membership in a non-bag";
+      }
+      return TypeNode::null();
     }
-    TypeNode elementType = n[0].getType(check);
+    TypeNode elementType = n[0].getTypeOrNull();
     // e.g. (bag.member 1 (bag 1.0 1)) is true whereas
     // (bag.member 1.0 (bag 1 1)) throws a typing error
     if (elementType != bagType.getBagElementType())
     {
-      std::stringstream ss;
-      ss << "member operating on bags of different types:\n"
-         << "child type:  " << elementType << "\n"
-         << "not type: " << bagType.getBagElementType() << "\n"
-         << "in term : " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "member operating on bags of different types:\n"
+                  << "child type:  " << elementType << "\n"
+                  << "not type: " << bagType.getBagElementType() << "\n"
+                  << "in term : " << n;
+      }
+      return TypeNode::null();
     }
   }
   return nodeManager->booleanType();
 }
 
-TypeNode DuplicateRemovalTypeRule::computeType(NodeManager* nodeManager,
-                                               TNode n,
-                                               bool check,
-                                               std::ostream* errOut)
+TypeNode SetofTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                       CVC5_UNUSED TNode n)
 {
-  Assert(n.getKind() == kind::BAG_DUPLICATE_REMOVAL);
-  TypeNode bagType = n[0].getType(check);
+  return TypeNode::null();
+}
+TypeNode SetofTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
+                                    TNode n,
+                                    bool check,
+                                    std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::BAG_SETOF);
+  TypeNode bagType = n[0].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      std::stringstream ss;
-      ss << "Applying BAG_DUPLICATE_REMOVAL on a non-bag argument in term "
-         << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Applying BAG_SETOF on a non-bag argument in term " << n;
+      }
+      return TypeNode::null();
     }
   }
   return bagType;
 }
 
+TypeNode BagMakeTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode BagMakeTypeRule::computeType(NodeManager* nm,
                                       TNode n,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_MAKE);
-  TypeNode actualElementType = n[0].getType(check);
+  Assert(n.getKind() == Kind::BAG_MAKE);
+  TypeNode actualElementType = n[0].getTypeOrNull();
   if (check)
   {
     if (n.getNumChildren() != 2)
     {
-      std::stringstream ss;
-      ss << "operands in term " << n << " are " << n.getNumChildren()
-         << ", but BAG_MAKE expects 2 operands.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "operands in term " << n << " are " << n.getNumChildren()
+                  << ", but BAG_MAKE expects 2 operands.";
+      }
+      return TypeNode::null();
     }
-    TypeNode type1 = n[1].getType(check);
+    TypeNode type1 = n[1].getTypeOrNull();
     if (!type1.isInteger())
     {
-      std::stringstream ss;
-      ss << "BAG_MAKE expects an integer for " << n[1] << ". Found" << type1;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "BAG_MAKE expects an integer for " << n[1] << ". Found"
+                  << type1;
+      }
+      return TypeNode::null();
     }
   }
 
   return nm->mkBagType(actualElementType);
 }
 
-bool BagMakeTypeRule::computeIsConst(NodeManager* nodeManager, TNode n)
+bool BagMakeTypeRule::computeIsConst(CVC5_UNUSED NodeManager* nodeManager,
+                                     TNode n)
 {
-  Assert(n.getKind() == kind::BAG_MAKE);
+  Assert(n.getKind() == Kind::BAG_MAKE);
   // for a bag to be a constant, both the element and its multiplicity should
   // be constants, and the multiplicity should be > 0.
   return n[0].isConst() && n[1].isConst()
          && n[1].getConst<Rational>().sgn() == 1;
 }
 
-TypeNode IsSingletonTypeRule::computeType(NodeManager* nodeManager,
-                                          TNode n,
-                                          bool check,
-                                          std::ostream* errOut)
+TypeNode EmptyBagTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                          CVC5_UNUSED TNode n)
 {
-  Assert(n.getKind() == kind::BAG_IS_SINGLETON);
-  TypeNode bagType = n[0].getType(check);
-  if (check)
-  {
-    if (!bagType.isBag())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "BAG_IS_SINGLETON operator expects a bag, a non-bag is found");
-    }
-  }
-  return nodeManager->booleanType();
+  return TypeNode::null();
 }
-
-TypeNode EmptyBagTypeRule::computeType(NodeManager* nodeManager,
+TypeNode EmptyBagTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                        TNode n,
-                                       bool check,
-                                       std::ostream* errOut)
+                                       CVC5_UNUSED bool check,
+                                       CVC5_UNUSED std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_EMPTY);
+  Assert(n.getKind() == Kind::BAG_EMPTY);
   EmptyBag emptyBag = n.getConst<EmptyBag>();
   return emptyBag.getType();
 }
 
+TypeNode CardTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return nm->integerType();
+}
 TypeNode CardTypeRule::computeType(NodeManager* nodeManager,
                                    TNode n,
                                    bool check,
                                    std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_CARD);
-  TypeNode bagType = n[0].getType(check);
+  Assert(n.getKind() == Kind::BAG_CARD);
+  TypeNode bagType = n[0].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "cardinality operates on a bag, non-bag object found");
+      if (errOut)
+      {
+        (*errOut) << "cardinality operates on a bag, non-bag object found";
+      }
+      return TypeNode::null();
     }
   }
   return nodeManager->integerType();
 }
 
-TypeNode ChooseTypeRule::computeType(NodeManager* nodeManager,
+TypeNode ChooseTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode ChooseTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_CHOOSE);
-  TypeNode bagType = n[0].getType(check);
+  Assert(n.getKind() == Kind::BAG_CHOOSE);
+  TypeNode bagType = n[0].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n, "BAG_CHOOSE operator expects a bag, a non-bag is found");
+      if (errOut)
+      {
+        (*errOut) << "BAG_CHOOSE operator expects a bag, a non-bag is found";
+      }
+      return TypeNode::null();
     }
   }
   return bagType.getBagElementType();
 }
 
-TypeNode FromSetTypeRule::computeType(NodeManager* nodeManager,
-                                      TNode n,
-                                      bool check,
-                                      std::ostream* errOut)
+TypeNode BagMapTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                        CVC5_UNUSED TNode n)
 {
-  Assert(n.getKind() == kind::BAG_FROM_SET);
-  TypeNode setType = n[0].getType(check);
-  if (check)
-  {
-    if (!setType.isSet())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "bag.from_set operator expects a set, a non-set is found");
-    }
-  }
-  TypeNode elementType = setType.getSetElementType();
-  TypeNode bagType = nodeManager->mkBagType(elementType);
-  return bagType;
+  return TypeNode::null();
 }
-
-TypeNode ToSetTypeRule::computeType(NodeManager* nodeManager,
-                                    TNode n,
-                                    bool check,
-                                    std::ostream* errOut)
-{
-  Assert(n.getKind() == kind::BAG_TO_SET);
-  TypeNode bagType = n[0].getType(check);
-  if (check)
-  {
-    if (!bagType.isBag())
-    {
-      throw TypeCheckingExceptionPrivate(
-          n, "bag.to_set operator expects a bag, a non-bag is found");
-    }
-  }
-  TypeNode elementType = bagType.getBagElementType();
-  TypeNode setType = nodeManager->mkSetType(elementType);
-  return setType;
-}
-
 TypeNode BagMapTypeRule::computeType(NodeManager* nodeManager,
                                      TNode n,
                                      bool check,
                                      std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_MAP);
-  TypeNode functionType = n[0].getType(check);
-  TypeNode bagType = n[1].getType(check);
+  Assert(n.getKind() == Kind::BAG_MAP);
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode bagType = n[1].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "bag.map operator expects a bag in the second argument, "
-          "a non-bag is found");
+      if (errOut)
+      {
+        (*errOut) << "bag.map operator expects a bag in the second argument, a "
+                     "non-bag is found";
+      }
+      return TypeNode::null();
     }
 
     TypeNode elementType = bagType.getBagElementType();
 
     if (!(functionType.isFunction()))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " *) as a first argument. "
-         << "Found a term of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " *) as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     if (!(argTypes.size() == 1 && argTypes[0] == elementType))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " *). "
-         << "Found a function of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " *). "
+                  << "Found a function of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
   }
-  TypeNode rangeType = n[0].getType().getRangeType();
+  TypeNode rangeType = n[0].getTypeOrNull().getRangeType();
   TypeNode retType = nodeManager->mkBagType(rangeType);
   return retType;
 }
 
-TypeNode BagFilterTypeRule::computeType(NodeManager* nodeManager,
+TypeNode BagFilterTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                           CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode BagFilterTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                         TNode n,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_FILTER);
-  TypeNode functionType = n[0].getType(check);
-  TypeNode bagType = n[1].getType(check);
+  Assert(n.getKind() == Kind::BAG_FILTER);
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode bagType = n[1].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "bag.filter operator expects a bag in the second argument, "
-          "a non-bag is found");
+      if (errOut)
+      {
+        (*errOut) << "bag.filter operator expects a bag in the second "
+                     "argument, a non-bag is found";
+      }
+      return TypeNode::null();
     }
 
     TypeNode elementType = bagType.getBagElementType();
 
     if (!(functionType.isFunction()))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " Bool) as a first argument. "
-         << "Found a term of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " Bool) as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
-    NodeManager* nm = NodeManager::currentNM();
     if (!(argTypes.size() == 1 && argTypes[0] == elementType
-          && functionType.getRangeType() == nm->booleanType()))
+          && functionType.getRangeType().isBoolean()))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " Bool). "
-         << "Found a function of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " Bool). "
+                  << "Found a function of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
   }
   return bagType;
 }
 
-TypeNode BagFoldTypeRule::computeType(NodeManager* nodeManager,
+TypeNode BagAllSomeTypeRule::preComputeType(NodeManager* nm,
+                                            CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
+
+bool checkFunctionTypeFor(const Node& n,
+                          const TypeNode& functionType,
+                          const TypeNode& bagType,
+                          std::ostream* errOut)
+{
+  // get the element type of the second argument, if it exists
+  TypeNode elementType;
+  if (bagType.isBag())
+  {
+    elementType = bagType.getBagElementType();
+  }
+  if (!functionType.isMaybeKind(Kind::FUNCTION_TYPE))
+  {
+    if (errOut)
+    {
+      (*errOut) << "Operator " << n.getKind()
+                << " expects a function as a first argument. "
+                << "Found a term of type '" << functionType << "'.";
+    }
+    return false;
+  }
+  // note that if functionType is abstract, we don't check whether it
+  // matches the argument.
+  if (functionType.isFunction())
+  {
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    if (!(argTypes.size() == 1
+          && (elementType.isNull() || argTypes[0].isComparableTo(elementType))))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function whose type is comparable to the "
+                     "type of elements in the set";
+        if (!elementType.isNull())
+        {
+          (*errOut) << " (" << elementType << ")";
+        }
+        (*errOut) << ". Found a function of type '" << functionType << "'.";
+      }
+      return false;
+    }
+  }
+  return true;
+}
+
+TypeNode BagAllSomeTypeRule::computeType(NodeManager* nodeManager,
+                                         TNode n,
+                                         bool check,
+                                         std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::BAG_ALL || n.getKind() == Kind::BAG_SOME);
+  std::string op = n.getKind() == Kind::BAG_ALL ? "bag.all" : "bag.some";
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode bagType = n[1].getTypeOrNull();
+  if (check)
+  {
+    if (!bagType.isMaybeKind(Kind::BAG_TYPE))
+    {
+      if (errOut)
+      {
+        (*errOut) << op
+                  << " operator expects a bag in the second "
+                     "argument, a non-bag is found";
+      }
+      return TypeNode::null();
+    }
+    if (!checkFunctionTypeFor(n, functionType, bagType, errOut))
+    {
+      return TypeNode::null();
+    }
+    if (functionType.isFunction())
+    {
+      TypeNode rangeType = functionType.getRangeType();
+      if (!rangeType.isBoolean() && !rangeType.isFullyAbstract())
+      {
+        if (errOut)
+        {
+          (*errOut) << "Operator " << op
+                    << " expects a function returning Bool.";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->booleanType();
+}
+
+TypeNode BagFoldTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                         CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode BagFoldTypeRule::computeType(CVC5_UNUSED NodeManager* nodeManager,
                                       TNode n,
                                       bool check,
                                       std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_FOLD);
-  TypeNode functionType = n[0].getType(check);
-  TypeNode initialValueType = n[1].getType(check);
-  TypeNode bagType = n[2].getType(check);
+  Assert(n.getKind() == Kind::BAG_FOLD);
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode initialValueType = n[1].getTypeOrNull();
+  TypeNode bagType = n[2].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "bag.fold operator expects a bag in the third argument, "
-          "a non-bag is found");
+      if (errOut)
+      {
+        (*errOut) << "bag.fold operator expects a bag in the third argument, a "
+                     "non-bag is found";
+      }
+      return TypeNode::null();
     }
 
     TypeNode elementType = bagType.getBagElementType();
 
     if (!(functionType.isFunction()))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " T2 T2) as a first argument. "
-         << "Found a term of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " T2 T2) as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
     if (!(argTypes.size() == 2 && argTypes[0] == elementType
           && argTypes[1] == rangeType))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " T2 T2). "
-         << "Found a function of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " T2 T2). "
+                  << "Found a function of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
     if (rangeType != initialValueType)
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects an initial value of type "
-         << rangeType << ". Found a term of type '" << initialValueType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects an initial value of type " << rangeType
+                  << ". Found a term of type '" << initialValueType << "'.";
+      }
+      return TypeNode::null();
     }
   }
-  TypeNode retType = n[0].getType().getRangeType();
+  TypeNode retType = n[0].getTypeOrNull().getRangeType();
   return retType;
 }
 
+TypeNode BagPartitionTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode BagPartitionTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::BAG_PARTITION);
-  TypeNode functionType = n[0].getType(check);
-  TypeNode bagType = n[1].getType(check);
-  NodeManager* nm = NodeManager::currentNM();
+  Assert(n.getKind() == Kind::BAG_PARTITION);
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode bagType = n[1].getTypeOrNull();
   if (check)
   {
     if (!bagType.isBag())
     {
-      throw TypeCheckingExceptionPrivate(
-          n,
-          "bag.partition operator expects a bag in the second argument, "
-          "a non-bag is found");
+      if (errOut)
+      {
+        (*errOut) << "bag.partition operator expects a bag in the second "
+                     "argument, a non-bag is found";
+      }
+      return TypeNode::null();
     }
 
     TypeNode elementType = bagType.getBagElementType();
 
     if (!(functionType.isFunction()))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " " << elementType << " Bool) as a first argument. "
-         << "Found a term of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType << " "
+                  << elementType << " Bool) as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
     if (!(argTypes.size() == 2 && elementType == argTypes[0]
-          && elementType == argTypes[1] && rangeType == nm->booleanType()))
+          && elementType == argTypes[1]
+          && rangeType == nodeManager->booleanType()))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " " << elementType << " Bool) as a first argument. "
-         << "Found a term of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType << " "
+                  << elementType << " Bool) as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
   }
-  TypeNode retType = nm->mkBagType(bagType);
+  TypeNode retType = nodeManager->mkBagType(bagType);
   return retType;
 }
 
+TypeNode TableProductTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
                                            TNode n,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_PRODUCT);
+  Assert(n.getKind() == Kind::TABLE_PRODUCT);
   Node A = n[0];
   Node B = n[1];
-  TypeNode typeA = n[0].getType(check);
-  TypeNode typeB = n[1].getType(check);
+  TypeNode typeA = n[0].getTypeOrNull();
+  TypeNode typeB = n[1].getTypeOrNull();
 
   if (check && !(typeA.isBag() && typeB.isBag()))
   {
-    std::stringstream ss;
-    ss << "Operator " << n.getKind() << " expects two bags. "
-       << "Found two terms of types '" << typeA << "' and '" << typeB
-       << "' respectively.";
-    throw TypeCheckingExceptionPrivate(n, ss.str());
+    if (errOut)
+    {
+      (*errOut) << "Operator " << n.getKind() << " expects two bags. "
+                << "Found two terms of types '" << typeA << "' and '" << typeB
+                << "' respectively.";
+    }
+    return TypeNode::null();
   }
 
   TypeNode elementAType = typeA.getBagElementType();
@@ -524,11 +696,14 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
 
   if (check && !(elementAType.isTuple() && elementBType.isTuple()))
   {
-    std::stringstream ss;
-    ss << "Operator " << n.getKind() << " expects two tables (bags of tuples). "
-       << "Found two terms of types '" << typeA << "' and '" << typeB
-       << "' respectively.";
-    throw TypeCheckingExceptionPrivate(n, ss.str());
+    if (errOut)
+    {
+      (*errOut) << "Operator " << n.getKind()
+                << " expects two tables (bags of tuples). "
+                << "Found two terms of types '" << typeA << "' and '" << typeB
+                << "' respectively.";
+    }
+    return TypeNode::null();
   }
 
   TypeNode retTupleType =
@@ -537,41 +712,52 @@ TypeNode TableProductTypeRule::computeType(NodeManager* nodeManager,
   return retType;
 }
 
+TypeNode TableProjectTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode TableProjectTypeRule::computeType(NodeManager* nm,
                                            TNode n,
                                            bool check,
                                            std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_PROJECT && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_PROJECT_OP);
+  Assert(n.getKind() == Kind::TABLE_PROJECT && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_PROJECT_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
-  TypeNode bagType = n[0].getType(check);
+  TypeNode bagType = n[0].getTypeOrNull();
   if (check)
   {
     if (n.getNumChildren() != 1)
     {
-      std::stringstream ss;
-      ss << "operands in term " << n << " are " << n.getNumChildren()
-         << ", but TABLE_PROJECT expects 1 operand.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "operands in term " << n << " are " << n.getNumChildren()
+                  << ", but TABLE_PROJECT expects 1 operand.";
+      }
+      return TypeNode::null();
     }
 
     if (!bagType.isBag())
     {
-      std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[0]
-         << "' of type '" << bagType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_PROJECT operator expects a table. Found '" << n[0]
+                  << "' of type '" << bagType << "'.";
+      }
+      return TypeNode::null();
     }
 
     TypeNode tupleType = bagType.getBagElementType();
     if (!tupleType.isTuple())
     {
-      std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[0]
-         << "' of type '" << bagType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_PROJECT operator expects a table. Found '" << n[0]
+                  << "' of type '" << bagType << "'.";
+      }
+      return TypeNode::null();
     }
 
     // make sure all indices are less than the length of the tuple type
@@ -580,12 +766,15 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm,
     size_t numArgs = constructor.getNumArgs();
     for (uint32_t index : indices)
     {
-      std::stringstream ss;
       if (index >= numArgs)
       {
-        ss << "Index " << index << " in term " << n << " is >= " << numArgs
-           << " which is the number of columns in " << n[0] << ".";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
+        if (errOut)
+        {
+          (*errOut) << "Index " << index << " in term " << n
+                    << " is >= " << numArgs
+                    << " which is the number of columns in " << n[0] << ".";
+        }
+        return TypeNode::null();
       }
     }
   }
@@ -595,119 +784,173 @@ TypeNode TableProjectTypeRule::computeType(NodeManager* nm,
   return nm->mkBagType(retTupleType);
 }
 
+TypeNode TableAggregateTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode TableAggregateTypeRule::computeType(NodeManager* nm,
                                              TNode n,
                                              bool check,
                                              std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_AGGREGATE && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_AGGREGATE_OP);
+  Assert(n.getKind() == Kind::TABLE_AGGREGATE && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_AGGREGATE_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
-  TypeNode functionType = n[0].getType(check);
-  TypeNode initialValueType = n[1].getType(check);
-  TypeNode bagType = n[2].getType(check);
+  TypeNode functionType = n[0].getTypeOrNull();
+  TypeNode initialValueType = n[1].getTypeOrNull();
+  TypeNode bagType = n[2].getTypeOrNull();
 
   if (check)
   {
     if (!bagType.isBag())
     {
-      std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[2]
-         << "' of type '" << bagType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_PROJECT operator expects a table. Found '" << n[2]
+                  << "' of type '" << bagType << "'.";
+      }
+      return TypeNode::null();
     }
 
     TypeNode tupleType = bagType.getBagElementType();
     if (!tupleType.isTuple())
     {
-      std::stringstream ss;
-      ss << "TABLE_PROJECT operator expects a table. Found '" << n[2]
-         << "' of type '" << bagType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_PROJECT operator expects a table. Found '" << n[2]
+                  << "' of type '" << bagType << "'.";
+      }
+      return TypeNode::null();
     }
 
-    TupleUtils::checkTypeIndices(n, tupleType, indices);
+    if (!TupleUtils::checkTypeIndices(tupleType, indices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its argument";
+      }
+      return TypeNode::null();
+    }
 
     TypeNode elementType = bagType.getBagElementType();
 
     if (!(functionType.isFunction()))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " T T) as a first argument. "
-         << "Found a term of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " T T) as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
     std::vector<TypeNode> argTypes = functionType.getArgTypes();
     TypeNode rangeType = functionType.getRangeType();
     if (!(argTypes.size() == 2 && argTypes[0] == elementType
           && argTypes[1] == rangeType))
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects a function of type  (-> "
-         << elementType << " T T). "
-         << "Found a function of type '" << functionType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function of type  (-> " << elementType
+                  << " T T). "
+                  << "Found a function of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
     }
     if (rangeType != initialValueType)
     {
-      std::stringstream ss;
-      ss << "Operator " << n.getKind() << " expects an initial value of type "
-         << rangeType << ". Found a term of type '" << initialValueType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects an initial value of type " << rangeType
+                  << ". Found a term of type '" << initialValueType << "'.";
+      }
+      return TypeNode::null();
     }
   }
   return nm->mkBagType(functionType.getRangeType());
 }
 
+TypeNode TableJoinTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                           CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
                                         TNode n,
                                         bool check,
                                         std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_JOIN && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_JOIN_OP);
+  Assert(n.getKind() == Kind::TABLE_JOIN && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_JOIN_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
   Node A = n[0];
   Node B = n[1];
-  TypeNode aType = A.getType();
-  TypeNode bType = B.getType();
+  TypeNode aType = A.getTypeOrNull();
+  TypeNode bType = B.getTypeOrNull();
 
   if (check)
   {
     if (!(aType.isBag() && bType.isBag()))
     {
-      std::stringstream ss;
-      ss << "TABLE_JOIN operator expects two tables. Found '" << n[0] << "', '"
-         << n[1] << "' of types '" << aType << "', '" << bType
-         << "' respectively. ";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_JOIN operator expects two tables. Found '" << n[0]
+                  << "', '" << n[1] << "' of types '" << aType << "', '"
+                  << bType << "' respectively. ";
+      }
+      return TypeNode::null();
     }
 
     TypeNode aTupleType = aType.getBagElementType();
     TypeNode bTupleType = bType.getBagElementType();
     if (!(aTupleType.isTuple() && bTupleType.isTuple()))
     {
-      std::stringstream ss;
-      ss << "TABLE_JOIN operator expects two tables. Found '" << n[0] << "', '"
-         << n[1] << "' of types '" << aType << "', '" << bType
-         << "' respectively. ";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_JOIN operator expects two tables. Found '" << n[0]
+                  << "', '" << n[1] << "' of types '" << aType << "', '"
+                  << bType << "' respectively. ";
+      }
+      return TypeNode::null();
     }
 
     if (indices.size() % 2 != 0)
     {
-      std::stringstream ss;
-      ss << "TABLE_JOIN operator expects even number of indices. Found "
-         << indices.size() << " in term " << n;
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut)
+            << "TABLE_JOIN operator expects even number of indices. Found "
+            << indices.size() << " in term " << n;
+      }
+      return TypeNode::null();
     }
     auto [aIndices, bIndices] = BagsUtils::splitTableJoinIndices(n);
-    TupleUtils::checkTypeIndices(n, aTupleType, aIndices);
-    TupleUtils::checkTypeIndices(n, bTupleType, bIndices);
+    if (!TupleUtils::checkTypeIndices(aTupleType, aIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its first argument";
+      }
+      return TypeNode::null();
+    }
+    if (!TupleUtils::checkTypeIndices(bTupleType, bIndices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its second argument";
+      }
+      return TypeNode::null();
+    }
 
     // check the types of columns
     std::vector<TypeNode> aTypes = aTupleType.getTupleTypes();
@@ -716,13 +959,15 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
     {
       if (aTypes[aIndices[i]] != bTypes[bIndices[i]])
       {
-        std::stringstream ss;
-        ss << "TABLE_JOIN operator expects column " << aIndices[i]
-           << " in table " << n[0] << " to match column " << bIndices[i]
-           << " in table " << n[1] << ". But their types are "
-           << aTypes[aIndices[i]] << " and " << bTypes[bIndices[i]]
-           << "' respectively. ";
-        throw TypeCheckingExceptionPrivate(n, ss.str());
+        if (errOut)
+        {
+          (*errOut) << "TABLE_JOIN operator expects column " << aIndices[i]
+                    << " in table " << n[0] << " to match column "
+                    << bIndices[i] << " in table " << n[1]
+                    << ". But their types are " << aTypes[aIndices[i]]
+                    << " and " << bTypes[bIndices[i]] << "' respectively. ";
+        }
+        return TypeNode::null();
       }
     }
   }
@@ -732,43 +977,60 @@ TypeNode TableJoinTypeRule::computeType(NodeManager* nm,
   return nm->mkBagType(retTupleType);
 }
 
+TypeNode TableGroupTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                            CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
 TypeNode TableGroupTypeRule::computeType(NodeManager* nm,
                                          TNode n,
                                          bool check,
                                          std::ostream* errOut)
 {
-  Assert(n.getKind() == kind::TABLE_GROUP && n.hasOperator()
-         && n.getOperator().getKind() == kind::TABLE_GROUP_OP);
+  Assert(n.getKind() == Kind::TABLE_GROUP && n.hasOperator()
+         && n.getOperator().getKind() == Kind::TABLE_GROUP_OP);
   ProjectOp op = n.getOperator().getConst<ProjectOp>();
   const std::vector<uint32_t>& indices = op.getIndices();
 
-  TypeNode bagType = n[0].getType(check);
+  TypeNode bagType = n[0].getTypeOrNull();
 
   if (check)
   {
     if (!bagType.isBag())
     {
-      std::stringstream ss;
-      ss << "TABLE_GROUP operator expects a table. Found '" << n[0]
-         << "' of type '" << bagType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_GROUP operator expects a table. Found '" << n[0]
+                  << "' of type '" << bagType << "'.";
+      }
+      return TypeNode::null();
     }
 
     TypeNode tupleType = bagType.getBagElementType();
     if (!tupleType.isTuple())
     {
-      std::stringstream ss;
-      ss << "TABLE_GROUP operator expects a table. Found '" << n[0]
-         << "' of type '" << bagType << "'.";
-      throw TypeCheckingExceptionPrivate(n, ss.str());
+      if (errOut)
+      {
+        (*errOut) << "TABLE_GROUP operator expects a table. Found '" << n[0]
+                  << "' of type '" << bagType << "'.";
+      }
+      return TypeNode::null();
     }
 
-    TupleUtils::checkTypeIndices(n, tupleType, indices);
+    if (!TupleUtils::checkTypeIndices(tupleType, indices))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Index in operator of " << n
+                  << " is out of range for the type of its argument";
+      }
+      return TypeNode::null();
+    }
   }
   return nm->mkBagType(bagType);
 }
 
-Cardinality BagsProperties::computeCardinality(TypeNode type)
+Cardinality BagsProperties::computeCardinality(CVC5_UNUSED TypeNode type)
 {
   return Cardinality::INTEGERS;
 }
@@ -781,7 +1043,7 @@ bool BagsProperties::isWellFounded(TypeNode type)
 Node BagsProperties::mkGroundTerm(TypeNode type)
 {
   Assert(type.isBag());
-  return NodeManager::currentNM()->mkConst(EmptyBag(type));
+  return type.getNodeManager()->mkConst(EmptyBag(type));
 }
 }  // namespace bags
 }  // namespace theory

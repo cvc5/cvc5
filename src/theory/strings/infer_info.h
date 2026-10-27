@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Mudathir Mohamed, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -47,7 +44,18 @@ enum LengthStatus
   LENGTH_GEQ_ONE
 };
 
-class InferenceManager;
+class InferInfo;
+
+class InferSideEffectProcess
+{
+ public:
+  InferSideEffectProcess() {}
+  virtual ~InferSideEffectProcess() {}
+  /** Process lemma */
+  virtual TrustNode processLemma(InferInfo& ii, LemmaProperty& p) = 0;
+  /** Called when ii is ready to be processed as a fact */
+  virtual void processFact(InferInfo& ii, ProofGenerator*& pg) = 0;
+};
 
 /**
  * An inference. This is a class to track an unprocessed call to either
@@ -80,7 +88,7 @@ class InferInfo : public TheoryInference
   /** Process internal fact */
   Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
   /** Pointer to the class used for processing this info */
-  InferenceManager* d_sim;
+  InferSideEffectProcess* d_sim;
   /** Whether it is the reverse form of the above id */
   bool d_idRev;
   /** The conclusion */
@@ -126,7 +134,7 @@ class InferInfo : public TheoryInference
    */
   bool isFact() const;
   /** Get premises */
-  Node getPremises() const;
+  Node getPremises(NodeManager* nm) const;
 };
 
 /**

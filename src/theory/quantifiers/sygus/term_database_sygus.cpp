@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,9 +15,9 @@
 #include <sstream>
 
 #include "base/check.h"
+#include "expr/bound_var_manager.h"
 #include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
-#include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -51,109 +48,31 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs, OracleChecker* oc)
+TermDbSygus::TermDbSygus(Env& env, QuantifiersState& qs)
     : EnvObj(env),
       d_qstate(qs),
       d_syexp(new SygusExplain(env, this)),
       d_funDefEval(new FunDefEvaluator(env)),
       d_eval_unfold(new SygusEvalUnfold(env, this)),
-      d_ochecker(oc)
+      d_ochecker(env.getOracleChecker())
 {
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_true = nodeManager()->mkConst(true);
+  d_false = nodeManager()->mkConst(false);
 }
 
 void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
 
-bool TermDbSygus::reset( Theory::Effort e ) { 
-  return true;  
-}
+bool TermDbSygus::reset(CVC5_UNUSED Theory::Effort e) { return true; }
 
-TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
-  unsigned sindex = 0;
-  TypeNode vtn = tn;
-  TypeNode builtinType = tn;
-  if (tn.isDatatype())
-  {
-    const DType& dt = tn.getDType();
-    if (!dt.getSygusType().isNull())
-    {
-      builtinType = dt.getSygusType();
-      if (useSygusType)
-      {
-        vtn = builtinType;
-        sindex = 1;
-      }
-    }
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  while( i>=(int)d_fv[sindex][tn].size() ){
-    std::stringstream ss;
-    if( tn.isDatatype() ){
-      const DType& dt = tn.getDType();
-      ss << "fv_" << dt.getName() << "_" << i;
-    }else{
-      ss << "fv_" << tn << "_" << i;
-    }
-    Assert(!vtn.isNull());
-    Node v = nm->mkBoundVar(ss.str(), vtn);
-    // store its id, which is unique per builtin type, regardless of how it is
-    // otherwise cached.
-    d_fvId[v] = d_fvTypeIdCounter[builtinType];
-    d_fvTypeIdCounter[builtinType]++;
-    Trace("sygus-db-debug") << "Free variable id " << v << " = " << d_fvId[v]
-                            << ", " << builtinType << std::endl;
-    d_fv[sindex][tn].push_back( v );
-  }
-  return d_fv[sindex][tn][i];
-}
-
-TNode TermDbSygus::getFreeVarInc( TypeNode tn, std::map< TypeNode, int >& var_count, bool useSygusType ) {
-  std::map< TypeNode, int >::iterator it = var_count.find( tn );
-  if( it==var_count.end() ){
-    var_count[tn] = 1;
-    return getFreeVar( tn, 0, useSygusType );
-  }else{
-    int index = it->second;
-    var_count[tn]++;
-    return getFreeVar( tn, index, useSygusType );
-  }
-}
-
-bool TermDbSygus::isFreeVar(Node n) const
+TNode TermDbSygus::getFreeVar(const TypeNode& tn, size_t i)
 {
-  return d_fvId.find(n) != d_fvId.end();
+  return d_fv.getFreeVar(tn, i);
 }
-size_t TermDbSygus::getFreeVarId(Node n) const
+
+TNode TermDbSygus::getFreeVarInc(const TypeNode& tn,
+                                 std::map<TypeNode, size_t>& var_count)
 {
-  std::map<Node, size_t>::const_iterator it = d_fvId.find(n);
-  if (it == d_fvId.end())
-  {
-    Assert(false) << "TermDbSygus::isFreeVar: " << n
-                  << " is not a cached free variable.";
-    return 0;
-  }
-  return it->second;
-}
-
-bool TermDbSygus::hasFreeVar( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    if( isFreeVar( n ) ){
-      return true;    
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( hasFreeVar( n[i], visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermDbSygus::hasFreeVar( Node n ) {
-  std::map< Node, bool > visited;
-  return hasFreeVar( n, visited );
+  return d_fv.getFreeVarInc(tn, var_count);
 }
 
 Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
@@ -167,19 +86,18 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
   {
     SygusTypeInfo& ti = getTypeInfo(tn);
     int anyC = ti.getAnyConstantConsNum();
-    NodeManager* nm = NodeManager::currentNM();
+    NodeManager* nm = nodeManager();
     Node k;
     if (anyC == -1)
     {
-      SkolemManager* sm = nm->getSkolemManager();
-      k = sm->mkDummySkolem("sy", tn, "sygus proxy");
+      k = NodeManager::mkDummySkolem("sy", tn);
       SygusPrintProxyAttribute spa;
       k.setAttribute(spa, c);
     }
     else
     {
       const DType& dt = tn.getDType();
-      k = nm->mkNode(APPLY_CONSTRUCTOR, dt[anyC].getConstructor(), c);
+      k = nm->mkNode(Kind::APPLY_CONSTRUCTOR, dt[anyC].getConstructor(), c);
     }
     d_proxy_vars[tn][c] = k;
     return k;
@@ -189,31 +107,38 @@ Node TermDbSygus::getProxyVariable(TypeNode tn, Node c)
 
 Node TermDbSygus::mkGeneric(const DType& dt,
                             unsigned c,
-                            std::map<TypeNode, int>& var_count,
+                            std::map<TypeNode, size_t>& var_count,
                             std::map<int, Node>& pre,
                             bool doBetaRed)
 {
   Assert(c < dt.getNumConstructors());
   Assert(dt.isSygus());
   Assert(!dt[c].getSygusOp().isNull());
-  std::vector< Node > children;
+  std::vector<Node> children;
   Trace("sygus-db-debug") << "mkGeneric " << dt.getName() << " " << c << "..."
                           << std::endl;
   for (unsigned i = 0, nargs = dt[c].getNumArgs(); i < nargs; i++)
   {
     Node a;
-    std::map< int, Node >::iterator it = pre.find( i );
-    if( it!=pre.end() ){
+    std::map<int, Node>::iterator it = pre.find(i);
+    if (it != pre.end())
+    {
       a = it->second;
       Trace("sygus-db-debug") << "From pre: " << a << std::endl;
-    }else{
+    }
+    else
+    {
       TypeNode tna = dt[c].getArgType(i);
-      a = getFreeVarInc( tna, var_count, true );
+      a = getFreeVarInc(tna, var_count);
+      if (tna.isSygusDatatype())
+      {
+        a = getBuiltinFreeVarFor(a);
+      }
     }
     Trace("sygus-db-debug")
         << "  child " << i << " : " << a << " : " << a.getType() << std::endl;
     Assert(!a.isNull());
-    children.push_back( a );
+    children.push_back(a);
   }
   Node ret = datatypes::utils::mkSygusTerm(dt, c, children, doBetaRed);
   Trace("sygus-db-debug") << "mkGeneric returns " << ret << std::endl;
@@ -225,7 +150,7 @@ Node TermDbSygus::mkGeneric(const DType& dt,
                             std::map<int, Node>& pre,
                             bool doBetaRed)
 {
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   return mkGeneric(dt, c, var_count, pre, doBetaRed);
 }
 
@@ -243,11 +168,11 @@ using CanonizeBuiltinAttribute =
 
 Node TermDbSygus::canonizeBuiltin(Node n)
 {
-  std::map<TypeNode, int> var_count;
+  std::map<TypeNode, size_t> var_count;
   return canonizeBuiltin(n, var_count);
 }
 
-Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
+Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, size_t>& var_count)
 {
   // has it already been computed?
   if (var_count.empty() && n.hasAttribute(CanonizeBuiltinAttribute()))
@@ -259,17 +184,22 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   Trace("sygus-db-canon") << "  CanonizeBuiltin : compute for " << n << "\n";
   Node ret = n;
   // it is symbolic if it represents "any constant"
-  if (n.getKind() == APPLY_SELECTOR)
+  if (n.getKind() == Kind::APPLY_SELECTOR)
   {
-    ret = getFreeVarInc(n[0].getType(), var_count, true);
+    TypeNode tn = n[0].getType();
+    ret = getFreeVarInc(tn, var_count);
+    if (tn.isSygusDatatype())
+    {
+      ret = getBuiltinFreeVarFor(ret);
+    }
   }
-  else if (n.getKind() != APPLY_CONSTRUCTOR)
+  else if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
     ret = n;
   }
   else
   {
-    Assert(n.getKind() == APPLY_CONSTRUCTOR);
+    Assert(n.getKind() == Kind::APPLY_CONSTRUCTOR);
     bool childChanged = false;
     std::vector<Node> children;
     children.push_back(n.getOperator());
@@ -281,7 +211,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
     }
     if (childChanged)
     {
-      ret = NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
+      ret = nodeManager()->mkNode(Kind::APPLY_CONSTRUCTOR, children);
     }
   }
   // cache if we had a fresh variable count
@@ -291,7 +221,7 @@ Node TermDbSygus::canonizeBuiltin(Node n, std::map<TypeNode, int>& var_count)
   }
   Trace("sygus-db-canon") << "  ...normalized " << n << " --> " << ret
                           << std::endl;
-  Assert(ret.getType() == n.getType());
+  AssertEqual(ret.getType(), n.getType());
   return ret;
 }
 
@@ -325,7 +255,7 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
   {
     return n;
   }
-  if (n.getKind() == APPLY_CONSTRUCTOR)
+  if (n.getKind() == Kind::APPLY_CONSTRUCTOR)
   {
     unsigned i = datatypes::utils::indexOf(n.getOperator());
     Assert(n.getNumChildren() == dt[i].getNumArgs());
@@ -348,15 +278,22 @@ Node TermDbSygus::sygusToBuiltin(Node n, TypeNode tn)
     // this variable was associated by an attribute to a builtin node
     return n.getAttribute(SygusPrintProxyAttribute());
   }
-  Assert(isFreeVar(n));
-  // map to builtin variable type
-  size_t fv_num = getFreeVarId(n);
-  Assert(!dt.getSygusType().isNull());
-  TypeNode vtn = dt.getSygusType();
-  Node ret = getFreeVar(vtn, fv_num);
+  // It should be a free variable allocated by this class.
+  Assert(d_fv.isFreeVar(n));
+  Node ret = getBuiltinFreeVarFor(n);
   Trace("sygus-db-debug") << "SygusToBuiltin: variable for " << n << " is "
-                          << ret << ", fv_num=" << fv_num << std::endl;
+                          << ret << std::endl;
   return ret;
+}
+
+Node TermDbSygus::getBuiltinFreeVarFor(const Node& v)
+{
+  Assert(d_fv.isFreeVar(v));
+  const TypeNode& tn = v.getType();
+  Assert(tn.isSygusDatatype());
+  const TypeNode& vtn = tn.getDType().getSygusType();
+  BoundVarManager* bvm = nodeManager()->getBoundVarManager();
+  return bvm->mkBoundVar(BoundVarId::QUANT_SYGUS_BUILTIN_FV, v, vtn);
 }
 
 bool TermDbSygus::registerSygusType(TypeNode tn)
@@ -400,7 +337,7 @@ void TermDbSygus::registerEnumerator(Node e,
   registerSygusType(et);
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = nodeManager();
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
@@ -550,7 +487,7 @@ void TermDbSygus::registerEnumerator(Node e,
   // values for arguments of any-constant constructors (in sygus_explain.cpp),
   // hence those blocking lemmas are refutation unsound. For simplicity, we
   // mark unsound once and for all at the beginning, meaning we do not
-  // answer "infeasible" when using smart enuemration + any-constant
+  // answer "infeasible" when using smart enumeration + any-constant
   // constructors. Using --sygus-repair-const on the other hand avoids this
   // incompleteness, which is checked here.
   if (!isActiveGen && usingAnyConst && !options().quantifiers.sygusRepairConst)
@@ -558,25 +495,53 @@ void TermDbSygus::registerEnumerator(Node e,
     Assert(d_qim != nullptr);
     d_qim->setRefutationUnsound(
         IncompleteId::QUANTIFIERS_SYGUS_SMART_BLOCK_ANY_CONSTANT);
+    Warning()
+        << "Warning: The SyGuS solver is incomplete when symbolic constants "
+           "are used in grammars and --sygus-repair-const is disabled."
+        << std::endl;
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
-
   // We make an active guard if we will be explicitly blocking solutions for
   // the enumerator. This is the case if the role of the enumerator is to
   // populate a pool of terms, or (some cases) of when it is actively generated.
   if (isActiveGen || erole == ROLE_ENUM_POOL)
   {
-    SkolemManager* sm = nm->getSkolemManager();
     // make the guard
-    Node ag = sm->mkDummySkolem("eG", nm->booleanType());
+    Node ag = NodeManager::mkDummySkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
     ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
-    Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_qim->requirePhase(ag, true);
+    Node lem = nm->mkNode(Kind::OR, ag, ag.negate());
+    d_qim->preferPhase(ag, true);
     d_qim->lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
+  }
+  // for debugging
+  if (d_env.isOutputOn(OutputTag::SYGUS_ENUMERATOR))
+  {
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << "(sygus-enumerator";
+    if (!f.isNull())
+    {
+      Assert(f.getInternalSkolemId()
+             == InternalSkolemId::QUANTIFIERS_SYNTH_FUN_EMBED);
+      std::vector<Node> ski = f.getSkolemIndices();
+      // get the argument, which is stored after the internal identifier
+      Assert(ski.size() == 2);
+      d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :synth-fun " << ski[1];
+    }
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :role " << erole;
+    std::stringstream ss;
+    if (isActiveGen)
+    {
+      ss << (d_enum_var_agnostic[e] ? "VAR_AGNOSTIC" : "FAST");
+    }
+    else
+    {
+      ss << "SMART";
+    }
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << " :type " << ss.str();
+    d_env.output(OutputTag::SYGUS_ENUMERATOR) << ")" << std::endl;
   }
 }
 
@@ -589,7 +554,8 @@ SynthConjecture* TermDbSygus::getConjectureForEnumerator(Node e) const
 {
   std::map<Node, SynthConjecture*>::const_iterator itm =
       d_enum_to_conjecture.find(e);
-  if (itm != d_enum_to_conjecture.end()) {
+  if (itm != d_enum_to_conjecture.end())
+  {
     return itm->second;
   }
   return nullptr;
@@ -608,7 +574,8 @@ Node TermDbSygus::getSynthFunForEnumerator(Node e) const
 Node TermDbSygus::getActiveGuardForEnumerator(Node e) const
 {
   std::map<Node, Node>::const_iterator itag = d_enum_to_active_guard.find(e);
-  if (itag != d_enum_to_active_guard.end()) {
+  if (itag != d_enum_to_active_guard.end())
+  {
     return itag->second;
   }
   return Node::null();
@@ -661,7 +628,7 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
        itm != d_enum_to_conjecture.end();
        ++itm)
   {
-    mts.push_back( itm->first );
+    mts.push_back(itm->first);
   }
 }
 
@@ -724,7 +691,8 @@ bool TermDbSygus::isRegistered(TypeNode tn) const
   return d_tinfo.find(tn) != d_tinfo.end();
 }
 
-TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
+TypeNode TermDbSygus::sygusToBuiltinType(TypeNode tn)
+{
   std::map<TypeNode, SygusTypeInfo>::iterator it = d_tinfo.find(tn);
   Assert(it != d_tinfo.end());
   return it->second.getBuiltinType();
@@ -841,11 +809,16 @@ TypeNode TermDbSygus::getArgType(const DTypeConstructor& c, unsigned i) const
 bool TermDbSygus::isTypeMatch(const DTypeConstructor& c1,
                               const DTypeConstructor& c2)
 {
-  if( c1.getNumArgs()!=c2.getNumArgs() ){
+  if (c1.getNumArgs() != c2.getNumArgs())
+  {
     return false;
-  }else{
-    for( unsigned i=0; i<c1.getNumArgs(); i++ ){
-      if( getArgType( c1, i )!=getArgType( c2, i ) ){
+  }
+  else
+  {
+    for (unsigned i = 0; i < c1.getNumArgs(); i++)
+    {
+      if (!CVC5_EQUAL(getArgType(c1, i), getArgType(c2, i)))
+      {
         return false;
       }
     }
@@ -855,7 +828,7 @@ bool TermDbSygus::isTypeMatch(const DTypeConstructor& c1,
 
 bool TermDbSygus::isSymbolicConsApp(Node n) const
 {
-  if (n.getKind() != APPLY_CONSTRUCTOR)
+  if (n.getKind() != Kind::APPLY_CONSTRUCTOR)
   {
     return false;
   }
@@ -864,15 +837,13 @@ bool TermDbSygus::isSymbolicConsApp(Node n) const
   const DType& dt = tn.getDType();
   Assert(dt.isSygus());
   unsigned cindex = datatypes::utils::indexOf(n.getOperator());
-  Node sygusOp = dt[cindex].getSygusOp();
   // it is symbolic if it represents "any constant"
-  return sygusOp.getAttribute(SygusAnyConstAttribute());
+  return dt[cindex].isSygusAnyConstant();
 }
 
 bool TermDbSygus::canConstructKind(TypeNode tn,
                                    Kind k,
-                                   std::vector<TypeNode>& argts,
-                                   bool aggr)
+                                   std::vector<TypeNode>& argts)
 {
   Assert(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);
@@ -893,17 +864,17 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
   }
   if (sygusToBuiltinType(tn).isBoolean())
   {
-    if (k == ITE)
+    if (k == Kind::ITE)
     {
       // ite( b1, b2, b3 ) <---- and( or( ~b1, b2 ), or( b1, b3 ) )
       std::vector<TypeNode> conj_types;
-      if (canConstructKind(tn, AND, conj_types, true) && conj_types.size() == 2)
+      if (canConstructKind(tn, Kind::AND, conj_types) && conj_types.size() == 2)
       {
         bool success = true;
         std::vector<TypeNode> disj_types[2];
         for (unsigned cc = 0; cc < 2; cc++)
         {
-          if (!canConstructKind(conj_types[cc], OR, disj_types[cc], true)
+          if (!canConstructKind(conj_types[cc], Kind::OR, disj_types[cc])
               || disj_types[cc].size() != 2)
           {
             success = false;
@@ -919,7 +890,8 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
               TypeNode dtn = disj_types[r][d];
               // must have negation that occurs in the other conjunct
               std::vector<TypeNode> ntypes;
-              if (canConstructKind(dtn, NOT, ntypes) && ntypes.size() == 1)
+              if (canConstructKind(dtn, Kind::NOT, ntypes)
+                  && ntypes.size() == 1)
               {
                 TypeNode ntn = ntypes[0];
                 for (unsigned dd = 0, inner_size = disj_types[1 - r].size();
@@ -958,42 +930,11 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
   return false;
 }
 
-bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
-    Kind k = n.getKind();
-    if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
-        k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
-      if( n[1].isConst() ){
-        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
-        {
-          return true;
-        }
-      }else{
-        // if it has free variables it might be a non-zero constant
-        if( !hasFreeVar( n[1] ) ){
-          return true;
-        }
-      }
-    }
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( involvesDivByZero( n[i], visited ) ){
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-bool TermDbSygus::involvesDivByZero( Node n ) {
-  std::map< Node, bool > visited;
-  return involvesDivByZero( n, visited );
-}
-
-Node TermDbSygus::getAnchor( Node n ) {
-  if (n.getKind() == APPLY_SELECTOR)
+Node TermDbSygus::getAnchor(Node n)
+{
+  if (n.getKind() == Kind::APPLY_SELECTOR)
   {
-    return getAnchor( n[0] );
+    return getAnchor(n[0]);
   }
   else
   {
@@ -1001,10 +942,11 @@ Node TermDbSygus::getAnchor( Node n ) {
   }
 }
 
-unsigned TermDbSygus::getAnchorDepth( Node n ) {
-  if (n.getKind() == APPLY_SELECTOR)
+unsigned TermDbSygus::getAnchorDepth(Node n)
+{
+  if (n.getKind() == Kind::APPLY_SELECTOR)
   {
-    return 1+getAnchorDepth( n[0] );
+    return 1 + getAnchorDepth(n[0]);
   }
   else
   {
@@ -1048,7 +990,7 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
 
 bool TermDbSygus::isEvaluationPoint(Node n) const
 {
-  if (n.getKind() != DT_SYGUS_EVAL)
+  if (n.getKind() != Kind::DT_SYGUS_EVAL)
   {
     return false;
   }

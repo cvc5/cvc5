@@ -1,3 +1,4 @@
+
 (set-logic UFNIA)
 (set-info :source |
     VCC and HAVOC benchmarks.  Contributed by Nikolaj Bjorner, Leonardo de Moura,

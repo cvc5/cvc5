@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-ext-tf-tplanes
 ; EXPECT: unsat
 (set-logic QF_NRAT)

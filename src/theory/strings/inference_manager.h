@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -70,7 +67,8 @@ namespace strings {
  * theory of strings, e.g. sendPhaseRequirement, setModelUnsound, and
  * with the extended theory object e.g. markCongruent.
  */
-class InferenceManager : public InferenceManagerBuffered
+class InferenceManager : public InferSideEffectProcess,
+                         public InferenceManagerBuffered
 {
   typedef context::CDHashSet<Node> NodeSet;
   typedef context::CDHashMap<Node, Node> NodeNodeMap;
@@ -84,15 +82,6 @@ class InferenceManager : public InferenceManagerBuffered
                    ExtTheory& e,
                    SequencesStatistics& statistics);
   ~InferenceManager() {}
-
-  /**
-   * Do pending method. This processes all pending facts, lemmas and pending
-   * phase requests based on the policy of this manager. This means that
-   * we process the pending facts first and abort if in conflict. Otherwise, we
-   * process the pending lemmas and then the pending phase requirements.
-   * Notice that we process the pending lemmas even if there were facts.
-   */
-  void doPending();
 
   /** send internal inferences
    *
@@ -212,12 +201,6 @@ class InferenceManager : public InferenceManagerBuffered
   /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp) const;
   //----------------------------end constructing antecedants
-  /**
-   * Have we processed an inference during this call to check? In particular,
-   * this returns true if we have a pending fact or lemma, or have encountered
-   * a conflict.
-   */
-  bool hasProcessed() const;
 
   // ------------------------------------------------- extended theory
   /**
@@ -234,12 +217,12 @@ class InferenceManager : public InferenceManagerBuffered
    * (if it exists), and sends it on the output channel.
    */
   void processConflict(const InferInfo& ii);
+  /** Called when ii is ready to be processed as a fact */
+  void processFact(InferInfo& ii, ProofGenerator*& pg) override;
+  /** Called when ii is ready to be processed as a lemma */
+  TrustNode processLemma(InferInfo& ii, LemmaProperty& p) override;
 
  private:
-  /** Called when ii is ready to be processed as a fact */
-  void processFact(InferInfo& ii, ProofGenerator*& pg);
-  /** Called when ii is ready to be processed as a lemma */
-  TrustNode processLemma(InferInfo& ii, LemmaProperty& p);
   /**
    * min prefix explain
    *

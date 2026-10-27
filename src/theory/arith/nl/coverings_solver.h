@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Gereon Kremer, Aina Niemetz
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -22,7 +19,6 @@
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/arith/nl/coverings/cdcac.h"
-#include "theory/arith/nl/coverings/proof_checker.h"
 #include "theory/arith/nl/equality_substitution.h"
 
 namespace cvc5::internal {
@@ -42,7 +38,7 @@ class NlModel;
  * A solver for nonlinear arithmetic that implements the CAD-based method
  * described in https://arxiv.org/pdf/2003.05633.pdf.
  */
-class CoveringsSolver: protected EnvObj
+class CoveringsSolver : protected EnvObj
 {
  public:
   CoveringsSolver(Env& env, InferenceManager& im, NlModel& model);
@@ -85,8 +81,9 @@ class CoveringsSolver: protected EnvObj
   /**
    * Add the variable assignment `var = value` to the nonlinear model.
    * Depending on `value`, it is either added as substitution or witness.
+   * @return true iff the substitution was added to the model.
    */
-  void addToModel(TNode var, TNode value) const;
+  bool addToModel(TNode var, TNode value) const;
 
   /**
    * The variable used to encode real algebraic numbers to nodes.
@@ -98,8 +95,6 @@ class CoveringsSolver: protected EnvObj
    * The object implementing the actual decision procedure.
    */
   coverings::CDCAC d_CAC;
-  /** The proof checker for coverings proofs */
-  coverings::CoveringsProofRuleChecker d_proofChecker;
 #endif
   /**
    * Indicates whether we found satisfiability in the last call to

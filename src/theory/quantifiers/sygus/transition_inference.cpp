@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Andres Noetzli, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -42,10 +39,10 @@ bool DetTrace::DetTraceTrie::add(Node loc, const std::vector<Node>& val)
   return false;
 }
 
-Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
+Node DetTrace::DetTraceTrie::constructFormula(NodeManager* nm,
+                                              const std::vector<Node>& vars,
                                               unsigned index)
 {
-  NodeManager* nm = NodeManager::currentNM();
   if (index == vars.size())
   {
     return nm->mkConst(true);
@@ -56,8 +53,8 @@ Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
     Node eq = vars[index].eqNode(p.first);
     if (index < vars.size() - 1)
     {
-      Node conc = p.second.constructFormula(vars, index + 1);
-      disj.push_back(nm->mkNode(AND, eq, conc));
+      Node conc = p.second.constructFormula(nm, vars, index + 1);
+      disj.push_back(nm->mkNode(Kind::AND, eq, conc));
     }
     else
     {
@@ -65,7 +62,7 @@ Node DetTrace::DetTraceTrie::constructFormula(const std::vector<Node>& vars,
     }
   }
   Assert(!disj.empty());
-  return disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
+  return disj.size() == 1 ? disj[0] : nm->mkNode(Kind::OR, disj);
 }
 
 bool DetTrace::increment(Node loc, std::vector<Node>& vals)
@@ -81,12 +78,12 @@ bool DetTrace::increment(Node loc, std::vector<Node>& vals)
   return false;
 }
 
-Node DetTrace::constructFormula(const std::vector<Node>& vars)
+Node DetTrace::constructFormula(NodeManager* nm, const std::vector<Node>& vars)
 {
-  return d_trie.constructFormula(vars);
+  return d_trie.constructFormula(nm, vars);
 }
 
-void DetTrace::print(const char* c) const
+void DetTrace::print(CVC5_UNUSED const char* c) const
 {
   for (const Node& n : d_curr)
   {
@@ -130,9 +127,9 @@ void TransitionInference::getConstantSubstitution(
     {
       sn = d;
     }
-    bool slit_pol = sn.getKind() != NOT;
-    Node slit = sn.getKind() == NOT ? sn[0] : sn;
-    if (slit.getKind() == EQUAL && slit_pol == reqPol)
+    bool slit_pol = sn.getKind() != Kind::NOT;
+    Node slit = sn.getKind() == Kind::NOT ? sn[0] : sn;
+    if (slit.getKind() == Kind::EQUAL && slit_pol == reqPol)
     {
       // check if it is a variable equality
       TNode v;
@@ -161,7 +158,8 @@ void TransitionInference::getConstantSubstitution(
             {
               Node veq_c;
               Node val;
-              int ires = ArithMSum::isolate(m.first, msum, veq_c, val, EQUAL);
+              int ires =
+                  ArithMSum::isolate(m.first, msum, veq_c, val, Kind::EQUAL);
               if (ires != 0 && veq_c.isNull()
                   && !expr::hasSubterm(val, m.first))
               {
@@ -197,12 +195,11 @@ void TransitionInference::process(Node n, Node f)
 
 void TransitionInference::process(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
+  NodeManager* nm = nodeManager();
   d_complete = true;
   d_trivial = true;
   std::vector<Node> n_check;
-  if (n.getKind() == AND)
+  if (n.getKind() == Kind::AND)
   {
     for (const Node& nc : n)
     {
@@ -278,8 +275,7 @@ void TransitionInference::process(Node n)
       {
         for (unsigned j = 0, nchild = next.getNumChildren(); j < nchild; j++)
         {
-          Node v = sm->mkDummySkolem(
-              "ir", next[j].getType(), "template inference rev argument");
+          Node v = NodeManager::mkDummySkolem("ir", next[j].getType());
           d_prime_vars.push_back(v);
         }
       }
@@ -314,7 +310,7 @@ void TransitionInference::process(Node n)
     }
     else
     {
-      res = nm->mkNode(OR, disjuncts);
+      res = nm->mkNode(Kind::OR, disjuncts);
     }
     if (expr::hasBoundVar(res))
     {
@@ -363,7 +359,7 @@ void TransitionInference::process(Node n)
     }
     else
     {
-      ret = nm->mkNode(AND, c.d_conjuncts);
+      ret = nm->mkNode(Kind::AND, c.d_conjuncts);
     }
     if (i == 0 || i == 1)
     {
@@ -382,7 +378,7 @@ void TransitionInference::getNormalizedSubstitution(
 {
   for (unsigned j = 0, nchild = curr.getNumChildren(); j < nchild; j++)
   {
-    if (curr[j].getKind() == BOUND_VARIABLE)
+    if (curr[j].getKind() == Kind::BOUND_VARIABLE)
     {
       // if the argument is a bound variable, add to the renaming
       vars.push_back(curr[j]);
@@ -411,13 +407,13 @@ bool TransitionInference::processDisjunct(
     return true;
   }
   visited[topLevel][n] = true;
-  bool childTopLevel = n.getKind() == OR && topLevel;
+  bool childTopLevel = n.getKind() == Kind::OR && topLevel;
   // if another part mentions UF or a free variable, then fail
-  bool lit_pol = n.getKind() != NOT;
-  Node lit = n.getKind() == NOT ? n[0] : n;
+  bool lit_pol = n.getKind() != Kind::NOT;
+  Node lit = n.getKind() == Kind::NOT ? n[0] : n;
   // is it an application of the function-to-synthesize? Yes if we haven't
   // encountered a function or if it matches the existing d_func.
-  if (lit.getKind() == APPLY_UF
+  if (lit.getKind() == Kind::APPLY_UF
       && (d_func.isNull() || lit.getOperator() == d_func))
   {
     Node op = lit.getOperator();
@@ -427,12 +423,9 @@ bool TransitionInference::processDisjunct(
       d_trivial = false;
       d_func = op;
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
-      NodeManager* nm = NodeManager::currentNM();
-      SkolemManager* sm = nm->getSkolemManager();
       for (const Node& l : lit)
       {
-        Node v =
-            sm->mkDummySkolem("i", l.getType(), "template inference argument");
+        Node v = NodeManager::mkDummySkolem("i", l.getType());
         d_vars.push_back(v);
         Trace("cegqi-inv-debug") << v << " ";
       }
@@ -533,7 +526,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt,
   if (!fwd)
   {
     // only implemented in forward direction
-    Assert(false);
+    DebugUnhandled();
     return TRACE_INC_INVALID;
   }
   Component& cm = d_trans;
@@ -584,7 +577,7 @@ TraceIncStatus TransitionInference::incrementTrace(DetTrace& dt, bool fwd)
 
 Node TransitionInference::constructFormulaTrace(DetTrace& dt) const
 {
-  return dt.constructFormula(d_vars);
+  return dt.constructFormula(nodeManager(), d_vars);
 }
 
 }  // namespace quantifiers

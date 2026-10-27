@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Gereon Kremer, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -25,7 +22,7 @@ namespace cvc5::internal {
 namespace decision {
 
 JustificationStrategy::JustificationStrategy(Env& env,
-                                             prop::CDCLTSatSolverInterface* ss,
+                                             prop::CDCLTSatSolver* ss,
                                              prop::CnfStream* cs)
     : DecisionEngine(env, ss, cs),
       d_assertions(
@@ -33,8 +30,8 @@ JustificationStrategy::JustificationStrategy(Env& env,
           context(),
           options()
               .decision.jhRlvOrder),  // assertions are user-context dependent
-      d_skolemAssertions(
-          context(), context()),  // skolem assertions are SAT-context dependent
+      d_localAssertions(
+          context(), context()),  // local assertions are SAT-context dependent
       d_jcache(context(), ss, cs),
       d_stack(context()),
       d_lastDecisionLit(context()),
@@ -55,13 +52,14 @@ void JustificationStrategy::presolve()
   d_currStatusDec = false;
   // reset the dynamic assertion list data
   d_assertions.presolve();
-  d_skolemAssertions.presolve();
+  d_localAssertions.presolve();
   // clear the stack
   d_stack.clear();
 }
 
 SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
 {
+  CodeTimer codeTimer(d_stats.d_time);
   // ensure we have an assertion
   if (!refreshCurrentAssertion())
   {
@@ -157,7 +155,7 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
       lastChildVal = d_jcache.lookupValue(next.first);
       if (lastChildVal == SAT_VALUE_UNKNOWN)
       {
-        bool nextPol = next.first.getKind() != kind::NOT;
+        bool nextPol = next.first.getKind() != Kind::NOT;
         TNode nextAtom = nextPol ? next.first : next.first[0];
         if (expr::isTheoryAtom(nextAtom))
         {
@@ -225,13 +223,13 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   Assert(!jc.first.isNull());
   Assert(jc.second != SAT_VALUE_UNKNOWN);
   // extract the non-negated formula we are trying to justify
-  bool currPol = jc.first.getKind() != NOT;
+  bool currPol = jc.first.getKind() != Kind::NOT;
   TNode curr = currPol ? jc.first : jc.first[0];
   Kind ck = curr.getKind();
   // the current node should be a non-theory literal and not have double
   // negation, due to our invariants of what is pushed onto the stack
   Assert(!expr::isTheoryAtom(curr));
-  Assert(ck != NOT);
+  Assert(ck != Kind::NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
   Trace("jh-debug") << "getNextJustifyNode " << curr << " / " << currPol
@@ -251,13 +249,13 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // value which we want that child to be to make curr's value equal to
   // currDesiredVal.
   SatValue desiredVal = SAT_VALUE_UNKNOWN;
-  if (ck == AND || ck == OR)
+  if (ck == Kind::AND || ck == Kind::OR)
   {
     if (i == 0)
     {
       // See if a single child with currDesiredVal forces value, which is the
       // case if ck / currDesiredVal in { and / false, or / true }.
-      if ((ck == AND) == (currDesiredVal == SAT_VALUE_FALSE))
+      if ((ck == Kind::AND) == (currDesiredVal == SAT_VALUE_FALSE))
       {
         // lookahead to determine if already satisfied
         // we scan only once, when processing the first child
@@ -276,8 +274,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       }
       desiredVal = currDesiredVal;
     }
-    else if ((ck == AND && lastChildVal == SAT_VALUE_FALSE)
-             || (ck == OR && lastChildVal == SAT_VALUE_TRUE)
+    else if ((ck == Kind::AND && lastChildVal == SAT_VALUE_FALSE)
+             || (ck == Kind::OR && lastChildVal == SAT_VALUE_TRUE)
              || i == curr.getNumChildren())
     {
       Trace("jh-debug") << "current is forcing child" << std::endl;
@@ -290,7 +288,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       desiredVal = currDesiredVal;
     }
   }
-  else if (ck == IMPLIES)
+  else if (ck == Kind::IMPLIES)
   {
     if (i == 0)
     {
@@ -323,7 +321,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       value = lastChildVal;
     }
   }
-  else if (ck == ITE)
+  else if (ck == Kind::ITE)
   {
     if (i == 0)
     {
@@ -365,7 +363,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       value = lastChildVal;
     }
   }
-  else if (ck == XOR || ck == EQUAL)
+  else if (ck == Kind::XOR || ck == Kind::EQUAL)
   {
     Assert(curr[0].getType().isBoolean());
     if (i == 0)
@@ -385,7 +383,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // equal / false            ... LHS should have opposite value as RHS
         // xor   / true             ... LHS should have opposite value as RHS
         // xor   / false            ... LHS should have same value as RHS
-        desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
+        desiredVal = ((ck == Kind::EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
                          ? val1
                          : invertValue(val1);
       }
@@ -395,7 +393,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       Assert(lastChildVal != SAT_VALUE_UNKNOWN);
       // same as above, choosing a value for RHS based on the value of LHS,
       // which is stored in lastChildVal.
-      desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
+      desiredVal = ((ck == Kind::EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
                        ? lastChildVal
                        : invertValue(lastChildVal);
     }
@@ -412,14 +410,14 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       // true                  / xor   ... value of curr is false
       // false                 / equal ... value of curr is false
       // false                 / xor   ... value of curr is true
-      value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE
-                                                        : SAT_VALUE_FALSE;
+      value = ((val0 == lastChildVal) == (ck == Kind::EQUAL)) ? SAT_VALUE_TRUE
+                                                              : SAT_VALUE_FALSE;
     }
   }
   else
   {
     // curr should not be an atom
-    Assert(false);
+    DebugUnhandled();
   }
   // we return null if we have determined the value of the current node
   if (value != SAT_VALUE_UNKNOWN)
@@ -449,47 +447,25 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
 
 bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
-void JustificationStrategy::addAssertion(TNode lem, TNode skolem, bool isLemma)
+void JustificationStrategy::addAssertions(const std::vector<TNode>& lems)
 {
-  Trace("jh-assert") << "addAssertion " << lem << " / " << skolem << std::endl;
-  if (skolem.isNull())
-  {
-    std::vector<TNode> toProcess{lem};
-    insertToAssertionList(toProcess, false);
-  }
-  else if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ALWAYS)
-  {
-    // just add to main assertions list
-    std::vector<TNode> toProcess;
-    toProcess.push_back(lem);
-    insertToAssertionList(toProcess, false);
-  }
-}
-bool JustificationStrategy::needsActiveSkolemDefs() const
-{
-  return d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT;
+  Trace("jh-assert") << "addAssertions " << lems << std::endl;
+  insertToAssertionList(lems, false);
 }
 
-void JustificationStrategy::notifyActiveSkolemDefs(std::vector<TNode>& defs)
+void JustificationStrategy::addLocalAssertions(const std::vector<TNode>& lems)
 {
-  Trace("jh-assert") << "notifyActiveSkolemDefs: " << defs << std::endl;
-  if (d_jhSkRlvMode == options::JutificationSkolemRlvMode::ASSERT)
-  {
-    // assertion processed makes all skolems in assertion active,
-    // which triggers their definitions to becoming relevant
-    insertToAssertionList(defs, true);
-    // NOTE: if we had a notifyAsserted callback, we could update tracking
-    // triggers, pop stack to where a child implied that a node on the current
-    // stack is justified.
-  }
+  Trace("jh-assert") << "addLocalAssertions: " << lems << std::endl;
+  insertToAssertionList(lems, true);
 }
 
-void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
-                                                  bool useSkolemList)
+void JustificationStrategy::insertToAssertionList(
+    const std::vector<TNode>& lems, bool local)
 {
-  AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
+  std::vector<TNode> toProcess(lems.begin(), lems.end());
+  AssertionList& al = local ? d_localAssertions : d_assertions;
   IntStat& sizeStat =
-      useSkolemList ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
+      local ? d_stats.d_maxSkolemDefsSize : d_stats.d_maxAssertionsSize;
   // always miniscope AND and negated OR immediately
   size_t index = 0;
   // must keep some intermediate nodes below around for ref counting
@@ -497,15 +473,15 @@ void JustificationStrategy::insertToAssertionList(std::vector<TNode>& toProcess,
   while (index < toProcess.size())
   {
     TNode curr = toProcess[index];
-    bool pol = curr.getKind() != NOT;
+    bool pol = curr.getKind() != Kind::NOT;
     TNode currAtom = pol ? curr : curr[0];
     index++;
     Kind k = currAtom.getKind();
-    if (k == AND && pol)
+    if (k == Kind::AND && pol)
     {
       toProcess.insert(toProcess.begin() + index, curr.begin(), curr.end());
     }
-    else if (k == OR && !pol)
+    else if (k == Kind::OR && !pol)
     {
       std::vector<Node> negc;
       for (TNode c : currAtom)
@@ -565,10 +541,10 @@ bool JustificationStrategy::refreshCurrentAssertion()
   return refreshCurrentAssertionFromList(!skFirst);
 }
 
-bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
+bool JustificationStrategy::refreshCurrentAssertionFromList(bool local)
 {
-  AssertionList& al = useSkolemList ? d_skolemAssertions : d_assertions;
-  bool doWatchStatus = !useSkolemList;
+  AssertionList& al = local ? d_localAssertions : d_assertions;
+  bool doWatchStatus = !local;
   d_currUnderStatus = Node::null();
   TNode curr = al.getNextAssertion();
   SatValue currValue;
@@ -608,7 +584,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool useSkolemList)
 
 bool JustificationStrategy::isTheoryLiteral(TNode n)
 {
-  return expr::isTheoryAtom(n.getKind() == NOT ? n[0] : n);
+  return expr::isTheoryAtom(n.getKind() == Kind::NOT ? n[0] : n);
 }
 
 }  // namespace decision

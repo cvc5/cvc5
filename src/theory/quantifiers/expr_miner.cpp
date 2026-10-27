@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Aina Niemetz, Andres Noetzli
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -39,13 +36,11 @@ Node ExprMiner::convertToSkolem(Node n)
 {
   if (d_skolems.empty())
   {
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
     for (const Node& v : d_vars)
     {
       std::stringstream ss;
       ss << "k_" << v;
-      Node sk = sm->mkDummySkolem(ss.str(), v.getType());
+      Node sk = NodeManager::mkDummySkolem(ss.str(), v.getType());
       d_skolems.push_back(sk);
       d_fv_to_skolem[v] = sk;
     }
@@ -58,14 +53,13 @@ void ExprMiner::initializeChecker(std::unique_ptr<SolverEngine>& checker,
                                   Node query,
                                   const SubsolverSetupInfo& info)
 {
-  Assert (!query.isNull());
+  Assert(!query.isNull());
   initializeSubsolver(
+      nodeManager(),
       checker,
       info,
       options().quantifiers.sygusExprMinerCheckTimeoutWasSetByUser,
       options().quantifiers.sygusExprMinerCheckTimeout);
-  // disable options that would lead to infinite loops
-  checker->setOption("sygus-rr-synth-input", "false");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
@@ -89,6 +83,12 @@ Result ExprMiner::doCheck(Node query, const SubsolverSetupInfo& info)
   std::unique_ptr<SolverEngine> smte;
   initializeChecker(smte, query, info);
   return smte->checkSat();
+}
+
+bool ExprMinerId::addTerm(Node n, std::vector<Node>& found)
+{
+  found.push_back(n);
+  return true;
 }
 
 }  // namespace quantifiers

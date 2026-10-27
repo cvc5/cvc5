@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Aina Niemetz, Andrew Reynolds, Morgan Deters
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -18,10 +15,10 @@
 #ifndef CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
 #define CVC5__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
 
+#include <sstream>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
-
-#include <sstream>
 
 namespace cvc5::internal {
 namespace theory {
@@ -30,15 +27,7 @@ namespace builtin {
 class EqualityTypeRule
 {
  public:
-  static TypeNode computeType(NodeManager* nodeManager,
-                              TNode n,
-                              bool check,
-                              std::ostream* errOut);
-};
-
-class DistinctTypeRule
-{
- public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -48,6 +37,7 @@ class DistinctTypeRule
 class SExprTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -57,6 +47,7 @@ class SExprTypeRule
 class UninterpretedSortValueTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -66,6 +57,31 @@ class UninterpretedSortValueTypeRule
 class WitnessTypeRule
 {
  public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+class ApplyIndexedSymbolicTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
+ * Type rule for the internally used typeof operator used by RARE proof
+ * reconstruction.
+ */
+class TypeOfTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
   static TypeNode computeType(NodeManager* nodeManager,
                               TNode n,
                               bool check,
@@ -75,7 +91,7 @@ class WitnessTypeRule
 class SortProperties
 {
  public:
-  static bool isWellFounded(TypeNode type) { return true; }
+  static bool isWellFounded(CVC5_UNUSED TypeNode type) { return true; }
   static Node mkGroundTerm(TypeNode type);
 };
 

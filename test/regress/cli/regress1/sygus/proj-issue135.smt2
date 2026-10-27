@@ -1,7 +1,8 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status sat)
 (set-option :cegqi false)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (declare-const v7 Bool)
 (declare-const v9 Bool)
 (declare-const v11 Bool)

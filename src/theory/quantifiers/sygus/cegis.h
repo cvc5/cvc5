@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -20,6 +17,7 @@
 
 #include <map>
 
+#include "expr/subs.h"
 #include "smt/env_obj.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -234,6 +232,16 @@ class Cegis : public SygusModule
    */
   bool d_usingSymCons;
   //---------------------------------end for symbolic constructors
+  /**
+   * Subsitution for evaluation unfold, which maps functions-to-synthesize
+   * with lambdas in terms of their deep embeddings. For example, if d_f is the
+   * deep embedding of function to synthesize f with argument list
+   * ((x Int) (y Int)), then d_euSubs maps:
+   *   f -> (lambda ((x Int) (y Int)) (DT_SYGUS_EVAL_UNFOLD d_f x y)).
+   */
+  Subs d_euSubs;
+  /** True if we are doing evaluation unfolding for this conjecture */
+  bool d_doEvalUnfold;
 };
 
 }  // namespace quantifiers

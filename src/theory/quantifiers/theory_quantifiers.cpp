@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Morgan Deters, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -34,7 +31,8 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
                                      OutputChannel& out,
                                      Valuation valuation)
     : Theory(THEORY_QUANTIFIERS, env, out, valuation),
-      d_rewriter(env.getRewriter(), options()),
+      d_rewriter(nodeManager(), env.getRewriter(), options()),
+      d_checker(nodeManager()),
       d_qstate(env, valuation, logicInfo()),
       d_qreg(env),
       d_treg(env, d_qstate, d_qreg),
@@ -60,8 +58,7 @@ TheoryQuantifiers::TheoryQuantifiers(Env& env,
   }
 }
 
-TheoryQuantifiers::~TheoryQuantifiers() {
-}
+TheoryQuantifiers::~TheoryQuantifiers() {}
 
 TheoryRewriter* TheoryQuantifiers::getTheoryRewriter() { return &d_rewriter; }
 
@@ -70,10 +67,10 @@ ProofRuleChecker* TheoryQuantifiers::getProofChecker() { return &d_checker; }
 void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue
-  d_valuation.setUnevaluatedKind(EXISTS);
-  d_valuation.setUnevaluatedKind(FORALL);
+  d_valuation.setUnevaluatedKind(Kind::EXISTS);
+  d_valuation.setUnevaluatedKind(Kind::FORALL);
   // witness is used in several instantiation strategies
-  d_valuation.setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(Kind::WITNESS);
 }
 
 bool TheoryQuantifiers::needsEqualityEngine(EeSetupInfo& esi)
@@ -85,7 +82,7 @@ bool TheoryQuantifiers::needsEqualityEngine(EeSetupInfo& esi)
 
 void TheoryQuantifiers::preRegisterTerm(TNode n)
 {
-  if (n.getKind() != FORALL)
+  if (n.getKind() != Kind::FORALL)
   {
     return;
   }
@@ -98,16 +95,17 @@ void TheoryQuantifiers::preRegisterTerm(TNode n)
       << "TheoryQuantifiers::preRegisterTerm() done " << n << std::endl;
 }
 
-
-void TheoryQuantifiers::presolve() {
+void TheoryQuantifiers::presolve()
+{
   Trace("quantifiers-presolve") << "TheoryQuantifiers::presolve()" << std::endl;
-  if( getQuantifiersEngine() ){
+  if (getQuantifiersEngine())
+  {
     getQuantifiersEngine()->presolve();
   }
 }
 
-Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
-    TrustNode tin, TrustSubstitutionMap& outSubstitutions)
+bool TheoryQuantifiers::ppAssert(TrustNode tin,
+                                 TrustSubstitutionMap& outSubstitutions)
 {
   if (d_qmacros != nullptr)
   {
@@ -117,31 +115,34 @@ Theory::PPAssertStatus TheoryQuantifiers::ppAssert(
     if (!eq.isNull())
     {
       // must be legal
-      if (isLegalElimination(eq[0], eq[1]))
+      if (d_valuation.isLegalElimination(eq[0], eq[1]))
       {
         // add substitution solved, which ensures we track that eq depends on
         // tin, which can impact unsat cores.
         outSubstitutions.addSubstitutionSolved(eq[0], eq[1], tin);
-        return Theory::PP_ASSERT_STATUS_SOLVED;
+        return true;
       }
     }
   }
-  return Theory::PP_ASSERT_STATUS_UNSOLVED;
+  return false;
 }
-void TheoryQuantifiers::ppNotifyAssertions(
-    const std::vector<Node>& assertions) {
+
+void TheoryQuantifiers::ppNotifyAssertions(const std::vector<Node>& assertions)
+{
   Trace("quantifiers-presolve")
       << "TheoryQuantifiers::ppNotifyAssertions" << std::endl;
-  if (getQuantifiersEngine()) {
+  if (getQuantifiersEngine())
+  {
     getQuantifiersEngine()->ppNotifyAssertions(assertions);
   }
 }
 
-bool TheoryQuantifiers::collectModelValues(TheoryModel* m,
-                                           const std::set<Node>& termSet)
+bool TheoryQuantifiers::collectModelValues(
+    TheoryModel* m, CVC5_UNUSED const std::set<Node>& termSet)
 {
-  for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if ((*i).d_assertion.getKind() == NOT)
+  for (assertions_iterator i = facts_begin(); i != facts_end(); ++i)
+  {
+    if ((*i).d_assertion.getKind() == Kind::NOT)
     {
       Trace("quantifiers::collectModelInfo")
           << "got quant FALSE: " << (*i).d_assertion[0] << std::endl;
@@ -169,11 +170,14 @@ void TheoryQuantifiers::postCheck(Effort level)
   getQuantifiersEngine()->check(level);
 }
 
-bool TheoryQuantifiers::preNotifyFact(
-    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryQuantifiers::preNotifyFact(TNode atom,
+                                      bool polarity,
+                                      TNode fact,
+                                      CVC5_UNUSED bool isPrereg,
+                                      CVC5_UNUSED bool isInternal)
 {
   Kind k = atom.getKind();
-  if (k == FORALL)
+  if (k == Kind::FORALL)
   {
     getQuantifiersEngine()->assertQuantifier(atom, polarity);
   }

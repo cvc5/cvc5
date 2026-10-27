@@ -1,10 +1,7 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
- *
  * This file is part of the cvc5 project.
  *
- * Copyright (c) 2009-2022 by the authors listed in the file AUTHORS
+ * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
  * in the top-level source directory and their institutional affiliations.
  * All rights reserved.  See the file COPYING in the top-level source
  * directory for licensing information.
@@ -44,12 +41,13 @@ class ProofNodeUpdaterCallback
    *
    * @param pn the proof node that maybe should be updated
    * @param fa the assumptions in scope
-   * @param continueUpdate whether we should continue recursively updating pn
+   * @param continueUpdate if this is set to false within this method, then we
+   * do not recursively update pn.
    * @return whether we should run the update method on pn
    */
   virtual bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                             const std::vector<Node>& fa,
-                            bool& continueUpdate) = 0;
+                            bool& continueUpdate);
   /**
    * Update the proof rule application, store steps in cdp. Return true if
    * the proof changed. It can be assumed that cdp contains proofs of each
@@ -63,7 +61,7 @@ class ProofNodeUpdaterCallback
    * in a rewrite response.
    */
   virtual bool update(Node res,
-                      PfRule id,
+                      ProofRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp,
@@ -79,10 +77,12 @@ class ProofNodeUpdaterCallback
 
   /** As above, but at post-visit. */
   virtual bool updatePost(Node res,
-                          PfRule id,
+                          ProofRule id,
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof* cdp);
+  /** Called when we are done processing pn */
+  virtual void finalize(std::shared_ptr<ProofNode> pn);
 };
 
 /**
@@ -119,11 +119,17 @@ class ProofNodeUpdater : protected EnvObj
   /**
    * Set free assumptions to freeAssumps. This indicates that we expect
    * the proof we are processing to have free assumptions that are in
-   * freeAssumps. This enables checking when this is violated, which is
+   * freeAssumps. This impacts two things:
+   *
+   * (1) If mergeSubproofs is true, then proofs whose free assumptions are a
+   * subset of freeAssumps are considered candidates for merging, which may
+   * lead to better compression.
+   *
+   * (2) If doDebug=true, this enables checking when this is violated, which is
    * expensive in general. It is not recommended that this method is called
-   * by default.
+   * with doDebug=true in production.
    */
-  void setDebugFreeAssumptions(const std::vector<Node>& freeAssumps);
+  void setFreeAssumptions(const std::vector<Node>& freeAssumps, bool doDebug);
 
  private:
   /** The callback */
@@ -168,13 +174,42 @@ class ProofNodeUpdater : protected EnvObj
    * these map result formulas to proof nodes with/without assumptions. If we
    * are updating nodes at post visit time, then we run updateProofNode on it.
    *
+   * @param cur The proof node to finalize
+   * @param fa The current free assumptions in scope
+   * @param resCache The cache of proof nodes with no free assumptions
+   * @param resCacheNcWaiting The cache of proof nodes that have free
+   * assumptions
+   * @param cfaMap Mapping from proof nodes to whether they contain free
+   * assumptions
+   * @param cfaAllowed The free assumptions this proof is globally allowed to
+   * have.
    */
   void runFinalize(std::shared_ptr<ProofNode> cur,
                    const std::vector<Node>& fa,
                    std::map<Node, std::shared_ptr<ProofNode>>& resCache,
                    std::map<Node, std::vector<std::shared_ptr<ProofNode>>>&
                        resCacheNcWaiting,
-                   std::unordered_map<const ProofNode*, bool>& cfaMap);
+                   std::unordered_map<const ProofNode*, bool>& cfaMap,
+                   const std::unordered_set<Node>& cfaAllowed);
+  /**
+   * Check for merging. Returns true if the result of cur is already in the
+   * result cache (resCache). If so, we update the contents of cur to the
+   * contents of the given proof node and update the contents of cfaMap.
+   */
+  bool checkMergeProof(
+      std::shared_ptr<ProofNode>& cur,
+      const std::map<Node, std::shared_ptr<ProofNode>>& resCache,
+      std::unordered_map<const ProofNode*, bool>& cfaMap);
+  /**
+   * Pre-simplify, which is called on every proof node prior to updating
+   * them based on the callback. This performs initial checks for the
+   * sake of avoiding unecessary calls to post-processing. In particular,
+   * we use a strategy which looks ahead for subproofs (up to a fixed
+   * depth) which prove the same thing as the current node. This method
+   * does nothing if merge subproofs is disabled.
+   * @param cur The proof node to simplify.
+   */
+  void preSimplify(std::shared_ptr<ProofNode> cur);
   /** Are we debugging free assumptions? */
   bool d_debugFreeAssumps;
   /** The initial free assumptions */

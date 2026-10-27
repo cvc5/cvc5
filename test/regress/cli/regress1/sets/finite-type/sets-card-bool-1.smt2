@@ -1,7 +1,8 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :produce-models true)
-(set-option :sets-ext true)
+(set-option :sets-exp true)
 (declare-fun A () (Set Bool))
 (declare-fun B () (Set Bool))
 (declare-fun universe () (Set Bool))

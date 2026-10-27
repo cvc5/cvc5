@@ -1,7 +1,6 @@
-; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: proof
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
-(set-option :sygus-inference true)
+(set-option :sygus-inference try)
 (set-option :sygus-simple-sym-break none)
 (set-option :sygus-sym-break-lazy false)
 (set-option :sygus-sym-break-rlv false)
