@@ -19,6 +19,8 @@
 #include <map>
 #include <vector>
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "libnormaliz/libnormaliz.h"
 #include "smt/env_obj.h"
@@ -41,8 +43,6 @@ namespace liastar {
  * cvc5::internal::Integer within namespace liastar.
  */
 typedef mpz_class Integer;
-/** A matrix of Normaliz integers, one row per vector. */
-typedef std::vector<std::vector<Integer>> Matrix;
 /** A vector of integer terms, e.g. (* 2 mu) (* 1 mu) in getCones. */
 typedef std::vector<Node> Vector;
 /**
@@ -55,12 +55,14 @@ typedef std::vector<Node> Vector;
  * 1. p is converted to a DNF D_1 or ... or D_m, so S is the union of the
  *    integer points of the polyhedra P_i = {x | D_i(x)}.
  * 2. Normaliz describes the integer points of each P_i as a finite union of
- *    linear sets g + H_i*N, one per module generator g of P_i, where H_i is
- *    the Hilbert basis of the recession cone of P_i.
- * 3. The star of a linear set g + H*N is
- *    {mu*g + H*l | mu >= 0, l >= 0, mu = 0 => l = 0}, and the star of a union
- *    is the sum of the stars. Fresh integer skolems for mu and l thus express
- *    y in S* in linear arithmetic.
+ *    linear sets g + H_i*N + M_i*Z, one per module generator g of P_i, where
+ *    H_i is the Hilbert basis of the recession cone of P_i and M_i is a
+ *    basis of its maximal subspace, which is empty unless P_i contains a
+ *    line.
+ * 3. The star of a linear set g + H*N + M*Z is
+ *    {mu*g + H*l + M*m | mu >= 0, l >= 0, mu = 0 => (l = 0 and m = 0)}, and
+ *    the star of a union is the sum of the stars. Fresh integer skolems for
+ *    mu, l and m thus express y in S* in linear arithmetic.
  *
  * For example, S = {(x, y) | x >= 2 and y = 1} has the module generator
  * (2, 1) and the Hilbert basis {(1, 0)}, so the literal
@@ -72,6 +74,16 @@ typedef std::vector<Node> Vector;
  * Here the implication excludes (1, 0) = 0*(2, 1) + 1*(1, 0), which is not a
  * sum of vectors of S.
  *
+ * The skolems witness y in S* when L holds, but when L is false the lemma
+ * only says that this one choice of them is not a witness. A negated L is
+ * therefore also reduced by the lemma
+ *   (or L (forall ((mu Int) (l Int))
+ *           (not (and (>= mu 0) (>= l 0) (=> (= mu 0) (= l 0))
+ *                     (= a (+ (* 2 mu) l)) (= b mu)))))
+ * which the quantifier instantiation for linear arithmetic handles. For
+ * example, (not L) with a = 5 and b = 2 is unsat, since (5, 2) is
+ * (2, 1) + (3, 1).
+ *
  * TheoryArith preregisters terms with preRegisterTerm and calls
  * checkFullEffort at full effort, once the linear solver has a model. See
  * also
@@ -82,8 +94,6 @@ typedef std::vector<Node> Vector;
  */
 class LiaStarExtension : EnvObj
 {
-  typedef context::CDHashSet<Node> NodeSet;
-
  public:
   /**
    * @param env the environment
@@ -101,18 +111,20 @@ class LiaStarExtension : EnvObj
 
   /**
    * Check the int.star-contains literals asserted to arithmetic, of either
-   * polarity, and send lemmas for them. For a literal with lambda
-   * (lambda ((x_1 Int) ... (x_n Int)) p) and vector y = (y_1, ..., y_n),
-   * where p(y) is p with x replaced by y, this
+   * polarity, and send lemmas for them. For a literal whose atom L has
+   * lambda (lambda ((x_1 Int) ... (x_n Int)) p) and vector
+   * y = (y_1, ..., y_n), where p(y) is p with x replaced by y, this
    * 1. with --arith-liastar-assume-nonnegative, sends
-   *    (=> literal (and (>= y_1 0) ... (>= y_n 0))),
+   *    (=> L (and (>= y_1 0) ... (>= y_n 0))),
    * 2. sends the split lemma (or p(y) (not p(y))), so the SAT solver decides
    *    p(y). If this call has sent any lemma so far, e.g. this one, the
    *    literal is left for a later call,
-   * 3. with --arith-liastar-model-value (the default), stops if p(y) is true
-   *    in arithModel, since then y is in S and hence in S*,
-   * 4. otherwise sends the reduction lemma (= literal (and ...)) of the class
-   *    documentation, built by getCones, once per literal.
+   * 3. with --arith-liastar-model-value (the default), stops for a positive
+   *    literal if p(y) is true in arithModel, since then y is in S and hence
+   *    in S*,
+   * 4. otherwise sends the reduction lemma (= L (and ...)) of the class
+   *    documentation, built by getCones, once per atom, and for a negative
+   *    literal also the lemma (or L (forall ...)), once per atom.
    *
    * @param arithModel the model of the linear solver, which maps arithmetic
    * variables to constants, e.g. {a -> 3, b -> 1}
@@ -126,19 +138,12 @@ class LiaStarExtension : EnvObj
 
  private:
   /**
-   * Collect the int.star-contains atoms of the facts asserted to arithmetic:
-   * the atom itself for (int.star-contains ...) and for
-   * (not (int.star-contains ...)).
+   * Collect the facts asserted to arithmetic of the form
+   * (int.star-contains ...) or (not (int.star-contains ...)).
    *
-   * @param assertions the vector the atoms are appended to
+   * @param assertions the vector the literals are appended to
    */
   void getAssertions(std::vector<Node>& assertions);
-
-  /**
-   * @param v a tuple of integer terms (v_1, ..., v_n)
-   * @return a formula that holds exactly when some v_i is not 0
-   */
-  Node isNotZeroVector(Node v);
 
   /**
    * Convert the body p of a lambda into one Normaliz constraint system per
@@ -160,24 +165,60 @@ class LiaStarExtension : EnvObj
    * Compute with Normaliz the linear sets of each disjunct, and the
    * constraints stating that the vector y of n is in the star of their union,
    * see steps 2 and 3 above. For each module generator g, with Hilbert basis
-   * h_1, ..., h_k of its disjunct, the constraints are
-   *   (>= mu 0), and (>= l_j 0) and (=> (= mu 0) (= l_j 0)) for each j,
+   * and maximal subspace h_1, ..., h_k of its disjunct, see
+   * getHilbertBasisWithLineality, the constraints are
+   *   (>= mu 0), and (=> (= mu 0) (= l_j 0)) for each j,
+   *   (>= l_j 0) for each h_j of the Hilbert basis,
    * with fresh skolems mu and l_1, ..., l_k, and finally, for each coordinate
    *   (= y_i (+ ... (* g_i mu) (* h_1i l_1) ... (* h_ki l_k) ...))
    * summing over all module generators. A disjunct without constant terms,
    * e.g. (and (>= x y) (>= y 0)), is a cone: it has no module generators,
-   * and its integer points are the single linear set 0 + H*N, for which mu
-   * is 1.
+   * and its integer points are the single linear set 0 + H*N + M*Z, for
+   * which mu is 1. A disjunct without integer points, e.g.
+   * (and (= x (* 2 z)) (= x (+ (* 2 w) 1))), is skipped.
    *
-   * @param n the int.star-contains literal
+   * @param n the int.star-contains atom
    * @param pairs the constraint systems of the disjuncts, see
    * convertQFLIAToMatrices
+   * @param skolems the vector the fresh skolems mu and l_j are appended to
    * @return the nonempty cones with their disjuncts, and the constraints
    */
   std::pair<std::vector<std::pair<Node, libnormaliz::Cone<Integer>>>,
             std::vector<Node>>
   getCones(Node n,
-           const std::vector<std::pair<std::vector<std::string>, Node>>& pairs);
+           const std::vector<std::pair<std::vector<std::string>, Node>>& pairs,
+           std::vector<Node>& skolems);
+
+  /**
+   * Send the reduction lemma (or atom (forall ((mu Int) ...) (not C))) of a
+   * negated atom, stored in d_negatedReductions, see checkFullEffort. Does
+   * nothing if C has no skolems, as the reduction lemma (= atom C) is then
+   * exact.
+   *
+   * @param atom an int.star-contains atom that is asserted false
+   * @throws LogicException if the lemma is needed but the logic has no
+   * quantifiers
+   */
+  void sendNegatedReduction(Node atom);
+
+  /**
+   * Normaliz's getHilbertBasis() only covers the pointed part of a cone: for
+   * a cone containing a line, e.g. the one of (= (+ x y) 2) whose maximal
+   * subspace is spanned by (1, -1), the nonnegative combinations of its
+   * Hilbert basis miss lattice points. The basis of the maximal subspace is
+   * appended to complete it. A direction of the maximal subspace can be used
+   * both ways, so its multiplier is unrestricted in sign. Appending m and -m
+   * instead would also be correct, but gives every point infinitely many
+   * representations, which the arithmetic search then has to enumerate.
+   *
+   * @param cone a cone whose HilbertBasis and MaximalSubspace are computed
+   * @param numPointed set to the number of leading vectors that come from
+   * getHilbertBasis() and so take nonnegative multipliers
+   * @return the Hilbert basis followed by the basis of the maximal subspace,
+   * which is just the Hilbert basis for a pointed cone
+   */
+  static std::vector<std::vector<Integer>> getHilbertBasisWithLineality(
+      libnormaliz::Cone<Integer>& cone, size_t& numPointed);
 
   /**
    * Express each linear set g + H*N of the cones as a LIA formula over the
@@ -202,20 +243,24 @@ class LiaStarExtension : EnvObj
   Node d_one;
   /** The theory of arithmetic, whose asserted facts getAssertions reads */
   TheoryArith& d_arith;
-  /** The state of the theory of arithmetic */
-  TheoryState& d_astate;
   /** The inference manager of the theory of arithmetic */
   InferenceManager& d_im;
-  /** The number of calls to checkFullEffort */
-  unsigned d_checkCounter;
   /** The callback of d_extTheory */
   ExtTheoryCallback d_extTheoryCb;
   /** Extended theory, with which the int.star-contains terms are registered */
   ExtTheory d_extTheory;
   /** Whether an int.star-contains term was preregistered in this context */
   context::CDO<bool> d_hasLiaStarTerms;
-  /** The literals whose reduction lemma was sent, see checkFullEffort */
-  std::vector<Node> d_processedStarTerms;
+  /**
+   * Maps each atom whose reduction lemma was sent to the formula
+   * (forall ((mu Int) ...) (not C)) that holds when the atom is false, or to
+   * null if C has no skolems, see checkFullEffort. User-context dependent,
+   * like the lemmas.
+   */
+  context::CDHashMap<Node, Node> d_negatedReductions;
+  /** The atoms whose negated reduction lemma was sent, user-context dependent
+   */
+  context::CDHashSet<Node> d_negatedReductionsSent;
 
   /** Statistics for the liastar extension */
   LiaStarStatistics d_stats;
