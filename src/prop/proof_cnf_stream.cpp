@@ -25,6 +25,7 @@ ProofCnfStream::ProofCnfStream(Env& env,
                                PropPfManager* ppm)
     : EnvObj(env),
       d_cnfStream(cnfStream),
+      d_input(false),
       d_ppm(ppm),
       d_proof(ppm->getCnfProof())
 {
@@ -450,9 +451,10 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
   Trace("cnf") << pop;
 }
 
-void ProofCnfStream::ensureLiteral(TNode n)
+void ProofCnfStream::ensureLiteral(TNode n, bool input)
 {
-  Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n << ")\n";
+  Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n
+               << ", input = " << (input ? "true" : "false") << ")\n";
   if (d_cnfStream.hasLiteral(n))
   {
     d_cnfStream.ensureMappingForLiteral(n);
@@ -465,7 +467,12 @@ void ProofCnfStream::ensureLiteral(TNode n)
   {
     // These are not removable
     d_cnfStream.d_removable = false;
+    // the clauses are registered as input or lemma clauses based on input. We
+    // must remember and revert d_input, as in convertAndAssert.
+    bool backupInput = d_input;
+    d_input = input;
     SatLiteral lit = toCNF(n, false);
+    d_input = backupInput;
     // Store backward-mappings
     // These may already exist
     d_cnfStream.d_literalToNodeMap.insert_safe(lit, n);

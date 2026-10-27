@@ -26,6 +26,7 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/uf/function_const.h"
 #include "util/cocoa_globals.h"
 
 using namespace std;
@@ -199,7 +200,19 @@ TrustNode TheoryArith::ppStaticRewrite(TNode atom)
 {
   Trace("arith::preprocess") << "arith::ppStaticRewrite() : " << atom << endl;
   Kind k = atom.getKind();
-  if (k == Kind::EQUAL)
+  if (k == Kind::STAR_CONTAINS)
+  {
+    // This runs before theory preprocessing lambda-lifts the first argument,
+    // which may however have been rewritten to a function array constant.
+    if (uf::FunctionConst::toLambda(atom[0]).isNull())
+    {
+      std::stringstream ss;
+      ss << "int.star-contains expects a lambda as its first argument, found "
+         << atom[0];
+      throw LogicException(ss.str());
+    }
+  }
+  else if (k == Kind::EQUAL)
   {
     return d_ppre.ppRewriteEq(atom);
   }

@@ -12,76 +12,41 @@
 
 package io.github.cvc5;
 
-import java.lang.Long;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.Map;
-
 /**
- * The {@code Context} class is responsible for tracking and deleting pointers to
- * native C++ cvc5 objects associated with their corresponding Java counterparts.
+ * Legacy entry point for releasing native memory.
  *
- * <p>This class maintains a centralized registry of {@link AbstractPointer}
- * instances, such as those used for term managers, solvers, terms, sorts, etc and
- * ensures that all native memory is properly released when no longer needed.</p>
+ * <p>Native memory is now released automatically once the corresponding Java
+ * objects are no longer reachable, and can be released deterministically via
+ * {@code deletePointer()} or, for term managers, solvers, symbol managers and
+ * input parsers, via {@code close()}.</p>
+ *
+ * @deprecated Native memory is managed automatically. This class will be
+ *             removed in a future release.
  */
+@Deprecated
 public class Context
 {
-  // Store pointers for term managers, solvers, terms, sorts, etc
-  private static final Map<Long, AbstractPointer> abstractPointers = new LinkedHashMap<>();
-
   /**
    * Private constructor to prevent instantiation of this memory management class.
    */
   private Context() {}
 
   /**
-   * Register a new {@link AbstractPointer} for later cleanup.
+   * Delete all native objects of all term managers, solvers, and objects
+   * derived from them, whether or not they are still referenced from Java.
    *
-   * <p>If the pointer is already registered, it will not be added again.</p>
+   * <p>This method must be called by a single thread once no term manager and
+   * solver instance is in use anymore. Objects whose native counterpart has
+   * been deleted must not be used afterwards.</p>
    *
-   * @param pointer the {@link AbstractPointer} to register
+   * @deprecated Native memory is released automatically once the
+   *             corresponding Java objects are no longer reachable. Use
+   *             {@code deletePointer()} or {@code close()} to release
+   *             individual objects deterministically.
    */
-  static synchronized void addAbstractPointer(AbstractPointer pointer)
+  @Deprecated
+  public static void deletePointers()
   {
-    abstractPointers.put(Long.valueOf(pointer.getPointer()), pointer);
-  }
-
-  /**
-   * Remove a previously registered {@link AbstractPointer} from the context.
-   *
-   * @param pointer the {@link AbstractPointer} to remove
-   */
-  static synchronized void removeAbstractPointer(AbstractPointer pointer)
-  {
-    if (pointer.getPointer() != 0)
-    {
-      abstractPointers.remove(Long.valueOf(pointer.getPointer()));
-    }
-  }
-
-  /**
-   * Delete all registered native pointers in reverse order of their registration.
-   *
-   * <p>This method should be called by a single thread once all term managers and
-   * solver instances are no longer needed. It ensures that all native memory
-   * associated with registered {@link AbstractPointer}s is released to
-   * prevent memory leaks.</p>
-   *
-   * <p>For more fine-grained control over memory release, consider using
-   * the {@link AbstractPointer#deletePointer()} method individually on
-   * each Java object instead of calling this method.</p>
-   */
-  public static synchronized void deletePointers()
-  {
-    LinkedList<AbstractPointer> values = new LinkedList<AbstractPointer>(abstractPointers.values());
-    Iterator<AbstractPointer> i = values.descendingIterator();
-    while (i.hasNext())
-    {
-      i.next().deletePointer();
-    }
-
-    abstractPointers.clear();
+    NativeContext.releaseAll();
   }
 }

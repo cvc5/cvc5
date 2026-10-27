@@ -40,6 +40,97 @@ jobs:
           python3 -m pip install clang-format==22.1.2
           ./contrib/format-code.sh check
 
+  node-id-determinism:
+    name: Check node id determinism
+    # The image is pinned because the plugin must be built against the same
+    # LLVM version as the clang-tidy binary that loads it. The LLVM/Clang
+    # development packages are installed below for the same version. The
+    # image's default clang is 21, so all tools are called by version.
+    runs-on: ubuntu-26.04
+    env:
+      LLVM_VERSION: 22
+
+    # cancel already running jobs for the same branch/pr/tag
+    concurrency:
+      group: node-id-determinism-${{ github.ref }}-${{ github.ref != 'refs/heads/main' || github.run_id }}
+      cancel-in-progress: ${{ github.repository != 'cvc5/cvc5' || startsWith(github.ref, 'refs/pull/') }}
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Install dependencies
+      uses: ./.github/actions/install-dependencies
+
+    - name: Build cvc5 tidy checks plugin
+      run: |
+        sudo apt-get install -y libclang-$LLVM_VERSION-dev
+        cmake -S contrib/tidy-checks -B build-tidy-checks \
+              -DLLVM_DIR=/usr/lib/llvm-$LLVM_VERSION/lib/cmake/llvm \
+              -DClang_DIR=/usr/lib/llvm-$LLVM_VERSION/lib/cmake/clang
+        make -C build-tidy-checks -j${{ env.num_proc }}
+
+    # clang-tidy only parses the sources, so cvc5 itself is not compiled: the
+    # cvc5-prerequisites target only generates sources and headers and builds
+    # the dependencies (which takes seconds, so no cache is needed).
+    - name: Configure and generate sources
+      run: |
+        # Exported rather than set for configure.sh only: the dependencies
+        # built by cvc5 (e.g. libpoly) are configured by make, from the
+        # environment, and receive cvc5's compiler flags, which are specific
+        # to the compiler cvc5 was configured with.
+        export CC=clang-$LLVM_VERSION CXX=clang++-$LLVM_VERSION
+        ./configure.sh debug --auto-download --no-unit-testing --name=build
+        make -C build -j${{ env.num_proc }} cvc5-prerequisites
+
+    # The analysis needs the whole-program call graph, which no single
+    # clang-tidy process sees, so it runs in three passes:
+    # 1. clang-tidy dumps the call graph and the candidate sites of every
+    #    translation unit (dump mode);
+    # 2. a script computes the NodeId-dependent functions from the call graph
+    #    and selects the translation units that contain flagged sites;
+    # 3. clang-tidy re-checks only those translation units against the
+    #    dependent functions, to report the sites as regular diagnostics with
+    #    fix-its, honoring NOLINT comments. This pass decides the job's result.
+    - name: Dump call graph and candidate sites
+      run: |
+        mkdir -p node-id/dump
+        # SourceRoot includes the header-only dependencies under the build
+        # directory (e.g. symfpu), which are instantiated with cvc5 types.
+        CFG="{Checks: '-*,cvc5-node-id-determinism', CheckOptions: [{key: cvc5-node-id-determinism.DumpDir, value: '$(pwd)/node-id/dump'}, {key: cvc5-node-id-determinism.SourceRoot, value: '$(pwd)'}]}"
+        run-clang-tidy-$LLVM_VERSION -clang-tidy-binary clang-tidy-$LLVM_VERSION \
+          -quiet -config="$CFG" \
+          -load $(pwd)/build-tidy-checks/Cvc5TidyChecks.so \
+          -p build
+
+    - name: Compute NodeId-dependent functions
+      run: |
+        # Sites inside third-party headers (symfpu templates instantiated with
+        # cvc5 types) are excluded, as clang-tidy reports no diagnostics in
+        # these system headers. Exit code 1 only means that sites were
+        # flagged; the next step reports them, taking NOLINT into account.
+        python3 contrib/tidy-checks/node_id_determinism_report.py \
+          --ignore-path-regex '/deps/' --quiet \
+          --write-dependency-ids node-id/ids.txt \
+          --write-flagged-files node-id/flagged.txt \
+          node-id/dump > node-id/report.txt || [ $? -eq 1 ]
+        echo "Translation units to re-check: $(wc -l < node-id/flagged.txt)"
+
+    - name: Report non-deterministic NodeId assignments
+      run: |
+        if [ ! -s node-id/flagged.txt ]; then
+          echo "No potential non-deterministic NodeId assignments."
+          exit 0
+        fi
+        CFG="{Checks: '-*,cvc5-node-id-determinism', HeaderFilterRegex: '.*', CheckOptions: [{key: cvc5-node-id-determinism.NodeIdDependencyIdListPath, value: '$(pwd)/node-id/ids.txt'}]}"
+        # run-clang-tidy selects files by regular expression.
+        mapfile -t FILES < <(python3 -c 'import re, sys
+        for line in open(sys.argv[1]):
+            print("^" + re.escape(line.strip()) + "$")' node-id/flagged.txt)
+        run-clang-tidy-$LLVM_VERSION -clang-tidy-binary clang-tidy-$LLVM_VERSION \
+          -quiet -warnings-as-errors='cvc5-*' -config="$CFG" \
+          -load $(pwd)/build-tidy-checks/Cvc5TidyChecks.so \
+          -p build "${FILES[@]}"
+
   builds:
     needs: [setup-release-pages]
     strategy:
@@ -308,11 +399,11 @@ jobs:
     - uses: actions/checkout@v6
 
     # Ensure that the Java bindings, Java API tests, and Java examples are compatible
-    # with the minimum required Java version (currently Java 8).
+    # with the minimum required Java version (currently Java 11).
     - uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
-        java-version: ${{ matrix.build.java-version || '8' }}
+        java-version: ${{ matrix.build.java-version || '11' }}
 
     - name: Setup CMake
       uses: ./.github/actions/setup-cmake
@@ -448,6 +539,26 @@ jobs:
         server-password: MAVEN_TOKEN
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+    # Use Maven 3.9 instead of the version of the runner image: with Maven
+    # 3.10, central-publishing-maven-plugin (at least up to 0.11.0) leaves
+    # maven-metadata-local.xml and _remote.repositories in the bundle, and
+    # Maven Central rejects it ("Bundle has content that does NOT have a .pom
+    # file"). This broke the publication of 1.4.2. The pin can be removed once
+    # https://github.com/apache/maven/issues/13388 is fixed or the plugin
+    # supports Maven 3.10.
+    - name: Install Maven
+      env:
+        MAVEN_VERSION: 3.9.16
+        MAVEN_SHA512: 831a8591fe20c8243b1dbe7d71e3244f31d1665b0804b2e825e38cbbe5ce0cafb8338851f90780735568773e0a6cd07bbec107cda0b896b008b861075358b6f6
+      run: |
+        tarball="apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+        curl -fsSLO "https://repo1.maven.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/${tarball}"
+        echo "${MAVEN_SHA512}  ${tarball}" | sha512sum -c -
+        tar xzf "${tarball}" -C "${RUNNER_TEMP}"
+        rm "${tarball}"
+        echo "${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}/bin" >> "${GITHUB_PATH}"
+        "${RUNNER_TEMP}/apache-maven-${MAVEN_VERSION}/bin/mvn" --version
 
     - name: Download Maven JAR artifacts
       uses: actions/download-artifact@v7

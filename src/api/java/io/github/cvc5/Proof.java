@@ -24,8 +24,11 @@ public class Proof extends AbstractPointer
    */
   public Proof()
   {
-    this(getNullProof());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null proof instances. It is never freed. */
+  private static final long NULL_POINTER = getNullProof();
 
   /**
    * This is an internal constructor intended to be used only
@@ -33,14 +36,14 @@ public class Proof extends AbstractPointer
    *
    * @param pointer the cpp pointer to Proof
    */
-  Proof(long pointer)
+  Proof(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Proof::deletePointer);
   }
 
   private static native long getNullProof();
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   protected String toString(long pointer)
   {
@@ -55,7 +58,7 @@ public class Proof extends AbstractPointer
    */
   public ProofRule getRule() throws CVC5ApiException
   {
-    int value = getRule(pointer);
+    int value = getRule(getPointer());
     return ProofRule.fromInt(value);
   }
 
@@ -70,11 +73,26 @@ public class Proof extends AbstractPointer
    */
   public ProofRewriteRule getRewriteRule() throws CVC5ApiException
   {
-    int value = getRewriteRule(pointer);
+    int value = getRewriteRule(getPointer());
     return ProofRewriteRule.fromInt(value);
   }
 
   private native int getRewriteRule(long pointer);
+
+  /**
+   * Get the annotation identifier used by the root step of the proof.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   * @return The annotation identifier used by the root step of the proof.
+   * @throws CVC5ApiException if `getRule()` does not return `ANNOTATE`.
+   */
+  public AnnotationId getAnnotationId() throws CVC5ApiException
+  {
+    int value = getAnnotationId(pointer);
+    return AnnotationId.fromInt(value);
+  }
+
+  private native int getAnnotationId(long pointer);
 
   /**
    * Get the conclusion of the root step of the proof.
@@ -83,8 +101,8 @@ public class Proof extends AbstractPointer
    */
   public Term getResult()
   {
-    long termPointer = getResult(pointer);
-    return new Term(termPointer);
+    long termPointer = getResult(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getResult(long pointer);
@@ -96,8 +114,8 @@ public class Proof extends AbstractPointer
    */
   public Proof[] getChildren()
   {
-    long[] proofPointers = getChildren(pointer);
-    return Utils.getProofs(proofPointers);
+    long[] proofPointers = getChildren(getPointer());
+    return Utils.getProofs(ctx, proofPointers);
   }
 
   private native long[] getChildren(long pointer);
@@ -110,11 +128,34 @@ public class Proof extends AbstractPointer
    */
   public Term[] getArguments()
   {
-    long[] termPointers = getArguments(pointer);
-    return Utils.getTerms(termPointers);
+    long[] termPointers = getArguments(getPointer());
+    return Utils.getTerms(ctx, termPointers);
   }
 
   private native long[] getArguments(long pointer);
+
+  /**
+   * Get a string representation of an argument of the root step of the proof.
+   *
+   * The string is computed by the internal proof printer, which takes into
+   * account how the argument is used by the proof rule. For example, an
+   * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+   * is converted to the name of that identifier. All other arguments are
+   * converted to the string representation of the corresponding term returned
+   * by {@link #getArguments()}.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   * @param i The index of the argument.
+   * @return The string representation of the argument.
+   * @throws CVC5ApiException on error
+   */
+  public String getArgumentToString(int i) throws CVC5ApiException
+  {
+    Utils.validateUnsigned(i, "i");
+    return getArgumentToString(pointer, i);
+  }
+
+  private native String getArgumentToString(long pointer, int i);
 
   /**
    * Referential equality operator.
@@ -138,7 +179,7 @@ public class Proof extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, proof.getPointer());
+    return equals(getPointer(), proof.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -150,7 +191,7 @@ public class Proof extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

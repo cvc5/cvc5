@@ -62,6 +62,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_node.h"
+#include "proof/proof_node_to_sexpr.h"
 #include "proof/unsat_core.h"
 #include "smt/env.h"
 #include "smt/model.h"
@@ -182,6 +183,7 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::TO_INTEGER, internal::Kind::TO_INTEGER),
         KIND_ENUM(Kind::TO_REAL, internal::Kind::TO_REAL),
         KIND_ENUM(Kind::PI, internal::Kind::PI),
+        KIND_ENUM(Kind::STAR_CONTAINS, internal::Kind::STAR_CONTAINS),
         /* BV --------------------------------------------------------------- */
         KIND_ENUM(Kind::CONST_BITVECTOR, internal::Kind::CONST_BITVECTOR),
         KIND_ENUM(Kind::BITVECTOR_CONCAT, internal::Kind::BITVECTOR_CONCAT),
@@ -584,6 +586,7 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::TO_REAL, Kind::TO_REAL},
         {internal::Kind::PI, Kind::PI},
         {internal::Kind::IAND_OP, Kind::IAND},
+        {internal::Kind::STAR_CONTAINS, Kind::STAR_CONTAINS},
         /* BV -------------------------------------------------------------- */
         {internal::Kind::CONST_BITVECTOR, Kind::CONST_BITVECTOR},
         {internal::Kind::BITVECTOR_CONCAT, Kind::BITVECTOR_CONCAT},
@@ -5127,9 +5130,9 @@ Statistics::Statistics(const internal::StatisticsRegistry& reg)
 std::string Statistics::toString() const
 {
   std::stringstream ss;
-  for (const auto& stat : *this)
+  for (auto it = begin(true, true); it != end(); ++it)
   {
-    ss << stat.first << " = " << stat.second << std::endl;
+    ss << it->first << " = " << it->second << std::endl;
   }
   return ss.str();
 }
@@ -5188,6 +5191,19 @@ ProofRewriteRule Proof::getRewriteRule() const
   CVC5_API_TRY_CATCH_END;
 }
 
+AnnotationId Proof::getAnnotationId() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_proofNode->getRule() == ProofRule::ANNOTATE)
+      << "expected `getRule()` to return `ANNOTATE`, got "
+      << d_proofNode->getRule() << " instead.";
+  //////// all checks before this line
+  return static_cast<AnnotationId>(
+      detail::getInteger(d_proofNode->getArguments()[0]).getUnsignedInt());
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 Term Proof::getResult() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -5236,6 +5252,21 @@ const std::vector<Term> Proof::getArguments() const
     return args;
   }
   return std::vector<Term>();
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Proof::getArgumentToString(size_t i) const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK(d_proofNode != nullptr
+                 && i < d_proofNode->getArguments().size())
+      << "index out of bound";
+  //////// all checks before this line
+  internal::ProofNodeToSExpr pnts(d_nm.get());
+  internal::ProofNodeToSExpr::ArgFormat f =
+      pnts.getArgumentFormat(d_proofNode.get(), i);
+  return pnts.getArgument(d_proofNode->getArguments()[i], f).toString();
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -8260,6 +8291,7 @@ Term Solver::getQuantifierElimination(const Term& q) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
+  ensureWellFormedTerm(q);
   //////// all checks before this line
   return Term(d_tm.d_nm, d_slv->getQuantifierElimination(q.getNode(), true));
   ////////
@@ -8270,6 +8302,7 @@ Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(q);
+  ensureWellFormedTerm(q);
   //////// all checks before this line
   return Term(d_tm.d_nm, d_slv->getQuantifierElimination(q.getNode(), false));
   ////////
@@ -8412,6 +8445,7 @@ Term Solver::getInterpolant(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "cannot get interpolant unless interpolants are enabled (try "
          "--"
@@ -8428,6 +8462,7 @@ Term Solver::getInterpolant(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceInterpolants)
       << "cannot get interpolant unless interpolants are enabled (try "
@@ -8469,6 +8504,7 @@ Term Solver::getAbduct(const Term& conj) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "cannot get abduct unless abducts are enabled (try --"
       << internal::options::smt::longName::produceAbducts << ")";
@@ -8484,6 +8520,7 @@ Term Solver::getAbduct(const Term& conj, Grammar& grammar) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(conj);
+  ensureWellFormedTerm(conj);
   CVC5_API_SOLVER_CHECK_GRAMMAR(grammar);
   CVC5_API_CHECK(d_slv->getOptions().smt.produceAbducts)
       << "cannot get abduct unless abducts are enabled (try --"
