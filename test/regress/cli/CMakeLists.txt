@@ -1611,6 +1611,7 @@ set(regress_0_tests
   regress0/proofs/alethe-res-need-or-step.smt2
   regress0/proofs/alpha-eq-bv-reorder-1.smt2
   regress0/proofs/alpha-eq-bv-reorder-2.smt2
+  regress0/proofs/annotate-theory-lemmas-pp-merge.smt2
   regress0/proofs/arith-dio-lemma-diseq-tighten.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
@@ -1892,6 +1893,7 @@ set(regress_0_tests
   regress0/quantifiers/issue12172-ent-var-elim.smt2
   regress0/quantifiers/issue12252-var-elim-shadow.smt2
   regress0/quantifiers/issue12252-var-elim-shadow-min.smt2
+  regress0/quantifiers/issue13111-debug-check-models.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -2188,6 +2190,7 @@ set(regress_0_tests
   regress0/sets/int-real-univ.smt2
   regress0/sets/issue10584-card-fmf-bound.smt2
   regress0/sets/issue12814-filter-card.smt2
+  regress0/sets/issue13092-model-relevant-rep.smt2
   regress0/sets/issue5400-card-minus-univ.smt2
   regress0/sets/issue5400-2-card-minus-univ.smt2
   regress0/sets/issue5402-1-card.smt2
@@ -3163,6 +3166,7 @@ set(regress_1_tests
   regress1/issue10788-refresh-a-interp.smt2
   regress1/issue11966-get-value-ss.smt2
   regress1/issue12339-bv-as-int-subtype-pf.smt2
+  regress1/issue13082-interpol-ensure-literal.smt2
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2

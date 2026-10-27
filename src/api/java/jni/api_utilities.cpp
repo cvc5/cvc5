@@ -60,38 +60,44 @@ JNIEnv* getEnv(JavaVM* vm)
 }
 
 cvc5::Term applyOracle(JavaVM* vm,
-                       jobject oracleRef,
+                       jweak oracleRef,
                        const std::vector<cvc5::Term>& terms)
 {
   JNIEnv* env = getEnv(vm);
   // Release the local references created below when done: this function may
   // be called many times during a single native call.
   env->PushLocalFrame(callbackLocalFrameCapacity);
-
-  jclass termClass = env->FindClass("io/github/cvc5/Term");
-  jmethodID termConstructor = env->GetMethodID(termClass, "<init>", "(J)V");
-  jobjectArray jTerms = env->NewObjectArray(terms.size(), termClass, nullptr);
-  for (size_t i = 0; i < terms.size(); i++)
+  jobject oracle = env->NewLocalRef(oracleRef);
+  if (oracle == nullptr)
   {
-    jlong termPointer = reinterpret_cast<jlong>(new cvc5::Term(terms[i]));
-    jobject jTerm = env->NewObject(termClass, termConstructor, termPointer);
-    env->SetObjectArrayElement(jTerms, i, jTerm);
-    env->DeleteLocalRef(jTerm);
+    // Cannot happen while the Java solver is alive, which it is during any
+    // call that can invoke an oracle.
+    env->PopLocalFrame(nullptr);
+    throw cvc5::CVC5ApiException("The oracle has been garbage collected.");
   }
 
-  jclass oracleClass = env->GetObjectClass(oracleRef);
-  jmethodID applyMethod = env->GetMethodID(
-      oracleClass, "apply", "([Lio/github/cvc5/Term;)Lio/github/cvc5/Term;");
-  jobject jTerm = env->CallObjectMethod(oracleRef, applyMethod, jTerms);
-  if (env->ExceptionCheck() || jTerm == nullptr)
+  // Ownership of the term copies is transferred to the Java wrappers created
+  // by the bridge.
+  std::vector<jlong> pointers;
+  pointers.reserve(terms.size());
+  for (const cvc5::Term& term : terms)
+  {
+    pointers.push_back(reinterpret_cast<jlong>(new cvc5::Term(term)));
+  }
+  jlongArray jPointers = env->NewLongArray(pointers.size());
+  env->SetLongArrayRegion(jPointers, 0, pointers.size(), pointers.data());
+
+  jclass oracleClass = env->GetObjectClass(oracle);
+  jmethodID applyMethod = env->GetMethodID(oracleClass, "apply", "([J)J");
+  jlong termPointer = env->CallLongMethod(oracle, applyMethod, jPointers);
+  if (env->ExceptionCheck() || termPointer == 0)
   {
     env->ExceptionClear();
     env->PopLocalFrame(nullptr);
-    throw cvc5::CVC5ApiException(
-        "The oracle threw an exception or returned null.");
+    throw cvc5::CVC5ApiException("The oracle threw an exception.");
   }
-  jfieldID pointer = env->GetFieldID(termClass, "pointer", "J");
-  jlong termPointer = env->GetLongField(jTerm, pointer);
+  // The result is owned by its Java wrapper, which cannot be reclaimed before
+  // this native call returns to Java. Copy it now.
   cvc5::Term term = *reinterpret_cast<cvc5::Term*>(termPointer);
 
   env->PopLocalFrame(nullptr);

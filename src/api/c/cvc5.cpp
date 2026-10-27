@@ -199,6 +199,25 @@ size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule)
 }
 
 /* -------------------------------------------------------------------------- */
+/* Cvc5AnnotationId                                                           */
+/* -------------------------------------------------------------------------- */
+
+const char* cvc5_annotation_id_to_string(Cvc5AnnotationId id)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_ANNOTATION_ID(id);
+  str = std::to_string(static_cast<cvc5::AnnotationId>(id));
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
+}
+
+size_t cvc5_annotation_id_hash(Cvc5AnnotationId id)
+{
+  return std::hash<cvc5::AnnotationId>{}(static_cast<cvc5::AnnotationId>(id));
+}
+
+/* -------------------------------------------------------------------------- */
 /* Cvc5FindSynthTarget                                                        */
 /* -------------------------------------------------------------------------- */
 
@@ -4036,6 +4055,16 @@ Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof)
   return res;
 }
 
+Cvc5AnnotationId cvc5_proof_get_annotation_id(Cvc5Proof proof)
+{
+  Cvc5AnnotationId res = CVC5_ANNOTATION_ID_LAST;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  res = static_cast<Cvc5AnnotationId>(proof->d_proof.getAnnotationId());
+  CVC5_CAPI_TRY_CATCH_END;
+  return res;
+}
+
 Cvc5Term cvc5_proof_get_result(Cvc5Proof proof)
 {
   Cvc5Term res = nullptr;
@@ -4078,6 +4107,16 @@ const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof, size_t* size)
   *size = res.size();
   CVC5_CAPI_TRY_CATCH_END;
   return cvc5::cvc5_capi_has_error() || res.empty() ? nullptr : res.data();
+}
+
+const char* cvc5_proof_get_argument_to_string(Cvc5Proof proof, size_t i)
+{
+  static thread_local std::string str;
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_PROOF(proof);
+  str = proof->d_proof.getArgumentToString(i);
+  CVC5_CAPI_TRY_CATCH_END;
+  return str.c_str();
 }
 
 bool cvc5_proof_is_equal(Cvc5Proof a, Cvc5Proof b)

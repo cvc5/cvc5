@@ -168,6 +168,7 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   ss << cvc5::modes::ProofFormat::CPC;
   ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
   ss << cvc5::ProofRewriteRule::NONE;
+  ss << cvc5::AnnotationId::THEORY_LEMMA;
   ss << cvc5::SkolemId::PURIFY;
   ss << d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {4, 0});
   ss << d_tm.mkDatatypeConstructorDecl("cons");

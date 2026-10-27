@@ -1201,6 +1201,8 @@ TEST_F(TestApiBlackTermManager, getStatistics)
   for (const auto& s : stats)
   {
     ASSERT_FALSE(s.first.empty());
+    ASSERT_FALSE(s.second.isInternal());
+    ASSERT_FALSE(s.second.isDefault());
   }
   for (auto it = stats.begin(true, true); it != stats.end(); ++it)
   {
