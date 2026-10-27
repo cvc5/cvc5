@@ -334,3 +334,20 @@ macro(update_rpath_macos dylibname)
     -DDEPS_BASE=${DEPS_BASE}
     -P ${PROJECT_SOURCE_DIR}/cmake/update_rpath_macos.cmake)")
 endmacro()
+
+# Remove the LTO bytecode from an installed static library that was built with
+# fat LTO objects (see "Use interprocedural optimization" in CMakeLists.txt).
+# Programs that link against the installed library then link against regular
+# object code, even when the GCC linker plugin is in use.
+macro(strip_lto_static_library target)
+  if(ENABLE_IPO AND NOT BUILD_SHARED_LIBS)
+    install(CODE "
+      set(lib \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${target}>\")
+      execute_process(COMMAND \"${CMAKE_OBJCOPY}\" --wildcard
+        -R \".gnu.lto_*\" -R \".gnu.debuglto_*\" \"\${lib}\"
+        RESULT_VARIABLE res)
+      if(NOT res EQUAL 0)
+        message(FATAL_ERROR \"Could not remove LTO bytecode from \${lib}\")
+      endif()")
+  endif()
+endmacro()

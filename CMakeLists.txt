@@ -349,14 +349,34 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Use interprocedural optimization if requested
+#
+# In static builds, the static libraries are built with fat LTO objects, which
+# contain regular object code in addition to the LTO bytecode. The LTO
+# bytecode is used to link the cvc5 binary, and removed from the installed
+# libraries (see strip_lto_static_library). Otherwise, every program linked
+# against libcvc5.a would perform an LTO link of all of cvc5 (which takes
+# minutes and requires the same GCC version). The tests are linked with
+# -fno-lto for the same reason. Only GCC supports this reliably, so IPO is
+# disabled for static builds with other compilers.
 
 if(ENABLE_IPO)
   check_ipo_supported(RESULT have_ipo_support)
-  if(have_ipo_support)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-  else()
+  if(NOT have_ipo_support)
     message(STATUS "Interprocedural optimization not supported.")
     set(ENABLE_IPO OFF)
+  elseif(NOT BUILD_SHARED_LIBS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS
+      "Interprocedural optimization in static builds requires GCC, disabled.")
+    set(ENABLE_IPO OFF)
+  else()
+    if(NOT BUILD_SHARED_LIBS)
+      foreach(lang C CXX)
+        string(REPLACE "-fno-fat-lto-objects" "-ffat-lto-objects"
+          CMAKE_${lang}_COMPILE_OPTIONS_IPO
+          "${CMAKE_${lang}_COMPILE_OPTIONS_IPO}")
+      endforeach()
+    endif()
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   endif()
 endif()
 
@@ -737,6 +757,12 @@ if(BUILD_DOCS)
   add_subdirectory(docs)
 endif()
 
+# In static builds, link the tests against the regular object code in the
+# fat LTO objects (see "Use interprocedural optimization" above).
+if(ENABLE_IPO AND NOT BUILD_SHARED_LIBS)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+  add_link_options(-fno-lto)
+endif()
 add_subdirectory(test)
 
 include(target-graphs)

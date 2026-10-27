@@ -196,7 +196,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     break;
     case ProofRule::THEORY_REWRITE:
     {
-      ProofRewriteRule id;
+      ProofRewriteRule id = ProofRewriteRule::NONE;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
       return isHandledTheoryRewrite(opts, id, pfn->getArguments()[1]);
     }
@@ -650,7 +650,7 @@ std::string EoPrinter::getRuleName(const ProofNode* pfn) const
   ProofRule r = pfn->getRule();
   if (r == ProofRule::DSL_REWRITE)
   {
-    ProofRewriteRule id;
+    ProofRewriteRule id = ProofRewriteRule::NONE;
     rewriter::getRewriteRule(pfn->getArguments()[0], id);
     std::stringstream ss;
     ss << id;
@@ -658,7 +658,7 @@ std::string EoPrinter::getRuleName(const ProofNode* pfn) const
   }
   else if (r == ProofRule::THEORY_REWRITE)
   {
-    ProofRewriteRule id;
+    ProofRewriteRule id = ProofRewriteRule::NONE;
     rewriter::getRewriteRule(pfn->getArguments()[0], id);
     std::stringstream ss;
     ss << id;
@@ -1357,7 +1357,7 @@ void EoPrinter::printStepPost(EoPrintChannel* out, const ProofNode* pn)
       ss << pn->getRule();
       if (pn->getRule() == ProofRule::THEORY_REWRITE)
       {
-        ProofRewriteRule prid;
+        ProofRewriteRule prid = ProofRewriteRule::NONE;
         rewriter::getRewriteRule(pn->getArguments()[0], prid);
         ss << " (" << prid << ")";
       }
