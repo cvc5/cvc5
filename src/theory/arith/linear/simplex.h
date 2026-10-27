@@ -180,6 +180,7 @@ class SimplexDecisionProcedure : protected EnvObj
 
   /** Set the variable ordering pivot limit */
   void setVarOrderPivotLimit(int64_t value) { d_varOrderPivotLimit = value; }
+  int64_t getVarOrderPivotLimit() const { return d_varOrderPivotLimit; }
 
  protected:
   /** Reports a conflict to on the output channel. */
