@@ -21,6 +21,7 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "proof/annotation_proof_generator.h"
 #include "proof/proof.h"
 #include "proof/trust_node.h"
 #include "prop/learned_db.h"
@@ -133,10 +134,12 @@ class PropEngine : protected EnvObj
    * @param id The inference identifier.
    * @param trn The trust node storing the formula to assert.
    * @param p The properties of the lemma.
+   * @param tid The theory that sent the lemma.
    */
   void assertLemma(theory::InferenceId id,
                    TrustNode tlemma,
-                   theory::LemmaProperty p);
+                   theory::LemmaProperty p,
+                   theory::TheoryId tid);
 
   /**
    * This is called when a theory propagation was explained with texp.
@@ -385,7 +388,8 @@ class PropEngine : protected EnvObj
   void assertTrustedLemmaInternal(theory::InferenceId id,
                                   TrustNode trn,
                                   bool removable,
-                                  bool local);
+                                  bool local,
+                                  theory::TheoryId tid);
   /**
    * Assert node as a formula to the CNF stream
    * @param id The inference identifier.
@@ -416,7 +420,8 @@ class PropEngine : protected EnvObj
                             const std::vector<theory::SkolemLemma>& ppLemmas,
                             bool removable,
                             bool inprocess,
-                            bool local);
+                            bool local,
+                            theory::TheoryId tid);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should
@@ -443,6 +448,8 @@ class PropEngine : protected EnvObj
   CnfStream* d_cnfStream;
   /** A default proof generator for theory lemmas */
   CDProof d_theoryLemmaPg;
+  /** A proof generator for annotated theory lemmas */
+  AnnotationProofGenerator d_annotTheoryLemmaPg;
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;

@@ -1783,8 +1783,9 @@ SumPair DioLinearForm<T>::toSumPair(NodeManager* nm,
   Monomial::sort(monos);
   Assert(Monomial::isStrictlySorted(monos))
       << "distinct ids must map to distinct VarLists";
-  return SumPair(Polynomial::mkPolynomial(nm, monos),
-                 Constant::mkConstant(nm, Rational(d_constant)));
+  auto polys = Polynomial::mkPolynomial(nm, monos);
+  Constant c = Constant::mkConstant(nm, Rational(d_constant));
+  return SumPair(polys, c);
 }
 
 template <class T>

@@ -63,6 +63,7 @@ from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
+from cvc5proofrules cimport AnnotationId as c_AnnotationId
 from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
@@ -6195,6 +6196,18 @@ cdef class Proof:
         """
         return ProofRewriteRule(<int> self.cproof.getRewriteRule())
 
+    def getAnnotationId(self):
+        """
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            :return: The annotation identifier used by the root step of the
+                     proof. Raises an exception if `getRule()` does not return
+                     `ANNOTATE`.
+        """
+        return AnnotationId(<int> self.cproof.getAnnotationId())
+
     def getResult(self):
         """
             :return: The conclusion of the root step of the proof.
@@ -6219,6 +6232,27 @@ cdef class Proof:
         for a in self.cproof.getArguments():
             args.append(_term(self.tm, a))
         return args
+
+    def getArgumentToString(self, i):
+        """
+            Get a string representation of an argument of the root step of
+            the proof.
+
+            The string is computed by the internal proof printer, which takes
+            into account how the argument is used by the proof rule. For
+            example, an argument that encodes an identifier (e.g., of a theory
+            or a rewrite rule) is converted to the name of that identifier.
+            All other arguments are converted to the string representation of
+            the corresponding term returned by :py:meth:`getArguments()`.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            :param i: The index of the argument.
+            :return: The string representation of the argument.
+        """
+        return self.cproof.getArgumentToString(i).decode()
 
 
 cdef public api:

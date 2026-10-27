@@ -1870,9 +1870,7 @@ void SolverEngine::checkModel(bool hardFailure)
   // check the model with the theory engine for debugging
   if (options().smt.debugCheckModels)
   {
-    TheoryEngine* te = d_smtSolver->getTheoryEngine();
-    Assert(te != nullptr);
-    te->checkTheoryAssertionsWithModel(hardFailure);
+    d_smtDriver->debugCheckModels(hardFailure);
   }
 
   // check the model with the check models utility
