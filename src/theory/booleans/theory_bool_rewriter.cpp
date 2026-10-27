@@ -366,7 +366,7 @@ Node TheoryBoolRewriter::getBvInvertSolve(
     std::unordered_set<Kind>& disallowedKinds,
     CDProof* cdp)
 {
-  quantifiers::BvInverter binv(nm);
+  quantifiers::BvInverter binv;
   // solve for the variable on this path using the inverter
   std::vector<uint32_t> path;
   Node slit = binv.getPathToPv(lit, var, path);

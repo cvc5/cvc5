@@ -50,7 +50,7 @@ class BvInverterQuery
 class BvInverter
 {
  public:
-  BvInverter(NodeManager* nm, Rewriter* r = nullptr);
+  BvInverter(Rewriter* r = nullptr);
   ~BvInverter() {}
   /** get dummy fresh variable of type tn, used as argument for sv */
   Node getSolveVariable(TypeNode tn);
@@ -170,8 +170,6 @@ class BvInverter
    * to this call is null.
    */
   Node getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m);
-  /** Pointer to node manager */
-  NodeManager* d_nm;
   /** (Optional) rewriter used as helper in getInversionNode */
   Rewriter* d_rewriter;
   /** Dummy variables for each type */

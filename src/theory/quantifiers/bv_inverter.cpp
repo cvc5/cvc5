@@ -34,9 +34,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-BvInverter::BvInverter(NodeManager* nm, Rewriter* r) : d_nm(nm), d_rewriter(r)
-{
-}
+BvInverter::BvInverter(Rewriter* r) : d_rewriter(r) {}
 
 /*---------------------------------------------------------------------------*/
 
@@ -54,7 +52,7 @@ Node BvInverter::getSolveVariable(TypeNode tn)
 
 /*---------------------------------------------------------------------------*/
 
-Node BvInverter::mkWitness(const Node& annot) const
+Node BvInverter::mkWitness(CVC5_UNUSED const Node& annot) const
 {
   // TODO (PR #11461)
   return Node::null();
@@ -468,7 +466,7 @@ Node BvInverter::mkInvertibilityCondition(const Node& x, const Node& exists)
   Assert(exists.getKind() == Kind::EXISTS);
   Assert(exists[0].getNumChildren() == 1);
   Node v = exists[0][0];
-  Assert(x.getType() == v.getType());
+  Assert(CVC5_EQUAL(x.getType(), v.getType()));
   Node body = exists[1];
   bool pol = body.getKind() != Kind::NOT;
   body = pol ? body : body[0];
