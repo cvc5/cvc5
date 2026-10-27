@@ -7,7 +7,7 @@
 ; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 ; EXPECT: (a)
-; EXPECT: (error "Cannot get an unsat core when produce-unsat-cores or produce-proofs option is off.")
+; EXPECT: (error "cannot get unsat core unless explicitly enabled (try --produce-unsat-cores)")
 ; EXIT: 1
 (set-option :produce-unsat-assumptions true)
 (set-logic QF_LIA)

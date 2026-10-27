@@ -204,26 +204,17 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(smt, produceDifficulty, true, "dumpDifficulty");
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
-      || opts.driver.dumpUnsatCoresLemmas || opts.smt.unsatAssumptions
-      || opts.smt.minimalUnsatCores
+      || opts.driver.dumpUnsatCoresLemmas || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
-    // If unsat assumptions is the only reason for producing unsat cores, we
-    // only need to track the assumptions of check-sat-assuming calls as
-    // assumptions in the SAT solver, not all input assertions.
-    if (opts.smt.unsatAssumptions && !opts.smt.produceUnsatCores
-        && !opts.smt.produceProofs && !opts.smt.checkUnsatCores
-        && !opts.driver.dumpUnsatCores && !opts.driver.dumpUnsatCoresLemmas
-        && !opts.smt.minimalUnsatCores
-        && opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
-    {
-      SET_AND_NOTIFY(
-          smt, unsatCoresAssumptionsOnly, true, "unsat assumptions only");
-    }
     SET_AND_NOTIFY(
         smt, produceUnsatCores, true, "option requiring unsat cores");
   }
-  if (opts.smt.produceUnsatCores)
+  // Unsat assumptions are computed via the unsat core machinery, but do not
+  // require producing unsat cores. If unsat cores are not produced, only the
+  // assumptions of check-sat-assuming are passed as assumptions to the SAT
+  // solver (see PropEngine::assertInternal).
+  if (opts.smt.produceUnsatCores || opts.smt.unsatAssumptions)
   {
     if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
     {
@@ -344,7 +335,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
     // if proofs weren't enabled by user, and we are producing unsat cores
-    if (opts.smt.produceUnsatCores)
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
     {
       SET_AND_NOTIFY(smt, produceProofs, true, "unsat cores");
       if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
@@ -381,21 +372,12 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
   }
 
-  // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
-  // for proof mode.
-  Assert(opts.smt.produceUnsatCores
+  // if unsat cores and unsat assumptions are disabled, then unsat cores mode
+  // should be OFF. Similarly for proof mode.
+  Assert((opts.smt.produceUnsatCores || opts.smt.unsatAssumptions)
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
   Assert(opts.smt.produceProofs
          == (opts.smt.proofMode != options::ProofMode::OFF));
-  // Only track the assumptions of check-sat-assuming if we did not end up
-  // enabling full unsat cores, e.g., due to options that require proofs.
-  if (opts.smt.unsatCoresAssumptionsOnly
-      && (opts.smt.unsatCoresMode != options::UnsatCoresMode::ASSUMPTIONS
-          || opts.smt.proofMode != options::ProofMode::PP_ONLY))
-  {
-    SET_AND_NOTIFY(
-        smt, unsatCoresAssumptionsOnly, false, "unsat cores or proofs enabled");
-  }
 
   // if we require disabling options due to proofs, disable them now
   if (opts.smt.produceProofs)
@@ -648,7 +630,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (opts.smt.produceUnsatCores)
+  if (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     // check if the options are not compatible with unsat cores
     std::stringstream reasonNoUc;

@@ -279,13 +279,13 @@ void PropEngine::assertInternal(theory::InferenceId id,
 {
   // Whether to pass the formula as an assumption to the SAT solver, which is
   // the case for input formulas when unsat cores are assumption-based. If we
-  // only require unsat assumptions, this is restricted to the assumptions of
-  // the current check-sat-assuming call; all other input formulas are
-  // asserted as ordinary clauses.
+  // only require unsat assumptions (i.e., unsat cores are not produced), this
+  // is restricted to the assumptions of the current check-sat-assuming call;
+  // all other input formulas are asserted as ordinary clauses.
   bool useAssumption =
       input
       && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS
-      && (isAssumption || !options().smt.unsatCoresAssumptionsOnly);
+      && (isAssumption || options().smt.produceUnsatCores);
   bool addAssumption = false;
   if (isProofEnabled())
   {
