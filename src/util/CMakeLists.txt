@@ -68,6 +68,7 @@ libcvc5_add_sources(
   safe_print.h
   sampler.cpp
   sampler.h
+  scoped_timer.h
   sexpr.cpp
   sexpr.h
   smt2_quote_string.cpp
