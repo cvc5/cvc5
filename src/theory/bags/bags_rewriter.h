@@ -202,9 +202,17 @@ class BagsRewriter : public TheoryRewriter
    *  - (bag.map f (bag x y)) = (bag (apply f x) y)
    *  - (bag.map f (bag.union_disjoint A B)) =
    *       (bag.union_disjoint (bag.map f A) (bag.map f B))
-   *  where f: T1 -> T2
+   *  - (bag.map f (bag.map g A)) = (bag.map (f o g) A) if f and g are lambdas
+   *  where f: T1 -> T2 and g: T3 -> T1
    */
   BagsRewriteResponse postRewriteMap(const TNode& n) const;
+  /**
+   * @param f a function
+   * @return the lambda for f if f is a lambda or a function constant, or a
+   * purification skolem of one (e.g., introduced by lambda lifting), and null
+   * otherwise
+   */
+  static Node getLambda(const Node& f);
 
   /**
    *  rewrites for n include:
@@ -259,6 +267,14 @@ class BagsRewriter : public TheoryRewriter
    *  where f: T1 -> T2 -> T2
    */
   BagsRewriteResponse postRewriteProduct(const TNode& n) const;
+  /**
+   *  rewrites for n include:
+   *  - ((_ table.project i_1 ... i_n) (as bag.empty T1)) = (as bag.empty T2)
+   *  - ((_ table.project 0 1 ... n-1) A) = A
+   *  - ((_ table.project j_1 ... j_m) ((_ table.project i_1 ... i_n) A)) =
+   *      ((_ table.project i_{j_1} ... i_{j_m}) A)
+   */
+  BagsRewriteResponse postRewriteProject(const TNode& n) const;
 
  private:
   /** Reference to the rewriter statistics. */
