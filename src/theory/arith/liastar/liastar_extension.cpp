@@ -148,7 +148,10 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       d_im.addPendingLemma(
           lemma, InferenceId::ARITH_LIA_STAR_NONNEGATIVE, nullptr);
     }
-    // 2. split on p(y)
+    // 2. split on p(y). The lemma cache holds rewritten lemmas, and the
+    // rewriter keeps (or p(y) (not p(y))) as is, so the split is sent once
+    // per user context. It only rewrites to the cached true when p(y) is a
+    // constant, e.g. for a constant y, which leaves nothing to split.
     Node split = vectorPredicate.orNode(vectorPredicate.notNode());
     d_im.addPendingLemma(split, InferenceId::ARITH_LIA_STAR_SPLIT, nullptr);
     d_im.doPendingLemmas();
