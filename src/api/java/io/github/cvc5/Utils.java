@@ -170,6 +170,23 @@ public final class Utils
   }
 
   /**
+   * Write all bytes from an input stream to a file and close the stream.
+   *
+   * <p>The input stream and the output file are closed on success and on failure.</p>
+   *
+   * @param inputStream The stream to read from
+   * @param dest The destination file
+   * @throws IOException If an I/O error occurs during reading or writing
+   */
+  public static void extractToFile(InputStream inputStream, File dest) throws IOException
+  {
+    try (InputStream in = inputStream; FileOutputStream outputStream = new FileOutputStream(dest))
+    {
+      transferTo(in, outputStream);
+    }
+  }
+
+  /**
    * Load a native library from a specified path within a JAR file and loads it into the JVM.
    *
    * @param tempDir The temporary directory where the extracted native library will be written.
@@ -194,10 +211,7 @@ public final class Utils
     tempLibrary.deleteOnExit(); // Mark the file for deletion on exit
 
     // Write the extracted library to the temp file
-    try (FileOutputStream outputStream = new FileOutputStream(tempLibrary))
-    {
-      transferTo(inputStream, outputStream);
-    }
+    extractToFile(inputStream, tempLibrary);
 
     // Load the library
     try
@@ -257,14 +271,15 @@ public final class Utils
    * Construct an array of {@link Sort} objects from an array of native pointers.
    *
    * @return Sorts array from array of Sort pointers.
+   * @param ctx The context of the term manager the objects belong to.
    * @param pointers The array of pointers.
    */
-  public static Sort[] getSorts(long[] pointers)
+  static Sort[] getSorts(NativeContext ctx, long[] pointers)
   {
     Sort[] sorts = new Sort[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      sorts[i] = new Sort(pointers[i]);
+      sorts[i] = new Sort(ctx, pointers[i]);
     }
     return sorts;
   }
@@ -273,14 +288,15 @@ public final class Utils
    * Construct an array of {@link Term} objects from an array of native pointers.
    *
    * @return Terms array from array of Term pointers.
+   * @param ctx The context of the term manager the objects belong to.
    * @param pointers The array of pointers.
    */
-  public static Term[] getTerms(long[] pointers)
+  static Term[] getTerms(NativeContext ctx, long[] pointers)
   {
     Term[] terms = new Term[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      terms[i] = new Term(pointers[i]);
+      terms[i] = new Term(ctx, pointers[i]);
     }
     return terms;
   }
@@ -289,14 +305,15 @@ public final class Utils
    * Construct an array of {@link Proof} objects from an array of native pointers.
    *
    * @return proofs array from array of Proof pointers
+   * @param ctx The context of the term manager the objects belong to.
    * @param pointers The array of pointers.
    */
-  public static Proof[] getProofs(long[] pointers)
+  static Proof[] getProofs(NativeContext ctx, long[] pointers)
   {
     Proof[] proofs = new Proof[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      proofs[i] = new Proof(pointers[i]);
+      proofs[i] = new Proof(ctx, pointers[i]);
     }
     return proofs;
   }

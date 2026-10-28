@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --model-based-arith-bv-conv
 ; EXPECT: sat
 (set-logic ALL)

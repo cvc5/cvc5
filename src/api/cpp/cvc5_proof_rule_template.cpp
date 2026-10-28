@@ -39,6 +39,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ITE_EQ: return "ITE_EQ";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
+    case ProofRule::ANNOTATE: return "ANNOTATE";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     case ProofRule::DRAT_REFUTATION: return "DRAT_REFUTATION";
@@ -132,6 +133,7 @@ const char* toString(ProofRule rule)
     //================================================= Sets rules
     case ProofRule::SETS_SINGLETON_INJ: return "SETS_SINGLETON_INJ";
     case ProofRule::SETS_EXT: return "SETS_EXT";
+    case ProofRule::SETS_CHOOSE_MEMBER: return "SETS_CHOOSE_MEMBER";
     case ProofRule::SETS_FILTER_DOWN: return "SETS_FILTER_DOWN";
     case ProofRule::SETS_FILTER_UP: return "SETS_FILTER_UP";
     //================================================= String rules
@@ -168,6 +170,10 @@ const char* toString(ProofRule rule)
     case ProofRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
       return "ARITH_MULT_ABS_COMPARISON";
+    case ProofRule::ARITH_POW2_INIT: return "ARITH_POW2_INIT";
+    case ProofRule::ARITH_POW2_MONOTONE: return "ARITH_POW2_MONOTONE";
+    case ProofRule::ARITH_POW2_DIV0: return "ARITH_POW2_DIV0";
+    case ProofRule::ARITH_POW2_LOWER_BOUND: return "ARITH_POW2_LOWER_BOUND";
     case ProofRule::ARITH_REDUCTION: return "ARITH_REDUCTION";
     case ProofRule::ARITH_POLY_NORM: return "ARITH_POLY_NORM";
     case ProofRule::ARITH_POLY_NORM_REL: return "ARITH_POLY_NORM_REL";
@@ -215,7 +221,6 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_POLY_NORM_EQ:
       return "FF_POLY_NORM_EQ";
       //================================================= External rules
-    case ProofRule::LFSC_RULE: return "LFSC_RULE";
     case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";
@@ -370,9 +375,8 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
-    case ProofRewriteRule::SETS_EVAL_OP: return "sets-eval-op";
-    case ProofRewriteRule::SETS_INSERT_ELIM:
-      return "sets-insert-elim";
+    case ProofRewriteRule::SETS_EVAL_OP:
+      return "sets-eval-op";
       //================================================= RARE rules
       // clang-format off
       ${printer}$
@@ -384,6 +388,22 @@ const char* toString(cvc5::ProofRewriteRule rule)
 std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule)
 {
   out << toString(rule);
+  return out;
+}
+
+const char* toString(AnnotationId id)
+{
+  switch (id)
+  {
+    case AnnotationId::NONE: return "NONE";
+    case AnnotationId::THEORY_LEMMA: return "THEORY_LEMMA";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, AnnotationId id)
+{
+  out << toString(id);
   return out;
 }
 
@@ -408,5 +428,12 @@ std::string to_string(cvc5::ProofRewriteRule rule)
 {
   return cvc5::toString(rule);
 }
+
+size_t hash<cvc5::AnnotationId>::operator()(cvc5::AnnotationId id) const
+{
+  return static_cast<size_t>(id);
+}
+
+std::string to_string(cvc5::AnnotationId id) { return cvc5::toString(id); }
 
 }  // namespace std

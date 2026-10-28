@@ -115,6 +115,12 @@ void CoveringsSolver::checkFull()
   }
   d_CAC.startNewProof();
   auto covering = d_CAC.getUnsatCover();
+  if (d_CAC.foundNullifiedPolynomial())
+  {
+    // give up, the nonlinear extension sets itself incomplete
+    d_foundSatisfiability = false;
+    return;
+  }
   if (covering.empty())
   {
     d_foundSatisfiability = true;
@@ -150,6 +156,11 @@ void CoveringsSolver::checkPartial()
     return;
   }
   auto covering = d_CAC.getUnsatCover(true);
+  if (d_CAC.foundNullifiedPolynomial())
+  {
+    d_foundSatisfiability = false;
+    return;
+  }
   if (covering.empty())
   {
     d_foundSatisfiability = true;

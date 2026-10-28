@@ -15,8 +15,20 @@
 
 include(deps-helper)
 
+# On Windows we always link LibPoly statically, even into a shared libcvc5.
+# A LibPoly DLL auto-exports the GMP symbols it statically embeds (MinGW
+# auto-export), and those re-exported symbols (e.g. __gmp_default_allocate)
+# then collide with cvc5's own static GMP when linking libcvc5.dll, which lld
+# rejects with "<sym> was replaced". A static (PIC) LibPoly has no export
+# table, so there is nothing to collide.
+if(BUILD_SHARED_LIBS AND NOT WIN32)
+  set(POLY_BUILD_SHARED ON)
+else()
+  set(POLY_BUILD_SHARED OFF)
+endif()
+
 find_path(Poly_INCLUDE_DIR NAMES poly/poly.h)
-if(BUILD_SHARED_LIBS)
+if(POLY_BUILD_SHARED)
   find_library(Poly_LIBRARIES NAMES poly)
   find_library(PolyXX_LIBRARIES NAMES polyxx)
 else()
@@ -86,7 +98,7 @@ if(NOT Poly_FOUND_SYSTEM)
 
   set(Poly_INCLUDE_DIR "${DEPS_BASE}/include/")
 
-  if(BUILD_SHARED_LIBS)
+  if(POLY_BUILD_SHARED)
     set(POLY_BUILD_STATIC OFF)
     set(POLY_TARGETS poly polyxx)
     set(POLY_INSTALL_CMD
@@ -169,9 +181,20 @@ if(NOT Poly_FOUND_SYSTEM)
   # Disable a warning triggered by compilers (Emscripten, Apple Clang, etc.)
   # due to deprecated literal operator syntax in a GMP header used by LibPoly.
   set(POLY_CXX_FLAGS "")
+  set(_poly_cxx_flags "")
   check_cxx_compiler_flag(-Wno-error=deprecated-literal-operator HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
   if(HAVE_CXX_FLAGWno_error_deprecated_literal_operator)
-    set(POLY_CXX_FLAGS -DCMAKE_CXX_FLAGS=-Wno-error=deprecated-literal-operator)
+    string(APPEND _poly_cxx_flags " -Wno-error=deprecated-literal-operator")
+  endif()
+  # See FindCaDiCaL.cmake: emcc's default -fignore-exceptions emits no
+  # landing pads, so destructors in LibPoly frames an exception unwinds
+  # through would be skipped.
+  if(EMSCRIPTEN)
+    string(APPEND _poly_cxx_flags " -fexceptions")
+  endif()
+  if(_poly_cxx_flags)
+    string(STRIP "${_poly_cxx_flags}" _poly_cxx_flags)
+    set(POLY_CXX_FLAGS "-DCMAKE_CXX_FLAGS=${_poly_cxx_flags}")
   endif()
   
   # We pass the full path of GMP to LibPoly, s.t. we can ensure that LibPoly is
@@ -210,7 +233,7 @@ endif()
 set(Poly_FOUND TRUE)
 
 
-if(BUILD_SHARED_LIBS)
+if(POLY_BUILD_SHARED)
   add_library(Poly SHARED IMPORTED GLOBAL)
   add_library(Polyxx SHARED IMPORTED GLOBAL)
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")

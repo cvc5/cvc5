@@ -55,7 +55,7 @@ these steps:
 
   git clone https://github.com/cvc5/cvc5.git
   cd cvc5
-  ./configure.sh --python-bindings --auto-download
+  ./configure.sh unrestricted --python-bindings --auto-download
   cd build
   make # add -jN for parallel build using N threads
   make install

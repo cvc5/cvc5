@@ -12,6 +12,8 @@
 
 #include "theory/inference_manager_buffered.h"
 
+#include "base/check.h"
+#include "base/output.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
@@ -125,6 +127,25 @@ void InferenceManagerBuffered::doPendingLemmas()
   }
   d_pendingLem.clear();
   d_processingPendingLemmas = false;
+}
+
+void InferenceManagerBuffered::doPending()
+{
+  doPendingFacts();
+  if (d_theoryState.isInConflict())
+  {
+    // just clear the pending vectors, nothing else to do
+    clearPendingLemmas();
+    clearPendingPhaseRequirements();
+    return;
+  }
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+}
+
+bool InferenceManagerBuffered::hasProcessed() const
+{
+  return d_theoryState.isInConflict() || hasPending();
 }
 
 void InferenceManagerBuffered::doPendingPhaseRequirements()

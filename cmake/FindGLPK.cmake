@@ -84,7 +84,9 @@ if(NOT GLPK_FOUND_SYSTEM)
   # Newer versions of gcc use C23 as default C standard but GLPK
   # only supports C17. To also support older compiler versions, we fix the
   # standard for GLPK to C99.
-  set(GLPK_CFLAGS "-std=c99")
+  # Setting CFLAGS replaces configure's default flags, so we have to request
+  # optimization explicitly.
+  set(GLPK_CFLAGS "-O2 -std=c99")
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
@@ -107,7 +109,7 @@ if(NOT GLPK_FOUND_SYSTEM)
   ExternalProject_Add(
     GLPK-EP
     ${COMMON_EP_CONFIG}
-    URL "https://ftp.gnu.org/gnu/glpk/glpk-${GLPK_VERSION}.tar.gz"
+    URL https://github.com/cvc5/cvc5-deps/blob/main/glpk-${GLPK_VERSION}.tar.gz?raw=true
     URL_HASH SHA256=9a5dab356268b4f177c33e00ddf8164496dc2434e83bd1114147024df983a3bb
     PATCH_COMMAND ${Patch_EXECUTABLE} -p1 -d <SOURCE_DIR>
         -i ${CMAKE_CURRENT_LIST_DIR}/deps-utils/glpk-cut-log.patch

@@ -15,6 +15,8 @@
 #include "theory/arith/linear/normal_form.h"
 
 #include <list>
+#include <optional>
+#include <sstream>
 
 #include "base/output.h"
 #include "theory/arith/arith_utilities.h"
@@ -695,7 +697,9 @@ SumPair SumPair::mkSumPair(const Polynomial& p)
 
 Comparison::Comparison(TNode n) : NodeWrapper(n)
 {
-  Assert(isNormalForm()) << "Bad comparison normal form: " << n;
+  // Note we do not assert that n is in normal form here, since this
+  // constructor is used by isNormalAtom to check whether it is. The assertion
+  // is made in parseNormalForm.
 }
 
 SumPair Comparison::toSumPair() const
@@ -1577,6 +1581,347 @@ bool Polynomial::isNonlinear() const
   }
   return false;
 }
+
+namespace DioCoefUtil {
+
+/** Compares |a| with |b|. */
+int absCmpCoeff(const Integer& a, const Integer& b)
+{
+  Integer x = a.abs(), y = b.abs();
+  return x < y ? -1 : (y < x ? 1 : 0);
+}
+int absCmpCoeff(const Rational& a, const Rational& b) { return a.absCmp(b); }
+
+/** Converts a SumPair coefficient to the form's coefficient type. */
+void coeffFromRational(const Rational& q, Integer& out)
+{
+  Assert(q.isIntegral());
+  out = q.getNumerator();
+}
+void coeffFromRational(const Rational& q, Rational& out) { out = q; }
+
+}  // namespace DioCoefUtil
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::mkVariable(Var v)
+{
+  DioLinearForm f;
+  f.d_terms.emplace_back(v, T(1));
+  return f;
+}
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::mkForm(std::vector<Term> terms, const T& c)
+{
+  std::sort(terms.begin(), terms.end(), [](const Term& a, const Term& b) {
+    return a.first < b.first;
+  });
+  DioLinearForm f(c);
+  for (Term& t : terms)
+  {
+    if (!f.d_terms.empty() && f.d_terms.back().first == t.first)
+    {
+      f.d_terms.back().second += t.second;
+      continue;
+    }
+    // The previous id is complete; drop it if its terms cancelled.
+    if (!f.d_terms.empty() && f.d_terms.back().second.isZero())
+    {
+      f.d_terms.pop_back();
+    }
+    f.d_terms.push_back(std::move(t));
+  }
+  if (!f.d_terms.empty() && f.d_terms.back().second.isZero())
+  {
+    f.d_terms.pop_back();
+  }
+  return f;
+}
+
+template <class T>
+const T* DioLinearForm<T>::findCoefficient(Var v) const
+{
+  auto it = std::lower_bound(
+      d_terms.begin(), d_terms.end(), v, [](const Term& t, Var x) {
+        return t.first < x;
+      });
+  return (it != d_terms.end() && it->first == v) ? &it->second : nullptr;
+}
+
+template <class T>
+T DioLinearForm<T>::getCoefficient(Var v) const
+{
+  const T* c = findCoefficient(v);
+  return c == nullptr ? T(0) : *c;
+}
+
+template <class T>
+size_t DioLinearForm<T>::minAbsTermIndex() const
+{
+  Assert(!isConstant());
+  size_t best = 0;
+  for (size_t i = 1, n = d_terms.size(); i < n; ++i)
+  {
+    if (DioCoefUtil::absCmpCoeff(d_terms[i].second, d_terms[best].second) < 0)
+    {
+      best = i;
+    }
+  }
+  return best;
+}
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::operator*(const T& c) const
+{
+  if (c.isZero())
+  {
+    return DioLinearForm();
+  }
+  if (c.isOne())
+  {
+    return *this;
+  }
+  DioLinearForm f(d_constant * c);
+  f.d_terms.reserve(d_terms.size());
+  for (const Term& t : d_terms)
+  {
+    f.d_terms.emplace_back(t.first, t.second * c);
+  }
+  return f;
+}
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::operator+(const DioLinearForm& other) const
+{
+  return combine(T(1), *this, T(1), other);
+}
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::operator-(const DioLinearForm& other) const
+{
+  return combine(T(1), *this, T(-1), other);
+}
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::operator-() const
+{
+  return (*this) * T(-1);
+}
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::combine(const T& q,
+                                           const DioLinearForm& a,
+                                           const T& r,
+                                           const DioLinearForm& b)
+{
+  if (q.isZero())
+  {
+    return b * r;
+  }
+  if (r.isZero())
+  {
+    return a * q;
+  }
+  // Multiplying by one is common (substitutions use q = 1), so skip it.
+  const bool qOne = q.isOne();
+  const bool rOne = r.isOne();
+  auto scaleA = [&](const T& x) { return qOne ? x : q * x; };
+  auto scaleB = [&](const T& x) { return rOne ? x : r * x; };
+
+  DioLinearForm f(scaleA(a.d_constant) + scaleB(b.d_constant));
+  f.d_terms.reserve(a.d_terms.size() + b.d_terms.size());
+  auto i = a.d_terms.begin(), iend = a.d_terms.end();
+  auto j = b.d_terms.begin(), jend = b.d_terms.end();
+  while (i != iend && j != jend)
+  {
+    if (i->first < j->first)
+    {
+      f.d_terms.emplace_back(i->first, scaleA(i->second));
+      ++i;
+    }
+    else if (j->first < i->first)
+    {
+      f.d_terms.emplace_back(j->first, scaleB(j->second));
+      ++j;
+    }
+    else
+    {
+      T c = scaleA(i->second) + scaleB(j->second);
+      if (!c.isZero())
+      {
+        f.d_terms.emplace_back(i->first, std::move(c));
+      }
+      ++i;
+      ++j;
+    }
+  }
+  for (; i != iend; ++i)
+  {
+    f.d_terms.emplace_back(i->first, scaleA(i->second));
+  }
+  for (; j != jend; ++j)
+  {
+    f.d_terms.emplace_back(j->first, scaleB(j->second));
+  }
+  return f;
+}
+
+template <class T>
+SumPair DioLinearForm<T>::toSumPair(NodeManager* nm,
+                                    const std::vector<Node>& varLists) const
+{
+  std::vector<Monomial> monos;
+  monos.reserve(d_terms.size());
+  for (const Term& t : d_terms)
+  {
+    Assert(t.first < varLists.size());
+    monos.push_back(
+        Monomial::mkMonomial(Constant::mkConstant(nm, Rational(t.second)),
+                             VarList::parseVarList(varLists[t.first])));
+  }
+  // Polynomials are sorted by VarList, not by id.
+  Monomial::sort(monos);
+  Assert(Monomial::isStrictlySorted(monos))
+      << "distinct ids must map to distinct VarLists";
+  auto polys = Polynomial::mkPolynomial(nm, monos);
+  Constant c = Constant::mkConstant(nm, Rational(d_constant));
+  return SumPair(polys, c);
+}
+
+template <class T>
+DioLinearForm<T> DioLinearForm<T>::fromSumPair(
+    const SumPair& sp, const std::function<Var(TNode)>& varId)
+{
+  std::vector<Term> terms;
+  Polynomial p = sp.getPolynomial();
+  for (Polynomial::iterator it = p.begin(), end = p.end(); it != end; ++it)
+  {
+    Monomial m = *it;
+    if (m.isConstant())
+    {
+      // Only the zero polynomial has a constant monomial.
+      Assert(m.isZero());
+      continue;
+    }
+    T c;
+    DioCoefUtil::coeffFromRational(m.getConstant().getValue(), c);
+    terms.emplace_back(varId(m.getVarList().getNode()), std::move(c));
+  }
+  T k;
+  DioCoefUtil::coeffFromRational(sp.getConstant().getValue(), k);
+  return mkForm(std::move(terms), k);
+}
+
+template <>
+Integer DioLinearForm<Integer>::coefficientGcd() const
+{
+  Integer d(0);
+  for (const Term& t : d_terms)
+  {
+    d = d.gcd(t.second);
+    if (d.isOne())
+    {
+      break;
+    }
+  }
+  return d;
+}
+
+template <>
+Integer DioLinearForm<Integer>::gcdWithConstant() const
+{
+  return coefficientGcd().gcd(d_constant);
+}
+
+template <>
+DioLinearForm<Integer> DioLinearForm<Integer>::exactDivide(
+    const Integer& g) const
+{
+  Assert(!g.isZero());
+  if (g.isOne())
+  {
+    return *this;
+  }
+  DioLinearForm f(d_constant.exactQuotient(g));
+  f.d_terms.reserve(d_terms.size());
+  for (const Term& t : d_terms)
+  {
+    f.d_terms.emplace_back(t.first, t.second.exactQuotient(g));
+  }
+  return f;
+}
+
+template <>
+uint32_t DioLinearForm<Integer>::maxLength() const
+{
+  // Integer::length() is 1 for zero, so this is at least 1, like
+  // SumPair::maxLength.
+  size_t m = d_constant.length();
+  for (const Term& t : d_terms)
+  {
+    m = std::max(m, t.second.length());
+  }
+  return static_cast<uint32_t>(m);
+}
+
+template <>
+std::pair<DioLinearForm<Integer>, DioLinearForm<Integer>>
+DioLinearForm<Integer>::computeQR(const Integer& div) const
+{
+  Integer q, r;
+  Integer::floorQR(q, r, d_constant, div);
+  DioLinearForm qf(q), rf(r);
+  for (const Term& t : d_terms)
+  {
+    Integer::floorQR(q, r, t.second, div);
+    // Terms are visited in id order, so both results stay sorted.
+    if (!q.isZero())
+    {
+      qf.d_terms.emplace_back(t.first, q);
+    }
+    if (!r.isZero())
+    {
+      rf.d_terms.emplace_back(t.first, r);
+    }
+  }
+  return {qf, rf};
+}
+
+template <class T>
+void DioLinearForm<T>::print(std::ostream& out, const char* varPrefix) const
+{
+  bool first = true;
+  for (const Term& t : d_terms)
+  {
+    out << (first ? "" : " + ") << t.second << "*" << varPrefix << t.first;
+    first = false;
+  }
+  if (first || !d_constant.isZero())
+  {
+    out << (first ? "" : " + ") << d_constant;
+  }
+}
+
+template <class T>
+std::string DioLinearForm<T>::toString(const char* varPrefix) const
+{
+  std::stringstream ss;
+  print(ss, varPrefix);
+  return ss.str();
+}
+
+template <class T>
+std::ostream& operator<<(std::ostream& out, const DioLinearForm<T>& f)
+{
+  f.print(out);
+  return out;
+}
+
+template class DioLinearForm<Integer>;
+template class DioLinearForm<Rational>;
+template std::ostream& operator<<(std::ostream&, const DioLinearForm<Integer>&);
+template std::ostream& operator<<(std::ostream&,
+                                  const DioLinearForm<Rational>&);
 
 }  // namespace arith::linear
 }  // namespace theory

@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: false
 (set-logic LIA)
 (set-option :ext-rewrite-quant true)

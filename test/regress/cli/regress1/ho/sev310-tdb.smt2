@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --full-saturate-quant --no-ho-matching --ho-elim-store-ax
 ; EXPECT: unsat
 (set-logic HO_ALL)

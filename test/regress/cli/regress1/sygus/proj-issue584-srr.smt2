@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; SCRUBBER: grep -v -E '.*'
 ; EXIT: 0
 (set-logic ALL)

@@ -309,9 +309,10 @@ Node SkolemCache::mkRegExpEqVar(NodeManager* nm, Node eq)
       BoundVarId::STRINGS_REG_EXP_EQ, eq, "@var.re_eq", stringType);
 }
 
-Node SkolemCache::mkSkolemFun(NodeManager* nm, SkolemId id, Node a, Node b)
+Node SkolemCache::mkSkolemFun(
+    NodeManager* nm, SkolemId id, Node a, Node b, Node c)
 {
-  std::vector<Node> cacheVals = getSkolemCacheVals(a, b);
+  std::vector<Node> cacheVals = getSkolemCacheVals(a, b, c);
   SkolemManager* sm = nm->getSkolemManager();
   Node k = sm->mkSkolemFunction(id, cacheVals);
   d_allSkolems.insert(k);
@@ -319,16 +320,15 @@ Node SkolemCache::mkSkolemFun(NodeManager* nm, SkolemId id, Node a, Node b)
 }
 
 std::vector<Node> SkolemCache::getSkolemCacheVals(const Node& a,
-                                                  const Node& b) const
+                                                  const Node& b,
+                                                  const Node& c) const
 {
   std::vector<Node> cacheVals;
-  for (size_t i = 0; i < 2; i++)
+  for (const Node& n : {a, b, c})
   {
-    Node n = i == 0 ? a : b;
     if (!n.isNull())
     {
-      n = d_rr != nullptr ? d_rr->rewrite(n) : n;
-      cacheVals.push_back(n);
+      cacheVals.push_back(d_rr != nullptr ? d_rr->rewrite(n) : n);
     }
   }
   return cacheVals;

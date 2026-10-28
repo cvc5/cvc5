@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=4
 ; EXPECT: unknown
 (set-logic QF_NIA)

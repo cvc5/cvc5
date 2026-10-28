@@ -86,14 +86,14 @@ void RegExpSolver::checkMemberships(Theory::Effort e)
                           << std::endl;
   // compute the memberships
   computeAssertedMemberships();
+  // check for regular expression inclusion
+  checkInclusions(e);
+  if (d_state.isInConflict())
+  {
+    return;
+  }
   if (e == Theory::EFFORT_FULL)
   {
-    // check for regular expression inclusion
-    checkInclusions();
-    if (d_state.isInConflict())
-    {
-      return;
-    }
     // check for evaluations and inferences based on derivatives
     checkEvaluations();
     if (d_state.isInConflict())
@@ -104,7 +104,7 @@ void RegExpSolver::checkMemberships(Theory::Effort e)
   checkUnfold(e);
 }
 
-void RegExpSolver::checkInclusions()
+void RegExpSolver::checkInclusions(Theory::Effort e)
 {
   // Check for conflict and chances to mark memberships inactive based on
   // regular expression and intersection.
@@ -116,12 +116,12 @@ void RegExpSolver::checkInclusions()
     std::vector<Node> mems2 = mr.second;
     Trace("regexp-process")
         << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
-    if (options().strings.stringRegexpInclusion && !checkEqcInclusion(mems2))
+    if (options().strings.stringRegexpInclusion && !checkEqcInclusion(e, mems2))
     {
       // conflict discovered, return
       return;
     }
-    if (!checkEqcIntersect(mems2))
+    if (e == Theory::EFFORT_FULL && !checkEqcIntersect(mems2))
     {
       // conflict discovered, return
       return;
@@ -313,7 +313,7 @@ bool RegExpSolver::doUnfold(const Node& assertion)
   return ret;
 }
 
-bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
+bool RegExpSolver::checkEqcInclusion(Theory::Effort e, std::vector<Node>& mems)
 {
   std::unordered_set<Node> remove;
 
@@ -356,8 +356,16 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
         //  (not (str.in_re x R2))
         // where R2 is included in (re.++ (re.* R1) R2)). However, we cannot
         // mark the latter as reduced.
+        // For the same reason, we only do this at efforts where memberships
+        // of this polarity are unfolded. Otherwise, the basis may be unfolded
+        // at a *later* effort, at which point the membership we marked
+        // inactive here is no longer considered, and the cyclic justification
+        // above would go unnoticed. Note that marking inactive at the effort
+        // where we unfold is safe, since d_assertedMems was computed prior to
+        // this method and hence the membership is still unfolded in this call.
+        bool pol = !m1Neg;
         bool basisUnfolded = d_esolver.isReduced(m1Neg ? m1 : m2);
-        if (!basisUnfolded)
+        if (!basisUnfolded && shouldUnfold(e, pol))
         {
           // Both regular expression memberships have positive polarity
           if (d_regexp_opr.regExpIncludes(m1Lit[1], m2Lit[1]))

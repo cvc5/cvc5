@@ -106,6 +106,14 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
     string(APPEND CaDiCaL_CXXFLAGS " -DNCLOSEFROM")
   endif()
 
+  # emcc defaults to -fignore-exceptions, which emits no landing pads. cvc5
+  # runs as a CaDiCaL::ExternalPropagator callback, so exceptions it throws
+  # from inside the SAT search (e.g. FfTimeoutException) unwind back out
+  # through CaDiCaL frames; without this flag their destructors are skipped.
+  if(EMSCRIPTEN)
+    string(APPEND CaDiCaL_CXXFLAGS " -fexceptions")
+  endif()
+
   # On macOS, we have to set `-isysroot` to make sure that include headers are
   # found because they are not necessarily installed at /usr/include anymore.
   if(CMAKE_OSX_SYSROOT)

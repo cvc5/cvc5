@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --full-saturate-quant --ho-elim-store-ax
 ; COMMAND-LINE: --full-saturate-quant --ho-elim
 

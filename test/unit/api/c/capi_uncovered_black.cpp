@@ -165,9 +165,10 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   ss << cvc5::modes::FindSynthTarget::ENUM;
   ss << cvc5::modes::OptionCategory::EXPERT;
   ss << cvc5::modes::InputLanguage::SMT_LIB_2_6;
-  ss << cvc5::modes::ProofFormat::LFSC;
+  ss << cvc5::modes::ProofFormat::CPC;
   ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
   ss << cvc5::ProofRewriteRule::NONE;
+  ss << cvc5::AnnotationId::THEORY_LEMMA;
   ss << cvc5::SkolemId::PURIFY;
   ss << d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {4, 0});
   ss << d_tm.mkDatatypeConstructorDecl("cons");
@@ -354,8 +355,8 @@ class PluginListen : public Plugin
 
 TEST_F(TestCApiBlackUncovered, plugin_uncovered_default)
 {
-  // NOTE: this shouldn't be necessary but ensures notifySatClause is called
-  // here.
+  d_solver->setOption("sat-solver", "minisat");
+  // Allow notifications for unit clauses added before the main solve.
   d_solver->setOption("plugin-notify-sat-clause-in-solve", "false");
   PluginListen pl(d_tm);
   d_solver->addPlugin(pl);
@@ -381,6 +382,7 @@ TEST_F(TestCApiBlackUncovered, parser)
   Solver solver(d_tm);
   parser::InputParser parser(&solver);
   (void)parser.getSolver();
+  (void)parser.getSymbolManager();
   std::stringstream ss;
   ss << command << std::endl;
   parser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");

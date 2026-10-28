@@ -1,5 +1,6 @@
 ;; An issue with the rounder in SymFPU not handling some exotic formats
 ;; Fixed in SymFPU 1.2.0
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fp-exp
 (set-info :smt-lib-version 2.6)
 (set-logic QF_FP)

@@ -141,7 +141,9 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * query the solver if a given assumption is false.
    */
   std::vector<SatLiteral> d_assumptions;
-
+  /** When true, the next solve operation will only propagate. */
+  bool d_propagateOnly;
+  /** Next fresh SAT variable index. */
   unsigned d_nextVarIdx;
   /** The proof file */
   std::string d_pfFile;

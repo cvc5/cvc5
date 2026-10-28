@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --dt-stc-ind --conjecture-gen
 ; DISABLE-TESTER: unsat-core
 ; EXPECT: unsat

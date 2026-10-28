@@ -16,7 +16,9 @@
 #include "proof/proof.h"
 #include "proof/proof_node.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_proof_utilities.h"
 #include "theory/arith/arith_subs.h"
+#include "theory/arith/rewriter/rewrite_atom.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -55,6 +57,17 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
 {
   Assert(as.getKind() == Kind::EQUAL);
   Node asr = rewrite(as);
+  if (asr.getKind() == Kind::EQUAL)
+  {
+    // Equalities are not normalized by the rewriter, see
+    // rewriter::normalizeEquality. We normalize here, since otherwise the
+    // monomial we are solving for may have an explicit coefficient of one
+    // below, e.g. the monomial (str.len a) has coefficient one in the normal
+    // form (= (str.len a) (* 2 x)) but has an explicit coefficient in
+    // (= 0 (+ (* 2 x) (* (- 1) (str.len a)))), in which case we would fail to
+    // solve for it.
+    asr = rewriter::normalizeEquality(nodeManager(), asr);
+  }
   Trace("arith-proof-rcons") << "...under subs+rewrite: " << asr << std::endl;
   // see if there is a variable to solve for
   std::map<Node, Node> msum;
@@ -85,7 +98,18 @@ bool ArithProofRCons::solveEquality(CDProof& cdp,
     Node eq = m.first.eqNode(val);
     if (!CDProof::isSame(as, eq))
     {
-      cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
+      // Note the solved equality is typically equivalent to as up to
+      // polynomial normalization only, and not under rewriting alone, since
+      // equalities are not normalized by the rewriter, see
+      // rewriter::normalizeEquality.
+      if (addArithPolyNormRel(cdp, as, eq))
+      {
+        cdp.addStep(eq, ProofRule::EQ_RESOLVE, {as, as.eqNode(eq)}, {});
+      }
+      else
+      {
+        cdp.addStep(eq, ProofRule::MACRO_SR_PRED_TRANSFORM, {as}, {eq});
+      }
     }
     // to ensure a fixed point substitution, we apply the current
     // substitution to the range of previous substitutions
@@ -136,6 +160,49 @@ Node ArithProofRCons::applySR(CDProof& cdp,
   return asr;
 }
 
+bool ArithProofRCons::tightenBound(CDProof& cdp,
+                                   TConvProofGenerator& tcnv,
+                                   ArithSubs& asubs,
+                                   const std::vector<Node>& diseqs,
+                                   Node& bound)
+{
+  Assert(bound.getKind() == Kind::GEQ || bound.getKind() == Kind::LEQ);
+  bool isLower = bound.getKind() == Kind::GEQ;
+  Node deq = bound[0].eqNode(bound[1]).notNode();
+  for (const Node& d : diseqs)
+  {
+    // Use the form after substitution but before rewriting, which is the
+    // form that applySR below proves.
+    Node ds = asubs.applyArith(d, false);
+    std::shared_ptr<ProofNode> pfe =
+        mkArithPolyNormRel(cdp.getManager(), ds, deq);
+    if (pfe == nullptr)
+    {
+      continue;
+    }
+    Trace("arith-proof-rcons")
+        << "......tighten " << bound << " by " << deq << std::endl;
+    applySR(cdp, tcnv, asubs, d);
+    if (ds != deq)
+    {
+      cdp.addProof(pfe);
+      cdp.addStep(deq, ProofRule::EQ_RESOLVE, {ds, ds.eqNode(deq)}, {});
+    }
+    // e.g. (>= t c) and (not (= t c)) imply (> t c), which implies (>= t c+1)
+    NodeManager* nm = nodeManager();
+    Node strict = nm->mkNode(isLower ? Kind::GT : Kind::LT, bound[0], bound[1]);
+    cdp.addStep(strict, ProofRule::ARITH_TRICHOTOMY, {bound, deq}, {});
+    Rational c = bound[1].getConst<Rational>() + Rational(isLower ? 1 : -1);
+    bound = nm->mkNode(bound.getKind(), bound[0], nm->mkConstInt(c));
+    cdp.addStep(bound,
+                isLower ? ProofRule::INT_TIGHT_LB : ProofRule::INT_TIGHT_UB,
+                {strict},
+                {});
+    return true;
+  }
+  return false;
+}
+
 std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
 {
   Trace("arith-proof-rcons") << "ArithProofRCons: prove " << fact << std::endl;
@@ -181,6 +248,7 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
       std::map<Node, Node> psrc;
       std::map<Node, bool>::iterator itp;
       std::map<Node, Node> boundingLits[2];
+      std::vector<Node> diseqLits;
       for (const Node& a : assumps)
       {
         if (solved.find(a) != solved.end())
@@ -223,6 +291,11 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
         }
         bool pol = asr.getKind() != Kind::NOT;
         Node aslit = pol ? asr : asr[0];
+        // remember disequalities, which may be used to tighten bounds below
+        if (!pol && aslit.getKind() == Kind::EQUAL)
+        {
+          diseqLits.push_back(a);
+        }
         itp = pols.find(aslit);
         // look for conflicting atoms
         if (itp != pols.end())
@@ -283,30 +356,52 @@ std::shared_ptr<ProofNode> ArithProofRCons::getProofFor(Node fact)
           {
             continue;
           }
-          Rational c2m1 = c2 + negone;
-          // if c1 == c2-1, then this implies t = c1.
-          if (c1 == c2m1)
+          // t is in the range [c1, c2-1]. We use disequalities to narrow
+          // this range; if it becomes a single value c, this implies t = c.
+          Rational lo = c1;
+          Rational hi = c2 + negone;
+          if (lo > hi || !lhs1.getType().isInteger()
+              || (lo < hi && diseqLits.empty()))
           {
-            // apply substitution + rewriting with proofs now
-            applySR(cdp, tcnv, asubs, bl.second);
-            applySR(cdp, tcnv, asubs, itb->second);
-            Node l2strict =
-                nm->mkNode(Kind::GT, l2[0], nm->mkConstInt(c2m1)).notNode();
-            Node l2n = l2.notNode();
-            Node equiv = l2n.eqNode(l2strict);
-            cdp.addStep(equiv, ProofRule::MACRO_SR_PRED_INTRO, {}, {equiv});
-            cdp.addStep(l2strict, ProofRule::EQ_RESOLVE, {l2n, equiv}, {});
-            Node eq = l1[0].eqNode(l1[1]);
-            cdp.addStep(eq, ProofRule::ARITH_TRICHOTOMY, {l1, l2strict}, {});
-            Trace("arith-proof-rcons")
-                << ".......solves to " << eq << " by trichotomy" << std::endl;
-            if (solveEquality(cdp, tcnv, asubs, eq))
+            continue;
+          }
+          // apply substitution + rewriting with proofs now
+          applySR(cdp, tcnv, asubs, bl.second);
+          applySR(cdp, tcnv, asubs, itb->second);
+          // (not (>= t c2)) implies (<= t c2-1), since t is integer
+          Node lb = l1;
+          Node ub = nm->mkNode(Kind::LEQ, lhs1, nm->mkConstInt(hi));
+          cdp.addStep(
+              ub, ProofRule::MACRO_SR_PRED_TRANSFORM, {l2.notNode()}, {ub});
+          while (lo < hi)
+          {
+            if (tightenBound(cdp, tcnv, asubs, diseqLits, lb))
             {
-              addedSubs = true;
-              solved.insert(bl.second);
-              solved.insert(itb->second);
+              lo = lo + Rational(1);
+            }
+            else if (tightenBound(cdp, tcnv, asubs, diseqLits, ub))
+            {
+              hi = hi + negone;
+            }
+            else
+            {
               break;
             }
+          }
+          if (lo != hi)
+          {
+            continue;
+          }
+          Node eq = lhs1.eqNode(lb[1]);
+          cdp.addStep(eq, ProofRule::ARITH_TRICHOTOMY, {lb, ub}, {});
+          Trace("arith-proof-rcons")
+              << ".......solves to " << eq << " by trichotomy" << std::endl;
+          if (solveEquality(cdp, tcnv, asubs, eq))
+          {
+            addedSubs = true;
+            solved.insert(bl.second);
+            solved.insert(itb->second);
+            break;
           }
           // NOTE: otherwise if c1 > c2-1, this implies a contradiction,
           // although it appears that this case does not happen in DIO lemmas.

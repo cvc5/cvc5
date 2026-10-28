@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sets-exp
 ; EXPECT: unsat
 (set-logic ALL)

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-option :fmf-bound true)
 (set-option :produce-models true)

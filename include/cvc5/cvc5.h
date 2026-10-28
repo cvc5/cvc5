@@ -3594,7 +3594,7 @@ class CVC5_EXPORT Statistics
    * @param internal If set to true, internal statistics are shown as well.
    * @param defaulted If set to true, defaulted statistics are shown as well.
    */
-  iterator begin(bool internal = true, bool defaulted = true) const;
+  iterator begin(bool internal = false, bool defaulted = false) const;
   /** End iteration */
   iterator end() const;
 
@@ -3701,6 +3701,17 @@ class CVC5_EXPORT Proof
    */
   ProofRewriteRule getRewriteRule() const;
 
+  /**
+   * Get the annotation identifier used by the root step of the proof.
+   *
+   * Requires that `getRule()` returns #ANNOTATE.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return The annotation identifier.
+   */
+  AnnotationId getAnnotationId() const;
+
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
 
@@ -3712,6 +3723,23 @@ class CVC5_EXPORT Proof
    *         Some of those terms might be strings.
    */
   const std::vector<Term> getArguments() const;
+
+  /**
+   * Get a string representation of an argument of the root step of the proof.
+   *
+   * The string is computed by the internal proof printer, which takes into
+   * account how the argument is used by the proof rule. For example, an
+   * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+   * is converted to the name of that identifier. All other arguments are
+   * converted to the string representation of the corresponding term returned
+   * by `getArguments()`.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param i The index of the argument.
+   * @return The string representation of the argument.
+   */
+  std::string getArgumentToString(size_t i) const;
 
   /**
    * Operator overloading for referential equality of two proofs.
@@ -6253,8 +6281,14 @@ class CVC5_EXPORT Solver
    *     (get-qe <q>)
    * \endverbatim
    *
-   * @note Quantifier Elimination is is only complete for logics such as LRA,
-   * LIA and BV.
+   * @note Quantifier Elimination is only complete for logics such as LRA,
+   *       LIA and BV.
+   *
+   * @note The formula @f$q@f$ must not contain free variables, i.e.,
+   *       variables constructed via TermManager::mkVar() that are not bound
+   *       by a quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be
+   *       free constants constructed via TermManager::mkConst(). An
+   *       exception is thrown if @f$q@f$ contains free variables.
    *
    * @warning This function is experimental and may change in future versions.
    *
@@ -6268,7 +6302,7 @@ class CVC5_EXPORT Solver
    *         @f$A@f$ asserted to this solver:
    *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
    *         - @f$\phi@f$ is quantifier-free formula containing only free
-   *           variables in @f$y_1...y_n@f$.
+   *           constants in @f$y_1...y_j@f$.
    */
   Term getQuantifierElimination(const Term& q) const;
 
@@ -6284,8 +6318,14 @@ class CVC5_EXPORT Solver
    *     (get-qe-disjunct <q>)
    * \endverbatim
    *
-   * @note Quantifier Elimination is is only complete for logics such as LRA,
-   * LIA and BV.
+   * @note Quantifier Elimination is only complete for logics such as LRA,
+   *       LIA and BV.
+   *
+   * @note The formula @f$q@f$ must not contain free variables, i.e.,
+   *       variables constructed via TermManager::mkVar() that are not bound
+   *       by a quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be
+   *       free constants constructed via TermManager::mkConst(). An
+   *       exception is thrown if @f$q@f$ contains free variables.
    *
    * @warning This function is experimental and may change in future versions.
    *
@@ -6301,7 +6341,7 @@ class CVC5_EXPORT Solver
    *           @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
    *           @f$Q@f$ is @f$\exists@f$
    *         - @f$\phi@f$ is quantifier-free formula containing only free
-   *           variables in @f$y_1...y_n@f$
+   *           constants in @f$y_1...y_j@f$
    *         - If @f$Q@f$ is @f$\exists@f$, let @f$(A \wedge Q_n)@f$ be the
    *           formula
    *           @f$(A \wedge \neg (\phi \wedge Q_1) \wedge ... \wedge
@@ -7047,6 +7087,16 @@ class CVC5_EXPORT Solver
    * @param original The original set of configuration options.
    */
   Solver(TermManager& tm, std::unique_ptr<internal::Options>&& original);
+
+  /**
+   * Reset this solver to the state it had right after construction: the
+   * underlying SMT engine is rebuilt from the original option settings.
+   *
+   * Note that this preserves the identity of this object, so pointers and
+   * references to it (e.g. the one held by InputParser) stay valid, as does
+   * its term manager and hence all terms and sorts created so far.
+   */
+  void resetInternal();
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.

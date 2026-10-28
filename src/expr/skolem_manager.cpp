@@ -409,8 +409,9 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
     }
     // int -> Type(args[0])
     case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemId::STRINGS_REPLACE_RE_ALL_RESULT:
     {
-      Assert(cacheVals.size() > 0);
+      Assert(cacheVals.size() == 3);
       TypeNode itype = d_nm->integerType();
       return d_nm->mkFunctionType(itype, cacheVals[0].getType());
     }
@@ -471,9 +472,8 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(stype.getNumChildren() == 1);
       return stype[0];
     }
-    // skolems that return the set to set element type
+    // skolems that return the bag to bag element type
     case SkolemId::BAGS_CHOOSE:
-    case SkolemId::SETS_CHOOSE:
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
@@ -638,7 +638,6 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::ARITH_VTS_INFINITY:
     case SkolemId::ARITH_VTS_INFINITY_FREE:
     case SkolemId::WITNESS_INV_CONDITION:
-    case SkolemId::STRINGS_REPLACE_ALL_RESULT:
     case SkolemId::STRINGS_ITOS_RESULT:
     case SkolemId::STRINGS_STOI_RESULT:
     case SkolemId::STRINGS_STOI_NON_DIGIT:
@@ -652,7 +651,6 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
     case SkolemId::TABLES_GROUP_PART:
     case SkolemId::RELATIONS_GROUP_PART:
-    case SkolemId::SETS_CHOOSE:
     case SkolemId::SETS_FOLD_CARD:
     case SkolemId::SETS_FOLD_ELEMENTS:
     case SkolemId::SETS_FOLD_UNION:
@@ -681,6 +679,8 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::SHARED_SELECTOR:
     case SkolemId::HO_DEQ_DIFF:
     case SkolemId::WITNESS_STRING_LENGTH:
+    case SkolemId::STRINGS_REPLACE_ALL_RESULT:
+    case SkolemId::STRINGS_REPLACE_RE_ALL_RESULT:
     case SkolemId::RE_UNFOLD_POS_COMPONENT:
     case SkolemId::BAGS_FOLD_COMBINE:
     case SkolemId::BAGS_MAP_PREIMAGE_INJECTIVE:

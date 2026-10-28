@@ -13,6 +13,7 @@
 #ifndef CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 #define CVC5__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "smt/env_obj.h"
 #include "theory/arith/nl/ext/arith_nl_compare_proof_gen.h"
@@ -48,10 +49,23 @@ enum class MonomialSign
 
 class MonomialCheck : protected EnvObj
 {
+  using NodeSet = context::CDHashSet<Node>;
+
  public:
   MonomialCheck(Env& env, ExtState* data);
 
   void init(const std::vector<Node>& xts);
+
+  /** check initial monomial sign lemmas
+   *
+   * Eagerly adds the zero-sign lemma
+   *     v = 0 => a = 0
+   * for every monomial in the given list and every factor v of it, once per
+   * monomial per user context. Each monomial must already be registered with
+   * d_data->d_mdb. Independent of the current linear model, this is intended
+   * to reduce instability caused by reactive sign-lemma generation.
+   */
+  void checkInitialRefine(const std::vector<Node>& monomials);
 
   /** check monomial sign
    *
@@ -208,6 +222,9 @@ class MonomialCheck : protected EnvObj
 
   /** Basic data that is shared with other checks */
   ExtState* d_data;
+
+  /** Monomials for which we have emitted initial zero-sign lemmas. */
+  NodeSet d_initRefine;
 
   std::map<Node, bool> d_ms_proc;
   // ordering, stores variables and 0,1,-1

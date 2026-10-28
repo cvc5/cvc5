@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --produce-proofs --produce-unsat-assumptions --check-proofs
 ; SCRUBBER: grep -E 'unsat'
 ; EXPECT: unsat
-; DISABLE-TESTER: lfsc
+; The CPC testers cannot extract a proof from the unsat-core output.
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
