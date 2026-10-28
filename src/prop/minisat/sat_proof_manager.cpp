@@ -181,6 +181,13 @@ void SatProofManager::endResChain(Node conclusion,
     Trace("sat-proof")
         << "SatProofManager::endResChain: skip repeated proof of " << conclusion
         << "\n";
+    // The existing proof may have been added at the current user level, e.g.
+    // by explainLit during finalizeProof. If the conclusion holds at a lower
+    // level, we must still save its proof so that it is restored on pop.
+    if (clauseLevel < userContext()->getLevel())
+    {
+      d_optResLevels[conclusion] = clauseLevel;
+    }
     // clearing
     d_resLinks.clear();
     d_redundantLits.clear();
