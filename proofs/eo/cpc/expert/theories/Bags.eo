@@ -2,6 +2,7 @@
 (include "../../theories/Builtin.eo")
 (include "../../theories/Arith.eo")
 (include "../../theories/Datatypes.eo")
+(include "./SetsExt.eo")
 
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further
@@ -46,6 +47,8 @@
   (-> (-> T U U) U (Bag T) U))
 (declare-parameterized-const table.product ((T Type :implicit) (U Type :implicit))
   (-> (Bag T) (Bag U) (Bag (eo::list_concat Tuple U T))))
+(declare-parameterized-const table.project ((T Type :implicit) (is @List :opaque))
+  (-> (Bag T) (Bag ($tuple_project_type T is))))
 (declare-parameterized-const table.group ((T Type :implicit))
   (-> @List (Bag T) (Bag (Bag T))))
 

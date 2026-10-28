@@ -1,5 +1,4 @@
 ; REQUIRES: unrestricted-mode
-; DISABLE-TESTER: model
 ; testPullConstantThroughUnion
 ; q1: SELECT 2, EMP.DEPTNO, EMP.JOB FROM EMP AS EMP UNION ALL SELECT 3,
 ;     EMP0.DEPTNO, EMP0.JOB FROM EMP AS EMP0

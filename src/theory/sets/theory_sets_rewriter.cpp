@@ -1091,6 +1091,12 @@ RewriteResponse TheorySetsRewriter::postRewriteAggregate(TNode n)
 RewriteResponse TheorySetsRewriter::postRewriteProject(TNode n)
 {
   Assert(n.getKind() == Kind::RELATION_PROJECT);
+  NodeManager* nm = nodeManager();
+  // ((_ rel.project i_1 ... i_n) (as set.empty T1)) = (as set.empty T2)
+  if (n[0].getKind() == Kind::SET_EMPTY)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(n.getType())));
+  }
   if (n[0].isConst())
   {
     Node ret = SetReduction::reduceProjectOperator(n);
@@ -1098,12 +1104,6 @@ RewriteResponse TheorySetsRewriter::postRewriteProject(TNode n)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
-  }
-  NodeManager* nm = nodeManager();
-  // ((_ rel.project i_1 ... i_n) (as set.empty T1)) = (as set.empty T2)
-  if (n[0].getKind() == Kind::SET_EMPTY)
-  {
-    return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(n.getType())));
   }
 
   const std::vector<uint32_t>& indices =

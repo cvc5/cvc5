@@ -48,6 +48,22 @@
     )
 )
 
+; program: $tuple_project_type
+; args:
+; - T Type: The tuple type to project.
+; - is @List: The list of indices to project.
+; return: >
+;   The tuple type whose components are the components of T at the indices in
+;   is, in order.
+(program $tuple_project_type ((T Type) (i Int) (is @List :list))
+    :signature (Type @List) Type
+    (
+      (($tuple_project_type T (@list i is))
+        (_ Tuple (eo::list_nth Tuple T i) ($tuple_project_type T is)))
+      (($tuple_project_type T @list.nil) UnitTuple)
+    )
+)
+
 ; Relation operators.
 (declare-parameterized-const rel.tclosure ((T Type :implicit))
   (-> (Set (Tuple T T)) (Set (Tuple T T))))
@@ -59,6 +75,8 @@
   (-> (Set T) (Set U) (Set ($tuple_type_join T U))))
 (declare-parameterized-const rel.group ((T Type :implicit))
   (-> @List (Set T) (Set (Set T))))
+(declare-parameterized-const rel.project ((T Type :implicit) (is @List :opaque))
+  (-> (Set T) (Set ($tuple_project_type T is))))
 
 ; Experimental relation operators.
 (declare-parameterized-const rel.iden ((T Type :implicit))

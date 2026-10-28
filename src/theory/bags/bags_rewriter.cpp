@@ -13,9 +13,11 @@
 #include "theory/bags/bags_rewriter.h"
 
 #include "expr/emptybag.h"
+#include "expr/skolem_manager.h"
 #include "theory/bags/bags_utils.h"
 #include "theory/datatypes/project_op.h"
 #include "theory/rewriter.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 
@@ -532,25 +534,34 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     case Kind::BAG_MAP:
     {
       // (bag.map f (bag.map g A)) = (bag.map (f o g) A)
-      if (n[1].getKind() == Kind::BAG_MAP)
+      // We only compose lambdas, whose composition is beta-reduced to a
+      // lambda that does not apply f or g. Composing other functions gives a
+      // lambda whose body applies them, which models cannot evaluate.
+      Node f = getLambda(n[0]);
+      Node g = getLambda(n[1][0]);
+      if (f.isNull() || g.isNull())
       {
-        Node f = n[0];
-        Node g = n[1][0];
-        TypeNode elementType = g.getType().getArgTypes()[0];
-        Node e = d_nm->mkBoundVar("e", elementType);
-        Node apply = d_nm->mkNode(Kind::APPLY_UF, g, e);
-        Node compose = d_nm->mkNode(Kind::APPLY_UF, f, apply);
-        Node boundVars = d_nm->mkNode(Kind::BOUND_VAR_LIST, {e});
-
-        Node lambda = d_nm->mkNode(Kind::LAMBDA, boundVars, compose);
-        Node ret = d_nm->mkNode(Kind::BAG_MAP, lambda, n[1][1]);
-        return BagsRewriteResponse(ret, Rewrite::MAP_MAP);
+        return BagsRewriteResponse(n, Rewrite::NONE);
       }
-      return BagsRewriteResponse(n, Rewrite::NONE);
+      TypeNode elementType = g.getType().getArgTypes()[0];
+      Node e = d_nm->mkBoundVar("e", elementType);
+      Node apply = d_nm->mkNode(Kind::APPLY_UF, g, e);
+      Node compose = d_nm->mkNode(Kind::APPLY_UF, f, apply);
+      Node boundVars = d_nm->mkNode(Kind::BOUND_VAR_LIST, {e});
+
+      Node lambda = d_nm->mkNode(Kind::LAMBDA, boundVars, compose);
+      Node ret = d_nm->mkNode(Kind::BAG_MAP, lambda, n[1][1]);
+      return BagsRewriteResponse(ret, Rewrite::MAP_MAP);
     }
 
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
+}
+
+Node BagsRewriter::getLambda(const Node& f)
+{
+  Node unpurified = SkolemManager::getUnpurifiedForm(f);
+  return uf::FunctionConst::toLambda(unpurified);
 }
 
 BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const

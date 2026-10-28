@@ -171,6 +171,9 @@ class TheorySetsRewriter : public TheoryRewriter
   /**
    *  rewrites for n include:
    *  - ((_ rel.project i_1 ... i_n) (as set.empty T1)) = (as set.empty T2)
+   *  - ((_ rel.project i_1 ... i_n) A) =
+   *      (set.map (lambda ((t T)) ((_ tuple.project i_1 ... i_n) t)) A)
+   *    if A is a constant of type (Set T)
    *  - ((_ rel.project 0 1 ... n-1) A) = A
    *  - ((_ rel.project j_1 ... j_m) ((_ rel.project i_1 ... i_n) A)) =
    *      ((_ rel.project i_{j_1} ... i_{j_m}) A)

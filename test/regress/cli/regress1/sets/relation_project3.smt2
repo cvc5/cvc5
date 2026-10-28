@@ -1,7 +1,4 @@
 ; REQUIRES: unrestricted-mode
-; DISABLE-TESTER: cpc
-; Disabled since rel.project is not declared in the CPC signature. It
-; survives into the proof, where the trusted steps below mention it.
 ; The same three rewrites for rel.project.
 (set-logic HO_ALL)
 (set-info :status unsat)
