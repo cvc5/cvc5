@@ -81,8 +81,9 @@ class SymManager::Implementation
   /** reset */
   void reset();
   /**
-   * Reset assertions. If clearAll is true, this clears all names, otherwise
-   * it only clears the names that were added in user or scope contexts.
+   * Reset assertions. If clearAll is true, this clears all names and resets
+   * the assertions of the symbol table, otherwise it only clears the names
+   * that were added in user or scope contexts.
    */
   void resetAssertions(bool clearAll);
   /** Push a scope in the expression names. */
@@ -286,15 +287,10 @@ const std::string& SymManager::Implementation::getLastSynthName() const
 void SymManager::Implementation::reset()
 {
   Trace("sym-manager") << "SymManager: reset" << std::endl;
+  // clear all names
+  resetAssertions(true);
   // reset resets the symbol table even when global declarations are true
   d_symtabAllocated.reset();
-  // clear names by popping to context level 0
-  while (d_context.getLevel() > 0)
-  {
-    d_context.pop();
-  }
-  // push the outermost context
-  d_context.push();
 }
 
 void SymManager::Implementation::resetAssertions(bool clearAll)
@@ -302,8 +298,7 @@ void SymManager::Implementation::resetAssertions(bool clearAll)
   Trace("sym-manager") << "SymManager: resetAssertions" << std::endl;
   // clear names by popping to context level 0 or 1. Note that we cannot
   // assume that the names to clear are above context level 1, since the
-  // outermost scope is not pushed again after the first reset-assertions, and
-  // is never pushed if the logic is forced.
+  // outermost scope is not pushed again after the first reset-assertions.
   size_t level = clearAll ? 0 : 1;
   while (d_context.getLevel() > level)
   {
@@ -313,6 +308,7 @@ void SymManager::Implementation::resetAssertions(bool clearAll)
   {
     // push the outermost context
     d_context.push();
+    d_symtabAllocated.resetAssertions();
   }
 }
 
@@ -326,7 +322,8 @@ SymManager::SymManager(cvc5::TermManager& tm)
       d_termSortOverload(true),
       d_logicIsForced(false),
       d_logicIsSet(false),
-      d_logic()
+      d_logic(),
+      d_outermostScopePushed(false)
 {
 }
 
@@ -560,8 +557,10 @@ const std::string& SymManager::getLastSynthName() const
 void SymManager::reset()
 {
   d_implementation->reset();
+  // the outermost scope must be pushed again
+  d_outermostScopePushed = false;
   // a forced logic persists across resets, otherwise the logic must be set
-  // again, which in particular pushes the outermost scope
+  // again
   if (!d_logicIsForced)
   {
     d_logicIsSet = false;
@@ -573,9 +572,14 @@ void SymManager::resetAssertions()
 {
   // if global declarations is false, all declarations are removed
   d_implementation->resetAssertions(!d_globalDeclarations);
-  if (!d_globalDeclarations)
+}
+
+void SymManager::pushOutermostScope()
+{
+  if (!d_outermostScopePushed)
   {
-    d_implementation->getSymbolTable().resetAssertions();
+    pushScope(true);
+    d_outermostScopePushed = true;
   }
 }
 

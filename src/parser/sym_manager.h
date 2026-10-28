@@ -218,6 +218,13 @@ class CVC5_EXPORT SymManager
    */
   void popScope();
   /**
+   * Push the outermost user scope if it has not already been pushed since
+   * this symbol manager was constructed or last reset. This is called after
+   * the builtin symbols of the logic are declared, so that they are not
+   * removed by reset-assertions.
+   */
+  void pushOutermostScope();
+  /**
    * Reset this symbol manager, which resets the symbol table. This also
    * unsets the logic, unless it was forced.
    */
@@ -290,6 +297,8 @@ class CVC5_EXPORT SymManager
   bool d_logicIsSet;
   /** The logic. */
   std::string d_logic;
+  /** Whether we have pushed the outermost scope, see pushOutermostScope. */
+  bool d_outermostScopePushed;
 };
 
 }  // namespace parser
