@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-rw-extend-eq
 ; EXPECT: sat
 (set-logic QF_BV)
