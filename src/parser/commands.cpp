@@ -828,6 +828,13 @@ void ResetCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     sm->reset();
     resetSolver(solver);
+    // The solver is now reset to its original options. The options below
+    // are cached in the symbol manager since they affect parsing, so we
+    // restore them here.
+    sm->setGlobalDeclarations(solver->getOption("global-declarations")
+                              == "true");
+    sm->setFreshDeclarations(solver->getOption("fresh-declarations") == "true");
+    sm->setTermSortOverload(solver->getOption("term-sort-overload") == "true");
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

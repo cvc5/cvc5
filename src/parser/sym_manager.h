@@ -218,7 +218,8 @@ class CVC5_EXPORT SymManager
    */
   void popScope();
   /**
-   * Reset this symbol manager, which resets the symbol table.
+   * Reset this symbol manager, which resets the symbol table. This also
+   * unsets the logic, unless it was forced.
    */
   void reset();
   /**

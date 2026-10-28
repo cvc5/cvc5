@@ -1449,6 +1449,8 @@ set(regress_0_tests
   regress0/parser/issue13073-overloaded-nullable-lift.smt2
   regress0/parser/issue13073-overloaded-true-as.smt2
   regress0/parser/issue13073-overloaded-true.smt2
+  regress0/parser/issue13121-reset-assertions.smt2
+  regress0/parser/issue13121-reset-global-decls.smt2
   regress0/parser/issue12062-overflow.smt2
   regress0/parser/issue5163.smt2
   regress0/parser/issue6908-get-value-uc.smt2

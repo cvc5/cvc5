@@ -545,7 +545,17 @@ const std::string& SymManager::getLastSynthName() const
   return d_implementation->getLastSynthName();
 }
 
-void SymManager::reset() { d_implementation->reset(); }
+void SymManager::reset()
+{
+  d_implementation->reset();
+  // a forced logic persists across resets, otherwise the logic must be set
+  // again, which in particular pushes the outermost scope
+  if (!d_logicIsForced)
+  {
+    d_logicIsSet = false;
+    d_logic.clear();
+  }
+}
 
 void SymManager::resetAssertions()
 {
