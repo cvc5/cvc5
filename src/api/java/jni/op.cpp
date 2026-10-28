@@ -36,7 +36,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Op_getNullOp(JNIEnv* env, jclass)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Op_deletePointer(JNIEnv*,
-                                                            jobject,
+                                                            jclass,
                                                             jlong pointer)
 {
   delete reinterpret_cast<Op*>(pointer);

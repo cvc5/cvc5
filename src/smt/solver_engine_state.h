@@ -62,6 +62,12 @@ class SolverEngineState : protected EnvObj
    */
   void notifyDeclaration();
   /**
+   * Notify there was a function definition. Invalidates the previous check-sat
+   * result without interrupting synthesis, abduction or interpolation
+   * enumeration.
+   */
+  void notifyDefinition();
+  /**
    * Notify that we are about to call check-sat. This call is made prior to
    * initializing the assertions.
    */

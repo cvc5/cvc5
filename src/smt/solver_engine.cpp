@@ -568,6 +568,8 @@ void SolverEngine::defineFunction(Node func,
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(def));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  // Definitions invalidate the previous check-sat result.
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunction(Node func, Node lambda, bool global)
@@ -579,6 +581,7 @@ void SolverEngine::defineFunction(Node func, Node lambda, bool global)
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(lambda));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionsRec(
@@ -589,6 +592,11 @@ void SolverEngine::defineFunctionsRec(
 {
   beginCall();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
+  if (options().base.safeMode == options::SafeMode::SAFE)
+  {
+    throw SafeLogicException(
+        "Recursive function definitions are not supported in safe mode.");
+  }
 
   if (funcs.size() != formals.size() && funcs.size() != formulas.size())
   {
@@ -647,6 +655,7 @@ void SolverEngine::defineFunctionsRec(
     lem = eliminateSubtypesForProof(lem);
     d_smtSolver->getAssertions().addDefineFunDefinition(lem, global);
   }
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionRec(Node func,
@@ -1147,6 +1156,11 @@ void SolverEngine::declarePool(const Node& p,
 {
   Assert(p.isVar() && p.getType().isSet());
   beginCall();
+  if (options().base.safeMode != options::SafeMode::UNRESTRICTED)
+  {
+    throw SafeLogicException(
+        "Pool declarations are only supported in unrestricted mode.");
+  }
   QuantifiersEngine* qe = getAvailableQuantifiersEngine("declareTermPool");
   qe->declarePool(p, initValue);
 }
@@ -1854,9 +1868,7 @@ void SolverEngine::checkModel(bool hardFailure)
   // check the model with the theory engine for debugging
   if (options().smt.debugCheckModels)
   {
-    TheoryEngine* te = d_smtSolver->getTheoryEngine();
-    Assert(te != nullptr);
-    te->checkTheoryAssertionsWithModel(hardFailure);
+    d_smtDriver->debugCheckModels(hardFailure);
   }
 
   // check the model with the check models utility

@@ -2604,8 +2604,8 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
  * `cvc5_term_manager_release()`.
  *
  * @note Consequently, if managed objects are still alive when this function is
- *       called, it does not free the term manager: it only drops the handle
- *       held by the user, and the term manager is freed later, when the last
+ *       called, it does not free the term manager: it only decrements its
+ *       reference count, and the term manager is freed later, when the last
  *       of its managed objects is released. To free everything right away,
  *       call `cvc5_term_manager_release()` before this function.
  *
@@ -3772,9 +3772,11 @@ struct Cvc5Plugin
   /**
    * Call to check, return list of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
-   * @param size  The size of the returned array of lemmas.
+   * @param size  The size of the returned array of lemmas, must always be
+   *              set.
    * @param state The state data for the function, may be NULL.
-   * @return The vector of lemmas to add to the SAT solver.
+   * @return The vector of lemmas to add to the SAT solver, may be NULL if
+   *         `size` is set to 0.
    * @note This function pointer may be NULL to use the default implementation.
    */
   const Cvc5Term* (*check)(size_t* size, void* state);
@@ -3835,6 +3837,18 @@ CVC5_EXPORT Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
 CVC5_EXPORT Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof);
 
 /**
+ * Get the annotation identifier used by the root step of the proof.
+ *
+ * Requires that `cvc5_proof_get_rule()` returns #CVC5_PROOF_RULE_ANNOTATE.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @return The annotation identifier.
+ */
+CVC5_EXPORT Cvc5AnnotationId cvc5_proof_get_annotation_id(Cvc5Proof proof);
+
+/**
  * Get the conclusion of the root step of a given proof.
  * @param proof The proof.
  * @return The conclusion term.
@@ -3849,6 +3863,10 @@ CVC5_EXPORT Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
  * @return The premise proofs.
  * @note The returned Cvc5Proof array pointer is only valid until the next call
  *       to this function.
+ * @note The returned proofs are released together with the solver that
+ *       created `proof`, or, if that solver has already been deleted, together
+ *       with `proof`. To use them afterwards, keep a reference to them via
+ *       `cvc5_proof_copy()`.
  */
 CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
                                                      size_t* size);
@@ -3862,6 +3880,28 @@ CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
  */
 CVC5_EXPORT const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof,
                                                      size_t* size);
+
+/**
+ * Get a string representation of an argument of the root step of a given
+ * proof.
+ *
+ * The string is computed by the internal proof printer, which takes into
+ * account how the argument is used by the proof rule. For example, an
+ * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+ * is converted to the name of that identifier. All other arguments are
+ * converted to the string representation of the corresponding term returned
+ * by `cvc5_proof_get_arguments()`.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @param i     The index of the argument.
+ * @return The string representation of the argument.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_proof_get_argument_to_string(Cvc5Proof proof,
+                                                          size_t i);
 
 /**
  * Compare two proofs for referential equality.
@@ -3901,8 +3941,10 @@ CVC5_EXPORT Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
 /**
  * Release copy of proof, decrements reference counter of `proof`.
  *
- * @note A proof is released together with the solver that created it. To use
- *       it afterwards, keep a reference to it via `cvc5_proof_copy()`.
+ * @note A proof is released together with the solver that created it (or,
+ *       for a proof obtained via `cvc5_proof_get_children()` after that
+ *       solver has been deleted, together with its parent proof). To use it
+ *       afterwards, keep a reference to it via `cvc5_proof_copy()`.
  *
  * @param proof The proof to release.
  *
@@ -4150,6 +4192,14 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
  * solver, as in the C++ API, and is freed by its final release. Proofs
  * additionally keep the term manager alive, since querying them creates new
  * terms and proofs.
+ *
+ * Input parser instances (`Cvc5InputParser`) created via the solver keep it
+ * alive and thus remain usable after the solver has been deleted, until they
+ * are deleted themselves (see `cvc5_parser_delete()`). The memory of the
+ * solver is only freed once it has been deleted and all of its input parsers
+ * have been freed. Consequently, dropping the reference the solver holds on
+ * each of its results, synthesis results, proofs and grammars is deferred
+ * until then as well.
  *
  * @note A solver instance keeps its associated term manager alive. Solver and
  *       term manager instances may thus be deleted in any order.
@@ -4884,6 +4934,12 @@ CVC5_EXPORT const char* cvc5_get_model(Cvc5* cvc5,
  *     (get-qe <q>)
  * \endverbatim
  *
+ * @note The formula @f$q@f$ must not contain free variables, i.e.,
+ *       variables constructed via cvc5_mk_var() that are not bound by a
+ *       quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
+ *       constants constructed via cvc5_mk_const(). An error is raised if
+ *       @f$q@f$ contains free variables.
+ *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
  *       LIA and BV.
  *
@@ -4900,7 +4956,7 @@ CVC5_EXPORT const char* cvc5_get_model(Cvc5* cvc5,
  *         @f$A@f$ asserted to this solver:
  *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
  *         - @f$\phi@f$ is quantifier-free formula containing only free
- *           variables in @f$y_1...y_n@f$.
+ *           constants in @f$y_1...y_j@f$.
  */
 CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
 
@@ -4916,8 +4972,14 @@ CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *     (get-qe-disjunct <q>)
  * \endverbatim
  *
+ * @note The formula @f$q@f$ must not contain free variables, i.e.,
+ *       variables constructed via cvc5_mk_var() that are not bound by a
+ *       quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
+ *       constants constructed via cvc5_mk_const(). An error is raised if
+ *       @f$q@f$ contains free variables.
+ *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
- * LIA and BV.
+ *       LIA and BV.
  *
  * @warning This function is experimental and may change in future versions.
  *
@@ -4934,7 +4996,7 @@ CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *           @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
  *           @f$Q@f$ is @f$\exists@f$
  *         - @f$\phi@f$ is quantifier-free formula containing only free
- *           variables in @f$y_1...y_n@f$
+ *           constants in @f$y_1...y_j@f$
  *         - If @f$Q@f$ is @f$\exists@f$, let @f$(A \wedge Q_n)@f$ be the
  *           formula
  *           @f$(A \wedge \neg (\phi \wedge Q_1) \wedge ... \wedge

@@ -446,6 +446,24 @@ enum ENUM(ProofRule)
   EVALUE(TRUST),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Annotation**
+   *
+   * .. math::
+   *
+   *   \inferrule{F \mid aid, A_1, \dots, A_n}{F}
+   *
+   * where :math:`aid` is an annotation identifier, given by the
+   * :cpp:enum:`AnnotationId <cvc5::AnnotationId>` enumeration. This rule is
+   * used for carrying metadata on a proof step without changing its
+   * conclusion.
+   *
+   * .. warning:: This proof rule is experimental and may change in future
+   *              versions.
+   * \endverbatim
+   */
+  EVALUE(ANNOTATE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Trusted rules -- Theory rewrite**
    *
    * .. math::
@@ -1562,6 +1580,18 @@ enum ENUM(ProofRule)
   EVALUE(SETS_EXT),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Sets -- Sets choose membership**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \mathit{set.choose}(a)}
+   *   {a = \emptyset \vee \mathit{set.member}(\mathit{set.choose}(a),a)}
+   *
+   * \endverbatim
+   */
+  EVALUE(SETS_CHOOSE_MEMBER),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- Sets filter up**
    *
    * .. math::
@@ -2316,7 +2346,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */
@@ -2332,14 +2362,19 @@ enum ENUM(ProofRule)
    *   \leq \texttt{secant-pos}(\exp, l, u, t)}
    *
    * where :math:`d` is an even positive number, :math:`t` an arithmetic term
-   * and :math:`l,u` are lower and upper bounds on :math:`t`. Let :math:`p^*` be
-   * a modification of the :math:`d`'th taylor polynomial at zero (also called
-   * the Maclaurin series) of the exponential function as follows where
-   * :math:`p(d-1)` is the regular Maclaurin series of degree :math:`d-1`:
+   * and :math:`l,u` are lower and upper bounds on :math:`t` with
+   * :math:`0 \leq l \leq u`. Let :math:`p^*` be a modification of the
+   * :math:`d`'th taylor polynomial at zero (also called the Maclaurin series)
+   * of the exponential function as follows where :math:`p(d-1)` is the regular
+   * Maclaurin series of degree :math:`d-1` and :math:`n = d`:
    *
    * .. math::
    *
-   *   p^* := p(d-1) \cdot (\frac{1 - t^n}{n!})^{-1}
+   *   p^* := p(d-1) \cdot (1 - \frac{t^n}{n!})^{-1}
+   *
+   * Note that :math:`p^*` is an upper bound for :math:`\exp` on
+   * :math:`[l,u]` only if its denominator is positive there, hence this rule
+   * additionally requires that :math:`\frac{u^n}{n!} < 1`.
    *
    * :math:`\texttt{secant-pos}(\exp, l, u, t)` denotes the secant of :math:`p`
    * from :math:`(l, \exp(l))` to :math:`(u, \exp(u))` evaluated at :math:`t`,
@@ -2350,7 +2385,7 @@ enum ENUM(ProofRule)
    *   \frac{p(l) - p(u)}{l - u} \cdot (t - l) + p(l)
    *
    * The lemma states that if :math:`t` is between :math:`l` and :math:`u`, then
-   * :math:`\exp(t` is below the secant of :math:`p` from :math:`l` to
+   * :math:`\exp(t)` is below the secant of :math:`p` from :math:`l` to
    * :math:`u`.
    * \endverbatim
    */
@@ -4180,17 +4215,6 @@ enum ENUM(ProofRewriteRule)
    * \endverbatim
    */
   EVALUE(SETS_EVAL_OP),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **Sets -- sets insert elimination**
-   *
-   * .. math::
-   *
-   *   \mathit{set.insert}(t_1, \ldots, t_n, S) = \texttt{set.union}(\texttt{sets.singleton}(t_1), \ldots, \texttt{sets.singleton}(t_n), S)
-   *
-   * \endverbatim
-   */
-  EVALUE(SETS_INSERT_ELIM),
   // RARE rules
   // ${rules}$
   /** Auto-generated from RARE rule arith-div-total-zero-real */
@@ -4651,6 +4675,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_MEMBER_EMP),
   /** Auto-generated from RARE rule sets-subset-elim */
   EVALUE(SETS_SUBSET_ELIM),
+  /** Auto-generated from RARE rule sets-insert-elim */
+  EVALUE(SETS_INSERT_ELIM),
   /** Auto-generated from RARE rule sets-union-comm */
   EVALUE(SETS_UNION_COMM),
   /** Auto-generated from RARE rule sets-inter-comm */
@@ -4711,6 +4737,16 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEN_REPLACE_ALL_INV),
   /** Auto-generated from RARE rule str-len-update-inv */
   EVALUE(STR_LEN_UPDATE_INV),
+  /** Auto-generated from RARE rule str-update-oob */
+  EVALUE(STR_UPDATE_OOB),
+  /** Auto-generated from RARE rule str-update-rev */
+  EVALUE(STR_UPDATE_REV),
+  /** Auto-generated from RARE rule str-update-fit */
+  EVALUE(STR_UPDATE_FIT),
+  /** Auto-generated from RARE rule str-update-concat-fit0 */
+  EVALUE(STR_UPDATE_CONCAT_FIT0),
+  /** Auto-generated from RARE rule str-update-concat-fit */
+  EVALUE(STR_UPDATE_CONCAT_FIT),
   /** Auto-generated from RARE rule str-update-in-first-concat */
   EVALUE(STR_UPDATE_IN_FIRST_CONCAT),
   /** Auto-generated from RARE rule str-len-substr-in-range */
@@ -4783,6 +4819,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_ID),
   /** Auto-generated from RARE rule str-replace-prefix */
   EVALUE(STR_REPLACE_PREFIX),
+  /** Auto-generated from RARE rule str-replace-prefix-concat */
+  EVALUE(STR_REPLACE_PREFIX_CONCAT),
   /** Auto-generated from RARE rule str-replace-no-contains */
   EVALUE(STR_REPLACE_NO_CONTAINS),
   /** Auto-generated from RARE rule str-replace-find-base */
@@ -4797,6 +4835,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_REPLACE_FIND_PRE),
   /** Auto-generated from RARE rule str-replace-all-no-contains */
   EVALUE(STR_REPLACE_ALL_NO_CONTAINS),
+  /** Auto-generated from RARE rule str-replace-all-find-pre */
+  EVALUE(STR_REPLACE_ALL_FIND_PRE),
+  /** Auto-generated from RARE rule str-replace-all-find */
+  EVALUE(STR_REPLACE_ALL_FIND),
   /** Auto-generated from RARE rule str-replace-all-empty */
   EVALUE(STR_REPLACE_ALL_EMPTY),
   /** Auto-generated from RARE rule str-replace-all-id */
@@ -4825,6 +4867,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
   EVALUE(STR_INDEXOF_CONTAINS_CONCAT_PRE),
+  /** Auto-generated from RARE rule str-indexof-prefix-concat */
+  EVALUE(STR_INDEXOF_PREFIX_CONCAT),
+  /** Auto-generated from RARE rule str-indexof-len-oob */
+  EVALUE(STR_INDEXOF_LEN_OOB),
+  /** Auto-generated from RARE rule str-indexof-len-oob2 */
+  EVALUE(STR_INDEXOF_LEN_OOB2),
   /** Auto-generated from RARE rule str-indexof-find-emp */
   EVALUE(STR_INDEXOF_FIND_EMP),
   /** Auto-generated from RARE rule str-indexof-eq-irr */
@@ -4839,8 +4887,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_TO_UPPER_CONCAT),
   /** Auto-generated from RARE rule str-to-lower-upper */
   EVALUE(STR_TO_LOWER_UPPER),
+  /** Auto-generated from RARE rule str-to-lower-idem */
+  EVALUE(STR_TO_LOWER_IDEM),
   /** Auto-generated from RARE rule str-to-upper-lower */
   EVALUE(STR_TO_UPPER_LOWER),
+  /** Auto-generated from RARE rule str-to-upper-idem */
+  EVALUE(STR_TO_UPPER_IDEM),
   /** Auto-generated from RARE rule str-to-lower-len */
   EVALUE(STR_TO_LOWER_LEN),
   /** Auto-generated from RARE rule str-to-upper-len */
@@ -4997,6 +5049,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SEQ_LEN_UNIT),
   /** Auto-generated from RARE rule seq-nth-unit */
   EVALUE(SEQ_NTH_UNIT),
+  /** Auto-generated from RARE rule seq-nth-concat-unit */
+  EVALUE(SEQ_NTH_CONCAT_UNIT),
+  /** Auto-generated from RARE rule seq-nth-concat-unit-gen */
+  EVALUE(SEQ_NTH_CONCAT_UNIT_GEN),
   /** Auto-generated from RARE rule seq-rev-unit */
   EVALUE(SEQ_REV_UNIT),
   /** Auto-generated from RARE rule re-in-empty */
@@ -5080,9 +5136,44 @@ enum ENUM(ProofRewriteRule)
 // clang-format on
 
 #ifdef CVC5_API_USE_C_ENUMS
+#undef EVALUE
+#define EVALUE(name) CVC5_ANNOTATION_ID_##name
+#endif
+
+/**
+ * \verbatim embed:rst:leading-asterisk
+ * This enumeration represents the kinds of annotations that may appear in
+ * proofs. This enumeration is used as the first argument to the
+ * :cpp:enumerator:`ANNOTATE <cvc5::ProofRule::ANNOTATE>` proof rule.
+ *
+ * .. warning:: This enumeration is experimental and may change in future
+ *              versions.
+ * \endverbatim
+ */
+enum ENUM(AnnotationId)
+{
+  EVALUE(NONE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Theory lemma**
+   *
+   * Annotates the proof of a lemma sent by a theory. The second argument of
+   * the :cpp:enumerator:`ANNOTATE <cvc5::ProofRule::ANNOTATE>` step is an
+   * identifier of the theory that sent the lemma.
+   * \endverbatim
+   */
+  EVALUE(THEORY_LEMMA),
+#ifdef CVC5_API_USE_C_ENUMS
+  // must be last entry
+  EVALUE(LAST)
+#endif
+};
+
+#ifdef CVC5_API_USE_C_ENUMS
 #ifndef DOXYGEN_SKIP
 typedef enum ENUM(ProofRule) ENUM(ProofRule);
 typedef enum ENUM(ProofRewriteRule) ENUM(ProofRewriteRule);
+typedef enum ENUM(AnnotationId) ENUM(AnnotationId);
 #endif
 #endif
 
@@ -5116,6 +5207,20 @@ CVC5_EXPORT const char* cvc5_proof_rewrite_rule_to_string(
  * @return The hash value.
  */
 CVC5_EXPORT size_t cvc5_proof_rewrite_rule_hash(Cvc5ProofRewriteRule rule);
+
+/**
+ * Get a string representation of a Cvc5AnnotationId.
+ * @param id The annotation identifier.
+ * @return The string representation.
+ */
+CVC5_EXPORT const char* cvc5_annotation_id_to_string(Cvc5AnnotationId id);
+
+/**
+ * Hash function for Cvc5AnnotationId.
+ * @param id The annotation identifier.
+ * @return The hash value.
+ */
+CVC5_EXPORT size_t cvc5_annotation_id_hash(Cvc5AnnotationId id);
 
 #else
 
@@ -5158,6 +5263,26 @@ CVC5_EXPORT const char* toString(ProofRewriteRule rule);
  * @return The stream
  */
 CVC5_EXPORT std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule);
+
+/**
+ * Converts an annotation identifier to a string. Note: This function is also
+ * used in `safe_print()`. Changing this function name or signature will result
+ * in `safe_print()` printing "<unsupported>" instead of the proper strings for
+ * the enum values.
+ *
+ * @param id The annotation identifier
+ * @return The name of the annotation identifier
+ */
+CVC5_EXPORT const char* toString(AnnotationId id);
+
+/**
+ * Writes an annotation identifier name to a stream.
+ *
+ * @param out The stream to write to
+ * @param id The annotation identifier to write to the stream
+ * @return The stream
+ */
+CVC5_EXPORT std::ostream& operator<<(std::ostream& out, AnnotationId id);
 
 }  // namespace cvc5
 
@@ -5206,6 +5331,28 @@ struct CVC5_EXPORT hash<cvc5::ProofRewriteRule>
  * @return The name of the proof rewrite rule
  */
 CVC5_EXPORT std::string to_string(cvc5::ProofRewriteRule rule);
+
+/**
+ * Hash function for AnnotationIds.
+ */
+template <>
+struct CVC5_EXPORT hash<cvc5::AnnotationId>
+{
+  /**
+   * Hashes an AnnotationId to a size_t.
+   * @param id The annotation identifier.
+   * @return The hash value.
+   */
+  size_t operator()(cvc5::AnnotationId id) const;
+};
+
+/**
+ * Converts an annotation identifier to a string.
+ *
+ * @param id The annotation identifier
+ * @return The name of the annotation identifier
+ */
+CVC5_EXPORT std::string to_string(cvc5::AnnotationId id);
 
 }  // namespace std
 
