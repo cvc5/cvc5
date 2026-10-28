@@ -120,7 +120,9 @@ PfManager::PfManager(Env& env)
   // and SCOPE subproofs (e.g. of theory lemmas) may be shared with proofs that
   // outlive the current user context. Updating B1 with a proof from A, where A
   // is an assertion of the current user context, would make these proofs
-  // depend on A after A is popped.
+  // depend on A after A is popped. Note that incremental mode is enabled by
+  // default for API users, hence this applies to them even if they never call
+  // push, similar to setting the assertions in connectProofToAssertions.
   d_pfpp = std::make_unique<ProofPostprocess>(
       env,
       d_rewriteDb.get(),
