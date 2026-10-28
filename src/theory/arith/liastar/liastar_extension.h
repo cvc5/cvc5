@@ -72,7 +72,8 @@ typedef std::vector<Node> Vector;
  *   (= L (and (>= mu 0) (>= l 0) (=> (= mu 0) (= l 0))
  *             (= a (+ (* 2 mu) l)) (= b mu)))
  * Here the implication excludes (1, 0) = 0*(2, 1) + 1*(1, 0), which is not a
- * sum of vectors of S.
+ * sum of vectors of S. The comments in liastar_extension.cpp follow this
+ * example.
  *
  * The skolems witness y in S* when L holds, but when L is false the lemma
  * only says that this one choice of them is not a witness. A negated L is
