@@ -697,6 +697,7 @@ set(regress_0_tests
   regress0/bv/issue12336-xor-simp-s.smt2
   regress0/bv/issue13039.smt2
   regress0/bv/issue13039-2-concat.smt2
+  regress0/bv/issue13122-rw-extend-eq.smt2
   regress0/bv/le-elim-conv.smt2
   regress0/bv/macro-rewrites.smt2
   regress0/bv/mul-neg-unsat.smt2
@@ -1178,6 +1179,7 @@ set(regress_0_tests
   regress0/issue12038-model-get-value.smt2
   regress0/issue12320-difficulty-subtype-pf.smt2
   regress0/issue12386-get-assertions.smt2
+  regress0/issue13120-get-assignment.smt2
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2

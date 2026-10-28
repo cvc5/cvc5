@@ -1531,6 +1531,11 @@ void GetAssignmentCommand::invoke(cvc5::Solver* solver, SymManager* sm)
     std::vector<std::string> names;
     for (const std::pair<const cvc5::Term, std::string>& e : enames)
     {
+      // only Boolean named terms are included in the assignment
+      if (!e.first.getSort().isBoolean())
+      {
+        continue;
+      }
       terms.push_back(e.first);
       names.push_back(e.second);
     }
@@ -1546,7 +1551,10 @@ void GetAssignmentCommand::invoke(cvc5::Solver* solver, SymManager* sm)
       cvc5::Term name = tm.mkVar(tm.getBooleanSort(), names[i]);
       sexprs.push_back(tm.mkTerm(cvc5::Kind::SEXPR, {name, values[i]}));
     }
-    d_result = tm.mkTerm(cvc5::Kind::SEXPR, sexprs);
+    // SEXPR requires at least one child, the empty assignment is represented
+    // by the null term
+    d_result =
+        sexprs.empty() ? cvc5::Term() : tm.mkTerm(cvc5::Kind::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -1563,7 +1571,14 @@ cvc5::Term GetAssignmentCommand::getResult() const { return d_result; }
 void GetAssignmentCommand::printResult(CVC5_UNUSED cvc5::Solver* solver,
                                        std::ostream& out) const
 {
-  out << d_result << endl;
+  if (d_result.isNull())
+  {
+    out << "()" << endl;
+  }
+  else
+  {
+    out << d_result << endl;
+  }
 }
 
 std::string GetAssignmentCommand::getCommandName() const
