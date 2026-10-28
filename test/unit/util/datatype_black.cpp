@@ -462,5 +462,105 @@ TEST_F(TestUtilBlackDatatype, parametric_DType)
   ASSERT_NE(pairIntInt, pairRealInt);
   ASSERT_NE(pairIntReal, pairRealInt);
 }
+
+TEST_F(TestUtilBlackDatatype, parametric_DType_cardinality)
+{
+  // (Option X) = none | some(val : X)
+  TypeNode x = d_nodeManager->mkSort("X");
+  DType option("Option", {x});
+  std::shared_ptr<DTypeConstructor> none =
+      std::make_shared<DTypeConstructor>("none");
+  option.addConstructor(none);
+  std::shared_ptr<DTypeConstructor> some =
+      std::make_shared<DTypeConstructor>("some");
+  some->addArg("val", x);
+  option.addConstructor(some);
+  TypeNode optionType = d_nodeManager->mkDatatypeType(option);
+  const DType& optionDt = optionType.getDType();
+  TypeNode optBool = optionDt.getTypeNode({d_nodeManager->booleanType()});
+  TypeNode optOptBool = optionDt.getTypeNode({optBool});
+
+  // R = mk(o : (Option Bool))
+  DType r("R");
+  std::shared_ptr<DTypeConstructor> mk = std::make_shared<DTypeConstructor>("mk");
+  mk->addArg("o", optBool);
+  r.addConstructor(mk);
+  TypeNode rType = d_nodeManager->mkDatatypeType(r);
+
+  ASSERT_EQ(optBool.getCardinality().compare(3), Cardinality::EQUAL);
+  ASSERT_EQ(optOptBool.getCardinality().compare(4), Cardinality::EQUAL);
+  ASSERT_EQ(rType.getCardinality().compare(3), Cardinality::EQUAL);
+  ASSERT_EQ(optionDt.getTypeNode({optOptBool}).getCardinality().compare(5),
+            Cardinality::EQUAL);
+  ASSERT_EQ(optionDt.getTypeNode({rType}).getCardinality().compare(4),
+            Cardinality::EQUAL);
+  ASSERT_EQ(optionDt.getTypeNode({d_nodeManager->integerType()})
+                .getCardinality()
+                .compare(Cardinality::INTEGERS),
+            Cardinality::EQUAL);
+
+  // (Pair X) = mk-pair(fst : X, snd : X), nested deeply, whose cardinality
+  // is computed efficiently only if the cardinality of instances is cached
+  TypeNode y = d_nodeManager->mkSort("Y");
+  DType pair("Pair", {y});
+  std::shared_ptr<DTypeConstructor> mkpair =
+      std::make_shared<DTypeConstructor>("mk-pair");
+  mkpair->addArg("fst", y);
+  mkpair->addArg("snd", y);
+  pair.addConstructor(mkpair);
+  TypeNode pairType = d_nodeManager->mkDatatypeType(pair);
+  TypeNode tn = d_nodeManager->integerType();
+  for (size_t i = 0; i < 64; i++)
+  {
+    tn = pairType.getDType().getTypeNode({tn});
+  }
+  ASSERT_EQ(tn.getCardinality().compare(Cardinality::INTEGERS),
+            Cardinality::EQUAL);
+}
+
+TEST_F(TestUtilBlackDatatype, mutual_cardinality)
+{
+  /* Create two mutual datatypes corresponding to this definition
+   * block:
+   *
+   *   DATATYPE
+   *     a = mk-a(b) | mk-d(Array Real Real),
+   *     b = mk-b(a)
+   *   END;
+   *
+   * The cardinality of b computed while computing the cardinality of a is not
+   * its cardinality, since the second constructor of a is not considered.
+   */
+  TypeNode unresA = d_nodeManager->mkUnresolvedDatatypeSort("a");
+  TypeNode unresB = d_nodeManager->mkUnresolvedDatatypeSort("b");
+  TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->realType(),
+                                                d_nodeManager->realType());
+
+  DType a("a");
+  std::shared_ptr<DTypeConstructor> mka =
+      std::make_shared<DTypeConstructor>("mk-a");
+  mka->addArg("ab", unresB);
+  a.addConstructor(mka);
+  std::shared_ptr<DTypeConstructor> mkd =
+      std::make_shared<DTypeConstructor>("mk-d");
+  mkd->addArg("ad", arrType);
+  a.addConstructor(mkd);
+
+  DType b("b");
+  std::shared_ptr<DTypeConstructor> mkb =
+      std::make_shared<DTypeConstructor>("mk-b");
+  mkb->addArg("ba", unresA);
+  b.addConstructor(mkb);
+
+  std::vector<DType> dts = {a, b};
+  std::vector<TypeNode> dtts = d_nodeManager->mkMutualDatatypeTypes(dts);
+  ASSERT_EQ(dtts.size(), 2u);
+  ASSERT_TRUE(dtts[0].getDType()[0].getArgType(0) == dtts[1]);
+  ASSERT_TRUE(dtts[1].getDType()[0].getArgType(0) == dtts[0]);
+  Cardinality ca = dtts[0].getCardinality();
+  Cardinality cb = dtts[1].getCardinality();
+  ASSERT_EQ(ca.compare(arrType.getCardinality()), Cardinality::EQUAL);
+  ASSERT_EQ(cb.compare(arrType.getCardinality()), Cardinality::EQUAL);
+}
 }  // namespace test
 }  // namespace cvc5::internal

@@ -277,9 +277,14 @@ class DTypeConstructor
       const std::vector<TypeNode>& paramTypes,
       const std::vector<TypeNode>& paramReplacements);
 
-  /** compute the cardinality of this datatype */
+  /**
+   * Compute the cardinality of this constructor, where t is the type of the
+   * datatype it belongs to. The arguments processing and minRecIndex are as
+   * in DType::computeCardinality.
+   */
   Cardinality computeCardinality(TypeNode t,
-                                 std::vector<TypeNode>& processing) const;
+                                 std::vector<TypeNode>& processing,
+                                 size_t& minRecIndex) const;
   /** compute whether this datatype is well-founded */
   bool computeWellFounded(std::vector<TypeNode>& processing) const;
   /** compute ground term
