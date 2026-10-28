@@ -283,6 +283,10 @@ class LiaStarUtils
    * @param n a LIA predicate in DNF
    * @return one pair per disjunct of n: its constraints, e.g.
    * {"2x[1] - x[3] >= 5;", "x[2] = 0;"}, together with the disjunct itself
+   * @throws LogicException if an atom of n is not a linear integer
+   * constraint over `variables`, e.g. a Boolean variable p, an equality of
+   * Booleans (= p (>= x 1)), or (= x (* 2 a)) for a term a that is not in
+   * `variables`, see getString
    */
   static std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
       Node variables, Node n);
@@ -351,9 +355,12 @@ class LiaStarUtils
    * variable of `variables` to the Normaliz coordinate x[i + 1].
    *
    * @param variables a node of Kind BOUND_VAR_LIST giving the coordinate
-   * order; every variable of p must occur in it
+   * order
    * @param p an integral linear polynomial
    * @return the polynomial as a string, e.g. "2x[1] - x[3] + 5"
+   * @throws LogicException if a monomial of p is neither a constant nor a
+   * multiple of a variable in `variables`, e.g. (* 2 a) for a constant a
+   * captured by a lambda, (* x y), or (mod x 2)
    */
   static std::string getString(Node variables, linear::Polynomial& p);
 };

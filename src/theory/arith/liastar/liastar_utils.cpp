@@ -19,6 +19,7 @@
 #include "libnormaliz/input.h"
 #include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -737,6 +738,11 @@ LiaStarUtils::getMatrices(Node variables, Node n)
     case Kind::GEQ:
     case Kind::EQUAL:
     {
+      // an equality of Booleans, e.g. (= p (>= x 1)), is no constraint
+      if (n[0].getType().isBoolean())
+      {
+        break;
+      }
       // (>= (+ (* 2 x) (* (- 1) z)) (- 5)) over (x y z)
       // --> "2x[1] - x[3] >=  - 5;"
       linear::Polynomial l = linear::Polynomial::parsePolynomial(n[0]);
@@ -781,10 +787,16 @@ LiaStarUtils::getMatrices(Node variables, Node n)
       return pairs;
     }
 
-    // other kinds are not expected in DNF: no matrix
     default: break;
   }
-  return pairs;
+  // Any other atom, e.g. a Boolean variable p, has no constraint. Dropping it
+  // would change the set: (lambda ((x Int)) p) would give no disjunct, as if
+  // p were false.
+  std::stringstream ss;
+  ss << "int.star-contains expects a predicate of linear integer "
+        "constraints over the variables of its lambda, found the atom "
+     << n;
+  throw LogicException(ss.str());
 }
 
 std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
@@ -828,19 +840,25 @@ std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
     {
       ss << r;
     }
-    // find the variable: p is linear, so the monomial has a single one, and
-    // the i-th variable of `variables` is x[i + 1]
-    for (size_t i = 0; i < size; i++)
+    // the i-th variable of `variables` is x[i + 1]. Any other term has no
+    // coordinate, e.g. a constant a that the lambda captures, or a product
+    // (* x y), whose var list is the product itself. Dropping it would change
+    // the constraint: (= x (* 2 a)) would become x[1] = 2.
+    Node var = monomial.getVarList().getNode();
+    size_t i = 0;
+    while (i < size && variables[i] != var)
     {
-      linear::VarList varList = monomial.getVarList();
-      for (const auto& var : varList)
-      {
-        if (var.getNode() == variables[i])
-        {
-          ss << "x[" << i + 1 << "]";
-        }
-      }
+      i++;
     }
+    if (i == size)
+    {
+      std::stringstream error;
+      error << "int.star-contains expects a predicate of linear integer "
+               "constraints over the variables of its lambda, found the term "
+            << var;
+      throw LogicException(error.str());
+    }
+    ss << "x[" << i + 1 << "]";
   }
   Trace("liastar-ext-debug") << "polynomial  : " << p.getNode() << std::endl;
   Trace("liastar-ext-debug") << "string : " << ss.str() << std::endl;

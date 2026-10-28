@@ -19,6 +19,7 @@
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
 #include "smt/env.h"
+#include "smt/logic_exception.h"
 #include "test_smt.h"
 #include "theory/arith/liastar/liastar_utils.h"
 #include "util/rational.h"
@@ -216,6 +217,54 @@ TEST_F(TestLiaStarUtils, getMatricesConstants)
   ASSERT_EQ(std::vector<std::string>({"x[1] = x[1];"}), trueMatrices[0].first);
   ASSERT_EQ(1, falseMatrices.size());
   ASSERT_EQ(std::vector<std::string>({"1 = 0;"}), falseMatrices[0].first);
+}
+
+TEST_F(TestLiaStarUtils, getMatricesRejectsCapturedConstants)
+{
+  // (= x (* 2 a)) for a constant a has no Normaliz constraint over (x):
+  // dropping a would give x[1] = 2, so (lambda ((x Int)) (= x (* 2 a)))
+  // would be reduced as {2}* rather than {2a}*
+  Node a = nm->mkVar("a", intType);
+  Node twoA = nm->mkNode(Kind::MULT, two, a);
+  Node equality = x.eqNode(twoA);
+  Node constraint = e->getRewriter()->rewrite(equality);
+  Node vars = boundVarList({x});
+
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, constraint), LogicException);
+  // the Normaliz subsolver translates its queries with getMatrices too
+  ASSERT_THROW(LiaStarUtils::normalizCheckSat(vars, constraint, false),
+               LogicException);
+}
+
+TEST_F(TestLiaStarUtils, getMatricesRejectsNonlinearTerms)
+{
+  // (>= (* x y) 1) and (>= (mod x 2) 1) over (x y)
+  Node product = nm->mkNode(Kind::MULT, x, y);
+  Node productAtom = nm->mkNode(Kind::GEQ, product, one);
+  Node nonlinear = e->getRewriter()->rewrite(productAtom);
+  Node mod = nm->mkNode(Kind::INTS_MODULUS, x, two);
+  Node modulus = nm->mkNode(Kind::GEQ, mod, one);
+  Node vars = boundVarList({x, y});
+
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, nonlinear), LogicException);
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, modulus), LogicException);
+}
+
+TEST_F(TestLiaStarUtils, getMatricesRejectsBooleanAtoms)
+{
+  // p has no Normaliz constraint: dropping it would reduce
+  // (lambda ((x Int)) p) as if p were false
+  Node p = boolVar("p");
+  Node notP = p.notNode();
+  Node atLeastOne = nm->mkNode(Kind::GEQ, x, one);
+  Node conjunction = nm->mkNode(Kind::AND, p, atLeastOne);
+  Node equality = p.eqNode(atLeastOne);
+  Node vars = boundVarList({x});
+
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, p), LogicException);
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, notP), LogicException);
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, conjunction), LogicException);
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, equality), LogicException);
 }
 
 TEST_F(TestLiaStarUtils, cvc5CheckSatUnsat)
