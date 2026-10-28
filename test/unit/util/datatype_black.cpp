@@ -482,7 +482,8 @@ TEST_F(TestUtilBlackDatatype, parametric_DType_cardinality)
 
   // R = mk(o : (Option Bool))
   DType r("R");
-  std::shared_ptr<DTypeConstructor> mk = std::make_shared<DTypeConstructor>("mk");
+  std::shared_ptr<DTypeConstructor> mk =
+      std::make_shared<DTypeConstructor>("mk");
   mk->addArg("o", optBool);
   r.addConstructor(mk);
   TypeNode rType = d_nodeManager->mkDatatypeType(r);
