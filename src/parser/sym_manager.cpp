@@ -80,8 +80,11 @@ class SymManager::Implementation
   void addFunctionToSynthesize(cvc5::Term t);
   /** reset */
   void reset();
-  /** reset assertions */
-  void resetAssertions();
+  /**
+   * Reset assertions. If clearAll is true, this clears all names, otherwise
+   * it only clears the names that were added in user or scope contexts.
+   */
+  void resetAssertions(bool clearAll);
   /** Push a scope in the expression names. */
   void pushScope(bool isUserContext);
   /** Pop a scope in the expression names. */
@@ -294,13 +297,22 @@ void SymManager::Implementation::reset()
   d_context.push();
 }
 
-void SymManager::Implementation::resetAssertions()
+void SymManager::Implementation::resetAssertions(bool clearAll)
 {
   Trace("sym-manager") << "SymManager: resetAssertions" << std::endl;
-  // clear names by popping to context level 1
-  while (d_context.getLevel() > 1)
+  // clear names by popping to context level 0 or 1. Note that we cannot
+  // assume that the names to clear are above context level 1, since the
+  // outermost scope is not pushed again after the first reset-assertions, and
+  // is never pushed if the logic is forced.
+  size_t level = clearAll ? 0 : 1;
+  while (d_context.getLevel() > level)
   {
     d_context.pop();
+  }
+  if (clearAll)
+  {
+    // push the outermost context
+    d_context.push();
   }
 }
 
@@ -559,7 +571,8 @@ void SymManager::reset()
 
 void SymManager::resetAssertions()
 {
-  d_implementation->resetAssertions();
+  // if global declarations is false, all declarations are removed
+  d_implementation->resetAssertions(!d_globalDeclarations);
   if (!d_globalDeclarations)
   {
     d_implementation->getSymbolTable().resetAssertions();
