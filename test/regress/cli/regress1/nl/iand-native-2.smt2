@@ -1,7 +1,7 @@
 ; REQUIRES: unrestricted-mode
-; COMMAND-LINE: --iand-mode=value
-; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1
-; COMMAND-LINE:  --solve-bv-as-int=iand --iand-mode=bitwise
+; COMMAND-LINE: --iand-mode=value --no-nl-ext-initial-sign-lemmas
+; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1 --no-nl-ext-initial-sign-lemmas
+; COMMAND-LINE:  --solve-bv-as-int=iand --iand-mode=bitwise --no-nl-ext-initial-sign-lemmas
 ; EXPECT: unsat
 (set-logic QF_NIA)
 (set-info :status unsat)
