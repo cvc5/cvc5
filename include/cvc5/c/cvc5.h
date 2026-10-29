@@ -3837,6 +3837,18 @@ CVC5_EXPORT Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
 CVC5_EXPORT Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof);
 
 /**
+ * Get the annotation identifier used by the root step of the proof.
+ *
+ * Requires that `cvc5_proof_get_rule()` returns #CVC5_PROOF_RULE_ANNOTATE.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @return The annotation identifier.
+ */
+CVC5_EXPORT Cvc5AnnotationId cvc5_proof_get_annotation_id(Cvc5Proof proof);
+
+/**
  * Get the conclusion of the root step of a given proof.
  * @param proof The proof.
  * @return The conclusion term.
@@ -3868,6 +3880,28 @@ CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
  */
 CVC5_EXPORT const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof,
                                                      size_t* size);
+
+/**
+ * Get a string representation of an argument of the root step of a given
+ * proof.
+ *
+ * The string is computed by the internal proof printer, which takes into
+ * account how the argument is used by the proof rule. For example, an
+ * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+ * is converted to the name of that identifier. All other arguments are
+ * converted to the string representation of the corresponding term returned
+ * by `cvc5_proof_get_arguments()`.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @param i     The index of the argument.
+ * @return The string representation of the argument.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_proof_get_argument_to_string(Cvc5Proof proof,
+                                                          size_t i);
 
 /**
  * Compare two proofs for referential equality.

@@ -32,7 +32,8 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
       d_ctx(ctx),
       d_ap(env),
       d_illegalChecker(env),
-      d_modelVerifier(env)
+      d_modelVerifier(env),
+      d_satFromModelVerify(false)
 {
   // set up proofs, this is done after options are finalized, so the
   // preprocess proof has been setup
@@ -47,6 +48,7 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
   bool hasAssumptions = !assumptions.empty();
+  d_satFromModelVerify = false;
   if (d_ctx)
   {
     d_ctx->notifyCheckSat(hasAssumptions);
@@ -128,6 +130,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
                       "on verifying the candidate model"
                    << std::endl;
       result = Result(Result::SAT);
+      d_satFromModelVerify = true;
     }
   }
   if (d_ctx)
@@ -166,6 +169,21 @@ bool SmtDriver::verifyUnknownModel(const Result& r)
   bool ret = d_modelVerifier.verify(m, al);
   rm->setEnabled(true);
   return ret;
+}
+
+void SmtDriver::debugCheckModels(bool hardFailure)
+{
+  // If the result was obtained by verifying a candidate model after an
+  // "unknown" result, the theory engine may have asserted facts (e.g.
+  // quantified formulas) that are not satisfied by the model, so we skip
+  // the check.
+  if (d_satFromModelVerify)
+  {
+    return;
+  }
+  TheoryEngine* te = d_smt.getTheoryEngine();
+  Assert(te != nullptr);
+  te->checkTheoryAssertionsWithModel(hardFailure);
 }
 
 void SmtDriver::getNextAssertionsInternal(preprocessing::AssertionPipeline& ap)
