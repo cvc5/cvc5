@@ -25,11 +25,13 @@ using namespace cvc5;
  * Method:    newTermManager
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
-                                                                       jclass)
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_TermManager_newTermManager(JNIEnv* env, jclass)
 {
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
   TermManager* tm = new TermManager();
   return reinterpret_cast<jlong>(tm);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 
 /*
@@ -38,7 +40,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_TermManager_newTermManager(JNIEnv*,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_TermManager_deletePointer(JNIEnv*, jobject, jlong pointer)
+Java_io_github_cvc5_TermManager_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
   delete (reinterpret_cast<TermManager*>(pointer));
 }
@@ -1695,6 +1697,27 @@ Java_io_github_cvc5_TermManager_mkDatatypeDecl__JLjava_lang_String_2_3JZ(
   DatatypeDecl* retPointer =
       new DatatypeDecl(tm->mkDatatypeDecl(cName, params, (bool)isCoDatatype));
   env->ReleaseStringUTFChars(jName, s);
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}
+
+/*
+ * Class:     io_github_cvc5_TermManager
+ * Method:    mkGrammar
+ * Signature: (J[J[J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_TermManager_mkGrammar(JNIEnv* env,
+                                          jobject,
+                                          jlong pointer,
+                                          jlongArray jBoundVars,
+                                          jlongArray jNtSymbols)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
+  std::vector<Term> boundVars = getObjectsFromPointers<Term>(env, jBoundVars);
+  std::vector<Term> ntSymbols = getObjectsFromPointers<Term>(env, jNtSymbols);
+  Grammar* retPointer = new Grammar(tm->mkGrammar(boundVars, ntSymbols));
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

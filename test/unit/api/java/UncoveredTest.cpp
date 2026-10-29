@@ -233,10 +233,12 @@ TEST_F(TestApiBlackUncovered, streaming_operators_to_string)
      << std::to_string(cvc5::modes::OptionCategory::REGULAR);
   ss << cvc5::modes::InputLanguage::SMT_LIB_2_6
      << std::to_string(cvc5::modes::InputLanguage::SMT_LIB_2_6);
-  ss << cvc5::modes::ProofFormat::LFSC
-     << std::to_string(cvc5::modes::ProofFormat::LFSC);
+  ss << cvc5::modes::ProofFormat::CPC
+     << std::to_string(cvc5::modes::ProofFormat::CPC);
   ss << cvc5::ProofRewriteRule::NONE
      << std::to_string(cvc5::ProofRewriteRule::NONE);
+  ss << cvc5::AnnotationId::THEORY_LEMMA
+     << std::to_string(cvc5::AnnotationId::THEORY_LEMMA);
   ss << cvc5::SkolemId::PURIFY << std::to_string(cvc5::SkolemId::PURIFY);
   ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
   ss << cvc5::Result();
@@ -283,13 +285,15 @@ TEST_F(TestApiBlackUncovered, Statistics)
   Stat stat;
   stat = Stat();
   Statistics stats = d_solver->getStatistics();
-  auto it = stats.begin();
+  auto it = stats.begin(true, true);
+  ASSERT_TRUE(it != stats.end());
+  ASSERT_FALSE(it == stats.end());
   it++;
   it--;
   ++it;
   --it;
   std::stringstream ss;
-  ss << it->first;
+  ss << it->first << (*it).first;
   testing::internal::CaptureStdout();
   d_solver->printStatisticsSafe(STDOUT_FILENO);
   d_tm.printStatisticsSafe(STDOUT_FILENO);
@@ -358,6 +362,12 @@ TEST_F(TestApiBlackUncovered, ProofRewriteRule)
             static_cast<size_t>(ProofRewriteRule::NONE));
 }
 
+TEST_F(TestApiBlackUncovered, AnnotationId)
+{
+  ASSERT_EQ(std::hash<cvc5::AnnotationId>()(AnnotationId::THEORY_LEMMA),
+            static_cast<size_t>(AnnotationId::THEORY_LEMMA));
+}
+
 TEST_F(TestApiBlackUncovered, SkolemId)
 {
   ASSERT_EQ(std::hash<cvc5::SkolemId>()(SkolemId::PURIFY),
@@ -375,6 +385,8 @@ TEST_F(TestApiBlackUncovered, Parser)
   parser::Command command;
   Solver solver(d_tm);
   parser::InputParser inputParser(&solver);
+  ASSERT_EQ(inputParser.getSolver(), &solver);
+  ASSERT_NE(inputParser.getSymbolManager(), nullptr);
   std::stringstream ss;
   ss << command << std::endl;
   inputParser.setStreamInput(modes::InputLanguage::SMT_LIB_2_6, ss, "Parser");

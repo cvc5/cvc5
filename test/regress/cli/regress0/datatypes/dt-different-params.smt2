@@ -1,3 +1,5 @@
+; Logos does not support parametric datatype declarations.
+; DISABLE-TESTER: cpc-logos
 (set-logic QF_ALL)
 (set-info :status unsat)
 (declare-datatypes ((Data 1)) ((par (T) ((data (first T))))))

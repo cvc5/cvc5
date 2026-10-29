@@ -244,6 +244,12 @@ struct CVC5_EXPORT Cvc5TermManager
    */
   Cvc5Statistics export_stats(const cvc5::Statistics& stat);
 
+  /**
+   * Export C++ grammar to C API.
+   * @param grammar The grammar to export.
+   */
+  Cvc5Grammar export_grammar(const cvc5::Grammar& grammar);
+
   /* Manual memory management for managed objects. ------ */
 
   /**
@@ -367,6 +373,18 @@ struct CVC5_EXPORT Cvc5TermManager
    * @return The copied statistics object.
    */
   cvc5_stats_t* copy(cvc5_stats_t* stat);
+  /**
+   * Decrement the external ref count of a grammar. If the ref count reaches
+   * zero, the grammar is released (freed).
+   * @param grammar The grammar to release.
+   */
+  void release(cvc5_grammar_t* grammar);
+  /**
+   * Increment the external ref count of a grammar.
+   * @param grammar The grammar to copy.
+   * @return The copied grammar.
+   */
+  cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
 
   /**
    * Release all managed objects.
@@ -378,18 +396,18 @@ struct CVC5_EXPORT Cvc5TermManager
   /* Lifetime management of the term manager itself. ---- */
 
   /**
-   * Increment the number of external handles to this term manager.
+   * Increment the reference count of this term manager.
    *
-   * A handle is held by the user (returned by `cvc5_term_manager_new()` and
+   * A reference is held by the user (returned by `cvc5_term_manager_new()` and
    * dropped via `cvc5_term_manager_delete()`) and by each `Cvc5` solver and
    * `Cvc5SymbolManager` instance created from this term manager.
    */
   void inc_ref();
   /**
-   * Decrement the number of external handles to this term manager.
+   * Decrement the reference count of this term manager.
    *
-   * The term manager is freed once it has no external handles and no managed
-   * objects left. Managed objects thus keep their term manager alive until
+   * The term manager is freed once its reference count is zero and no managed
+   * objects are left. Managed objects thus keep their term manager alive until
    * they are released, and remain valid after `cvc5_term_manager_delete()`.
    */
   void dec_ref();
@@ -402,10 +420,13 @@ struct CVC5_EXPORT Cvc5TermManager
  private:
   /** Determine if there are any managed objects that are still alive. */
   bool has_objects() const;
-  /** Free this term manager if it has no external handles and no objects. */
+  /**
+   * Free this term manager if its reference count is zero and it has no
+   * objects.
+   */
   void free_if_unused();
 
-  /** The number of external handles to this term manager. */
+  /** The reference count of this term manager. */
   uint32_t d_refs = 1;
   /** Cache of allocated sorts. */
   std::unordered_map<cvc5::Sort, cvc5_sort_t> d_alloc_sorts;
@@ -428,7 +449,7 @@ struct CVC5_EXPORT Cvc5TermManager
   /**
    * Cache of allocated statistic objects.
    * @note Statistic objects are never exported more than once, we thus key
-   *       this cache on the allocated wrapper object (as for grammars).
+   *       this cache on the allocated wrapper object.
    */
   std::unordered_map<cvc5_stat_t*, std::unique_ptr<cvc5_stat_t>> d_alloc_stats;
   /**
@@ -437,6 +458,12 @@ struct CVC5_EXPORT Cvc5TermManager
    */
   std::unordered_map<cvc5_stats_t*, std::unique_ptr<cvc5_stats_t>>
       d_alloc_statistics;
+  /**
+   * Cache of allocated grammars.
+   * @note See `d_alloc_stats`.
+   */
+  std::unordered_map<cvc5_grammar_t*, std::unique_ptr<cvc5_grammar_t>>
+      d_alloc_grammars;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -528,7 +555,7 @@ struct cvc5_synth_result_t
  *       deleting that solver drops one reference to it. A proof the user
  *       kept a reference to outlives the solver. Unlike a result, a proof
  *       needs a term manager (to export the terms and child proofs it is
- *       queried for), and holds a counted handle on it, mirroring the C++
+ *       queried for), and holds a reference to it, mirroring the C++
  *       API where `cvc5::Proof` holds a `NodeManagerSharedPtr`.
  */
 struct cvc5_proof_t
@@ -536,7 +563,9 @@ struct cvc5_proof_t
   /**
    * Constructor.
    * @param cvc5  The associated solver instance, may be NULL for a proof
-   *              created from another proof after its solver was deleted.
+   *              created from another proof after its solver was deleted
+   *              (such a proof is associated with that other proof instead,
+   *              see `export_proof()`).
    * @param tm    The associated term manager.
    * @param proof The wrapped C++ proof.
    */
@@ -555,9 +584,20 @@ struct cvc5_proof_t
   void release();
   /**
    * Export a proof obtained from this proof (e.g., one of its children).
+   *
+   * The exported proof is associated with the solver of this proof if it is
+   * still alive, and with this proof otherwise. In both cases, the associated
+   * object holds one reference to it, which it drops when it is deleted.
+   *
    * @param proof The proof to export.
    */
   Cvc5Proof export_proof(const cvc5::Proof& proof);
+  /**
+   * Deregister a proof that was created by `export_proof()` while this proof
+   * was not associated with a solver, when it is freed.
+   * @param proof The proof to deregister.
+   */
+  void deregister(cvc5_proof_t* proof);
   /** The wrapped C++ proof. */
   cvc5::Proof d_proof;
   /** Refs count (the associated solver holds one reference). */
@@ -569,44 +609,38 @@ struct cvc5_proof_t
   Cvc5* d_cvc5 = nullptr;
   /** The associated term manager, kept alive by this proof. */
   Cvc5TermManager* d_tm = nullptr;
+  /**
+   * The proof this proof was created from if it was created while that proof
+   * was not associated with a solver, while it is still alive. Reset to NULL
+   * when that proof is freed.
+   */
+  cvc5_proof_t* d_parent = nullptr;
+  /**
+   * The proofs created from this proof while it was not associated with a
+   * solver, and not yet freed. This proof holds one reference to each of
+   * them.
+   */
+  std::unordered_set<cvc5_proof_t*> d_alloc_proofs;
 };
 
-/**
- * Wrapper for cvc5 C++ grammars.
- * @note See `cvc5_proof_t`. A grammar does not need a term manager (none of
- *       its functions creates new objects), the wrapped `cvc5::Grammar` keeps
- *       the node manager it needs alive by itself.
- */
+/** Wrapper for cvc5 C++ grammars. */
 struct cvc5_grammar_t
 {
   /**
    * Constructor.
-   * @param cvc5    The associated solver instance.
+   * @param tm      The associated term manager instance.
    * @param grammar The wrapped C++ grammar.
    */
-  cvc5_grammar_t(Cvc5* cvc5, const cvc5::Grammar& grammar)
-      : d_grammar(grammar), d_cvc5(cvc5)
+  cvc5_grammar_t(Cvc5TermManager* tm, const cvc5::Grammar& grammar)
+      : d_grammar(grammar), d_tm(tm)
   {
   }
-  /**
-   * Increment the ref count of this grammar.
-   * @return This grammar.
-   */
-  cvc5_grammar_t* copy();
-  /**
-   * Decrement the ref count of this grammar. If the ref count reaches zero,
-   * this grammar is freed.
-   */
-  void release();
   /** The wrapped C++ grammar. */
   cvc5::Grammar d_grammar;
-  /** Refs count (the associated solver holds one reference). */
+  /** External refs count. */
   uint32_t d_refs = 1;
-  /**
-   * The solver this grammar was created by, while it is still alive. Reset to
-   * NULL when that solver is deleted.
-   */
-  Cvc5* d_cvc5 = nullptr;
+  /** The associated term manager instance. */
+  Cvc5TermManager* d_tm = nullptr;
 };
 
 /**
@@ -614,12 +648,14 @@ struct cvc5_grammar_t
  *
  * Statistics created via a solver instance are managed by the associated term
  * manager and thus remain valid after the solver instance has been deleted.
- * Results, synthesis results, proofs and grammars are managed by the solver
- * itself: it holds one reference to each of them and drops it on deletion,
- * but they may outlive the solver if the user still holds a reference (see
- * `cvc5_result_t`).
+ * Results, synthesis results and proofs are managed by the solver itself: it
+ * holds one reference to each of them and drops it on deletion, but they may
+ * outlive the solver if the user still holds a reference (see `cvc5_result_t`).
+ *
+ * @note Visibility of this struct is set to export for linkage of the parser
+ *       library (it needs to be able to use member functions of the struct).
  */
-struct Cvc5
+struct CVC5_EXPORT Cvc5
 {
   /**
    * Constructor.
@@ -627,8 +663,24 @@ struct Cvc5
    */
   Cvc5(Cvc5TermManager* tm);
 
-  /** Destructor. */
-  ~Cvc5();
+  /* Lifetime management of the solver itself. ---------- */
+
+  /**
+   * Increment the reference count of this solver.
+   *
+   * A reference is held by the user (returned by `cvc5_new()` and dropped via
+   * `cvc5_delete()`) and by each `Cvc5InputParser` instance created from this
+   * solver.
+   */
+  void inc_ref();
+  /**
+   * Decrement the reference count of this solver.
+   *
+   * The solver is freed once its reference count drops to zero. Input parsers
+   * thus keep their solver alive until they are freed, and remain usable
+   * after `cvc5_delete()`.
+   */
+  void dec_ref();
 
   /**
    * Export C++ result to C API.
@@ -656,21 +708,20 @@ struct Cvc5
    */
   Cvc5Proof export_proof(const cvc5::Proof& proof);
   /**
-   * Export C++ grammar to C API.
-   * @param grammar The grammar to export.
-   */
-  Cvc5Grammar export_grammar(const cvc5::Grammar& grammar);
-  /**
    * Remove a proof from the set of proofs created by this solver.
    * @param proof The proof to remove.
    */
   void deregister(cvc5_proof_t* proof);
-  /**
-   * Remove a grammar from the set of grammars created by this solver.
-   * @param grammar The grammar to remove.
-   */
-  void deregister(cvc5_grammar_t* grammar);
 
+  class PluginCpp;
+  /**
+   * The plugins added to this solver.
+   * @note The solver only keeps raw pointers to its plugins and never removes
+   *       them, so all plugins must be kept alive for as long as the solver.
+   *       This member must thus be declared before `d_solver` so that it is
+   *       destroyed after it.
+   */
+  std::vector<std::unique_ptr<PluginCpp>> d_plugins;
   /** The associated cvc5 instance. */
   cvc5::Solver d_solver;
   /** The associated term manager. */
@@ -693,11 +744,6 @@ struct Cvc5
    * @note See `d_alloc_results`.
    */
   std::unordered_set<cvc5_proof_t*> d_alloc_proofs;
-  /**
-   * The grammars created by this solver.
-   * @note See `d_alloc_results`.
-   */
-  std::unordered_set<cvc5_grammar_t*> d_alloc_grammars;
   /** Out file stream for output tag (configured via `cvc5_get_output()`. */
   std::ofstream d_output_tag_file_stream;
   /**
@@ -730,7 +776,15 @@ struct Cvc5
     Cvc5* d_cvc5;
     Cvc5Plugin* d_plugin;
   };
-  std::unique_ptr<PluginCpp> d_plugin = nullptr;
+
+ private:
+  /** Destructor. */
+  ~Cvc5();
+  /** Free this solver if its reference count is zero. */
+  void free_if_unused();
+
+  /** The reference count of this solver. */
+  uint32_t d_refs = 1;
 };
 
 /** Wrapper for cvc5 C++ statistic. */

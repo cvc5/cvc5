@@ -21,8 +21,6 @@
 #include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/eo/eo_printer.h"
-#include "proof/lfsc/lfsc_post_processor.h"
-#include "proof/lfsc/lfsc_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_node_manager.h"
@@ -117,10 +115,19 @@ PfManager::PfManager(Env& env)
   // be inferred from A, it was updated). This shape is problematic for
   // the Alethe reconstruction, so we disable the update of scoped
   // assumptions (which would disable the update of B1 in this case).
+  //
+  // We also disable it in incremental mode. Proof nodes are updated in place,
+  // and SCOPE subproofs (e.g. of theory lemmas) may be shared with proofs that
+  // outlive the current user context. Updating B1 with a proof from A, where A
+  // is an assertion of the current user context, would make these proofs
+  // depend on A after A is popped. Note that incremental mode is enabled by
+  // default for API users, hence this applies to them even if they never call
+  // push, similar to setting the assertions in connectProofToAssertions.
   d_pfpp = std::make_unique<ProofPostprocess>(
       env,
       d_rewriteDb.get(),
-      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE);
+      options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+          && !options().base.incrementalSolving);
 
   // add rules to eliminate here
   if (options().proof.proofGranularityMode
@@ -130,15 +137,17 @@ PfManager::PfManager(Env& env)
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(ProofRule::MACRO_SR_PRED_TRANSFORM);
-    // Alethe does not require chain multiset resolution to be expanded,
-    // LFSC requires it to be expanded.
-    if ((options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
-         && !options().proof.proofChainMRes)
-        || options().proof.proofFormatMode == options::ProofFormatMode::LFSC)
+    // Alethe does not require chain multiset resolution to be expanded.
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE
+        && !options().proof.proofChainMRes)
     {
       d_pfpp->setEliminateRule(ProofRule::CHAIN_M_RESOLUTION);
     }
-    d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
+    // The Alethe translation handles this macro directly via la_generic
+    if (options().proof.proofFormatMode != options::ProofFormatMode::ALETHE)
+    {
+      d_pfpp->setEliminateRule(ProofRule::MACRO_ARITH_SCALE_SUM_UB);
+    }
     if (options().proof.proofGranularityMode
         != options::ProofGranularityMode::REWRITE)
     {
@@ -354,15 +363,6 @@ void PfManager::printProof(std::ostream& out,
       out << "(error " << vpfpp.getError() << ")";
     }
     d_pnm->getChecker()->setProofCheckMode(oldMode);
-  }
-  else if (mode == options::ProofFormatMode::LFSC)
-  {
-    Assert(fp->getRule() == ProofRule::SCOPE);
-    proof::LfscNodeConverter ltp(nodeManager());
-    proof::LfscProofPostprocess lpp(d_env, ltp);
-    lpp.process(fp);
-    proof::LfscPrinter lp(d_env, ltp, d_rewriteDb.get());
-    lp.print(out, fp.get());
   }
   else
   {

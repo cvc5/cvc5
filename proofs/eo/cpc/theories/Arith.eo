@@ -1,9 +1,11 @@
 (include "../theories/Builtin.eo")
 
 (declare-const Int Type)
+
 (declare-const Real Type)
 
 (declare-consts <numeral> Int)
+
 (declare-consts <rational> Real)
 
 ; define: $is_numeral
@@ -26,7 +28,7 @@
   :signature ((eo::quote T)) T
   (
   (($arith_mk_zero Int)   0)
-  (($arith_mk_zero Real) 0/1)
+  (($arith_mk_zero Real)  0/1)
   )
 )
 
@@ -47,11 +49,11 @@
 ; - T Type: A type.
 ; return: true if T is Int or Real
 (program $is_arith_type ()
-    :signature (Type) Bool
-    (
-      (($is_arith_type Int) true)
-      (($is_arith_type Real) true)
-    )
+  :signature (Type) Bool
+  (
+  (($is_arith_type Int)   true)
+  (($is_arith_type Real)  true)
+  )
 )
 
 ; Core operators of arithmetic, which are used in mixed Int/Real arithmetic.
@@ -60,33 +62,45 @@
 ;   This function is declared to be :left-assoc in SMT-LIB. We declare
 ;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const + ((T Type :implicit))
-  (-> T T (eo::requires ($is_arith_type T) true T)) :right-assoc-nil ($arith_mk_zero T))
+  (-> T T (eo::requires ($is_arith_type T) true T))
+  :right-assoc-nil ($arith_mk_zero T))
+
 (declare-parameterized-const - ((T Type :implicit))
-  (-> T T (eo::requires ($is_arith_type T) true T)) :left-assoc)
+  (-> T T (eo::requires ($is_arith_type T) true T))
+  :left-assoc)
+
 ; disclaimer: >
 ;   This function is declared to be :left-assoc in SMT-LIB. We declare
 ;   it with right-assoc-nil to model cvc5's treatment of variadic functions.
 (declare-parameterized-const * ((T Type :implicit))
-  (-> T T (eo::requires ($is_arith_type T) true T)) :right-assoc-nil ($arith_mk_one T))
+  (-> T T (eo::requires ($is_arith_type T) true T))
+  :right-assoc-nil ($arith_mk_one T))
 
 (declare-parameterized-const < ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true Bool))
-      :chainable and)
+  :chainable and)
+
 (declare-parameterized-const <= ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true Bool))
-      :chainable and)
+  :chainable and)
+
 (declare-parameterized-const > ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true Bool))
-      :chainable and)
+  :chainable and)
+
 (declare-parameterized-const >= ((T Type :implicit))
   (-> T T (eo::requires ($is_arith_type T) true Bool))
-      :chainable and)
+  :chainable and)
 
 ; Conversion functions.
 (declare-const to_real (-> Int Real))
+
 (declare-const to_int (-> Real Int))
+
 (declare-const is_int (-> Real Bool))
-; disclaimer: The type of this function in SMT-LIB only accepts an Int as argument.
+
+; disclaimer: The type of this function in SMT-LIB only accepts an Int as
+; argument.
 (declare-parameterized-const abs ((T Type :implicit))
   (-> T (eo::requires ($is_arith_type T) true T)))
 

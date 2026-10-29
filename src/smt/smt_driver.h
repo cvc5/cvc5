@@ -22,6 +22,7 @@
 #include "smt/assertions.h"
 #include "smt/env_obj.h"
 #include "smt/illegal_checker.h"
+#include "smt/model_verifier.h"
 #include "util/result.h"
 
 namespace cvc5::internal {
@@ -61,6 +62,13 @@ class SmtDriver : protected EnvObj
    * ensure that assertions are only preprocessed in one context.
    */
   void refreshAssertions();
+  /**
+   * Debug check the model of the last call to checkSat, which checks that the
+   * model satisfies all facts asserted to the theory engine.
+   *
+   * @param hardFailure Whether to throw an internal error on failure.
+   */
+  void debugCheckModels(bool hardFailure);
   // --------------------------------------- callbacks from the context manager
   /**
    * Notify push pre, which is called just before the user context of the state
@@ -90,6 +98,17 @@ class SmtDriver : protected EnvObj
    * assertions and calls the driver-specific getNextAssertions method.
    */
   void getNextAssertionsInternal(preprocessing::AssertionPipeline& ap);
+  /**
+   * Called when the result of a check-sat was unknown. This attempts to verify
+   * that the candidate model of the underlying SMT solver satisfies the input
+   * assertions.
+   *
+   * @param r The (unknown) result of the check-sat.
+   * @return true if we successfully verified that the candidate model
+   * satisfies the input assertions, in which case the response of the
+   * check-sat can be strengthened to "sat".
+   */
+  bool verifyUnknownModel(const Result& r);
   /**
    * Check satisfiability next, return the result.
    *
@@ -122,6 +141,23 @@ class SmtDriver : protected EnvObj
    * The utility used for checking for illegal inputs
    */
   IllegalChecker d_illegalChecker;
+  /**
+   * Whether the current call to checkSat has assumptions. If so, the
+   * assertions given to checkSatNext in incremental mode are exactly the
+   * assumptions of that call, since all other assertions were pushed to the
+   * SAT solver when the context was pushed (see notifyPushPre).
+   */
+  bool d_hasAssumptions;
+  /**
+   * The utility used for verifying candidate models, when the option
+   * modelVerify is enabled.
+   */
+  ModelVerifier d_modelVerifier;
+  /**
+   * Whether the last call to checkSat was "sat" due to strengthening an
+   * "unknown" result via verifying the candidate model (see modelVerify).
+   */
+  bool d_satFromModelVerify;
 };
 
 /**

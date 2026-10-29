@@ -35,7 +35,8 @@ class GrammarTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_solver.close();
+    d_tm.close();
   }
 
   @Test
@@ -44,7 +45,7 @@ class GrammarTest
     d_solver.setOption("sygus", "true");
     Sort bool = d_tm.getBooleanSort();
     Term start = d_tm.mkVar(bool);
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     assertFalse(g.isNull());
     g.addRule(start, d_tm.mkBoolean(false));
     g.toString();
@@ -61,7 +62,7 @@ class GrammarTest
     Term start = d_tm.mkVar(bool);
     Term nts = d_tm.mkVar(bool);
 
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addRule(start, d_tm.mkBoolean(false)));
 
@@ -86,7 +87,7 @@ class GrammarTest
     Term start = d_tm.mkVar(bool);
     Term nts = d_tm.mkVar(bool);
 
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addRules(start, new Term[] {d_tm.mkBoolean(false)}));
 
@@ -112,7 +113,7 @@ class GrammarTest
     Term start = d_tm.mkVar(bool);
     Term nts = d_tm.mkVar(bool);
 
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g.addAnyConstant(start));
     assertDoesNotThrow(() -> g.addAnyConstant(start));
@@ -136,8 +137,8 @@ class GrammarTest
     Term start = d_tm.mkVar(bool);
     Term nts = d_tm.mkVar(bool);
 
-    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start});
-    Grammar g2 = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start});
+    Grammar g2 = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
 
     assertDoesNotThrow(() -> g1.addAnyVariable(start));
     assertDoesNotThrow(() -> g1.addAnyVariable(start));
@@ -163,8 +164,8 @@ class GrammarTest
     Grammar g1, g2;
 
     {
-      g1 = d_solver.mkGrammar(new Term[] {}, new Term[] {start1});
-      g2 = d_solver.mkGrammar(new Term[] {}, new Term[] {start1});
+      g1 = d_tm.mkGrammar(new Term[] {}, new Term[] {start1});
+      g2 = d_tm.mkGrammar(new Term[] {}, new Term[] {start1});
       assertEquals(g1.hashCode(), g1.hashCode());
       assertEquals(g1.hashCode(), g2.hashCode());
       assertTrue(g1.equals(g1));
@@ -172,24 +173,24 @@ class GrammarTest
     }
 
     {
-      g1 = d_solver.mkGrammar(new Term[] {}, new Term[] {start1});
-      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g1 = d_tm.mkGrammar(new Term[] {}, new Term[] {start1});
+      g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
       assertNotEquals(g1.hashCode(), g2.hashCode());
       assertTrue(g1.equals(g1));
       assertFalse(g1.equals(g2));
     }
 
     {
-      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
-      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
+      g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start2});
       assertNotEquals(g1.hashCode(), g2.hashCode());
       assertTrue(g1.equals(g1));
       assertFalse(g1.equals(g2));
     }
 
     {
-      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
-      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
       g2.addAnyVariable(start1);
       assertNotEquals(g1.hashCode(), g2.hashCode());
       assertTrue(g1.equals(g1));
@@ -197,8 +198,8 @@ class GrammarTest
     }
 
     {
-      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
-      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
       Term[] rules = new Term[] {d_tm.mkFalse()};
       g1.addRules(start1, rules);
       g2.addRules(start1, rules);
@@ -208,8 +209,8 @@ class GrammarTest
     }
 
     {
-      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
-      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
       Term[] rules2 = new Term[] {d_tm.mkFalse()};
       g2.addRules(start1, rules2);
       assertNotEquals(g1.hashCode(), g2.hashCode());
@@ -218,8 +219,8 @@ class GrammarTest
     }
 
     {
-      g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
-      g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
+      g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
       Term[] rules1 = new Term[] {d_tm.mkTrue()};
       Term[] rules2 = new Term[] {d_tm.mkFalse()};
       g1.addRules(start1, rules1);

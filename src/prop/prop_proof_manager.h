@@ -71,8 +71,12 @@ class PropPfManager : protected EnvObj
    * definitionally equal to it.  The result of this function is that the Node
    * can be queried via getSatValue(). Essentially, this is like a "convert-but-
    * don't-assert" version of convertAndAssert().
+   *
+   * @param n The node to ensure a literal for.
+   * @param input Whether the clauses introduced for n are derived from the
+   * input, as in convertAndAssert.
    */
-  void ensureLiteral(TNode n);
+  void ensureLiteral(TNode n, bool input);
 
   /**
    * Converts a formula into CNF into CNF and asserts the generated clauses into

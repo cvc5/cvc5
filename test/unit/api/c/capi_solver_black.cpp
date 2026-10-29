@@ -17,6 +17,7 @@ extern "C" {
 #include <cvc5/c/cvc5.h>
 
 #include <cmath>
+#include <cstring>
 #include <fstream>
 
 #include "base/check.h"
@@ -76,6 +77,11 @@ class TestCApiBlackSolver : public ::testing::Test
   Cvc5Sort d_str;
   Cvc5Sort d_uninterpreted;
 };
+
+TEST_F(TestCApiBlackSolver, new)
+{
+  ASSERT_CVC5_ERROR(cvc5_new(nullptr), "unexpected NULL argument");
+}
 
 TEST_F(TestCApiBlackSolver, pow2_large1)
 {
@@ -1229,8 +1235,13 @@ TEST_F(TestCApiBlackSolver, get_option_info)
                     "unexpected NULL argument");
   ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "verbose", nullptr),
                     "unexpected NULL argument");
+  // The info struct is zeroed even if the call fails (issue #12991).
+  std::memset(&info, 0xAB, sizeof(info));
   ASSERT_CVC5_ERROR(cvc5_get_option_info(d_solver, "asdf-invalid", &info),
                     "Unrecognized option");
+  Cvc5OptionInfo zero;
+  std::memset(&zero, 0, sizeof(zero));
+  ASSERT_EQ(std::memcmp(&info, &zero, sizeof(info)), 0);
 
   cvc5_set_option(d_solver, "verbosity", "2");
 
@@ -1778,6 +1789,30 @@ TEST_F(TestCApiBlackSolver, proof_to_string_assertion_names)
   ASSERT_FALSE(proof_str.empty());
   ASSERT_LT(proof_str.find("as1"), std::string::npos);
   ASSERT_LT(proof_str.find("as2"), std::string::npos);
+
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         assertions,
+                                         nullptr),
+                    "unexpected NULL argument");
+  const Cvc5Term null_assertions[2] = {x_eq_y, nullptr};
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         null_assertions,
+                                         names),
+                    "invalid term at index 1");
+  const char* null_names[2] = {"as1", nullptr};
+  ASSERT_CVC5_ERROR(cvc5_proof_to_string(d_solver,
+                                         proofs[0],
+                                         CVC5_PROOF_FORMAT_ALETHE,
+                                         2,
+                                         assertions,
+                                         null_names),
+                    "unexpected NULL argument at index 1");
 }
 
 TEST_F(TestCApiBlackSolver, get_learned_literals)
@@ -1917,6 +1952,10 @@ TEST_F(TestCApiBlackSolver, get_value3)
   ASSERT_CVC5_ERROR(
       cvc5_get_values(d_solver, terms.size(), terms.data(), nullptr),
       "unexpected NULL argument");
+  terms = {x, nullptr};
+  ASSERT_CVC5_ERROR(
+      cvc5_get_values(d_solver, terms.size(), terms.data(), &size),
+      "invalid term at index 1");
 
   Cvc5* slv = cvc5_new(d_tm);
   ASSERT_CVC5_ERROR(cvc5_get_value(slv, x), "cannot get value");
@@ -2492,72 +2531,6 @@ TEST_F(TestCApiBlackSolver, declare_sygus_var)
   cvc5_term_manager_delete(tm);
 }
 
-TEST_F(TestCApiBlackSolver, mk_grammar)
-{
-  Cvc5Term bt = cvc5_mk_true(d_tm);
-  Cvc5Term bv = cvc5_mk_var(d_tm, d_bool, "b");
-  Cvc5Term iv = cvc5_mk_var(d_tm, d_int, "i");
-
-  std::vector<Cvc5Term> bvars;
-  std::vector<Cvc5Term> symbols = {iv};
-  (void)cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
-  bvars = {bv};
-  (void)cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
-
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          nullptr, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
-
-  symbols = {nullptr};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
-  bvars = {nullptr};
-  symbols = {iv};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
-  bvars = {};
-  symbols = {bt};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
-  bvars = {bt};
-  symbols = {iv};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
-
-  Cvc5TermManager* tm = cvc5_term_manager_new();
-  Cvc5* slv = cvc5_new(tm);
-  bvars = {};
-  symbols = {iv};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          slv, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a term associated with the term manager of this solver");
-  bvars = {bv};
-  symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a term associated with the term manager of this solver");
-  cvc5_delete(slv);
-  cvc5_term_manager_release(tm);
-  cvc5_term_manager_delete(tm);
-}
-
 TEST_F(TestCApiBlackSolver, synth_fun)
 {
   cvc5_set_option(d_solver, "sygus", "true");
@@ -2569,10 +2542,18 @@ TEST_F(TestCApiBlackSolver, synth_fun)
   std::vector<Cvc5Term> bvars{x};
   std::vector<Cvc5Term> symbols{start1};
   Cvc5Grammar g1 = cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+      d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data());
 
   (void)cvc5_synth_fun(d_solver, "", 0, nullptr, d_bool);
   (void)cvc5_synth_fun(d_solver, "f1", bvars.size(), bvars.data(), d_bool);
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun(d_solver, "f3", bvars.size(), nullptr, d_bool),
+      "unexpected NULL argument");
+  std::vector<Cvc5Term> null_bvars{nullptr};
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun(
+          d_solver, "f4", null_bvars.size(), null_bvars.data(), d_bool),
+      "invalid term at index 0");
   ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
                         d_solver, "f2", bvars.size(), bvars.data(), d_bool, g1),
                     "invalid grammar");
@@ -2581,7 +2562,7 @@ TEST_F(TestCApiBlackSolver, synth_fun)
 
   symbols = {start2};
   Cvc5Grammar g2 = cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+      d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data());
   cvc5_grammar_add_rule(g2, start2, cvc5_mk_integer_int64(d_tm, 0));
 
   cvc5_synth_fun_with_grammar(
@@ -2597,6 +2578,13 @@ TEST_F(TestCApiBlackSolver, synth_fun)
       cvc5_synth_fun_with_grammar(
           d_solver, "f2", bvars.size(), bvars.data(), d_bool, nullptr),
       "invalid grammar");
+  ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
+                        d_solver, "f2", bvars.size(), nullptr, d_bool, g1),
+                    "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_synth_fun_with_grammar(
+          d_solver, "f2", null_bvars.size(), null_bvars.data(), d_bool, g1),
+      "invalid term at index 0");
 
   ASSERT_CVC5_ERROR(cvc5_synth_fun_with_grammar(
                         d_solver, "f6", bvars.size(), bvars.data(), d_bool, g2),
@@ -3004,7 +2992,7 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
 
   args = {zero, zero};
   Cvc5Term conj2 =
@@ -3032,7 +3020,7 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   Cvc5Term sstart = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "start");
   std::vector<Cvc5Term> ssymbols = {sstart};
   Cvc5Grammar gg =
-      cvc5_mk_grammar(slv, 0, nullptr, ssymbols.size(), ssymbols.data());
+      cvc5_mk_grammar(tm, 0, nullptr, ssymbols.size(), ssymbols.data());
   cvc5_grammar_add_rule(gg, sstart, cvc5_mk_true(tm));
   std::vector<Cvc5Term> aargs = {zzero, zzero};
   Cvc5Term cconj2 =
@@ -3126,7 +3114,7 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
   args = {x, zero};
   Cvc5Term conj2 = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
   ASSERT_CVC5_ERROR(cvc5_get_abduct_with_grammar(d_solver, conj2, g),
@@ -3160,7 +3148,7 @@ TEST_F(TestCApiBlackSolver, get_abduct)
                       cvc5_mk_term(tm, CVC5_KIND_GT, args.size(), args.data()));
   std::vector<Cvc5Term> ssymbols = {sstart};
   Cvc5Grammar gg =
-      cvc5_mk_grammar(slv, 0, nullptr, ssymbols.size(), ssymbols.data());
+      cvc5_mk_grammar(tm, 0, nullptr, ssymbols.size(), ssymbols.data());
   cvc5_grammar_add_rule(gg, sstart, cvc5_mk_true(tm));
   std::vector<Cvc5Term> aargs = {zzero, zzero};
   Cvc5Term cconj2 =
@@ -3692,7 +3680,7 @@ TEST_F(TestCApiBlackSolver, find_synth)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
 
   ASSERT_CVC5_ERROR(
       cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g),
@@ -3733,7 +3721,7 @@ TEST_F(TestCApiBlackSolver, find_synth2)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
   Cvc5Term ttrue = cvc5_mk_true(d_tm);
   Cvc5Term tfalse = cvc5_mk_false(d_tm);
   cvc5_grammar_add_rule(g, start, ttrue);
@@ -3837,6 +3825,72 @@ TEST_F(TestCApiBlackSolver, plugin_unsat)
   ASSERT_TRUE(plugin.get_name() == std::string("PluginUnsat"));
   // should be unsat since the plugin above asserts "false" as a lemma
   ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+}
+
+namespace {
+const Cvc5Term* plugin_count_check(size_t* size, void* state)
+{
+  static thread_local std::vector<Cvc5Term> lemmas;
+  ++*static_cast<size_t*>(state);
+  *size = lemmas.size();
+  return lemmas.data();
+}
+const char* plugin_count_get_name() { return "PluginCount"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_multiple)
+{
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  size_t num_checks = 0;
+  Cvc5Plugin plugin_unsat{&plugin_unsat_check,
+                          nullptr,
+                          nullptr,
+                          &plugin_unsat_get_name,
+                          d_tm,
+                          nullptr,
+                          nullptr};
+  Cvc5Plugin plugin_count{&plugin_count_check,
+                          nullptr,
+                          nullptr,
+                          &plugin_count_get_name,
+                          &num_checks,
+                          nullptr,
+                          nullptr};
+  // adding a second plugin must not invalidate the first one
+  cvc5_add_plugin(d_solver, &plugin_unsat);
+  cvc5_add_plugin(d_solver, &plugin_count);
+  // should be unsat since the first plugin asserts "false" as a lemma
+  ASSERT_TRUE(cvc5_result_is_unsat(cvc5_check_sat(d_solver)));
+  ASSERT_GT(num_checks, 0);
+}
+
+namespace {
+const Cvc5Term* plugin_null_check(size_t* size, void* state)
+{
+  // no lemmas, return NULL instead of an array
+  ++*static_cast<size_t*>(state);
+  *size = 0;
+  return nullptr;
+}
+const char* plugin_null_get_name() { return "PluginNull"; }
+}  // namespace
+
+TEST_F(TestCApiBlackSolver, plugin_null)
+{
+  cvc5_set_option(d_solver, "sat-solver", "minisat");
+  size_t num_checks = 0;
+  Cvc5Plugin plugin{&plugin_null_check,
+                    nullptr,
+                    nullptr,
+                    &plugin_null_get_name,
+                    &num_checks,
+                    nullptr,
+                    nullptr};
+  cvc5_add_plugin(d_solver, &plugin);
+  Cvc5Term x = cvc5_mk_const(d_tm, cvc5_get_boolean_sort(d_tm), "x");
+  cvc5_assert_formula(d_solver, x);
+  ASSERT_TRUE(cvc5_result_is_sat(cvc5_check_sat(d_solver)));
+  ASSERT_GT(num_checks, 0);
 }
 
 namespace {

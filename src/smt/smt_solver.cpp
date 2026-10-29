@@ -146,7 +146,8 @@ void SmtSolver::preprocess(preprocessing::AssertionPipeline& ap)
   // introducing new ones
 }
 
-void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
+void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap,
+                                 bool isAssumptions)
 {
   // carry information about soundness to the theory engine we are sending to
   if (ap.isRefutationUnsound())
@@ -162,7 +163,7 @@ void SmtSolver::assertToInternal(preprocessing::AssertionPipeline& ap)
   preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
   // assert to prop engine, which will convert to CNF
   d_env.verbose(2) << "converting to CNF..." << endl;
-  d_propEngine->assertInputFormulas(assertions, ism);
+  d_propEngine->assertInputFormulas(assertions, ism, isAssumptions);
 
   // It is important to distinguish the input assertions from the skolem
   // definitions, as the decision justification heuristic treates the latter
