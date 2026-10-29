@@ -2531,77 +2531,6 @@ TEST_F(TestCApiBlackSolver, declare_sygus_var)
   cvc5_term_manager_delete(tm);
 }
 
-TEST_F(TestCApiBlackSolver, mk_grammar)
-{
-  Cvc5Term bt = cvc5_mk_true(d_tm);
-  Cvc5Term bv = cvc5_mk_var(d_tm, d_bool, "b");
-  Cvc5Term iv = cvc5_mk_var(d_tm, d_int, "i");
-
-  std::vector<Cvc5Term> bvars;
-  std::vector<Cvc5Term> symbols = {iv};
-  (void)cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
-  bvars = {bv};
-  (void)cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
-
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          nullptr, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "unexpected NULL argument");
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), nullptr),
-      "unexpected NULL argument");
-
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), nullptr, symbols.size(), symbols.data()),
-      "unexpected NULL argument");
-
-  symbols = {nullptr};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "invalid term at index 0");
-  bvars = {nullptr};
-  symbols = {iv};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "invalid term at index 0");
-  bvars = {};
-  symbols = {bt};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a bound variable");
-  bvars = {bt};
-  symbols = {iv};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a bound variable");
-
-  Cvc5TermManager* tm = cvc5_term_manager_new();
-  Cvc5* slv = cvc5_new(tm);
-  bvars = {};
-  symbols = {iv};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          slv, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a term associated with the term manager of this solver");
-  bvars = {bv};
-  symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
-  ASSERT_CVC5_ERROR(
-      cvc5_mk_grammar(
-          d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
-      "expected a term associated with the term manager of this solver");
-  cvc5_delete(slv);
-  cvc5_term_manager_release(tm);
-  cvc5_term_manager_delete(tm);
-}
-
 TEST_F(TestCApiBlackSolver, synth_fun)
 {
   cvc5_set_option(d_solver, "sygus", "true");
@@ -2613,7 +2542,7 @@ TEST_F(TestCApiBlackSolver, synth_fun)
   std::vector<Cvc5Term> bvars{x};
   std::vector<Cvc5Term> symbols{start1};
   Cvc5Grammar g1 = cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+      d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data());
 
   (void)cvc5_synth_fun(d_solver, "", 0, nullptr, d_bool);
   (void)cvc5_synth_fun(d_solver, "f1", bvars.size(), bvars.data(), d_bool);
@@ -2633,7 +2562,7 @@ TEST_F(TestCApiBlackSolver, synth_fun)
 
   symbols = {start2};
   Cvc5Grammar g2 = cvc5_mk_grammar(
-      d_solver, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+      d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data());
   cvc5_grammar_add_rule(g2, start2, cvc5_mk_integer_int64(d_tm, 0));
 
   cvc5_synth_fun_with_grammar(
@@ -3063,7 +2992,7 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
 
   args = {zero, zero};
   Cvc5Term conj2 =
@@ -3091,7 +3020,7 @@ TEST_F(TestCApiBlackSolver, get_interpolant)
   Cvc5Term sstart = cvc5_mk_var(tm, cvc5_get_boolean_sort(tm), "start");
   std::vector<Cvc5Term> ssymbols = {sstart};
   Cvc5Grammar gg =
-      cvc5_mk_grammar(slv, 0, nullptr, ssymbols.size(), ssymbols.data());
+      cvc5_mk_grammar(tm, 0, nullptr, ssymbols.size(), ssymbols.data());
   cvc5_grammar_add_rule(gg, sstart, cvc5_mk_true(tm));
   std::vector<Cvc5Term> aargs = {zzero, zzero};
   Cvc5Term cconj2 =
@@ -3185,7 +3114,7 @@ TEST_F(TestCApiBlackSolver, get_abduct)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
   args = {x, zero};
   Cvc5Term conj2 = cvc5_mk_term(d_tm, CVC5_KIND_GT, args.size(), args.data());
   ASSERT_CVC5_ERROR(cvc5_get_abduct_with_grammar(d_solver, conj2, g),
@@ -3219,7 +3148,7 @@ TEST_F(TestCApiBlackSolver, get_abduct)
                       cvc5_mk_term(tm, CVC5_KIND_GT, args.size(), args.data()));
   std::vector<Cvc5Term> ssymbols = {sstart};
   Cvc5Grammar gg =
-      cvc5_mk_grammar(slv, 0, nullptr, ssymbols.size(), ssymbols.data());
+      cvc5_mk_grammar(tm, 0, nullptr, ssymbols.size(), ssymbols.data());
   cvc5_grammar_add_rule(gg, sstart, cvc5_mk_true(tm));
   std::vector<Cvc5Term> aargs = {zzero, zzero};
   Cvc5Term cconj2 =
@@ -3751,7 +3680,7 @@ TEST_F(TestCApiBlackSolver, find_synth)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
 
   ASSERT_CVC5_ERROR(
       cvc5_synth_fun_with_grammar(d_solver, "f", 0, nullptr, d_bool, g),
@@ -3792,7 +3721,7 @@ TEST_F(TestCApiBlackSolver, find_synth2)
   Cvc5Term start = cvc5_mk_var(d_tm, d_bool, "start");
   std::vector<Cvc5Term> symbols = {start};
   Cvc5Grammar g =
-      cvc5_mk_grammar(d_solver, 0, nullptr, symbols.size(), symbols.data());
+      cvc5_mk_grammar(d_tm, 0, nullptr, symbols.size(), symbols.data());
   Cvc5Term ttrue = cvc5_mk_true(d_tm);
   Cvc5Term tfalse = cvc5_mk_false(d_tm);
   cvc5_grammar_add_rule(g, start, ttrue);

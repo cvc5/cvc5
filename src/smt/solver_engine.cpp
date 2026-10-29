@@ -568,6 +568,8 @@ void SolverEngine::defineFunction(Node func,
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(def));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  // Definitions invalidate the previous check-sat result.
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunction(Node func, Node lambda, bool global)
@@ -579,6 +581,7 @@ void SolverEngine::defineFunction(Node func, Node lambda, bool global)
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(lambda));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionsRec(
@@ -652,6 +655,7 @@ void SolverEngine::defineFunctionsRec(
     lem = eliminateSubtypesForProof(lem);
     d_smtSolver->getAssertions().addDefineFunDefinition(lem, global);
   }
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionRec(Node func,
@@ -1774,7 +1778,9 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 
 UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
 {
-  if (!d_env->getOptions().smt.produceUnsatCores)
+  // note that unsat cores may be computed internally for unsat assumptions
+  // even if produce-unsat-cores is off
+  if (d_env->getOptions().smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
@@ -1864,9 +1870,7 @@ void SolverEngine::checkModel(bool hardFailure)
   // check the model with the theory engine for debugging
   if (options().smt.debugCheckModels)
   {
-    TheoryEngine* te = d_smtSolver->getTheoryEngine();
-    Assert(te != nullptr);
-    te->checkTheoryAssertionsWithModel(hardFailure);
+    d_smtDriver->debugCheckModels(hardFailure);
   }
 
   // check the model with the check models utility
@@ -1883,6 +1887,12 @@ UnsatCore SolverEngine::getUnsatCore()
     return ssolver->getUnsatCore();
   }
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
+  if (!d_env->getOptions().smt.produceUnsatCores)
+  {
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
+        "option is off.");
+  }
   return getUnsatCoreInternal(false);
 }
 

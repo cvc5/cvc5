@@ -25,6 +25,9 @@ class TestCApiBlackProofRule : public ::testing::Test
 class TestCApiProofRewriteRule : public ::testing::Test
 {
 };
+class TestCApiAnnotationId : public ::testing::Test
+{
+};
 
 TEST_F(TestCApiBlackProofRule, proofRuleToString)
 {
@@ -60,5 +63,23 @@ TEST_F(TestCApiProofRewriteRule, hash)
 {
   ASSERT_EQ(cvc5_proof_rewrite_rule_hash(CVC5_PROOF_REWRITE_RULE_NONE),
             static_cast<size_t>(CVC5_PROOF_REWRITE_RULE_NONE));
+}
+
+TEST_F(TestCApiAnnotationId, annotationIdToString)
+{
+  for (int32_t a = static_cast<int32_t>(CVC5_ANNOTATION_ID_NONE);
+       a < static_cast<int32_t>(CVC5_ANNOTATION_ID_LAST);
+       ++a)
+  {
+    // If this assertion fails, the switch is missing id a.
+    Cvc5AnnotationId id = static_cast<Cvc5AnnotationId>(a);
+    ASSERT_NE(cvc5_annotation_id_to_string(id), std::string("?"));
+  }
+}
+
+TEST_F(TestCApiAnnotationId, hash)
+{
+  ASSERT_EQ(cvc5_annotation_id_hash(CVC5_ANNOTATION_ID_THEORY_LEMMA),
+            static_cast<size_t>(CVC5_ANNOTATION_ID_THEORY_LEMMA));
 }
 }  // namespace cvc5::internal::test

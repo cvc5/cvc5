@@ -39,7 +39,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Grammar_copyGrammar(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Grammar_deletePointer(JNIEnv*,
-                                                                 jobject,
+                                                                 jclass,
                                                                  jlong pointer)
 {
   delete reinterpret_cast<Grammar*>(pointer);

@@ -21,8 +21,7 @@ public class SygusFun
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       // required options
       slv.setOption("sygus", "true");
@@ -55,7 +54,7 @@ public class SygusFun
       Term leq = tm.mkTerm(LEQ, start, start);
 
       // create the grammar object
-      Grammar g = slv.mkGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
+      Grammar g = tm.mkGrammar(new Term[] {x, y}, new Term[] {start, start_bool});
 
       // bind each non-terminal to its rules
       g.addRules(start, new Term[] {zero, one, x, y, plus, minus, ite});
@@ -102,6 +101,5 @@ public class SygusFun
         Utils.printSynthSolutions(terms, slv.getSynthSolutions(terms));
       }
     }
-    Context.deletePointers();
   }
 }

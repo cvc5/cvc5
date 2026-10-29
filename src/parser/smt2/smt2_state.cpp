@@ -46,6 +46,7 @@ void Smt2State::addArithmeticOperators()
   addOperator(Kind::LEQ, "<=");
   addOperator(Kind::GT, ">");
   addOperator(Kind::GEQ, ">=");
+  addOperator(Kind::STAR_CONTAINS, "int.star-contains");
 
   if (!strictModeEnabled())
   {
@@ -731,7 +732,13 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
       parseError(ss.str());
     }
 
-    terms.push_back(getVariable(name));
+    Term t = getVariable(name);
+    // getVariable returns null if the symbol is overloaded
+    if (t.isNull())
+    {
+      parseError("Overloaded constants must be type cast.");
+    }
+    terms.push_back(t);
   }
 
   return std::unique_ptr<Cmd>(new SygusInvConstraintCommand(terms));
@@ -739,7 +746,6 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
 
 void Smt2State::setLogic(std::string name)
 {
-  bool smLogicAlreadySet = getSymbolManager()->isLogicSet();
   // if logic is already set, this is an error
   if (d_logicSet)
   {
@@ -1012,23 +1018,21 @@ void Smt2State::setLogic(std::string name)
   }
 
   // Builtin symbols of the logic are declared at context level zero, hence
-  // we push the outermost scope in the symbol manager here.
-  // We only do this if the logic has not already been set, in which case we
-  // have already pushed the outermost context (and this method redeclares the
-  // symbols which does not impact the symbol manager).
+  // we push the outermost scope in the symbol manager here, if it was not
+  // already pushed (in which case this method redeclares the symbols which
+  // does not impact the symbol manager). Note we cannot check whether the
+  // logic of the symbol manager is set instead, since a forced logic is set
+  // in the symbol manager before this method is called.
   // TODO (cvc5-projects #693): refactor this so that this method is moved to
   // the symbol manager and only called once per symbol manager.
-  if (!smLogicAlreadySet)
-  {
-    pushScope(true);
-  }
+  getSymbolManager()->pushOutermostScope();
 }
 
 Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
                               const std::vector<Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
-      new Grammar(d_solver->mkGrammar(boundVars, ntSymbols)));
+      new Grammar(d_tm.mkGrammar(boundVars, ntSymbols)));
   return d_allocGrammars.back().get();
 }
 
@@ -1175,28 +1179,6 @@ void Smt2State::parseOpApplyTypeAscription(ParseOp& p, Sort type)
   p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
-Term Smt2State::parseOpToExpr(ParseOp& p)
-{
-  Trace("parser") << "parseOpToExpr: " << p << std::endl;
-  Term expr;
-  if (p.d_kind != Kind::NULL_TERM)
-  {
-    parseError(
-        "Bad syntax for qualified identifier operator in term position.");
-  }
-  else if (!p.d_expr.isNull())
-  {
-    expr = p.d_expr;
-  }
-  else
-  {
-    checkDeclaration(p.d_name, CHECK_DECLARED, SYM_VARIABLE);
-    expr = getVariable(p.d_name);
-  }
-  Assert(!expr.isNull());
-  return expr;
-}
-
 Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
 {
   bool isBuiltinOperator = false;
@@ -1222,6 +1204,11 @@ Term Smt2State::applyParseOp(const ParseOp& p, std::vector<Term>& args)
       // output: (nullable.lift f x y)
       ParserState::checkDeclaration(p.d_name, DeclarationCheck::CHECK_DECLARED);
       Term function = getVariable(p.d_name);
+      // getVariable returns null if the symbol is overloaded
+      if (function.isNull())
+      {
+        parseError("Overloaded constants must be type cast.");
+      }
       args.insert(args.begin(), function);
       return d_tm.mkTerm(Kind::NULLABLE_LIFT, args);
     }
