@@ -407,7 +407,10 @@ void SetDefaults::setDefaultsPre(Options& opts)
     // (see SolverEngine::eliminateSubtypesForProof), hence they must not
     // eliminate subtypes from their proofs either, or else the assumptions of
     // their proofs would not match their assertions.
-    SET_AND_NOTIFY(proof, proofElimSubtypes, false, "internal subsolver");
+    if (opts.smt.produceProofs)
+    {
+      SET_AND_NOTIFY(proof, proofElimSubtypes, false, "internal subsolver");
+    }
   }
 }
 
