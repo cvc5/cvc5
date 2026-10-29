@@ -119,9 +119,12 @@ class PropEngine : protected EnvObj
    * @param skolemMap a map which says which skolem (if any) each assertion
    * corresponds to. For example, if (ite C (= k a) (= k b)) is the i^th
    * assertion, then skolemMap may contain the entry { i -> k }.
+   * @param isAssumptions whether the formulas are the (preprocessed)
+   * assumptions of the current check-sat-assuming call.
    */
   void assertInputFormulas(const std::vector<Node>& assertions,
-                           std::unordered_map<size_t, Node>& skolemMap);
+                           std::unordered_map<size_t, Node>& skolemMap,
+                           bool isAssumptions = false);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -396,13 +399,16 @@ class PropEngine : protected EnvObj
    * @param input Whether the formula came from the input.
    * @param pg Pointer to a proof generator that can provide a proof of node
    * (or its negation if negated is true).
+   * @param isAssumption Whether the formula is a (preprocessed) assumption of
+   * the current check-sat-assuming call. Only relevant if input is true.
    */
   void assertInternal(theory::InferenceId id,
                       TNode node,
                       bool negated,
                       bool removable,
                       bool input,
-                      ProofGenerator* pg = nullptr);
+                      ProofGenerator* pg = nullptr,
+                      bool isAssumption = false);
   /**
    * Assert lemmas internal, where trn is a trust node corresponding to a
    * formula to assert to the CNF stream, ppLemmas are the skolem definitions

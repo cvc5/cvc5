@@ -185,7 +185,7 @@ TEST_F(TestApiBlackLifetime, grammarOutlivesSolverAndTermManager)
     slv.setOption("sygus", "true");
     Sort b = tm.getBooleanSort();
     Term start = tm.mkVar(b);
-    g = slv.mkGrammar({}, {start});
+    g = tm.mkGrammar({}, {start});
     g.addRule(start, tm.mkBoolean(false));
   }
   // Both the solver and the term manager are destroyed here; the grammar

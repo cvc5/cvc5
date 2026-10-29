@@ -244,6 +244,12 @@ struct CVC5_EXPORT Cvc5TermManager
    */
   Cvc5Statistics export_stats(const cvc5::Statistics& stat);
 
+  /**
+   * Export C++ grammar to C API.
+   * @param grammar The grammar to export.
+   */
+  Cvc5Grammar export_grammar(const cvc5::Grammar& grammar);
+
   /* Manual memory management for managed objects. ------ */
 
   /**
@@ -367,6 +373,18 @@ struct CVC5_EXPORT Cvc5TermManager
    * @return The copied statistics object.
    */
   cvc5_stats_t* copy(cvc5_stats_t* stat);
+  /**
+   * Decrement the external ref count of a grammar. If the ref count reaches
+   * zero, the grammar is released (freed).
+   * @param grammar The grammar to release.
+   */
+  void release(cvc5_grammar_t* grammar);
+  /**
+   * Increment the external ref count of a grammar.
+   * @param grammar The grammar to copy.
+   * @return The copied grammar.
+   */
+  cvc5_grammar_t* copy(cvc5_grammar_t* grammar);
 
   /**
    * Release all managed objects.
@@ -431,7 +449,7 @@ struct CVC5_EXPORT Cvc5TermManager
   /**
    * Cache of allocated statistic objects.
    * @note Statistic objects are never exported more than once, we thus key
-   *       this cache on the allocated wrapper object (as for grammars).
+   *       this cache on the allocated wrapper object.
    */
   std::unordered_map<cvc5_stat_t*, std::unique_ptr<cvc5_stat_t>> d_alloc_stats;
   /**
@@ -440,6 +458,12 @@ struct CVC5_EXPORT Cvc5TermManager
    */
   std::unordered_map<cvc5_stats_t*, std::unique_ptr<cvc5_stats_t>>
       d_alloc_statistics;
+  /**
+   * Cache of allocated grammars.
+   * @note See `d_alloc_stats`.
+   */
+  std::unordered_map<cvc5_grammar_t*, std::unique_ptr<cvc5_grammar_t>>
+      d_alloc_grammars;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -599,42 +623,24 @@ struct cvc5_proof_t
   std::unordered_set<cvc5_proof_t*> d_alloc_proofs;
 };
 
-/**
- * Wrapper for cvc5 C++ grammars.
- * @note See `cvc5_proof_t`. A grammar does not need a term manager (none of
- *       its functions creates new objects), the wrapped `cvc5::Grammar` keeps
- *       the node manager it needs alive by itself.
- */
+/** Wrapper for cvc5 C++ grammars. */
 struct cvc5_grammar_t
 {
   /**
    * Constructor.
-   * @param cvc5    The associated solver instance.
+   * @param tm      The associated term manager instance.
    * @param grammar The wrapped C++ grammar.
    */
-  cvc5_grammar_t(Cvc5* cvc5, const cvc5::Grammar& grammar)
-      : d_grammar(grammar), d_cvc5(cvc5)
+  cvc5_grammar_t(Cvc5TermManager* tm, const cvc5::Grammar& grammar)
+      : d_grammar(grammar), d_tm(tm)
   {
   }
-  /**
-   * Increment the ref count of this grammar.
-   * @return This grammar.
-   */
-  cvc5_grammar_t* copy();
-  /**
-   * Decrement the ref count of this grammar. If the ref count reaches zero,
-   * this grammar is freed.
-   */
-  void release();
   /** The wrapped C++ grammar. */
   cvc5::Grammar d_grammar;
-  /** Refs count (the associated solver holds one reference). */
+  /** External refs count. */
   uint32_t d_refs = 1;
-  /**
-   * The solver this grammar was created by, while it is still alive. Reset to
-   * NULL when that solver is deleted.
-   */
-  Cvc5* d_cvc5 = nullptr;
+  /** The associated term manager instance. */
+  Cvc5TermManager* d_tm = nullptr;
 };
 
 /**
@@ -642,10 +648,9 @@ struct cvc5_grammar_t
  *
  * Statistics created via a solver instance are managed by the associated term
  * manager and thus remain valid after the solver instance has been deleted.
- * Results, synthesis results, proofs and grammars are managed by the solver
- * itself: it holds one reference to each of them and drops it on deletion,
- * but they may outlive the solver if the user still holds a reference (see
- * `cvc5_result_t`).
+ * Results, synthesis results and proofs are managed by the solver itself: it
+ * holds one reference to each of them and drops it on deletion, but they may
+ * outlive the solver if the user still holds a reference (see `cvc5_result_t`).
  *
  * @note Visibility of this struct is set to export for linkage of the parser
  *       library (it needs to be able to use member functions of the struct).
@@ -703,20 +708,10 @@ struct CVC5_EXPORT Cvc5
    */
   Cvc5Proof export_proof(const cvc5::Proof& proof);
   /**
-   * Export C++ grammar to C API.
-   * @param grammar The grammar to export.
-   */
-  Cvc5Grammar export_grammar(const cvc5::Grammar& grammar);
-  /**
    * Remove a proof from the set of proofs created by this solver.
    * @param proof The proof to remove.
    */
   void deregister(cvc5_proof_t* proof);
-  /**
-   * Remove a grammar from the set of grammars created by this solver.
-   * @param grammar The grammar to remove.
-   */
-  void deregister(cvc5_grammar_t* grammar);
 
   class PluginCpp;
   /**
@@ -749,11 +744,6 @@ struct CVC5_EXPORT Cvc5
    * @note See `d_alloc_results`.
    */
   std::unordered_set<cvc5_proof_t*> d_alloc_proofs;
-  /**
-   * The grammars created by this solver.
-   * @note See `d_alloc_results`.
-   */
-  std::unordered_set<cvc5_grammar_t*> d_alloc_grammars;
   /** Out file stream for output tag (configured via `cvc5_get_output()`. */
   std::ofstream d_output_tag_file_stream;
   /**
