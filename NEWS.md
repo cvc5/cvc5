@@ -1,10 +1,75 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.4.2 prerelease
+cvc5 1.4.3 prerelease
 =====================
+
+    
+- Fixes a bug where function definitions did not invalidate previous
+  satisfiability query results, allowing access to stale models and other
+  query-dependent information. (#13077)
+  
+- **C++ API**
+  * `Statistics::begin()` now skips internal and defaulted statistics by
+    default, as documented. This also affects iterating over `Statistics` in
+    the Java API (`Statistics.iterator()`). Pass `true` for both arguments to
+    visit all statistics.
+    
+- **Java API**
+  * Native memory is now released automatically: the native object behind a
+    Java object (term manager, solver, term, sort, ...) is freed once the Java
+    object is no longer reachable. Native objects are no longer kept alive by a
+    global registry, and creating them no longer takes a global lock, so
+    applications that use separate term managers in separate threads scale
+    without contention or unbounded memory growth. Memory can still be
+    released deterministically via `deletePointer()`; `TermManager`, `Solver`,
+    `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
+    `Context.deletePointers()` is deprecated.
+  * Using an object after its native memory has been released, via
+    `deletePointer()`, `close()` or `Context.deletePointers()`, now raises an
+    `IllegalStateException` instead of crashing the JVM.
+  * `Solver.getTermManager()` now returns the same `TermManager` object on
+    every call, which is equal to the term manager the solver was created
+    with, and `InputParser.getSolver()` and `InputParser.getSymbolManager()`
+    return the objects the parser was created with. Previously, they returned
+    new wrappers around the same native objects, and releasing such a wrapper
+    as well as the original freed the native object twice.
+  * Plugin and oracle callbacks may now be invoked from a thread other than
+    the one that registered them, and an exception thrown by a callback is
+    now reported as a `CVC5ApiException` instead of crashing the JVM.
+  * The helper functions `Utils.getSorts()`, `Utils.getTerms()` and
+    `Utils.getProofs()`, which wrap raw native pointers, are no longer public.
+  * The minimum required Java version is now 11 (previously 8).
+
+- Fixed a race in builds with CoCoA support when solvers are created
+  concurrently in different threads: the initialization of the CoCoA global
+  manager is now thread-safe. Previously, the losing thread crashed the
+  process with an uncaught `CoCoA::ErrorInfo` exception.
+
+
+cvc5 1.4.2
+==========
 
 - Adds techniques for returning "sat" when the returned candidate model
   happens to satisfy the set of input assertions (`--model-verify`).
+
+- `set.insert` is now a binary operator, where applications with more than two
+  arguments are constructed as nested binary applications, e.g.
+  `(set.insert a b S)` is constructed as `(set.insert a (set.insert b S))`.
+  This impacts the children of such terms when inspected via the API, as well
+  as how they are printed.
+
+- The **bit-vector abstraction refinement strategy** (`--bv-abstraction`) now
+  also abstracts n-ary multiplications, i.e., `bvmul` with more than two
+  arguments, which were previously not abstracted. They are left-associated
+  into a chain of binary multiplications, each abstracted separately. (#12935)
+
+- Fixes a **refutation soundness** issue in the bit-vector rewrite rule for
+  signed comparisons of multiplications, which was incorrectly applied when
+  one operand was zero-extended and the other was sign-extended. (#13039)
+
+- Fixes a **model soundness** issue for arrays indexed by reals, where the
+  candidate model values of `to_real` terms had type Int, leading to missed
+  care pairs during theory combination. (#13040)
 
 cvc5 1.4.1
 ==========

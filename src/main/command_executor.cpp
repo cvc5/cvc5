@@ -225,10 +225,13 @@ bool CommandExecutor::solverInvoke(cvc5::Solver* solver,
   }
 
   // In parse-only mode, we do not invoke any of the commands except define-*
-  // declare-*, set-logic, and reset commands. We invoke define-* and declare-*
-  // commands because they add function names to the symbol table.
+  // declare-*, set-logic, reset and reset-assertions commands. We invoke
+  // define-* and declare-* commands because they add function names to the
+  // symbol table, and reset and reset-assertions commands because they remove
+  // them.
   if (d_parseOnly && dynamic_cast<SetBenchmarkLogicCommand*>(cmd) == nullptr
       && dynamic_cast<ResetCommand*>(cmd) == nullptr
+      && dynamic_cast<ResetAssertionsCommand*>(cmd) == nullptr
       && dynamic_cast<DeclarationDefinitionCommand*>(cmd) == nullptr
       && dynamic_cast<DatatypeDeclarationCommand*>(cmd) == nullptr
       && dynamic_cast<DefineFunctionRecCommand*>(cmd) == nullptr)

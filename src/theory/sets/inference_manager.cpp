@@ -197,6 +197,17 @@ void InferenceManager::split(Node n, InferenceId id, int reqPol)
   }
 }
 
+void InferenceManager::sendAxiomLemma(const Node& lem, InferenceId id)
+{
+  Trace("sets-lemma") << "Sets::Lemma axiom : " << lem << " by " << id
+                      << std::endl;
+  if (d_ipc)
+  {
+    d_ipc->notifyLemma(lem, id);
+  }
+  trustedLemma(TrustNode::mkTrustLemma(lem, d_ipc.get()), id);
+}
+
 void InferenceManager::setupAndAddPendingLemma(const Node& exp,
                                                const Node& conc,
                                                InferenceId id)

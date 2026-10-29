@@ -36,7 +36,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Result_getNullResult(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Result_deletePointer(JNIEnv*,
-                                                                jobject,
+                                                                jclass,
                                                                 jlong pointer)
 {
   delete ((Result*)pointer);

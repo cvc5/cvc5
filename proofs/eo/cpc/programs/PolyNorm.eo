@@ -4,18 +4,29 @@
 (include "../programs/Utils.eo")
 
 ; Definitions of monomials and polynomials.
-; A monomial is a list of terms that are ordered by `$compare_var` and a rational coefficient.
-; A polynomial is a list of monomials whose monomials are ordered by `$compare_var`.
+; A monomial is a list of terms that are ordered by `$compare_var` and a
+; rational coefficient.
+; A polynomial is a list of monomials whose monomials are ordered by
+; `$compare_var`.
 (declare-const @@Monomial Type)
+
 (define @Monomial () @@Monomial)
+
 (declare-const @@mon (-> eo::List Real @Monomial))
+
 (define @mon () @@mon)
 
 (declare-const @@Polynomial Type)
+
 (define @Polynomial () @@Polynomial)
+
 (declare-const @@poly.zero @Polynomial)
+
 (define @poly.zero () @@poly.zero)
-(declare-const @@poly (-> @Monomial @Polynomial @Polynomial) :right-assoc-nil @poly.zero)
+
+(declare-const @@poly (-> @Monomial @Polynomial @Polynomial)
+  :right-assoc-nil @poly.zero)
+
 (define @poly () @@poly)
 
 ; program: $poly_neg
@@ -25,10 +36,12 @@
 (program $poly_neg ((c Real) (a eo::List) (p @Polynomial :list))
   :signature (@Polynomial) @Polynomial
   (
-    (($poly_neg @poly.zero)           @poly.zero)
-    (($poly_neg (@poly (@mon a c) p)) (_ @poly (@mon a (eo::neg c)) ($poly_neg p)))
+  (($poly_neg @poly.zero) @poly.zero)
+  (($poly_neg (@poly (@mon a c) p))
+    (_ @poly (@mon a (eo::neg c)) ($poly_neg p)))
   )
 )
+
 ; program: $poly_mod_coeffs
 ; args:
 ; - p @Polynomial: The polynomial to modify.
@@ -37,12 +50,13 @@
 (program $poly_mod_coeffs ((c Real) (a eo::List) (p @Polynomial :list) (w Int))
   :signature (@Polynomial Int) @Polynomial
   (
-    (($poly_mod_coeffs @poly.zero w)           @poly.zero)
-    (($poly_mod_coeffs (@poly (@mon a c) p) w) (eo::define ((newc (eo::zmod (eo::to_z c) w)))
-                                               (eo::ite (eo::eq newc 0)
-                                                 ; if it becomes zero, it cancels
-                                                 ($poly_mod_coeffs p w)
-                                                 (_ @poly (@mon a (eo::to_q newc)) ($poly_mod_coeffs p w)))))
+  (($poly_mod_coeffs @poly.zero w)  @poly.zero)
+  (($poly_mod_coeffs (@poly (@mon a c) p) w)
+    (eo::define ((newc (eo::zmod (eo::to_z c) w)))
+      (eo::ite (eo::eq newc 0)
+        ; if it becomes zero, it cancels
+        ($poly_mod_coeffs p w)
+        (_ @poly (@mon a (eo::to_q newc)) ($poly_mod_coeffs p w)))))
   )
 )
 
@@ -51,18 +65,21 @@
 ; - p1 @Polynomial: The first polynomial to add.
 ; - p2 @Polynomial: The second polynomial to add.
 ; return: the addition of the given polynomials.
-(program $poly_add ((c1 Real) (a1 eo::List) (c2 Real) (a2 eo::List) (p @Polynomial) (p1 @Polynomial :list) (p2 @Polynomial :list))
+(program $poly_add
+  ((c1 Real) (a1 eo::List) (c2 Real) (a2 eo::List) (p @Polynomial)
+    (p1 @Polynomial :list) (p2 @Polynomial :list))
   :signature (@Polynomial @Polynomial) @Polynomial
   (
-    (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2)) (eo::ite (eo::eq a1 a2)
-                                                                  (eo::define ((ca (eo::add c1 c2)) (pa ($poly_add p1 p2)))
-                                                                  ; check if cancels
-                                                                  (eo::ite (eo::eq ca 0/1) pa (_ @poly (@mon a1 ca) pa)))
-                                                                (eo::ite ($compare_var a1 a2)
-                                                                  (_ @poly (@mon a1 c1) ($poly_add p1 (@poly (@mon a2 c2) p2)))
-                                                                  (_ @poly (@mon a2 c2) ($poly_add (@poly (@mon a1 c1) p1) p2)))))
-    (($poly_add @poly.zero p)                                    p)
-    (($poly_add p @poly.zero)                                    p)
+  (($poly_add (@poly (@mon a1 c1) p1) (@poly (@mon a2 c2) p2))
+    (eo::ite (eo::eq a1 a2)
+      (eo::define ((ca (eo::add c1 c2)) (pa ($poly_add p1 p2)))
+        ; check if cancels
+        (eo::ite (eo::eq ca 0/1) pa (_ @poly (@mon a1 ca) pa)))
+      (eo::ite ($compare_var a1 a2)
+        (_ @poly (@mon a1 c1) ($poly_add p1 (@poly (@mon a2 c2) p2)))
+        (_ @poly (@mon a2 c2) ($poly_add (@poly (@mon a1 c1) p1) p2)))))
+  (($poly_add @poly.zero p) p)
+  (($poly_add p @poly.zero) p)
   )
 )
 
@@ -71,15 +88,16 @@
 ; - a eo::List: The first monomial variable to multiply.
 ; - c eo::List: The second monomial variable to multiply.
 ; return: the multiplication of the given monomial variables.
-(program $mvar_mul_mvar ((T Type) (U Type) (a1 T) (a2 eo::List :list) (c1 U) (c2 eo::List :list))
+(program $mvar_mul_mvar
+  ((T Type) (U Type) (a1 T) (a2 eo::List :list) (c1 U) (c2 eo::List :list))
   :signature (eo::List eo::List) eo::List
   (
-    (($mvar_mul_mvar (eo::List::cons a1 a2) (eo::List::cons c1 c2))
-      (eo::ite ($compare_var a1 c1)
-        (_ eo::List::cons a1 ($mvar_mul_mvar a2 (eo::List::cons c1 c2)))
-        (_ eo::List::cons c1 ($mvar_mul_mvar (eo::List::cons a1 a2) c2))))
-    (($mvar_mul_mvar a2 eo::List::nil)          a2)
-    (($mvar_mul_mvar eo::List::nil c2)          c2)
+  (($mvar_mul_mvar (eo::List::cons a1 a2) (eo::List::cons c1 c2))
+    (eo::ite ($compare_var a1 c1)
+      (_ eo::List::cons a1 ($mvar_mul_mvar a2 (eo::List::cons c1 c2)))
+      (_ eo::List::cons c1 ($mvar_mul_mvar (eo::List::cons a1 a2) c2))))
+  (($mvar_mul_mvar a2 eo::List::nil)  a2)
+  (($mvar_mul_mvar eo::List::nil c2)  c2)
   )
 )
 
@@ -91,7 +109,8 @@
 (program $mon_mul_mon ((a1 eo::List) (a2 eo::List) (c1 Real) (c2 Real))
   :signature (@Monomial @Monomial) @Monomial
   (
-    (($mon_mul_mon (@mon a1 c1) (@mon a2 c2))  (@mon ($mvar_mul_mvar a1 a2) (eo::mul c1 c2)))
+  (($mon_mul_mon (@mon a1 c1) (@mon a2 c2))
+    (@mon ($mvar_mul_mvar a1 a2) (eo::mul c1 c2)))
   )
 )
 
@@ -103,8 +122,10 @@
 (program $poly_mul_mon ((m1 @Monomial) (m2 @Monomial) (p2 @Polynomial :list))
   :signature (@Monomial @Polynomial) @Polynomial
   (
-    (($poly_mul_mon m1 (@poly m2 p2)) ($poly_add (@poly ($mon_mul_mon m1 m2)) ($poly_mul_mon m1 p2)))   ; NOTE: this amounts to an insertion sort
-    (($poly_mul_mon m1 @poly.zero)    @poly.zero)
+  ; NOTE: this amounts to an insertion sort
+  (($poly_mul_mon m1 (@poly m2 p2))
+    ($poly_add (@poly ($mon_mul_mon m1 m2)) ($poly_mul_mon m1 p2)))
+  (($poly_mul_mon m1 @poly.zero)  @poly.zero)
   )
 )
 
@@ -116,9 +137,9 @@
 (program $poly_mul ((m @Monomial) (p1 @Polynomial :list) (p @Polynomial))
   :signature (@Polynomial @Polynomial) @Polynomial
   (
-    (($poly_mul (@poly m p1) p) ($poly_add ($poly_mul_mon m p) ($poly_mul p1 p)))
-    (($poly_mul @poly.zero p)   @poly.zero)
-    (($poly_mul p @poly.zero)   @poly.zero)
+  (($poly_mul (@poly m p1) p) ($poly_add ($poly_mul_mon m p) ($poly_mul p1 p)))
+  (($poly_mul @poly.zero p)   @poly.zero)
+  (($poly_mul p @poly.zero)   @poly.zero)
   )
 )
 
@@ -131,56 +152,70 @@
 ;   The polynomial corresponding to the (normalized) form of a.
 (define $get_arith_poly_norm_div ((a Real) (a1p @Polynomial) (a2 Real))
   (eo::define ((a2q (eo::to_q a2)))
-  (eo::ite (eo::ite (eo::is_q a2q) (eo::not (eo::eq a2q 0/1)) false)
-    ; if division by non-zero constant, we normalize
-    ($poly_mul_mon (@mon eo::List::nil (eo::qdiv 1/1 a2q)) a1p)
-    ; otherwise it is treated as a variable
-    (@poly (@mon (eo::List::cons a) 1/1)))))
+    (eo::ite (eo::ite (eo::is_q a2q) (eo::not (eo::eq a2q 0/1)) false)
+      ; if division by non-zero constant, we normalize
+      ($poly_mul_mon (@mon eo::List::nil (eo::qdiv 1/1 a2q)) a1p)
+      ; otherwise it is treated as a variable
+      (@poly (@mon (eo::List::cons a) 1/1)))))
 
 ; program: $get_arith_poly_norm
 ; args:
 ; - a T: The arithmetic term to process of type Int or Real.
 ; return: the polynomial corresponding to the (normalized) form of a.
-(program $get_arith_poly_norm ((T Type) (U Type) (V Type) (a T) (a1 U) (a2 V :list))
+(program $get_arith_poly_norm
+  ((T Type) (U Type) (V Type) (a T) (a1 U) (a2 V :list))
   :signature (T) @Polynomial
   (
-    (($get_arith_poly_norm (- a1))          ($poly_neg ($get_arith_poly_norm a1)))
-    (($get_arith_poly_norm (+ a1 a2))       ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
-    (($get_arith_poly_norm (- a1 a2))       ($poly_add ($get_arith_poly_norm a1) ($poly_neg ($get_arith_poly_norm a2))))
-    (($get_arith_poly_norm (* a1 a2))       ($poly_mul ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
-    (($get_arith_poly_norm (/ a1 a2))       ($get_arith_poly_norm_div (/ a1 a2) ($get_arith_poly_norm a1) a2))
-    (($get_arith_poly_norm (/_total a1 a2)) ($get_arith_poly_norm_div (/_total a1 a2) ($get_arith_poly_norm a1) a2))
-    (($get_arith_poly_norm (to_real a1))    ($get_arith_poly_norm a1))
-    (($get_arith_poly_norm a)               (eo::define ((aq (eo::to_q a)))
-                                            ; check if a is a constant (Int or Real)
-                                            (eo::ite (eo::is_q aq)
-                                              ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
-                                              (eo::ite (eo::is_eq aq 0/1)
-                                                @poly.zero
-                                                (@poly (@mon eo::List::nil aq)))
-                                            (@poly (@mon (eo::List::cons a) 1/1)))))    ; introduces list
+  (($get_arith_poly_norm (- a1))  ($poly_neg ($get_arith_poly_norm a1)))
+  (($get_arith_poly_norm (+ a1 a2))
+    ($poly_add ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
+  (($get_arith_poly_norm (- a1 a2))
+    ($poly_add ($get_arith_poly_norm a1) ($poly_neg ($get_arith_poly_norm a2))))
+  (($get_arith_poly_norm (* a1 a2))
+    ($poly_mul ($get_arith_poly_norm a1) ($get_arith_poly_norm a2)))
+  (($get_arith_poly_norm (/ a1 a2))
+    ($get_arith_poly_norm_div (/ a1 a2) ($get_arith_poly_norm a1) a2))
+  (($get_arith_poly_norm (/_total a1 a2))
+    ($get_arith_poly_norm_div (/_total a1 a2) ($get_arith_poly_norm a1) a2))
+  (($get_arith_poly_norm (to_real a1))  ($get_arith_poly_norm a1))
+  (($get_arith_poly_norm a)
+    (eo::define ((aq (eo::to_q a)))
+      ; check if a is a constant (Int or Real)
+      (eo::ite (eo::is_q aq)
+        ; if it is zero, it cancels, otherwise it is 1 with itself as
+        ; coefficient
+        (eo::ite (eo::is_eq aq 0/1) @poly.zero (@poly (@mon eo::List::nil aq)))
+        (@poly (@mon (eo::List::cons a) 1/1))))) ; introduces list
   )
 )
 
 ; program: $get_bv_poly_norm_rec
 ; args:
 ; - b (BitVec m): The bitvector term to process.
-; return: the polynomial corresponding to the (normalized) form of b, prior to taking mod of its coefficients.
-(program $get_bv_poly_norm_rec ((m Int) (b (BitVec m)) (b1 (BitVec m)) (b2 (BitVec m) :list))
+; return: the polynomial corresponding to the (normalized) form of b, prior to
+; taking mod of its coefficients.
+(program $get_bv_poly_norm_rec
+  ((m Int) (b (BitVec m)) (b1 (BitVec m)) (b2 (BitVec m) :list))
   :signature ((BitVec m)) @Polynomial
   (
-    (($get_bv_poly_norm_rec (bvneg b1))    ($poly_neg ($get_bv_poly_norm_rec b1)))
-    (($get_bv_poly_norm_rec (bvadd b1 b2)) ($poly_add ($get_bv_poly_norm_rec b1) ($get_bv_poly_norm_rec b2)))
-    (($get_bv_poly_norm_rec (bvsub b1 b2)) ($poly_add ($get_bv_poly_norm_rec b1) ($poly_neg ($get_bv_poly_norm_rec b2))))
-    (($get_bv_poly_norm_rec (bvmul b1 b2)) ($poly_mul ($get_bv_poly_norm_rec b1) ($get_bv_poly_norm_rec b2)))
-    (($get_bv_poly_norm_rec b)             (eo::define ((bt (eo::typeof b)))
-                                           (eo::ite (eo::is_bin b)
-                                             (eo::define ((bz (eo::to_z b)))
-                                             ; if it is zero, it cancels, otherwise it is 1 with itself as coefficient
-                                             (eo::ite (eo::is_eq bz 0)
-                                               @poly.zero
-                                               (@poly (@mon eo::List::nil (eo::to_q bz)))))
-                                           (@poly (@mon (eo::List::cons b) 1/1)))))    ; introduces list
+  (($get_bv_poly_norm_rec (bvneg b1)) ($poly_neg ($get_bv_poly_norm_rec b1)))
+  (($get_bv_poly_norm_rec (bvadd b1 b2))
+    ($poly_add ($get_bv_poly_norm_rec b1) ($get_bv_poly_norm_rec b2)))
+  (($get_bv_poly_norm_rec (bvsub b1 b2))
+    ($poly_add ($get_bv_poly_norm_rec b1)
+      ($poly_neg ($get_bv_poly_norm_rec b2))))
+  (($get_bv_poly_norm_rec (bvmul b1 b2))
+    ($poly_mul ($get_bv_poly_norm_rec b1) ($get_bv_poly_norm_rec b2)))
+  (($get_bv_poly_norm_rec b)
+    (eo::define ((bt (eo::typeof b)))
+      (eo::ite (eo::is_bin b)
+        (eo::define ((bz (eo::to_z b)))
+          ; if it is zero, it cancels, otherwise it is 1 with itself as
+          ; coefficient
+          (eo::ite (eo::is_eq bz 0)
+            @poly.zero
+            (@poly (@mon eo::List::nil (eo::to_q bz)))))
+        (@poly (@mon (eo::List::cons b) 1/1))))) ; introduces list
   )
 )
 

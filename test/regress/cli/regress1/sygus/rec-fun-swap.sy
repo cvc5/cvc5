@@ -12,7 +12,7 @@
 (declare-datatype Env ((cons (head Pair) (tail Env)) (nil)))
 
 (define-fun-rec envStore ((var NVars) (value Int) (env Env)) Env
-  (ite (is-nil env)
+  (ite ((_ is nil) env)
     (cons (pair var value) env)
     (ite (= var (first (head env)))
       (cons (pair var value) (tail env))
@@ -22,7 +22,7 @@
   )
 
 (define-fun-rec envSelect ((var NVars) (env Env)) Int
-  (ite (is-nil env)
+  (ite ((_ is nil) env)
     (- 1)
     (ite (= var (first (head env)))
       (second (head env))
@@ -54,9 +54,9 @@
 
 ; Function to evaluate statements
 (define-fun-rec evalC ((env Env) (c Com)) Env
-  (ite (is-Skip c)
+  (ite ((_ is Skip) c)
     env
-    (ite (is-Assign c)
+    (ite ((_ is Assign) c)
       (envStore (lhs c) (evalA env (rhs c)) env)
       (evalC (evalC env (cBef c)) (aAft c)))
     )
