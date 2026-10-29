@@ -474,12 +474,41 @@ Node NegatedConstraintConverter::postConvert(Node n)
   }
 }
 
+BooleanEqualityConverter::BooleanEqualityConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
+
+Node BooleanEqualityConverter::postConvert(Node n)
+{
+  bool isXor = n.getKind() == Kind::XOR;
+  if (!isXor && (n.getKind() != Kind::EQUAL || !n[0].getType().isBoolean()))
+  {
+    return n;
+  }
+  // (= p q)   --> (or (and p q) (and (not p) (not q)))
+  // (xor p q) --> (or (and p (not q)) (and (not p) q))
+  // The nodes are created one per statement: the evaluation order of
+  // function arguments is unspecified, and node ids follow the creation
+  // order.
+  Node notP = n[0].notNode();
+  Node notQ = n[1].notNode();
+  Node first = d_nm->mkNode(Kind::AND, n[0], isXor ? notQ : n[1]);
+  Node second = d_nm->mkNode(Kind::AND, notP, isXor ? n[1] : notQ);
+  return d_nm->mkNode(Kind::OR, first, second);
+}
+
 Node LiaStarUtils::removeNot(Node n, Env& e)
 {
   NodeManager* nm = e.getNodeManager();
+  // expand the equalities of Booleans and the xors, which computeNnfNorm
+  // keeps:
+  //   (= p (>= x 1)) --> (or (and p (>= x 1)) (and (not p) (not (>= x 1))))
+  BooleanEqualityConverter equalityConverter(nm);
+  Node expanded = equalityConverter.convert(n);
   // push negations down to the atoms:
   //   (not (or p (>= x 1))) --> (and (not p) (not (>= x 1)))
-  Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, n);
+  Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, expanded);
   // then flip the negated constraints:
   //   (and (not p) (not (>= x 1))) --> (and (not p) (< x 1))
   NegatedConstraintConverter converter(nm);
@@ -738,8 +767,10 @@ LiaStarUtils::getMatrices(Node variables, Node n)
     case Kind::GEQ:
     case Kind::EQUAL:
     {
-      // an equality of Booleans, e.g. (= p (>= x 1)), is no constraint
-      if (n[0].getType().isBoolean())
+      // an equality of non-arithmetic terms is no constraint, e.g. of the
+      // bit-vectors in (= b #x00), or of the Booleans in (= p (>= x 1)),
+      // which toDNF expands
+      if (!n[0].getType().isRealOrInt())
       {
         break;
       }
@@ -805,8 +836,6 @@ std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
       << "variables: " << variables << std::endl;
 
   size_t size = variables.getNumChildren();
-  Assert(p.isIntegral()) << p.getNode() << " is expected to be linear"
-                         << std::endl;
   // (+ (* 2 x) (* (- 1) z)) over (x y z) --> "2x[1] - x[3]"
   // (- 5)                                --> " - 5"
   std::stringstream ss;
@@ -860,6 +889,11 @@ std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
     }
     ss << "x[" << i + 1 << "]";
   }
+  // checked only now: a term of another type, e.g. a real r, makes p
+  // nonintegral, and it is rejected above. The integer variables left have
+  // integral coefficients in the arithmetic normal form.
+  Assert(p.isIntegral()) << p.getNode() << " is expected to be integral"
+                         << std::endl;
   Trace("liastar-ext-debug") << "polynomial  : " << p.getNode() << std::endl;
   Trace("liastar-ext-debug") << "string : " << ss.str() << std::endl;
   return ss.str();

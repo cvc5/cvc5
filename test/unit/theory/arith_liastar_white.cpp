@@ -22,6 +22,7 @@
 #include "smt/logic_exception.h"
 #include "test_smt.h"
 #include "theory/arith/liastar/liastar_utils.h"
+#include "util/bitvector.h"
 #include "util/rational.h"
 
 namespace cvc5::internal {
@@ -267,6 +268,23 @@ TEST_F(TestLiaStarUtils, getMatricesRejectsBooleanAtoms)
   ASSERT_THROW(LiaStarUtils::getMatrices(vars, equality), LogicException);
 }
 
+TEST_F(TestLiaStarUtils, getMatricesRejectsTermsOfOtherTypes)
+{
+  // (= b #x00) for a bit-vector b and (>= x r) for a real r have no Normaliz
+  // constraint over the integer coordinates (x)
+  Node b = nm->mkVar("b", nm->mkBitVectorType(8));
+  Node zeroByte = nm->mkConst(BitVector(8, 0u));
+  Node bitVectorEquality = b.eqNode(zeroByte);
+  Node r = nm->mkVar("r", nm->realType());
+  Node atLeastR = nm->mkNode(Kind::GEQ, x, r);
+  Node realConstraint = e->getRewriter()->rewrite(atLeastR);
+  Node vars = boundVarList({x});
+
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, bitVectorEquality),
+               LogicException);
+  ASSERT_THROW(LiaStarUtils::getMatrices(vars, realConstraint), LogicException);
+}
+
 TEST_F(TestLiaStarUtils, cvc5CheckSatUnsat)
 {
   // exists x. x >= 1 and x <= 0
@@ -494,6 +512,39 @@ TEST_F(TestLiaStarUtils, removeNotFlipsNegatedConstraints)
 
   ASSERT_EQ("(or (>= x y) (<= x y) (> x y) (< x y) (or (> x y) (< x y)))",
             nnf.toString());
+}
+
+TEST_F(TestLiaStarUtils, removeNotExpandsBooleanEqualities)
+{
+  // (= (>= x 1) (>= y 1)) and (xor (>= x 1) (>= y 1)), which the negation
+  // normal form keeps as connectives
+  Node xAtLeastOne = nm->mkNode(Kind::GEQ, x, one);
+  Node yAtLeastOne = nm->mkNode(Kind::GEQ, y, one);
+  Node equality = xAtLeastOne.eqNode(yAtLeastOne);
+  Node exclusiveOr = nm->mkNode(Kind::XOR, xAtLeastOne, yAtLeastOne);
+
+  ASSERT_EQ("(or (and (>= x 1) (>= y 1)) (and (< x 1) (< y 1)))",
+            LiaStarUtils::removeNot(equality, *e).toString());
+  ASSERT_EQ("(or (and (>= x 1) (< y 1)) (and (< x 1) (>= y 1)))",
+            LiaStarUtils::removeNot(exclusiveOr, *e).toString());
+}
+
+TEST_F(TestLiaStarUtils, toDNFExpandsBooleanEqualities)
+{
+  // (= (>= x 1) (<= x 2)) holds exactly for x in {1, 2}, so its DNF and the
+  // DNF of its negation are combinations of constraints only
+  Node atLeastOne = nm->mkNode(Kind::GEQ, x, one);
+  Node atMostTwo = nm->mkNode(Kind::LEQ, x, two);
+  Node equality = atLeastOne.eqNode(atMostTwo);
+  Node negation = equality.notNode();
+  Node vars = boundVarList({x});
+
+  for (const Node& predicate : {equality, negation})
+  {
+    Node dnf = LiaStarUtils::toDNF(predicate, *e);
+    ASSERT_TRUE(isEquivalent(predicate, dnf));
+    ASSERT_NO_THROW(LiaStarUtils::getMatrices(vars, dnf));
+  }
 }
 
 TEST_F(TestLiaStarUtils, removeItesGuardsWithTheConditionsOfBothSides)
