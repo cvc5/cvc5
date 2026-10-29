@@ -748,6 +748,7 @@ set(regress_0_tests
   regress0/cores/issue4971-1.smt2
   regress0/cores/issue4971-2.smt2
   regress0/cores/issue4971-3.smt2
+  regress0/cores/issue13116-sat-proof-pop.smt2
   regress0/cores/issue5079.smt2
   regress0/cores/issue5234-uc-ua.smt2
   regress0/cores/issue5238.smt2
@@ -1690,6 +1691,8 @@ set(regress_0_tests
   regress0/proofs/issue12746-bv-invert-solve-mult.smt2
   regress0/proofs/issue12708-check-proofs-arith-cm.smt2
   regress0/proofs/issue12709-open-sat-proof.smt2
+  regress0/proofs/issue12761-incremental-arith-open-proof.smt2
+  regress0/proofs/issue12884-sat-assuming-open-proof.smt2
   regress0/proofs/issue12942-cpc-alpha-eq.smt2
   regress0/proofs/issue13091-incremental-scoped-assump.smt2
   regress0/proofs/issue8983-trust-subs.smt2
