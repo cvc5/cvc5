@@ -1,12 +1,25 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.4.3 prerelease
+cvc5 1.5.0 prerelease
 =====================
 
     
 - Fixes a bug where function definitions did not invalidate previous
   satisfiability query results, allowing access to stale models and other
   query-dependent information. (#13077)
+
+- **API**
+  * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
+    (Java, Python) for creating SyGuS grammars. A grammar is associated with
+    a term manager, not with a solver, and can be used with any solver
+    instance that uses this term manager. `Solver::mkGrammar()` is deprecated
+    and will be removed in a future release.
+  * **C API**: `cvc5_mk_grammar()` now takes a term manager
+    (`Cvc5TermManager*`) instead of a solver instance (`Cvc5*`). Grammars are
+    now managed by the term manager, like sorts and terms: they are no longer
+    released when the solver is deleted, but via `cvc5_grammar_release()` or
+    `cvc5_term_manager_release()`.
+    **Note**: this is a breaking change.
   
 - **C++ API**
   * `Statistics::begin()` now skips internal and defaulted statistics by

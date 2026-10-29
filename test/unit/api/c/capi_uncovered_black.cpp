@@ -183,7 +183,7 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   d_solver->setOption("sygus", "true");
   (void)d_solver->synthFun("f", {}, d_bool);
   ss << d_solver->checkSynth();
-  ss << d_solver->mkGrammar({}, {d_tm.mkVar(d_bool)});
+  ss << d_tm.mkGrammar({}, {d_tm.mkVar(d_bool)});
   ss << d_solver->checkSat();
 
   DatatypeDecl decl = d_tm.mkDatatypeDecl("list");

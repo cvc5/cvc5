@@ -6844,6 +6844,22 @@ DatatypeDecl TermManager::mkDatatypeDecl(const std::string& name,
   CVC5_API_TRY_CATCH_END;
 }
 
+/* SyGuS Grammar ------------------------------------------------------ */
+
+Grammar TermManager::mkGrammar(const std::vector<Term>& boundVars,
+                               const std::vector<Term>& ntSymbols)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
+      << "a non-empty vector";
+  CVC5_API_TM_CHECK_BOUND_VARS(boundVars);
+  CVC5_API_TM_CHECK_BOUND_VARS(ntSymbols);
+  //////// all checks before this line
+  return Grammar(d_nm, boundVars, ntSymbols);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -8745,15 +8761,7 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
 Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
                           const std::vector<Term>& ntSymbols) const
 {
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
-      << "a non-empty vector";
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(ntSymbols);
-  //////// all checks before this line
-  return Grammar(d_tm.d_nm, boundVars, ntSymbols);
-  ////////
-  CVC5_API_TRY_CATCH_END;
+  return d_tm.mkGrammar(boundVars, ntSymbols);
 }
 
 Term Solver::synthFun(const std::string& symbol,
