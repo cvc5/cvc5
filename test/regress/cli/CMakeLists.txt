@@ -801,10 +801,13 @@ set(regress_0_tests
   regress0/datatypes/dt-cons-eq-simple.smt2
   regress0/datatypes/dt-different-params.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
+  regress0/datatypes/dt-nonregular-mutual.smt2
+  regress0/datatypes/dt-nonregular.smt2
   regress0/datatypes/dt-param-2.6-print.smt2
   regress0/datatypes/dt-param-2.6.smt2
   regress0/datatypes/dt-param-card4-bool-sat.smt2
   regress0/datatypes/dt-param-simple-unsat.smt2
+  regress0/datatypes/dt-regular-nested-param.smt2
   regress0/datatypes/dt-sel-2.6.smt2
   regress0/datatypes/empty_tuprec.cvc.smt2
   regress0/datatypes/eq-clash-rec-find.smt2
