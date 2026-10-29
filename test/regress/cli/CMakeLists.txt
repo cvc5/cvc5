@@ -1698,6 +1698,7 @@ set(regress_0_tests
   regress0/proofs/issue12761-incremental-arith-open-proof.smt2
   regress0/proofs/issue12884-sat-assuming-open-proof.smt2
   regress0/proofs/issue12942-cpc-alpha-eq.smt2
+  regress0/proofs/issue13068-proof-log-lemma-order.smt2
   regress0/proofs/issue13091-incremental-scoped-assump.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
