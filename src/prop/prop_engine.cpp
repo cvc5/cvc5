@@ -161,7 +161,8 @@ void PropEngine::notifyTopLevelSubstitution(const Node& lhs,
 
 void PropEngine::assertInputFormulas(
     const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap)
+    std::unordered_map<size_t, Node>& skolemMap,
+    bool isAssumptions)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   // now presolve with prop proof manager so proof logging is on. This must be
@@ -176,7 +177,13 @@ void PropEngine::assertInputFormulas(
   for (const Node& node : assertions)
   {
     Trace("prop") << "assertFormula(" << node << ")" << std::endl;
-    assertInternal(theory::InferenceId::INPUT, node, false, false, true);
+    assertInternal(theory::InferenceId::INPUT,
+                   node,
+                   false,
+                   false,
+                   true,
+                   nullptr,
+                   isAssumptions);
   }
   int64_t natomsPost = d_cnfStream->d_stats.d_numAtoms.get();
   Assert(natomsPost >= natomsPre);
@@ -287,13 +294,22 @@ void PropEngine::assertInternal(theory::InferenceId id,
                                 bool negated,
                                 bool removable,
                                 bool input,
-                                ProofGenerator* pg)
+                                ProofGenerator* pg,
+                                bool isAssumption)
 {
+  // Whether to pass the formula as an assumption to the SAT solver, which is
+  // the case for input formulas when unsat cores are assumption-based. If we
+  // only require unsat assumptions (i.e., unsat cores are not produced), this
+  // is restricted to the assumptions of the current check-sat-assuming call;
+  // all other input formulas are asserted as ordinary clauses.
+  bool useAssumption =
+      input
+      && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS
+      && (isAssumption || options().smt.produceUnsatCores);
   bool addAssumption = false;
   if (isProofEnabled())
   {
-    if (input
-        && options().smt.unsatCoresMode == options::UnsatCoresMode::ASSUMPTIONS)
+    if (useAssumption)
     {
       // use the proof CNF stream to ensure the literal
       d_ppm->ensureLiteral(node, input);
@@ -304,9 +320,7 @@ void PropEngine::assertInternal(theory::InferenceId id,
       d_ppm->convertAndAssert(id, node, negated, removable, input, pg);
     }
   }
-  else if (input
-           && options().smt.unsatCoresMode
-                  == options::UnsatCoresMode::ASSUMPTIONS)
+  else if (useAssumption)
   {
     d_cnfStream->ensureLiteral(node);
     addAssumption = true;
