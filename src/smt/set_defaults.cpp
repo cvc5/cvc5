@@ -403,6 +403,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
                            deepRestartMode,
                            options::DeepRestartMode::NONE,
                            "internal subsolver");
+    // Internal subsolvers do not eliminate subtypes from their assertions
+    // (see SolverEngine::eliminateSubtypesForProof), hence they must not
+    // eliminate subtypes from their proofs either, or else the assumptions of
+    // their proofs would not match their assertions.
+    if (opts.smt.produceProofs)
+    {
+      SET_AND_NOTIFY(proof, proofElimSubtypes, false, "internal subsolver");
+    }
   }
 }
 
