@@ -41,49 +41,47 @@ namespace theory {
 namespace bags {
 
 /*
- * Notation. The comments of this file write terms in SMT-LIB syntax, with
- * cvc5's operators for tuples, nullables, bags and tables:
+ * Notation. The comments of this file write terms in SMT-LIB, with cvc5's
+ * operators for tuples, nullables, bags and tables:
  *
  *   (tuple a b)                     a row of sort (Tuple Int Int)
  *   ((_ tuple.select 1) t)          column 1 of the row t
- *   ((_ tuple.project 0 2) t)       the row (tuple ((_ tuple.select 0) t)
- *                                   ((_ tuple.select 2) t))
+ *   ((_ tuple.project 0 2) t)       the row of columns 0 and 2 of t
  *   (nullable.some 5)               a value of sort (Nullable Int)
  *   (as nullable.null (Nullable Int))
  *   (nullable.is_some x), (nullable.val x)
  *   (bag e 2)                       the bag with e twice (Kind::BAG_MAKE)
- *   (as bag.empty (Bag T))
+ *   (as bag.empty (Bag Int))
  *   (bag.count e X)                 the multiplicity of e in X
  *   (bag.union_disjoint X Y)        multiplicities added
  *   (bag.inter_min X Y)             the smaller multiplicity of the two
  *   (bag.difference_subtract X Y)   multiplicities subtracted, down to 0
  *   (bag.setof X)                   X with every multiplicity cut to 1
- *   (bag.map (lambda ((t T)) b) X)  b for every row t of X, multiplicities
- *                                   of equal images added
- *   (bag.filter (lambda ((t T)) p) X)
- *   (bag.fold (lambda ((t T) (acc S)) b) i X)
- *                                   b folded over the rows of X, from i
+ *   (bag.map f X)                   (f t) for every row t of X,
+ *                                   multiplicities of equal images added
+ *   (bag.filter p X)                the rows t of X with (p t)
+ *   (bag.fold f i X)                f folded over the rows of X, from i
  *   (table.product X Y)             the rows of X followed by those of Y
- *   ((_ table.project 0 2) X)       (bag.map of tuple.project 0 2 over X)
- *   ((_ table.aggr 0) (lambda ((t T) (acc S)) b) i X)
- *                                   X split into the groups of its rows with
- *                                   the same column 0, each group folded as
- *                                   by bag.fold from i, the results a bag
+ *   ((_ table.project 0 2) X)       the map of X by tuple.project 0 2
+ *   ((_ table.aggr 0) f i X)        X split into the groups of its rows
+ *                                   with the same column 0, each group
+ *                                   folded as by bag.fold from i
  *
- * Unless said otherwise, X, Y and Z are tables (bags of tuples) with rows of
- * sort T and U, t and s are rows bound by a lambda, acc is an accumulator, and
- * a, b, c are terms. The rewriter makes its own bound variables, named row_N,
- * t_N and acc_N; the examples write them t and acc. SQL's three-valued
- * logic is encoded with (Nullable Bool): a predicate p holds of a row when p
- * is (nullable.some true), written (= p (nullable.some true)), see truthOf.
+ * X, Y and Z are tables (bags of tuples), t and s rows bound by a lambda, acc
+ * an accumulator, and a, b, c terms. The examples of the rules, with the sorts
+ * of their symbols, are at their Rewrite ids in rewrites.h; the comments here
+ * say how a rule is implemented. The rewriter makes its own bound variables,
+ * named row_N, t_N and acc_N. SQL's three-valued logic is encoded with
+ * (Nullable Bool): a predicate p holds of a row when p is (nullable.some true),
+ * see truthOf.
  */
 
 /**
- * The keys of a table constant X: an SEXPR of SEXPRs of column indices, one
- * per key, recorded by recordKey when the rewriter meets the key's assertion.
- * The translator states that columns 0 and 2 of X are a key as
- *   (= (bag.setof (bag.map (lambda ((t T)) ((_ tuple.project 0 2) t)) X))
- *      (bag.map (lambda ((t T)) ((_ tuple.project 0 2) t)) X))
+ * The keys of a table constant X: an SEXPR of SEXPRs of column indices, one per
+ * key, recorded by recordKey from the key's assertion. For
+ * X : (Bag (Tuple Int Int Int)), the assertion that columns 0 and 2 are a key
+ * is
+ *   (= (bag.setof ((_ table.project 0 2) X)) ((_ table.project 0 2) X))
  * and X then gets the attribute (SEXPR (SEXPR 0 2)).
  */
 struct BagsKeysAttributeId
@@ -91,11 +89,10 @@ struct BagsKeysAttributeId
 };
 typedef expr::Attribute<BagsKeysAttributeId, Node> BagsKeysAttribute;
 /**
- * A term of an assertion the rewriter reads a fact from: the
- * (bag.setof (bag.map (lambda ((t T)) ((_ tuple.project 0 2) t)) X)) of a key
- * assertion, or the (bag.filter ..) of a not-null assertion. Such a term is
- * never rewritten: the fact it states would justify rewriting it away (the
- * bag.setof of a projection onto a key is the projection itself), and the
+ * A term of an assertion that the rewriter reads a fact from: the bag.setof of
+ * a key assertion, or the bag.filter of a NOT NULL assertion (see recordFacts).
+ * Such a term is never rewritten: the fact it states would justify rewriting it
+ * away (the set of the projection onto a key is the projection itself), and the
  * assertion would become true and the fact lost.
  */
 struct BagsKeyTermAttributeId
@@ -104,13 +101,14 @@ struct BagsKeyTermAttributeId
 typedef expr::Attribute<BagsKeyTermAttributeId, bool> BagsKeyTermAttribute;
 /**
  * The columns of a table constant X that hold no null: an SEXPR of column
- * indices, recorded by recordNotNull when the rewriter meets the assertion
- *   (= (bag.filter (lambda ((t T))
- *                    (= (as nullable.null (Nullable Int))
- *                       ((_ tuple.select 1) t)))
- *        X)
- *      (as bag.empty (Bag T)))
- * that column 1 of X is NOT NULL; X then gets the attribute (SEXPR 1).
+ * indices, recorded by recordNotNull. For X : (Bag (Tuple Int (Nullable Int))),
+ * the assertion that column 1 is NOT NULL is
+ *   (= (bag.filter (lambda ((t (Tuple Int (Nullable Int))))
+ *                    (= ((_ tuple.select 1) t)
+ *                       (as nullable.null (Nullable Int))))
+ *                  X)
+ *      (as bag.empty (Bag (Tuple Int (Nullable Int)))))
+ * and X then gets the attribute (SEXPR 1).
  */
 struct BagsNotNullAttributeId
 {
@@ -637,12 +635,11 @@ void BagsRewriter::recordFacts(TNode assertion) const
 
 void BagsRewriter::recordKey(const TNode& n) const
 {
-  // n is (= (bag.setof M) M), either way round, with M a projection of a
-  // table constant X onto columns K, as the input states it,
-  //   M = ((_ table.project 0 2) X)
-  // or as the rewriter leaves it,
-  //   M = (bag.map (lambda ((t T)) ((_ tuple.project 0 2) t)) X):
-  // no two rows of X agree on K, a key of X
+  // n is (= (bag.setof M) M), either way round, with M a projection of a table
+  // constant X onto columns K, as the input states it,
+  // ((_ table.project 0 2) X), or as the rewriter leaves it, a map by
+  // (lambda ((t (Tuple Int Int Int))) ((_ tuple.project 0 2) t)): no two rows
+  // of X agree on K, a key of X
   for (size_t i = 0; i < 2; i++)
   {
     if (n[i].getKind() != Kind::BAG_SETOF || n[i][0] != n[1 - i])
@@ -675,9 +672,9 @@ void BagsRewriter::recordKey(const TNode& n) const
     }
     // (SEXPR 0 2), added to the keys (SEXPR (SEXPR 1) ..) X has already
     Node key = d_nm->mkNode(Kind::SEXPR, cols);
-    // the bag.setof of the assertion, and the one the rewriting of its
-    // argument will build, (bag.setof (bag.map (lambda ((t T)) (tuple
-    // ((_ tuple.select 0) t) ((_ tuple.select 2) t))) X)), are not rewritten
+    // the bag.setof of the assertion, and the one that rewriting its argument
+    // builds (over the map that PROJECT_TO_MAP makes of the projection), are
+    // not rewritten
     Node keyTerm = n[i];
     keyTerm.setAttribute(BagsKeyTermAttribute(), true);
     if (d_rewriter != nullptr)
@@ -702,13 +699,10 @@ void BagsRewriter::recordKey(const TNode& n) const
 
 void BagsRewriter::recordNotNull(const TNode& n) const
 {
-  // n is
-  //   (= (bag.filter (lambda ((t T))
-  //                    (= (as nullable.null (Nullable Int))
-  //                       ((_ tuple.select k) t)))
-  //                  X)
-  //      (as bag.empty (Bag T)))
-  // either way round: no row of the table constant X has a null in column k
+  // n is the assertion that column k of the table constant X has no null,
+  // (= (bag.filter (lambda ((t (Tuple Int (Nullable Int)))) (= ((_ tuple.select
+  // k) t) (as nullable.null (Nullable Int)))) X) (as bag.empty ..)), either way
+  // round, see recordNotNull in the header
   for (size_t i = 0; i < 2; i++)
   {
     if (n[i].getKind() != Kind::BAG_EMPTY
@@ -793,9 +787,10 @@ bool BagsRewriter::nonNullTerm(const Node& t,
   }
   if (t.getKind() == Kind::BAG_FOLD)
   {
-    // seeded non-null, every step non-null or the accumulator:
-    //   (bag.fold (lambda ((t T) (acc (Nullable Int)))
-    //               (ite p (nullable.some ..) acc))
+    // a fold from a value that is not null, whose step is not null or keeps the
+    // accumulator, as
+    //   (bag.fold (lambda ((t (Tuple Int Int)) (acc (Nullable Int)))
+    //               (ite p (nullable.some ((_ tuple.select 0) t)) acc))
     //             (nullable.some 0)
     //             X)
     Node l = asLambda(t[0]);
@@ -846,15 +841,16 @@ bool BagsRewriter::nonNullTerm(const Node& t,
 std::set<uint32_t> BagsRewriter::aggregateNonNull(const Node& B,
                                                   bool reached) const
 {
-  // the columns of ((_ table.aggr K) f i X) never null: those whose seed is
-  // not and whose step keeps them so; in a group a row reached, also those the
-  // step makes non-null from these. With
-  //   f = (lambda ((t T) (acc (Tuple (Nullable Int) (Nullable Int))))
+  // the columns of ((_ table.aggr K) f i X) that are never null: those whose
+  // initial value is not and whose step keeps them so; in a group a row
+  // reached, also those the step makes not null from these. With
+  //   f = (lambda ((t (Tuple Int Int))
+  //                (acc (Tuple (Nullable Int) (Nullable Int))))
   //         (tuple ((_ tuple.select 0) acc) (nullable.some 1)))
   //   i = (tuple (nullable.some 0) (as nullable.null (Nullable Int)))
-  // column 0 is never null (its seed is not and its step keeps it), and
-  // column 1 is not null in the groups a row reached (reached is true): the
-  // first step makes it (nullable.some 1)
+  // column 0 is never null (its initial value is not, and its step keeps it),
+  // and column 1 is not null in the groups a row reached (reached is true),
+  // since the first step makes it (nullable.some 1)
   std::set<uint32_t> out;
   Node f = asLambda(B[0]);
   Node init = B[1];
@@ -909,12 +905,14 @@ std::set<uint32_t> BagsRewriter::aggregateNonNull(const Node& B,
 std::set<uint32_t> BagsRewriter::nonNullColumns(const Node& B) const
 {
   // the columns of B's rows that are never null, read off its structure: the
-  // columns asserted NOT NULL of a table constant (BagsNotNullAttribute), and
-  // what the operators above keep or establish, e.g. with column 0 of X
-  // never null,
-  //   (bag.filter (lambda ((t T)) (nullable.is_some ((_ tuple.select 1) t)))
-  //               X)
-  // has the columns 0 and 1 never null
+  // NOT NULL columns of a table constant (BagsNotNullAttribute), and what the
+  // operators above keep or establish. For instance, with column 0 of
+  // X : (Bag (Tuple (Nullable Int) (Nullable Int))) never null, both columns of
+  //   (bag.filter
+  //     (lambda ((t (Tuple (Nullable Int) (Nullable Int))))
+  //       (nullable.is_some ((_ tuple.select 1) t)))
+  //     X)
+  // are never null
   auto it = d_nonNull.find(B);
   if (it != d_nonNull.end())
   {
@@ -1052,8 +1050,8 @@ std::set<uint32_t> BagsRewriter::nonNullColumns(const Node& B) const
       }
       case Kind::BAG_MAP:
       {
-        // column j of (bag.map (lambda ((t T)) (tuple a0 .. am)) X) is never
-        // null when aj is not, given the never-null columns of X
+        // column j of a map by (lambda ((t ..)) (tuple a0 .. am)) is never null
+        // when aj is not, given the never-null columns of its argument
         Node g = asLambda(B[0]);
         if (g.getKind() == Kind::LAMBDA && g[0].getNumChildren() == 1
             && g[1].getKind() == Kind::APPLY_CONSTRUCTOR)
@@ -1203,18 +1201,18 @@ std::vector<std::set<uint32_t>> BagsRewriter::keysOf(const Node& B) const
 
 std::vector<std::set<uint32_t>> BagsRewriter::rowKeys(const Node& B) const
 {
-  // keys of B read off its structure: a table's declared keys, kept by
+  // the keys of B read off its structure: a table's declared keys, kept by
   // filters, intersections and differences, by maps that keep their columns,
-  // and combined by products; all the columns of a bag.setof; the group
-  // columns an aggregate's rows keep. Every key found makes B a set. E.g.
-  // with the key {0} of X and {0} of Y,
-  //   (table.product X Y) has the key {0, 2} (Y's column 0 is column 2 of
-  //   the product, for X of two columns);
-  //   (bag.map (lambda ((t T)) (tuple ((_ tuple.select 1) t)
-  //                                   ((_ tuple.select 0) t)))
+  // and combined by products; all the columns of a bag.setof; the group columns
+  // that an aggregate's rows keep. Every key found makes B a set. With X and Y
+  // of two columns, each with the key {0}:
+  //   (table.product X Y) has the key {0, 2}, Y's column 0 being column 2
+  //     of the product;
+  //   (bag.map (lambda ((t (Tuple Int Int)))
+  //              (tuple ((_ tuple.select 1) t) ((_ tuple.select 0) t)))
   //            X) has the key {1};
   //   ((_ table.aggr 0) f i X) has the key {k} when column k of f's result
-  //   is ((_ tuple.select 0) t), the group column.
+  //     is ((_ tuple.select 0) t), the group column.
   std::vector<std::set<uint32_t>> keys;
   TypeNode et = B.getType().getBagElementType();
   if (!et.isTuple())
@@ -1226,14 +1224,17 @@ std::vector<std::set<uint32_t>> BagsRewriter::rowKeys(const Node& B) const
   {
     case Kind::BAG_FILTER:
     {
-      // a column the filter fixes to a constant decides nothing, and one it
-      // sets equal to another is that one: with the key {0, 1} of X,
-      //   (bag.filter (lambda ((t T)) (= ((_ tuple.select 1) t) 5)) X)
-      // has the key {0}, and with the key {1, 2},
-      //   (bag.filter (lambda ((t T)) (= ((_ tuple.select 0) t)
-      //                                  ((_ tuple.select 2) t)))
+      // a column that the filter fixes to a constant decides nothing, and one
+      // it sets equal to another is that one. For X : (Bag (Tuple Int Int Int))
+      // with the key {0, 1},
+      //   (bag.filter (lambda ((t (Tuple Int Int Int)))
+      //                 (= ((_ tuple.select 1) t) 5))
       //               X)
-      // has the key {0, 1} (column 2 is column 0)
+      // has the key {0}; and with the key {1, 2},
+      //   (bag.filter (lambda ((t (Tuple Int Int Int)))
+      //                 (= ((_ tuple.select 0) t) ((_ tuple.select 2) t)))
+      //               X)
+      // has the key {0, 1}, column 2 being column 0
       keys = rowKeys(B[1]);
       std::map<uint32_t, Node> fixed = fixedColumns(B[0]);
       Node P = asLambda(B[0]);
@@ -1299,8 +1300,8 @@ std::vector<std::set<uint32_t>> BagsRewriter::rowKeys(const Node& B) const
     case Kind::BAG_SETOF:
     {
       keys = rowKeys(B[0]);
-      // all the columns, but a constant column or one that repeats another
-      // one of (bag.setof (bag.map (lambda ((t T)) (tuple ..)) X)) only once
+      // all the columns of the rows of a bag.setof of a map, counting a
+      // constant column, or one that repeats another, only once
       std::set<uint32_t> all;
       Node g =
           B[0].getKind() == Kind::BAG_MAP ? asLambda(B[0][0]) : Node::null();
@@ -1451,11 +1452,8 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
   TypeNode argType = n[1].getType();
   if (mapType == argType && argType.getBagElementType().isTuple())
   {
-    // MAP_IDENTITY: the map that copies every column in order,
-    //   (bag.map (lambda ((t T)) (tuple ((_ tuple.select 0) t)
-    //                                   ((_ tuple.select 1) t)))
-    //            X)
-    //   ---> X
+    // MAP_IDENTITY: a map that copies every column in order is its argument
+    // (see rewrites.h)
     std::vector<uint32_t> J = projectionIndices(asLambda(n[0]));
     bool identity =
         J.size() == n[1].getType().getBagElementType().getTupleLength();
@@ -1469,13 +1467,8 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
     }
   }
   {
-    // NOT_NULL_COLUMNS: the null tests of columns the rows of X never have
-    // null are decided, see assumeNonNull; with column 1 of X never null,
-    //   (bag.map (lambda ((t T))
-    //              (ite (nullable.is_some ((_ tuple.select 1) t)) a b))
-    //            X)
-    //   --->
-    //   (bag.map (lambda ((t T)) (ite true a b)) X)
+    // NOT_NULL_COLUMNS: the null tests of the columns that the rows of X never
+    // have null in are decided, see assumeNonNull and rewrites.h
     Node g = asLambda(n[0]);
     if (g.getKind() == Kind::LAMBDA && g[0].getNumChildren() == 1
         && n[1].getType().getBagElementType().isTuple())
@@ -1550,19 +1543,9 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
   }
   if (n[1].getKind() == Kind::BAG_FILTER)
   {
-    // MAP_EQUAL_COLUMNS: a row that passes has the columns the filter equates
-    // equal, and the map reads the first of them (the smallest column):
-    //   (bag.map (lambda ((t T)) (tuple ((_ tuple.select 2) t)))
-    //            (bag.filter (lambda ((s T)) (= ((_ tuple.select 0) s)
-    //                                           ((_ tuple.select 2) s)))
-    //                        X))
-    //   --->
-    //   (bag.map (lambda ((t T)) (tuple ((_ tuple.select 0) t)))
-    //            (bag.filter (lambda ((s T)) (= ((_ tuple.select 0) s)
-    //                                           ((_ tuple.select 2) s)))
-    //                        X))
-    // so that two queries that read either column become one term; rep is a
-    // union-find over the columns, each pointing to the smallest it equals
+    // MAP_EQUAL_COLUMNS: a row that passes the filter has the columns it
+    // equates equal, and the map reads the first of them (see rewrites.h); rep
+    // is a union-find over the columns, each pointing to the smallest it equals
     Node h = asLambda(n[0]);
     Node P = asLambda(n[1][0]);
     if (h.getKind() == Kind::LAMBDA && h[0].getNumChildren() == 1
@@ -1627,14 +1610,9 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
   if (n[1].getKind() == Kind::BAG_FILTER && n[0].getKind() == Kind::LAMBDA
       && n[0][0].getNumChildren() == 1)
   {
-    // MAP_FIXED_COLUMNS: a row that passes has the constants the filter fixes
-    // its columns to, and the map reads those instead, see readFixed:
-    //   (bag.map (lambda ((t T)) (tuple ((_ tuple.select 0) t)
-    //                                   ((_ tuple.select 1) t)))
-    //            (bag.filter (lambda ((s T)) (= ((_ tuple.select 1) s) 5)) X))
-    //   --->
-    //   (bag.map (lambda ((t T)) (tuple ((_ tuple.select 0) t) 5))
-    //            (bag.filter (lambda ((s T)) (= ((_ tuple.select 1) s) 5)) X))
+    // MAP_FIXED_COLUMNS: a row that passes the filter has the constants it
+    // fixes its columns to, and the map reads those instead, see readFixed and
+    // rewrites.h
     std::map<uint32_t, Node> fixed = fixedColumns(n[1][0]);
     if (n[1][1].getKind() == Kind::TABLE_AGGREGATE)
     {
@@ -1653,10 +1631,8 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
   }
   if (n[0].getKind() == Kind::LAMBDA && n[0][0].getNumChildren() == 1)
   {
-    // CANONICAL_VARIABLE: the lambda over the canonical variable of its
-    // body, see canonicalLambda,
-    //   (bag.map (lambda ((s T)) ((_ tuple.select 0) s)) X)
-    //   ---> (bag.map (lambda ((t_N T)) ((_ tuple.select 0) t_N)) X)
+    // CANONICAL_VARIABLE: the lambda over its canonical variable, see
+    // canonicalLambda and rewrites.h
     Node canonical = canonicalLambda(n[0]);
     if (canonical != n[0])
     {
@@ -1679,13 +1655,8 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
   }
   TypeNode t = A.getType();
   {
-    // NOT_NULL_COLUMNS: the null tests of columns the rows of A never have
-    // null are decided, see assumeNonNull; with column 1 of X never null,
-    //   (bag.filter (lambda ((t T))
-    //                 (and (nullable.is_some ((_ tuple.select 1) t)) p))
-    //               X)
-    //   --->
-    //   (bag.filter (lambda ((t T)) (and true p)) X)
+    // NOT_NULL_COLUMNS: the null tests of the columns that the rows of A never
+    // have null in are decided, see assumeNonNull and rewrites.h
     Node p = asLambda(P);
     if (p.getKind() == Kind::LAMBDA && p[0].getNumChildren() == 1
         && A.getType().getBagElementType().isTuple())
@@ -1702,11 +1673,9 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
     Node lambda = asLambda(P);
     if (lambda.getKind() == Kind::LAMBDA && lambda[1].isConst())
     {
-      // FILTER_TRUE and FILTER_FALSE:
-      //   (bag.filter (lambda ((t T)) true) A) ---> A
-      //   (bag.filter (lambda ((t T)) false) A) ---> (as bag.empty (Bag T))
-      // (the rewriter keeps a constant lambda as a function array constant,
-      // see asLambda)
+      // FILTER_TRUE and FILTER_FALSE, for a constant predicate
+      // (see rewrites.h); the rewriter keeps a lambda with a constant body as a
+      // function array constant, see asLambda
       if (lambda[1].getConst<bool>())
       {
         return BagsRewriteResponse(A, Rewrite::FILTER_TRUE);
@@ -1751,12 +1720,8 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
       }
       std::vector<Node> flat = cs;
       // FILTER_CONFLICTING_CONSTANTS: a conjunction that fixes one term to two
-      // distinct constants holds for no row,
-      //   (bag.filter (lambda ((t T)) (and (= ((_ tuple.select 0) t) 1)
-      //                                    (= ((_ tuple.select 0) t) 2)))
-      //               X)
-      //   ---> (as bag.empty (Bag T))
-      // fixed maps each term a conjunct fixes to its constant
+      // distinct constants holds of no row (see rewrites.h); fixed maps each
+      // term a conjunct fixes to its constant
       std::map<Node, Node> fixed;
       for (const Node& c : flat)
       {
@@ -1874,9 +1839,8 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
     }
     if (body.getKind() == Kind::AND)
     {
-      // FILTER_FALSE: a conjunct and its negation, no row passes,
-      //   (bag.filter (lambda ((t T)) (and p (not p))) X)
-      //   ---> (as bag.empty (Bag T))
+      // FILTER_FALSE: no row passes a conjunct and its negation
+      // (see rewrites.h)
       std::unordered_set<Node> present(body.begin(), body.end());
       for (const Node& c : body)
       {
@@ -1936,10 +1900,9 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
     {
       if (rejectsInitialRow(n[0], A[1]))
       {
-        // AGGREGATE_KEYED, under a filter that drops the row of initial
-        // values (see rejectsInitialRow), see keyedAggregateRows:
-        //   (bag.filter Q ((_ table.aggr 0) (lambda ((t T) (acc S)) b) i X))
-        //   ---> (bag.filter Q (bag.map (lambda ((t T)) b[acc := i]) X))
+        // AGGREGATE_KEYED, under a filter that drops the row of initial values
+        // (see rejectsInitialRow): the rows of the groups, see
+        // keyedAggregateRows and rewrites.h
         Node rows = keyedAggregateRows(A);
         if (!rows.isNull())
         {
@@ -1952,17 +1915,11 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
     case Kind::TABLE_PRODUCT:
     {
       {
-        // AGGREGATE_KEYED, for the components of the product whose groups
-        // the filter keeps reached ones of (see reachedComponents): the row
-        // of initial values of such a component, there when its input is
-        // empty, is in no row that passes. With G = ((_ table.aggr 0) f i X)
-        // tested by P,
-        //   (bag.filter P (table.product G Y))
-        //   ---> (bag.filter P (table.product (bag.map (lambda ((t T))
-        //                                                b[acc := i])
-        //                                              X)
-        //                                     Y))
-        // see keyedAggregateRows
+        // AGGREGATE_KEYED, for the components of the product whose groups the
+        // filter keeps only reached ones of (see reachedComponents): the row of
+        // initial values of such a component, which it has when its input is
+        // empty, is in no row that passes, so the component is the rows of its
+        // groups (see keyedAggregateRows)
         std::vector<Node> comps;
         std::vector<size_t> starts;
         Node rest = A;
@@ -2023,18 +1980,19 @@ std::vector<int> BagsRewriter::reachedComponents(
     const std::vector<size_t>& starts,
     std::vector<int>& test) const
 {
-  // for a filter P over the product of comps: per component, the conjunct of
-  // P that tests its counter positive (-1 when none), in test; and whether
-  // its groups are reached: 1 when tested, 2 when joined on all its keys with
-  // a reached aggregate whose input has the same key values, 0 otherwise.
-  // With G1 = ((_ table.aggr 0) f i X) and G2 = ((_ table.aggr 0) g j X),
-  // each copying its group column 0 and with its counter in column 2,
-  //   P = (lambda ((t V)) (and (>= ((_ tuple.select 2) t) 1)
-  //                            (= ((_ tuple.select 0) t)
-  //                               ((_ tuple.select 3) t))))
-  // over (table.product G1 G2) gives test = {0, -1} and reached = {1, 2}:
-  // G1's counter is tested, and every group of G2 that a reached group of
-  // G1 meets has a row of X, the same key values as that group
+  // for a filter P over the product of comps: per component, the conjunct of P
+  // that tests its count of rows positive (-1 when none), in test; and whether
+  // its groups are reached: 1 when tested, 2 when joined on all its keys with a
+  // reached aggregate whose input has the same key values, 0 otherwise. For
+  // X : (Bag (Tuple Int Int)), G1 = ((_ table.aggr 0) f i X) and G2 =
+  // ((_ table.aggr 0) g j X), each with rows of three columns, copying its
+  // group column 0 and counting rows in column 2,
+  //   P = (lambda ((t (Tuple Int Int Int Int Int Int)))
+  //         (and (>= ((_ tuple.select 2) t) 1)
+  //              (= ((_ tuple.select 0) t) ((_ tuple.select 3) t))))
+  // over (table.product G1 G2) gives test = {0, -1} and reached = {1, 2}: G1's
+  // count is tested, and every group of G2 that a reached group of G1 meets has
+  // a row of X, the same key values as that group
   std::vector<int> reached(comps.size(), 0);
   test.assign(comps.size(), -1);
   Node lambda = asLambda(P);
@@ -2092,9 +2050,8 @@ std::vector<int> BagsRewriter::reachedComponents(
     {
       continue;
     }
-    // a conjunct (>= ((_ tuple.select pos) t) 1) of P tests the counter when
-    // (lambda ((row U)) (>= ((_ tuple.select pos-start) row) 1)) does, for
-    // the component alone
+    // a conjunct (>= ((_ tuple.select pos) t) 1) of P tests the count of rows
+    // when the same test of column pos - start of the component's own rows does
     Node row = rowVariable(A.getType().getBagElementType());
     for (size_t k = 0; k < conjuncts.size(); k++)
     {
@@ -2141,8 +2098,11 @@ std::vector<int> BagsRewriter::reachedComponents(
     }
     return false;
   };
-  // the key values of a component's input as a set, rewritten,
-  //   (bag.setof (bag.map (lambda ((s T)) (tuple ((_ tuple.select 0) s))) X))
+  // the key values of a component's input as a set, rewritten: for the group
+  // column 0 of X : (Bag (Tuple Int Int)),
+  //   (bag.setof
+  //     (bag.map (lambda ((s (Tuple Int Int))) (tuple ((_ tuple.select 0) s)))
+  //              X))
   // two components whose sets are one term have the same key values
   std::map<size_t, Node> keySets;
   auto keySet = [&](size_t c) {
@@ -2347,9 +2307,8 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
   }
   {
     // FOLD_CONSTANT_STEP: a step c that reads neither the row nor the
-    // accumulator gives c after any row,
-    //   (bag.fold (lambda ((t T) (acc S)) c) i X)
-    //   ---> (ite (= X (as bag.empty (Bag T))) i c)
+    // accumulator gives c after any row, and the initial value for no row
+    // (see rewrites.h)
     Node lambda = asLambda(f);
     if (lambda.getKind() == Kind::LAMBDA && lambda[0].getNumChildren() == 2
         && !occursFree(lambda[1], lambda[0][0])
@@ -2403,8 +2362,8 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
   Assert(n.getKind() == Kind::TABLE_AGGREGATE);
 
   {
-    // NOT_NULL_COLUMNS: the null tests of columns the rows of X never have
-    // null are decided in the steps of f, see assumeNonNull
+    // NOT_NULL_COLUMNS: the null tests of the columns that the rows of X never
+    // have null in are decided, see assumeNonNull and rewrites.h
     Node f = asLambda(n[0]);
     if (f.getKind() == Kind::LAMBDA && f[0].getNumChildren() == 2
         && n[2].getType().getBagElementType().isTuple())
@@ -2475,8 +2434,7 @@ BagsRewriteResponse BagsRewriter::postRewriteProduct(const TNode& n) const
   Node empty = d_nm->mkConst(EmptyBag(tableType));
   if (n[0].getKind() == Kind::BAG_EMPTY || n[1].getKind() == Kind::BAG_EMPTY)
   {
-    // PRODUCT_EMPTY:
-    //   (table.product X (as bag.empty (Bag U))) ---> (as bag.empty (Bag V))
+    // PRODUCT_EMPTY: a product with the empty table is empty
     return BagsRewriteResponse(empty, Rewrite::PRODUCT_EMPTY);
   }
 
@@ -2496,11 +2454,13 @@ Node BagsRewriter::rowVariable(TypeNode tupleType) const
 
 bool BagsRewriter::bindsVariable(const Node& body, const Node& var) const
 {
-  // whether a closure in body binds var: true for body
+  // whether a closure in body binds var: true for var t and the body
   //   (>= (bag.count ((_ tuple.project 0) t)
-  //                  (bag.map (lambda ((t T)) ((_ tuple.project 1) t)) X))
+  //                  (bag.map (lambda ((t (Tuple Int Int)))
+  //                             ((_ tuple.project 1) t))
+  //                           X))
   //       1)
-  // and var t, whose inner lambda binds t again
+  // whose inner lambda binds t again
   std::unordered_set<TNode> visited;
   std::vector<TNode> todo = {body};
   while (!todo.empty())
@@ -2531,7 +2491,7 @@ bool BagsRewriter::bindsVariable(const Node& body, const Node& var) const
 
 bool BagsRewriter::occursFree(const Node& n, const Node& v) const
 {
-  // whether v occurs free in n: false for t in (lambda ((t T)) b), true in
+  // whether v occurs free in n: false for t in a lambda that binds t, true in
   // ((_ tuple.select 0) t)
   if (!expr::hasSubterm(n, v))
   {
@@ -2544,10 +2504,10 @@ bool BagsRewriter::occursFree(const Node& n, const Node& v) const
 
 Node BagsRewriter::asLambda(const Node& f) const
 {
-  // a lambda whose body is a constant, or an ite over constants, is kept by
-  // the rewriter as a function array constant: read it as the lambda it is,
-  // e.g. (lambda ((t T)) true) for the constant of the filter that keeps
-  // every row
+  // a lambda whose body is a constant, or an ite over constants, is kept by the
+  // rewriter as a function array constant: read it as the lambda it is, e.g.
+  // (lambda ((t (Tuple Int Int))) true) for the constant of the filter that
+  // keeps every row
   if (f.getKind() == Kind::FUNCTION_ARRAY_CONST)
   {
     Node lambda = uf::FunctionConst::toLambda(f);
@@ -2561,10 +2521,11 @@ Node BagsRewriter::asLambda(const Node& f) const
 
 Node BagsRewriter::applyFunction(const Node& fn, const Node& x) const
 {
-  // (f x) beta-reduced: for f = (lambda ((s T)) (> ((_ tuple.select 1) s) 3))
-  // and x = (tuple a b), (> ((_ tuple.select 1) (tuple a b)) 3), which the
-  // rewriter simplifies to (> b 3); null when the substitution would capture
-  // a variable; (f x) as an APPLY_UF when f is not a lambda
+  // (f x) beta-reduced: for f =
+  // (lambda ((s (Tuple Int Int))) (> ((_ tuple.select 1) s) 3)) and x =
+  // (tuple a b), (> ((_ tuple.select 1) (tuple a b)) 3), which the rewriter
+  // simplifies to (> b 3); null when the substitution would capture a variable;
+  // (f x) as an APPLY_UF when f is not a lambda
   Node f = asLambda(fn);
   if (f.getKind() == Kind::LAMBDA && f[0].getNumChildren() == 1)
   {
@@ -2595,8 +2556,9 @@ Node BagsRewriter::applyFunction(const Node& fn, const Node& x) const
 
 std::pair<Node, Node> BagsRewriter::lambdaOf(const Node& f) const
 {
-  // (t, b) for f = (lambda ((t T)) b); for a function f that is not a lambda,
-  // (t, (f t)) with t the row variable of T
+  // (t, b) for a lambda f of the variable t and the body b; for a function f
+  // that is not a lambda, (t, (f t)) with t the row variable of its argument
+  // sort
   if (f.getKind() == Kind::LAMBDA && f[0].getNumChildren() == 1)
   {
     return std::make_pair(f[0][0], f[1]);
@@ -2643,17 +2605,18 @@ bool BagsRewriter::readPositions(const Node& body,
 
 bool BagsRewriter::composable(const Node& f) const
 {
-  // f is (lambda ((t T)) b), or a function array constant of one: the rules
-  // that compose functions build lambdas of their bodies. A declared function
-  // symbol f stays one, as upstream: (lambda ((t T)) (f t)) would be a lambda
-  // around a function the model interprets, a lambda the input did not have
+  // f is a lambda of one variable, or a function array constant of one: the
+  // rules that compose functions build lambdas of their bodies. A declared
+  // function symbol f stays one, as upstream: (lambda ((t ..)) (f t)) would be
+  // a lambda around a function the model interprets, a lambda the input did not
+  // have
   Node l = asLambda(f);
   return l.getKind() == Kind::LAMBDA && l[0].getNumChildren() == 1;
 }
 
 Node BagsRewriter::mkLambda(const Node& var, const Node& body) const
 {
-  // (lambda ((var T)) body)
+  // the lambda of the variable var with the body body
   return d_nm->mkNode(
       Kind::LAMBDA, d_nm->mkNode(Kind::BOUND_VAR_LIST, var), body);
 }
@@ -2664,11 +2627,9 @@ BagsRewriteResponse BagsRewriter::rewriteFilterOfMap(const TNode& n) const
   {
     return BagsRewriteResponse(n, Rewrite::NONE);
   }
-  // FILTER_MAP: a filter of a map is the map of a filter, by the predicate
-  // of the image,
-  //   (bag.filter (lambda ((s U)) p) (bag.map (lambda ((t T)) e) A))
-  //   ---> (bag.map (lambda ((t T)) e) (bag.filter (lambda ((t T)) p[s := e])
-  //                                                A))
+  // FILTER_MAP: a filter of a map is the map of a filter by the predicate of
+  // the image, p[s := e] for the filter (lambda ((s ..)) p) and the map
+  // (lambda ((t ..)) e) (see rewrites.h)
   Node p = n[0];
   Node f = n[1][0];
   Node A = n[1][1];
@@ -2694,9 +2655,8 @@ BagsRewriteResponse BagsRewriter::rewriteMapOfMap(const TNode& n) const
   {
     return BagsRewriteResponse(n, Rewrite::NONE);
   }
-  // MAP_MAP: two maps are one, by the composition,
-  //   (bag.map (lambda ((s U)) e) (bag.map (lambda ((t T)) g) A))
-  //   ---> (bag.map (lambda ((t T)) e[s := g]) A)
+  // MAP_MAP: two maps are one, by the composition: e[s := g] for the outer map
+  // (lambda ((s ..)) e) and the inner one (lambda ((t ..)) g) (see rewrites.h)
   Node f = n[0];
   Node g = n[1][0];
   Node A = n[1][1];
@@ -2721,9 +2681,7 @@ BagsRewriteResponse BagsRewriter::postRewriteProject(const TNode& n) const
   {
     return BagsRewriteResponse(n, Rewrite::NONE);
   }
-  // PROJECT_TO_MAP:
-  //   ((_ table.project 1 0) X)
-  //   ---> (bag.map (lambda ((t T)) ((_ tuple.project 1 0) t)) X)
+  // PROJECT_TO_MAP: a projection is a map by tuple.project (see rewrites.h)
   Assert(n.getKind() == Kind::TABLE_PROJECT);
   Node A = n[0];
   TypeNode elementType = A.getType().getBagElementType();
@@ -2737,9 +2695,9 @@ BagsRewriteResponse BagsRewriter::postRewriteProject(const TNode& n) const
 
 std::vector<uint32_t> BagsRewriter::projectionIndices(const Node& f) const
 {
-  // f = (lambda ((t T)) (tuple ((_ tuple.select j0) t) ..
-  // ((_ tuple.select jm) t))), or (lambda ((t T)) ((_ tuple.project j0 .. jm)
-  // t)): the columns j0, .., jm; empty for any other f
+  // f = (lambda ((t ..)) (tuple ((_ tuple.select j0) t) .. ((_ tuple.select jm)
+  // t))), or (lambda ((t ..)) ((_ tuple.project j0 .. jm) t)): the columns j0,
+  // .., jm; empty for any other f
   std::vector<uint32_t> out;
   if (f.getKind() != Kind::LAMBDA || f[0].getNumChildren() != 1)
   {
@@ -2768,24 +2726,13 @@ std::vector<uint32_t> BagsRewriter::projectionIndices(const Node& f) const
 
 BagsRewriteResponse BagsRewriter::rewriteAggregateOfMap(const TNode& n) const
 {
-  // AGGREGATE_MAP: the fold reads each row through g, and grouping by
-  // column k of the mapped row is grouping by the column of X's row that g
-  // copies there:
-  //   ((_ table.aggr 0) (lambda ((s U) (acc S)) b) i
-  //                     (bag.map (lambda ((t T)) (tuple ((_ tuple.select 2) t)
-  //                                                     ((_ tuple.select 0)
-  //                                                      t)))
-  //                              X))
-  //   --->
-  //   ((_ table.aggr 2) (lambda ((t T) (acc S))
-  //                       b[s := (tuple ((_ tuple.select 2) t)
-  //                                     ((_ tuple.select 0) t))])
-  //                     i X)
-  // g may compute its other columns any way: each group column of g's row
-  // must be a column of X's row, a constant, which every row of a group
-  // shares and so drops out of the grouping, or a term of group columns
-  // only (deptno + 42 beside deptno), which splits no group the others do
-  // not
+  // AGGREGATE_MAP: the fold reads each row through the map's function g, and
+  // grouping by column k of the mapped row is grouping by the column of X's row
+  // that g copies there (see rewrites.h). g may compute its other columns any
+  // way: each group column of g's row must be a column of X's row; a constant,
+  // which every row of a group shares and so drops out of the grouping; or a
+  // term of group columns only (deptno + 42 beside deptno), which splits no
+  // group the others do not
   Node f = n[0];
   Node i = n[1];
   Node g = asLambda(n[2][0]);
@@ -2865,10 +2812,11 @@ bool BagsRewriter::rewritesToFalse(const Node& n) const
 bool BagsRewriter::rejectsInitialRow(const Node& P, const Node& i) const
 {
   // whether P is false on the row of initial values i, the one row of the
-  // aggregate of an empty table: (P i) rewrites to false. True for
-  //   P = (lambda ((r V)) (>= ((_ tuple.select 2) r) 1))
+  // aggregate of an empty table: (P i) rewrites to false. True for a test of a
+  // count of rows, which starts at 0,
+  //   P = (lambda ((r (Tuple (Nullable Int) (Nullable Int) Int)))
+  //         (>= ((_ tuple.select 2) r) 1))
   //   i = (tuple (as nullable.null (Nullable Int)) (nullable.some 0) 0)
-  // the test of a counter, which starts at 0
   if (d_rewriter == nullptr)
   {
     return false;
@@ -2880,12 +2828,11 @@ bool BagsRewriter::rejectsInitialRow(const Node& P, const Node& i) const
 Node BagsRewriter::keyedAggregateRows(const Node& A) const
 {
   // A = ((_ table.aggr K) f i X) whose group columns K contain a key of X
-  // (see rowKeys): every group is one row of X, once, folded once from i, so
-  // the groups some row reached give the rows
-  //   (bag.map (lambda ((t T)) b[acc := i]) X)
-  // for f = (lambda ((t T) (acc S)) b); null for any other A. Only the
-  // reached groups: an empty X is one empty group, folded to the row of
-  // initial values, (bag i 1), which the map does not have
+  // (see rowKeys): every group is one row t of X, once, folded once from i, so
+  // the groups some row reached are the map of X by (lambda ((t ..)) (f t i)),
+  // with (f t i) beta-reduced; null for any other A. Only the reached groups:
+  // an empty X is one empty group, folded to the row of initial values,
+  // (bag i 1), which the map does not have
   const std::vector<uint32_t>& K =
       A.getOperator().getConst<ProjectOp>().getIndices();
   Node f = asLambda(A[0]);
@@ -2914,9 +2861,9 @@ Node BagsRewriter::keyedAggregateRows(const Node& A) const
 
 Node BagsRewriter::accumulatorVariable(TypeNode type) const
 {
-  // the second variable of an aggregate's function, one per accumulator type,
-  // named accrow_N after the id N of the key (as bag.empty (Bag S)) of its
-  // type S
+  // the second variable of an aggregate's function, one per accumulator sort,
+  // named accrow_N after the id N of the key (as bag.empty (Bag S)) of its sort
+  // S
   Node key = d_nm->mkConst(EmptyBag(d_nm->mkBagType(type)));
   return mkRewriterVar(
       d_nm, "accumulator", key, "accrow_" + std::to_string(key.getId()), type);
@@ -2924,18 +2871,19 @@ Node BagsRewriter::accumulatorVariable(TypeNode type) const
 
 Node BagsRewriter::alphaKey(const Node& f) const
 {
-  // f with every variable it binds, at any depth, replaced by a placeholder
-  // for its binding depth, and every variable free in it by one placeholder
-  // per type: equal for alpha-equivalent lambdas, and unchanged when a lambda
-  // inside f or around f renames its variables. The keys of
-  //   (lambda ((s T)) (> ((_ tuple.select 0) s) 3))
-  //   (lambda ((t T)) (> ((_ tuple.select 0) t) 3))
-  // are one node, (lambda ((b0 T)) (> ((_ tuple.select 0) b0) 3)) with b0
-  // the placeholder for depth 0; a free variable r of an enclosing lambda
-  // becomes the placeholder of its type, so
-  //   (lambda ((t T)) (= ((_ tuple.select 0) t) ((_ tuple.select 0) r)))
-  // has a key that does not depend on r's name either. Cached in
-  // d_alphaKeys.
+  // f with every variable it binds, at any depth, replaced by a placeholder for
+  // its binding depth, and every variable free in it by one placeholder per
+  // sort: equal for lambdas that differ only in the names of their variables,
+  // and unchanged when a lambda inside f or around f renames its variables. The
+  // keys of
+  //   (lambda ((s (Tuple Int Int))) (> ((_ tuple.select 0) s) 3))
+  //   (lambda ((t (Tuple Int Int))) (> ((_ tuple.select 0) t) 3))
+  // are one node, (lambda ((b0 (Tuple Int Int))) (> ((_ tuple.select 0) b0) 3))
+  // with b0 the placeholder for depth 0; a free variable r of an enclosing
+  // lambda becomes the placeholder of its sort, so the key of
+  //   (lambda ((t (Tuple Int Int)))
+  //     (= ((_ tuple.select 0) t) ((_ tuple.select 0) r)))
+  // does not depend on r's name either. Cached in d_alphaKeys.
   std::unordered_map<Node, Node>::iterator it = d_alphaKeys.find(f);
   if (it != d_alphaKeys.end())
   {
@@ -2988,9 +2936,9 @@ Node BagsRewriter::alphaKeyScope(TNode root,
     }
     if (n.isClosure())
     {
-      // (lambda ((s T) (acc S)) b) at depth d is
-      // (lambda ((b_d T) (b_d+1 S)) key-of-b), the body converted in the
-      // scope of the new placeholders
+      // a lambda of the variables s and acc at depth d becomes the lambda of
+      // the placeholders b_d and b_d+1, its body converted in the scope of
+      // those placeholders
       todo.pop_back();
       size_t nvars = n[0].getNumChildren();
       std::vector<Node> vars;
@@ -3173,16 +3121,14 @@ Node BagsRewriter::simplifyIteSame(const Node& body) const
 
 Node BagsRewriter::canonicalLambda(const Node& f) const
 {
-  // f with its variables named after f's alpha key: lambdas that differ only
-  // in the names of their variables become one node, so the solver purifies
-  // them into one function symbol. Two lambdas one inside the other have
-  // different keys, so canonical names never shadow each other, and the key
-  // does not change when a lambda inside or around f is renamed, so renaming
-  // terminates. With K the alpha key of f and N its node id,
-  //   (lambda ((s T)) (> ((_ tuple.select 0) s) 3))
-  //   ---> (lambda ((t_N T)) (> ((_ tuple.select 0) t_N) 3))
-  //   (lambda ((x T) (y S)) b) ---> (lambda ((t_N T) (acc_N S)) b')
-  // and first (ite (= a b) b a) in the body is a, see simplifyIteSame
+  // f with its variables named after f's alpha key: lambdas that differ only in
+  // the names of their variables become one node, so the solver purifies them
+  // into one function symbol (see rewrites.h). Two lambdas one inside the other
+  // have different keys, so canonical names never shadow each other, and the
+  // key does not change when a lambda inside or around f is renamed, so
+  // renaming terminates. With N the node id of f's alpha key, the variables of
+  // a lambda of one variable are renamed to t_N, of two to t_N and acc_N; and
+  // first (ite (= a b) b a) in the body is a, see simplifyIteSame
   Assert(f.getKind() == Kind::LAMBDA);
   {
     Node simpler = simplifyIteSame(f[1]);
@@ -3225,23 +3171,13 @@ Node BagsRewriter::canonicalLambda(const Node& f) const
 BagsRewriteResponse BagsRewriter::rewriteAggregateSortOutput(
     const TNode& n) const
 {
-  // AGGREGATE_SORT_OUTPUT: ((_ table.aggr K) f i X) where f builds a tuple:
-  // the positions that copy a key column of the row come first, sorted by
-  // column, then the others, sorted by what they compute (the alpha key of
-  // their step and their seed). Two aggregates that output the same columns
-  // in different orders then differ only in the map above them:
-  //   ((_ table.aggr 0) (lambda ((t T) (acc S)) (tuple a1 ((_ tuple.select 0)
-  //                                                      t)))
-  //                     (tuple i1 i0) X)
-  //   --->
-  //   (bag.map (lambda ((r S')) (tuple ((_ tuple.select 1) r)
-  //                                    ((_ tuple.select 0) r)))
-  //            ((_ table.aggr 0) (lambda ((t T) (acc S'))
-  //                                (tuple ((_ tuple.select 0) t) a1'))
-  //                              (tuple i0 i1) X))
-  // where a1' is a1 over the sorted accumulator, ((_ tuple.select 1) acc)
-  // read as ((_ tuple.select 0) acc): the new fold computes the sorted rows
-  // of the old one
+  // AGGREGATE_SORT_OUTPUT: ((_ table.aggr K) f i X) where f builds a tuple: the
+  // positions that copy a group column of the row come first, sorted by column,
+  // then the others, sorted by what they compute
+  // (the alpha key of their step and their initial value). Two aggregates that
+  // output the same columns in different orders then differ only in the map
+  // above them (see rewrites.h). The new step reads the sorted accumulator, so
+  // the new fold computes the sorted rows of the old one
   Node f = n[0];
   Node i = n[1];
   Node X = n[2];
@@ -3362,19 +3298,11 @@ BagsRewriteResponse BagsRewriter::rewriteAggregateSortOutput(
 
 BagsRewriteResponse BagsRewriter::rewriteFoldOfTuple(const TNode& n) const
 {
-  // FOLD_TUPLE: a fold of tuples whose component k reads the accumulator
-  // only at position k is the tuple of the folds of the components,
-  //   (bag.fold (lambda ((t T) (acc (Tuple Int Int))) (tuple b0 b1))
-  //             (tuple i0 i1) X)
-  //   --->
-  //   (tuple (bag.fold (lambda ((t T) (a Int)) b0[((_ tuple.select 0) acc)
-  //                                               := a])
-  //                    i0 X)
-  //          (bag.fold (lambda ((t T) (a Int)) b1[((_ tuple.select 1) acc)
-  //                                               := a])
-  //                    i1 X))
-  // The folds over X read its elements in one order, so each component is
-  // the fold of its own step.
+  // FOLD_TUPLE: a fold of tuples whose component k reads the accumulator only
+  // at position k is the tuple of the folds of the components, each with its
+  // own step, ((_ tuple.select k) acc) read as its accumulator
+  // (see rewrites.h). The folds over X read its elements in one order, so each
+  // component is the fold of its own step.
   Node f = n[0];
   Node i = n[1];
   Node X = n[2];
@@ -3432,8 +3360,8 @@ BagsRewriteResponse BagsRewriter::rewriteSetofOfMap(const TNode& n) const
 {
   // SETOF_PROJECTION_SORT: the set of a map that projects onto columns in
   // another order than theirs is the set of the projection onto the sorted
-  // columns, mapped back by the permutation, which is injective and so
-  // commutes with duplicate removal,
+  // columns, under a map that puts them back, which is injective and so
+  // commutes with removing duplicates (see rewrites.h)
   //     (bag.setof (bag.map (lambda ((t T)) (tuple ((_ tuple.select 2) t)
   //                                                ((_ tuple.select 0) t)))
   //                         Y))
@@ -3611,18 +3539,13 @@ Node BagsRewriter::normalizeTruth(const Node& body) const
 BagsRewriteResponse BagsRewriter::rewriteAggregateDeadColumns(
     const TNode& n) const
 {
-  // AGGREGATE_DEAD_COLUMNS: in (bag.map h (bag.filter P ((_ table.aggr K) f i
-  // X))), or the same without the filter, where h and P read no column q of
-  // the aggregate's rows, and f computes column q from the row and column q
-  // of the accumulator only, which no other column reads: column q changes
-  // nothing anything reads, and goes. Grouping is by K, columns of X, so no
-  // output column decides a group. With column 1 read by nothing,
-  //   (bag.map h ((_ table.aggr 0) (lambda ((t T) (acc S)) (tuple a0 a1 a2))
-  //                                (tuple i0 i1 i2) X))
-  //   --->
-  //   (bag.map h' ((_ table.aggr 0) (lambda ((t T) (acc S')) (tuple a0 a2'))
-  //                                 (tuple i0 i2) X))
-  // where h' and a2' read column 2 as column 1
+  // AGGREGATE_DEAD_COLUMNS: in
+  // (bag.map h (bag.filter P ((_ table.aggr K) f i X))), or the same without
+  // the filter, where h and P read no column q of the aggregate's rows and f
+  // computes column q from the row and from column q of the accumulator only,
+  // which no other column reads, column q changes nothing that anything reads,
+  // and goes (see rewrites.h). Grouping is by K, columns of X, so no output
+  // column decides a group.
   Node h = asLambda(n[0]);
   Node Y = n[1];
   Node P;
@@ -3778,12 +3701,10 @@ BagsRewriteResponse BagsRewriter::rewriteAggregateDeadColumns(
 
 std::map<uint32_t, Node> BagsRewriter::fixedColumns(const Node& p) const
 {
-  // the columns a filter's predicate fixes to a constant: conjuncts
-  // (= ((_ tuple.select k) t) c) with c a constant; for
-  //   (lambda ((t T)) (and (= ((_ tuple.select 1) t) 5) (> ((_ tuple.select 0)
-  //                                                        t)
-  //                                                     3)))
-  // the map {1 -> 5}
+  // the columns a filter's predicate fixes to a constant, by conjuncts
+  // (= ((_ tuple.select k) t) c) with c a constant: {1 -> 5} for
+  //   (lambda ((t (Tuple Int Int)))
+  //     (and (= ((_ tuple.select 1) t) 5) (> ((_ tuple.select 0) t) 3)))
   std::map<uint32_t, Node> fixed;
   Node lambda = asLambda(p);
   if (lambda.getKind() != Kind::LAMBDA || lambda[0].getNumChildren() != 1)

@@ -44,27 +44,21 @@ struct BagsRewriteResponse
 /**
  * The rewriter of the theory of bags and tables.
  *
- * Besides the rules for bag constants and the basic operators, it puts the
- * terms of relational algebra over tables (bags of tuples) in a normal form,
- * so that two queries that are one SQL rewrite apart become one term, or
- * terms that the solver relates cheaply. The normal form of a select-project-
- * join query is
- *   (bag.map h (bag.filter P (table.product X1 (table.product X2 ..))))
- * maps above filters above products, products right-nested and sorted, every
- * lambda over a canonical variable (canonicalLambda). Aggregates
- * ((_ table.aggr K) f i X) have their own normal forms: grouping by a key,
- * pushing through joins and unions, merging and splitting.
+ * Besides evaluating constants and simplifying the bag operators, it brings
+ * the terms of relational algebra over tables (bags of tuples) to a normal
+ * form, so that the encodings of two equivalent SQL queries often become one
+ * term. A query SELECT h FROM X1, X2 WHERE P becomes
  *
- * Some rules use facts about the table constants of the problem, its keys and
- * NOT NULL columns, which the bags-facts preprocessing pass reads off the
- * top-level assertions (recordFacts).
+ *   (bag.map h (bag.filter P (table.product X1 X2)))
  *
- * The notation of the examples is described at the top of bags_rewriter.cpp:
- * SMT-LIB terms over tables X, Y of rows of sort T, with t a row bound by a
- * lambda and acc an accumulator. Each rule is named by its Rewrite value,
- * see rewrites.h, and shown as
- *   previous node
- *   ---> next node
+ * with maps above filters above products, and every lambda over the same
+ * variables (see canonicalLambda).
+ *
+ * Each rule is a Rewrite id, documented with an example in rewrites.h. The
+ * functions below that apply several rules list them; a function that
+ * implements a rule is documented with its conditions. Some rules read facts
+ * about the tables of the problem, their keys and NOT NULL columns, that
+ * top-level assertions state (see recordFacts).
  */
 class BagsRewriter : public TheoryRewriter
 {
@@ -99,20 +93,24 @@ class BagsRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode n) override;
 
   /**
-   * Record the facts a top-level assertion states about table constants,
-   * which the rules below then use: the keys of a table (see recordKey) and
-   * its NOT NULL columns (see recordNotNull). Conjuncts of a top-level
-   * conjunction are read too. The bags-facts preprocessing pass calls this on
-   * every assertion before any of them is rewritten; the rewriter never
-   * reads a fact off an equality it rewrites, which may not be asserted (it
-   * may occur under a negation). E.g. for the assertions
-   *   (= (bag.setof ((_ table.project 0) X)) ((_ table.project 0) X))
-   *   (= (bag.filter (lambda ((t T))
-   *                    (= ((_ tuple.select 1) t)
-   *                       (as nullable.null (Nullable Int))))
-   *                  X)
-   *      (as bag.empty (Bag T)))
-   * column 0 is a key of X and column 1 of X is never null.
+   * Record the facts that a top-level assertion states about a table constant,
+   * which some rules read: a key of the table (see recordKey) or a NOT NULL
+   * column (see recordNotNull), also in the conjuncts of a conjunction. For
+   * X : (Bag (Tuple Int (Nullable Int))), the assertions
+   *
+   *   (assert (= (bag.setof ((_ table.project 0) X)) ((_ table.project 0) X)))
+   *
+   *   (assert (= (bag.filter
+   *                (lambda ((t (Tuple Int (Nullable Int))))
+   *                  (= ((_ tuple.select 1) t)
+   *                     (as nullable.null (Nullable Int))))
+   *                X)
+   *              (as bag.empty (Bag (Tuple Int (Nullable Int))))))
+   *
+   * state that column 0 is a key of X (no two rows agree on it) and that column
+   * 1 is never null. The bags-facts preprocessing pass calls this on every
+   * top-level assertion, before any of them is rewritten. Facts are never read
+   * off an equality the rewriter meets, which may be under a negation.
    */
   void recordFacts(TNode assertion) const;
 
@@ -150,18 +148,20 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteMakeBag(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - COUNT_EMPTY: (bag.count x (as bag.empty (Bag T))) ---> 0
-   * - COUNT_BAG_MAKE: (bag.count x (bag x c)) ---> c, c > 0 a constant
+   * The rules for (bag.count e X), each a Rewrite id with an example in
+   * rewrites.h:
+   *
+   * - COUNT_EMPTY and COUNT_BAG_MAKE
    */
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
 
   /**
-   * rewrites for n include, unless n is the bag.setof of a key assertion
+   * The rules for (bag.setof X), each a Rewrite id with an example in
+   * rewrites.h, except for the bag.setof of a key assertion
    * (see BagsKeyTermAttribute in the .cpp):
-   * - SETOF_BAG_MAKE: (bag.setof (bag x c)) ---> (bag x 1), c > 0 a
-   *   constant; (bag.setof (bag x c)) ---> (bag x (ite (>= c 1) 1 0))
-   * - SETOF_PROJECTION_SORT, see rewriteSetofOfMap
+   *
+   * - SETOF_BAG_MAKE
+   * - SETOF_PROJECTION_SORT (rewriteSetofOfMap)
    */
   BagsRewriteResponse rewriteSetof(const TNode& n) const;
 
@@ -256,88 +256,42 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteCard(const TNode& n) const;
 
   /**
-   *  rewrites for n include:
-   *  - (= A A) = true
-   *  - (= A B) = false if A and B are different bag constants
-   *  - (= B A) = (= A B) if A < B and at least one of A or B is not a constant
+   * The rules for an equality of bags (= A B), each a Rewrite id with an
+   * example in rewrites.h:
+   *
+   * - EQ_REFL, EQ_CONST_FALSE and EQ_SYM
    */
   BagsRewriteResponse postRewriteEqual(const TNode& n) const;
 
   /**
-   *  rewrites for n include:
-   *  - (bag.map f (as bag.empty (Bag T1)) = (as bag.empty (Bag T2))
-   *  - (bag.map f (bag x y)) = (bag (apply f x) y)
-   *  - (bag.map f (bag.union_disjoint A B)) =
-   *       (bag.union_disjoint (bag.map f A) (bag.map f B))
-   *  where f: T1 -> T2
-   *  - MAP_IDENTITY:
-   *      (bag.map (lambda ((t T)) (tuple ((_ tuple.select 0) t)
-   *                                      ((_ tuple.select 1) t)))
-   *               X)
-   *      ---> X
-   *  - NOT_NULL_COLUMNS, the null tests of columns X never has null in are
-   *    decided (see assumeNonNull):
-   *      (bag.map (lambda ((t T))
-   *                 (ite (nullable.is_some ((_ tuple.select 1) t)) a b))
-   *               X)
-   *      ---> (bag.map (lambda ((t T)) (ite true a b)) X)
-   *  - MAP_MAP, see rewriteMapOfMap
-   *  - AGGREGATE_DEAD_COLUMNS (rewriteAggregateDeadColumns)
-   *  - MAP_EQUAL_COLUMNS, the first of the columns the filter equates:
-   *      (bag.map (lambda ((t T)) (tuple ((_ tuple.select 2) t)))
-   *               (bag.filter (lambda ((s T)) (= ((_ tuple.select 0) s)
-   *                                              ((_ tuple.select 2) s)))
-   *                           X))
-   *      ---> (bag.map (lambda ((t T)) (tuple ((_ tuple.select 0) t)))
-   *                    (bag.filter (lambda ((s T)) (= ((_ tuple.select 0) s)
-   *                                                   ((_ tuple.select 2) s)))
-   *                                X))
-   *  - MAP_FIXED_COLUMNS, the constants the filter fixes columns to:
-   *      (bag.map (lambda ((t T)) (tuple ((_ tuple.select 1) t)))
-   *               (bag.filter (lambda ((s T)) (= ((_ tuple.select 1) s) 5))
-   *                           X))
-   *      ---> (bag.map (lambda ((t T)) (tuple 5))
-   *                    (bag.filter (lambda ((s T)) (= ((_ tuple.select 1) s)
-   *                                                   5))
-   *                                X))
-   *    and, over an aggregate whose counter the filter tests, the constants
-   *    its groups compute (see reachedGroupConstants)
-   *  - CANONICAL_VARIABLE, see canonicalLambda
+   * The rules for (bag.map f X), each a Rewrite id with an example in
+   * rewrites.h:
+   *
+   * - MAP_IDENTITY
+   * - NOT_NULL_COLUMNS (assumeNonNull)
+   * - MAP_CONST, MAP_BAG_MAKE and MAP_UNION_DISJOINT
+   * - MAP_MAP, for X a map (rewriteMapOfMap)
+   * - AGGREGATE_DEAD_COLUMNS, for X an aggregate (rewriteAggregateDeadColumns)
+   * - MAP_EQUAL_COLUMNS, for X a filter
+   * - MAP_FIXED_COLUMNS, for X a filter (fixedColumns, readFixed)
+   * - CANONICAL_VARIABLE (canonicalLambda)
    */
   BagsRewriteResponse postRewriteMap(const TNode& n) const;
 
   /**
-   *  rewrites for n include, unless n is the filter of a not-null assertion
-   *  (see BagsKeyTermAttribute in the .cpp):
-   *  - (bag.filter p (as bag.empty (Bag T)) = (as bag.empty (Bag T))
-   *  - FILTER_BAG_MAKE: (bag.filter p (bag x y)) ---> (bag x (ite (p x) y 0))
-   *  - (bag.filter p (bag.union_disjoint A B)) =
-   *       (bag.union_disjoint (bag.filter p A) (bag.filter p B))
-   *  where p: T -> Bool
-   *  - NOT_NULL_COLUMNS, as for bag.map
-   *  - FILTER_TRUE and FILTER_FALSE:
-   *      (bag.filter (lambda ((t T)) true) A) ---> A
-   *      (bag.filter (lambda ((t T)) false) A) ---> (as bag.empty (Bag T))
-   *      (bag.filter (lambda ((t T)) (and p (not p))) A)
-   *      ---> (as bag.empty (Bag T))
-   *  - FILTER_NULLABLE_TRUTH, see normalizeTruth
-   *  - FILTER_CONFLICTING_CONSTANTS:
-   *      (bag.filter (lambda ((t T)) (and (= ((_ tuple.select 0) t) 1)
-   *                                       (= ((_ tuple.select 0) t) 2)))
-   *                  X)
-   *      ---> (as bag.empty (Bag T))
-   *    and the conjuncts the others imply go: (nullable.is_some a) beside
-   *    (= a (nullable.some 5)), the null test of a value that a membership
-   *    puts in a never-null column, (>= (* a b) 1) beside (>= a 1) and
-   *    (>= b 1)
-   *  - CANONICAL_VARIABLE, see canonicalLambda
-   *  - FILTER_MAP, see rewriteFilterOfMap
-   *  - AGGREGATE_KEYED, see keyedAggregateRows: under a filter that drops the
-   *    row of initial values (see rejectsInitialRow),
-   *      (bag.filter Q ((_ table.aggr 0) (lambda ((t T) (acc S)) b) i X))
-   *      ---> (bag.filter Q (bag.map (lambda ((t T)) b[acc := i]) X))
-   *    for 0 a key of X, and for an aggregate component of a product whose
-   *    groups the filter keeps reached ones of (see reachedComponents)
+   * The rules for (bag.filter p X), each a Rewrite id with an example in
+   * rewrites.h, except for the filter of a NOT NULL assertion
+   * (see BagsKeyTermAttribute in the .cpp):
+   *
+   * - NOT_NULL_COLUMNS (assumeNonNull)
+   * - FILTER_TRUE and FILTER_FALSE
+   * - FILTER_NULLABLE_TRUTH (normalizeTruth)
+   * - FILTER_CONFLICTING_CONSTANTS
+   * - CANONICAL_VARIABLE (canonicalLambda)
+   * - FILTER_CONST, FILTER_BAG_MAKE and FILTER_UNION_DISJOINT
+   * - FILTER_MAP, for X a map (rewriteFilterOfMap)
+   * - AGGREGATE_KEYED, for X an aggregate or a product of them
+   *   (keyedAggregateRows)
    */
   BagsRewriteResponse postRewriteFilter(const TNode& n) const;
 
@@ -364,19 +318,15 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse postRewriteSome(TNode n);
 
   /**
-   *  rewrites for n include:
-   *  - (bag.fold f t (as bag.empty (Bag T1))) = t
-   *  - (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, where n > 0
-   *  - (bag.fold f t (bag.union_disjoint A B)) =
-   *       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
-   *  where f: T1 -> T2 -> T2
-   *  - NOT_NULL_COLUMNS, as for bag.map
-   *  - FOLD_TUPLE, see rewriteFoldOfTuple
-   *  - FOLD_CONSTANT_STEP:
-   *      (bag.fold (lambda ((t T) (acc S)) c) i X)
-   *      ---> (ite (= X (as bag.empty (Bag T))) i c)
-   *    for c reading neither t nor acc
-   *  - CANONICAL_VARIABLE, see canonicalLambda
+   * The rules for (bag.fold f i X), each a Rewrite id with an example in
+   * rewrites.h:
+   *
+   * - FOLD_CONST and FOLD_BAG, for X a constant or (bag x c)
+   * - NOT_NULL_COLUMNS (assumeNonNull)
+   * - FOLD_TUPLE (rewriteFoldOfTuple)
+   * - FOLD_CONSTANT_STEP
+   * - FOLD_UNION_DISJOINT
+   * - CANONICAL_VARIABLE (canonicalLambda)
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
   /**
@@ -385,28 +335,28 @@ class BagsRewriter : public TheoryRewriter
    */
   BagsRewriteResponse postRewritePartition(const TNode& n) const;
   /**
-   * rewrites for n = ((_ table.aggr K) f i X) include:
-   * - NOT_NULL_COLUMNS, as for bag.map, in the steps of f
-   * - AGGREGATE_NO_KEYS, one group of all of X, even an empty X:
-   *     ((_ table.aggr) f i X) ---> (bag (bag.fold f i X) 1)
-   * - AGGREGATE_SORT_OUTPUT, see rewriteAggregateSortOutput
-   * - AGGREGATE_MAP, see rewriteAggregateOfMap
-   * - CANONICAL_VARIABLE, see canonicalLambda
-   * - AGGREGATE_CONST: an aggregate of constants is evaluated
+   * The rules for ((_ table.aggr K) f i X), each a Rewrite id with an example
+   * in rewrites.h:
+   *
+   * - NOT_NULL_COLUMNS (assumeNonNull)
+   * - AGGREGATE_NO_KEYS
+   * - AGGREGATE_SORT_OUTPUT (rewriteAggregateSortOutput)
+   * - CANONICAL_VARIABLE (canonicalLambda)
+   * - AGGREGATE_MAP, for X a map (rewriteAggregateOfMap)
+   * - AGGREGATE_CONST
    */
   BagsRewriteResponse postRewriteAggregate(const TNode& n) const;
   /**
-   * rewrites for n include:
-   * - PRODUCT_EMPTY:
-   *     (table.product X (as bag.empty (Bag U))) ---> (as bag.empty (Bag V))
-   *   and the same on the left
+   * The rules for (table.product A B), each a Rewrite id with an example in
+   * rewrites.h:
+   *
+   * - PRODUCT_EMPTY
    */
   BagsRewriteResponse postRewriteProduct(const TNode& n) const;
 
   /**
-   * PROJECT_TO_MAP: a projection is a map, which the map rules then reach:
-   *   ((_ table.project 1 0) X)
-   *   ---> (bag.map (lambda ((t T)) ((_ tuple.project 1 0) t)) X)
+   * PROJECT_TO_MAP, the rule for ((_ table.project J) X), with an example at
+   * its Rewrite id in rewrites.h.
    */
   BagsRewriteResponse postRewriteProject(const TNode& n) const;
 
@@ -417,16 +367,13 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * FILTER_MAP:
-   *   (bag.filter (lambda ((s U)) p) (bag.map (lambda ((t T)) e) A))
-   *   ---> (bag.map (lambda ((t T)) e)
-   *                 (bag.filter (lambda ((t T)) p[s := e]) A))
+   * FILTER_MAP, a filter of a map as a map of a filter. The map's function must
+   * be a lambda (see composable).
    */
   BagsRewriteResponse rewriteFilterOfMap(const TNode& n) const;
   /**
-   * MAP_MAP:
-   *   (bag.map (lambda ((s U)) e) (bag.map (lambda ((t T)) g) A))
-   *   ---> (bag.map (lambda ((t T)) e[s := g]) A)
+   * MAP_MAP, a map of a map as one map, by the composition. Both functions must
+   * be lambdas (see composable).
    */
   BagsRewriteResponse rewriteMapOfMap(const TNode& n) const;
 
@@ -439,67 +386,48 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * AGGREGATE_MAP, grouping the rows of a map by the columns it copies:
-   *   ((_ table.aggr 0) (lambda ((s U) (acc S)) b) i
-   *                     (bag.map (lambda ((t T)) (tuple ((_ tuple.select 2) t)
-   *                                                     ((_ tuple.select 0)
-   *                                                      t)))
-   *                              X))
-   *   ---> ((_ table.aggr 2) (lambda ((t T) (acc S))
-   *                            b[s := (tuple ((_ tuple.select 2) t)
-   *                                          ((_ tuple.select 0) t))])
-   *                          i X)
+   * AGGREGATE_MAP, an aggregate of a map as an aggregate of the map's argument.
+   * It applies when the map copies a column of its argument to each group
+   * column, so that the groups are the same.
    */
   BagsRewriteResponse rewriteAggregateOfMap(const TNode& n) const;
   /**
-   * AGGREGATE_SORT_OUTPUT, the columns of the aggregate's rows in one order,
-   * copies of group columns first:
-   *   ((_ table.aggr 0) (lambda ((t T) (acc S)) (tuple a1 ((_ tuple.select 0)
-   *                                                      t)))
-   *                     (tuple i1 i0) X)
-   *   ---> (bag.map (lambda ((r S')) (tuple ((_ tuple.select 1) r)
-   *                                         ((_ tuple.select 0) r)))
-   *                 ((_ table.aggr 0) (lambda ((t T) (acc S'))
-   *                                     (tuple ((_ tuple.select 0) t) a1'))
-   *                                   (tuple i0 i1) X))
+   * AGGREGATE_SORT_OUTPUT, the columns of an aggregate's rows in one order, the
+   * copies of the group columns first, under a map that puts them back.
    */
   BagsRewriteResponse rewriteAggregateSortOutput(const TNode& n) const;
   /**
-   * FOLD_TUPLE, a fold of tuples whose components read their own
-   * accumulator only:
-   *   (bag.fold (lambda ((t T) (acc (Tuple Int Int))) (tuple b0 b1))
-   *             (tuple i0 i1) X)
-   *   ---> (tuple (bag.fold (lambda ((t T) (a Int)) b0') i0 X)
-   *               (bag.fold (lambda ((t T) (a Int)) b1') i1 X))
+   * FOLD_TUPLE, a fold of tuples whose components each read only their own
+   * accumulator as the tuple of the folds of the components.
    */
   BagsRewriteResponse rewriteFoldOfTuple(const TNode& n) const;
   /**
-   * AGGREGATE_DEAD_COLUMNS, a column of the aggregate nothing reads:
-   *   (bag.map h ((_ table.aggr 0) (lambda ((t T) (acc S)) (tuple a0 a1 a2))
-   *                                (tuple i0 i1 i2) X))
-   *   ---> (bag.map h' ((_ table.aggr 0) (lambda ((t T) (acc S'))
-   *                                        (tuple a0 a2'))
-   *                                      (tuple i0 i2) X))
-   * also under a filter between the map and the aggregate
+   * AGGREGATE_DEAD_COLUMNS, the columns of an aggregate that the map above it,
+   * and a filter in between, do not read are not computed.
    */
   BagsRewriteResponse rewriteAggregateDeadColumns(const TNode& n) const;
   /**
-   * For A = ((_ table.aggr K) f i X) with K containing a key of X (see
-   * rowKeys): the rows of the groups some row reached, every group one row
-   * of X folded once,
-   *   (bag.map (lambda ((t T)) b[acc := i]) X)
-   * for f = (lambda ((t T) (acc S)) b); null otherwise. They are the
-   * aggregate's rows but for the row of initial values of an empty X, so
-   * AGGREGATE_KEYED uses them where that row is dropped.
+   * For A = ((_ table.aggr K) f i X) whose group columns K contain a key of X
+   * (see rowKeys), the rows of the groups some row of X reached: every group is
+   * one row t of X, folded once from i, so they are
+   *
+   *   (bag.map (lambda ((t (Tuple Int Int))) (f t i)) X)
+   *
+   * for rows of sort (Tuple Int Int), with (f t i) beta-reduced; null when K
+   * holds no key. They are the aggregate's rows except the row of initial
+   * values that an aggregate of an empty X has, so AGGREGATE_KEYED uses them
+   * where that row is dropped.
    */
   Node keyedAggregateRows(const Node& A) const;
   /** Whether n, a formula, rewrites to false */
   bool rewritesToFalse(const Node& n) const;
   /**
    * Whether the predicate P is false on the row of initial values i, the one
-   * row an aggregate of an empty table has: (P i) rewrites to false, as for
-   *   P = (lambda ((r V)) (>= ((_ tuple.select 2) r) 1))
-   *   i = (tuple (as nullable.null (Nullable Int)) (nullable.some 0) 0)
+   * row that an aggregate of an empty table has: (P i) rewrites to false. For
+   * instance for a test that the count of rows, column 2, is positive,
+   *
+   *   P = (lambda ((r (Tuple Int Int Int))) (>= ((_ tuple.select 2) r) 1))
+   *   i = (tuple 0 0 0)
    */
   bool rejectsInitialRow(const Node& P, const Node& i) const;
 
@@ -508,31 +436,24 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * SETOF_PROJECTION_SORT, the set of a map that projects onto columns in
-   * another order than theirs:
-   *   (bag.setof (bag.map (lambda ((t T)) (tuple ((_ tuple.select 2) t)
-   *                                              ((_ tuple.select 0) t)))
-   *                       Y))
-   *   ---> (bag.map (lambda ((r U)) (tuple ((_ tuple.select 1) r)
-   *                                        ((_ tuple.select 0) r)))
-   *                 (bag.setof (bag.map (lambda ((t T))
-   *                                       (tuple ((_ tuple.select 0) t)
-   *                                              ((_ tuple.select 2) t)))
-   *                                     Y)))
+   * SETOF_PROJECTION_SORT, the set of a projection onto columns in another
+   * order than theirs as the set of the projection onto the sorted columns,
+   * under a map that puts them in their order.
    */
   BagsRewriteResponse rewriteSetofOfMap(const TNode& n) const;
   /**
-   * The keys of B read off its structure: a table's declared keys, kept by
-   * filters, intersections and differences, by maps that keep their columns,
-   * and combined by products; all the columns of a bag.setof; the group
-   * columns an aggregate's rows copy. With the key {0} of X and of Y, and X
-   * of two columns, (table.product X Y) has the key {0, 2}. Every key found
-   * makes B a set.
+   * The keys of B, read off its structure: the declared keys of a table
+   * constant (see recordKey), kept by filters, intersections and differences
+   * and by maps that copy them, combined by products; all the columns of a
+   * bag.setof; the group columns of an aggregate. For X and Y of two columns,
+   * both with the key {0}, (table.product X Y) has the key {0, 2}. A bag with a
+   * key has no row twice.
    */
   std::vector<std::set<uint32_t>> rowKeys(const Node& B) const;
   /**
-   * The keys of a table constant (see BagsKeysAttribute in the .cpp), or of
-   * a filter over one: {{0, 2}, {1}} for keys {0, 2} and {1}.
+   * The keys declared for the table constant B, or for the table constant a
+   * filter B filters (see BagsKeysAttribute in the .cpp): {{0, 2}, {1}} for
+   * keys {0, 2} and {1}.
    */
   std::vector<std::set<uint32_t>> keysOf(const Node& B) const;
 
@@ -541,32 +462,39 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * Record the key a key assertion states: for n =
-   *   (= (bag.setof ((_ table.project 0 2) X)) ((_ table.project 0 2) X))
-   * either way round, or with the projection as a bag.map, X gets the key
-   * {0, 2} (see BagsKeysAttribute in the .cpp), and the assertion's bag.setof
-   * is not rewritten (BagsKeyTermAttribute). Called for top-level assertions
-   * only, see recordFacts.
+   * Record the key that a key assertion states. For
+   * X : (Bag (Tuple Int Int Int)) and
+   *
+   *   n = (= (bag.setof ((_ table.project 0 2) X)) ((_ table.project 0 2) X))
+   *
+   * either way round, or with the projection written as a bag.map, {0, 2} is a
+   * key of X (see BagsKeysAttribute in the .cpp), and the bag.setof of n is not
+   * rewritten (BagsKeyTermAttribute). Called for top-level assertions only, see
+   * recordFacts.
    */
   void recordKey(const TNode& n) const;
   /**
-   * Record the never-null column a not-null assertion states: for n =
-   *   (= (bag.filter (lambda ((t T))
-   *                    (= (as nullable.null (Nullable Int))
-   *                       ((_ tuple.select 1) t)))
-   *                  X)
-   *      (as bag.empty (Bag T)))
-   * either way round, column 1 of X is never null (BagsNotNullAttribute in
-   * the .cpp), and the filter is not rewritten (BagsKeyTermAttribute).
-   * Called for top-level assertions only, see recordFacts.
+   * Record the NOT NULL column that a NOT NULL assertion states. For
+   * X : (Bag (Tuple Int (Nullable Int))) and
+   *
+   *   n = (= (bag.filter
+   *            (lambda ((t (Tuple Int (Nullable Int))))
+   *              (= ((_ tuple.select 1) t) (as nullable.null (Nullable Int))))
+   *            X)
+   *          (as bag.empty (Bag (Tuple Int (Nullable Int)))))
+   *
+   * either way round, column 1 of X is never null
+   * (see BagsNotNullAttribute in the .cpp), and the filter of n is not
+   * rewritten (BagsKeyTermAttribute). Called for top-level assertions only, see
+   * recordFacts.
    */
   void recordNotNull(const TNode& n) const;
   /**
-   * Whether t is never null, given the columns nx of the row x and nacc of
-   * the accumulator acc that are never null: true for (nullable.some a), for
-   * ((_ tuple.select k) x) with k in nx, for an ite of such terms, and for a
-   * fold seeded with (nullable.some a) whose step keeps it so. x and acc may
-   * be null.
+   * Whether the term t is never null, given the columns nx of the row x and
+   * nacc of the accumulator acc that are never null: true for
+   * (nullable.some a), for ((_ tuple.select k) x) with k in nx, for an ite of
+   * such terms, and for a fold from (nullable.some a) whose step keeps the
+   * accumulator so. x and acc may be null.
    */
   bool nonNullTerm(const Node& t,
                    const Node& x,
@@ -574,24 +502,25 @@ class BagsRewriter : public TheoryRewriter
                    const Node& acc,
                    const std::set<uint32_t>& nacc) const;
   /**
-   * The never-null columns of the rows of the aggregate B: those whose seed
-   * is never null and whose step keeps them so; with reached, for the groups
-   * a row reached, also those the step makes never null from these.
+   * The columns of the rows of the aggregate B that are never null: those whose
+   * initial value is never null and whose step keeps them so. With reached, for
+   * the groups some row reached, also those the step makes never null from
+   * these.
    */
   std::set<uint32_t> aggregateNonNull(const Node& B, bool reached) const;
   /**
-   * The columns of B's rows that are never null, read off its structure:
-   * the NOT NULL columns of a table constant, kept by filters, maps, unions
-   * (of both sides), products, aggregates (see aggregateNonNull), and those a
-   * filter tests with (nullable.is_some ((_ tuple.select k) t)). Cached in
-   * d_nonNull.
+   * The columns of the rows of B that are never null, read off its structure:
+   * the NOT NULL columns of a table constant (see recordNotNull), kept by
+   * filters, maps, unions (of both sides), products and aggregates
+   * (see aggregateNonNull), and those a filter tests with
+   * (nullable.is_some ((_ tuple.select k) t)). Cached in d_nonNull.
    */
   std::set<uint32_t> nonNullColumns(const Node& B) const;
   /**
-   * body with the null tests of the never-null columns cols of x decided:
-   * with cols {1},
-   *   (and (nullable.is_some ((_ tuple.select 1) x)) p) is (and true p)
-   *   (= (as nullable.null (Nullable Int)) ((_ tuple.select 1) x)) is false
+   * body with the null tests of the columns cols of the row x decided, for
+   * columns that are never null. With cols {1},
+   * (nullable.is_some ((_ tuple.select 1) x)) becomes true and
+   * (= ((_ tuple.select 1) x) (as nullable.null (Nullable Int))) becomes false.
    */
   Node assumeNonNull(const Node& body,
                      const Node& x,
@@ -603,37 +532,38 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    * The column c of the rows of an aggregate ((_ table.aggr K) f i X) that
-   * counts the rows of each group, (+ ((_ tuple.select c) acc) 1) from 0,
-   * when the filter predicate P has the conjunct
+   * counts the rows of each group, with the step (+ ((_ tuple.select c) acc) 1)
+   * from 0, when the filter predicate P has the conjunct
    * (>= ((_ tuple.select c) r) 1); -1 otherwise.
    */
   int counterColumn(const Node& P, const Node& f, const Node& i) const;
   /**
-   * For a filter P over the product of comps, whose columns start at starts:
-   * per component, the conjunct of P that tests its counter positive (-1
-   * when none), in test, and whether its groups are reached: 1 when tested,
-   * 2 when joined on all its group columns with a reached aggregate whose
-   * input has the same key values, 0 otherwise. The rows of initial values
-   * of a reached component are in no row that passes P.
+   * For a filter predicate P over the product of comps, whose columns start at
+   * starts: for each component, in test, the conjunct of P that tests its count
+   * of rows positive (-1 when none), and, as the result, whether its groups are
+   * the ones some row reached: 1 when P tests the count, 2 when P joins it on
+   * all its group columns with a reached aggregate over the same key values, 0
+   * otherwise. The row of initial values of a reached component is in no row
+   * that passes P.
    */
   std::vector<int> reachedComponents(const Node& P,
                                      const std::vector<Node>& comps,
                                      const std::vector<size_t>& starts,
                                      std::vector<int>& test) const;
   /**
-   * The columns a filter predicate fixes to constants: {1 -> 5} for
-   * (lambda ((t T)) (and (= ((_ tuple.select 1) t) 5) q)).
+   * The columns that a filter predicate fixes to constants: {1 -> 5} for
+   * (lambda ((t (Tuple Int Int))) (and (= ((_ tuple.select 1) t) 5) q)).
    */
   std::map<uint32_t, Node> fixedColumns(const Node& p) const;
   /**
-   * The constant columns of the groups a counter filter F over an aggregate
-   * keeps: those its step sets to a constant, and those it keeps at their
-   * constant seed.
+   * The columns that every group kept by a counter filter F over an aggregate
+   * computes as a constant: those the step sets to a constant, and those it
+   * keeps at a constant initial value.
    */
   std::map<uint32_t, Node> reachedGroupConstants(const Node& F) const;
   /**
-   * body with the columns of var that fixed maps read as their constants:
-   * ((_ tuple.select 1) var) read as 5 for {1 -> 5}.
+   * body with the columns of var that fixed maps to constants read as those
+   * constants: ((_ tuple.select 1) var) becomes 5 for {1 -> 5}.
    */
   Node readFixed(const Node& body,
                  const Node& var,
@@ -644,10 +574,10 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * The formula X = (nullable.some true) for a nullable Boolean X built of
-   * ites over (nullable.some b) and null, or null when X is not one: (ite c b
-   * false) for X = (ite c (nullable.some b) (as nullable.null (Nullable
-   * Bool))).
+   * The formula that a nullable Boolean X built of ites over (nullable.some b)
+   * and null is (nullable.some true): (ite c b false) for
+   * (ite c (nullable.some b) (as nullable.null (Nullable Bool))); null when X
+   * is not one.
    */
   Node truthOf(const Node& X) const;
   /**
@@ -662,22 +592,23 @@ class BagsRewriter : public TheoryRewriter
   // the solver purifies into one function symbol
   // ---------------------------------------------------------------------------
 
-  /** The variable of the accumulator of an aggregate's function, per type */
+  /**
+   * The variable for the accumulator of an aggregate's step, one per type.
+   */
   Node accumulatorVariable(TypeNode type) const;
   /**
-   * CANONICAL_VARIABLE: f with its variables renamed to t_N and acc_N, N the
-   * id of f's alpha key, when that is safe:
-   *   (lambda ((s T)) (> ((_ tuple.select 0) s) 3))
-   *   ---> (lambda ((t_N T)) (> ((_ tuple.select 0) t_N) 3))
-   * f's body is first simplified, see simplifyIteSame.
+   * CANONICAL_VARIABLE: the lambda f with its variables renamed to t_N and
+   * acc_N, N the id of f's alpha key (see alphaKey), so that lambdas that
+   * differ only in the names of their variables become one node. f's body is
+   * first simplified (see simplifyIteSame).
    */
   Node canonicalLambda(const Node& f) const;
   /**
-   * A node equal for alpha-equivalent f: f with every variable it binds
-   * replaced by a placeholder for its binding depth, every free variable by
-   * one placeholder per type, the arguments of commutative operators sorted
-   * and arithmetic atoms oriented over the placeholders. Cached in
-   * d_alphaKeys.
+   * A node that is the same for lambdas that differ only in the names of their
+   * variables: f with every variable it binds replaced by a placeholder for its
+   * binding depth, every free variable by one placeholder per sort, the
+   * arguments of commutative operators sorted and arithmetic atoms oriented.
+   * Cached in d_alphaKeys.
    */
   Node alphaKey(const Node& f) const;
   /**
@@ -692,8 +623,8 @@ class BagsRewriter : public TheoryRewriter
   /** cache of nonNullColumns, cleared when a not-null fact is recorded */
   mutable std::unordered_map<Node, std::set<uint32_t>> d_nonNull;
   /**
-   * body with (ite (= a b) b a) replaced by a and (ite (= a b) a b) by b,
-   * which the translator's null-aware steps leave once an accumulator is
+   * body with (ite (= a b) b a) replaced by a and (ite (= a b) a b) by b, which
+   * the null-aware steps of sqleq's translator leave once an accumulator is
    * known.
    */
   Node simplifyIteSame(const Node& body) const;
@@ -703,17 +634,19 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * The columns a projection lambda selects, in order: {2, 0} for
-   * (lambda ((t T)) (tuple ((_ tuple.select 2) t) ((_ tuple.select 0) t))) or
-   * (lambda ((t T)) ((_ tuple.project 2 0) t)); empty when f is not one.
+   * The columns that a projection lambda selects, in order: {2, 0} for
+   * (lambda ((t (Tuple Int Int Int))) (tuple ((_ tuple.select 2) t) ((_
+   * tuple.select 0) t))) or for
+   * (lambda ((t (Tuple Int Int Int))) ((_ tuple.project 2 0) t)); empty when f
+   * is not one.
    */
   std::vector<uint32_t> projectionIndices(const Node& f) const;
   /**
-   * (f x) beta-reduced: (> ((_ tuple.select 1) (tuple a b)) 3), which the
-   * rewriter simplifies to (> b 3), for f = (lambda ((s T))
-   * (> ((_ tuple.select 1) s) 3)) and x = (tuple a b); (f x) as an
-   * application when f is not a lambda; null when the substitution would
-   * capture a variable.
+   * (f x) beta-reduced, for f =
+   * (lambda ((s (Tuple Int Int))) (> ((_ tuple.select 1) s) 3)) and x =
+   * (tuple a b): (> ((_ tuple.select 1) (tuple a b)) 3), which the rewriter
+   * simplifies to (> b 3). (f x) as an application when f is not a lambda; null
+   * when the substitution would capture a variable.
    */
   Node applyFunction(const Node& f, const Node& x) const;
   /** f as a lambda when it is a function array constant, else f */
@@ -724,20 +657,21 @@ class BagsRewriter : public TheoryRewriter
   Node rowVariable(TypeNode tupleType) const;
   /** Whether a closure in body binds var */
   bool bindsVariable(const Node& body, const Node& var) const;
-  /** (lambda ((var T)) body) */
+  /** The lambda of the variable var with the body body */
   Node mkLambda(const Node& var, const Node& body) const;
   /** whether f is a lambda of one variable, which the rules may compose */
   bool composable(const Node& f) const;
   /**
-   * The variable and body of the lambda (lambda ((t T)) body) a function of
-   * type T -> S stands for: the lambda's own, or the row variable t of T and
-   * (f t) for a function that is not a lambda.
+   * The variable and the body of the lambda that the function f stands for: the
+   * lambda's own, or, for a function that is not a lambda, the row variable t
+   * of its argument sort and (f t).
    */
   std::pair<Node, Node> lambdaOf(const Node& f) const;
   /**
-   * The tuple positions a lambda body reads of its bound variable, as
-   * (_ tuple.select i) applications: {0, 2} for (> ((_ tuple.select 0) t)
-   * ((_ tuple.select 2) t)); false when the variable is used any other way.
+   * The columns of its variable var that body reads, through
+   * ((_ tuple.select k) var): {0, 2} for
+   * (> ((_ tuple.select 0) t) ((_ tuple.select 2) t)) and var t; false when
+   * body uses var otherwise.
    */
   bool readPositions(const Node& body,
                      const Node& var,
