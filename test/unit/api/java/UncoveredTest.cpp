@@ -139,6 +139,11 @@ TEST_F(TestApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+  {
+    Term x = slv.mkVar(slv.getBooleanSort(), "x");
+    Term start = slv.mkVar(slv.getBooleanSort(), "start");
+    (void)slv.mkGrammar({x}, {start});
+  }
   (void)parser::SymbolManager(&slv);
 }
 
