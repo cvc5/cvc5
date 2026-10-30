@@ -626,6 +626,34 @@ class CVC5ApiUnsupportedExceptionStream
   }
 
 /**
+ * Bound variable checks for member functions of class TermManager.
+ * Check if given term 'bv' (which is stored at index 'idx' of 'bound_vars') is
+ * not null, associated with this term manager, and a bound variable.
+ */
+#define CVC5_API_TM_CHECK_BOUND_VAR_AT_INDEX(bv, bound_vars, idx)     \
+  do                                                                  \
+  {                                                                   \
+    CVC5_API_TM_CHECK_TERM_AT_INDEX(bv, bound_vars, idx);             \
+    CVC5_API_ARG_AT_INDEX_CHECK_EXPECTED(                             \
+        bv.d_node->getKind() == cvc5::internal::Kind::BOUND_VARIABLE, \
+        "bound variable",                                             \
+        bound_vars,                                                   \
+        idx)                                                          \
+        << "a bound variable";                                        \
+  } while (0)
+
+/**
+ * Bound variable checks for member functions of class TermManager.
+ * Check if each term in the given container is not null, associated with this
+ * term manager, and a bound variable.
+ */
+#define CVC5_API_TM_CHECK_BOUND_VARS(bound_vars)                        \
+  for (size_t i = 0, size = bound_vars.size(); i < size; ++i)           \
+  {                                                                     \
+    CVC5_API_TM_CHECK_BOUND_VAR_AT_INDEX(bound_vars[i], bound_vars, i); \
+  }
+
+/**
  * DatatypeDecl checks for member functions of class TermManager.
  * Check if given datatype declaration is not null and associated with this
  * term manager.

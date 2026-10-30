@@ -454,6 +454,39 @@ TEST_F(TestApiBlackDatatype, parametricDatatype)
   ASSERT_NE(pairIntReal, pairRealInt);
 }
 
+TEST_F(TestApiBlackDatatype, parametricDatatypeNonRegular)
+{
+  Sort x = d_tm.mkParamSort("X");
+  Sort unresN = d_tm.mkUnresolvedDatatypeSort("N", 1);
+  std::vector<Sort> v{x};
+
+  // N(X) = nil | cons(hd: X, tl: N(Set(X))) is not regular, since
+  // the argument of N in the field type is neither a parameter nor ground
+  DatatypeDecl nSpec = d_tm.mkDatatypeDecl("N", v);
+  DatatypeConstructorDecl cons = d_tm.mkDatatypeConstructorDecl("cons");
+  cons.addSelector("hd", x);
+  cons.addSelector("tl", unresN.instantiate({d_tm.mkSetSort(x)}));
+  nSpec.addConstructor(cons);
+  nSpec.addConstructor(d_tm.mkDatatypeConstructorDecl("nil"));
+  ASSERT_THROW(d_tm.mkDatatypeSort(nSpec), CVC5ApiException);
+
+  // N(X) = nil | cons(hd: X, tl: N(X), other: N(Set(Int))) is regular
+  DatatypeDecl nSpec2 = d_tm.mkDatatypeDecl("N2", v);
+  Sort unresN2 = d_tm.mkUnresolvedDatatypeSort("N2", 1);
+  DatatypeConstructorDecl cons2 = d_tm.mkDatatypeConstructorDecl("cons2");
+  cons2.addSelector("hd2", x);
+  cons2.addSelector("tl2", unresN2.instantiate({x}));
+  cons2.addSelector("other2", unresN2.instantiate({d_tm.mkSetSort(d_int)}));
+  nSpec2.addConstructor(cons2);
+  nSpec2.addConstructor(d_tm.mkDatatypeConstructorDecl("nil2"));
+  Sort nSort2;
+  ASSERT_NO_THROW(nSort2 = d_tm.mkDatatypeSort(nSpec2));
+  Term t2 = d_tm.mkConst(nSort2.instantiate({d_int}), "t2");
+  Term tester2 = nSort2.getDatatype().getConstructor("cons2").getTesterTerm();
+  d_solver->assertFormula(d_tm.mkTerm(Kind::APPLY_TESTER, {tester2, t2}));
+  ASSERT_TRUE(d_solver->checkSat().isSat());
+}
+
 TEST_F(TestApiBlackDatatype, isFinite)
 {
   DatatypeDecl dtypedecl = d_tm.mkDatatypeDecl("dt", {});

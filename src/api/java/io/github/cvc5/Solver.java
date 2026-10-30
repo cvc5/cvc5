@@ -3615,19 +3615,20 @@ public class Solver extends AbstractPointer implements AutoCloseable
    * The first non-terminal is treated as the starting non-terminal, so the
    * order of non-terminals matters.
    *
+   * @deprecated
+   * This function is deprecated and replaced by
+   * {@link TermManager#mkGrammar(Term[], Term[])}.
+   * It will be removed in a future release.
+   *
    * @param boundVars The parameters to corresponding synth-fun/synth-inv.
    * @param ntSymbols The pre-declaration of the non-terminal symbols.
    * @return The grammar.
    */
+  @Deprecated
   public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols)
   {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
-    long grammarPointer = mkGrammar(getPointer(), boundVarPointers, ntSymbolPointers);
-    return new Grammar(ctx, grammarPointer);
+    return getTermManager().mkGrammar(boundVars, ntSymbols);
   }
-
-  private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
 
   /**
    * Synthesize n-ary function.
