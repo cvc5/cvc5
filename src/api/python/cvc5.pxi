@@ -2173,6 +2173,27 @@ cdef class TermManager:
         raise ValueError("Can't create DatatypeDecl with {}".format(
                     [type(a) for a in [name, sorts_or_bool, isCoDatatype]]))
 
+    def mkGrammar(self, boundVars, ntSymbols):
+        """
+            Create a SyGuS grammar. The first non-terminal is treated as the
+            starting non-terminal, so the order of non-terminals matters.
+
+            :param boundVars: The parameters to corresponding
+                              synth-fun/synth-inv.
+            :param ntSymbols: The pre-declaration of the non-terminal symbols.
+            :return: The grammar.
+        """
+        cdef vector[c_Term] bvc
+        cdef vector[c_Term] ntc
+        for bv in boundVars:
+            bvc.push_back((<Term?> bv).cterm)
+        for nt in ntSymbols:
+            ntc.push_back((<Term?> nt).cterm)
+        return _grammar(
+            self,
+            self.ctm.mkGrammar(
+              <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
+
 # ----------------------------------------------------------------------------
 # Plugin
 # ----------------------------------------------------------------------------
@@ -3389,17 +3410,13 @@ cdef class Solver:
                               synth-fun/synth-inv.
             :param ntSymbols: The pre-declaration of the non-terminal symbols.
             :return: The grammar.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
-        cdef vector[c_Term] bvc
-        cdef vector[c_Term] ntc
-        for bv in boundVars:
-            bvc.push_back((<Term?> bv).cterm)
-        for nt in ntSymbols:
-            ntc.push_back((<Term?> nt).cterm)
-        return _grammar(
-            self.tm,
-            self.csolver.mkGrammar(
-              <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
+        return self.tm.mkGrammar(boundVars, ntSymbols)
 
     def declareSygusVar(self, str symbol, Sort sort not None):
         """
