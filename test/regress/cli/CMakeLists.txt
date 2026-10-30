@@ -2261,6 +2261,16 @@ set(regress_0_tests
   regress0/sets/sets-testlemma-ints.smt2
   regress0/sets/sets-testlemma-reals.smt2
   regress0/sets/sets-testlemma.smt2
+  regress0/sets/sets-to-bags-datatype.smt2
+  regress0/sets/sets-to-bags-ho.smt2
+  regress0/sets/sets-to-bags-incremental.smt2
+  regress0/sets/sets-to-bags-mbqi.smt2
+  regress0/sets/sets-to-bags-minus-relaxed.smt2
+  regress0/sets/sets-to-bags-minus-setof.smt2
+  regress0/sets/sets-to-bags-operators.smt2
+  regress0/sets/sets-to-bags-union-relaxed.smt2
+  regress0/sets/sets-to-bags-universe.smt2
+  regress0/sets/sets-to-bags-unsupported.smt2
   regress0/sets/sets-union.smt2
   regress0/sets/sharing-simp.smt2
   regress0/sets/union-1a-flip.smt2
@@ -3838,6 +3848,7 @@ set(regress_1_tests
   regress1/sets/relation_project2.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
+  regress1/sets/sets-to-bags-card.smt2
   regress1/sets/sets-tuple-poly.cvc.smt2
   regress1/sets/sets-uc-wrong.smt2
   regress1/sets/set-comp-sat.smt2
