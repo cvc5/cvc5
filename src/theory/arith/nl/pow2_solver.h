@@ -66,8 +66,11 @@ class Pow2Solver : protected EnvObj
   void checkInitialRefine();
   /** check full refine
    *
-   * This should be a complete check that returns at least one lemma to
-   * rule out the current model.
+   * This check returns at least one lemma to rule out the current model,
+   * with one exception: it is incomplete for pow2 terms whose argument has a
+   * model value too large for (pow2 M(x)) to be evaluated to a constant. In
+   * this case, no value-based refinement lemma is added for that term, and
+   * the model may not be ruled out.
    */
   void checkFullRefine();
 
@@ -110,6 +113,7 @@ class Pow2Solver : protected EnvObj
    * Value-based refinement lemma for i of the form (pow2 x). Returns:
    *   x = M(x) /\ x>= 0 ---->
    *     (pow2 x) = rewrite((pow2 M(x)))
+   * Returns null if rewrite((pow2 M(x))) is not a constant.
    */
   Node valueBasedLemma(Node i);
 }; /* class Pow2Solver */

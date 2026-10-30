@@ -888,9 +888,14 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
           Trace("nl-ext-cms")
               << "  failed due to unknown bound for " << vc << std::endl;
           // should either assign a model bound or eliminate the variable
-          // via substitution
-          DebugUnhandled() << "A variable " << vc
-                           << " is missing a bound/value in the model";
+          // via substitution, unless it is a term whose exact value we do
+          // not set in checkModel.
+          Kind vck = vc.getKind();
+          if (vck != Kind::IAND && vck != Kind::PIAND && vck != Kind::POW2)
+          {
+            DebugUnhandled() << "A variable " << vc
+                             << " is missing a bound/value in the model";
+          }
           return false;
         }
       }
