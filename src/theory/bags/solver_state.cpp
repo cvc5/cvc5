@@ -26,7 +26,9 @@ namespace theory {
 namespace bags {
 
 SolverState::SolverState(Env& env, Valuation val)
-    : TheoryState(env, val), d_partElementSkolems(env.getUserContext())
+    : TheoryState(env, val),
+      d_partElementSkolems(env.getUserContext()),
+      d_skolemDefinitions(env.getUserContext())
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -39,18 +41,30 @@ void SolverState::registerBag(TNode n)
   d_bags.insert(n);
 }
 
-void SolverState::registerCountTerm(Node bag, Node element, Node skolem)
+void SolverState::registerCountTerm(Node bag, Node element, Node multiplicity)
 {
   Assert(bag.getType().isBag() && bag == getRepresentative(bag));
   Assert(CVC5_EQUAL(element.getType(), bag.getType().getBagElementType())
          && element == getRepresentative(element));
-  Assert(skolem.isVar() && skolem.getType().isInteger());
-  std::pair<Node, Node> pair = std::make_pair(element, skolem);
+  // the multiplicity is the count term itself, an integer constant when
+  // rewriting determines it, or a skolem variable
+  Assert(multiplicity.getType().isInteger());
+  std::pair<Node, Node> pair = std::make_pair(element, multiplicity);
   if (std::find(d_bagElements[bag].begin(), d_bagElements[bag].end(), pair)
       == d_bagElements[bag].end())
   {
     d_bagElements[bag].push_back(pair);
   }
+}
+
+bool SolverState::registerSkolemDefinition(Node k)
+{
+  if (d_skolemDefinitions.contains(k))
+  {
+    return false;
+  }
+  d_skolemDefinitions.insert(k);
+  return true;
 }
 
 void SolverState::registerGroupTerm(Node n)
@@ -123,7 +137,15 @@ void SolverState::collectDisequalBagTerms()
       if (d_deq.find(equal) == d_deq.end())
       {
         SkolemManager* sm = d_nm->getSkolemManager();
-        Node skolem = sm->mkSkolemFunction(SkolemId::BAGS_DEQ_DIFF, {A, B});
+        // BAGS_DEQ_DIFF is commutative (see
+        // SkolemManager::isCommutativeSkolemId), but the internal
+        // mkSkolemFunction does not sort its arguments. We sort them here so
+        // that a disequality gets a single witness element, independently of
+        // the order its representatives happen to have in this context.
+        Node first = A <= B ? A : B;
+        Node second = A <= B ? B : A;
+        Node skolem =
+            sm->mkSkolemFunction(SkolemId::BAGS_DEQ_DIFF, {first, second});
         d_deq[equal] = skolem;
       }
     }
