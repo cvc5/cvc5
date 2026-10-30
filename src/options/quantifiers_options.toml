@@ -524,6 +524,9 @@ name   = "Quantifiers"
 [[option.mode.LAST_CALL]]
   name = "last-call"
   help = "Run instantiation at last call effort, after theory combination and and theories report sat."
+[[option.mode.LAST_CALL_DELAY]]
+  name = "last-call-delay"
+  help = "Run instantiation at last call effort, after theory combination and theories report sat, after all other theories have finished."
 
 [[option]]
   name       = "instWhenPhase"

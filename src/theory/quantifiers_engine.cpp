@@ -426,9 +426,9 @@ void QuantifiersEngine::checkInternal(Theory::Effort e,
     Trace("quant-engine-debug") << "Reset model..." << std::endl;
     d_model->reset_round();
 
-    // reset the modules
+    // reset the modules that are checked in this round
     Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
-    for (QuantifiersModule*& mdl : d_modules)
+    for (QuantifiersModule*& mdl : qm)
     {
       Trace("quant-engine-debug2")
           << "Reset " << mdl->identify().c_str() << std::endl;
