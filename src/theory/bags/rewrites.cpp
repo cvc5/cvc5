@@ -38,6 +38,27 @@ const char* toString(Rewrite r)
     case Rewrite::FILTER_CONST: return "FILTER_CONST";
     case Rewrite::FILTER_BAG_MAKE: return "FILTER_BAG_MAKE";
     case Rewrite::FILTER_UNION_DISJOINT: return "FILTER_UNION_DISJOINT";
+    case Rewrite::FILTER_MAP: return "FILTER_MAP";
+    case Rewrite::MAP_MAP: return "MAP_MAP";
+    case Rewrite::AGGREGATE_MAP: return "AGGREGATE_MAP";
+    case Rewrite::FILTER_TRUE: return "FILTER_TRUE";
+    case Rewrite::FILTER_FALSE: return "FILTER_FALSE";
+    case Rewrite::CANONICAL_VARIABLE: return "CANONICAL_VARIABLE";
+    case Rewrite::AGGREGATE_SORT_OUTPUT: return "AGGREGATE_SORT_OUTPUT";
+    case Rewrite::AGGREGATE_NO_KEYS: return "AGGREGATE_NO_KEYS";
+    case Rewrite::FOLD_TUPLE: return "FOLD_TUPLE";
+    case Rewrite::AGGREGATE_DEAD_COLUMNS: return "AGGREGATE_DEAD_COLUMNS";
+    case Rewrite::FOLD_CONSTANT_STEP: return "FOLD_CONSTANT_STEP";
+    case Rewrite::MAP_FIXED_COLUMNS: return "MAP_FIXED_COLUMNS";
+    case Rewrite::SETOF_PROJECTION_SORT: return "SETOF_PROJECTION_SORT";
+    case Rewrite::AGGREGATE_KEYED: return "AGGREGATE_KEYED";
+    case Rewrite::NOT_NULL_COLUMNS: return "NOT_NULL_COLUMNS";
+    case Rewrite::FILTER_NULLABLE_TRUTH: return "FILTER_NULLABLE_TRUTH";
+    case Rewrite::MAP_EQUAL_COLUMNS: return "MAP_EQUAL_COLUMNS";
+    case Rewrite::MAP_IDENTITY: return "MAP_IDENTITY";
+    case Rewrite::FILTER_CONFLICTING_CONSTANTS:
+      return "FILTER_CONFLICTING_CONSTANTS";
+    case Rewrite::PROJECT_TO_MAP: return "PROJECT_TO_MAP";
     case Rewrite::ALL_EMPTY: return "ALL_EMPTY";
     case Rewrite::ALL_BAG_MAKE: return "ALL_BAG_MAKE";
     case Rewrite::ALL_UNION_DISJOINT: return "ALL_UNION_DISJOINT";
