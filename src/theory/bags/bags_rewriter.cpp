@@ -700,9 +700,12 @@ void BagsRewriter::recordKey(const TNode& n) const
 void BagsRewriter::recordNotNull(const TNode& n) const
 {
   // n is the assertion that column k of the table constant X has no null,
-  // (= (bag.filter (lambda ((t (Tuple Int (Nullable Int)))) (= ((_ tuple.select
-  // k) t) (as nullable.null (Nullable Int)))) X) (as bag.empty ..)), either way
-  // round, see recordNotNull in the header
+  // either way round (see recordNotNull in the header):
+  //   (= (bag.filter (lambda ((t (Tuple Int (Nullable Int))))
+  //                    (= ((_ tuple.select k) t)
+  //                       (as nullable.null (Nullable Int))))
+  //                  X)
+  //      (as bag.empty (Bag (Tuple Int (Nullable Int)))))
   for (size_t i = 0; i < 2; i++)
   {
     if (n[i].getKind() != Kind::BAG_EMPTY
@@ -3362,16 +3365,6 @@ BagsRewriteResponse BagsRewriter::rewriteSetofOfMap(const TNode& n) const
   // another order than theirs is the set of the projection onto the sorted
   // columns, under a map that puts them back, which is injective and so
   // commutes with removing duplicates (see rewrites.h)
-  //     (bag.setof (bag.map (lambda ((t T)) (tuple ((_ tuple.select 2) t)
-  //                                                ((_ tuple.select 0) t)))
-  //                         Y))
-  //     --->
-  //     (bag.map (lambda ((r U)) (tuple ((_ tuple.select 1) r)
-  //                                     ((_ tuple.select 0) r)))
-  //              (bag.setof (bag.map (lambda ((t T))
-  //                                    (tuple ((_ tuple.select 0) t)
-  //                                           ((_ tuple.select 2) t)))
-  //                                  Y)))
   Node f = asLambda(n[0][0]);
   Node Y = n[0][1];
   if (f.getKind() != Kind::LAMBDA || f[0].getNumChildren() != 1)

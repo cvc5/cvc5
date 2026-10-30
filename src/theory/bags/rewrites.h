@@ -122,9 +122,8 @@ enum class Rewrite : uint32_t
    */
   EQ_CONST_FALSE,
   /**
-   * An equality whose sides rewrite to one term is true.
-   * (An equality of one term with itself is IDENTICAL_NODES, before its sides
-   * are rewritten.)
+   * An equality whose sides rewrite to one term is true. (An equality of one
+   * term with itself is IDENTICAL_NODES, before its sides are rewritten.)
    *
    * For A : (Bag Int),
    *
