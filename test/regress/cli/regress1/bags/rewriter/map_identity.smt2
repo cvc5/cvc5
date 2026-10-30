@@ -1,4 +1,6 @@
 ; REQUIRES: unrestricted-mode
+; DISABLE-TESTER: cpc
+; (the cpc proof signature has no table.aggr)
 ; MAP_IDENTITY: the map that copies every column in order is its argument, so
 ; the aggregates over the two are one term
 (set-logic HO_ALL)

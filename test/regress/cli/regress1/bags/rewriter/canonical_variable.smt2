@@ -1,4 +1,6 @@
 ; REQUIRES: unrestricted-mode
+; DISABLE-TESTER: cpc
+; (the cpc proof signature has no table.aggr)
 ; CANONICAL_VARIABLE: two filters by lambdas that differ only in the names of
 ; their variables are one term, and so are the aggregates over them
 (set-logic HO_ALL)

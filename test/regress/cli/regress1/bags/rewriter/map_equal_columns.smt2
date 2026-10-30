@@ -1,4 +1,6 @@
 ; REQUIRES: unrestricted-mode
+; DISABLE-TESTER: cpc
+; (the cpc proof signature has no table.aggr)
 ; MAP_EQUAL_COLUMNS: a map over a filter that equates columns 0 and 2 reads
 ; the first of them, so the two maps below, and the aggregates over them,
 ; are one term
