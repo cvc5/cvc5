@@ -154,6 +154,7 @@ name   = "Quantifiers"
   long       = "pre-skolem-quant=MODE"
   type       = "PreSkolemQuantMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "modes to apply skolemization eagerly to bodies of quantified formulas"
   help_mode  = "Modes to apply skolemization eagerly to bodies of quantified formulas."
 [[option.mode.OFF]]

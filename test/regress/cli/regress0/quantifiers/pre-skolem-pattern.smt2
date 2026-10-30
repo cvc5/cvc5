@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --pre-skolem-quant=on
 ; EXPECT: unsat
 (set-logic UF)
