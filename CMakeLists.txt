@@ -114,6 +114,7 @@ cvc5_set_option(USE_PYTHON_VENV ON)
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_CLANG_TIDY       "Enable clang-tidy static analysis during build")
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
+option(ENABLE_API_COVERAGE     "Enable gcov coverage testing of the API sources only")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
@@ -547,6 +548,15 @@ if(ENABLE_COVERAGE)
     EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
     DEPENDENCIES cvc5-bin
   )
+elseif(ENABLE_API_COVERAGE)
+  # Only the API sources are instrumented, see src/CMakeLists.txt.
+  include(CodeCoverage)
+  setup_code_coverage_fastcov(
+    NAME coverage
+    PATH "${PROJECT_BINARY_DIR}"
+    EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
+    DEPENDENCIES cvc5-bin
+  )
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
@@ -862,6 +872,7 @@ print_config("ASan                      " ${ENABLE_ASAN})
 print_config("UBSan                     " ${ENABLE_UBSAN})
 print_config("TSan                      " ${ENABLE_TSAN})
 print_config("Coverage (gcov)           " ${ENABLE_COVERAGE})
+print_config("API coverage (gcov)       " ${ENABLE_API_COVERAGE})
 print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})

@@ -1532,6 +1532,24 @@ add_library(cvc5 $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_
 
 set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
 
+# Instrument only the API sources checked by contrib/uncovered-api-functions.py.
+# All sources that include api/cpp/cvc5_checks.h are instrumented: each of them
+# emits a copy of its inline functions, and the linker may otherwise keep an
+# uninstrumented copy. The parser API sources are instrumented in
+# src/parser/CMakeLists.txt. The link option is public since consumers of the
+# static library must link against the gcov runtime.
+if(ENABLE_API_COVERAGE)
+  set_property(SOURCE
+      api/c/cvc5.cpp
+      api/c/cvc5_c_structs.cpp
+      api/cpp/cvc5.cpp
+      api/cpp/cvc5_skolem_id.cpp
+      api/cpp/cvc5_types.cpp
+      ${PROJECT_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+    APPEND PROPERTY COMPILE_OPTIONS -O0 --coverage)
+  target_link_options(cvc5 PUBLIC --coverage)
+endif()
+
 # Link the shared library
 target_include_directories(cvc5
   PUBLIC
