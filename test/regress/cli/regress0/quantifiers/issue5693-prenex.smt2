@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --full-saturate-quant -i
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

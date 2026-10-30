@@ -26,8 +26,13 @@ InstEvaluatorManager::InstEvaluatorManager(Env& env,
 {
 }
 
-bool InstEvaluatorManager::reset(CVC5_UNUSED Theory::Effort effort)
+bool InstEvaluatorManager::reset(Theory::Effort effort)
 {
+  if (effort == Theory::EFFORT_STANDARD)
+  {
+    // not used at standard effort
+    return true;
+  }
   for (std::pair<const QuantEvPair, std::unique_ptr<InstEvaluator> >& e :
        d_evals)
   {
