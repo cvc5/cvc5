@@ -426,15 +426,21 @@ void QuantifiersEngine::checkInternal(Theory::Effort e,
     Trace("quant-engine-debug") << "Reset model..." << std::endl;
     d_model->reset_round();
 
-    // reset the modules that are checked in this round
-    Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
-    for (QuantifiersModule*& mdl : qm)
+    // Reset the modules. At standard effort, we only reset the modules that
+    // are checked in this round. Otherwise, we reset all modules, since some
+    // modules compute information in their reset that is used by others, e.g.
+    // cegqi marks quantified formulas whose counterexample literal is false as
+    // inactive.
+    std::vector<QuantifiersModule*>& rqm =
+        e == Theory::EFFORT_STANDARD ? qm : d_modules;
+    Trace("quant-engine-debug") << "Resetting modules..." << std::endl;
+    for (QuantifiersModule*& mdl : rqm)
     {
       Trace("quant-engine-debug2")
           << "Reset " << mdl->identify().c_str() << std::endl;
       mdl->reset_round(e);
     }
-    Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
+    Trace("quant-engine-debug") << "Done resetting modules." << std::endl;
     // reset may have added lemmas
     d_qim.doPending();
     if (d_qim.hasSentLemma())
