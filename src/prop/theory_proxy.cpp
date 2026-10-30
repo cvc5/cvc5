@@ -28,6 +28,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/prop_engine.h"
+#include "prop/relevant_preregistrar.h"
 #include "prop/skolem_def_manager.h"
 #include "prop/zero_level_learner.h"
 #include "smt/env.h"
@@ -93,7 +94,14 @@ void TheoryProxy::finishInit(CDCLTSatSolver* ss, CnfStream* cs)
     d_decisionEngine.reset(new decision::DecisionEngineEmpty(d_env));
   }
   // make the theory preregistrar
-  d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
+  if (options().prop.preRegisterMode == options::PreRegisterMode::RELEVANT)
+  {
+    d_prr.reset(new RelevantPreregistrar(d_env, d_theoryEngine, ss, cs));
+  }
+  else
+  {
+    d_prr.reset(new TheoryPreregistrar(d_env, d_theoryEngine, ss, cs));
+  }
   // compute if we need to track skolem definitions
   if (d_prr->needsActiveSkolemDefs())
   {
