@@ -33,7 +33,7 @@ Result SmtDriverDeepRestarts::checkSatNext(preprocessing::AssertionPipeline& ap)
 {
   d_zll.clear();
   d_smt.preprocess(ap);
-  d_smt.assertToInternal(ap);
+  d_smt.assertToInternal(ap, d_hasAssumptions);
   Result result = d_smt.checkSatInternal();
   // check again if we didn't solve and there are learned literals
   if (result.getStatus() == Result::UNKNOWN)

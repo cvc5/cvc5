@@ -1120,7 +1120,11 @@ RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
 {
   Assert(t.getKind() == Kind::STAR_CONTAINS);
 #ifdef CVC5_USE_NORMALIZ
-  // if the vector is zero, return true
+  // The examples use the lambda
+  //   (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+  // of S = {(x, y) | x >= 2 and y = 1}. If the vector is zero, return true,
+  // since 0 is the empty sum:
+  //   (int.star-contains (lambda ...) 0 0) --> true
   std::vector<Node> elements(t.begin() + 1, t.end());
   bool isZero =
       std::all_of(elements.begin(), elements.end(), [](const Node& e) {
@@ -1140,7 +1144,13 @@ RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
   // if the vector is constant, we can evaluate the predicate
   // and see if it holds. Only TheoryArith::ppStaticRewrite checks that the
   // first argument is a lambda, and it may not have run on t yet, see
-  // LiaStarUtils::getVectorPredicate.
+  // LiaStarUtils::getVectorPredicate. For (int.star-contains (lambda ...) 3 1)
+  // the conjunction of
+  //   (and (>= 3 2) (= 1 1)) and (and (and true (>= 3 0)) (>= 1 0))
+  // evaluates to true, since (3, 1) is in S, so t --> true. The vector
+  // (5, 2) = (2, 1) + (3, 1) is in S* but not in S, so for 5 2 the term t
+  // is kept for LiaStarExtension. A vector of S that is not nonnegative is
+  // kept too, e.g. (- 3) for (lambda ((x Int)) (< x 0)).
   if (allConst && !uf::FunctionConst::getDefinition(t[0]).isNull())
   {
     auto [vectorPredicate, nonnegative] =

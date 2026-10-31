@@ -14,7 +14,7 @@
 
 import pytest
 import cvc5
-from cvc5 import Kind, ProofRule
+from cvc5 import AnnotationId, Kind, ProofRule
 
 
 @pytest.fixture
@@ -97,6 +97,21 @@ def test_get_rewrite_rule(tm, solver):
     assert proof.getRewriteRule() is not None
 
 
+def test_get_annotation_id(tm, solver):
+    solver.setOption("proof-annotate-theory-lemmas", "true")
+    proof = create_proof(tm, solver)
+    with pytest.raises(RuntimeError):
+        proof.getAnnotationId()
+    rule = None
+    stack = [proof]
+    while rule != ProofRule.ANNOTATE:
+        proof = stack.pop()
+        rule = proof.getRule()
+        children = proof.getChildren()
+        stack.extend(children)
+    assert proof.getAnnotationId() == AnnotationId.THEORY_LEMMA
+
+
 def test_get_result(tm, solver):
     proof = create_proof(tm, solver)
     proof.getResult()
@@ -112,6 +127,30 @@ def test_get_arguments(tm, solver):
     proof = create_proof(tm, solver)
     proof.getArguments()
 
+
+def test_get_argument_to_string(tm, solver):
+    solver.setOption("proof-annotate-theory-lemmas", "true")
+    proof = create_proof(tm, solver)
+    with pytest.raises(RuntimeError):
+        proof.getArgumentToString(len(proof.getArguments()))
+    found_assume = False
+    found_annotate = False
+    stack = [proof]
+    while stack:
+        proof = stack.pop()
+        args = proof.getArguments()
+        for i in range(len(args)):
+            proof.getArgumentToString(i)
+        if proof.getRule() == ProofRule.ASSUME:
+            found_assume = True
+            assert proof.getArgumentToString(0) == str(args[0])
+        elif proof.getRule() == ProofRule.ANNOTATE:
+            found_annotate = True
+            assert proof.getArgumentToString(0) == "THEORY_LEMMA"
+            assert proof.getArgumentToString(1).startswith("THEORY_")
+        stack.extend(proof.getChildren())
+    assert found_assume
+    assert found_annotate
 
 def test_eq(tm, solver):
     x = create_proof(tm, solver)

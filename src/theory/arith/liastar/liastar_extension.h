@@ -72,7 +72,8 @@ typedef std::vector<Node> Vector;
  *   (= L (and (>= mu 0) (>= l 0) (=> (= mu 0) (= l 0))
  *             (= a (+ (* 2 mu) l)) (= b mu)))
  * Here the implication excludes (1, 0) = 0*(2, 1) + 1*(1, 0), which is not a
- * sum of vectors of S.
+ * sum of vectors of S. The comments in liastar_extension.cpp follow this
+ * example.
  *
  * The skolems witness y in S* when L holds, but when L is false the lemma
  * only says that this one choice of them is not a witness. A negated L is
@@ -83,6 +84,11 @@ typedef std::vector<Node> Vector;
  * which the quantifier instantiation for linear arithmetic handles. For
  * example, (not L) with a = 5 and b = 2 is unsat, since (5, 2) is
  * (2, 1) + (3, 1).
+ *
+ * The reduction requires p to be a Boolean combination of linear integer
+ * constraints over x_1, ..., x_n. It throws a LogicException otherwise, e.g.
+ * for (lambda ((x Int)) (= x (* 2 c))) with a constant c, whose set
+ * depends on c.
  *
  * TheoryArith preregisters terms with preRegisterTerm and calls
  * checkFullEffort at full effort, once the linear solver has a model. See
@@ -157,6 +163,9 @@ class LiaStarExtension : EnvObj
    * @param n a lambda (lambda ((x_1 Int) ... (x_n Int)) p) with p in LIA
    * @return one pair per disjunct: its constraints over the Normaliz
    * coordinates x[1]..x[n], together with the disjunct itself
+   * @throws LogicException if p is not a Boolean combination of linear
+   * integer constraints over x_1, ..., x_n, e.g. if it captures a constant,
+   * see LiaStarUtils::getMatrices
    */
   const std::vector<std::pair<std::vector<std::string>, Node>>
   convertQFLIAToMatrices(Node n);

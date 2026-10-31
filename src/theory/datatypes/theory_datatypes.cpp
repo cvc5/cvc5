@@ -336,8 +336,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 {
   Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
-  // must ensure the type is well founded and has no nested recursion if
-  // the option dtNestedRec is not set to true.
+  // must ensure the type is well founded, is regular, and has no nested
+  // recursion if the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
   if (tn.isDatatype())
   {
@@ -350,6 +350,13 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       throw LogicException(ss.str());
     }
     Trace("dt-expand") << "...well-founded ok" << std::endl;
+    if (!dt.isRegular())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle datatype " << dt.getName() << " that is not regular";
+      throw LogicException(ss.str());
+    }
+    Trace("dt-expand") << "...regular ok" << std::endl;
     if (!options().datatypes.dtNestedRec)
     {
       if (dt.hasNestedRecursion())
