@@ -111,6 +111,11 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                        const std::set<Node>& termSet)
 {
+  if (!hasLiaStarTerms())
+  {
+    // no int.star-contains terms were preregistered in this context
+    return;
+  }
   d_stats.d_checkFullEffortTime.start();
   // The steps 1-4 below are those documented in liastar_extension.h. The
   // examples follow the literal of the class documentation
