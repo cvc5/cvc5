@@ -156,6 +156,14 @@ Cvc5Statistics Cvc5TermManager::export_stats(const cvc5::Statistics& stat)
   return res;
 }
 
+Cvc5Grammar Cvc5TermManager::export_grammar(const cvc5::Grammar& grammar)
+{
+  auto g = std::make_unique<cvc5_grammar_t>(this, grammar);
+  cvc5_grammar_t* res = g.get();
+  d_alloc_grammars.emplace(res, std::move(g));
+  return res;
+}
+
 void Cvc5TermManager::release(cvc5_term_t* term)
 {
   if (term)
@@ -387,6 +395,29 @@ cvc5_stats_t* Cvc5TermManager::copy(cvc5_stats_t* stat)
   return stat;
 }
 
+void Cvc5TermManager::release(cvc5_grammar_t* grammar)
+{
+  if (grammar)
+  {
+    grammar->d_refs -= 1;
+    if (grammar->d_refs == 0)
+    {
+      Assert(d_alloc_grammars.find(grammar) != d_alloc_grammars.end());
+      d_alloc_grammars.erase(grammar);
+      free_if_unused();
+    }
+  }
+}
+
+cvc5_grammar_t* Cvc5TermManager::copy(cvc5_grammar_t* grammar)
+{
+  if (grammar)
+  {
+    grammar->d_refs += 1;
+  }
+  return grammar;
+}
+
 void Cvc5TermManager::release()
 {
   d_alloc_sorts.clear();
@@ -399,6 +430,7 @@ void Cvc5TermManager::release()
   d_alloc_dt_cons_decls.clear();
   d_alloc_stats.clear();
   d_alloc_statistics.clear();
+  d_alloc_grammars.clear();
   free_if_unused();
 }
 
@@ -417,7 +449,8 @@ bool Cvc5TermManager::has_objects() const
          || !d_alloc_ops.empty() || !d_alloc_dts.empty()
          || !d_alloc_dt_conss.empty() || !d_alloc_dt_sels.empty()
          || !d_alloc_dt_decls.empty() || !d_alloc_dt_cons_decls.empty()
-         || !d_alloc_stats.empty() || !d_alloc_statistics.empty();
+         || !d_alloc_stats.empty() || !d_alloc_statistics.empty()
+         || !d_alloc_grammars.empty();
 }
 
 void Cvc5TermManager::free_if_unused()
@@ -462,12 +495,6 @@ Cvc5::~Cvc5()
     res->release();
   }
   d_alloc_proofs.clear();
-  for (cvc5_grammar_t* res : d_alloc_grammars)
-  {
-    res->d_cvc5 = nullptr;
-    res->release();
-  }
-  d_alloc_grammars.clear();
   if (d_output_tag_file_stream.is_open())
   {
     d_output_tag_file_stream.close();
@@ -649,38 +676,6 @@ void Cvc5::deregister(cvc5_proof_t* proof)
 {
   Assert(d_alloc_proofs.find(proof) != d_alloc_proofs.end());
   d_alloc_proofs.erase(proof);
-}
-
-cvc5_grammar_t* cvc5_grammar_t::copy()
-{
-  d_refs += 1;
-  return this;
-}
-
-void cvc5_grammar_t::release()
-{
-  d_refs -= 1;
-  if (d_refs == 0)
-  {
-    if (d_cvc5)
-    {
-      d_cvc5->deregister(this);
-    }
-    delete this;
-  }
-}
-
-Cvc5Grammar Cvc5::export_grammar(const cvc5::Grammar& grammar)
-{
-  cvc5_grammar_t* res = new cvc5_grammar_t(this, grammar);
-  d_alloc_grammars.insert(res);
-  return res;
-}
-
-void Cvc5::deregister(cvc5_grammar_t* grammar)
-{
-  Assert(d_alloc_grammars.find(grammar) != d_alloc_grammars.end());
-  d_alloc_grammars.erase(grammar);
 }
 
 std::vector<cvc5::Term> Cvc5::PluginCpp::check()

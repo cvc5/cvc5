@@ -19,6 +19,7 @@
 #include "libnormaliz/input.h"
 #include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -473,12 +474,41 @@ Node NegatedConstraintConverter::postConvert(Node n)
   }
 }
 
+BooleanEqualityConverter::BooleanEqualityConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
+
+Node BooleanEqualityConverter::postConvert(Node n)
+{
+  bool isXor = n.getKind() == Kind::XOR;
+  if (!isXor && (n.getKind() != Kind::EQUAL || !n[0].getType().isBoolean()))
+  {
+    return n;
+  }
+  // (= p q)   --> (or (and p q) (and (not p) (not q)))
+  // (xor p q) --> (or (and p (not q)) (and (not p) q))
+  // The nodes are created one per statement: the evaluation order of
+  // function arguments is unspecified, and node ids follow the creation
+  // order.
+  Node notP = n[0].notNode();
+  Node notQ = n[1].notNode();
+  Node first = d_nm->mkNode(Kind::AND, n[0], isXor ? notQ : n[1]);
+  Node second = d_nm->mkNode(Kind::AND, notP, isXor ? n[1] : notQ);
+  return d_nm->mkNode(Kind::OR, first, second);
+}
+
 Node LiaStarUtils::removeNot(Node n, Env& e)
 {
   NodeManager* nm = e.getNodeManager();
+  // expand the equalities of Booleans and the xors, which computeNnfNorm
+  // keeps:
+  //   (= p (>= x 1)) --> (or (and p (>= x 1)) (and (not p) (not (>= x 1))))
+  BooleanEqualityConverter equalityConverter(nm);
+  Node expanded = equalityConverter.convert(n);
   // push negations down to the atoms:
   //   (not (or p (>= x 1))) --> (and (not p) (not (>= x 1)))
-  Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, n);
+  Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, expanded);
   // then flip the negated constraints:
   //   (and (not p) (not (>= x 1))) --> (and (not p) (< x 1))
   NegatedConstraintConverter converter(nm);
@@ -737,6 +767,13 @@ LiaStarUtils::getMatrices(Node variables, Node n)
     case Kind::GEQ:
     case Kind::EQUAL:
     {
+      // an equality of non-arithmetic terms is no constraint, e.g. of the
+      // bit-vectors in (= b #x00), or of the Booleans in (= p (>= x 1)),
+      // which toDNF expands
+      if (!n[0].getType().isRealOrInt())
+      {
+        break;
+      }
       // (>= (+ (* 2 x) (* (- 1) z)) (- 5)) over (x y z)
       // --> "2x[1] - x[3] >=  - 5;"
       linear::Polynomial l = linear::Polynomial::parsePolynomial(n[0]);
@@ -781,10 +818,16 @@ LiaStarUtils::getMatrices(Node variables, Node n)
       return pairs;
     }
 
-    // other kinds are not expected in DNF: no matrix
     default: break;
   }
-  return pairs;
+  // Any other atom, e.g. a Boolean variable p, has no constraint. Dropping it
+  // would change the set: (lambda ((x Int)) p) would give no disjunct, as if
+  // p were false.
+  std::stringstream ss;
+  ss << "int.star-contains expects a predicate of linear integer "
+        "constraints over the variables of its lambda, found the atom "
+     << n;
+  throw LogicException(ss.str());
 }
 
 std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
@@ -793,8 +836,6 @@ std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
       << "variables: " << variables << std::endl;
 
   size_t size = variables.getNumChildren();
-  Assert(p.isIntegral()) << p.getNode() << " is expected to be linear"
-                         << std::endl;
   // (+ (* 2 x) (* (- 1) z)) over (x y z) --> "2x[1] - x[3]"
   // (- 5)                                --> " - 5"
   std::stringstream ss;
@@ -828,20 +869,31 @@ std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
     {
       ss << r;
     }
-    // find the variable: p is linear, so the monomial has a single one, and
-    // the i-th variable of `variables` is x[i + 1]
-    for (size_t i = 0; i < size; i++)
+    // the i-th variable of `variables` is x[i + 1]. Any other term has no
+    // coordinate, e.g. a constant a that the lambda captures, or a product
+    // (* x y), whose var list is the product itself. Dropping it would change
+    // the constraint: (= x (* 2 a)) would become x[1] = 2.
+    Node var = monomial.getVarList().getNode();
+    size_t i = 0;
+    while (i < size && variables[i] != var)
     {
-      linear::VarList varList = monomial.getVarList();
-      for (const auto& var : varList)
-      {
-        if (var.getNode() == variables[i])
-        {
-          ss << "x[" << i + 1 << "]";
-        }
-      }
+      i++;
     }
+    if (i == size)
+    {
+      std::stringstream error;
+      error << "int.star-contains expects a predicate of linear integer "
+               "constraints over the variables of its lambda, found the term "
+            << var;
+      throw LogicException(error.str());
+    }
+    ss << "x[" << i + 1 << "]";
   }
+  // checked only now: a term of another type, e.g. a real r, makes p
+  // nonintegral, and it is rejected above. The integer variables left have
+  // integral coefficients in the arithmetic normal form.
+  Assert(p.isIntegral()) << p.getNode() << " is expected to be integral"
+                         << std::endl;
   Trace("liastar-ext-debug") << "polynomial  : " << p.getNode() << std::endl;
   Trace("liastar-ext-debug") << "string : " << ss.str() << std::endl;
   return ss.str();
