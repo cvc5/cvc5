@@ -295,7 +295,15 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     star = rewrite(star);
     Node lemma = atom.eqNode(star);
     Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
-    d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR_EXISTS, nullptr);
+    // With skolems the lemma skolemizes (= L (exists ((mu Int) (l Int)) star)),
+    // so like other skolemization lemmas it needs justification (see
+    // RelevanceManager): a model that makes L true must satisfy the
+    // constraints on mu and l. Otherwise relevance filtering, e.g. --nl-rlv,
+    // could drop them and let the nonlinear model repair move y out of S*.
+    LemmaProperty property =
+        skolems.empty() ? LemmaProperty::NONE : LemmaProperty::NEEDS_JUSTIFY;
+    d_im.addPendingLemma(
+        lemma, InferenceId::ARITH_LIA_STAR_EXISTS, nullptr, false, property);
     ++d_stats.d_starTermsReduced;
     // the lemma for a negated atom, see the class documentation. Without
     // skolems the lemma above is exact and it is not needed, e.g.
