@@ -2867,6 +2867,8 @@ set(regress_1_tests
   regress1/arith/liastar/neg_parity_unsat.smt2
   regress1/arith/liastar/neg_sum_sat.smt2
   regress1/arith/liastar/neg_sum_unsat.smt2
+  regress1/arith/liastar/nonlinear_negated_sat.smt2
+  regress1/arith/liastar/nonlinear_sat.smt2
   regress1/arith/liastar/paper2008.smt2
   regress1/arith/liastar/paper2020.smt2
   regress1/arith/liastar/query026.smt2

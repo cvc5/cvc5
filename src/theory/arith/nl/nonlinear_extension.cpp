@@ -162,6 +162,15 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     Trace("nl-ext-assert-debug")
         << "Loaded " << assertion.d_assertion << " from theory" << std::endl;
     Node lit = assertion.d_assertion;
+    Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+    if (atom.getKind() == Kind::STAR_CONTAINS)
+    {
+      // int.star-contains literals of either polarity are handled by the
+      // liastar extension, which runs before this one at full effort. They
+      // have no arithmetic model value, so neither the strategy nor the model
+      // check may see them.
+      continue;
+    }
     if (useRelevance && !v.isRelevant(lit))
     {
       // not relevant, skip
@@ -220,11 +229,6 @@ std::vector<Node> NonlinearExtension::getUnsatisfiedAssertions(
   std::vector<Node> false_asserts;
   for (const auto& lit : assertions)
   {
-    if (lit.getKind() == Kind::STAR_CONTAINS)
-    {
-      // skip int.star-contains nodes when nonlinear operators are used
-      continue;
-    }
     Node litv = d_model.computeConcreteModelValue(lit);
     Trace("nl-ext-mv-assert") << "M[[ " << lit << " ]] -> " << litv;
     if (litv != d_true)
@@ -316,7 +320,17 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // For the purposes of ensuring we do not introduce inconsistencies for
   // theory combination, we first record the model values for all shared
   // terms, if they exist.
-  const context::CDList<TNode>& sts = d_astate.getSharedTerms();
+  // Only shared terms of arithmetic type have a model value. The function
+  // child of int.star-contains is also a shared term of arithmetic and must be
+  // skipped in both loops below.
+  std::vector<TNode> sts;
+  for (TNode st : d_astate.getSharedTerms())
+  {
+    if (st.getType().isRealOrInt())
+    {
+      sts.push_back(st);
+    }
+  }
   // Reset the model now, as it is used to compute model values for shared
   // terms in the loop below.
   d_model.reset(arithModel);
@@ -325,11 +339,6 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   std::unordered_map<TNode, Node> revSharedTermsPre;
   for (TNode st : sts)
   {
-    if (!st.getType().isRealOrInt())
-    {
-      // e.g. the function child of int.star-contains
-      continue;
-    }
     Node stv = d_model.computeAbstractModelValue(st);
     Trace("nl-model-final")
         << "- shared term value " << st << " = " << stv << std::endl;
