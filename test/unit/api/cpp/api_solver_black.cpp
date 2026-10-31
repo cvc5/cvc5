@@ -1029,7 +1029,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   // try with a grammar, a simple grammar admitting true
   Term truen = d_tm.mkBoolean(true);
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::GT, {x, zero});
   ASSERT_THROW(d_solver->getAbduct(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
@@ -1053,7 +1053,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term sstart = tm.mkVar(tm.getBooleanSort());
   slv.assertFormula(
       tm.mkTerm(Kind::GT, {tm.mkTerm(Kind::ADD, {xx, yy}), zzero}));
-  Grammar gg = slv.mkGrammar({}, {sstart});
+  Grammar gg = tm.mkGrammar({}, {sstart});
   gg.addRule(sstart, tm.mkTrue());
   Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
   ASSERT_NO_THROW(slv.getAbduct(cconj2, gg));
@@ -1127,7 +1127,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   // try with a grammar, a simple grammar admitting true
   Term truen = d_tm.mkBoolean(true);
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::EQUAL, {zero, zero});
   ASSERT_THROW(d_solver->getInterpolant(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
@@ -1146,7 +1146,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   slv.setOption("produce-interpolants", "true");
   Term zzero = tm.mkInteger(0);
   Term sstart = tm.mkVar(tm.getBooleanSort());
-  Grammar gg = slv.mkGrammar({}, {sstart});
+  Grammar gg = tm.mkGrammar({}, {sstart});
   gg.addRule(sstart, tm.mkTrue());
   Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
   ASSERT_NO_THROW(slv.getInterpolant(cconj2, gg));
@@ -2085,29 +2085,6 @@ TEST_F(TestApiBlackSolver, declareSygusVar)
   ASSERT_THROW(slv.declareSygusVar("", d_bool), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, mkGrammar)
-{
-  Term nullTerm;
-  Term boolTerm = d_tm.mkBoolean(true);
-  Term boolVar = d_tm.mkVar(d_bool);
-  Term intVar = d_tm.mkVar(d_int);
-
-  ASSERT_NO_THROW(d_solver->mkGrammar({}, {intVar}));
-  ASSERT_NO_THROW(d_solver->mkGrammar({boolVar}, {intVar}));
-  ASSERT_THROW(d_solver->mkGrammar({}, {}), CVC5ApiException);
-  ASSERT_THROW(d_solver->mkGrammar({}, {nullTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver->mkGrammar({}, {boolTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver->mkGrammar({boolTerm}, {intVar}), CVC5ApiException);
-
-  TermManager tm;
-  Solver slv(tm);
-  Term boolVar2 = tm.mkVar(tm.getBooleanSort());
-  Term intVar2 = tm.mkVar(tm.getIntegerSort());
-  ASSERT_NO_THROW(slv.mkGrammar({boolVar2}, {intVar2}));
-  ASSERT_THROW(slv.mkGrammar({boolVar}, {intVar2}), CVC5ApiException);
-  ASSERT_THROW(slv.mkGrammar({boolVar2}, {intVar}), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, synthFun)
 {
   d_solver->setOption("sygus", "true");
@@ -2119,13 +2096,13 @@ TEST_F(TestApiBlackSolver, synthFun)
   Term start1 = d_tm.mkVar(d_bool);
   Term start2 = d_tm.mkVar(d_int);
 
-  Grammar g1 = d_solver->mkGrammar({x}, {start1});
+  Grammar g1 = d_tm.mkGrammar({x}, {start1});
   ASSERT_NO_THROW(d_solver->synthFun("", {}, d_bool));
   ASSERT_NO_THROW(d_solver->synthFun("f1", {x}, d_bool));
   ASSERT_THROW(d_solver->synthFun("f2", {x}, d_bool, g1), CVC5ApiException);
   g1.addRule(start1, d_tm.mkBoolean(false));
 
-  Grammar g2 = d_solver->mkGrammar({x}, {start2});
+  Grammar g2 = d_tm.mkGrammar({x}, {start2});
   g2.addRule(start2, d_tm.mkInteger(0));
 
   ASSERT_NO_THROW(d_solver->synthFun("", {}, d_bool));
@@ -2364,7 +2341,7 @@ TEST_F(TestApiBlackSolver, findSynth)
 {
   d_solver->setOption("sygus", "true");
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   ASSERT_THROW(d_solver->synthFun("f", {}, d_bool, g), CVC5ApiException);
 
   Term truen = d_tm.mkBoolean(true);
@@ -2383,7 +2360,7 @@ TEST_F(TestApiBlackSolver, findSynth2)
   d_solver->setOption("sygus", "true");
   d_solver->setOption("incremental", "true");
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   Term truen = d_tm.mkBoolean(true);
   Term falsen = d_tm.mkBoolean(false);
   g.addRule(start, truen);

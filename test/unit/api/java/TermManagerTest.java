@@ -1016,6 +1016,36 @@ class TermManagerTest
   }
 
   @Test
+  void mkGrammar() throws CVC5ApiException
+  {
+    Term nullTerm = new Term();
+    Term boolTerm = d_tm.mkBoolean(true);
+    Term boolVar = d_tm.mkVar(d_tm.getBooleanSort());
+    Term intVar = d_tm.mkVar(d_tm.getIntegerSort());
+
+    assertDoesNotThrow(() -> d_tm.mkGrammar(new Term[] {}, new Term[] {intVar}));
+    assertDoesNotThrow(() -> d_tm.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
+
+    assertThrows(CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {boolTerm}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
+
+    TermManager tm = new TermManager();
+    Term boolVar2 = tm.mkVar(tm.getBooleanSort());
+    Term intVar2 = tm.mkVar(tm.getIntegerSort());
+    assertDoesNotThrow(() -> tm.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
+
+    assertThrows(
+        CVC5ApiException.class, () -> tm.mkGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
+    assertThrows(
+        CVC5ApiException.class, () -> tm.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
+  }
+
+  @Test
   void uFIteration()
   {
     Sort intSort = d_tm.getIntegerSort();

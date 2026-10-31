@@ -325,8 +325,15 @@ class SatProofManager : protected EnvObj
    *
    * This and the version below both call the node version of this method,
    * described further below, which actually does the necessary processing.
+   *
+   * The clauseLevel argument, if provided (i.e. not the default -1), is the
+   * user-context level at which the concluded unit remains valid. This is used
+   * so that, if the unit is concluded at a level below the current user level
+   * (e.g. when eagerly justifying a level-zero propagation while a clause is
+   * being removed during a push), its proof is saved and restored across
+   * backtracking rather than being lost.
    */
-  void endResChain(Minisat::Lit lit);
+  void endResChain(Minisat::Lit lit, uint32_t clauseLevel = -1);
   /** Ends resolution chain concluding a clause */
   void endResChain(const Minisat::Clause& clause);
   /** Build refutation proof starting from conflict clause

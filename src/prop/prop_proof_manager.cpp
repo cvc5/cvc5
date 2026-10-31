@@ -307,10 +307,18 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   {
     TheoryProofStepBuffer psb;
     normClauseNode = psb.factorReorderElimDoubleNeg(clauseNode);
-    const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
-    for (const std::pair<Node, ProofStep>& step : steps)
+    // If the normalized clause already has a proof, e.g. if it is the
+    // normalization of an assertion from an outer user level, we do not add
+    // the normalization steps. Otherwise, a step may overwrite in place an
+    // assumption of that proof (e.g. the outer assertion itself), which is not
+    // restored when the current user level is popped.
+    if (!d_proof.hasStep(normClauseNode))
     {
-      d_proof.addStep(step.first, step.second);
+      const std::vector<std::pair<Node, ProofStep>>& steps = psb.getSteps();
+      for (const std::pair<Node, ProofStep>& step : steps)
+      {
+        d_proof.addStep(step.first, step.second);
+      }
     }
   }
   if (TraceIsOn("cnf") && normClauseNode != clauseNode)

@@ -258,7 +258,7 @@ TrustNode TheoryBV::ppStaticRewrite(TNode atom)
       {
         res = RewriteRule<ZeroExtendEqConst>::run<false>(atom);
       }
-      if (res != atom)
+      if (!res.isNull() && res != atom)
       {
         return TrustNode::mkTrustRewrite(atom, res);
       }

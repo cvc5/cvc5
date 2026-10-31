@@ -142,6 +142,13 @@ class SmtDriver : protected EnvObj
    */
   IllegalChecker d_illegalChecker;
   /**
+   * Whether the current call to checkSat has assumptions. If so, the
+   * assertions given to checkSatNext in incremental mode are exactly the
+   * assumptions of that call, since all other assertions were pushed to the
+   * SAT solver when the context was pushed (see notifyPushPre).
+   */
+  bool d_hasAssumptions;
+  /**
    * The utility used for verifying candidate models, when the option
    * modelVerify is enabled.
    */

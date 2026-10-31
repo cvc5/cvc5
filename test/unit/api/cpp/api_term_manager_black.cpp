@@ -1138,6 +1138,28 @@ TEST_F(TestApiBlackTermManager, getNumIndicesForSkolemId)
   ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX), 5);
 }
 
+TEST_F(TestApiBlackTermManager, mkGrammar)
+{
+  Term nullTerm;
+  Term boolTerm = d_tm.mkBoolean(true);
+  Term boolVar = d_tm.mkVar(d_bool);
+  Term intVar = d_tm.mkVar(d_int);
+
+  ASSERT_NO_THROW(d_tm.mkGrammar({}, {intVar}));
+  ASSERT_NO_THROW(d_tm.mkGrammar({boolVar}, {intVar}));
+  ASSERT_THROW(d_tm.mkGrammar({}, {}), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkGrammar({}, {nullTerm}), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkGrammar({}, {boolTerm}), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkGrammar({boolTerm}, {intVar}), CVC5ApiException);
+
+  TermManager tm;
+  Term boolVar2 = tm.mkVar(tm.getBooleanSort());
+  Term intVar2 = tm.mkVar(tm.getIntegerSort());
+  ASSERT_NO_THROW(tm.mkGrammar({boolVar2}, {intVar2}));
+  ASSERT_THROW(tm.mkGrammar({boolVar}, {intVar2}), CVC5ApiException);
+  ASSERT_THROW(tm.mkGrammar({boolVar2}, {intVar}), CVC5ApiException);
+}
+
 TEST_F(TestApiBlackTermManager, uFIteration)
 {
   Sort intSort = d_tm.getIntegerSort();

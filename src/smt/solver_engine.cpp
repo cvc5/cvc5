@@ -1778,7 +1778,9 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 
 UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
 {
-  if (!d_env->getOptions().smt.produceUnsatCores)
+  // note that unsat cores may be computed internally for unsat assumptions
+  // even if produce-unsat-cores is off
+  if (d_env->getOptions().smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
@@ -1885,6 +1887,12 @@ UnsatCore SolverEngine::getUnsatCore()
     return ssolver->getUnsatCore();
   }
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
+  if (!d_env->getOptions().smt.produceUnsatCores)
+  {
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
+        "option is off.");
+  }
   return getUnsatCoreInternal(false);
 }
 

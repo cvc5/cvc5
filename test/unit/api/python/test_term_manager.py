@@ -1165,6 +1165,30 @@ def test_mk_const_array(tm):
         ttm.mkConstArray(ttm.mkArraySort(intSort, intSort), zero)
 
 
+def test_mk_grammar(tm):
+    boolTerm = tm.mkBoolean(True)
+    boolVar = tm.mkVar(tm.getBooleanSort())
+    intVar = tm.mkVar(tm.getIntegerSort())
+
+    tm.mkGrammar([], [intVar])
+    tm.mkGrammar([boolVar], [intVar])
+    with pytest.raises(RuntimeError):
+        tm.mkGrammar([], [])
+    with pytest.raises(RuntimeError):
+        tm.mkGrammar([], [boolTerm])
+    with pytest.raises(RuntimeError):
+        tm.mkGrammar([boolTerm], [intVar])
+
+    ttm = TermManager()
+    boolVar2 = ttm.mkVar(ttm.getBooleanSort())
+    intVar2 = ttm.mkVar(ttm.getIntegerSort())
+    ttm.mkGrammar([boolVar2], [intVar2])
+    with pytest.raises(RuntimeError):
+        ttm.mkGrammar([boolVar], [intVar2])
+    with pytest.raises(RuntimeError):
+        ttm.mkGrammar([boolVar2], [intVar])
+
+
 def test_uf_iteration(tm, solver):
     intSort = tm.getIntegerSort()
     funSort = tm.mkFunctionSort([intSort, intSort], intSort)

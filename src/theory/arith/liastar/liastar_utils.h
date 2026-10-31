@@ -53,6 +53,29 @@ class NegatedConstraintConverter : public NodeConverter
 };
 
 /**
+ * Expands the Boolean equalities and xors of a predicate into and, or and
+ * not, since TheoryBoolRewriter::computeNnfNorm keeps them as connectives
+ * and getMatrices has no constraint for them:
+ *   (= p q)   --> (or (and p q) (and (not p) (not q)))
+ *   (xor p q) --> (or (and p (not q)) (and (not p) q))
+ * For example, (= (>= x 1) (<= x 2)), which holds for x in {1, 2}, becomes
+ *   (or (and (>= x 1) (<= x 2)) (and (not (>= x 1)) (not (<= x 2))))
+ * The disjunctive forms suit the DNF that LiaStarUtils::toDNF builds. Used
+ * by LiaStarUtils::removeNot.
+ */
+class BooleanEqualityConverter : public NodeConverter
+{
+ public:
+  BooleanEqualityConverter(NodeManager* nm);
+  /**
+   * @param n a term whose children are already converted
+   * @return the expansion of n if n is an equality of Booleans or a xor,
+   * otherwise n itself
+   */
+  Node postConvert(Node n) override;
+};
+
+/**
  * Eliminates the ites of a LIA predicate without introducing variables, see
  * LiaStarUtils::removeItes. A Boolean ite is expanded where it occurs:
  *   (ite c p q) --> (or (and p c) (and q (not c)))
@@ -146,9 +169,9 @@ class LiaStarUtils
    * The steps are removeItes, removeNot and distribute, followed by
    * flattening; no new variables are introduced.
    *
-   * @param n a Boolean combination (and, or, not) of linear integer
-   * constraints (<, <=, =, >=, >) and Boolean variables, whose integer terms
-   * may contain ite
+   * @param n a Boolean combination (and, or, not, =>, ite, and = and xor of
+   * Booleans) of linear integer constraints (<, <=, =, >=, >) and Boolean
+   * variables, whose integer terms may contain ite
    * @param e the environment, used for its node manager, rewriter and options
    * @param stats optional statistics collector, may be nullptr
    * @return an equivalent node in DNF: a disjunction of conjunctions of
@@ -283,46 +306,20 @@ class LiaStarUtils
    * @param n a LIA predicate in DNF
    * @return one pair per disjunct of n: its constraints, e.g.
    * {"2x[1] - x[3] >= 5;", "x[2] = 0;"}, together with the disjunct itself
+   * @throws LogicException if an atom of n is not a linear integer
+   * constraint over `variables`, e.g. a Boolean variable p, an equality of
+   * Booleans (= p (>= x 1)), which toDNF expands, an equality of other
+   * non-arithmetic terms (= b #x00), or (= x (* 2 a)) for a term a that is
+   * not in `variables`, see getString
    */
   static std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
       Node variables, Node n);
 
- private:
-  /**
-   * Convert a predicate to negation normal form and eliminate the negated
-   * constraints that remain, since a Normaliz constraint cannot be negated.
-   * The relation is flipped, e.g. (not (>= a b)) becomes (< a b), except
-   * that a negated equality becomes the disjunction (or (> a b) (< a b));
-   * this is why removeNot runs before distribute. A negated Boolean variable
-   * has no relation to flip and is kept:
-   *   (not (or p (>= x 1))) --> (and (not p) (< x 1))
-   *
-   * Both steps are iterative: TheoryBoolRewriter::computeNnfNorm computes
-   * the negation normal form, and NegatedConstraintConverter flips the
-   * negated constraints.
-   *
-   * @param n an ite-free Boolean combination of linear integer constraints
-   * and Boolean variables
-   * @param e the environment, used for its node manager
-   * @return an equivalent node built from and, or, unnegated constraints and
-   * possibly negated Boolean variables
-   */
-  static Node removeNot(Node n, Env& e);
-  /**
-   * Flatten a node and, one level down, each of its children by their own
-   * kinds. expr::algorithm::flatten only merges nesting of the node's own
-   * kind, so the alternating and/or structure left by distribute needs both
-   * levels: (or (and a (and b c)) (or d e)) becomes (or (and a b c) d e).
-   *
-   * @param nm the node manager
-   * @param n the node to flatten
-   * @return the flattened node, or n itself if it has no children
-   */
-  static Node recursiveFlatten(NodeManager* nm, Node n);
   /**
    * Print, under trace tag liastar-ext-smt, an SMT-LIB query asserting that
-   * a step of toDNF changed the meaning of its input. For the step "nnf"
-   * with before (not (>= x 1)) and after (< x 1) it prints
+   * a step changed the meaning of its input, e.g. a step of toDNF or the
+   * reduction of a predicate to LIA in LiaStarExtension::checkFullEffort.
+   * For the step "nnf" with before (not (>= x 1)) and after (< x 1) it prints
    *   (push 1)
    *   (echo "nnf")
    *   (assert
@@ -344,14 +341,56 @@ class LiaStarUtils
    * @param after the output of the step
    */
   static void traceEquivalenceCheck(const char* step, Node before, Node after);
+
+ private:
+  /**
+   * Convert a predicate to negation normal form and eliminate the negated
+   * constraints that remain, since a Normaliz constraint cannot be negated.
+   * The relation is flipped, e.g. (not (>= a b)) becomes (< a b), except
+   * that a negated equality becomes the disjunction (or (> a b) (< a b));
+   * this is why removeNot runs before distribute. A negated Boolean variable
+   * has no relation to flip and is kept:
+   *   (not (or p (>= x 1))) --> (and (not p) (< x 1))
+   * Equalities of Booleans and xors, which the negation normal form keeps,
+   * are expanded first:
+   *   (= p (>= x 1)) --> (or (and p (>= x 1)) (and (not p) (< x 1)))
+   *
+   * All three steps are iterative: BooleanEqualityConverter expands the
+   * equalities and xors, TheoryBoolRewriter::computeNnfNorm computes the
+   * negation normal form, and NegatedConstraintConverter flips the negated
+   * constraints.
+   *
+   * @param n an ite-free Boolean combination (and, or, not, =>, and = and
+   * xor of Booleans) of linear integer constraints and Boolean variables
+   * @param e the environment, used for its node manager
+   * @return an equivalent node built from and, or, unnegated constraints and
+   * possibly negated Boolean variables
+   */
+  static Node removeNot(Node n, Env& e);
+  /**
+   * Flatten a node and, one level down, each of its children by their own
+   * kinds. expr::algorithm::flatten only merges nesting of the node's own
+   * kind, so the alternating and/or structure left by distribute needs both
+   * levels: (or (and a (and b c)) (or d e)) becomes (or (and a b c) d e).
+   *
+   * @param nm the node manager
+   * @param n the node to flatten
+   * @return the flattened node, or n itself if it has no children
+   */
+  static Node recursiveFlatten(NodeManager* nm, Node n);
   /**
    * Print a linear polynomial as a Normaliz symbolic term, mapping the i-th
    * variable of `variables` to the Normaliz coordinate x[i + 1].
    *
    * @param variables a node of Kind BOUND_VAR_LIST giving the coordinate
-   * order; every variable of p must occur in it
-   * @param p an integral linear polynomial
+   * order
+   * @param p a linear polynomial, which is integral if its variables are in
+   * `variables`
    * @return the polynomial as a string, e.g. "2x[1] - x[3] + 5"
+   * @throws LogicException if a monomial of p is neither a constant nor a
+   * multiple of a variable in `variables`, e.g. (* 2 a) for a constant a
+   * captured by a lambda, (* x y), (mod x 2), or a term of another type, as
+   * r in (>= x r) for a real r
    */
   static std::string getString(Node variables, linear::Polynomial& p);
 };

@@ -149,6 +149,11 @@ TEST_F(TestCApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+  {
+    Term x = slv.mkVar(slv.getBooleanSort(), "x");
+    Term start = slv.mkVar(slv.getBooleanSort(), "start");
+    (void)slv.mkGrammar({x}, {start});
+  }
   (void)cvc5::parser::SymbolManager(&slv);
 }
 
@@ -183,7 +188,7 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   d_solver->setOption("sygus", "true");
   (void)d_solver->synthFun("f", {}, d_bool);
   ss << d_solver->checkSynth();
-  ss << d_solver->mkGrammar({}, {d_tm.mkVar(d_bool)});
+  ss << d_tm.mkGrammar({}, {d_tm.mkVar(d_bool)});
   ss << d_solver->checkSat();
 
   DatatypeDecl decl = d_tm.mkDatatypeDecl("list");

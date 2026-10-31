@@ -1,0 +1,21 @@
+; EXPECT: sat
+; EXPECT: unsat
+; EXPECT: unsat
+(set-logic QF_UFLIA)
+(set-option :incremental true)
+(declare-fun p () Bool)
+(declare-fun q () Bool)
+(declare-fun x () Int)
+(declare-fun y () Int)
+(declare-fun z () Int)
+(assert (or (not (< y z)) p))
+(assert (or (= y z) (not p)))
+(assert (< x z))
+(assert (or (= y x) q))
+(check-sat)
+(push 1)
+(assert (< y z))
+(check-sat)
+(pop 1)
+(assert (not q))
+(check-sat)
