@@ -166,9 +166,15 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       // by the SAT solver, corrupting unsat cores and other contexts
       // where the literal does not hold.
       //   (=> L (and (and true (>= a 0)) (>= b 0)))
+      // The lemma is an assumption rather than a valid fact, so like the
+      // split and the reduction below it needs justification (see
+      // RelevanceManager): the model must satisfy it.
       Node lemma = atom.impNode(nonnegative);
-      d_im.addPendingLemma(
-          lemma, InferenceId::ARITH_LIA_STAR_NONNEGATIVE, nullptr);
+      d_im.addPendingLemma(lemma,
+                           InferenceId::ARITH_LIA_STAR_NONNEGATIVE,
+                           nullptr,
+                           false,
+                           LemmaProperty::NEEDS_JUSTIFY);
     }
     // 2. split on p(y):
     //   (or (and (>= a 2) (= b 1)) (not (and (>= a 2) (= b 1))))
@@ -177,7 +183,16 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // context. It only rewrites to the cached true when p(y) is a constant,
     // e.g. for a constant y, which leaves nothing to split.
     Node split = vectorPredicate.orNode(vectorPredicate.notNode());
-    d_im.addPendingLemma(split, InferenceId::ARITH_LIA_STAR_SPLIT, nullptr);
+    // The asserted side of the split certifies step 3 below, which skips a
+    // literal whose p(y) holds in the model, so the split needs justification
+    // (see RelevanceManager): relevance filtering, e.g. --nl-rlv, must keep
+    // p(y) in the nonlinear model check, or the model repair could change a
+    // nonlinear coordinate of y after the literal was skipped.
+    d_im.addPendingLemma(split,
+                         InferenceId::ARITH_LIA_STAR_SPLIT,
+                         nullptr,
+                         false,
+                         LemmaProperty::NEEDS_JUSTIFY);
     d_im.doPendingLemmas();
     if (d_im.hasSentLemma())
     {

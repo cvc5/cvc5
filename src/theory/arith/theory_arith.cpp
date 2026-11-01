@@ -377,6 +377,15 @@ bool TheoryArith::preNotifyFact(
     // finished with it.
     return true;
   }
+  if (atom.getKind() == Kind::EQUAL && !atom[0].getType().isRealOrInt())
+  {
+    // An equality between non-arithmetic shared terms, e.g. the function
+    // children of two int.star-contains atoms. Theory combination asserts it
+    // to every theory sharing both terms, but arithmetic has nothing to say
+    // about it (see notifySharedTerm) and the linear solver cannot normalize
+    // it, so we are finished with it.
+    return true;
+  }
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.
   bool ret = true;

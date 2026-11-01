@@ -2859,6 +2859,7 @@ set(regress_1_tests
   regress1/arith/liastar/disjoint_union.smt2
   regress1/arith/liastar/f2_sat.smt2
   regress1/arith/liastar/f2_unsat.smt2
+  regress1/arith/liastar/function_equalities.smt2
   regress1/arith/liastar/lineality_line_sat.smt2
   regress1/arith/liastar/lineality_line_unsat.smt2
   regress1/arith/liastar/linear_logic.smt2

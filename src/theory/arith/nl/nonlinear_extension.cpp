@@ -163,12 +163,15 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
         << "Loaded " << assertion.d_assertion << " from theory" << std::endl;
     Node lit = assertion.d_assertion;
     Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
-    if (atom.getKind() == Kind::STAR_CONTAINS)
+    if (atom.getKind() == Kind::STAR_CONTAINS
+        || (atom.getKind() == Kind::EQUAL && !atom[0].getType().isRealOrInt()))
     {
-      // int.star-contains literals of either polarity are handled by the
-      // liastar extension, which runs before this one at full effort. They
-      // have no arithmetic model value, so neither the strategy nor the model
-      // check may see them.
+      // Facts of arithmetic that are not arithmetic constraints: literals of
+      // int.star-contains, which the liastar extension handles before this
+      // one at full effort, and equalities between the function-typed shared
+      // terms they introduce, which theory combination asserts to arithmetic.
+      // Neither has an arithmetic model value, so neither the strategy nor the
+      // model check may see them.
       continue;
     }
     if (useRelevance && !v.isRelevant(lit))
