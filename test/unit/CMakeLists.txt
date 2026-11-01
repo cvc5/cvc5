@@ -75,7 +75,13 @@ macro(cvc5_add_unit_test is_white name output_dir)
     target_link_libraries(${name} PUBLIC GTest::GTest)
 
     if(USE_NORMALIZ)
-      # tests that include Normaliz headers need GMP's C++ bindings
+      # theory/arith/theory_arith.h includes the liastar extension, whose
+      # header includes Normaliz, so tests that include it need the Normaliz
+      # headers and, through them, GMP's C++ bindings. Make both available
+      # explicitly: cvc5-obj has the Normaliz include directory privately, and
+      # it is on the include path of a test only when another dependency,
+      # e.g. a downloaded GMP or GTest, happens to live in the same directory.
+      target_include_directories(${name} SYSTEM PRIVATE ${Normaliz_INCLUDE_DIR})
       target_link_libraries(${name} PUBLIC GMPXX)
     endif()
 

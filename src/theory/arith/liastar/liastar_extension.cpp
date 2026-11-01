@@ -313,12 +313,17 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // With skolems the lemma skolemizes (= L (exists ((mu Int) (l Int)) star)),
     // so like other skolemization lemmas it needs justification (see
     // RelevanceManager): a model that makes L true must satisfy the
-    // constraints on mu and l. Otherwise relevance filtering, e.g. --nl-rlv,
-    // could drop them and let the nonlinear model repair move y out of S*.
-    LemmaProperty property =
-        skolems.empty() ? LemmaProperty::NONE : LemmaProperty::NEEDS_JUSTIFY;
-    d_im.addPendingLemma(
-        lemma, InferenceId::ARITH_LIA_STAR_EXISTS, nullptr, false, property);
+    // constraints on mu and l. Without skolems the lemma is exact, e.g.
+    // (= L (= a 0)) for (lambda ((x Int)) false), but star is still the only
+    // constraint that keeps y in S*, and L itself is not an arithmetic
+    // constraint. So the lemma needs justification in both cases: otherwise
+    // relevance filtering, e.g. --nl-rlv, could drop star and let the
+    // nonlinear model repair move y out of S*.
+    d_im.addPendingLemma(lemma,
+                         InferenceId::ARITH_LIA_STAR_EXISTS,
+                         nullptr,
+                         false,
+                         LemmaProperty::NEEDS_JUSTIFY);
     ++d_stats.d_starTermsReduced;
     // the lemma for a negated atom, see the class documentation. Without
     // skolems the lemma above is exact and it is not needed, e.g.
