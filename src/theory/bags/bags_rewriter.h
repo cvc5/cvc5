@@ -388,9 +388,26 @@ class BagsRewriter : public TheoryRewriter
   /**
    * AGGREGATE_MAP, an aggregate of a map as an aggregate of the map's argument.
    * It applies when the map copies a column of its argument to each group
-   * column, so that the groups are the same.
+   * column, so that the groups are the same, and when the value of the step
+   * does not depend on the order of the rows (see orderIndependentStep).
    */
   BagsRewriteResponse rewriteAggregateOfMap(const TNode& n) const;
+  /**
+   * Whether folding the rows of a bag with the step f gives one value in any
+   * order of the rows. Each bag is folded in an order of its own (see
+   * BagReduction::reduceFoldOperator), so a rule that replaces the bag that a
+   * fold or an aggregate folds, as AGGREGATE_MAP does, keeps its value only
+   * for such a step. Each column of the result of f must be a term of the
+   * columns of the row in same, which the rows folded together share, or of
+   * none; its own accumulator; a sum, as the counter
+   * (+ ((_ tuple.select 2) acc) 1) or COUNT(*); a minimum or a maximum; SQL's
+   * SUM, MIN or MAX, which skip nulls, of an argument tested not null or never
+   * null, nonNull the columns of the row that are never null; or one of these
+   * on the rows that a condition reading no accumulator holds of, as COUNT(x).
+   */
+  bool orderIndependentStep(const Node& f,
+                            const std::set<uint32_t>& same,
+                            const std::set<uint32_t>& nonNull) const;
   /**
    * AGGREGATE_SORT_OUTPUT, the columns of an aggregate's rows in one order, the
    * copies of the group columns first, under a map that puts them back.

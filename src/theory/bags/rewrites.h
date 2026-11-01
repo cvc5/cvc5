@@ -209,7 +209,11 @@ enum class Rewrite : uint32_t
   MAP_MAP,
   /**
    * An aggregate of a map groups the rows of the map's argument, by the columns
-   * the map copies to the group columns, and folds them through the map.
+   * the map copies to the group columns, and folds them through the map. It
+   * applies to a step whose value does not depend on the order of the rows, as
+   * sums, counts, minimums, maximums and copies of group columns: the map and
+   * its argument are two bags, which cvc5 may fold in different orders
+   * (see BagsRewriter::orderIndependentStep).
    *
    * For X : (Bag (Tuple Int Int Int)) and
    *   f = (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
