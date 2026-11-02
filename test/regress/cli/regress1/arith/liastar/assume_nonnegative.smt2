@@ -1,6 +1,5 @@
 ; REQUIRES: normaliz
 ; REQUIRES: unrestricted-mode
-; DISABLE-TESTER: proof
 (set-logic HO_ALL)
 (set-info :status unsat)
 (set-option :quiet true)

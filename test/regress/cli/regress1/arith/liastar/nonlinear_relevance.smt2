@@ -1,7 +1,6 @@
 ; REQUIRES: normaliz
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-rlv=always
-; DISABLE-TESTER: proof
 ;
 ; Relevance filtering in the nonlinear extension (--nl-rlv, only available
 ; in quantifier-free logics) keeps the assertions needed to justify the

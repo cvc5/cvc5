@@ -1,6 +1,5 @@
 ; REQUIRES: normaliz
 ; REQUIRES: unrestricted-mode
-; DISABLE-TESTER: proof
 ;
 ; int.star-contains in a linear logic. The liastar extension is independent
 ; of non-linear arithmetic, so HO_UFLIA suffices: UF for the lambda and

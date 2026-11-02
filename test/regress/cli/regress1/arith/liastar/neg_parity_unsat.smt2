@@ -1,6 +1,5 @@
 ; REQUIRES: normaliz
 ; REQUIRES: unrestricted-mode
-; DISABLE-TESTER: proof
 ; Summands may be +2 or -2, so the star closure is exactly the even
 ; integers: an odd value is unreachable in either direction.
 (set-logic HO_ALL)
