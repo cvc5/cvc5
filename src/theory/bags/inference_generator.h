@@ -554,7 +554,17 @@ class InferenceGenerator : protected EnvObj
 
  private:
   /**
-   * generate skolem variable for node n and add pending lemma for the equality
+   * @return true if rules must use the purification skolem of n instead of n,
+   * e.g. in (bag.count e n)
+   */
+  bool needsPurification(const Node& n) const;
+  /**
+   * @return the purification skolem k of n, adding the pending lemma (= k n)
+   * the first time in the current user context
+   */
+  Node assertSkolemDefinition(Node n);
+  /**
+   * @return n, or its purification skolem if needsPurification(n)
    */
   Node registerAndAssertSkolemLemma(Node& n);
   /**

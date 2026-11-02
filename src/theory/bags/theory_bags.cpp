@@ -304,8 +304,17 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     for (std::pair<Node, Node> pair : elements)
     {
       Node key = d_state.getRepresentative(pair.first);
-      Node countSkolem = pair.second;
-      Node value = m->getRepresentative(countSkolem);
+      Node multiplicity = pair.second;
+      Node value = m->getRepresentative(multiplicity);
+      if (!value.isConst())
+      {
+        // A count term such as (bag.count x A) may have no constant
+        // representative yet, and evaluating it needs the value of A, which
+        // is being built. Use the value arithmetic assigned to it.
+        value = d_valuation.getCandidateModelValue(multiplicity);
+      }
+      Assert(value.isConst())
+          << "no model value for the multiplicity " << multiplicity;
       elementReps[key] = value;
     }
     Node constructedBag = BagsUtils::constructBagFromElements(tn, elementReps);
