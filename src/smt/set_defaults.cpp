@@ -484,6 +484,28 @@ void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
     logic.lock();
   }
 
+  if (opts.sets.setsToBags != options::SetsToBagsMode::NONE
+      && logic.isTheoryEnabled(THEORY_SETS))
+  {
+    // Sets are converted to bags, whose multiplicities are integers. Bag
+    // cardinality is reduced to quantified formulas.
+    LogicInfo log(logic.getUnlockedCopy());
+    log.enableTheory(THEORY_BAGS);
+    log.enableQuantifiers();
+    if (!logic.isTheoryEnabled(THEORY_ARITH) || logic.isDifferenceLogic())
+    {
+      log.enableTheory(THEORY_ARITH);
+      log.enableIntegers();
+      log.arithOnlyLinear();
+    }
+    else if (!logic.areIntegersUsed())
+    {
+      log.enableIntegers();
+    }
+    logic = log;
+    logic.lock();
+  }
+
   if (opts.smt.solveBVAsInt != options::SolveBVAsIntMode::OFF)
   {
     if (opts.bv.boolToBitvector != options::BoolToBVMode::OFF)
@@ -1110,6 +1132,11 @@ bool SetDefaults::usesInputConversion(const Options& opts,
     reason << "solveRealAsInt";
     return true;
   }
+  if (opts.sets.setsToBags != options::SetsToBagsMode::NONE)
+  {
+    reason << "setsToBags";
+    return true;
+  }
   return false;
 }
 
@@ -1223,6 +1250,15 @@ bool SetDefaults::incompatibleWithModels(const Options& opts,
   else if (opts.arrays.arraysWeakEquivalence)
   {
     reason << "arrays-weak-equiv";
+    return true;
+  }
+  else if (opts.sets.setsToBags != options::SetsToBagsMode::NONE
+           && !d_isInternalSubsolver)
+  {
+    // There is no conversion from the model values of bags to sets. Internal
+    // subsolvers, e.g. for MBQI, are exempt: they inherit this option, but
+    // their queries are built from the converted assertions and have no sets.
+    reason << "sets-to-bags";
     return true;
   }
   return false;

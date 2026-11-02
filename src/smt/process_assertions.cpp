@@ -21,6 +21,7 @@
 #include "options/ff_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
+#include "options/sets_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -150,6 +151,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     dumpAssertionsToStream(outPA, ap, false);
     outPA << ";; normalize end" << std::endl;
     return true;
+  }
+
+  // Convert sets to bags before rewriting, since the rewriter eliminates set
+  // operators, e.g. set.subset, whose conversion matters for the semantics.
+  if (options().sets.setsToBags != options::SetsToBagsMode::NONE)
+  {
+    applyPass("sets-to-bags", ap);
   }
 
   // Apply substitutions first. If we are non-incremental, this has only the

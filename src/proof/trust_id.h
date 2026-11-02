@@ -94,6 +94,8 @@ enum class TrustId : uint32_t
   PREPROCESS_QUANTIFIERS_PP,
   /** RealToInt preprocessing pass */
   PREPROCESS_REAL_TO_INT,
+  /** SetsToBags preprocessing pass */
+  PREPROCESS_SETS_TO_BAGS,
   /** SortInferencePass preprocessing pass */
   PREPROCESS_SORT_INFER,
   PREPROCESS_SORT_INFER_LEMMA,
