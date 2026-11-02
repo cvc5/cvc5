@@ -46,8 +46,6 @@ void SolverState::registerCountTerm(Node bag, Node element, Node multiplicity)
   Assert(bag.getType().isBag() && bag == getRepresentative(bag));
   Assert(CVC5_EQUAL(element.getType(), bag.getType().getBagElementType())
          && element == getRepresentative(element));
-  // the multiplicity is the count term itself, an integer constant when
-  // rewriting determines it, or a skolem variable
   Assert(multiplicity.getType().isInteger());
   std::pair<Node, Node> pair = std::make_pair(element, multiplicity);
   if (std::find(d_bagElements[bag].begin(), d_bagElements[bag].end(), pair)
@@ -137,11 +135,9 @@ void SolverState::collectDisequalBagTerms()
       if (d_deq.find(equal) == d_deq.end())
       {
         SkolemManager* sm = d_nm->getSkolemManager();
-        // BAGS_DEQ_DIFF is commutative (see
-        // SkolemManager::isCommutativeSkolemId), but the internal
-        // mkSkolemFunction does not sort its arguments. We sort them here so
-        // that a disequality gets a single witness element, independently of
-        // the order its representatives happen to have in this context.
+        // BAGS_DEQ_DIFF is commutative, but mkSkolemFunction does not sort its
+        // arguments. Sort them, as for equal, so that (not (= A B)) gets one
+        // witness whatever the order of its representatives.
         Node first = A <= B ? A : B;
         Node second = A <= B ? B : A;
         Node skolem =

@@ -554,21 +554,17 @@ class InferenceGenerator : protected EnvObj
 
  private:
   /**
-   * @param n a bag term
-   * @return true if a rule that concludes something about (bag.count e n)
-   * needs to purify n first.
+   * @return true if rules must use the purification skolem of n instead of n,
+   * e.g. in (bag.count e n)
    */
   bool needsPurification(const Node& n) const;
   /**
-   * generate the purification skolem of n, and add a pending lemma for its
-   * definition the first time it is generated in the current user context
+   * @return the purification skolem k of n, adding the pending lemma (= k n)
+   * the first time in the current user context
    */
   Node assertSkolemDefinition(Node n);
   /**
-   * @return a term that is equal to n and that is safe to use as the bag
-   * argument of bag.count: n itself when possible, and the purification
-   * skolem of n otherwise, in which case a pending lemma is added for the
-   * equality
+   * @return n, or its purification skolem if needsPurification(n)
    */
   Node registerAndAssertSkolemLemma(Node& n);
   /**

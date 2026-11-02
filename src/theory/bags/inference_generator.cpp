@@ -56,19 +56,14 @@ void InferenceGenerator::registerCountTerm(Node n)
   Node count = rewrite(d_nm->mkNode(Kind::BAG_COUNT, element, bag));
   if (count.isConst())
   {
-    // rewriting determines the multiplicity, so nothing has to be introduced
-    // or asserted for it
+    // e.g. (bag.count x (bag x 2)) rewrites to 2
     d_state->registerCountTerm(bag, element, count);
     return;
   }
-  // What TheoryBags::collectModelValues needs of a multiplicity is a term
-  // whose value it can read. A count term that the equality engine already has
-  // is such a term: it reached the equality engine by being asserted, so the
-  // model has a value for it. A count term that the equality engine does not
-  // have is not, and no lemma makes it one reliably -- asserting a bound on it
-  // does not even make it shared with arithmetic in every case -- so those are
-  // the multiplicities, and the only ones, that need a purification skolem to
-  // turn them into a leaf that arithmetic assigns.
+  // collectModelValues reads the multiplicity from the model, which only has
+  // values for count terms in the equality engine. A count term built by a
+  // rule, e.g. (bag.count (f x) k) where k purifies (bag.map f A), is not
+  // there yet, so we purify it.
   eq::EqualityEngine* ee = d_state->getEqualityEngine();
   Node multiplicity;
   if (ee->hasTerm(count))
@@ -77,7 +72,8 @@ void InferenceGenerator::registerCountTerm(Node n)
   }
   else if (ee->hasTerm(n))
   {
-    // n is congruent to count, so it has the multiplicity of element in bag
+    // e.g. n is (bag.count y B) and count is (bag.count x A), where x and A
+    // are the representatives of y and B
     multiplicity = n;
   }
   else
@@ -92,8 +88,7 @@ void InferenceGenerator::registerCardinalityTerm(Node n)
   Assert(n.getKind() == Kind::BAG_CARD);
   Node bag = d_state->getRepresentative(n[0]);
   Node cardTerm = d_nm->mkNode(Kind::BAG_CARD, bag);
-  // the solver state requires a variable for the cardinality of a bag, so we
-  // always purify here
+  // SolverState::registerCardinalityTerm requires a variable, so always purify
   Node skolem = assertSkolemDefinition(cardTerm);
   d_state->registerCardinalityTerm(cardTerm, skolem);
   Node premise = n[0].eqNode(bag);
@@ -188,54 +183,42 @@ InferInfo InferenceGenerator::bagDisequality(Node equality, Node witness)
 
 bool InferenceGenerator::needsPurification(const Node& n) const
 {
-  // A rule that concludes something about (bag.count e n) purifies n in the
-  // following three cases.
-  // (1) The rewriter would eliminate the count term, in which case the lemma
-  // would rewrite to true, the count term would never be added to the equality
-  // engine, and nothing would be learned about the count terms of the other
-  // members of the equivalence class of n. This happens exactly in the two
-  // cases handled by BagsRewriter::rewriteBagCount: n is a constant bag (e.g.
-  // bag.empty), or n is a bag.make term.
   Kind k = n.getKind();
+  // (1) Rewriting may eliminate (bag.count e n), e.g.
+  //   (bag.count e (as bag.empty (Bag Int)))  --->  0
+  //   (bag.count e (bag e 2))                 --->  2
+  // and the lemma would then say nothing about the terms equal to n.
   if (n.isConst() || k == Kind::BAG_MAKE)
   {
     return true;
   }
-  // (2) n is a bag.map or bag.filter term. TheoryBags::collectModelValues only
-  // constructs values for the equivalence classes that contain a leaf of the
-  // theory, and the class of n may contain none, in which case the model
-  // builder has to evaluate n itself. It cannot do so when the function of n
-  // is uninterpreted, since the value of such a function is only constructed
-  // when it is requested after the model is built (see
-  // TheoryModel::getModelValue). The class of n is then left without a value,
-  // and if n is an element of another bag, the skeleton that
-  // collectModelValues asserts for that bag never becomes a value either. The
-  // purification skolem of n is a leaf, so collectModelValues constructs the
-  // value of the class of n from the count terms of the skolem. The theory
-  // does congruence over these kinds, so (3) does not cover them.
+  // (2) n is (bag.map f A) or (bag.filter p A). collectModelValues skips
+  // classes without a leaf, and the model builder cannot evaluate n while f or
+  // p is uninterpreted, since they only get values after the model is built.
+  // If n is an element of another bag, e.g. (bag (bag.map f A) 1), that bag
+  // never gets a value. Purifying n gives its class a leaf.
   if (k == Kind::BAG_MAP || k == Kind::BAG_FILTER)
   {
     return true;
   }
-  // (3) The theory does not do congruence over the kind of n (see the calls to
-  // addFunctionKind in TheoryBags::finishInit). Of the terms the rules pass
-  // here, these are the applications of the part function in the rules for
-  // table.group.
+  // (3) The theory does no congruence over the kind of n, e.g. (part x) in the
+  // rules for table.group.
   if (!d_state->getEqualityEngine()->isFunctionKind(k))
   {
     return true;
   }
-  // Otherwise we can use n itself: the conclusion then holds in all contexts,
-  // and congruence over bag.count relates it to the count terms of the terms
-  // that are equal to n.
+  // Otherwise use n itself, as in
+  //   (= (bag.count x (bag.union_disjoint A B))
+  //      (+ (bag.count x A) (bag.count x B)))
+  // which holds in all contexts. Congruence over bag.count carries it to the
+  // terms equal to n.
   return false;
 }
 
 Node InferenceGenerator::assertSkolemDefinition(Node n)
 {
   Node skolem = d_sm->mkPurifySkolem(n);
-  // the definition of a purification skolem holds in all contexts, so it is
-  // enough to generate it once per user context
+  // (= skolem n) holds in all contexts, so send it once per user context
   if (d_state->registerSkolemDefinition(skolem))
   {
     Node lemma = n.eqNode(skolem);

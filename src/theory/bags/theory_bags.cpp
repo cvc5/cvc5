@@ -308,12 +308,9 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       Node value = m->getRepresentative(multiplicity);
       if (!value.isConst())
       {
-        // The multiplicity is a count term rather than a variable, so the
-        // model may not represent its class by its value, and it cannot be
-        // evaluated while the values of the bags it reads are still being
-        // built. Its value is the one arithmetic assigned it: a count term is
-        // integer sorted, so it is shared with arithmetic, and
-        // getCandidateModelValue dispatches on the type of the term.
+        // A count term such as (bag.count x A) may have no constant
+        // representative yet, and evaluating it needs the value of A, which
+        // is being built. Use the value arithmetic assigned to it.
         value = d_valuation.getCandidateModelValue(multiplicity);
       }
       Assert(value.isConst())

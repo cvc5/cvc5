@@ -42,20 +42,16 @@ class SolverState : public TheoryState
    * register the pair <element, multiplicity> with the given bag
    * @param bag a representative of type (Bag E)
    * @param element a representative of type E
-   * @param multiplicity an integer term whose value the model determines:
-   * the count term itself, an integer constant when the multiplicity of
-   * element in bag is determined by rewriting, or a skolem variable
+   * @param multiplicity an integer term with a model value: a constant (2 for
+   * (bag.count x (bag x 2))), a count term in the equality engine, or a skolem
    * @pre (= (bag.count element bag) multiplicity)
    */
   void registerCountTerm(Node bag, Node element, Node multiplicity);
 
   /**
-   * Remember that the defining lemma of a purification skolem has been
-   * generated. The definition of a purification skolem holds in all contexts,
-   * so it only needs to be generated once per user context.
    * @param k a purification skolem
-   * @return true if k was not registered before in the current user context,
-   * i.e. if the caller still needs to generate the defining lemma for k.
+   * @return true if the lemma defining k has not been generated yet in the
+   * current user context. Marks it as generated.
    */
   bool registerSkolemDefinition(Node k);
 
@@ -169,10 +165,7 @@ class SolverState : public TheoryState
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_partElementSkolems;
 
-  /**
-   * Purification skolems whose defining lemma has already been generated in
-   * the current user context.
-   */
+  /** Purification skolems whose defining lemma has been generated */
   context::CDHashSet<Node> d_skolemDefinitions;
 
   /**
