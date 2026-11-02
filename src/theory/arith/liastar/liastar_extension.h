@@ -142,6 +142,19 @@ class LiaStarExtension : EnvObj
   /** Whether an int.star-contains term was preregistered in this context. */
   bool hasLiaStarTerms() const { return d_hasLiaStarTerms; }
 
+  /**
+   * Assert the lambda of each asserted int.star-contains literal to the
+   * model. The function child of the atom is not a shared term (see
+   * SharedTermsVisitor::alreadyVisited), so the theory of UF does not assign
+   * it a value. For (int.star-contains k a b), where lambda lifting replaced
+   * the lambda by the skolem k, this asserts
+   *   (= k (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1))))
+   *
+   * @param m the model
+   * @return false if an equality could not be asserted to m
+   */
+  bool collectModelValues(TheoryModel* m);
+
  private:
   /**
    * Collect the facts asserted to arithmetic of the form

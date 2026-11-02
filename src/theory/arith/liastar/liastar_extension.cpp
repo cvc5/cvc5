@@ -89,6 +89,32 @@ void LiaStarExtension::preRegisterTerm(TNode n)
   }
 }
 
+bool LiaStarExtension::collectModelValues(TheoryModel* m)
+{
+  std::vector<Node> assertions;
+  getAssertions(assertions);
+  for (const Node& lit : assertions)
+  {
+    Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+    Node function = atom[0];
+    if (function.isConst())
+    {
+      // a function array constant is its own value
+      continue;
+    }
+    Node lambda = uf::FunctionConst::getDefinition(function);
+    Assert(!lambda.isNull())
+        << "Expected a lambda as the first child of " << atom << std::endl;
+    lambda = rewrite(lambda);
+    if (!m->assertEquality(function, lambda, true))
+    {
+      return false;
+    }
+    m->assertSkeleton(lambda);
+  }
+  return true;
+}
+
 void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("liastar-ext") << "Getting assertions..." << std::endl;

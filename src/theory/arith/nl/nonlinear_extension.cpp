@@ -163,15 +163,12 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
         << "Loaded " << assertion.d_assertion << " from theory" << std::endl;
     Node lit = assertion.d_assertion;
     Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
-    if (atom.getKind() == Kind::STAR_CONTAINS
-        || (atom.getKind() == Kind::EQUAL && !atom[0].getType().isRealOrInt()))
+    if (atom.getKind() == Kind::STAR_CONTAINS)
     {
-      // Facts of arithmetic that are not arithmetic constraints: literals of
-      // int.star-contains, which the liastar extension handles before this
-      // one at full effort, and equalities between the function-typed shared
-      // terms they introduce, which theory combination asserts to arithmetic.
-      // Neither has an arithmetic model value, so neither the strategy nor the
-      // model check may see them.
+      // Literals of int.star-contains are facts of arithmetic but not
+      // arithmetic constraints: the liastar extension handles them before this
+      // one at full effort. They have no arithmetic model value, so neither the
+      // strategy nor the model check may see them.
       continue;
     }
     if (useRelevance && !v.isRelevant(lit))
@@ -323,17 +320,7 @@ void NonlinearExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   // For the purposes of ensuring we do not introduce inconsistencies for
   // theory combination, we first record the model values for all shared
   // terms, if they exist.
-  // Only shared terms of arithmetic type have a model value. The function
-  // child of int.star-contains is also a shared term of arithmetic and must be
-  // skipped in both loops below.
-  std::vector<TNode> sts;
-  for (TNode st : d_astate.getSharedTerms())
-  {
-    if (st.getType().isRealOrInt())
-    {
-      sts.push_back(st);
-    }
-  }
+  const context::CDList<TNode>& sts = d_astate.getSharedTerms();
   // Reset the model now, as it is used to compute model values for shared
   // terms in the loop below.
   d_model.reset(arithModel);
