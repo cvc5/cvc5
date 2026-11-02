@@ -2883,13 +2883,23 @@ bool BagsRewriter::orderIndependentStep(const Node& f,
   auto combines = [&](const Node& c, const Node& a, const Node& b) {
     if (c.getKind() == Kind::APPLY_CONSTRUCTOR && c.getNumChildren() == 1)
     {
-      Node sum = d_nm->mkNode(Kind::ADD, valueOf(a), valueOf(b));
-      return d_rewriter != nullptr && c[0].getType() == sum.getType()
-             && d_rewriter->rewrite(c[0].eqNode(sum)) == d_nm->mkConst(true);
+      Node sum = d_nm->mkNode(Kind::ADD, {valueOf(a), valueOf(b)});
+      TypeNode t = c[0].getType();
+      if (d_rewriter == nullptr || t != sum.getType())
+      {
+        return false;
+      }
+      Node r = d_rewriter->rewrite(c[0].eqNode(sum));
+      return r.isConst() && r.getConst<bool>();
     }
-    return c.getKind() == Kind::ITE
-           && ((c[1] == a && c[2] == b) || (c[1] == b && c[2] == a))
-           && compares(c[0], valueOf(a), valueOf(b));
+    if (c.getKind() != Kind::ITE
+        || !((c[1] == a && c[2] == b) || (c[1] == b && c[2] == a)))
+    {
+      return false;
+    }
+    Node va = valueOf(a);
+    Node vb = valueOf(b);
+    return compares(c[0], va, vb);
   };
   // t of (= (as nullable.null (Nullable Int)) t), either way round
   auto nullTested = [](const Node& c) {
@@ -2950,7 +2960,8 @@ bool BagsRewriter::orderIndependentStep(const Node& f,
       }
     }
     // a sum, (+ own 1), or (nullable.some (+ (nullable.val own) 1))
-    bool nullable = own.getType().isNullable();
+    TypeNode ownType = own.getType();
+    bool nullable = ownType.isNullable();
     if (sumOf(e, own)
         || (nullable && e.getKind() == Kind::APPLY_CONSTRUCTOR
             && e.getNumChildren() == 1 && sumOf(e[0], valueOf(own))))
@@ -2970,7 +2981,7 @@ bool BagsRewriter::orderIndependentStep(const Node& f,
       // with C combining A and own
       Node a = nullTested(e[0]);
       if (nullable && !a.isNull() && e[1] == own && free(a)
-          && a.getType() == own.getType() && e[2].getKind() == Kind::ITE
+          && a.getType() == ownType && e[2].getKind() == Kind::ITE
           && nullTested(e[2][0]) == own && e[2][1] == a
           && combines(e[2][2], a, own))
       {
@@ -3001,13 +3012,14 @@ bool BagsRewriter::orderIndependentStep(const Node& f,
     // test is decided:
     //   (ite (= (as nullable.null (Nullable Int)) own) A C)
     return nullable && nullTested(e[0]) == own && free(e[1])
-           && e[1].getType() == own.getType()
+           && e[1].getType() == ownType
            && nonNullTerm(e[1], x, nonNull, Node::null(), {})
            && combines(e[2], e[1], own);
   };
   Node body = l[1];
-  if (body.getKind() == Kind::APPLY_CONSTRUCTOR && acc.getType().isTuple()
-      && body.getType() == acc.getType())
+  TypeNode accType = acc.getType();
+  if (body.getKind() == Kind::APPLY_CONSTRUCTOR && accType.isTuple()
+      && body.getType() == accType)
   {
     for (size_t q = 0, w = body.getNumChildren(); q < w; q++)
     {
