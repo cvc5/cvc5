@@ -188,24 +188,40 @@ InferInfo InferenceGenerator::bagDisequality(Node equality, Node witness)
 
 bool InferenceGenerator::needsPurification(const Node& n) const
 {
-  // A rule that concludes something about (bag.count e n) needs a purification
-  // skolem for n in the following two cases.
+  // A rule that concludes something about (bag.count e n) purifies n in the
+  // following three cases.
   // (1) The rewriter would eliminate the count term, in which case the lemma
   // would rewrite to true, the count term would never be added to the equality
   // engine, and nothing would be learned about the count terms of the other
   // members of the equivalence class of n. This happens exactly in the two
   // cases handled by BagsRewriter::rewriteBagCount: n is a constant bag (e.g.
   // bag.empty), or n is a bag.make term.
-  if (n.isConst() || n.getKind() == Kind::BAG_MAKE)
+  Kind k = n.getKind();
+  if (n.isConst() || k == Kind::BAG_MAKE)
   {
     return true;
   }
-  // (2) The theory does not do congruence over the kind of n (see the calls to
-  // addFunctionKind in TheoryBags::finishInit). In that case the equivalence
-  // class of n contains no term that model construction can attach the value
-  // of the class to, since TheoryBags::collectModelValues only processes the
-  // leaves of the theory. bag.map and bag.filter fall in this category.
-  if (!d_state->getEqualityEngine()->isFunctionKind(n.getKind()))
+  // (2) n is a bag.map or bag.filter term. TheoryBags::collectModelValues only
+  // constructs values for the equivalence classes that contain a leaf of the
+  // theory, and the class of n may contain none, in which case the model
+  // builder has to evaluate n itself. It cannot do so when the function of n
+  // is uninterpreted, since the value of such a function is only constructed
+  // when it is requested after the model is built (see
+  // TheoryModel::getModelValue). The class of n is then left without a value,
+  // and if n is an element of another bag, the skeleton that
+  // collectModelValues asserts for that bag never becomes a value either. The
+  // purification skolem of n is a leaf, so collectModelValues constructs the
+  // value of the class of n from the count terms of the skolem. The theory
+  // does congruence over these kinds, so (3) does not cover them.
+  if (k == Kind::BAG_MAP || k == Kind::BAG_FILTER)
+  {
+    return true;
+  }
+  // (3) The theory does not do congruence over the kind of n (see the calls to
+  // addFunctionKind in TheoryBags::finishInit). Of the terms the rules pass
+  // here, these are the applications of the part function in the rules for
+  // table.group.
+  if (!d_state->getEqualityEngine()->isFunctionKind(k))
   {
     return true;
   }
