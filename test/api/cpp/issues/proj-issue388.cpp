@@ -28,6 +28,7 @@ int main(void)
   {  // Original
     TermManager tm;
     Solver slv(tm);
+    slv.setOption("nl-ext-initial-sign-lemmas", "false");
     slv.setLogic("QF_NRA");
     Sort s = tm.getRealSort();
     Term t1 = tm.mkConst(s, "a");
