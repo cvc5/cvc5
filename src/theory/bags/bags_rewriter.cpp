@@ -13,8 +13,11 @@
 #include "theory/bags/bags_rewriter.h"
 
 #include "expr/emptybag.h"
+#include "expr/skolem_manager.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/rewriter.h"
+#include "theory/uf/function_const.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 
@@ -89,6 +92,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case Kind::BAG_FOLD: response = postRewriteFold(n); break;
       case Kind::BAG_PARTITION: response = postRewritePartition(n); break;
       case Kind::TABLE_PRODUCT: response = postRewriteProduct(n); break;
+      case Kind::TABLE_PROJECT: response = postRewriteProject(n); break;
       case Kind::TABLE_AGGREGATE: response = postRewriteAggregate(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
@@ -527,8 +531,37 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
       return BagsRewriteResponse(ret, Rewrite::MAP_UNION_DISJOINT);
     }
 
+    case Kind::BAG_MAP:
+    {
+      // (bag.map f (bag.map g A)) = (bag.map (f o g) A)
+      // We only compose lambdas, whose composition is beta-reduced to a
+      // lambda that does not apply f or g. Composing other functions gives a
+      // lambda whose body applies them, which models cannot evaluate.
+      Node f = getLambda(n[0]);
+      Node g = getLambda(n[1][0]);
+      if (f.isNull() || g.isNull())
+      {
+        return BagsRewriteResponse(n, Rewrite::NONE);
+      }
+      TypeNode elementType = g.getType().getArgTypes()[0];
+      Node e = d_nm->mkBoundVar("e", elementType);
+      Node apply = d_nm->mkNode(Kind::APPLY_UF, g, e);
+      Node compose = d_nm->mkNode(Kind::APPLY_UF, f, apply);
+      Node boundVars = d_nm->mkNode(Kind::BOUND_VAR_LIST, {e});
+
+      Node lambda = d_nm->mkNode(Kind::LAMBDA, boundVars, compose);
+      Node ret = d_nm->mkNode(Kind::BAG_MAP, lambda, n[1][1]);
+      return BagsRewriteResponse(ret, Rewrite::MAP_MAP);
+    }
+
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
+}
+
+Node BagsRewriter::getLambda(const Node& f)
+{
+  Node unpurified = SkolemManager::getUnpurifiedForm(f);
+  return uf::FunctionConst::toLambda(unpurified);
 }
 
 BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
@@ -730,6 +763,60 @@ BagsRewriteResponse BagsRewriter::postRewriteProduct(const TNode& n) const
   if (n[0].getKind() == Kind::BAG_EMPTY || n[1].getKind() == Kind::BAG_EMPTY)
   {
     return BagsRewriteResponse(empty, Rewrite::PRODUCT_EMPTY);
+  }
+
+  return BagsRewriteResponse(n, Rewrite::NONE);
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteProject(const TNode& n) const
+{
+  Assert(n.getKind() == Kind::TABLE_PROJECT);
+  TypeNode tableType = n.getType();
+  if (n[0].getKind() == Kind::BAG_EMPTY)
+  {
+    // ((_ table.project i_1 ... i_n) (as bag.empty T1)) = (as bag.empty T2)
+    Node empty = d_nm->mkConst(EmptyBag(tableType));
+    return BagsRewriteResponse(empty, Rewrite::PROJECT_EMPTY);
+  }
+
+  const std::vector<uint32_t>& indices =
+      n.getOperator().getConst<ProjectOp>().getIndices();
+
+  // ((_ table.project 0 1 ... n-1) A) = A
+  TypeNode elementType = n[0].getType().getBagElementType();
+  if (indices.size() == elementType.getTupleLength())
+  {
+    bool isIdentity = true;
+    for (size_t i = 0, size = indices.size(); i < size; i++)
+    {
+      if (indices[i] != i)
+      {
+        isIdentity = false;
+        break;
+      }
+    }
+    if (isIdentity)
+    {
+      return BagsRewriteResponse(n[0], Rewrite::PROJECT_IDENTITY);
+    }
+  }
+
+  // ((_ table.project j_1 ... j_m) ((_ table.project i_1 ... i_n) A)) =
+  //   ((_ table.project i_{j_1} ... i_{j_m}) A)
+  if (n[0].getKind() == Kind::TABLE_PROJECT)
+  {
+    const std::vector<uint32_t>& innerIndices =
+        n[0].getOperator().getConst<ProjectOp>().getIndices();
+    std::vector<uint32_t> composed;
+    composed.reserve(indices.size());
+    for (uint32_t index : indices)
+    {
+      Assert(index < innerIndices.size());
+      composed.push_back(innerIndices[index]);
+    }
+    Node op = d_nm->mkConst(Kind::TABLE_PROJECT_OP, ProjectOp(composed));
+    Node ret = d_nm->mkNode(Kind::TABLE_PROJECT, op, n[0][0]);
+    return BagsRewriteResponse(ret, Rewrite::PROJECT_PROJECT);
   }
 
   return BagsRewriteResponse(n, Rewrite::NONE);
