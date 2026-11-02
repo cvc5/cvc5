@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; Summands may be +1 or -1, so the star closure is all of Z and any
 ; value -- here a negative one -- is reachable.
 (set-logic HO_ALL)

@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; Two different lambdas of the same type are function-typed shared terms of
 ; arithmetic. Theory combination asserts the equalities between them, or with
 ; another function term, to arithmetic as well, which must ignore them: they
