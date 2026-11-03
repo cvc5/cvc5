@@ -766,7 +766,9 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
  * intervals and aggregate consecutive intervals that connect.
  */
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
-    const poly::Polynomial& q, poly::SignCondition sc, std::vector<poly::Value>& roots) const
+    const poly::Polynomial& q,
+    poly::SignCondition sc,
+    std::vector<poly::Value>& roots) const
 {
   roots = isolateRealRoots(q);
 
@@ -892,7 +894,9 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
   return poly::isolate_real_roots(q, d_state->d_assignment);
 }
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
-    const poly::Polynomial& q, poly::SignCondition sc, std::vector<poly::Value>& roots) const
+    const poly::Polynomial& q,
+    poly::SignCondition sc,
+    std::vector<poly::Value>& roots) const
 {
   WarningOnce()
       << "nl-cov::LazardEvaluation is disabled because CoCoA is not available. "

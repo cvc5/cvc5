@@ -112,9 +112,10 @@ class LazardEvaluation
    * resulting polynomials to obtain the intervals. Mimics
    * poly::infeasible_regions, but uses Lazard's evaluation.
    */
-  std::vector<poly::Interval> infeasibleRegions(const poly::Polynomial& q,
-                                                poly::SignCondition sc,
-                                                std::vector<poly::Value>& roots) const;
+  std::vector<poly::Interval> infeasibleRegions(
+      const poly::Polynomial& q,
+      poly::SignCondition sc,
+      std::vector<poly::Value>& roots) const;
 
  private:
   std::unique_ptr<LazardEvaluationState> d_state;
