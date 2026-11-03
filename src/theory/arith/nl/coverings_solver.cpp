@@ -135,7 +135,6 @@ void CoveringsSolver::checkFull()
     Trace("nl-cov") << "UNSAT with MIS: " << mis << std::endl;
     d_eqsubs.postprocessConflict(mis);
     Trace("nl-cov") << "After postprocessing: " << mis << std::endl;
-
     Node lem = nodeManager()->mkAnd(mis).notNode();
     ProofGenerator* proof = d_CAC.closeProof(mis);
     d_im.addPendingLemma(lem, InferenceId::ARITH_NL_COVERING_CONFLICT, proof);

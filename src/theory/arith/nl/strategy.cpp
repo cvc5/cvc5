@@ -111,67 +111,63 @@ bool Strategy::isStrategyInit() const { return !d_interleaving.empty(); }
 void Strategy::initializeStrategy(const Options& options)
 {
   StepSequence one;
-  if (!options.arith.nlCovAlways)
+  if (options.arith.nlICP)
   {
-    if (options.arith.nlICP)
-    {
-      one << InferStep::ICP << InferStep::BREAK;
-    }
-    if (options.arith.nlExt == options::NlExtMode::FULL
-        || options.arith.nlExt == options::NlExtMode::LIGHT)
-    {
-      one << InferStep::NL_INIT << InferStep::BREAK;
-    }
-    if (options.arith.nlExt == options::NlExtMode::FULL)
-    {
-      one << InferStep::TRANS_INIT << InferStep::BREAK;
-      if (options.arith.nlExtSplitZero)
-      {
-        one << InferStep::NL_SPLIT_ZERO << InferStep::BREAK;
-      }
-      one << InferStep::TRANS_INITIAL << InferStep::BREAK;
-    }
-    one << InferStep::IAND_INIT;
-    one << InferStep::IAND_INITIAL << InferStep::BREAK;
-    one << InferStep::PIAND_INIT;
-    one << InferStep::PIAND_INITIAL << InferStep::BREAK;
-    one << InferStep::POW2_INIT;
-    one << InferStep::POW2_INITIAL << InferStep::BREAK;
-    if (options.arith.nlExt == options::NlExtMode::FULL
-        || options.arith.nlExt == options::NlExtMode::LIGHT)
-    {
-      one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
-      one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
-    }
-    if (options.arith.nlExtFlattenMon)
-    {
-      one << InferStep::NL_FLATTEN_MON << InferStep::BREAK;
-    }
-    if (options.arith.nlExt == options::NlExtMode::FULL)
-    {
-      one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
-      one << InferStep::NL_MONOMIAL_MAGNITUDE1 << InferStep::BREAK;
-      one << InferStep::NL_MONOMIAL_MAGNITUDE2 << InferStep::BREAK;
-      one << InferStep::NL_MONOMIAL_INFER_BOUNDS;
-      if (options.arith.nlExtTangentPlanes
-          && options.arith.nlExtTangentPlanesInterleave)
-      {
-        one << InferStep::NL_TANGENT_PLANES;
-      }
-      one << InferStep::BREAK;
-    }
-    one << InferStep::IAND_FULL << InferStep::BREAK;
-    one << InferStep::PIAND_FULL << InferStep::BREAK;
-    one << InferStep::POW2_FULL << InferStep::BREAK;
+    one << InferStep::ICP << InferStep::BREAK;
   }
-  if (options.arith.nlCov || options.arith.nlCovAlways)
+  if (options.arith.nlExt == options::NlExtMode::FULL
+      || options.arith.nlExt == options::NlExtMode::LIGHT)
+  {
+    one << InferStep::NL_INIT << InferStep::BREAK;
+  }
+  if (options.arith.nlExt == options::NlExtMode::FULL)
+  {
+    one << InferStep::TRANS_INIT << InferStep::BREAK;
+    if (options.arith.nlExtSplitZero)
+    {
+      one << InferStep::NL_SPLIT_ZERO << InferStep::BREAK;
+    }
+    one << InferStep::TRANS_INITIAL << InferStep::BREAK;
+  }
+  one << InferStep::IAND_INIT;
+  one << InferStep::IAND_INITIAL << InferStep::BREAK;
+  one << InferStep::PIAND_INIT;
+  one << InferStep::PIAND_INITIAL << InferStep::BREAK;
+  one << InferStep::POW2_INIT;
+  one << InferStep::POW2_INITIAL << InferStep::BREAK;
+  if (options.arith.nlExt == options::NlExtMode::FULL
+      || options.arith.nlExt == options::NlExtMode::LIGHT)
+  {
+    one << InferStep::NL_MONOMIAL_SIGN << InferStep::BREAK;
+    one << InferStep::NL_MONOMIAL_MAGNITUDE0 << InferStep::BREAK;
+  }
+  if (options.arith.nlExtFlattenMon)
+  {
+    one << InferStep::NL_FLATTEN_MON << InferStep::BREAK;
+  }
+  if (options.arith.nlExt == options::NlExtMode::FULL)
+  {
+    one << InferStep::TRANS_MONOTONIC << InferStep::BREAK;
+    one << InferStep::NL_MONOMIAL_MAGNITUDE1 << InferStep::BREAK;
+    one << InferStep::NL_MONOMIAL_MAGNITUDE2 << InferStep::BREAK;
+    one << InferStep::NL_MONOMIAL_INFER_BOUNDS;
+    if (options.arith.nlExtTangentPlanes
+        && options.arith.nlExtTangentPlanesInterleave)
+    {
+      one << InferStep::NL_TANGENT_PLANES;
+    }
+    one << InferStep::BREAK;
+  }
+  one << InferStep::IAND_FULL << InferStep::BREAK;
+  one << InferStep::PIAND_FULL << InferStep::BREAK;
+  one << InferStep::POW2_FULL << InferStep::BREAK;
+  if (options.arith.nlCov)
   {
     one << InferStep::COVERINGS_INIT << InferStep::BREAK;
     one << InferStep::COVERINGS_FULL << InferStep::BREAK;
   }
   if (options.arith.nlExt == options::NlExtMode::FULL
-      && (!options.arith.nlCov || options.arith.nlCovForce)
-      && !options.arith.nlCovAlways)
+      && (!options.arith.nlCov || options.arith.nlCovForce))
   {
     // if nl-cov is not enabled or we forced it to be enabled, then we use
     // heuristic non-terminating techniques as a last resort
