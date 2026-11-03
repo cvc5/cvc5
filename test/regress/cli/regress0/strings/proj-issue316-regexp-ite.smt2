@@ -1,6 +1,6 @@
 ; REQUIRES: unrestricted-mode
-; COMMAND-LINE: --theoryof-mode=type
-; COMMAND-LINE: --theoryof-mode=term
+; COMMAND-LINE: --theoryof-mode=type --no-pp-ite-lift
+; COMMAND-LINE: --theoryof-mode=term --no-pp-ite-lift
 ; SCRUBBER: grep -o "ITE branches of type RegLan are currently not supported"
 ; EXPECT: ITE branches of type RegLan are currently not supported
 ; EXIT: 1 

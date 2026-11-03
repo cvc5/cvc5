@@ -38,6 +38,7 @@
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/ho_elim.h"
 #include "preprocessing/passes/int_to_bv.h"
+#include "preprocessing/passes/ite_lift.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
 #include "preprocessing/passes/learned_rewrite.h"
@@ -152,6 +153,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("non-clausal-simp", callCtor<NonClausalSimp>);
   registerPassInfo("ackermann", callCtor<Ackermann>);
   registerPassInfo("ext-rew-pre", callCtor<ExtRewPre>);
+  registerPassInfo("ite-lift", callCtor<IteLift>);
   registerPassInfo("theory-preprocess", callCtor<TheoryPreprocess>);
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);

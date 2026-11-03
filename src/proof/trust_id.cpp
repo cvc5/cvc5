@@ -43,6 +43,7 @@ const char* toString(TrustId id)
     case TrustId::PREPROCESS_BV_GUASS_LEMMA: return "PREPROCESS_BV_GUASS_LEMMA";
     case TrustId::PREPROCESS_BV_TO_BOOL: return "PREPROCESS_BV_TO_BOOL";
     case TrustId::PREPROCESS_BOOL_TO_BV: return "PREPROCESS_BOOL_TO_BV";
+    case TrustId::PREPROCESS_ITE_LIFT: return "PREPROCESS_ITE_LIFT";
     case TrustId::PREPROCESS_ACKERMANN: return "PREPROCESS_ACKERMANN";
     case TrustId::PREPROCESS_ACKERMANN_LEMMA:
       return "PREPROCESS_ACKERMANN_LEMMA";

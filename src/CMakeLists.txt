@@ -89,6 +89,8 @@ libcvc5_add_sources(
   preprocessing/passes/ho_elim.h
   preprocessing/passes/int_to_bv.cpp
   preprocessing/passes/int_to_bv.h
+  preprocessing/passes/ite_lift.cpp
+  preprocessing/passes/ite_lift.h
   preprocessing/passes/ite_removal.cpp
   preprocessing/passes/ite_removal.h
   preprocessing/passes/ite_simp.cpp
