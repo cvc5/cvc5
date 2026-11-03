@@ -414,6 +414,10 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
 
   // The constant representatives, per equivalence class
   d_constantReps.clear();
+  // The normalized forms computed in a previous call to this method may be
+  // stale, e.g. the normalized form of a lambda depends on the values of the
+  // free variables in its body.
+  d_normalizedCache.clear();
   // The representatives that have been asserted by theories. This includes
   // non-constant "skeletons" that have been specified by parametric theories.
   std::map<Node, Node> assertedReps;

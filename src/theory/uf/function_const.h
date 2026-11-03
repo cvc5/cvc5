@@ -63,13 +63,12 @@ class FunctionConst
    * definition.
    *
    * This is toLambda applied to f after undoing a single purification step.
-   * It is intended for callers that construct applications of f internally.
-   * Lambda lifting replaces a lambda occurring in the input by a purification
-   * skolem k, and HoExtension::ppRewrite maintains the invariant that k is
-   * never applied in preprocessed constraints, by beta-reducing every (k t)
-   * it encounters. Terms that a theory solver builds during solving and
-   * asserts as internal facts never reach ppRewrite, so the solver has to
-   * beta-reduce them itself. This method returns the lambda it should apply.
+   * It is intended for callers that construct applications of f internally
+   * and assert them as internal facts. Such facts are neither preprocessed nor
+   * rewritten, so the caller has to beta-reduce them itself, using the lambda
+   * returned by this method. The term f is typically either a lambda, in which
+   * case this returns f itself, or the skolem of a lambda that was lifted (see
+   * LambdaLift), in which case this returns that lambda.
    */
   static Node getDefinition(TNode f);
   /**
