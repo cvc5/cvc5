@@ -8,7 +8,6 @@ https://link.springer.com/chapter/10.1007/978-3-030-39322-9_17
 ")
 (set-info :status unsat)
 (set-option :dag-thresh 0)
-(set-option :quiet true)
 (declare-fun x1 () Int)
 (declare-fun x2 () Int)
 (declare-fun x3 () Int)

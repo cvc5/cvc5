@@ -80,8 +80,7 @@ void LiaStarExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-dependent simplification. n is, e.g.,
-  // (int.star-contains k a b), where k is the skolem by which lambda lifting
-  // replaced the lambda.
+  // (int.star-contains (lambda ((x Int)) (= x 2)) a).
   if (d_extTheory.hasFunctionKind(n.getKind()))
   {
     d_hasLiaStarTerms = true;
@@ -95,22 +94,12 @@ bool LiaStarExtension::collectModelValues(TheoryModel* m)
   getAssertions(assertions);
   for (const Node& lit : assertions)
   {
-    Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
-    Node function = atom[0];
-    if (function.isConst())
-    {
-      // a function array constant is its own value
-      continue;
-    }
-    Node lambda = uf::FunctionConst::getDefinition(function);
-    Assert(!lambda.isNull())
-        << "Expected a lambda as the first child of " << atom << std::endl;
-    lambda = rewrite(lambda);
-    if (!m->assertEquality(function, lambda, true))
+    bool polarity = lit.getKind() != Kind::NOT;
+    Node atom = polarity ? lit : lit[0];
+    if (!m->assertPredicate(atom, polarity))
     {
       return false;
     }
-    m->assertSkeleton(lambda);
   }
   return true;
 }
@@ -119,8 +108,8 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("liastar-ext") << "Getting assertions..." << std::endl;
   Trace("liastar-ext") << "---------------------" << std::endl;
-  // of the facts (int.star-contains k a b), (>= b 2) and (not (= b 1)) only
-  // the first is collected
+  // of the facts L, (>= b 2) and (not (= b 1)), for L of checkFullEffort,
+  // only the first is collected
   for (auto it = d_arith.facts_begin(); it != d_arith.facts_end(); ++it)
   {
     Node lit = (*it).d_assertion;
@@ -145,9 +134,8 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
   d_stats.d_checkFullEffortTime.start();
   // The steps 1-4 below are those documented in liastar_extension.h. The
   // examples follow the literal of the class documentation
-  //   L = (int.star-contains k a b)
-  // where k is the skolem by which lambda lifting replaced the lambda
-  //   (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+  //   L = (int.star-contains (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+  //                          a b)
   // of S = {(x, y) | x >= 2 and y = 1}, asserted together with (>= b 2).
   // The first call sends the split of step 2, the second, with arithModel
   // {a -> 2, b -> 2}, the reduction lemma of step 4, and later calls find
@@ -171,10 +159,9 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     bool polarity = literal.getKind() != Kind::NOT;
     Node atom = polarity ? literal : literal[0];
     Assert(atom.getKind() == Kind::STAR_CONTAINS);
-    // The first child may have been purified into a skolem by lambda
-    // lifting, and the rewriter may normalize a constant lambda to a
-    // function array constant; recover the lambda from either form:
-    // k --> (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+    // The first child is the lambda, unless the rewriter normalized a
+    // constant lambda to a function array constant, or --no-uf-lazy-ll lifted
+    // it to a skolem. getDefinition recovers the lambda in all three cases.
     Node lambda = uf::FunctionConst::getDefinition(atom[0]);
     Assert(!lambda.isNull())
         << "Expected a lambda as the first child of " << atom << std::endl;
@@ -432,8 +419,8 @@ LiaStarExtension::getCones(
     std::vector<Node>& skolems)
 {
   d_stats.d_getConesTime.start();
-  // The examples follow n = (int.star-contains k a b) for the lambda
-  // (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1))), see checkFullEffort.
+  // The examples follow n = L of checkFullEffort, for the lambda
+  // (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1))).
   std::vector<std::pair<Node, Cone<Integer>>> cones;
   // the vector y = (a b), so dimension is 2 and zeroVector is (0 0)
   std::vector<Node> vec(n.begin() + 1, n.end());

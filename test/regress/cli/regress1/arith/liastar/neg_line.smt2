@@ -5,7 +5,6 @@
 ; is the line itself: (3, -3) lies on it, (3, 2) does not.
 (set-logic HO_ALL)
 (set-option :incremental true)
-(set-option :quiet true)
 (declare-const a Int)
 (declare-const b Int)
 

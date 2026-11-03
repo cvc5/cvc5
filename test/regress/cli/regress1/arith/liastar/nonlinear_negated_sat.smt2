@@ -6,7 +6,6 @@
 ; assertion, which would make the result unknown. Here S = {2} and 3 is odd.
 (set-logic HO_ALL)
 (set-info :status sat)
-(set-option :quiet true)
 (declare-const a Int)
 (declare-const b Int)
 (declare-const c Int)

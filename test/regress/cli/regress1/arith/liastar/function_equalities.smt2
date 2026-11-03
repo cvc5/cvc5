@@ -6,7 +6,6 @@
 ; are not arithmetic constraints. Here S1 = {2}, S2 = {3} and a = b = 6.
 (set-logic HO_ALL)
 (set-info :status sat)
-(set-option :quiet true)
 (declare-const a Int)
 (declare-const b Int)
 (declare-const f (-> Int Bool))

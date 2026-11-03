@@ -234,10 +234,10 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const
   Trace("register::internal") << "SharedTermsVisitor::alreadyVisited("
                               << current << "," << parent << ")" << std::endl;
   Kind k = parent.getKind();
-  // The children k, a, b of (int.star-contains k a b) are neither
-  // preregistered nor shared here. The liastar extension reduces the atom to
-  // lemmas over a and b, which are registered as usual, so the lambda skolem
-  // k never becomes a shared term of arithmetic.
+  // The children of (int.star-contains (lambda ((x Int)) (= x 2)) a) are
+  // neither preregistered nor shared here. The liastar extension reduces the
+  // atom to lemmas over a, which are registered as usual, so the lambda never
+  // becomes a shared term of arithmetic.
   if ((isClosureKind(k) || k == Kind::SEP_STAR || k == Kind::SEP_WAND
        || (k == Kind::SEP_LABEL && current.getType().isBoolean())
        || k == Kind::STAR_CONTAINS)

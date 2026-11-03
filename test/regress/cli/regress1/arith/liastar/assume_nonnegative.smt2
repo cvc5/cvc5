@@ -2,7 +2,6 @@
 ; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :status unsat)
-(set-option :quiet true)
 ; disabling option arith-liastar-assume-nonnegative changes the answer to sat
 (set-option :arith-liastar-assume-nonnegative true)
 (declare-const a Int)

@@ -4,7 +4,6 @@
 ; a positive (and odd) value is unreachable.
 (set-logic HO_ALL)
 (set-info :status unsat)
-(set-option :quiet true)
 (declare-const a Int)
 (assert (= a 3))
 (assert (int.star-contains (lambda ((x Int)) (= x (- 2))) a))

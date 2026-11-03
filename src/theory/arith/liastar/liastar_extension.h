@@ -143,15 +143,14 @@ class LiaStarExtension : EnvObj
   bool hasLiaStarTerms() const { return d_hasLiaStarTerms; }
 
   /**
-   * Assert the lambda of each asserted int.star-contains literal to the
-   * model. The function child of the atom is not a shared term (see
-   * SharedTermsVisitor::alreadyVisited), so the theory of UF does not assign
-   * it a value. For (int.star-contains k a b), where lambda lifting replaced
-   * the lambda by the skolem k, this asserts
-   *   (= k (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1))))
+   * Assert each asserted int.star-contains literal to the model. The model
+   * cannot evaluate an atom whose vector is in S* but not in S, e.g.
+   *   (int.star-contains (lambda ((x Int)) (= x 2)) a)
+   * with a = 4, so it takes the value of the literal, which the lemmas of
+   * checkFullEffort guarantee.
    *
    * @param m the model
-   * @return false if an equality could not be asserted to m
+   * @return false if a literal could not be asserted to m
    */
   bool collectModelValues(TheoryModel* m);
 

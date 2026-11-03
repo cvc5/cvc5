@@ -11,7 +11,6 @@
 ; literals could be dropped from the nonlinear model check.
 (set-logic HO_QF_UFNIA)
 (set-option :incremental true)
-(set-option :quiet true)
 (declare-const a Int)
 
 ; a = 4 is in S*

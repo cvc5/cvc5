@@ -93,8 +93,13 @@ void TheoryArith::finishInit()
     d_valuation.setUnevaluatedKind(Kind::PI);
   }
   // int.star-contains atoms are solved by the liastar extension at full
-  // effort, so the model builder does not need a value for them.
+  // effort, so the model builder does not need a value for them. The model
+  // cannot evaluate them either, e.g.
+  //   (int.star-contains (lambda ((x Int)) (= x 2)) 4)
+  // so their value is that of their asserted literal, see
+  // LiaStarExtension::collectModelValues.
   d_valuation.setIrrelevantKind(Kind::STAR_CONTAINS);
+  d_valuation.setUnevaluatedKind(Kind::STAR_CONTAINS);
   // only need to create nonlinear extension if non-linear logic
   if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
@@ -228,8 +233,8 @@ TrustNode TheoryArith::ppStaticRewrite(TNode atom)
   Kind k = atom.getKind();
   if (k == Kind::STAR_CONTAINS)
   {
-    // This runs before theory preprocessing lambda-lifts the first argument,
-    // which may however have been rewritten to a function array constant.
+    // The rewriter may have normalized a constant lambda to a function array
+    // constant, e.g. (lambda ((x Int)) (= x 5)).
     if (uf::FunctionConst::toLambda(atom[0]).isNull())
     {
       std::stringstream ss;
@@ -495,7 +500,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     return false;
   }
 #ifdef CVC5_USE_NORMALIZ
-  // the lambdas of int.star-contains literals
+  // the values of int.star-contains literals
   if (d_liaStarExtension != nullptr
       && !d_liaStarExtension->collectModelValues(m))
   {
