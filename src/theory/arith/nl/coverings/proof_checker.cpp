@@ -133,10 +133,9 @@ Node CoveringsProofRuleChecker::checkRanEval(const std::vector<Node>& args)
 }
 
 Node CoveringsProofRuleChecker::checkInternal(ProofRule id,
-                                              const std::vector<Node>& children,
+                                              CVC5_UNUSED const std::vector<Node>& children,
                                               const std::vector<Node>& args)
 {
-  (void)children;  // hack for avoiding unused variable error on CI
   if (id == ProofRule::COVER)
   {
     return checkCover(args);
