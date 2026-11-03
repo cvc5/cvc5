@@ -208,7 +208,12 @@ std::shared_ptr<ProofNode> ProofTracer::get_chain_resolution_proof(
         // feature (CaDiCaL's constrain method), which we don't use. The main
         // application is model checking.
         Assert(!clause.antecedents.empty());
-        steps.emplace(cid, steps.at(core[core.size() - 2]));
+        // The assumption clause is derived from its antecedents, which need
+        // not include a derived clause: e.g., two unit clauses of
+        // complementary literals asserted at different user levels are
+        // resolved directly into the clause of their activation literals.
+        steps.emplace(cid,
+                      chain_resolution_step(cid, proxy, pnm, nm, steps, alits));
       }
       else
       {
