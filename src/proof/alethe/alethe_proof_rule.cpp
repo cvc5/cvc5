@@ -72,7 +72,6 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::COVER: return "cover";
     case AletheRule::SGN_INV_ELIM: return "sgn_inv_elim";
     case AletheRule::RAN_EVAL: return "ran_eval";
-    case AletheRule::ARITH_COVERINGS_UNIV: return "arith_coverings_univ";
     case AletheRule::FORALL_INST: return "forall_inst";
     case AletheRule::QNT_JOIN: return "qnt_join";
     case AletheRule::QNT_RM_UNUSED: return "qnt_rm_unused";

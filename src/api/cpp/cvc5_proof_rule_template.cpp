@@ -211,7 +211,6 @@ const char* toString(ProofRule rule)
     case ProofRule::COVER: return "COVER";
     case ProofRule::SGN_INV_ELIM: return "SGN_INV_ELIM";
     case ProofRule::RAN_EVAL: return "RAN_EVAL";
-    case ProofRule::ARITH_COVERINGS_UNIV: return "ARITH_COVERINGS_UNIV";
     //================================================= Finite fields
     case ProofRule::FF_ROOT_BRANCH: return "FF_ROOT_BRANCH";
     case ProofRule::FF_EXHAUST_BRANCH: return "FF_EXHAUST_BRANCH";

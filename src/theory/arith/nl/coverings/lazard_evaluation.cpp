@@ -769,6 +769,7 @@ std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const
 {
   std::vector<poly::Value> roots = isolateRealRoots(q);
+
   // generate all intervals
   // (-infty,root_0), [root_0], (root_0,root_1), ..., [root_m], (root_m,+infty)
   // if q is true over d_assignment x interval (represented by a sample)
@@ -890,7 +891,6 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
       << std::endl;
   return poly::isolate_real_roots(q, d_state->d_assignment);
 }
-
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q, poly::SignCondition sc) const
 {

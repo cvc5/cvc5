@@ -2967,26 +2967,6 @@ bool AletheProofPostprocessCallback::update(Node res,
                            newArgs,
                            *cdp);
     }
-    // The arguments are the variable x and the pairs (p v) of polynomials and
-    // their roots, which are flattened into p1 v1 ... pn vn.
-    case ProofRule::ARITH_COVERINGS_UNIV:
-    {
-      Assert(!args.empty());
-      std::vector<Node> newArgs{args[0]};
-      for (size_t i = 1, size = args.size(); i < size; ++i)
-      {
-        Assert(args[i].getKind() == Kind::SEXPR
-               && args[i].getNumChildren() == 2);
-        newArgs.push_back(args[i][0]);
-        newArgs.push_back(args[i][1]);
-      }
-      return addAletheStep(AletheRule::ARITH_COVERINGS_UNIV,
-                           res,
-                           nm->mkNode(Kind::SEXPR, d_cl, res),
-                           children,
-                           newArgs,
-                           *cdp);
-    }
     // univariate coverings rules, translated directly into their Alethe
     // counterparts
     case ProofRule::SGN_INV_ELIM:

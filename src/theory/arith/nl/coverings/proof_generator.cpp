@@ -749,44 +749,11 @@ void CoveringsProofGenerator::closeUnivProof(std::vector<Node> constraints,
   NodeManager* nm = nodeManager();
   Node mis = nm->mkAnd(constraints);
 
-  if (options().arith.nlCovUnivCoarseProof)
-  {
-    // a single coarse step, subsuming COVER, SGN_INV_INTRO, IS_ROOT_INTRO,
-    // SGN_INV_ELIM, RAN_EVAL and the final resolution
-    std::vector<Node> args{var};
-    std::sort(d_polysRoots.begin(), d_polysRoots.end(), [](auto& a, auto& b) {
-      return a.second < b.second;
-    });
-    auto last = std::unique(
-        d_polysRoots.begin(), d_polysRoots.end(), [](auto& a, auto& b) {
-          return a.second == b.second;
-        });
-    d_polysRoots.erase(last, d_polysRoots.end());
-    for (const auto& pr : d_polysRoots)
-    {
-      Node poly = as_cvc_polynomial_no_pow(nm, pr.first, vm);
-      Node val = value_to_node_no_integer(pr.second, var);
-      args.push_back(nm->mkNode(Kind::SEXPR, poly, val));
-    }
-    // only the constraints on var are needed, the others are satisfiable
-    std::vector<Node> prem;
-    for (const Node& c : constraints)
-    {
-      if (expr::hasSubterm(c, var))
-      {
-        prem.push_back(c);
-      }
-    }
-    d_cdp->addStep(d_false, ProofRule::ARITH_COVERINGS_UNIV, prem, args);
-  }
-  else
-  {
-    normalizeEndpoints();
-    Node coverConc = addCoverStep(var);
-    addIntroSteps(var, vm);
-    addElimSteps(var, vm);
-    addResolutionStep(coverConc);
-  }
+  normalizeEndpoints();
+  Node coverConc = addCoverStep(var);
+  addIntroSteps(var, vm);
+  addElimSteps(var, vm);
+  addResolutionStep(coverConc);
   d_cdp->addStep(mis.notNode(), ProofRule::SCOPE, {d_false}, constraints);
 }
 void CoveringsProofGenerator::addDirect(Node var,

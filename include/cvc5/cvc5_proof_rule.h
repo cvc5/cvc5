@@ -2624,10 +2624,6 @@ enum ENUM(ProofRule)
    */
   EVALUE(RAN_EVAL),
   /**
-   * Proof rule for univariate coverings.
-   */
-  EVALUE(ARITH_COVERINGS_UNIV),
-  /**
    * \verbatim embed:rst:leading-asterisk
    * **Finite Fields -- Polynomial normalization**
    *
