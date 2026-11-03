@@ -15,7 +15,8 @@
 #ifndef CVC5__THEORY__UF__LAMBDA_LIFT_H
 #define CVC5__THEORY__UF__LAMBDA_LIFT_H
 
-#include "context/cdhashmap.h"
+#include <map>
+
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/eager_proof_generator.h"
@@ -30,68 +31,99 @@ namespace uf {
 /**
  * Module for doing various operations on lambdas, including lambda lifting.
  *
- * In the following, we say a "lambda function" is a skolem variable that
- * was introduced as a purification skolem for a lambda term.
+ * Lambdas that are lifted during preprocessing are replaced by a skolem k,
+ * where the lemma forall x. (k x) = (lam x) is added. With --no-uf-lazy-ll,
+ * all lambdas are lifted. By default (--uf-lazy-ll), we only lift lambdas
+ * that may induce circular dependencies in model construction (see
+ * needsLift), and only when they impact model construction. This is the case
+ * when they occur as arguments to APPLY_UF, where they are lifted during
+ * preprocessing, or when they are equated to ordinary functions, where they
+ * are lifted lazily via getLiftLemma. Other lambdas occur directly in
+ * constraints, and are beta-reduced on demand by the higher-order extension
+ * when they are equated to ordinary functions.
  */
 class LambdaLift : protected EnvObj
 {
   typedef context::CDHashSet<Node> NodeSet;
-  typedef context::CDHashMap<Node, Node> NodeNodeMap;
 
  public:
   LambdaLift(Env& env);
 
   /**
-   * process, return the trust node corresponding to the lemma for the lambda
-   * lifting of (lambda) term node, or null if it is not a lambda or if
-   * the lambda lifting lemma has already been generated in this context.
+   * This method has the same contract as Theory::ppRewrite.
+   * Preprocess, return the trust node corresponding to the rewrite. A null
+   * trust node indicates no rewrite.
+   *
+   * With --uf-lazy-ll (the default):
+   * - An APPLY_UF whose arguments include lambdas that need lifting is
+   *   rewritten by replacing these arguments by their skolems, and the lemmas
+   *   defining the skolems and equating them to the lambdas are added to lems.
+   * - A lambda that does not need lifting is not rewritten.
+   * - A lambda that needs lifting is rewritten to the lambda obtained by
+   *   purifying its ground subterms if the latter does not need lifting, in
+   *   which case the purification lemmas are added to lems. Otherwise, it is
+   *   not rewritten.
+   * With --no-uf-lazy-ll, every lambda is rewritten to its skolem, and the
+   * lemma defining the skolem is added to lems.
    */
-  TrustNode lift(Node node);
+  TrustNode ppRewrite(Node node, std::vector<SkolemLemma>& lems);
   /**
    * Do we need to lift the given lambda? This is true if the body of the
    * lambda may induce circular dependencies in model construction.
    */
   bool needsLift(const Node& lam);
-  /** Have we lifted node? */
-  bool isLifted(const Node& node) const;
+  /**
+   * Get the lemma for lifting n, which is a lambda or function array constant
+   * that is equal to the ordinary function f. This lemma is:
+   *   (=> (= f n) (forall x. (= (f x) (n x))))
+   * The term f is not necessarily a variable;
+   * it may be any term of function type that is not a lambda, e.g. a partial
+   * application.
+   * The returned trust node includes a proof when proofs are enabled.
+   */
+  TrustNode getLiftLemma(const Node& f, const Node& n) const;
 
   /**
-   * This method has the same contract as Theory::ppRewrite.
-   * Preprocess, return the trust node corresponding to the rewrite. A null
-   * trust node indicates no rewrite.
+   * Get the lambda for n, which is n itself if it is a lambda, or its lambda
+   * representation if it is a function array constant. Returns null
+   * otherwise.
    */
-  TrustNode ppRewrite(Node node, std::vector<SkolemLemma>& lems);
-
-  /** Get the lambda term for skolem, if skolem is a lambda function. */
-  Node getLambdaFor(TNode skolem) const;
-  /** Is skolem a lambda function? */
-  bool isLambdaFunction(TNode n) const;
-
+  static Node getLambdaFor(TNode n);
   /**
-   * Beta-reduce node. If node is APPLY_UF and its operator is a lambda
-   * function known by this class, then this method returns the beta
-   * reduced version of node. We only beta-reduce the top-most application
-   * in node.
-   *
-   * This method returns the trust node corresponding to the rewrite of node to
-   * the return value. It returns the null trust node if no beta reduction is
-   * possible for node.
+   * Is n a lambda, or a function array constant? Note that the skolem of a
+   * lifted lambda is not a lambda: it is an ordinary function, whose meaning
+   * is given by the lemma that defines it.
    */
-  TrustNode betaReduce(TNode node) const;
+  static bool isLambda(TNode n);
+
   /** Beta-reduce the given lambda on the given arguments. */
   Node betaReduce(TNode lam, const std::vector<Node>& args) const;
 
  private:
   /**
-   * Get assertion for node, which is the axiom defining
+   * Return the trust node corresponding to the lemma for the lambda
+   * lifting of (lambda) term node, or null if it is not a lambda or if
+   * the lambda lifting lemma has already been generated in this context.
+   */
+  TrustNode lift(Node node);
+  /**
+   * Lift lam, returning its skolem, and adding the lemma defining it to lems
+   * if it has not already been lifted. With lazy lifting, also add the equality
+   * between the skolem and lam to connect any remaining inline occurrences.
+   * Returns null if lam cannot be lifted, e.g. if it has free variables. The
+   * same skolem is returned for every call with the same lam.
+   */
+  Node liftToSkolem(const Node& lam, std::vector<SkolemLemma>& lems);
+  /** Make trusted rewrite from n to ret, which is justified by lifting */
+  TrustNode mkTrustedRewrite(const Node& n, const Node& ret) const;
+  /**
+   * Get assertion for node, which is the axiom defining its skolem.
    */
   static Node getAssertionFor(TNode node);
   /** Get skolem for lambda term node, returns its purification skolem */
   static Node getSkolemFor(TNode node);
   /** The nodes we have already returned trust nodes for */
   NodeSet d_lifted;
-  /** Mapping skolems to their lambda */
-  NodeNodeMap d_lambdaMap;
   /** An eager proof generator */
   std::unique_ptr<EagerProofGenerator> d_epg;
   /** A cache for needs lift */
