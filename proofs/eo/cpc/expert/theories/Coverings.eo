@@ -1,5 +1,5 @@
 (include "../../theories/Arith.eo")
-(include "../../programs/UPoly.eo")
+(include "../UPoly.eo")
 
 ; Rules and operators of the univariate cylindrical algebraic coverings calculus.
 
