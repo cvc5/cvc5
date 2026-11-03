@@ -92,6 +92,13 @@ void TheoryUF::finishInit()
   d_valuation.setUnevaluatedKind(Kind::COMBINED_CARDINALITY_CONSTRAINT);
   // distinct should not be sent to the model
   d_valuation.setIrrelevantKind(Kind::DISTINCT);
+  if (logicInfo().isHigherOrder())
+  {
+    // Lambdas should not be sent to the model, unless they are the model
+    // value of their equivalence class, which is determined by the higher-order
+    // extension (see HoExtension::computeRelevantTerms).
+    d_valuation.setIrrelevantKind(Kind::LAMBDA);
+  }
   if (logicInfo().hasCardinalityConstraints())
   {
     if (!options().uf.ufCardExp)

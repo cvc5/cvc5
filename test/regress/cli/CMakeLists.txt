@@ -1145,6 +1145,7 @@ set(regress_0_tests
   regress0/ho/lambda-lift-argument-equality.smt2
   regress0/ho/lambda-lift-circular.smt2
   regress0/ho/lambda-lift-partial.smt2
+  regress0/ho/lambda-model-sets-filter.smt2
   regress0/ho/lambda-test-deps.smt2
   regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2

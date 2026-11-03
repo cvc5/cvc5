@@ -124,8 +124,10 @@ class HoExtension : protected EnvObj
    * Compute relevant terms. For each (f a b) in termSet, we add terms
    * e.g. (@ f a), (@ (@ f a) b) to termSet.
    *
-   * We also remove the lambdas in termSet that are not the model value of
-   * their equivalence class (see d_lambdaEqc). This is required since an
+   * We also add the lambdas that are the model value of their equivalence
+   * class (see d_lambdaEqc). No other lambdas are relevant: LAMBDA is an
+   * irrelevant kind of the model (see TheoryUF::finishInit), so that no
+   * theory sends other lambdas to the model. This is required since an
    * equivalence class of the model cannot contain two syntactically distinct
    * lambda values, and since the model value of a class whose lambda was
    * lazily lifted is determined by the ordinary functions in it.

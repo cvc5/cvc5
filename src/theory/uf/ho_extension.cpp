@@ -258,36 +258,30 @@ void HoExtension::computeRelevantTerms(std::set<Node>& termSet)
     if (t.getKind() == Kind::APPLY_UF)
     {
       Node ht = TheoryUfRewriter::getHoApplyForApplyUf(t);
-      // Also add all subterms before filtering lambdas below, since an
-      // argument may be a lambda that is not a model value.
+      // Also add all subterms. We skip arguments that are lambdas, since
+      // lambdas are only relevant if they are model values (see below).
       while (ht.getKind() == Kind::HO_APPLY)
       {
         termSet.insert(ht);
-        termSet.insert(ht[1]);
+        if (ht[1].getKind() != Kind::LAMBDA)
+        {
+          termSet.insert(ht[1]);
+        }
         ht = ht[0];
       }
     }
   }
-  // The only relevant lambdas are those we use as model values for their
-  // equivalence class, as computed by checkLazyLambda. Other lambdas are
-  // either equal to these, or are in equivalence classes whose model value is
-  // determined by ordinary functions. Including them would lead to
-  // syntactically distinct lambdas in the same equivalence class of the model.
-  std::unordered_set<Node> lamReps;
+  // LAMBDA is an irrelevant kind of the model (see TheoryUF::finishInit), and
+  // hence no theory includes lambdas in its relevant terms by default. The
+  // only relevant lambdas are those we use as model values for their
+  // equivalence class, as computed by checkLazyLambda, which we add here.
+  // Other lambdas are either equal to these, or are in equivalence classes
+  // whose model value is determined by ordinary functions. Including them
+  // would lead to syntactically distinct lambdas in the same equivalence class
+  // of the model.
   for (const std::pair<const Node, Node>& p : d_lambdaEqc)
   {
-    lamReps.insert(p.second);
-  }
-  for (std::set<Node>::iterator it = termSet.begin(); it != termSet.end();)
-  {
-    if (it->getKind() == Kind::LAMBDA && lamReps.find(*it) == lamReps.end())
-    {
-      it = termSet.erase(it);
-    }
-    else
-    {
-      ++it;
-    }
+    termSet.insert(p.second);
   }
 }
 
