@@ -132,9 +132,10 @@ Node CoveringsProofRuleChecker::checkRanEval(const std::vector<Node>& args)
   return nm->mkNode(Kind::EQUAL, var, r).notNode();
 }
 
-Node CoveringsProofRuleChecker::checkInternal(ProofRule id,
-                                              CVC5_UNUSED const std::vector<Node>& children,
-                                              const std::vector<Node>& args)
+Node CoveringsProofRuleChecker::checkInternal(
+    ProofRule id,
+    CVC5_UNUSED const std::vector<Node>& children,
+    const std::vector<Node>& args)
 {
   if (id == ProofRule::COVER)
   {
