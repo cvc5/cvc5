@@ -403,6 +403,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
                            deepRestartMode,
                            options::DeepRestartMode::NONE,
                            "internal subsolver");
+    // Internal subsolvers do not eliminate subtypes from their assertions
+    // (see SolverEngine::eliminateSubtypesForProof), hence they must not
+    // eliminate subtypes from their proofs either, or else the assumptions of
+    // their proofs would not match their assertions.
+    if (opts.smt.produceProofs)
+    {
+      SET_AND_NOTIFY(proof, proofElimSubtypes, false, "internal subsolver");
+    }
   }
 }
 
@@ -850,14 +858,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     }
     SET_AND_NOTIFY_VAL_SYM(
         arith, arithStandardCheckVarOrderPivots, varOrderPivots, "logic");
-  }
-  // DIO solver typically makes things worse for quantifier-free logics with
-  // non-linear arithmetic.
-  if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
-      && !logic.isLinear() && !opts.arith.arithDioSolverWasSetByUser)
-  {
-    SET_AND_NOTIFY(
-        arith, arithDioSolver, false, "quantifier-free non-linear logic");
   }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {

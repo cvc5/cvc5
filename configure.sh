@@ -53,6 +53,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --muzzle                 complete silence (no non-result output)
   --clang-tidy             enable clang-tidy static analysis during build
   --coverage               support for gcov coverage testing
+  --api-coverage           support for gcov coverage testing of the API only
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
   --slow-tests             enable slow (exhaustive) unit tests
@@ -132,6 +133,7 @@ make_abs_path() {
 
 buildtype=default
 
+api_coverage=default
 asan=default
 assertions=default
 auto_download=default
@@ -255,6 +257,9 @@ do
 
     --coverage) coverage=ON;;
     --no-coverage) coverage=OFF;;
+
+    --api-coverage) api_coverage=ON;;
+    --no-api-coverage) api_coverage=OFF;;
 
     --cryptominisat) cryptominisat=ON;;
     --no-cryptominisat) cryptominisat=OFF;;
@@ -473,6 +478,8 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
   && cmake_opts="$cmake_opts -DENABLE_CLANG_TIDY=$clang_tidy"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
+[ $api_coverage != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_API_COVERAGE=$api_coverage"
 [ $debug_symbols != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols"
 [ $debug_context_mm != default ] \

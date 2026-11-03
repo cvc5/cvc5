@@ -748,6 +748,7 @@ set(regress_0_tests
   regress0/cores/issue4971-1.smt2
   regress0/cores/issue4971-2.smt2
   regress0/cores/issue4971-3.smt2
+  regress0/cores/issue13116-sat-proof-pop.smt2
   regress0/cores/issue5079.smt2
   regress0/cores/issue5234-uc-ua.smt2
   regress0/cores/issue5238.smt2
@@ -800,10 +801,13 @@ set(regress_0_tests
   regress0/datatypes/dt-cons-eq-simple.smt2
   regress0/datatypes/dt-different-params.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
+  regress0/datatypes/dt-nonregular-mutual.smt2
+  regress0/datatypes/dt-nonregular.smt2
   regress0/datatypes/dt-param-2.6-print.smt2
   regress0/datatypes/dt-param-2.6.smt2
   regress0/datatypes/dt-param-card4-bool-sat.smt2
   regress0/datatypes/dt-param-simple-unsat.smt2
+  regress0/datatypes/dt-regular-nested-param.smt2
   regress0/datatypes/dt-sel-2.6.smt2
   regress0/datatypes/empty_tuprec.cvc.smt2
   regress0/datatypes/eq-clash-rec-find.smt2
@@ -1138,6 +1142,10 @@ set(regress_0_tests
   regress0/ho/lambda-cycle.smt2
   regress0/ho/lambda-elim-sat.smt2
   regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/lambda-lift-argument-equality.smt2
+  regress0/ho/lambda-lift-circular.smt2
+  regress0/ho/lambda-lift-partial.smt2
+  regress0/ho/lambda-model-sets-filter.smt2
   regress0/ho/lambda-test-deps.smt2
   regress0/ho/lambda-test-deps-simple.smt2
   regress0/ho/lazy-lambda-model.smt2
@@ -1682,6 +1690,7 @@ set(regress_0_tests
   regress0/proofs/issue12255-cyclic-arith-rcons.smt2
   regress0/proofs/issue12574-check-proofs-int-to-bv.smt2
   regress0/proofs/issue12604-dt-tester-merge.smt2
+  regress0/proofs/issue12630-timeout-core-mixed-arith.smt2
   regress0/proofs/issue12631-check-proofs-arith.smt2
   regress0/proofs/issue12670-dt-ite-check-proofs.smt2
   regress0/proofs/issue12683-check-proofs-arith-mixed.smt2
@@ -1690,8 +1699,12 @@ set(regress_0_tests
   regress0/proofs/issue12746-bv-invert-solve-mult.smt2
   regress0/proofs/issue12708-check-proofs-arith-cm.smt2
   regress0/proofs/issue12709-open-sat-proof.smt2
+  regress0/proofs/issue12761-incremental-arith-open-proof.smt2
   regress0/proofs/issue12884-incremental-lemma-proof.smt2
+  regress0/proofs/issue12884-sat-assuming-open-proof.smt2
   regress0/proofs/issue12942-cpc-alpha-eq.smt2
+  regress0/proofs/issue13126-pop-factoring-assume.smt2
+  regress0/proofs/issue13068-proof-log-lemma-order.smt2
   regress0/proofs/issue13091-incremental-scoped-assump.smt2
   regress0/proofs/issue8983-trust-subs.smt2
   regress0/proofs/issue9156-doublePropProof.smt2
@@ -1892,6 +1905,7 @@ set(regress_0_tests
   regress0/quantifiers/floor.smt2
   regress0/quantifiers/global_negate.smt2
   regress0/quantifiers/horn-ground-pre-post.smt2
+  regress0/quantifiers/inst-when-last-call-delay.smt2
   regress0/quantifiers/is-even-pred.smt2
   regress0/quantifiers/is-int.smt2
   regress0/quantifiers/issue1805.smt2
@@ -1946,6 +1960,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-delta.smt2
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
+  regress0/quantifiers/pre-skolem-pattern.smt2
   regress0/quantifiers/proj-issue152-2-non-std-nterm-ext-rew.smt2
   regress0/quantifiers/proj-issue283-abs-exists.smt2
   regress0/quantifiers/proj-issue283-abs.smt2

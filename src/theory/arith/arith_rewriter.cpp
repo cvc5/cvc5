@@ -26,6 +26,7 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/liastar/liastar_utils.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/rewriter/addition.h"
 #include "theory/arith/rewriter/node_utils.h"
@@ -35,6 +36,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/theory.h"
+#include "theory/uf/function_const.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/iand.h"
@@ -46,17 +48,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-/**
- * Flatten a node into a vector of its (direct or indirect) children, collecting
- * how many times each child occurs in the sum.
- * A sequence of kinds is given that indicate which kinds to traverse over.
- * This method is similar to expr::algorithm::flatten but does not use a tree
- * traversal. Instead it merges subterms, based on counting the number of
- * occurrences, as a Rational.
- * @param t The node to be flattened
- * @param children The resulting list of children
- * @param kinds A sequence of kinds to consider for flattening
- */
 template <typename... Kinds>
 bool flattenAndCollectSum(TNode t,
                           std::vector<std::pair<TNode, Rational>>& children,
@@ -395,6 +386,10 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, *response));
   }
 
+  if (kind == Kind::STAR_CONTAINS)
+  {
+    return rewriteStarContains(atom);
+  }
   Assert(isRelationOperator(kind));
 
   if (auto response = rewriter::tryEvaluateRelation(kind, left, right);
@@ -508,6 +503,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t)
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case Kind::ABS: return rewriteAbs(t);
+      case Kind::STAR_CONTAINS: return rewriteStarContains(t);
       case Kind::IAND:
       case Kind::PIAND:
       case Kind::POW2:
@@ -1117,6 +1113,56 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       return returnRewrite(t, ret, Rewrite::DIV_OVER_MOD);
     }
   }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
+{
+  Assert(t.getKind() == Kind::STAR_CONTAINS);
+#ifdef CVC5_USE_NORMALIZ
+  // The examples use the lambda
+  //   (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+  // of S = {(x, y) | x >= 2 and y = 1}. If the vector is zero, return true,
+  // since 0 is the empty sum:
+  //   (int.star-contains (lambda ...) 0 0) --> true
+  std::vector<Node> elements(t.begin() + 1, t.end());
+  bool isZero =
+      std::all_of(elements.begin(), elements.end(), [](const Node& e) {
+        return e.isConst() && e.getConst<Rational>().isZero();
+      });
+
+  NodeManager* nm = nodeManager();
+  if (isZero)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+  }
+
+  bool allConst = std::all_of(elements.begin(),
+                              elements.end(),
+                              [](const Node& e) { return e.isConst(); });
+
+  // if the vector is constant, we can evaluate the predicate
+  // and see if it holds. Only TheoryArith::ppStaticRewrite checks that the
+  // first argument is a lambda, and it may not have run on t yet, see
+  // LiaStarUtils::getVectorPredicate. For (int.star-contains (lambda ...) 3 1)
+  // the conjunction of
+  //   (and (>= 3 2) (= 1 1)) and (and (and true (>= 3 0)) (>= 1 0))
+  // evaluates to true, since (3, 1) is in S, so t --> true. The vector
+  // (5, 2) = (2, 1) + (3, 1) is in S* but not in S, so for 5 2 the term t
+  // is kept for LiaStarExtension. A vector of S that is not nonnegative is
+  // kept too, e.g. (- 3) for (lambda ((x Int)) (< x 0)).
+  if (allConst && !uf::FunctionConst::getDefinition(t[0]).isNull())
+  {
+    auto [vectorPredicate, nonnegative] =
+        liastar::LiaStarUtils::getVectorPredicate(t, nm);
+    Evaluator eval(nullptr);
+    Node value = eval.eval(vectorPredicate.andNode(nonnegative), {}, {});
+    if (value == d_nm->mkConst(true))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
+  }
+#endif /* CVC5_USE_NORMALIZ */
   return RewriteResponse(REWRITE_DONE, t);
 }
 

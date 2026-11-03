@@ -93,6 +93,11 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e) const
   {
     performCheck = (e >= Theory::EFFORT_LAST_CALL);
   }
+  else if (options().quantifiers.instWhenMode
+           == options::InstWhenMode::LAST_CALL_DELAY)
+  {
+    performCheck = (e >= Theory::EFFORT_LAST_CALL) && !d_valuation.needCheck();
+  }
   else
   {
     performCheck = true;
