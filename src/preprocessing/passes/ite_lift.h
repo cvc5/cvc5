@@ -15,18 +15,20 @@
 #ifndef CVC5__PREPROCESSING__PASSES__ITE_LIFT_H
 #define CVC5__PREPROCESSING__PASSES__ITE_LIFT_H
 
+#include <memory>
 #include <unordered_map>
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
+#include "proof/conv_proof_generator.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
 
 /**
- * Lifts if-then-else terms out of binary theory predicates whose other
- * argument is a variable or constant, e.g.
+ * Lifts if-then-else terms out of equalities and arithmetic comparisons whose
+ * other argument is a variable or constant, e.g.
  *   (= x (ite c t (ite d s r))) ---> (ite c (= x t) (ite d (= x s) (= x r)))
  * This avoids introducing fresh variables for the if-then-else terms during
  * term formula removal. It is applied before simplification, since otherwise
@@ -46,12 +48,19 @@ class IteLift : public PreprocessingPass
   /** Lift if-then-else terms out of all predicates in n */
   Node convert(TNode n);
   /**
-   * Lift if-then-else terms out of n if it is a binary theory predicate whose
-   * other argument is a variable or constant. Returns n otherwise.
+   * Lift if-then-else terms out of n if it is an equality or arithmetic
+   * comparison whose other argument is a variable or constant. Returns n
+   * otherwise. If proofs
+   * are enabled, this records a rewrite step for each single lifting step.
    */
-  Node liftAtom(const Node& n) const;
+  Node liftAtom(const Node& n);
   /** Cache for convert */
   std::unordered_map<Node, Node> d_cache;
+  /**
+   * The term conversion proof generator, if proofs are enabled. It is not
+   * user-context dependent, since the cache above is not either.
+   */
+  std::unique_ptr<TConvProofGenerator> d_tpg;
 };
 
 }  // namespace passes

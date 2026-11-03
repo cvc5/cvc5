@@ -1,5 +1,4 @@
 ; COMMAND-LINE: --incremental
-; COMMAND-LINE: --incremental --no-pp-ite-lift
 ; EXPECT: sat
 ; EXPECT: unsat
 ; EXPECT: (a)
