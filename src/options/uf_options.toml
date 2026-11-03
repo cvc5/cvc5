@@ -58,7 +58,7 @@ name   = "Uninterpreted Functions Theory"
   long       = "uf-lazy-ll"
   type       = "bool"
   default    = "true"
-  help       = "do lambda lifting lazily"
+  help       = "do lambda lifting lazily: only lift lambdas that may induce circular dependencies in model construction, and only when they occur as arguments of functions or are equated to other functions"
 
 [[option]]
   name       = "ufHoLambdaQe"
