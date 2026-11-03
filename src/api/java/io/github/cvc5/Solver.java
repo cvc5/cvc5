@@ -123,7 +123,12 @@ public class Solver extends AbstractPointer implements AutoCloseable
   }
 
   /**
-   * Get the associated term manager instance
+   * Get the associated term manager instance.
+   *
+   * <p>The returned object refers to the same term manager as the one this
+   * solver was created with: closing it releases that term manager and every
+   * object derived from it, including this solver, see
+   * {@link TermManager#close()}.</p>
    * @return The term manager.
    */
   public TermManager getTermManager()
@@ -3919,8 +3924,9 @@ public class Solver extends AbstractPointer implements AutoCloseable
 
   /**
    * Get a snapshot of the current state of the statistic values of this
-   * solver. The returned object is completely decoupled from the solver and
-   * will not change when the solver is used again.
+   * solver. The returned object will not change when the solver is used
+   * again. Like every object derived from a term manager, it is released
+   * when that term manager is closed, see {@link TermManager#close()}.
    * @return A snapshot of the current state of the statistic values.
    */
   public Statistics getStatistics()

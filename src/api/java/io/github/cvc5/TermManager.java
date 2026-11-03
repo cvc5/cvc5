@@ -134,8 +134,9 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    * term manager.
    *
    * Term manager statistics are independent from any solver instance. The
-   * returned object is completely decoupled from the term manager and will
-   * not change when the solver is used again.
+   * returned object will not change when the term manager is used again.
+   * Like every object derived from this term manager, it is released when
+   * this term manager is closed, see {@link #close()}.
    *
    * @return A snapshot of the current state of the statistic values.
    */

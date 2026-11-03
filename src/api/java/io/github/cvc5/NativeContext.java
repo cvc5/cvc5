@@ -112,6 +112,19 @@ final class NativeContext
      */
     boolean release()
     {
+      return release(true);
+    }
+
+    /**
+     * Free the native object, if not already freed.
+     *
+     * @param unlink Whether to remove this ref from the registry's list. May
+     *               only be false if this ref has already been detached from
+     *               the list, see {@link Registry#releaseAll()}.
+     * @return true if the native object was freed by this call.
+     */
+    private boolean release(boolean unlink)
+    {
       long p;
       synchronized (this)
       {
@@ -122,7 +135,10 @@ final class NativeContext
       {
         return false;
       }
-      registry.unlink(this);
+      if (unlink)
+      {
+        registry.unlink(this);
+      }
       deleter.accept(p);
       registry.freed++;
       return true;
@@ -197,22 +213,30 @@ final class NativeContext
      */
     void releaseAll()
     {
-      List<Ref> refs = new ArrayList<>();
+      // Detach the whole list at once. Clearing the prev links turns a later
+      // unlink() of a detached ref (e.g., by reap()) into a no-op, so the
+      // chain of next links stays intact while it is walked below.
+      Ref first;
       synchronized (this)
       {
-        for (Ref ref = head; ref != null; ref = ref.next)
+        first = head;
+        head = null;
+        for (Ref ref = first; ref != null; ref = ref.next)
         {
-          refs.add(ref);
+          ref.prev = null;
         }
       }
-      for (Ref ref : refs)
+      Ref next;
+      for (Ref ref = first; ref != null; ref = next)
       {
+        next = ref.next;
+        ref.next = null;
         AbstractPointer wrapper = ref.get();
         if (wrapper != null)
         {
           wrapper.pointer = 0;
         }
-        ref.release();
+        ref.release(false);
       }
     }
 

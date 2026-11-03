@@ -363,12 +363,19 @@ class MemoryManagementTest
         }
       }));
     }
-    for (Future<Integer> result : results)
+    try
     {
-      assertEquals(10, result.get(2, TimeUnit.MINUTES));
+      for (Future<Integer> result : results)
+      {
+        assertEquals(10, result.get(2, TimeUnit.MINUTES));
+      }
+      gc.get();
     }
-    gc.get();
-    pool.shutdown();
+    finally
+    {
+      // Also stops the GC thread if a worker failed or timed out.
+      pool.shutdownNow();
+    }
     assertTrue(pool.awaitTermination(1, TimeUnit.MINUTES));
   }
 
