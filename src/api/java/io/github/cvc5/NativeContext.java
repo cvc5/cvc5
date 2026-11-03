@@ -13,6 +13,7 @@
 package io.github.cvc5;
 
 import java.lang.ref.Cleaner;
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -51,7 +52,11 @@ import java.util.function.LongConsumer;
  *     {@link Cleaner} then frees whatever native objects are left, including
  *     the term manager itself.</li>
  * <li>{@link AbstractPointer#deletePointer()} frees a native object
- *     immediately on the calling thread.</li>
+ *     immediately on the calling thread, and {@link #releaseAllObjects()}
+ *     frees every native object of the context immediately on the calling
+ *     thread. Both keep the context strongly reachable until they return, so
+ *     that the {@link Cleaner} cannot free native objects of the same node
+ *     manager concurrently on its own thread.</li>
  * </ul>
  *
  * <p>Native functions that borrow a pointer for longer than a single call
@@ -249,6 +254,30 @@ final class NativeContext
   }
 
   /**
+   * Free every native object of this context, in reverse order of
+   * registration, see {@link TermManager#close()}. Wrappers that are
+   * still reachable are left with a null pointer.
+   *
+   * <p>Must be called on the thread that is using this context's term manager,
+   * or once no thread uses it anymore.</p>
+   */
+  void releaseAllObjects()
+  {
+    try
+    {
+      registry.releaseAll();
+    }
+    finally
+    {
+      // Without this fence, the context may become unreachable while its
+      // objects are being freed (e.g., when this is the last use of the term
+      // manager), and the cleaner would then free the same node manager's
+      // objects concurrently on its own thread.
+      Reference.reachabilityFence(this);
+    }
+  }
+
+  /**
    * The number of native objects freed so far in the context of the given
    * object. For tests.
    */
@@ -278,7 +307,7 @@ final class NativeContext
     }
     for (NativeContext context : contexts)
     {
-      context.registry.releaseAll();
+      context.releaseAllObjects();
     }
   }
 }

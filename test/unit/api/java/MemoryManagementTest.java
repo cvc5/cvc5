@@ -12,7 +12,8 @@
  * Native objects are freed once their Java wrappers are unreachable: objects
  * of a term manager that is still in use are freed on the next use of that
  * term manager, and everything else once the term manager and all objects
- * derived from it are unreachable. Explicit release is immediate.
+ * derived from it are unreachable. Explicit release, of individual objects or
+ * of all objects of a term manager, is immediate.
  */
 
 package tests;
@@ -166,8 +167,8 @@ class MemoryManagementTest
     solver.deletePointer();
     solver.close();
     assertEquals(freedBefore + 1, freedObjects(tm));
-    // Objects derived from a term manager survive its release.
-    tm.close();
+    // Objects derived from a term manager survive its release via deletePointer().
+    tm.deletePointer();
     assertEquals(freedBefore + 2, freedObjects(tm));
     assertThrows(IllegalStateException.class, () -> tm.getPointer());
     assertTrue(t.isBooleanValue());
@@ -260,6 +261,133 @@ class MemoryManagementTest
   }
 
   @Test
+  void termManagerCloseFreesItsObjects() throws Exception
+  {
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
+    solver.setOption("produce-models", "true");
+    SymbolManager sm = new SymbolManager(tm);
+    Sort intSort = tm.getIntegerSort();
+    Term x = tm.mkConst(intSort, "x");
+    Term gt = tm.mkTerm(GT, x, tm.mkInteger(0));
+    solver.assertFormula(gt);
+    assertTrue(solver.checkSat().isSat());
+    Term value = solver.getValue(x);
+    // Objects of other term managers are unaffected.
+    TermManager other = new TermManager();
+    Term otherTerm = other.mkTrue();
+    long otherFreedBefore = freedObjects(other);
+
+    long freedBefore = freedObjects(tm);
+    tm.close();
+    // Everything is freed immediately, without a further use of tm.
+    assertTrue(freedObjects(tm) >= freedBefore + 7);
+    assertThrows(IllegalStateException.class, () -> tm.getPointer());
+    assertThrows(IllegalStateException.class, () -> tm.mkTrue());
+    assertThrows(IllegalStateException.class, () -> solver.checkSat());
+    assertThrows(IllegalStateException.class, () -> sm.getPointer());
+    assertThrows(IllegalStateException.class, () -> intSort.isInteger());
+    assertThrows(IllegalStateException.class, () -> x.getKind());
+    assertThrows(IllegalStateException.class, () -> gt.getKind());
+    assertThrows(IllegalStateException.class, () -> value.isIntegerValue());
+    assertThrows(IllegalStateException.class, () -> solver.getTermManager().mkTrue());
+    // Idempotent, also in combination with deletePointer().
+    long freedAfter = freedObjects(tm);
+    tm.close();
+    tm.deletePointer();
+    assertEquals(freedAfter, freedObjects(tm));
+
+    assertEquals(otherFreedBefore, freedObjects(other));
+    assertTrue(otherTerm.isBooleanValue());
+    assertTrue(other.mkFalse().isBooleanValue());
+  }
+
+  @Test
+  void termManagerCloseAfterDeletePointer() throws Exception
+  {
+    TermManager tm = new TermManager();
+    Term t = tm.mkTrue();
+    tm.deletePointer();
+    // Objects derived from a deleted term manager are still alive ...
+    assertTrue(t.isBooleanValue());
+    long freedBefore = freedObjects(t);
+    // ... until the term manager is closed.
+    tm.close();
+    assertTrue(freedObjects(t) > freedBefore);
+    assertThrows(IllegalStateException.class, () -> t.isBooleanValue());
+  }
+
+  /**
+   * Many threads that each release everything of their term manager as its
+   * last use, while the garbage collector runs. The context of the term
+   * manager must stay reachable during the release, otherwise the cleaner
+   * frees the same node manager's objects concurrently on its own thread.
+   */
+  @Test
+  void termManagerCloseInSeparateThreads() throws Exception
+  {
+    int numThreads = 8;
+    ExecutorService pool = Executors.newFixedThreadPool(numThreads + 1);
+    AtomicInteger done = new AtomicInteger();
+    Future<?> gc = pool.submit(() -> {
+      while (done.get() < numThreads)
+      {
+        System.gc();
+        try
+        {
+          Thread.sleep(5);
+        }
+        catch (InterruptedException e)
+        {
+          return;
+        }
+      }
+    });
+    List<Future<Integer>> results = new ArrayList<>();
+    for (int i = 0; i < numThreads; i++)
+    {
+      final int seed = i;
+      results.add(pool.submit(() -> {
+        try
+        {
+          int sat = 0;
+          for (int round = 0; round < 10; round++)
+          {
+            sat += solveAndClose(seed + round);
+          }
+          return sat;
+        }
+        finally
+        {
+          done.incrementAndGet();
+        }
+      }));
+    }
+    for (Future<Integer> result : results)
+    {
+      assertEquals(10, result.get(2, TimeUnit.MINUTES));
+    }
+    gc.get();
+    pool.shutdown();
+    assertTrue(pool.awaitTermination(1, TimeUnit.MINUTES));
+  }
+
+  private static int solveAndClose(int n) throws CVC5ApiException
+  {
+    // Closing tm is its last use: neither tm nor its context are referenced
+    // afterwards.
+    try (TermManager tm = new TermManager())
+    {
+      int sat = solve(tm, new Solver(tm), n);
+      for (int i = 0; i < 2000; i++)
+      {
+        tm.mkInteger(n + i);
+      }
+      return sat;
+    }
+  }
+
+  @Test
   void objectsCanBeHandedOverBetweenThreads() throws Exception
   {
     List<Object> handover = new ArrayList<>();
@@ -282,7 +410,7 @@ class MemoryManagementTest
     // Plugin callbacks run on this thread, not the one that registered the plugin.
     Result r = solver.checkSat();
     assertTrue(r.isSat(), r.toString());
-    tm.close();
+    tm.deletePointer();
     Sort s = t.getSort();
     assertTrue(s.isBoolean(), s.toString());
   }
@@ -369,9 +497,9 @@ class MemoryManagementTest
 
     solver.close();
     assertThrows(IllegalStateException.class, () -> solver.checkSat());
-    tm.close();
+    tm.deletePointer();
     assertThrows(IllegalStateException.class, () -> tm.getBooleanSort());
-    // Objects derived from a released term manager remain usable.
+    // Objects derived from a term manager released via deletePointer() remain usable.
     assertTrue(y.getSort().isBoolean());
   }
 
