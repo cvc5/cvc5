@@ -1,3 +1,5 @@
+; The cpc-logos tester takes more than 60 seconds.
+; DISABLE-TESTER: cpc-logos
 (set-logic QF_UFIDL)
 (set-info :source |
 UCLID benchmark suite.  See UCLID project: http://www.cs.cmu.edu/~uclid

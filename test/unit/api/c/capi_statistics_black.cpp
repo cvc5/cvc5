@@ -187,6 +187,20 @@ TEST_F(TestCApiBlackStatistics, stats_iter_next)
   (void)cvc5_stats_iter_next(stats, nullptr);
 }
 
+TEST_F(TestCApiBlackStatistics, stats_iter_next_exhausted)
+{
+  Cvc5Statistics stats = cvc5_get_statistics(d_solver);
+  ASSERT_CVC5_ERROR(cvc5_stats_iter_next(stats, nullptr),
+                    "iterator not initialized");
+  cvc5_stats_iter_init(stats, true, true);
+  while (cvc5_stats_iter_has_next(stats))
+  {
+    (void)cvc5_stats_iter_next(stats, nullptr);
+  }
+  ASSERT_CVC5_ERROR(cvc5_stats_iter_next(stats, nullptr),
+                    "iterator has no next statistic");
+}
+
 TEST_F(TestCApiBlackStatistics, stats_get)
 {
   Cvc5Statistics stats = cvc5_get_statistics(d_solver);

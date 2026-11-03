@@ -38,6 +38,10 @@ AbstractionModule::AbstractionModule(Env& env, TheoryBV* bv)
 AbstractionModule::Statistics::Statistics(StatisticsRegistry& reg)
     : d_numAbstractions(
           reg.registerInt("theory::bv::abstraction::numAbstractions")),
+      d_numBinarizations(
+          reg.registerInt("theory::bv::abstraction::numBinarizations")),
+      d_binarizedArity(reg.registerHistogram<uint64_t>(
+          "theory::bv::abstraction::binarizedArity")),
       d_numChecks(reg.registerInt("theory::bv::abstraction::numChecks")),
       d_numLemmasTier12(
           reg.registerInt("theory::bv::abstraction::numLemmasTier12")),
@@ -48,25 +52,26 @@ AbstractionModule::Statistics::Statistics(StatisticsRegistry& reg)
 {
 }
 
-bool AbstractionModule::abstractable(TNode n) const
+bool AbstractionModule::abstractable(TNode node) const
 {
-  Kind k = n.getKind();
+  Kind k = node.getKind();
   if (k != Kind::BITVECTOR_MULT && k != Kind::BITVECTOR_UDIV
       && k != Kind::BITVECTOR_UREM)
   {
     return false;
   }
-  // The lemma schemes are binary; cvc5 allows n-ary BITVECTOR_MULT.
-  if (n.getNumChildren() != 2)
-  {
-    return false;
-  }
-  return utils::getSize(n) >= d_absSize;
+  // Note: BITVECTOR_UDIV and BITVECTOR_UREM are binary, whereas cvc5 allows
+  //       n-ary BITVECTOR_MULT. The lemma schemes are binary, thus an n-ary
+  //       multiplication is binarized by abstract(), see binarize().
+  return utils::getSize(node) >= d_absSize;
 }
 
 Node AbstractionModule::abstractNode(TNode node)
 {
   Assert(abstractable(node));
+  Assert(node.getNumChildren() == 2)
+      << "the lemma schemes are binary, n-ary multiplications must be "
+         "binarized before they are abstracted";
   auto it = d_cache.find(node);
   // If the cached node is different from `node`, it must be an abstraction
   // constant. Hence, we don't have to check for d_abs2node.find(it->second).
@@ -80,10 +85,28 @@ Node AbstractionModule::abstractNode(TNode node)
   // or model construction.
   Node t = NodeManager::mkDummySkolem("bvabs", node.getType());
   d_abs2node.emplace(t, node);
-  // Note: We do not insert into d_cache here: the caller writes the mapping
-  // through a live iterator, which an insertion could invalidate (rehash).
+  // Note: This may invalidate iterators into d_cache (rehash), thus callers
+  //       must not hold a live iterator across a call to this function.
+  d_cache[node] = t;
   ++d_stats.d_numAbstractions;
   return t;
+}
+
+Node AbstractionModule::binarize(TNode node)
+{
+  Assert(abstractable(node));
+  Assert(node.getKind() == Kind::BITVECTOR_MULT);
+  Assert(node.getNumChildren() > 2);
+  NodeManager* nm = nodeManager();
+  size_t arity = node.getNumChildren();
+  ++d_stats.d_numBinarizations;
+  d_stats.d_binarizedArity << arity;
+  Node res = node[0];
+  for (size_t i = 1; i < arity; ++i)
+  {
+    res = abstractNode(nm->mkNode(Kind::BITVECTOR_MULT, res, node[i]));
+  }
+  return res;
 }
 
 Node AbstractionModule::abstract(TNode fact)
@@ -133,9 +156,13 @@ Node AbstractionModule::abstract(TNode fact)
       Node ret = rebuild ? nm->mkNode(cur.getKind(), children) : Node(cur);
       if (abstractable(ret))
       {
-        ret = abstractNode(ret);
+        ret = ret.getNumChildren() > 2 ? binarize(ret) : abstractNode(ret);
       }
-      it->second = rewrite(ret);
+      // Note: We do not write through `it` here: abstractNode() inserts into
+      //       d_cache, which may have invalidated it (rehash). Since `cur` is
+      //       already a key of d_cache, operator[] does not insert and thus
+      //       cannot rehash.
+      d_cache[cur] = rewrite(ret);
     }
     visit.pop_back();
   } while (!visit.empty());
@@ -152,6 +179,7 @@ void AbstractionModule::check(std::vector<Node>& lemmas)
   for (const auto& [t, n] : d_abs2node)
   {
     Assert(abstractable(n));
+    Assert(n.getNumChildren() == 2);
     Kind kind = n.getKind();
     TNode x = n[0];
     TNode s = n[1];
@@ -242,6 +270,7 @@ bool AbstractionModule::isModelConsistent()
   for (const auto& [t, n] : d_abs2node)
   {
     Assert(abstractable(n));
+    Assert(n.getNumChildren() == 2);
     Node xval = d_bv->getValue(n[0]);
     Node sval = d_bv->getValue(n[1]);
     Node tval = d_bv->getValue(t);

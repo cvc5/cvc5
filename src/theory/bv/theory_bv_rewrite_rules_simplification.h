@@ -1865,7 +1865,11 @@ std::tuple<Node, Node, bool> extract_ext_tuple(TNode node)
   TNode b = node[1];
   for (unsigned i = 0; i < 2; ++i)
   {
-    if (a.getKind() == Kind::BITVECTOR_CONCAT
+    // Note we require the concatenation to have exactly two children, in which
+    // case it is equivalent to a zero extend of its second child. For a term
+    // (concat zero t1 ... tn) with n > 1, the operand of the multiplication is
+    // (concat t1 ... tn) and not t1, so ignoring t2 ... tn here is unsound.
+    if (a.getKind() == Kind::BITVECTOR_CONCAT && a.getNumChildren() == 2
         && b.getKind() == Kind::BITVECTOR_SIGN_EXTEND)
     {
       // Use a0Size to ensure deterministic node ID assignments
@@ -1911,13 +1915,20 @@ inline bool RewriteRule<MultSltMult>::applies(TNode node)
 
   if (is_sext_l != is_sext_r) return false;
 
+  // If both operands are sign extended, either one may be the addition, since
+  // the rewrite treats them symmetrically. In the mixed case, however,
+  // extract_ext_tuple returns the zero extended operand first and the sign
+  // extended operand second, and the rewrite below compares (bvadd x t) and x
+  // with an *unsigned* comparison and a with a *signed* one. Thus the addition
+  // must be the zero extended operand (index 0) and a the sign extended one
+  // (index 1); the roles are not interchangeable.
   TNode addxt, x, a;
   if (ml[0].getKind() == Kind::BITVECTOR_ADD)
   {
     addxt = ml[0];
     a = ml[1];
   }
-  else if (ml[1].getKind() == Kind::BITVECTOR_ADD)
+  else if (is_sext_l && ml[1].getKind() == Kind::BITVECTOR_ADD)
   {
     addxt = ml[1];
     a = ml[0];
@@ -1927,7 +1938,9 @@ inline bool RewriteRule<MultSltMult>::applies(TNode node)
 
   if (addxt.getNumChildren() > 2) return false;
 
-  if (mr[0] == a)
+  // For the same reason, in the mixed case a must occur in the sign extended
+  // position (index 1) on the right hand side as well.
+  if (is_sext_l && mr[0] == a)
   {
     x = mr[1];
   }
@@ -1960,12 +1973,13 @@ inline Node RewriteRule<MultSltMult>::apply(TNode node)
   }
   else
   {
-    Assert(ml[1].getKind() == Kind::BITVECTOR_ADD);
+    // only applicable if both operands are sign extended, see applies
+    Assert(is_sext && ml[1].getKind() == Kind::BITVECTOR_ADD);
     addxt = ml[1];
     a = ml[0];
   }
 
-  x = (mr[0] == a) ? mr[1] : mr[0];
+  x = (is_sext && mr[0] == a) ? mr[1] : mr[0];
   // Make the subtraction term (bvsub (bvadd x t) x) or (bvsub (bvadd t x) x),
   // which will simplify to t. We use this instead of t to simplify the number
   // of cases needed for proof reconstruction.

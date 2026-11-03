@@ -208,7 +208,12 @@ bool containsAssumption(const ProofNode* pn,
         bool ret = allowed.find(cur->getArguments()[0]) == allowed.end();
         visited[cur] = ret;
         caMap[cur] = ret;
-        foundAssumption = ret;
+        // note we do not set foundAssumption to false if ret is false, since
+        // we may have already found an assumption in another child
+        if (ret)
+        {
+          foundAssumption = true;
+        }
       }
       else if (!foundAssumption)
       {

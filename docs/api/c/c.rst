@@ -14,7 +14,7 @@ C level, management to maintain a low overhead needs **more manual
 intervention**.
 
 All objects created via a term manager (:cpp:type:`Cvc5TermManager`) or a
-solver (:cpp:type:`Cvc5`) instance, e.g., sorts, terms, datatypes and
+solver (:cpp:type:`Cvc5`) instance, e.g., sorts, terms, datatypes, grammars and
 statistics, are **managed by the term manager**. As in the C++ API, these
 objects keep the term manager alive: they **remain valid** after the term
 manager and solver instances that created them have been deleted via
@@ -29,9 +29,8 @@ been deleted **and** all of its managed objects have been released. Calling
 :cpp:func:`cvc5_term_manager_delete()` thus frees everything right away.
 
 Results (:cpp:type:`Cvc5Result`), synthesis results
-(:cpp:type:`Cvc5SynthResult`), proofs (:cpp:type:`Cvc5Proof`) and grammars
-(:cpp:type:`Cvc5Grammar`) are instead **managed by the solver** that created
-them: deleting the solver drops one reference to each of them. To use such an
+(:cpp:type:`Cvc5SynthResult`) and proofs (:cpp:type:`Cvc5Proof`) are instead
+**managed by the solver** that created them: deleting the solver drops one reference to each of them. To use such an
 object afterwards, keep a reference to it via the corresponding
 ``cvc5_*_copy()`` function; it then outlives the solver, as in the C++ API,
 and is freed by its final ``cvc5_*_release()``. Proofs additionally keep the
@@ -42,6 +41,15 @@ Command objects (:cpp:type:`Cvc5Command`) are managed by the input parser
 parser alive and remain valid after :cpp:func:`cvc5_parser_delete()`, until
 they are released via :cpp:func:`cvc5_cmd_release()` or, all at once, via
 :cpp:func:`cvc5_parser_release()`.
+
+The same holds for the objects that own others: a solver (:cpp:type:`Cvc5`) and
+a symbol manager (:cpp:type:`Cvc5SymbolManager`) keep their term manager alive,
+and an input parser keeps its solver and symbol manager alive. Each of them
+thus remains usable after the objects it was created from have been deleted,
+and term manager, solver, symbol manager and input parser instances may be
+**deleted in any order**. As above, ``cvc5_*_delete()`` only decrements the
+reference count of an object; the memory of an object is freed once it has been
+deleted **and** nothing keeps it alive anymore.
 
 The C API offers **two modes** of memory management:
 

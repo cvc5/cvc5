@@ -1229,6 +1229,23 @@ enum ENUM(Kind)
    * \endrst
    */
   EVALUE(PI),
+  /**
+   * Star contains predicate.
+   * Given a set S of integer vectors of the same dimension,
+   * the star operator (S*) represents the set of all linear combinations
+   * of vectors from S.
+   * Here we are interested only in sets of vectors given using
+   * set-builder notation (set comprehension).
+   * Suppose S = {(x_1,...,x_n) | p(x_1,...,x_n}, then the syntax
+   * (int.star-contains (lambda ((x_1 Int) ... (x_n Int)) p) y_1 ... y_n)
+   * represents the predicate (y_1,...,y_n) ∈ S*
+   * where y_1, ..., y_n are integer terms.
+   * This membership means either (p y_1 ... y_n) holds or there exists
+   * nonnegative integers l_1,...,l_k and vectors
+   * v_1,...,v_k such that p(v_i) holds for all i=1,...,k and
+   * (y_1,..., y_n) = l_1*v_1 + ... + l_k*v_k.
+   */
+  EVALUE(STAR_CONTAINS),
 
   /* BV -------------------------------------------------------------------- */
 
@@ -3467,9 +3484,9 @@ enum ENUM(Kind)
    */
   EVALUE(SET_SINGLETON),
   /**
-   * The set obtained by inserting elements;
+   * The set obtained by inserting elements, right associative.
    *
-   * - Arity: ``n > 0``
+   * - Arity: ``n > 1``
    *
    *   - ``1..n-1:`` Terms of any Sort (must match the element sort of the given set Term)
    *   - ``n:`` Term of set Sort
@@ -3482,6 +3499,15 @@ enum ENUM(Kind)
    * - Create Op of this kind with:
    *
    *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
+   *
+   * \rst
+   * .. note::
+   *
+   *     Similar to :cpp:enumerator:`IMPLIES`, terms of this kind with more
+   *     than two arguments are constructed as nested binary applications,
+   *     e.g. ``(set.insert a b S)`` is constructed as
+   *     ``(set.insert a (set.insert b S))``.
+   * \endrst
    */
   EVALUE(SET_INSERT),
   /**

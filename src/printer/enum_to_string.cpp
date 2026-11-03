@@ -86,7 +86,6 @@ const char* toString(cvc5::SkolemId id)
     case cvc5::SkolemId::RELATIONS_GROUP_PART: return "relations_group_part";
     case cvc5::SkolemId::RELATIONS_GROUP_PART_ELEMENT:
       return "relations_group_part_element";
-    case cvc5::SkolemId::SETS_CHOOSE: return "sets_choose";
     case cvc5::SkolemId::SETS_DEQ_DIFF: return "sets_deq_diff";
     case cvc5::SkolemId::SETS_FOLD_CARD: return "sets_fold_card";
     case cvc5::SkolemId::SETS_FOLD_COMBINE: return "sets_fold_combine";

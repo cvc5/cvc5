@@ -43,7 +43,8 @@ class FiniteFieldTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_solver.close();
+    d_tm.close();
   }
 
   @Test

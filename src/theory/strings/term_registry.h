@@ -64,29 +64,6 @@ class TermRegistry : protected EnvObj
    * for t, or the null trust node if it does not exist.
    */
   TrustNode eagerReduceTrusted(const Node& t);
-  /** The eager reduce routine
-   *
-   * Constructs a lemma for t that is incomplete, but communicates pertinent
-   * information about t. This is analogous to StringsPreprocess::reduce.
-   *
-   * In practice, we send this lemma eagerly, as soon as t is registered.
-   *
-   * @param t The node to reduce,
-   * @param sc The Skolem cache to use for new variables,
-   * @param alphaCard The cardinality of the alphabet we are assuming
-   * @return The eager reduction for t.
-   */
-  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard);
-  /**
-   * Returns a lemma indicating that the length of a term t whose type is
-   * string-like has positive length. The exact form of this lemma depends
-   * on what works best in practice, currently:
-   *   (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
-   *
-   * @param t The node to reduce,
-   * @return The positive length lemma for t.
-   */
-  static Node lengthPositive(Node t);
   /**
    * Preregister term, called when TheoryStrings::preRegisterTerm(n) is called.
    * This does the following:

@@ -148,63 +148,91 @@ Node bvneg(NodeManager* nm, TNode a)
 {
   return nm->mkNode(Kind::BITVECTOR_NEG, a);
 }
-Node bvand(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvand(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_AND, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_AND, c);
 }
-Node bvor(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvor(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_OR, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_OR, c);
 }
-Node bvxor(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvxor(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_XOR, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_XOR, c);
 }
-Node bvadd(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvadd(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_ADD, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_ADD, c);
 }
-Node bvsub(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvsub(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_SUB, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_SUB, c);
 }
-Node bvshl(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvshl(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_SHL, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_SHL, c);
 }
-Node bvlshr(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvlshr(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_LSHR, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_LSHR, c);
 }
-Node bvult(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvult(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_ULT, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_ULT, c);
 }
-Node bvule(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvule(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_ULE, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_ULE, c);
 }
-Node bvuge(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node bvuge(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::BITVECTOR_UGE, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::BITVECTOR_UGE, c);
 }
 
 // Boolean connectives / (dis)equality.
-Node eq(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node eq(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::EQUAL, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::EQUAL, c);
 }
-Node distinct(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node distinct(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, a, b));
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::NOT, nm->mkNode(Kind::EQUAL, c));
 }
-Node impl(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node impl(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::IMPLIES, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::IMPLIES, c);
 }
-Node andn(NodeManager* nm, TNode a, TNode b)
+template <std::size_t N>
+Node andn(NodeManager* nm, const TNode (&c)[N])
 {
-  return nm->mkNode(Kind::AND, a, b);
+  static_assert(N == 2, "expected two operands");
+  return nm->mkNode(Kind::AND, c);
 }
 
 // Bit-vector constants.
@@ -234,7 +262,8 @@ Node Lemma<LemmaKind::MUL1_POW2>::instance(
   unsigned p = bv.isPow2();
   if (p == 0) return Node();
   Node shiftBy = utils::mkConst(d_nm, bv.getSize(), p - 1);
-  return impl(d_nm, eq(d_nm, x, xval), eq(d_nm, t, bvshl(d_nm, s, shiftBy)));
+  return impl(d_nm,
+              {eq(d_nm, {x, xval}), eq(d_nm, {t, bvshl(d_nm, {s, shiftBy})})});
 }
 
 // 2*: (=> (= x -2^i) (= t (bvshl (bvneg s) i)))
@@ -253,8 +282,8 @@ Node Lemma<LemmaKind::MUL2_NEG_POW2>::instance(
   if (p == 0) return Node();
   Node shiftBy = utils::mkConst(d_nm, w, p - 1);
   return impl(d_nm,
-              eq(d_nm, x, xval),
-              eq(d_nm, t, bvshl(d_nm, bvneg(d_nm, s), shiftBy)));
+              {eq(d_nm, {x, xval}),
+               eq(d_nm, {t, bvshl(d_nm, {bvneg(d_nm, s), shiftBy})})});
 }
 
 // 3*: (= (bvand (bvor (bvneg s) s) t) t)
@@ -263,18 +292,17 @@ Node Lemma<LemmaKind::MUL3_IC>::instance(CVC5_UNUSED TNode x,
                                          TNode s,
                                          TNode t) const
 {
-  return eq(d_nm, bvand(d_nm, bvor(d_nm, bvneg(d_nm, s), s), t), t);
+  return eq(d_nm, {bvand(d_nm, {bvor(d_nm, {bvneg(d_nm, s), s}), t}), t});
 }
 
 // 4*: (= ((_ extract 0 0) t) (bvand x[0] s[0]))
 template <>
 Node Lemma<LemmaKind::MUL4_ODD>::instance(TNode x, TNode s, TNode t) const
 {
-  // Use extract_* variables to ensure deterministic node ID assignments
-  Node extract_t = utils::mkExtract(t, 0, 0);
-  Node extract_x = utils::mkExtract(x, 0, 0);
-  Node extract_s = utils::mkExtract(s, 0, 0);
-  return eq(d_nm, extract_t, bvand(d_nm, extract_x, extract_s));
+  return eq(
+      d_nm,
+      {utils::mkExtract(t, 0, 0),
+       bvand(d_nm, {utils::mkExtract(x, 0, 0), utils::mkExtract(s, 0, 0)})});
 }
 
 // 5: (not (= s (bvnot (bvor t (bvand 1 (bvor x s))))))
@@ -284,8 +312,10 @@ Node Lemma<LemmaKind::MUL5>::instance(TNode x, TNode s, TNode t) const
   Assert(utils::getSize(x) >= 2) << "MUL5 is not valid for bit-width 1";
   return distinct(
       d_nm,
-      s,
-      bvnot(d_nm, bvor(d_nm, t, bvand(d_nm, one(d_nm, x), bvor(d_nm, x, s)))));
+      {s,
+       bvnot(
+           d_nm,
+           bvor(d_nm, {t, bvand(d_nm, {one(d_nm, x), bvor(d_nm, {x, s})})}))});
 }
 
 // 6: (not (= (bvand x t) (bvor s (bvnot t))))
@@ -293,7 +323,7 @@ template <>
 Node Lemma<LemmaKind::MUL6>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL6 is not valid for bit-width 1";
-  return distinct(d_nm, bvand(d_nm, x, t), bvor(d_nm, s, bvnot(d_nm, t)));
+  return distinct(d_nm, {bvand(d_nm, {x, t}), bvor(d_nm, {s, bvnot(d_nm, t)})});
 }
 
 // 7: (not (= t (bvshl (bvor s 1) (bvshl t x))))
@@ -302,7 +332,8 @@ Node Lemma<LemmaKind::MUL7>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL7 is not valid for bit-width 1";
   return distinct(
-      d_nm, t, bvshl(d_nm, bvor(d_nm, s, one(d_nm, x)), bvshl(d_nm, t, x)));
+      d_nm,
+      {t, bvshl(d_nm, {bvor(d_nm, {s, one(d_nm, x)}), bvshl(d_nm, {t, x})})});
 }
 
 // 8: (= s (bvshl s (bvand x (bvlshr 1 t))))
@@ -310,7 +341,8 @@ template <>
 Node Lemma<LemmaKind::MUL8>::instance(TNode x, TNode s, TNode t) const
 {
   return eq(
-      d_nm, s, bvshl(d_nm, s, bvand(d_nm, x, bvlshr(d_nm, one(d_nm, x), t))));
+      d_nm,
+      {s, bvshl(d_nm, {s, bvand(d_nm, {x, bvlshr(d_nm, {one(d_nm, x), t})})})});
 }
 
 // 9: (bvuge t (bvand 1 (bvlshr (bvand x s) 1)))
@@ -319,7 +351,8 @@ Node Lemma<LemmaKind::MUL9>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) != 2) << "MUL9 is not valid for bit-width 2";
   Node o = one(d_nm, x);
-  return bvuge(d_nm, t, bvand(d_nm, o, bvlshr(d_nm, bvand(d_nm, x, s), o)));
+  return bvuge(d_nm,
+               {t, bvand(d_nm, {o, bvlshr(d_nm, {bvand(d_nm, {x, s}), o})})});
 }
 
 // 10: (not (= x (bvxor 1 (bvshl x (bvxor s t)))))
@@ -327,7 +360,8 @@ template <>
 Node Lemma<LemmaKind::MUL10>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, x, bvxor(d_nm, one(d_nm, x), bvshl(d_nm, x, bvxor(d_nm, s, t))));
+      d_nm,
+      {x, bvxor(d_nm, {one(d_nm, x), bvshl(d_nm, {x, bvxor(d_nm, {s, t})})})});
 }
 
 // 11: (not (= t (bvor 1 (bvnot (bvxor x s)))))
@@ -336,7 +370,7 @@ Node Lemma<LemmaKind::MUL11>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL11 is not valid for bit-width 1";
   return distinct(
-      d_nm, t, bvor(d_nm, one(d_nm, x), bvnot(d_nm, bvxor(d_nm, x, s))));
+      d_nm, {t, bvor(d_nm, {one(d_nm, x), bvnot(d_nm, bvxor(d_nm, {x, s}))})});
 }
 
 // 12: (not (= t (bvor (bvnot 1) (bvxor x s))))
@@ -345,7 +379,7 @@ Node Lemma<LemmaKind::MUL12>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL12 is not valid for bit-width 1";
   return distinct(
-      d_nm, t, bvor(d_nm, bvnot(d_nm, one(d_nm, x)), bvxor(d_nm, x, s)));
+      d_nm, {t, bvor(d_nm, {bvnot(d_nm, one(d_nm, x)), bvxor(d_nm, {x, s})})});
 }
 
 // 13: (not (= x (bvsub (bvshl x (bvadd s t)) 1)))
@@ -353,7 +387,8 @@ template <>
 Node Lemma<LemmaKind::MUL13>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, x, bvsub(d_nm, bvshl(d_nm, x, bvadd(d_nm, s, t)), one(d_nm, x)));
+      d_nm,
+      {x, bvsub(d_nm, {bvshl(d_nm, {x, bvadd(d_nm, {s, t})}), one(d_nm, x)})});
 }
 
 // 14: (not (= x (bvsub 1 (bvshl x (bvsub s t)))))
@@ -361,7 +396,8 @@ template <>
 Node Lemma<LemmaKind::MUL14>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, x, bvsub(d_nm, one(d_nm, x), bvshl(d_nm, x, bvsub(d_nm, s, t))));
+      d_nm,
+      {x, bvsub(d_nm, {one(d_nm, x), bvshl(d_nm, {x, bvsub(d_nm, {s, t})})})});
 }
 
 // 15: (not (= s (bvadd 1 (bvshl s (bvsub t x)))))
@@ -369,7 +405,8 @@ template <>
 Node Lemma<LemmaKind::MUL15>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, s, bvadd(d_nm, one(d_nm, x), bvshl(d_nm, s, bvsub(d_nm, t, x))));
+      d_nm,
+      {s, bvadd(d_nm, {one(d_nm, x), bvshl(d_nm, {s, bvsub(d_nm, {t, x})})})});
 }
 
 // 16: (not (= s (bvsub 1 (bvshl s (bvsub t x)))))
@@ -377,7 +414,8 @@ template <>
 Node Lemma<LemmaKind::MUL16>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, s, bvsub(d_nm, one(d_nm, x), bvshl(d_nm, s, bvsub(d_nm, t, x))));
+      d_nm,
+      {s, bvsub(d_nm, {one(d_nm, x), bvshl(d_nm, {s, bvsub(d_nm, {t, x})})})});
 }
 
 // 17: (not (= s (bvadd 1 (bvshl s (bvsub x t)))))
@@ -385,7 +423,8 @@ template <>
 Node Lemma<LemmaKind::MUL17>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, s, bvadd(d_nm, one(d_nm, x), bvshl(d_nm, s, bvsub(d_nm, x, t))));
+      d_nm,
+      {s, bvadd(d_nm, {one(d_nm, x), bvshl(d_nm, {s, bvsub(d_nm, {x, t})})})});
 }
 
 // 18: (not (= t (bvor 1 (bvadd x s))))
@@ -393,14 +432,15 @@ template <>
 Node Lemma<LemmaKind::MUL18>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "MUL18 is not valid for bit-width 1";
-  return distinct(d_nm, t, bvor(d_nm, one(d_nm, x), bvadd(d_nm, x, s)));
+  return distinct(d_nm, {t, bvor(d_nm, {one(d_nm, x), bvadd(d_nm, {x, s})})});
 }
 
 // 19: (not (= x (bvnot (bvshl x (bvadd s t)))))
 template <>
 Node Lemma<LemmaKind::MUL19>::instance(TNode x, TNode s, TNode t) const
 {
-  return distinct(d_nm, x, bvnot(d_nm, bvshl(d_nm, x, bvadd(d_nm, s, t))));
+  return distinct(d_nm,
+                  {x, bvnot(d_nm, bvshl(d_nm, {x, bvadd(d_nm, {s, t})}))});
 }
 
 /* --- unsigned division lemmas -------------------------------------------- */
@@ -415,72 +455,75 @@ Node Lemma<LemmaKind::UDIV1_POW2>::instance(
   unsigned p = bv.isPow2();
   if (p == 0) return Node();
   Node shiftBy = utils::mkConst(d_nm, bv.getSize(), p - 1);
-  return impl(d_nm, eq(d_nm, s, sval), eq(d_nm, t, bvlshr(d_nm, x, shiftBy)));
+  return impl(d_nm,
+              {eq(d_nm, {s, sval}), eq(d_nm, {t, bvlshr(d_nm, {x, shiftBy})})});
 }
 
 // 2*: (=> (and (= s x) (distinct s 0)) (= t 1))
 template <>
 Node Lemma<LemmaKind::UDIV2>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm,
-              andn(d_nm, eq(d_nm, s, x), distinct(d_nm, s, zero(d_nm, x))),
-              eq(d_nm, t, one(d_nm, x)));
+  return impl(
+      d_nm,
+      {andn(d_nm, {eq(d_nm, {s, x}), distinct(d_nm, {s, zero(d_nm, x)})}),
+       eq(d_nm, {t, one(d_nm, x)})});
 }
 
 // 3*: (=> (= s 0) (= t (bvnot 0)))
 template <>
 Node Lemma<LemmaKind::UDIV3>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm, eq(d_nm, s, zero(d_nm, x)), eq(d_nm, t, ones(d_nm, x)));
+  return impl(d_nm,
+              {eq(d_nm, {s, zero(d_nm, x)}), eq(d_nm, {t, ones(d_nm, x)})});
 }
 
 // 4*: (=> (and (= x 0) (distinct s 0)) (= t 0))
 template <>
 Node Lemma<LemmaKind::UDIV4>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(
-      d_nm,
-      andn(d_nm, eq(d_nm, x, zero(d_nm, x)), distinct(d_nm, s, zero(d_nm, x))),
-      eq(d_nm, t, zero(d_nm, x)));
+  Node z = zero(d_nm, x);
+  return impl(d_nm,
+              {andn(d_nm, {eq(d_nm, {x, z}), distinct(d_nm, {s, z})}),
+               eq(d_nm, {t, z})});
 }
 
 // 5*: (=> (distinct s 0) (bvule t x))
 template <>
 Node Lemma<LemmaKind::UDIV5>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm, distinct(d_nm, s, zero(d_nm, x)), bvule(d_nm, t, x));
+  return impl(d_nm, {distinct(d_nm, {s, zero(d_nm, x)}), bvule(d_nm, {t, x})});
 }
 
 // 6*: (=> (and (= s ~0) (distinct x ~0)) (= t 0))
 template <>
 Node Lemma<LemmaKind::UDIV6>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(
-      d_nm,
-      andn(d_nm, eq(d_nm, s, ones(d_nm, x)), distinct(d_nm, x, ones(d_nm, x))),
-      eq(d_nm, t, zero(d_nm, x)));
+  Node o = ones(d_nm, x);
+  return impl(d_nm,
+              {andn(d_nm, {eq(d_nm, {s, o}), distinct(d_nm, {x, o})}),
+               eq(d_nm, {t, zero(d_nm, x)})});
 }
 
 // 7: (not (bvult x (bvneg (bvand (bvneg s) (bvneg t)))))
 template <>
 Node Lemma<LemmaKind::UDIV7>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(
-      d_nm, x, bvneg(d_nm, bvand(d_nm, bvneg(d_nm, s), bvneg(d_nm, t))));
+  return bvuge(d_nm,
+               {x, bvneg(d_nm, bvand(d_nm, {bvneg(d_nm, s), bvneg(d_nm, t)}))});
 }
 
 // 8: (not (bvult (bvneg (bvor s 1)) t))
 template <>
 Node Lemma<LemmaKind::UDIV8>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, bvneg(d_nm, bvor(d_nm, s, one(d_nm, x))), t);
+  return bvuge(d_nm, {bvneg(d_nm, bvor(d_nm, {s, one(d_nm, x)})), t});
 }
 
 // 9: (not (= t (bvneg (bvand s (bvnot x)))))
 template <>
 Node Lemma<LemmaKind::UDIV9>::instance(TNode x, TNode s, TNode t) const
 {
-  return distinct(d_nm, t, bvneg(d_nm, bvand(d_nm, s, bvnot(d_nm, x))));
+  return distinct(d_nm, {t, bvneg(d_nm, bvand(d_nm, {s, bvnot(d_nm, x)}))});
 }
 
 // 10: (not (= (bvor s t) (bvand x (bvnot 1))))
@@ -488,7 +531,7 @@ template <>
 Node Lemma<LemmaKind::UDIV10>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, bvor(d_nm, s, t), bvand(d_nm, x, bvnot(d_nm, one(d_nm, x))));
+      d_nm, {bvor(d_nm, {s, t}), bvand(d_nm, {x, bvnot(d_nm, one(d_nm, x))})});
 }
 
 // 11: (not (= (bvor s 1) (bvand x (bvnot t))))
@@ -496,21 +539,21 @@ template <>
 Node Lemma<LemmaKind::UDIV11>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, bvor(d_nm, s, one(d_nm, x)), bvand(d_nm, x, bvnot(d_nm, t)));
+      d_nm, {bvor(d_nm, {s, one(d_nm, x)}), bvand(d_nm, {x, bvnot(d_nm, t)})});
 }
 
 // 12: (not (bvult (bvand x (bvneg t)) (bvand s t)))
 template <>
 Node Lemma<LemmaKind::UDIV12>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, bvand(d_nm, x, bvneg(d_nm, t)), bvand(d_nm, s, t));
+  return bvuge(d_nm, {bvand(d_nm, {x, bvneg(d_nm, t)}), bvand(d_nm, {s, t})});
 }
 
 // 13: (not (bvult s (bvlshr x t)))
 template <>
 Node Lemma<LemmaKind::UDIV13>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, s, bvlshr(d_nm, x, t));
+  return bvuge(d_nm, {s, bvlshr(d_nm, {x, t})});
 }
 
 // 14: (not (bvult x (bvshl (bvlshr s (bvshl s t)) 1)))
@@ -518,7 +561,8 @@ template <>
 Node Lemma<LemmaKind::UDIV14>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, x, bvshl(d_nm, bvlshr(d_nm, s, bvshl(d_nm, s, t)), one(d_nm, x)));
+      d_nm,
+      {x, bvshl(d_nm, {bvlshr(d_nm, {s, bvshl(d_nm, {s, t})}), one(d_nm, x)})});
 }
 
 // 15: (not (bvult x (bvlshr (bvshl t 1) (bvshl t s))))
@@ -526,14 +570,15 @@ template <>
 Node Lemma<LemmaKind::UDIV15>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, x, bvlshr(d_nm, bvshl(d_nm, t, one(d_nm, x)), bvshl(d_nm, t, s)));
+      d_nm,
+      {x, bvlshr(d_nm, {bvshl(d_nm, {t, one(d_nm, x)}), bvshl(d_nm, {t, s})})});
 }
 
 // 16: (not (bvult t (bvshl (bvlshr x s) 1)))
 template <>
 Node Lemma<LemmaKind::UDIV16>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, t, bvshl(d_nm, bvlshr(d_nm, x, s), one(d_nm, x)));
+  return bvuge(d_nm, {t, bvshl(d_nm, {bvlshr(d_nm, {x, s}), one(d_nm, x)})});
 }
 
 // 17: (not (bvult x (bvand (bvor x t) (bvshl s 1))))
@@ -541,7 +586,8 @@ template <>
 Node Lemma<LemmaKind::UDIV17>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, x, bvand(d_nm, bvor(d_nm, x, t), bvshl(d_nm, s, one(d_nm, x))));
+      d_nm,
+      {x, bvand(d_nm, {bvor(d_nm, {x, t}), bvshl(d_nm, {s, one(d_nm, x)})})});
 }
 
 // 18: (not (bvult x (bvand (bvor x s) (bvshl t 1))))
@@ -549,14 +595,15 @@ template <>
 Node Lemma<LemmaKind::UDIV18>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, x, bvand(d_nm, bvor(d_nm, x, s), bvshl(d_nm, t, one(d_nm, x))));
+      d_nm,
+      {x, bvand(d_nm, {bvor(d_nm, {x, s}), bvshl(d_nm, {t, one(d_nm, x)})})});
 }
 
 // 19: (not (= (bvlshr x t) (bvor s t)))
 template <>
 Node Lemma<LemmaKind::UDIV19>::instance(TNode x, TNode s, TNode t) const
 {
-  return distinct(d_nm, bvlshr(d_nm, x, t), bvor(d_nm, s, t));
+  return distinct(d_nm, {bvlshr(d_nm, {x, t}), bvor(d_nm, {s, t})});
 }
 
 // 20: (not (= s (bvnot (bvlshr s (bvlshr t 1)))))
@@ -564,7 +611,8 @@ template <>
 Node Lemma<LemmaKind::UDIV20>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, s, bvnot(d_nm, bvlshr(d_nm, s, bvlshr(d_nm, t, one(d_nm, x)))));
+      d_nm,
+      {s, bvnot(d_nm, bvlshr(d_nm, {s, bvlshr(d_nm, {t, one(d_nm, x)})}))});
 }
 
 // 21: (not (= x (bvnot (bvand x (bvshl t 1)))))
@@ -575,28 +623,28 @@ Node Lemma<LemmaKind::UDIV21>::instance(TNode x,
 {
   Assert(utils::getSize(x) >= 2) << "UDIV21 is not valid for bit-width 1";
   return distinct(
-      d_nm, x, bvnot(d_nm, bvand(d_nm, x, bvshl(d_nm, t, one(d_nm, x)))));
+      d_nm, {x, bvnot(d_nm, bvand(d_nm, {x, bvshl(d_nm, {t, one(d_nm, x)})}))});
 }
 
 // 22: (not (bvult t (bvlshr (bvshl x 1) s)))
 template <>
 Node Lemma<LemmaKind::UDIV22>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, t, bvlshr(d_nm, bvshl(d_nm, x, one(d_nm, x)), s));
+  return bvuge(d_nm, {t, bvlshr(d_nm, {bvshl(d_nm, {x, one(d_nm, x)}), s})});
 }
 
 // 23: (not (bvult x (bvshl s (bvnot (bvor x t)))))
 template <>
 Node Lemma<LemmaKind::UDIV23>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, x, bvshl(d_nm, s, bvnot(d_nm, bvor(d_nm, x, t))));
+  return bvuge(d_nm, {x, bvshl(d_nm, {s, bvnot(d_nm, bvor(d_nm, {x, t}))})});
 }
 
 // 24: (not (bvult x (bvshl t (bvnot (bvor x s)))))
 template <>
 Node Lemma<LemmaKind::UDIV24>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, x, bvshl(d_nm, t, bvnot(d_nm, bvor(d_nm, x, s))));
+  return bvuge(d_nm, {x, bvshl(d_nm, {t, bvnot(d_nm, bvor(d_nm, {x, s}))})});
 }
 
 // 25: (not (bvult x (bvxor t (bvlshr t (bvlshr s 1)))))
@@ -604,7 +652,9 @@ template <>
 Node Lemma<LemmaKind::UDIV25>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, x, bvxor(d_nm, t, bvlshr(d_nm, t, bvlshr(d_nm, s, one(d_nm, x)))));
+      d_nm,
+      {x,
+       bvxor(d_nm, {t, bvlshr(d_nm, {t, bvlshr(d_nm, {s, one(d_nm, x)})})})});
 }
 
 // 26: (not (bvult x (bvxor s (bvlshr s (bvlshr t 1)))))
@@ -612,28 +662,31 @@ template <>
 Node Lemma<LemmaKind::UDIV26>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, x, bvxor(d_nm, s, bvlshr(d_nm, s, bvlshr(d_nm, t, one(d_nm, x)))));
+      d_nm,
+      {x,
+       bvxor(d_nm, {s, bvlshr(d_nm, {s, bvlshr(d_nm, {t, one(d_nm, x)})})})});
 }
 
 // 27: (not (bvult x (bvshl s (bvnot (bvxor x t)))))
 template <>
 Node Lemma<LemmaKind::UDIV27>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, x, bvshl(d_nm, s, bvnot(d_nm, bvxor(d_nm, x, t))));
+  return bvuge(d_nm, {x, bvshl(d_nm, {s, bvnot(d_nm, bvxor(d_nm, {x, t}))})});
 }
 
 // 28: (not (bvult x (bvshl t (bvnot (bvxor x s)))))
 template <>
 Node Lemma<LemmaKind::UDIV28>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, x, bvshl(d_nm, t, bvnot(d_nm, bvxor(d_nm, x, s))));
+  return bvuge(d_nm, {x, bvshl(d_nm, {t, bvnot(d_nm, bvxor(d_nm, {x, s}))})});
 }
 
 // 29: (not (= x (bvadd t (bvor s (bvadd x s)))))
 template <>
 Node Lemma<LemmaKind::UDIV29>::instance(TNode x, TNode s, TNode t) const
 {
-  return distinct(d_nm, x, bvadd(d_nm, t, bvor(d_nm, s, bvadd(d_nm, x, s))));
+  return distinct(d_nm,
+                  {x, bvadd(d_nm, {t, bvor(d_nm, {s, bvadd(d_nm, {x, s})})})});
 }
 
 // 30: (not (= x (bvadd t (bvadd 1 (bvshl 1 x)))))
@@ -644,14 +697,15 @@ Node Lemma<LemmaKind::UDIV30>::instance(TNode x,
 {
   Assert(utils::getSize(x) >= 3) << "UDIV30 is not valid for bit-width < 3";
   Node o = one(d_nm, x);
-  return distinct(d_nm, x, bvadd(d_nm, t, bvadd(d_nm, o, bvshl(d_nm, o, x))));
+  return distinct(d_nm,
+                  {x, bvadd(d_nm, {t, bvadd(d_nm, {o, bvshl(d_nm, {o, x})})})});
 }
 
 // 31: (not (bvult s (bvlshr (bvadd x t) t)))
 template <>
 Node Lemma<LemmaKind::UDIV31>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, s, bvlshr(d_nm, bvadd(d_nm, x, t), t));
+  return bvuge(d_nm, {s, bvlshr(d_nm, {bvadd(d_nm, {x, t}), t})});
 }
 
 // 32: (not (= x (bvadd t (bvadd t (bvor x s)))))
@@ -659,7 +713,8 @@ template <>
 Node Lemma<LemmaKind::UDIV32>::instance(TNode x, TNode s, TNode t) const
 {
   Assert(utils::getSize(x) >= 2) << "UDIV32 is not valid for bit-width 1";
-  return distinct(d_nm, x, bvadd(d_nm, t, bvadd(d_nm, t, bvor(d_nm, x, s))));
+  return distinct(d_nm,
+                  {x, bvadd(d_nm, {t, bvadd(d_nm, {t, bvor(d_nm, {x, s})})})});
 }
 
 // 33: (not (bvult (bvxor s (bvor x t)) (bvxor t 1)))
@@ -667,21 +722,22 @@ template <>
 Node Lemma<LemmaKind::UDIV33>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, bvxor(d_nm, s, bvor(d_nm, x, t)), bvxor(d_nm, t, one(d_nm, x)));
+      d_nm,
+      {bvxor(d_nm, {s, bvor(d_nm, {x, t})}), bvxor(d_nm, {t, one(d_nm, x)})});
 }
 
 // 34: (not (bvult t (bvlshr x (bvsub s 1))))
 template <>
 Node Lemma<LemmaKind::UDIV34>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, t, bvlshr(d_nm, x, bvsub(d_nm, s, one(d_nm, x))));
+  return bvuge(d_nm, {t, bvlshr(d_nm, {x, bvsub(d_nm, {s, one(d_nm, x)})})});
 }
 
 // 35: (not (bvult (bvsub s 1) (bvlshr x t)))
 template <>
 Node Lemma<LemmaKind::UDIV35>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, bvsub(d_nm, s, one(d_nm, x)), bvlshr(d_nm, x, t));
+  return bvuge(d_nm, {bvsub(d_nm, {s, one(d_nm, x)}), bvlshr(d_nm, {x, t})});
 }
 
 // 36: (not (= x (bvsub 1 (bvshl x (bvsub x t)))))
@@ -692,14 +748,15 @@ Node Lemma<LemmaKind::UDIV36>::instance(TNode x,
 {
   Assert(utils::getSize(x) != 2) << "UDIV36 is not valid for bit-width 2";
   return distinct(
-      d_nm, x, bvsub(d_nm, one(d_nm, x), bvshl(d_nm, x, bvsub(d_nm, x, t))));
+      d_nm,
+      {x, bvsub(d_nm, {one(d_nm, x), bvshl(d_nm, {x, bvsub(d_nm, {x, t})})})});
 }
 
 // (=> (= s 1) (= t x))
 template <>
 Node Lemma<LemmaKind::UDIV37>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm, eq(d_nm, s, one(d_nm, x)), eq(d_nm, t, x));
+  return impl(d_nm, {eq(d_nm, {s, one(d_nm, x)}), eq(d_nm, {t, x})});
 }
 
 /* --- unsigned remainder lemmas ------------------------------------------- */
@@ -727,14 +784,14 @@ Node Lemma<LemmaKind::UREM1_POW2>::instance(
     // zero_extend by (w - ctz) of the low ctz bits of x.
     rem = utils::mkConcat(utils::mkZero(d_nm, w - ctz), extract_x);
   }
-  return impl(d_nm, eq(d_nm, s, sval), eq(d_nm, t, rem));
+  return impl(d_nm, {eq(d_nm, {s, sval}), eq(d_nm, {t, rem})});
 }
 
 // 2*: (=> (distinct s 0) (bvult t s))
 template <>
 Node Lemma<LemmaKind::UREM2>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm, distinct(d_nm, s, zero(d_nm, x)), bvult(d_nm, t, s));
+  return impl(d_nm, {distinct(d_nm, {s, zero(d_nm, x)}), bvult(d_nm, {t, s})});
 }
 
 // 3*: (=> (= x 0) (= t 0))
@@ -743,28 +800,29 @@ Node Lemma<LemmaKind::UREM3>::instance(TNode x,
                                        CVC5_UNUSED TNode s,
                                        TNode t) const
 {
-  return impl(d_nm, eq(d_nm, x, zero(d_nm, x)), eq(d_nm, t, zero(d_nm, x)));
+  Node z = zero(d_nm, x);
+  return impl(d_nm, {eq(d_nm, {x, z}), eq(d_nm, {t, z})});
 }
 
 // 4*: (=> (= s 0) (= t x))
 template <>
 Node Lemma<LemmaKind::UREM4>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm, eq(d_nm, s, zero(d_nm, x)), eq(d_nm, t, x));
+  return impl(d_nm, {eq(d_nm, {s, zero(d_nm, x)}), eq(d_nm, {t, x})});
 }
 
 // 5*: (=> (= s x) (= t 0))
 template <>
 Node Lemma<LemmaKind::UREM5>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm, eq(d_nm, s, x), eq(d_nm, t, zero(d_nm, x)));
+  return impl(d_nm, {eq(d_nm, {s, x}), eq(d_nm, {t, zero(d_nm, x)})});
 }
 
 // 6*: (=> (bvult x s) (= t x))
 template <>
 Node Lemma<LemmaKind::UREM6>::instance(TNode x, TNode s, TNode t) const
 {
-  return impl(d_nm, bvult(d_nm, x, s), eq(d_nm, t, x));
+  return impl(d_nm, {bvult(d_nm, {x, s}), eq(d_nm, {t, x})});
 }
 
 // 7*: (bvuge (bvnot (bvneg s)) t)
@@ -773,7 +831,7 @@ Node Lemma<LemmaKind::UREM7>::instance(CVC5_UNUSED TNode x,
                                        TNode s,
                                        TNode t) const
 {
-  return bvuge(d_nm, bvnot(d_nm, bvneg(d_nm, s)), t);
+  return bvuge(d_nm, {bvnot(d_nm, bvneg(d_nm, s)), t});
 }
 
 // 8: (= x (bvand x (bvor s (bvor t (bvneg s)))))
@@ -781,14 +839,15 @@ template <>
 Node Lemma<LemmaKind::UREM8>::instance(TNode x, TNode s, TNode t) const
 {
   return eq(
-      d_nm, x, bvand(d_nm, x, bvor(d_nm, s, bvor(d_nm, t, bvneg(d_nm, s)))));
+      d_nm,
+      {x, bvand(d_nm, {x, bvor(d_nm, {s, bvor(d_nm, {t, bvneg(d_nm, s)})})})});
 }
 
 // 9: (not (bvult x (bvor t (bvand x s))))
 template <>
 Node Lemma<LemmaKind::UREM9>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, x, bvor(d_nm, t, bvand(d_nm, x, s)));
+  return bvuge(d_nm, {x, bvor(d_nm, {t, bvand(d_nm, {x, s})})});
 }
 
 // 10: (not (= 1 (bvand t (bvnot (bvor x s)))))
@@ -796,14 +855,14 @@ template <>
 Node Lemma<LemmaKind::UREM10>::instance(TNode x, TNode s, TNode t) const
 {
   return distinct(
-      d_nm, one(d_nm, x), bvand(d_nm, t, bvnot(d_nm, bvor(d_nm, x, s))));
+      d_nm, {one(d_nm, x), bvand(d_nm, {t, bvnot(d_nm, bvor(d_nm, {x, s}))})});
 }
 
 // 11: (not (= t (bvor (bvnot x) (bvneg s))))
 template <>
 Node Lemma<LemmaKind::UREM11>::instance(TNode x, TNode s, TNode t) const
 {
-  return distinct(d_nm, t, bvor(d_nm, bvnot(d_nm, x), bvneg(d_nm, s)));
+  return distinct(d_nm, {t, bvor(d_nm, {bvnot(d_nm, x), bvneg(d_nm, s)})});
 }
 
 // 12: (not (bvult (bvand t (bvor x s)) (bvand t 1)))
@@ -811,7 +870,8 @@ template <>
 Node Lemma<LemmaKind::UREM12>::instance(TNode x, TNode s, TNode t) const
 {
   return bvuge(
-      d_nm, bvand(d_nm, t, bvor(d_nm, x, s)), bvand(d_nm, t, one(d_nm, x)));
+      d_nm,
+      {bvand(d_nm, {t, bvor(d_nm, {x, s})}), bvand(d_nm, {t, one(d_nm, x)})});
 }
 
 // 13: (not (= x (bvor (bvneg x) (bvneg (bvnot t)))))
@@ -822,21 +882,21 @@ Node Lemma<LemmaKind::UREM13>::instance(TNode x,
 {
   Assert(utils::getSize(x) >= 3) << "UREM13 is not valid for bit-width < 3";
   return distinct(
-      d_nm, x, bvor(d_nm, bvneg(d_nm, x), bvneg(d_nm, bvnot(d_nm, t))));
+      d_nm, {x, bvor(d_nm, {bvneg(d_nm, x), bvneg(d_nm, bvnot(d_nm, t))})});
 }
 
 // 14: (not (bvult (bvadd x (bvneg s)) t))
 template <>
 Node Lemma<LemmaKind::UREM14>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, bvadd(d_nm, x, bvneg(d_nm, s)), t);
+  return bvuge(d_nm, {bvadd(d_nm, {x, bvneg(d_nm, s)}), t});
 }
 
 // 15: (not (bvult (bvxor (bvneg s) (bvor x s)) t))
 template <>
 Node Lemma<LemmaKind::UREM15>::instance(TNode x, TNode s, TNode t) const
 {
-  return bvuge(d_nm, bvxor(d_nm, bvneg(d_nm, s), bvor(d_nm, x, s)), t);
+  return bvuge(d_nm, {bvxor(d_nm, {bvneg(d_nm, s), bvor(d_nm, {x, s})}), t});
 }
 
 /* --- LemmaRegistry -------------------------------------------------------- */

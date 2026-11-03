@@ -37,7 +37,7 @@ Java_io_github_cvc5_SynthResult_getNullSynthResult(JNIEnv* env, jclass)
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL
-Java_io_github_cvc5_SynthResult_deletePointer(JNIEnv*, jobject, jlong pointer)
+Java_io_github_cvc5_SynthResult_deletePointer(JNIEnv*, jclass, jlong pointer)
 {
   delete ((SynthResult*)pointer);
 }

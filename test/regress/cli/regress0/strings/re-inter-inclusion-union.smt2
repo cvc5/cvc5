@@ -1,3 +1,5 @@
+; Logos proof checking exceeds the 600-second timeout.
+; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 ; Regression for CPC proof checking of the RE_INTER_INCLUSION rewrite when a
 ; compound component (here a re.union) appears as a plain concatenation component

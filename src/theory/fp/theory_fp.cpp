@@ -671,8 +671,7 @@ void TheoryFp::registerTerm(TNode node)
     // containing unrefined conversions). The refinement lemmas then only
     // reference leaf skolems whose model values are direct assignments.
     Node pn = nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                         purifyArgument(node[0]),
-                         purifyArgument(node[1]));
+                         {purifyArgument(node[0]), purifyArgument(node[1])});
     handleLemma(node.eqNode(sk), InferenceId::FP_REGISTER_TERM);
     d_abstractionMap.insert(sk, pn);
 

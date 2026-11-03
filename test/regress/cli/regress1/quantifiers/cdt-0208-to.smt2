@@ -1,6 +1,8 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --full-saturate-quant
 ; EXPECT: unsat
+; CPC checking was disabled in #11405 (and again in #11541) because
+; codatatypes are not fully supported by Ethos.
 ; DISABLE-TESTER: cpc
 (set-logic ALL)
 (set-info :status unsat)

@@ -6,4 +6,5 @@
 (declare-fun a () Int)
 (assert (> a 1))
 (get-interpolant A (> a 0))
+(define-fun aux () Int 0)
 (get-interpolant-next)

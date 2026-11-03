@@ -27,7 +27,7 @@ using namespace cvc5::parser;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Command_deletePointer(JNIEnv*,
-                                                                 jobject,
+                                                                 jclass,
                                                                  jlong pointer)
 {
   delete reinterpret_cast<Command*>(pointer);

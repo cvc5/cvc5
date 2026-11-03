@@ -199,7 +199,6 @@ bool InferProofCons::convert(Env& env,
     case InferenceId::STRINGS_I_NORM:
     case InferenceId::STRINGS_LEN_NORM:
     case InferenceId::STRINGS_NORMAL_FORM:
-    case InferenceId::STRINGS_CODE_PROXY:
     case InferenceId::STRINGS_EXTF_REW_SAME:
     case InferenceId::STRINGS_I_CYCLE_CONFLICT:
     {

@@ -37,7 +37,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Sort_getNullSort(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Sort_deletePointer(JNIEnv*,
-                                                              jobject,
+                                                              jclass,
                                                               jlong pointer)
 {
   delete reinterpret_cast<Sort*>(pointer);

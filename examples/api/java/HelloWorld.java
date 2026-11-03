@@ -16,13 +16,11 @@ public class HelloWorld
 {
   public static void main(String[] args)
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       Term helloworld = tm.mkConst(tm.getBooleanSort(), "Hello World!");
 
       System.out.println(helloworld + " is " + slv.checkSatAssuming(helloworld));
     }
-    Context.deletePointers();
   }
 }

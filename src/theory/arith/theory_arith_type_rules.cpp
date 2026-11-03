@@ -306,6 +306,109 @@ TypeNode IndexedRootPredicateTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode StarContainsTypeRule::preComputeType(NodeManager* nm,
+                                              CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
+                                           TNode n,
+                                           bool check,
+                                           std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::STAR_CONTAINS);
+  if (check)
+  {
+    // The first argument should be a lambda. STAR_CONTAINS is not a
+    // closure, so its first child is an ordinary term that lambda
+    // lifting may have purified into a skolem; we check its original
+    // form.
+    Node lambda = n[0];
+    // remaining arguments should be elements of integer type
+    std::vector<Node> arguments;
+    for (size_t i = 1; i < n.getNumChildren(); i++)
+    {
+      arguments.push_back(n[i]);
+    }
+
+    bool anyIsNull = std::any_of(
+        arguments.begin(), arguments.end(), [](Node x) { return x.isNull(); });
+
+    if (lambda.isNull() || anyIsNull)
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting concrete types for STAR_CONTAINS operator";
+      }
+      return TypeNode::null();
+    }
+
+    TypeNode functionType = lambda.getType();
+    if (!(functionType.isFunction()))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function as a first argument. "
+                  << "Found a term of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+
+    std::vector<TypeNode> argTypes = functionType.getArgTypes();
+    bool allInt = std::all_of(argTypes.begin(), argTypes.end(), [](TypeNode x) {
+      return x.isInteger();
+    });
+
+    if (!(allInt
+          && CVC5_EQUAL(functionType.getRangeType(),
+                        nodeManager->booleanType())))
+    {
+      if (errOut)
+      {
+        (*errOut) << "Operator " << n.getKind()
+                  << " expects a function that accepts only integer arguments "
+                     "and returns a boolean."
+                  << "Found a function of type '" << functionType << "'.";
+      }
+      return TypeNode::null();
+    }
+
+    if (argTypes.size() != arguments.size())
+    {
+      if (errOut)
+      {
+        (*errOut) << "The number of arguments " << arguments.size()
+                  << "does not match the number of function arguments "
+                  << argTypes.size();
+      }
+      return TypeNode::null();
+    }
+
+    allInt = std::all_of(arguments.begin(), arguments.end(), [](Node x) {
+      return x.getType().isInteger();
+    });
+
+    if (!allInt)
+    {
+      if (errOut)
+      {
+        std::stringstream types;
+        for (const Node& node : arguments)
+        {
+          types << node.getType();
+        }
+
+        (*errOut) << "Operator " << n.getKind() << " expects integer arguments "
+                  << "Found arguments of types '" << types.str() << "'.";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nodeManager->booleanType();
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

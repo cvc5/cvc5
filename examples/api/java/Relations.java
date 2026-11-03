@@ -18,8 +18,7 @@ public class Relations
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       // Set the logic
       solver.setLogic("ALL");
@@ -145,6 +144,5 @@ public class Relations
       System.out.println("descendant = " + solver.getValue(descendant));
       System.out.println("ancestor   = " + solver.getValue(ancestor));
     }
-    Context.deletePointers();
   }
 }

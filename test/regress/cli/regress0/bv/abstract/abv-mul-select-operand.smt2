@@ -1,6 +1,8 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction --bv-abstraction-size=3
 ; EXPECT: unsat
+; Proof testing is disabled because it switches to --bv-solver=bitblast-internal,
+; which does not support the bit-vector abstraction exercised by this test.
 ; DISABLE-TESTER: proof
 ; The abstracted 64-bit bvmul has an array select inside its operand: the
 ; select is a foreign-theory leaf whose value is decided by the arrays theory.

@@ -24,17 +24,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
 import io.github.cvc5.modes.*;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class ParserLifetimeTest
 {
-  @AfterEach
-  void tearDown()
-  {
-    Context.deletePointers();
-  }
-
   @Test
   void symbolManagerOutlivesTermManager() throws CVC5ApiException
   {

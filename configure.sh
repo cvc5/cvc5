@@ -53,6 +53,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --muzzle                 complete silence (no non-result output)
   --clang-tidy             enable clang-tidy static analysis during build
   --coverage               support for gcov coverage testing
+  --api-coverage           support for gcov coverage testing of the API only
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
   --slow-tests             enable slow (exhaustive) unit tests
@@ -132,6 +133,7 @@ make_abs_path() {
 
 buildtype=default
 
+api_coverage=default
 asan=default
 assertions=default
 auto_download=default
@@ -256,6 +258,9 @@ do
     --coverage) coverage=ON;;
     --no-coverage) coverage=OFF;;
 
+    --api-coverage) api_coverage=ON;;
+    --no-api-coverage) api_coverage=OFF;;
+
     --cryptominisat) cryptominisat=ON;;
     --no-cryptominisat) cryptominisat=OFF;;
 
@@ -373,7 +378,7 @@ do
         case $wasm_web_config in
           no-modular-static-page)
             wasm=HTML
-            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\"]' -s ASSERTIONS=1 -s NO_DISABLE_EXCEPTION_CATCHING=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
+            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\", \"instantiateWasm\"]' -s ASSERTIONS=1 -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
             wasm_web=ON
             ;;
           *)
@@ -473,6 +478,8 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
   && cmake_opts="$cmake_opts -DENABLE_CLANG_TIDY=$clang_tidy"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
+[ $api_coverage != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_API_COVERAGE=$api_coverage"
 [ $debug_symbols != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols"
 [ $debug_context_mm != default ] \

@@ -1,3 +1,5 @@
+; Logos rejects scoped assumptions containing free bound variables.
+; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 ; DISABLE-TESTER: alethe
 (set-logic ALL)
