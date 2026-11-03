@@ -15,7 +15,11 @@
 
 #include <algorithm>
 
+#include "theory/arith/nl/transcendental/transcendental_solver.h"
+
 #ifdef CVC5_POLY_IMP
+
+#include <algorithm>
 
 #include "options/arith_options.h"
 #include "theory/arith/nl/coverings/lazard_evaluation.h"
@@ -106,6 +110,15 @@ void CDCAC::computeVariableOrdering(bool reverse)
   {
     lp_variable_order_push(vo, v.get_internal());
   }
+  d_isUniv = true;
+  for (const auto& c : d_constraints.getConstraints())
+  {
+    if (!poly::is_univariate(std::get<0>(c)))
+    {
+      d_isUniv = false;
+      break;
+    }
+  }
 }
 
 void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
@@ -139,12 +152,21 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
   std::vector<CACInterval> res;
   LazardEvaluation le(statisticsRegistry(), nodeManager()->getPolyContext());
   prepareRootIsolation(le, cur_variable);
+  std::map<Node, poly::Polynomial> constraintPolys;
+  if (isProofEnabled() && d_isUniv && !d_univCovered)
+  {
+    d_proof->startUnivVariable(
+        d_constraints.varMapper()(d_variableOrdering[cur_variable]));
+  }
+
   for (const auto& c : d_constraints.getConstraints())
   {
     const poly::Polynomial& p = std::get<0>(c);
     poly::SignCondition sc = std::get<1>(c);
     const Node& n = std::get<2>(c);
-
+    // the polynomial used in the proof, oriented like n
+    poly::Polynomial q = orientLikeConstraint(n, p);
+    constraintPolys.insert(std::pair(n, q));
     if (main_variable(p) != d_variableOrdering[cur_variable])
     {
       // Constraint is in another variable, ignore it.
@@ -166,7 +188,12 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     }
     else
     {
-      intervals = poly::infeasible_regions(p, d_assignment, sc);
+      std::vector<poly::Value> roots;
+      intervals = poly::infeasible_regions(p, d_assignment, sc, roots);
+      if (isProofEnabled() && d_isUniv && !d_univCovered)
+      {
+        d_proof->addUnivRoots(roots, q);
+      }
     }
     for (const auto& i : intervals)
     {
@@ -177,7 +204,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
       if (!is_minus_infinity(get_lower(i))) l = m;
       if (!is_plus_infinity(get_upper(i))) u = m;
       res.emplace_back(CACInterval{d_nextIntervalId++, i, l, u, m, d, {n}});
-      if (isProofEnabled())
+      if (isProofEnabled() && !d_isUniv)
       {
         d_proof->addDirect(
             d_constraints.varMapper()(d_variableOrdering[cur_variable]),
@@ -191,6 +218,11 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     }
   }
   pruneRedundantIntervals(res);
+  if (isProofEnabled() && d_isUniv && !d_univCovered)
+  {
+    d_proof->initializeRootMap();
+    d_proof->addIntervals(res, constraintPolys);
+  }
   return res;
 }
 
@@ -610,8 +642,10 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
   }
   poly::Value sample;
 
+  bool firstSample = true;
   while (sampleOutsideWithInitial(intervals, sample, curVariable))
   {
+    firstSample = false;
     if (!checkIntegrality(curVariable, sample))
     {
       // the variable is integral, but the sample is not.
@@ -633,7 +667,7 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
       Trace("cdcac") << "Found full assignment: " << d_assignment << std::endl;
       return {};
     }
-    if (isProofEnabled())
+    if (isProofEnabled() && !d_isUniv)
     {
       d_proof->startScope();
       d_proof->startRecursive();
@@ -662,7 +696,7 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     Trace("cdcac") << "New interval: " << newInterval.d_interval << std::endl;
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
-    if (isProofEnabled())
+    if (isProofEnabled() && !d_isUniv)
     {
       d_proof->endRecursive(newInterval.d_id);
       auto cell = d_proof->constructCell(
@@ -694,6 +728,12 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     pruneRedundantIntervals(intervals);
   }
 
+  if (firstSample && isProofEnabled() && d_isUniv)
+  {
+    // the intervals of this variable alone cover the line
+    d_univCovered = true;
+  }
+
   if (TraceIsOn("cdcac"))
   {
     Trace("cdcac") << "Returning intervals for "
@@ -721,12 +761,12 @@ std::vector<CACInterval> CDCAC::getUnsatCover(bool returnFirstInterval)
       startNewProof();
     }
     d_nullified = false;
-    if (isProofEnabled())
+    if (isProofEnabled() && !d_isUniv)
     {
       d_proof->startRecursive();
     }
     res = getUnsatCoverImpl(0, returnFirstInterval);
-    if (isProofEnabled())
+    if (isProofEnabled() && !d_isUniv)
     {
       d_proof->endRecursive(0);
     }
@@ -742,7 +782,8 @@ void CDCAC::startNewProof()
 {
   if (isProofEnabled())
   {
-    d_proof->startNewProof();
+    d_univCovered = false;
+    d_proof->startNewProof(d_isUniv);
   }
 }
 
@@ -750,9 +791,15 @@ ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
 {
   if (isProofEnabled())
   {
-    d_proof->endScope(assertions);
-    return d_proof->getProofGenerator();
+    if (!d_isUniv)
+    {
+      d_proof->endScope(assertions);
+      return d_proof->getProofGenerator();
+    }
+    d_proof->closeUnivProof(assertions, d_constraints.varMapper());
+    return d_proof->getUnivProofGenerator();
   }
+
   return nullptr;
 }
 
@@ -808,7 +855,7 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
 void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
 {
   cleanIntervals(intervals);
-  if (options().arith.nlCovPrune)
+  if (options().arith.nlCovPrune || (d_isUniv && isProofEnabled()))
   {
     if (TraceIsOn("cdcac"))
     {
@@ -829,7 +876,7 @@ void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
       removeRedundantIntervals(intervals);
     }
   }
-  if (isProofEnabled())
+  if (isProofEnabled() && !d_isUniv)
   {
     d_proof->pruneChildren([&intervals](std::size_t id) {
       if (id == 0) return false;

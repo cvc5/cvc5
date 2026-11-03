@@ -67,6 +67,12 @@ const char* aletheRuleToString(AletheRule id)
     case AletheRule::LA_DISEQUALITY: return "la_disequality";
     case AletheRule::LA_TOTALITY: return "la_totality";
     case AletheRule::LA_TAUTOLOGY: return "la_tautology";
+    case AletheRule::SGN_INV_INTRO: return "sgn_inv_intro";
+    case AletheRule::IS_ROOT_INTRO: return "is_root_intro";
+    case AletheRule::COVER: return "cover";
+    case AletheRule::SGN_INV_ELIM: return "sgn_inv_elim";
+    case AletheRule::RAN_EVAL: return "ran_eval";
+    case AletheRule::ARITH_COVERINGS_UNIV: return "arith_coverings_univ";
     case AletheRule::FORALL_INST: return "forall_inst";
     case AletheRule::QNT_JOIN: return "qnt_join";
     case AletheRule::QNT_RM_UNUSED: return "qnt_rm_unused";
