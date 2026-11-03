@@ -117,7 +117,7 @@ class SubTheory : protected EnvObj, public FieldObj
   /**
    * Statistics shared among all finite-field sub-theories.
    */
-  CVC5_UNUSED_FIELD FfStatistics* d_stats;
+  FfStatistics* d_stats;
 };
 
 }  // namespace ff
