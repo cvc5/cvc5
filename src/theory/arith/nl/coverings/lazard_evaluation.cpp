@@ -896,7 +896,7 @@ std::vector<poly::Value> LazardEvaluation::isolateRealRoots(
 std::vector<poly::Interval> LazardEvaluation::infeasibleRegions(
     const poly::Polynomial& q,
     poly::SignCondition sc,
-    std::vector<poly::Value>& roots) const
+    CVC5_UNUSED std::vector<poly::Value>& roots) const
 {
   WarningOnce()
       << "nl-cov::LazardEvaluation is disabled because CoCoA is not available. "
