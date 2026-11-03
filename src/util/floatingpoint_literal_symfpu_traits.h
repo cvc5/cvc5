@@ -24,6 +24,12 @@
 
 #include <symfpu/core/unpackedFloat.h>
 
+// Catches an unpatched SymFPU that shadows the one selected by
+// cmake/FindSymFPU.cmake in the include path.
+#if !defined(SYMFPU_CVC5_PATCH_LEVEL) || SYMFPU_CVC5_PATCH_LEVEL < 3
+#error "SymFPU is missing the patches in cmake/deps-utils/symfpu-*.patch"
+#endif
+
 #include "util/bitvector.h"
 #include "util/floatingpoint_size.h"
 #include "util/roundingmode.h"

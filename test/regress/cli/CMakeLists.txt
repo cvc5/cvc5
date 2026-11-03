@@ -1005,11 +1005,19 @@ set(regress_0_tests
   regress0/fp/from_ubv.smt2
   regress0/fp/from_sbv.smt2
   regress0/fp/fp-set-comprehension-basic.smt2
+  regress0/fp/fpexp_exp2_pow2_rti.smt2
+  regress0/fp/fpexp_fp2fp_range.smt2
+  regress0/fp/fpexp_rti_matchwidth.smt2
+  regress0/fp/fpexp_rti_overflow.smt2
+  regress0/fp/fpexp_sig3_add.smt2
+  regress0/fp/fpexp_sig3_to_fp.smt2
   regress0/fp/issue-5524.smt2
   regress0/fp/issue10144.smt2
   regress0/fp/issue10507.smt2
   regress0/fp/issue13012-1.smt2
   regress0/fp/issue13012-2.smt2
+  regress0/fp/issue13072-1.smt2
+  regress0/fp/issue13072-2.smt2
   regress0/fp/issue3536.smt2
   regress0/fp/issue3582.smt2
   regress0/fp/issue3619.smt2
