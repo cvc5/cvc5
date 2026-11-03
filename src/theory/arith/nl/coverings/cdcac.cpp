@@ -178,7 +178,12 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
     std::vector<poly::Interval> intervals;
     if (options().arith.nlCovLifting == options::nlCovLiftingMode::LAZARD)
     {
-      intervals = le.infeasibleRegions(p, sc);
+      std::vector<poly::Value> roots;
+      intervals = le.infeasibleRegions(p, sc, roots);
+      if (isProofEnabled() && d_isUniv && !d_univCovered)
+      {
+        d_proof->addUnivRoots(roots, q);
+      }
       if (TraceIsOn("cdcac"))
       {
         auto reference = poly::infeasible_regions(p, d_assignment, sc);
