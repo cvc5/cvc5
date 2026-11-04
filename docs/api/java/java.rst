@@ -27,9 +27,7 @@ Memory management
 
 Objects of the Java API (term managers, solvers, terms, sorts, ...) wrap native
 cvc5 objects. A native object is released automatically once its Java object
-is no longer reachable, so no explicit clean-up is required. Objects derived
-from a term manager (sorts, terms, ...) remain valid after the term manager
-has been released, as they keep the underlying node manager alive.
+is no longer reachable, so no explicit clean-up is required.
 
 The garbage collector only accounts for the (small) Java objects, so native
 memory is released only when the garbage collector runs and, for objects
@@ -48,6 +46,12 @@ statement:
       solver.assertFormula(x);
       System.out.println(solver.checkSat());
     }
+
+Closing a term manager releases the native objects of the term manager and of
+all objects derived from it (solvers, sorts, terms, ...) at once; using any of
+them afterwards raises an ``IllegalStateException``. In contrast,
+``deletePointer()`` releases only the term manager itself: objects derived
+from it remain valid, as they keep the underlying node manager alive.
 
 Threads
 -------
