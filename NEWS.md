@@ -58,6 +58,23 @@ cvc5 1.5.0 prerelease
   manager is now thread-safe. Previously, the losing thread crashed the
   process with an uncaught `CoCoA::ErrorInfo` exception.
 
+- Fixed incorrect encodings in SymFPU for some **experimental floating-point
+  formats** (`--fp-exp`), which could cause wrong answers, invalid models,
+  errors ("resulting bit-vector size is too large") or assertion failures.
+  If cvc5 is configured without MPFR,
+  this also affected constant folding. Formats Float16, Float32, Float64 and
+  Float128 are not affected. Affected were:
+  * `fp.roundToIntegral` and `to_fp` conversions from floating-point and
+    signed/unsigned bit-vector terms, e.g., in `(_ FloatingPoint 3 4)` and
+    `(_ FloatingPoint 3 5)`.
+  * Formats with significand size <= 3, e.g., `(_ FloatingPoint 2 3)`
+    (#13072), and formats with exponent size 2 and a significand size that is
+    a power of two, e.g., `(_ FloatingPoint 2 4)`.
+
+  The SymFPU version built by cvc5 is now patched to fix these issues
+  (`cmake/deps-utils/symfpu-*.patch`). A system-wide SymFPU is only used if
+  it includes these patches.
+
 
 cvc5 1.4.2
 ==========
