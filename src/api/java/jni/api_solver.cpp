@@ -20,10 +20,10 @@ using namespace cvc5;
 
 ApiSolver::ApiSolver(TermManager& tm) : Solver(tm) {}
 
-jobject ApiSolver::addGlobalReference(JNIEnv* env, jobject object)
+jweak ApiSolver::addWeakGlobalReference(JNIEnv* env, jobject object)
 {
-  jobject reference = env->NewGlobalRef(object);
-  d_globalReferences.push_back(reference);
+  jweak reference = env->NewWeakGlobalRef(object);
+  d_weakGlobalReferences.push_back(reference);
   return reference;
 }
 
@@ -34,15 +34,15 @@ void ApiSolver::addPluginPointer(jlong pluginPointer)
 
 void ApiSolver::deletePointers(JNIEnv* env)
 {
-  for (jobject ref : d_globalReferences)
+  for (jweak ref : d_weakGlobalReferences)
   {
-    env->DeleteGlobalRef(ref);
+    env->DeleteWeakGlobalRef(ref);
   }
   for (jlong p : d_pluginPointers)
   {
     ApiPlugin* plugin = reinterpret_cast<ApiPlugin*>(p);
     delete plugin;
   }
-  d_globalReferences.clear();
+  d_weakGlobalReferences.clear();
   d_pluginPointers.clear();
 }

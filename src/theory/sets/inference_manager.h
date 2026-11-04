@@ -81,6 +81,11 @@ class InferenceManager : public InferenceManagerBuffered
    * polarity ( reqPol>0 ).
    */
   void split(Node n, InferenceId id, int reqPol = 0);
+  /**
+   * Immediately send lemma lem, which is an axiom with no explanation, with
+   * the default handling of proofs.
+   */
+  void sendAxiomLemma(const Node& lem, InferenceId id);
 
  private:
   /** constants */

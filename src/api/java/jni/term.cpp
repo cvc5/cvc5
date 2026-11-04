@@ -39,7 +39,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getNullTerm(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Term_deletePointer(JNIEnv*,
-                                                              jobject,
+                                                              jclass,
                                                               jlong pointer)
 {
   delete reinterpret_cast<Term*>(pointer);
@@ -1117,22 +1117,6 @@ Java_io_github_cvc5_Term_getSkolemIndices(JNIEnv* env, jobject, jlong pointer)
   std::vector<Term> args = current->getSkolemIndices();
   jlongArray ret = getPointersFromObjects<Term>(env, args);
   return ret;
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Term
- * Method:    iterator
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_iterator(JNIEnv* env,
-                                                          jobject,
-                                                          jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = reinterpret_cast<Term*>(pointer);
-  Term::const_iterator* retPointer = new Term::const_iterator(current->begin());
-  return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
 

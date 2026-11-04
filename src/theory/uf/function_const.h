@@ -59,6 +59,19 @@ class FunctionConst
    */
   static Node toLambda(TNode n);
   /**
+   * Returns the lambda that defines f, or the null node if f has no such
+   * definition.
+   *
+   * This is toLambda applied to f after undoing a single purification step.
+   * It is intended for callers that construct applications of f internally
+   * and assert them as internal facts. Such facts are neither preprocessed nor
+   * rewritten, so the caller has to beta-reduce them itself, using the lambda
+   * returned by this method. The term f is typically either a lambda, in which
+   * case this returns f itself, or the skolem of a lambda that was lifted (see
+   * LambdaLift), in which case this returns that lambda.
+   */
+  static Node getDefinition(TNode f);
+  /**
    * Extracts the array constant from the payload of a a function array constant
    *
    *

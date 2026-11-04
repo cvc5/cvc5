@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --user-pat=strict
 ; EXPECT: unsat
 ; DISABLE-TESTER: unsat-core

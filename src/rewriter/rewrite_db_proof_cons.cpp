@@ -36,7 +36,9 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
     : EnvObj(env),
       d_notify(*this),
       d_trrc(env),
-      d_rdnc(nodeManager()),
+      d_rdnc(nodeManager(), true),
+      d_iofnc(nodeManager()),
+      d_currFold(false),
       d_db(db),
       d_eval(nullptr),
       d_currRecLimit(0),
@@ -128,13 +130,19 @@ bool RewriteDbProofCons::prove(CDProof* cdp,
       Trace("rpc") << "...success (post-prove basic)" << std::endl;
       success = true;
     }
-    else if (eqi != eq && d_trrc.postProve(cdp, eqi[0], eqi[1], tmode))
+    else if (eqi != eq)
     {
-      Trace("rpc") << "...success (post-prove basic)" << std::endl;
-      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
-      success = true;
+      // note we run this on the folded form of eqi, which is the form of terms
+      // used in proofs
+      Node eqif = fold(eqi);
+      if (eqif != eq && d_trrc.postProve(cdp, eqif[0], eqif[1], tmode))
+      {
+        Trace("rpc") << "...success (post-prove basic)" << std::endl;
+        d_trrc.ensureProofForEncodeTransform(cdp, eq, eqif);
+        success = true;
+      }
     }
-    else
+    if (!success)
     {
       Trace("rpc") << "...fail" << std::endl;
     }
@@ -153,9 +161,19 @@ bool RewriteDbProofCons::proveEqStratified(CDProof* cdp,
                                            int64_t stepLimit,
                                            TheoryRewriteMode tmode)
 {
+  // Determine whether the search below may involve indexed operators that were
+  // lifted to APPLY_INDEXED_SYMBOLIC. If so, the proof we construct is for the
+  // folded form of eqi, which is the form of terms used in proofs. Note that
+  // lifting is the only way such terms are introduced, hence we do not have to
+  // traverse eqi when it is the (unconverted) input equality. Note also that
+  // this flag may additionally be set during the search below, if a RARE rule
+  // that mentions an indexed operator is applied.
+  d_currFold =
+      (eq != eqi) && IndexedOpFoldNodeConverter::hasIndexedSymbolic(eqi);
   bool success = false;
-  // first, try the basic utility
-  if (d_trrc.prove(cdp, eqi[0], eqi[1], tmode))
+  // first, try the basic utility, which is run on the folded form of eqi
+  Node eqif = fold(eqi);
+  if (d_trrc.prove(cdp, eqif[0], eqif[1], tmode))
   {
     Trace("rpc") << "...success (basic)" << std::endl;
     success = true;
@@ -185,10 +203,12 @@ bool RewriteDbProofCons::proveEqStratified(CDProof* cdp,
   }
   if (success)
   {
+    // recompute, since the search above may have introduced indexed operators
+    eqif = fold(eqi);
     // if eqi was converted, update the proof to account for this
-    if (eq != eqi)
+    if (eq != eqif)
     {
-      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqi);
+      d_trrc.ensureProofForEncodeTransform(cdp, eq, eqif);
     }
     return true;
   }
@@ -358,8 +378,12 @@ bool RewriteDbProofCons::proveEq(CDProof* cdp,
   {
     ++d_statTotalInputSuccess;
     Trace("rpc-debug") << "- ensure proof" << std::endl;
-    ensureProofInternal(cdp, eqi);
-    AlwaysAssert(cdp->hasStep(eqi)) << eqi;
+    if (!ensureProofInternal(cdp, eqi))
+    {
+      Trace("rpc-debug") << "- failed to ensure proof" << std::endl;
+      return false;
+    }
+    AlwaysAssert(cdp->hasStep(fold(eqi))) << eqi;
     Trace("rpc-debug") << "- finish ensure proof" << std::endl;
     return true;
   }
@@ -768,6 +792,10 @@ bool RewriteDbProofCons::proveWithRule(RewriteProofStatus id,
   {
     Assert(id == RewriteProofStatus::DSL);
     const RewriteProofRule& rpr = d_db->getRule(r);
+    // If this rule mentions an indexed operator, its instances must be folded
+    // when we construct the proof below, even if the current target does not
+    // itself contain one, since the rule may introduce one.
+    d_currFold = d_currFold || rpr.hasIndexedOperator();
     // does it conclusion match what we are trying to show?
     Node conc = rpr.getConclusion();
     Assert(conc.getKind() == Kind::EQUAL && target.getKind() == Kind::EQUAL);
@@ -1126,6 +1154,13 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
 
 bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
 {
+  // Note that the equalities we traverse below (and which are the keys of
+  // d_pcache) are in the representation used by the internal search, where
+  // indexed operators may have been lifted to APPLY_INDEXED_SYMBOLIC. The
+  // proof we construct is for their folded form, hence every conclusion and
+  // premise passed to cdp below is wrapped in a call to fold. Note that fold
+  // is the identity (and does no traversal at all) unless the current call
+  // involves indexed operators, which is the common case.
   // note we could use single internal cdp to improve subproof sharing
   NodeManager* nm = nodeManager();
   std::unordered_map<TNode, bool> visited;
@@ -1152,7 +1187,7 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       Trace("rpc-debug") << "Ensure proof for " << cur << std::endl;
       visit.push_back(cur);
       // may already have a proof rule from a previous call
-      if (cdp->hasStep(cur))
+      if (cdp->hasStep(fold(cur)))
       {
         it->second = true;
         Trace("rpc-debug") << "...already proven" << std::endl;
@@ -1166,31 +1201,33 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           it->second = true;
           // trivial proof
           Assert(cur[0] == cur[1]);
-          cdp->addStep(cur, ProofRule::REFL, {}, {cur[0]});
+          Node fcur = fold(cur);
+          cdp->addStep(fcur, ProofRule::REFL, {}, {fcur[0]});
         }
         else if (pcur.d_id == RewriteProofStatus::EVAL)
         {
           it->second = true;
           // NOTE: this could just evaluate the equality itself
           Assert(cur.getKind() == Kind::EQUAL);
+          Node fcur = fold(cur);
           std::vector<Node> transc;
           for (size_t i = 0; i < 2; ++i)
           {
-            Node curv = doEvaluate(cur[i]);
-            if (curv == cur[i])
+            Node curv = doEvaluate(fcur[i]);
+            if (curv == fcur[i])
             {
               continue;
             }
-            Node eq = cur[i].eqNode(curv);
+            Node eq = fcur[i].eqNode(curv);
             // flip orientation for second child
-            transc.push_back(i == 1 ? curv.eqNode(cur[i]) : eq);
+            transc.push_back(i == 1 ? curv.eqNode(fcur[i]) : eq);
             // trivial evaluation, add evaluation method id
-            cdp->addStep(eq, ProofRule::EVALUATE, {}, {cur[i]});
+            cdp->addStep(eq, ProofRule::EVALUATE, {}, {fcur[i]});
           }
           if (transc.size() == 2)
           {
             // do transitivity if both sides evaluate
-            cdp->addStep(cur, ProofRule::TRANS, transc, {});
+            cdp->addStep(fcur, ProofRule::TRANS, transc, {});
           }
         }
         else
@@ -1225,18 +1262,22 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
                 Assert(d < pcur.d_subs.size());
                 rsubs.push_back(pcur.d_subs[d]);
               }
-              // get the conditions, store into premises of cur.
+              // Get the conditions, store into premises of cur. Note these
+              // are kept in their unfolded form, since they are the keys of
+              // d_pcache; they are folded when passed to cdp below.
               if (!rpr.getObligations(vs, rsubs, ps))
               {
                 DebugUnhandled() << "failed a side condition?";
                 return false;
               }
-              pfac.insert(pfac.end(), rsubs.begin(), rsubs.end());
+              // the arguments of the proof step are the folded substitution
+              std::vector<Node> frsubs = fold(rsubs);
+              pfac.insert(pfac.end(), frsubs.begin(), frsubs.end());
             }
             else
             {
               Assert(pcur.d_id == RewriteProofStatus::THEORY_REWRITE);
-              pfac.push_back(cur);
+              pfac.push_back(fold(cur));
             }
           }
           // recurse on premises
@@ -1263,15 +1304,18 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
       }
       if (status == RewriteProofStatus::TRANS)
       {
-        conc = ps[0][0].eqNode(ps.back()[1]);
-        cdp->addStep(conc, ProofRule::TRANS, ps, {});
+        conc = fold(ps[0][0].eqNode(ps.back()[1]));
+        cdp->addStep(conc, ProofRule::TRANS, fold(ps), {});
       }
       else if (status == RewriteProofStatus::CONG)
       {
+        Node fcur = fold(cur);
+        std::vector<Node> fps = fold(ps);
+        getCongPremises(cur[0], fcur[0], fps);
         // get the appropriate CONG rule
         std::vector<Node> cargs;
-        ProofRule cr = expr::getCongRule(cur[0], cargs);
-        cdp->addStep(cur, cr, ps, cargs);
+        ProofRule cr = expr::getCongRule(fcur[0], cargs);
+        cdp->addStep(fcur, cr, fps, cargs);
       }
       else if (status == RewriteProofStatus::CONG_EVAL)
       {
@@ -1282,7 +1326,8 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         //   t1 == c1 ... tn == cn
         // The final proof is a congruence step + evaluation:
         //   (f t1 ... tn) == (f c1 ... cn) == c.
-        Node lhs = cur[0];
+        Node fcur = fold(cur);
+        Node lhs = fcur[0];
         std::vector<Node> lhsTgtc;
         if (cur[0].getMetaKind() == metakind::PARAMETERIZED)
         {
@@ -1293,41 +1338,45 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           Assert(eq.getKind() == Kind::EQUAL);
           lhsTgtc.push_back(eq[1]);
         }
-        Node lhsTgt = nm->mkNode(cur[0].getKind(), lhsTgtc);
-        Node rhs = doEvaluate(cur[1]);
+        Node lhsTgt = fold(nm->mkNode(cur[0].getKind(), lhsTgtc));
+        Node rhs = doEvaluate(fcur[1]);
         Assert(!rhs.isNull());
         Node eq1 = lhs.eqNode(lhsTgt);
         Node eq2 = lhsTgt.eqNode(rhs);
         std::vector<Node> transChildren = {eq1, eq2};
+        std::vector<Node> fps = fold(ps);
+        getCongPremises(cur[0], lhs, fps);
         // get the appropriate CONG rule
         std::vector<Node> cargs;
         ProofRule cr = expr::getCongRule(eq1[0], cargs);
-        cdp->addStep(eq1, cr, ps, cargs);
+        cdp->addStep(eq1, cr, fps, cargs);
         cdp->addStep(eq2, ProofRule::EVALUATE, {}, {lhsTgt});
-        if (rhs != cur[1])
+        if (rhs != fcur[1])
         {
-          cdp->addStep(cur[1].eqNode(rhs), ProofRule::EVALUATE, {}, {cur[1]});
-          transChildren.push_back(rhs.eqNode(cur[1]));
+          cdp->addStep(fcur[1].eqNode(rhs), ProofRule::EVALUATE, {}, {fcur[1]});
+          transChildren.push_back(rhs.eqNode(fcur[1]));
         }
-        cdp->addStep(cur, ProofRule::TRANS, transChildren, {});
+        cdp->addStep(fcur, ProofRule::TRANS, transChildren, {});
       }
       else if (status == RewriteProofStatus::TRUE_ELIM)
       {
-        conc = ps[0][0];
-        cdp->addStep(conc, ProofRule::TRUE_ELIM, ps, {});
+        conc = fold(ps[0][0]);
+        cdp->addStep(conc, ProofRule::TRUE_ELIM, fold(ps), {});
       }
       else if (status == RewriteProofStatus::TRUE_INTRO)
       {
-        conc = ps[0].eqNode(d_true);
-        cdp->addStep(conc, ProofRule::TRUE_INTRO, ps, {});
+        conc = fold(ps[0]).eqNode(d_true);
+        cdp->addStep(conc, ProofRule::TRUE_INTRO, fold(ps), {});
       }
       else if (status == RewriteProofStatus::ABSORB)
       {
-        cdp->addStep(cur, ProofRule::ABSORB, {}, {cur});
+        Node fcur = fold(cur);
+        cdp->addStep(fcur, ProofRule::ABSORB, {}, {fcur});
       }
       else if (status == RewriteProofStatus::ACI_NORM)
       {
-        cdp->addStep(cur, ProofRule::ACI_NORM, {}, {cur});
+        Node fcur = fold(cur);
+        cdp->addStep(fcur, ProofRule::ACI_NORM, {}, {fcur});
       }
       else if (status == RewriteProofStatus::ARITH_POLY_NORM)
       {
@@ -1336,16 +1385,18 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         bool isBitVec = (tn.isBitVector());
         ProofRule pr =
             isBitVec ? ProofRule::BV_POLY_NORM : ProofRule::ARITH_POLY_NORM;
+        Node fcur = fold(cur);
         if (pcur.d_vars.empty())
         {
-          cdp->addStep(cur, pr, {}, {cur});
+          cdp->addStep(fcur, pr, {}, {fcur});
         }
         else
         {
           ProofRule prr = isBitVec ? ProofRule::BV_POLY_NORM_EQ
                                    : ProofRule::ARITH_POLY_NORM_REL;
-          cdp->addStep(pcur.d_vars[0], pr, {}, {pcur.d_vars[0]});
-          cdp->addStep(cur, prr, {pcur.d_vars[0]}, {cur});
+          Node fp = fold(pcur.d_vars[0]);
+          cdp->addStep(fp, pr, {}, {fp});
+          cdp->addStep(fcur, prr, {fp}, {fcur});
         }
       }
       else if (status == RewriteProofStatus::DSL_FIXED_POINT)
@@ -1374,14 +1425,22 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
           Trace("rpc-debug") << "  - step: " << s << std::endl;
           // Fixed-point steps are an explicit rewrite chain. Register them as
           // pre-rewrites so they are applied in the recorded order before
-          // child rewriting changes the current redex.
-          tcpg.addRewriteStep(
-              s[0], s[1], cdp, true, TrustId::NONE, false, emptyPath ? 0 : tc);
+          // child rewriting changes the current redex. Note that no RARE rule
+          // that is applied to fixed point mentions an indexed operator, hence
+          // folding the steps does not change the path computed above.
+          Node fs = fold(s);
+          tcpg.addRewriteStep(fs[0],
+                              fs[1],
+                              cdp,
+                              true,
+                              TrustId::NONE,
+                              false,
+                              emptyPath ? 0 : tc);
           // the next rewrite should be applied at the depth that adds the
           // length of the path.
           tc += path.size();
         }
-        std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(cur);
+        std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(fold(cur));
         Assert(pfn != nullptr);
         cdp->addProof(pfn);
       }
@@ -1394,23 +1453,51 @@ bool RewriteDbProofCons::ensureProofInternal(CDProof* cdp, const Node& eqi)
         ProofRule pfr;
         if (status == RewriteProofStatus::DSL)
         {
+          // note the arguments are already the folded substitution
           std::vector<Node> subs(args.begin() + 1, args.end());
           const RewriteProofRule& rpr = d_db->getRule(pcur.d_dslId);
-          conc = rpr.getConclusionFor(subs);
+          conc = fold(rpr.getConclusionFor(subs));
           Trace("rpc-debug") << "Finalize proof for " << cur << std::endl;
-          Trace("rpc-debug") << "Proved: " << cur << std::endl;
+          Trace("rpc-debug") << "Proved: " << fold(cur) << std::endl;
           Trace("rpc-debug") << "From: " << conc << std::endl;
+          // If the conclusion still mentions an indexed operator, its
+          // indices did not evaluate to numeral constants and hence could not
+          // be folded. We do not construct a proof in this case, rather than
+          // emit a step whose conclusion has no counterpart in external proof
+          // formats. Note this is not expected to be possible, since indices
+          // are always numeral constants in the terms we lift, and side
+          // conditions of RARE rules compute indices that evaluate.
+          if (d_currFold
+              && IndexedOpFoldNodeConverter::hasIndexedSymbolic(conc))
+          {
+            Trace("rpc-debug")
+                << "Failed to fold conclusion " << conc << std::endl;
+            return false;
+          }
           pfr = ProofRule::DSL_REWRITE;
-          cdp->addStep(conc, pfr, ps, args);
+          cdp->addStep(conc, pfr, fold(ps), args);
         }
         else
         {
           Assert(status == RewriteProofStatus::THEORY_REWRITE);
+          Node fcur = fold(cur);
+          if (fcur != cur
+              && d_env.getRewriter()->rewriteViaRule(pcur.d_dslId, fcur[0])
+                     != fcur[1])
+          {
+            // The theory rewrite no longer applies to the folded form of the
+            // conclusion. This should never happen in practice; we fail here
+            // instead of constructing a proof that mentions
+            // APPLY_INDEXED_SYMBOLIC.
+            Trace("rpc-debug") << "Failed to fold theory rewrite "
+                               << pcur.d_dslId << " for " << cur << std::endl;
+            return false;
+          }
           // Use the utility, possibly to do macro expansion.
           // We use a fresh CDProof to avoid duplicate substeps.
           CDProof cdpt(d_env);
-          d_trrc.ensureProofForTheoryRewrite(&cdpt, pcur.d_dslId, cur);
-          cdp->addProof(cdpt.getProofFor(cur));
+          d_trrc.ensureProofForTheoryRewrite(&cdpt, pcur.d_dslId, fcur);
+          cdp->addProof(cdpt.getProofFor(fcur));
         }
       }
     }
@@ -1567,6 +1654,49 @@ Node RewriteDbProofCons::rewriteConcrete(const Node& n)
     return n;
   }
   return rewrite(n);
+}
+
+Node RewriteDbProofCons::fold(const Node& n)
+{
+  if (!d_currFold)
+  {
+    // Common case: the current call does not involve indexed operators, so
+    // folding is guaranteed to be the identity. We avoid the traversal (and
+    // populating the cache of d_iofnc) entirely here.
+    return n;
+  }
+  return d_iofnc.convert(n);
+}
+
+void RewriteDbProofCons::getCongPremises(const Node& n,
+                                         const Node& fn,
+                                         std::vector<Node>& ps)
+{
+  if (n.getKind() != Kind::APPLY_INDEXED_SYMBOLIC
+      || fn.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+  {
+    // not an application of an indexed operator, or it was not folded
+    return;
+  }
+  Assert(ps.size() == n.getNumChildren());
+  Assert(ps.size() > fn.getNumChildren());
+  // the leading premises are the (trivial) equalities between indices
+  ps.erase(ps.begin(), ps.begin() + (ps.size() - fn.getNumChildren()));
+}
+
+std::vector<Node> RewriteDbProofCons::fold(const std::vector<Node>& ns)
+{
+  if (!d_currFold)
+  {
+    return ns;
+  }
+  std::vector<Node> ret;
+  ret.reserve(ns.size());
+  for (const Node& n : ns)
+  {
+    ret.emplace_back(d_iofnc.convert(n));
+  }
+  return ret;
 }
 
 Node RewriteDbProofCons::doFlatten(const Node& n)

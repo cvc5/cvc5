@@ -175,8 +175,11 @@ SpectrumOpt spectrum(const Node& t, uint8_t depth)
     }
     case Kind::EQUAL:
     {
+      // As in the other cases, the children are visited in order: the
+      // evaluation order of function arguments is unspecified.
+      SpectrumOpt lhs = spectrum(t[0], depth - 1);
       return spectrumOp(
-          spectrum(t[0], depth - 1),
+          std::move(lhs),
           spectrum(t[1], depth - 1),
           [](const uint8_t& x, const uint8_t& y) { return std::max(x, y); },
           [](const FiniteFieldValue& x, const FiniteFieldValue& y) {

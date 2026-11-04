@@ -343,8 +343,6 @@ void NodeManager::reclaimZombies()
 {
   Assert(!d_attrManager->inGarbageCollection());
 
-  Trace("gc") << "reclaiming " << d_zombies.size() << " zombie(s)!\n";
-
   // during reclamation, reclaimZombies() is never supposed to be called
   Assert(!d_inReclaimZombies)
       << "NodeManager::reclaimZombies() not re-entrant!";
@@ -353,98 +351,114 @@ void NodeManager::reclaimZombies()
   // and ensures that d_inReclaimZombies is set back to false.
   ScopedBool r(d_inReclaimZombies);
 
-  // We copy the set away and clear the NodeManager's set of zombies.
-  // This is because reclaimZombie() decrements the RC of the
-  // NodeValue's children, which may (recursively) reclaim them.
+  // Reclaiming a zombie decrements the reference counts of its children and
+  // of its attribute values, which may turn them into zombies (see
+  // markForDeletion()).  Since this inserts into d_zombies, we cannot iterate
+  // over d_zombies directly.  Instead, each round swaps the current zombies
+  // into a local set, reclaims them, and collects the newly created zombies
+  // in the (now empty) d_zombies.  We repeat until no zombies are left, so
+  // that dead DAGs are reclaimed completely rather than one layer per call
+  // (see issue #12984).
   //
-  // Let's say we're reclaiming zombie NodeValue "A" and its child "B"
-  // then becomes a zombie (NodeManager::markForDeletion(B) is called).
-  //
-  // One way to handle B's zombification would be simply to put it
-  // into d_zombies.  This is what we do.  However, if we were to
-  // concurrently process d_zombies in the loop below, such addition
-  // may be invisible to us (B is leaked) or even invalidate our
-  // iterator, causing a crash.  So we need to copy the set away.
+  // Note that we swap rather than copy and clear(), since clear() is linear
+  // in the bucket count of d_zombies, which would make each of the (possibly
+  // very many, but small) rounds expensive.
 
-  vector<NodeValue*> zombies;
-  zombies.reserve(d_zombies.size());
-  remove_copy_if(d_zombies.begin(),
-                 d_zombies.end(),
-                 back_inserter(zombies),
-                 NodeValueReferenceCountNonZero());
-  d_zombies.clear();
-
-#ifdef _LIBCPP_VERSION
-  NodeValue* last = nullptr;
-#endif
-  for (vector<NodeValue*>::iterator i = zombies.begin(); i != zombies.end();
-       ++i)
+  while (!d_zombies.empty())
   {
-    NodeValue* nv = *i;
-#ifdef _LIBCPP_VERSION
-    // Work around an apparent bug in libc++'s hash_set<> which can
-    // (very occasionally) have an element repeated.
-    if (nv == last)
+    // Only reclaim nodes that are zombies at the start of this round. A node
+    // in d_zombies may have been resurrected (reference count > 0) and become
+    // a zombie again while reclaiming this round, in which case it is added
+    // to the new d_zombies and must only be reclaimed from there.
+    vector<NodeValue*> zombies;
     {
-      continue;
+      NodeValueIDSet current;
+      current.swap(d_zombies);
+      zombies.reserve(current.size());
+      remove_copy_if(current.begin(),
+                     current.end(),
+                     back_inserter(zombies),
+                     NodeValueReferenceCountNonZero());
     }
-    last = nv;
+
+    Trace("gc") << "reclaiming " << zombies.size() << " zombie(s)!\n";
+
+#ifdef _LIBCPP_VERSION
+    NodeValue* last = nullptr;
+#endif
+    for (NodeValue* nv : zombies)
+    {
+#ifdef _LIBCPP_VERSION
+      // Work around an apparent bug in libc++'s hash_set<> which can
+      // (very occasionally) have an element repeated.
+      if (nv == last)
+      {
+        continue;
+      }
+      last = nv;
 #endif
 
-    // collect ONLY IF still zero
-    if (nv->d_rc == 0)
-    {
-      if (TraceIsOn("gc"))
+      // collect ONLY IF still zero
+      if (nv->d_rc == 0)
       {
-        Trace("gc") << "deleting node value " << nv << " [" << nv->d_id
-                    << "]: ";
-        nv->printAst(Trace("gc"));
-        Trace("gc") << endl;
+        reclaimZombie(nv);
       }
-
-      // remove from the pool
-      kind::MetaKind mk = nv->getMetaKind();
-      if (mk != kind::metakind::VARIABLE
-          && mk != kind::metakind::NULLARY_OPERATOR)
-      {
-        poolRemove(nv);
-      }
-
-      // whether exit is normal or exceptional, the NVReclaim dtor is
-      // called and ensures that d_nodeUnderDeletion is set back to
-      // NULL.
-      NVReclaim rc(d_nodeUnderDeletion);
-      d_nodeUnderDeletion = nv;
-
-      // remove attributes
-      {  // notify listeners of deleted node
-        TNode n;
-        n.d_nv = nv;
-        nv->d_rc = 1;  // so that TNode doesn't assert-fail
-        // this would mean that one of the listeners stowed away
-        // a reference to this node!
-        Assert(nv->d_rc == 1);
-      }
-      nv->d_rc = 0;
-      d_attrManager->deleteAllAttributes(nv);
-
-      // decr ref counts of children
-      nv->decrRefCounts();
-      if (mk == kind::metakind::CONSTANT)
-      {
-        // Destroy (call the destructor for) the C++ type representing
-        // the constant in this NodeValue.  This is needed for
-        // e.g. cvc5::internal::Rational, since it has a gmp internal
-        // representation that mallocs memory and should be cleaned
-        // up.  (This won't delete a pointer value if used as a
-        // constant, but then, you should probably use a smart-pointer
-        // type for a constant payload.)
-        kind::metakind::deleteNodeValueConstant(nv);
-      }
-      free(nv);
     }
   }
 } /* NodeManager::reclaimZombies() */
+
+void NodeManager::reclaimZombie(NodeValue* nv)
+{
+  Assert(d_inReclaimZombies);
+  Assert(nv->d_rc == 0);
+
+  if (TraceIsOn("gc"))
+  {
+    Trace("gc") << "deleting node value " << nv << " [" << nv->d_id << "]: ";
+    nv->printAst(Trace("gc"));
+    Trace("gc") << endl;
+  }
+
+  // remove from the pool
+  kind::MetaKind mk = nv->getMetaKind();
+  if (mk != kind::metakind::VARIABLE && mk != kind::metakind::NULLARY_OPERATOR)
+  {
+    poolRemove(nv);
+  }
+
+  // whether exit is normal or exceptional, the NVReclaim dtor is
+  // called and ensures that d_nodeUnderDeletion is set back to
+  // NULL.
+  NVReclaim rc(d_nodeUnderDeletion);
+  d_nodeUnderDeletion = nv;
+
+  // remove attributes
+  {  // notify listeners of deleted node
+    TNode n;
+    n.d_nv = nv;
+    nv->d_rc = 1;  // so that TNode doesn't assert-fail
+    // this would mean that one of the listeners stowed away
+    // a reference to this node!
+    Assert(nv->d_rc == 1);
+  }
+  nv->d_rc = 0;
+  d_attrManager->deleteAllAttributes(nv);
+
+  // decr ref counts of children
+  nv->decrRefCounts();
+  if (mk == kind::metakind::CONSTANT)
+  {
+    // Destroy (call the destructor for) the C++ type representing
+    // the constant in this NodeValue.  This is needed for
+    // e.g. cvc5::internal::Rational, since it has a gmp internal
+    // representation that mallocs memory and should be cleaned
+    // up.  (This won't delete a pointer value if used as a
+    // constant, but then, you should probably use a smart-pointer
+    // type for a constant payload.)
+    kind::metakind::deleteNodeValueConstant(nv);
+  }
+  free(nv);
+} /* NodeManager::reclaimZombie() */
 
 std::vector<NodeValue*> NodeManager::TopologicalSort(
     const std::vector<NodeValue*>& roots)

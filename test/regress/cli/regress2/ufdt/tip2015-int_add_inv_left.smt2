@@ -1,6 +1,8 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --dt-stc-ind --conjecture-gen
 ; DISABLE-TESTER: unsat-core
+; CPC checking fails because the proof contains the untranslated
+; MATCH_BIND_CASE operator.
 ; DISABLE-TESTER: cpc
 ; EXPECT: unsat
 (set-logic UFDT)

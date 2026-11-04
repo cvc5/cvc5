@@ -828,6 +828,13 @@ void ResetCommand::invoke(cvc5::Solver* solver, SymManager* sm)
   {
     sm->reset();
     resetSolver(solver);
+    // The solver is now reset to its original options. The options below
+    // are cached in the symbol manager since they affect parsing, so we
+    // restore them here.
+    sm->setGlobalDeclarations(solver->getOption("global-declarations")
+                              == "true");
+    sm->setFreshDeclarations(solver->getOption("fresh-declarations") == "true");
+    sm->setTermSortOverload(solver->getOption("term-sort-overload") == "true");
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1531,6 +1538,11 @@ void GetAssignmentCommand::invoke(cvc5::Solver* solver, SymManager* sm)
     std::vector<std::string> names;
     for (const std::pair<const cvc5::Term, std::string>& e : enames)
     {
+      // only Boolean named terms are included in the assignment
+      if (!e.first.getSort().isBoolean())
+      {
+        continue;
+      }
       terms.push_back(e.first);
       names.push_back(e.second);
     }
@@ -1546,7 +1558,10 @@ void GetAssignmentCommand::invoke(cvc5::Solver* solver, SymManager* sm)
       cvc5::Term name = tm.mkVar(tm.getBooleanSort(), names[i]);
       sexprs.push_back(tm.mkTerm(cvc5::Kind::SEXPR, {name, values[i]}));
     }
-    d_result = tm.mkTerm(cvc5::Kind::SEXPR, sexprs);
+    // SEXPR requires at least one child, the empty assignment is represented
+    // by the null term
+    d_result =
+        sexprs.empty() ? cvc5::Term() : tm.mkTerm(cvc5::Kind::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (cvc5::CVC5ApiRecoverableException& e)
@@ -1563,7 +1578,14 @@ cvc5::Term GetAssignmentCommand::getResult() const { return d_result; }
 void GetAssignmentCommand::printResult(CVC5_UNUSED cvc5::Solver* solver,
                                        std::ostream& out) const
 {
-  out << d_result << endl;
+  if (d_result.isNull())
+  {
+    out << "()" << endl;
+  }
+  else
+  {
+    out << d_result << endl;
+  }
 }
 
 std::string GetAssignmentCommand::getCommandName() const
@@ -2726,9 +2748,9 @@ const std::vector<cvc5::Sort>& DatatypeDeclarationCommand::getDatatypes() const
 
 void DatatypeDeclarationCommand::invoke(cvc5::Solver* solver, SymManager* sm)
 {
-  // Implement the bindings. We bind tester names is-C if strict parsing is
-  // disabled.
-  bool bindTesters = solver->getOption("strict-parsing") != "true";
+  // Bind the datatype sorts, constructors, and selectors. We additionally
+  // bind the legacy tester names is-C unless strict parsing is enabled.
+  bool bindTesters = solver->getOption("parsing-mode") != "strict";
   if (!sm->bindMutualDatatypeTypes(d_datatypes, bindTesters))
   {
     // this should generally never happen since we look ahead to check whether

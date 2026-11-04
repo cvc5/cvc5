@@ -23,7 +23,7 @@ using namespace cvc5;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Datatype_deletePointer(JNIEnv*,
-                                                                  jobject,
+                                                                  jclass,
                                                                   jlong pointer)
 {
   delete ((Datatype*)pointer);

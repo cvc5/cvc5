@@ -17,8 +17,7 @@ public class Uf
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("QF_UF");
 
@@ -52,8 +51,6 @@ public class Uf
 
       System.out.println("Call checkSat to show that the assertions are satisfiable. \n"
           + "cvc5: " + slv.checkSat() + ".\n");
-
-      Context.deletePointers();
     }
   }
 }

@@ -36,8 +36,7 @@ public class Combination
 
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setOption("produce-models", "true"); // Produce Models
       slv.setOption("dag-thresh", "0"); // Disable dagifying the output
@@ -124,6 +123,5 @@ public class Combination
         }
       }
     }
-    Context.deletePointers();
   }
 }

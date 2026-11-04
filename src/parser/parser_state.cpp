@@ -89,12 +89,6 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
   return expr;
 }
 
-bool ParserState::getTesterName(CVC5_UNUSED Term cons,
-                                CVC5_UNUSED std::string& name)
-{
-  return false;
-}
-
 Kind ParserState::getKindForFunction(Term fun)
 {
   Sort t = fun.getSort();
@@ -570,8 +564,10 @@ Term ParserState::applyTypeAscription(Term t, Sort s)
     // check if its datatype is parametric.
     if (d.isParametric())
     {
-      // lookup by name
-      DatatypeConstructor dc = d.getConstructor(t.toString());
+      // lookup by name, using the raw symbol since toString() may print
+      // the name as a quoted symbol, e.g. |C,|
+      DatatypeConstructor dc =
+          d.getConstructor(t.hasSymbol() ? t.getSymbol() : t.toString());
       // ask the constructor for the specialized constructor term
       t = dc.getInstantiatedTerm(s);
     }

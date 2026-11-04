@@ -271,14 +271,15 @@ public final class Utils
    * Construct an array of {@link Sort} objects from an array of native pointers.
    *
    * @return Sorts array from array of Sort pointers.
+   * @param ctx The context of the term manager the objects belong to.
    * @param pointers The array of pointers.
    */
-  public static Sort[] getSorts(long[] pointers)
+  static Sort[] getSorts(NativeContext ctx, long[] pointers)
   {
     Sort[] sorts = new Sort[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      sorts[i] = new Sort(pointers[i]);
+      sorts[i] = new Sort(ctx, pointers[i]);
     }
     return sorts;
   }
@@ -287,14 +288,15 @@ public final class Utils
    * Construct an array of {@link Term} objects from an array of native pointers.
    *
    * @return Terms array from array of Term pointers.
+   * @param ctx The context of the term manager the objects belong to.
    * @param pointers The array of pointers.
    */
-  public static Term[] getTerms(long[] pointers)
+  static Term[] getTerms(NativeContext ctx, long[] pointers)
   {
     Term[] terms = new Term[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      terms[i] = new Term(pointers[i]);
+      terms[i] = new Term(ctx, pointers[i]);
     }
     return terms;
   }
@@ -303,14 +305,15 @@ public final class Utils
    * Construct an array of {@link Proof} objects from an array of native pointers.
    *
    * @return proofs array from array of Proof pointers
+   * @param ctx The context of the term manager the objects belong to.
    * @param pointers The array of pointers.
    */
-  public static Proof[] getProofs(long[] pointers)
+  static Proof[] getProofs(NativeContext ctx, long[] pointers)
   {
     Proof[] proofs = new Proof[pointers.length];
     for (int i = 0; i < pointers.length; i++)
     {
-      proofs[i] = new Proof(pointers[i]);
+      proofs[i] = new Proof(ctx, pointers[i]);
     }
     return proofs;
   }

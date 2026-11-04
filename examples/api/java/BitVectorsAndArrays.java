@@ -24,8 +24,7 @@ public class BitVectorsAndArrays
 
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setOption("produce-models", "true"); // Produce Models
       slv.setOption("output-language", "smtlib"); // output-language
@@ -95,6 +94,5 @@ public class BitVectorsAndArrays
       System.out.println("  current_array = " + slv.getValue(current_array));
       System.out.println("  current_array[0] = " + slv.getValue(current_array0));
     }
-    Context.deletePointers();
   }
 }

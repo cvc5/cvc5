@@ -208,7 +208,12 @@ bool containsAssumption(const ProofNode* pn,
         bool ret = allowed.find(cur->getArguments()[0]) == allowed.end();
         visited[cur] = ret;
         caMap[cur] = ret;
-        foundAssumption = ret;
+        // note we do not set foundAssumption to false if ret is false, since
+        // we may have already found an assumption in another child
+        if (ret)
+        {
+          foundAssumption = true;
+        }
       }
       else if (!foundAssumption)
       {
@@ -297,6 +302,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
     case Kind::FLOATINGPOINT_GT:
     case Kind::FLOATINGPOINT_GEQ:
     case Kind::NULLABLE_LIFT:
+    case Kind::STAR_CONTAINS:
     case Kind::APPLY_INDEXED_SYMBOLIC:
       // takes arbitrary but we use CONG
       break;

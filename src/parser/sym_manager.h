@@ -112,10 +112,13 @@ class CVC5_EXPORT SymManager
                 cvc5::Sort t,
                 bool isUser);
   /**
-   * Binds sorts of a list of mutually-recursive datatype declarations.
+   * Binds the sorts, constructors, and selectors of a list of
+   * mutually-recursive datatype declarations. Testers are accessed via indexed
+   * symbols (_ is C).
    *
-   * If bindTesters is true, we bind the testers of this datatype to
-   * `is-C` where `C` is the name of the constructor for that tester.
+   * If bindTesters is true, we additionally bind the testers of this datatype
+   * to the (legacy) names `is-C` where `C` is the name of the constructor for
+   * that tester.
    */
   bool bindMutualDatatypeTypes(const std::vector<cvc5::Sort>& datatypes,
                                bool bindTesters = true);
@@ -215,7 +218,15 @@ class CVC5_EXPORT SymManager
    */
   void popScope();
   /**
-   * Reset this symbol manager, which resets the symbol table.
+   * Push the outermost user scope if it has not already been pushed since
+   * this symbol manager was constructed or last reset. This is called after
+   * the builtin symbols of the logic are declared, so that they are not
+   * removed by reset-assertions.
+   */
+  void pushOutermostScope();
+  /**
+   * Reset this symbol manager, which resets the symbol table. This also
+   * unsets the logic, unless it was forced.
    */
   void reset();
   /**
@@ -286,6 +297,8 @@ class CVC5_EXPORT SymManager
   bool d_logicIsSet;
   /** The logic. */
   std::string d_logic;
+  /** Whether we have pushed the outermost scope, see pushOutermostScope. */
+  bool d_outermostScopePushed;
 };
 
 }  // namespace parser

@@ -34,7 +34,7 @@ TheoryBags::TheoryBags(Env& env, OutputChannel& out, Valuation valuation)
     : Theory(THEORY_BAGS, env, out, valuation),
       d_state(env, valuation),
       d_im(env, *this, d_state),
-      d_ig(env.getNodeManager(), &d_state, &d_im),
+      d_ig(env, &d_state, &d_im),
       d_notify(*this, d_im),
       d_statistics(statisticsRegistry()),
       d_rewriter(nodeManager(), env.getRewriter(), &d_statistics.d_rewrites),
@@ -90,6 +90,9 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(Kind::TABLE_AGGREGATE);
   d_equalityEngine->addFunctionKind(Kind::TABLE_JOIN);
   d_equalityEngine->addFunctionKind(Kind::TABLE_GROUP);
+  // higher-order operators that are not eliminated during rewriting
+  d_equalityEngine->addFunctionKind(Kind::BAG_MAP);
+  d_equalityEngine->addFunctionKind(Kind::BAG_FILTER);
 }
 
 TrustNode TheoryBags::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)

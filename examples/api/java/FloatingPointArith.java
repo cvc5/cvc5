@@ -23,8 +23,7 @@ public class FloatingPointArith
 {
   public static void main(String[] args) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       solver.setOption("incremental", "true");
       solver.setOption("produce-models", "true");
@@ -116,6 +115,5 @@ public class FloatingPointArith
       r = solver.checkSat(); // result is unsat
       assert !r.isSat();
     }
-    Context.deletePointers();
   }
 }

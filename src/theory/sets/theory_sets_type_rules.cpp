@@ -442,9 +442,8 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
                                      std::ostream* errOut)
 {
   Assert(n.getKind() == Kind::SET_INSERT);
-  size_t numChildren = n.getNumChildren();
-  Assert(numChildren >= 2);
-  TypeNode setType = n[numChildren - 1].getTypeOrNull();
+  Assert(n.getNumChildren() == 2);
+  TypeNode setType = n[1].getTypeOrNull();
   if (check)
   {
     if (!setType.isMaybeKind(Kind::SET_TYPE))
@@ -456,19 +455,13 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
   }
-  // returned element type, which is the join of all elements and the element
+  // returned element type, which is the join of the element and the element
   // type of the set (if it exists).
-  TypeNode retElementType;
+  TypeNode retElementType = n[0].getTypeOrNull();
   if (setType.isSet())
   {
-    retElementType = setType.getSetElementType();
-  }
-  for (size_t i = 0; i < numChildren - 1; ++i)
-  {
-    TypeNode elementType = n[i].getTypeOrNull();
-    retElementType = retElementType.isNull()
-                         ? elementType
-                         : retElementType.leastUpperBound(elementType);
+    retElementType =
+        retElementType.leastUpperBound(setType.getSetElementType());
     if (retElementType.isNull())
     {
       if (errOut)
@@ -479,7 +472,6 @@ TypeNode InsertTypeRule::computeType(NodeManager* nodeManager,
       return TypeNode::null();
     }
   }
-  Assert(!retElementType.isNull());
   return nodeManager->mkSetType(retElementType);
 }
 

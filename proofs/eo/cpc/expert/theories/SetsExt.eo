@@ -75,7 +75,6 @@
   T)
 
 ; The following skolems are not yet incorporated into the signature:
-;SETS_CHOOSE
 ;SETS_FOLD_CARD
 ;SETS_FOLD_COMBINE
 ;SETS_FOLD_ELEMENTS

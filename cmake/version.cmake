@@ -106,6 +106,16 @@ if(GIT_FOUND)
       set(CVC5_WHEEL_VERSION "${CVC5_WHEEL_VERSION}+${GIT_COMMIT}")
     endif()
 
+    # diff-index relies on the file stats cached in the index, so it reports
+    # files as modified if their stats changed but their content did not
+    # (e.g., when the source tree is copied into a container to build the
+    # Python wheels). Refresh the index first to only detect content changes.
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} update-index -q --refresh
+      OUTPUT_QUIET
+      ERROR_QUIET
+    )
+
     # result is != 0 if worktree is dirty
     # note: git diff HEAD shows both staged and unstaged changes.
     execute_process(

@@ -50,8 +50,8 @@ CandidateGeneratorQE::CandidateGeneratorQE(Env& env,
                                            TermRegistry& tr,
                                            Node pat)
     : CandidateGenerator(env, qs, tr),
+      d_pat(pat),
       d_termIter(0),
-      d_termIterList(nullptr),
       d_mode(cand_term_none)
 {
   d_op = d_treg.getTermDatabase()->getMatchOperator(pat);
@@ -65,10 +65,9 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_termIter = 0;
   d_eqc = eqc;
   d_op = op;
-  d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
   if (eqc.isNull())
   {
-    d_mode = cand_term_db;
+    d_mode = setTermIterList() ? cand_term_db : cand_term_none;
   }
   else
   {
@@ -102,6 +101,32 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
     }
   }
 }
+
+bool CandidateGeneratorQE::setTermIterList()
+{
+  d_termIterList.clear();
+  TermDb* tdb = d_treg.getTermDatabase();
+  if (logicInfo().isHigherOrder())
+  {
+    // In the higher-order case, we use the leaves of the term index of d_op,
+    // which includes the ground terms of all operators equal to d_op.
+    TNodeTrie* tat = tdb->getTermArgTrie(d_op);
+    if (tat != nullptr)
+    {
+      d_termIterList = tat->getLeaves(d_pat.getNumChildren());
+    }
+  }
+  else
+  {
+    DbList* dbl = tdb->getGroundTermList(d_op);
+    if (dbl != nullptr)
+    {
+      d_termIterList.assign(dbl->d_list.begin(), dbl->d_list.end());
+    }
+  }
+  return !d_termIterList.empty();
+}
+
 bool CandidateGeneratorQE::isLegalOpCandidate(const Node& n)
 {
   const Node opm = d_treg.getTermDatabase()->getMatchOperator(n);
@@ -121,36 +146,26 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if (d_mode == cand_term_db)
   {
-    if (d_termIterList == nullptr)
-    {
-      d_mode = cand_term_none;
-      return Node::null();
-    }
     Trace("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     // get next candidate term in the uf term database
-    size_t tlLimit = d_termIterList->d_list.size();
+    size_t tlLimit = d_termIterList.size();
     while (d_termIter < tlLimit)
     {
-      Node n = d_termIterList->d_list[d_termIter];
+      Node n = d_termIterList[d_termIter];
       d_termIter++;
-      if (isLegalCandidate(n))
+      if (!isLegalCandidate(n) || !d_treg.getTermDatabase()->hasTermCurrent(n))
       {
-        if (d_treg.getTermDatabase()->hasTermCurrent(n))
-        {
-          if (d_exclude_eqc.empty())
-          {
-            return n;
-          }
-          else
-          {
-            Node r = d_qs.getRepresentative(n);
-            if (d_exclude_eqc.find(r) == d_exclude_eqc.end())
-            {
-              Trace("cand-gen-qe") << "...returning " << n << std::endl;
-              return n;
-            }
-          }
-        }
+        continue;
+      }
+      if (d_exclude_eqc.empty())
+      {
+        return n;
+      }
+      Node r = d_qs.getRepresentative(n);
+      if (d_exclude_eqc.find(r) == d_exclude_eqc.end())
+      {
+        Trace("cand-gen-qe") << "...returning " << n << std::endl;
+        return n;
       }
     }
   }
@@ -296,16 +311,15 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
   d_termIter = 0;
   if (eqc.isNull())
   {
+    d_mode = cand_term_none;
     // generates too many instantiations at top-level when eqc is null, thus
     // set mode to none unless option is set.
     if (options().quantifiers.consExpandTriggers)
     {
-      d_termIterList = d_treg.getTermDatabase()->getGroundTermList(d_op);
-      d_mode = cand_term_db;
-    }
-    else
-    {
-      d_mode = cand_term_none;
+      if (setTermIterList())
+      {
+        d_mode = cand_term_db;
+      }
     }
   }
   else

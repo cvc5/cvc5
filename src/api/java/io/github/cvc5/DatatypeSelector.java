@@ -18,12 +18,12 @@ package io.github.cvc5;
 public class DatatypeSelector extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeSelector(long pointer)
+  DatatypeSelector(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, DatatypeSelector::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -49,7 +49,7 @@ public class DatatypeSelector extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, sel.getPointer());
+    return equals(getPointer(), sel.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -61,7 +61,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   public String getName()
   {
-    return getName(pointer);
+    return getName(getPointer());
   }
 
   private native String getName(long pointer);
@@ -77,8 +77,8 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getTerm()
   {
-    long termPointer = getTerm(pointer);
-    return new Term(termPointer);
+    long termPointer = getTerm(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getTerm(long pointer);
@@ -94,8 +94,8 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Term getUpdaterTerm()
   {
-    long termPointer = getUpdaterTerm(pointer);
-    return new Term(termPointer);
+    long termPointer = getUpdaterTerm(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getUpdaterTerm(long pointer);
@@ -107,8 +107,8 @@ public class DatatypeSelector extends AbstractPointer
    */
   public Sort getCodomainSort()
   {
-    long sortPointer = getCodomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getCodomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getCodomainSort(long pointer);
@@ -120,7 +120,7 @@ public class DatatypeSelector extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -137,7 +137,7 @@ public class DatatypeSelector extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);

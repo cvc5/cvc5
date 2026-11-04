@@ -161,6 +161,10 @@ libcvc5_add_sources(
   proof/eo/eo_printer.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
+  proof/annotation_id.cpp
+  proof/annotation_id.h
+  proof/annotation_proof_generator.cpp
+  proof/annotation_proof_generator.h
   proof/buffered_proof_generator.cpp
   proof/buffered_proof_generator.h
   proof/conv_proof_generator.cpp
@@ -272,13 +276,13 @@ libcvc5_add_sources(
   prop/minisat/mtl/Sort.h
   prop/minisat/mtl/Vec.h
   prop/minisat/mtl/XAlloc.h
-  prop/minisat/opt_clauses_manager.cpp
-  prop/minisat/opt_clauses_manager.h
   prop/minisat/sat_proof_manager.cpp
   prop/minisat/sat_proof_manager.h
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
+  prop/opt_clauses_manager.cpp
+  prop/opt_clauses_manager.h
   prop/proof_cnf_stream.cpp
   prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
@@ -330,6 +334,8 @@ libcvc5_add_sources(
   smt/model.h
   smt/model_core_builder.cpp
   smt/model_core_builder.h
+  smt/model_verifier.cpp
+  smt/model_verifier.h
   smt/model_blocker.cpp
   smt/model_blocker.h
   smt/quant_elim_solver.cpp
@@ -408,6 +414,12 @@ libcvc5_add_sources(
   theory/arith/equality_solver.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
+  theory/arith/liastar/liastar_extension.cpp
+  theory/arith/liastar/liastar_extension.h
+  theory/arith/liastar/liastar_stats.cpp
+  theory/arith/liastar/liastar_stats.h
+  theory/arith/liastar/liastar_utils.cpp
+  theory/arith/liastar/liastar_utils.h
   theory/arith/linear/approx_simplex.cpp
   theory/arith/linear/approx_simplex.h
   theory/arith/linear/arith_static_learner.cpp
@@ -1500,18 +1512,43 @@ set_source_files_properties(${LIBCVC5_GEN_SRCS} PROPERTIES GENERATED TRUE)
 # This option has no effect for non-debug build (builds without "-g")
 add_check_cxx_flag("-fno-var-tracking-assignments" ${LIBCVC5_GEN_SRCS})
 
+# Everything that has to exist before cvc5 sources can be compiled: generated
+# sources and headers, and the headers of the dependencies built by cvc5. Tools
+# that only parse the sources (e.g. clang-tidy) can build this target instead
+# of compiling cvc5. Prerequisites of cvc5 sources must be added to this target
+# rather than to the individual targets that compile them.
+add_custom_target(cvc5-prerequisites)
+
 # First build the object library
 add_library(cvc5-obj OBJECT ${LIBCVC5_SRCS} ${LIBCVC5_GEN_SRCS})
 target_compile_definitions(cvc5-obj PRIVATE -D__BUILDING_CVC5LIB -Dcvc5_obj_EXPORTS)
 set_target_properties(cvc5-obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 # add_dependencies() is necessary for cmake versions before 3.21
-add_dependencies(cvc5-obj cvc5base cvc5context)
+add_dependencies(cvc5-obj cvc5base cvc5context cvc5-prerequisites)
 # Add libcvc5 dependencies for generated sources.
-add_dependencies(cvc5-obj gen-expr gen-versioninfo gen-options gen-rewrites gen-tags gen-theory)
+add_dependencies(cvc5-prerequisites gen-expr gen-versioninfo gen-options gen-rewrites gen-tags gen-theory)
 
 add_library(cvc5 $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_OBJECTS:cvc5context>)
 
 set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
+
+# Instrument only the API sources checked by contrib/uncovered-api-functions.py.
+# All sources that include api/cpp/cvc5_checks.h are instrumented: each of them
+# emits a copy of its inline functions, and the linker may otherwise keep an
+# uninstrumented copy. The parser API sources are instrumented in
+# src/parser/CMakeLists.txt. The link option is public since consumers of the
+# static library must link against the gcov runtime.
+if(ENABLE_API_COVERAGE)
+  set_property(SOURCE
+      api/c/cvc5.cpp
+      api/c/cvc5_c_structs.cpp
+      api/cpp/cvc5.cpp
+      api/cpp/cvc5_skolem_id.cpp
+      api/cpp/cvc5_types.cpp
+      ${PROJECT_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+    APPEND PROPERTY COMPILE_OPTIONS -O0 --coverage)
+  target_link_options(cvc5 PUBLIC --coverage)
+endif()
 
 # Link the shared library
 target_include_directories(cvc5
@@ -1556,33 +1593,33 @@ if(ENABLE_VALGRIND)
   target_include_directories(cvc5-obj SYSTEM PUBLIC ${Valgrind_INCLUDE_DIR})
 endif()
 
-add_dependencies(cvc5-obj CaDiCaL)
+add_dependencies(cvc5-prerequisites CaDiCaL)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${CaDiCaL_INCLUDE_DIR})
 target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CaDiCaL> $<INSTALL_INTERFACE:cadical>)
 
 if(USE_CLN)
-  add_dependencies(cvc5-obj CLN)
+  add_dependencies(cvc5-prerequisites CLN)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CLN_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CLN> $<INSTALL_INTERFACE:cln>)
 endif()
 if(USE_CRYPTOMINISAT)
-  add_dependencies(cvc5-obj CryptoMiniSat)
+  add_dependencies(cvc5-prerequisites CryptoMiniSat)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CryptoMiniSat> $<INSTALL_INTERFACE:cryptominisat5>)
   target_link_libraries(cvc5 PRIVATE Threads::Threads) # Required by CryptoMiniSat
 endif()
 if(USE_KISSAT)
-  add_dependencies(cvc5-obj Kissat)
+  add_dependencies(cvc5-prerequisites Kissat)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${Kissat_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Kissat> $<INSTALL_INTERFACE:kissat>)
 endif()
 if(USE_GLPK)
-  add_dependencies(cvc5-obj GLPK)
+  add_dependencies(cvc5-prerequisites GLPK)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${GLPK_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GLPK> $<INSTALL_INTERFACE:glpk>)
 endif()
 if(USE_POLY)
-  add_dependencies(cvc5-obj Polyxx)
+  add_dependencies(cvc5-prerequisites Polyxx)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
   if(BUILD_SHARED_LIBS)
     target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Poly> $<INSTALL_INTERFACE:picpoly>)
@@ -1593,13 +1630,13 @@ if(USE_POLY)
   endif()
 endif()
 if(USE_COCOA)
-  add_dependencies(cvc5-obj CoCoA)
+  add_dependencies(cvc5-prerequisites CoCoA)
   target_include_directories(cvc5-obj SYSTEM PRIVATE ${CoCoA_INCLUDE_DIR})
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:CoCoA> $<INSTALL_INTERFACE:cocoa>)
 endif()
 
 if(USE_NORMALIZ)
-  add_dependencies(cvc5-obj Normaliz)
+  add_dependencies(cvc5-prerequisites Normaliz)
   target_include_directories(cvc5-obj PRIVATE ${Normaliz_INCLUDE_DIR})
   if(BUILD_SHARED_LIBS)
     target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:Normaliz> $<INSTALL_INTERFACE:Normaliz>)
@@ -1608,23 +1645,23 @@ if(USE_NORMALIZ)
   endif()
 endif()
 
-add_dependencies(cvc5-obj SymFPU)
+add_dependencies(cvc5-prerequisites SymFPU)
 target_include_directories(cvc5-obj SYSTEM PRIVATE ${SymFPU_INCLUDE_DIR})
 
-# GMP has to be included at the end because of linker ordering issues when 
+if(CVC5_USE_MPFR)
+  add_dependencies(cvc5-prerequisites MPFR)
+  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
+  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
+endif()
+
+# GMP has to be included at the end because of linker ordering issues when
 # generating a static library.
-add_dependencies(cvc5-obj GMP)
+add_dependencies(cvc5-prerequisites GMP)
 target_include_directories(cvc5-obj PRIVATE ${GMP_INCLUDE_DIR})
 if(BUILD_SHARED_LIBS)
   target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
 else()
   target_link_libraries(cvc5 PUBLIC $<BUILD_INTERFACE:GMP> $<INSTALL_INTERFACE:gmp>)
-endif()
-
-if(CVC5_USE_MPFR)
-  add_dependencies(cvc5-obj MPFR)
-  target_include_directories(cvc5-obj PRIVATE ${MPFR_INCLUDE_DIR})
-  target_link_libraries(cvc5 PRIVATE $<BUILD_INTERFACE:MPFR> $<INSTALL_INTERFACE:mpfr>)
 endif()
 
 #-----------------------------------------------------------------------------#
