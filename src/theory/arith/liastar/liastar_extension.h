@@ -139,8 +139,20 @@ class LiaStarExtension : EnvObj
   void checkFullEffort(std::map<Node, Node>& arithModel,
                        const std::set<Node>& termSet);
 
-  /** Whether an int.star-contains term was preregistered in this context. */
-  bool hasLiaStarTerms() const { return d_hasLiaStarTerms; }
+  /**
+   * Notify the extension that a literal of the form (int.star-contains ...)
+   * or (not (int.star-contains ...)) was asserted to arithmetic.
+   */
+  void notifyAssertion() { d_hasAssertions = true; }
+
+  /**
+   * Whether a literal of the form (int.star-contains ...) or
+   * (not (int.star-contains ...)) was asserted in this context. Otherwise
+   * TheoryArith calls neither checkFullEffort nor collectModelValues, so a
+   * problem without such literals does not compute the model of the linear
+   * solver for the extension.
+   */
+  bool hasAssertions() const { return d_hasAssertions; }
 
   /**
    * Assert each asserted int.star-contains literal to the model. The model
@@ -270,8 +282,8 @@ class LiaStarExtension : EnvObj
   ExtTheoryCallback d_extTheoryCb;
   /** Extended theory, with which the int.star-contains terms are registered */
   ExtTheory d_extTheory;
-  /** Whether an int.star-contains term was preregistered in this context */
-  context::CDO<bool> d_hasLiaStarTerms;
+  /** Whether an int.star-contains literal was asserted in this context */
+  context::CDO<bool> d_hasAssertions;
   /**
    * Maps each atom whose reduction lemma was sent to the formula
    * (forall ((mu Int) ...) (not C)) that holds when the atom is false, or to

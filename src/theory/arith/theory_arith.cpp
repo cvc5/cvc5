@@ -316,7 +316,7 @@ void TheoryArith::postCheck(Effort level)
     std::set<Node> termSet;
 
 #ifdef CVC5_USE_NORMALIZ
-    if (d_liaStarExtension != nullptr)
+    if (d_liaStarExtension != nullptr && d_liaStarExtension->hasAssertions())
     {
       updateModelCache(termSet);
       // Check at full effort. This may either send lemmas or otherwise
@@ -374,6 +374,10 @@ bool TheoryArith::preNotifyFact(
     // fact queue at full effort. The atom is neither a constraint for the
     // linear solver nor an equality for the equality engine, so we are
     // finished with it.
+#ifdef CVC5_USE_NORMALIZ
+    Assert(d_liaStarExtension != nullptr);
+    d_liaStarExtension->notifyAssertion();
+#endif /* CVC5_USE_NORMALIZ */
     return true;
   }
   // We do not assert to the equality engine of arithmetic in the standard way,
@@ -501,7 +505,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   }
 #ifdef CVC5_USE_NORMALIZ
   // the values of int.star-contains literals
-  if (d_liaStarExtension != nullptr
+  if (d_liaStarExtension != nullptr && d_liaStarExtension->hasAssertions()
       && !d_liaStarExtension->collectModelValues(m))
   {
     return false;

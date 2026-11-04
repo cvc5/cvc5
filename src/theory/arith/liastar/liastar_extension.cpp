@@ -62,7 +62,7 @@ LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
       d_im(containing.getInferenceManager()),
       d_extTheoryCb(),
       d_extTheory(env, d_extTheoryCb, d_im),
-      d_hasLiaStarTerms(context(), false),
+      d_hasAssertions(context(), false),
       d_negatedReductions(userContext()),
       d_negatedReductionsSent(userContext()),
       d_stats(statisticsRegistry())
@@ -83,7 +83,6 @@ void LiaStarExtension::preRegisterTerm(TNode n)
   // (int.star-contains (lambda ((x Int)) (= x 2)) a).
   if (d_extTheory.hasFunctionKind(n.getKind()))
   {
-    d_hasLiaStarTerms = true;
     d_extTheory.registerTerm(n);
   }
 }
@@ -126,11 +125,7 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                        const std::set<Node>& termSet)
 {
-  if (!hasLiaStarTerms())
-  {
-    // no int.star-contains terms were preregistered in this context
-    return;
-  }
+  Assert(hasAssertions());
   d_stats.d_checkFullEffortTime.start();
   // The steps 1-4 below are those documented in liastar_extension.h. The
   // examples follow the literal of the class documentation
