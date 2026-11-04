@@ -1213,8 +1213,29 @@ void TheoryEngine::assertToTheory(TNode assertion,
   }
 
   // Try and assert (note that we assert the non-normalized one)
-  if (markPropagation(
-          assertion, originalAssertion, toTheoryIdProp, fromTheoryId))
+  bool doAssert = markPropagation(
+      assertion, originalAssertion, toTheoryIdProp, fromTheoryId);
+  if (toTheoryIdProp != toTheoryId)
+  {
+    // The theory uses the central equality engine, hence the mark above (on
+    // THEORY_BUILTIN) only records whether the central equality engine knows
+    // the literal, e.g., because the owner of the literal asserted it. If the
+    // owner is not the theory of the type of the equality, which is possible
+    // with --theoryof-mode=term (e.g., THEORY_UF owns (= x t) for a bit-vector
+    // variable x), the theory of the type would never receive the literal as
+    // a fact. Theories that only reason via the equality engine do not need
+    // it, but theories that are not complete for their equalities without
+    // their facts do, e.g., the bit-blasting solvers of THEORY_BV and
+    // THEORY_FP. We thus track separately whether the theory received it.
+    TNode atom = assertion.getKind() == Kind::NOT ? assertion[0] : assertion;
+    if (d_env.theoryOf(atom) != toTheoryId
+        && d_env.theoryOf(atom[0].getType()) == toTheoryId)
+    {
+      doAssert = markPropagation(
+          assertion, originalAssertion, toTheoryId, fromTheoryId);
+    }
+  }
+  if (doAssert)
   {
     // Check if has been pre-registered with the theory
     bool preregistered = d_propEngine->isSatLiteral(assertion)

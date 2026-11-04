@@ -385,6 +385,7 @@ set(regress_0_tests
   regress0/bv/bvult-large-triv.smt2
   regress0/bv/bvule-elim-conv.smt2
   regress0/bv/calc2_sec2_shifter_mult_bmc15.atlas.delta01.smtv1.smt2
+  regress0/bv/central-ee-theoryof-term.smt2
   regress0/bv/concat-extract-merge-adj-ex.smt2
   regress0/bv/core/a78test0002.smtv1.smt2
   regress0/bv/core/a95test0002.smtv1.smt2
@@ -973,6 +974,7 @@ set(regress_0_tests
   regress0/fp/abs-unsound.smt2
   regress0/fp/abs-unsound2.smt2
   regress0/fp/bvcomp-rewrite.smt2
+  regress0/fp/central-ee-theoryof-term.smt2
   regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/from-real-shared-purified-arg.smt2
