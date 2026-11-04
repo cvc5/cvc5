@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --mbqi-enum --pre-skolem-quant=on
 ; EXPECT: unknown
 (set-logic HO_ALL)

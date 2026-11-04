@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: proof
 ; the star assumes an element for every row it needs, and Bool has only two, so
 ; the subsolver mode marks the model unsound instead of answering sat

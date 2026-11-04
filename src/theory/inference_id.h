@@ -202,6 +202,8 @@ enum class InferenceId
   ARITH_NL_ICP_PROPAGATION,
   // lia star reduction lemma
   ARITH_LIA_STAR_EXISTS,
+  // lia star reduction lemma for a negated star-contains literal
+  ARITH_LIA_STAR_NOT_EXISTS,
   // lia star nonnegative constraints
   ARITH_LIA_STAR_NONNEGATIVE,
   // lia star split lemma
@@ -996,16 +998,20 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
-  // equivalence of lambda functions
-  //   f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
-  // This is applied when lamda functions f and g are in the same eq class.
+  // equivalence of lambdas
+  //   l1 = l2 => forall x. reduce(l1(x)) = reduce(l2(x))
+  // This is applied when lambdas l1 and l2 are in the same eq class.
   UF_HO_LAMBDA_UNIV_EQ,
-  // equivalence of a lambda function and an ordinary function
-  //   f = h => h(t) = reduce(lambda(f)(t))
-  // This is applied when lamda function f and ordinary function h are in the
-  // same eq class.
+  // equivalence of a lambda and an ordinary function
+  //   h = l => h(t) = reduce(l(t))
+  // This is applied for each application h(t) in the equality engine, when
+  // lambda l and ordinary function h are in the same eq class, and l does not
+  // need lifting (see LambdaLift::needsLift).
   UF_HO_LAMBDA_APP_REDUCE,
   // Lazy lambda lifting
+  //   h = l => forall x. h(x) = l(x)
+  // This is applied when lambda l and ordinary function h are in the same eq
+  // class, and l needs lifting (see LambdaLift::needsLift).
   UF_HO_LAMBDA_LAZY_LIFT,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF

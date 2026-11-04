@@ -42,9 +42,25 @@ class DioSolver : protected EnvObj
   typedef size_t InputConstraintIndex;
   typedef size_t SubIndex;
 
-  std::vector<Variable> d_proofVariablePool;
-  /** Sat context dependent. */
-  context::CDO<size_t> d_lastUsedProofVariable;
+  /**
+   * Equations are linear forms over variable ids. Proofs are linear forms
+   * whose ids are input constraint indices: the proof of an equation is the
+   * linear combination of input constraints it was derived from.
+   */
+  using Form = DioLinearForm<Integer>;
+  using ProofForm = DioLinearForm<Rational>;
+  using Var = Form::Var;
+
+  /**
+   * The variables of the solver: varNodes[v] is the VarList node of variable
+   * v, and d_varIds is its inverse. Ids are never reused, so this table is
+   * not context-dependent.
+   */
+  std::vector<Node> d_varNodes;
+  std::unordered_map<Node, Var> d_varIds;
+
+  /** Returns the id of the VarList node n, assigning a new one if needed. */
+  Var varId(TNode n);
 
   /**
    * The set of input constraints is stored in a CDList.
@@ -67,64 +83,46 @@ class DioSolver : protected EnvObj
   context::CDO<size_t> d_nextInputConstraintToEnqueue;
 
   /**
-   * We maintain a map from the variables associated with proofs to an input
-   * constraint. These variables can then be used in polynomial manipulations.
-   */
-  typedef std::unordered_map<Node, InputConstraintIndex>
-      NodeToInputConstraintIndexMap;
-  NodeToInputConstraintIndexMap d_varToInputConstraintMap;
-
-  Node proofVariableToReason(const Variable& v) const
-  {
-    Assert(d_varToInputConstraintMap.find(v.getNode())
-           != d_varToInputConstraintMap.end());
-    InputConstraintIndex pos =
-        (*(d_varToInputConstraintMap.find(v.getNode()))).second;
-    Assert(pos < d_inputConstraints.size());
-    return d_inputConstraints[pos].d_reason;
-  }
-
-  /**
    * The main work horse of the algorithm, the trail of constraints.
-   * Each constraint is a SumPair that implicitly represents an equality against
-   * 0. d_trail[i].d_eq = (+ c (+ [(* coeff var)])) representing (+ [(* coeff
-   * var)]) = -c Each constraint has a proof in terms of a linear combination of
-   * the input constraints. d_trail[i].d_proof
+   * d_trail[i].d_eq is a linear form that implicitly represents an equality
+   * against 0. Each constraint has a proof in terms of a linear combination of
+   * the input constraints, d_trail[i].d_proof.
    *
-   * Each Constraint also a monomial in d_eq.getPolynomial()
-   * of minimal absolute value by the coefficients.
-   * d_trail[i].d_minimalMonomial
+   * Each Constraint also caches the term of d_eq with the smallest absolute
+   * coefficient, d_trail[i].d_minTerm, and that absolute value, d_minAbs.
+   * Ties are broken by VarList order, as Polynomial::selectAbsMinimum() does.
+   * For a constant d_eq the term is meaningless and d_minAbs is 0.
    *
    * See Alberto's paper for how linear proofs are maintained for the abstract
    * state machine in rules (7), (8) and (9).
    */
   struct Constraint
   {
-    SumPair d_eq;
-    Polynomial d_proof;
-    Monomial d_minimalMonomial;
-    Constraint(const SumPair& eq, const Polynomial& p)
+    Form d_eq;
+    ProofForm d_proof;
+    Form::Term d_minTerm;
+    Integer d_minAbs;
+    Constraint(const Form& eq, const ProofForm& p, const Form::Term& minTerm)
         : d_eq(eq),
           d_proof(p),
-          d_minimalMonomial(d_eq.getPolynomial().selectAbsMinimum())
+          d_minTerm(minTerm),
+          d_minAbs(minTerm.second.abs())
     {
     }
   };
   context::CDList<Constraint> d_trail;
 
-  // /** Compare by d_minimal. */
-  // struct TrailMinimalCoefficientOrder {
-  //   const context::CDList<Constraint>& d_trail;
-  //   TrailMinimalCoefficientOrder(const context::CDList<Constraint>&
-  //   trail):
-  //     d_trail(trail)
-  //   {}
+  /** Appends (eq, proof) to the trail and returns its index. */
+  TrailIndex pushToTrail(const Form& eq, const ProofForm& proof);
 
-  //   bool operator()(TrailIndex i, TrailIndex j){
-  //     return
-  //     d_trail[i].d_minimalMonomial.absLessThan(d_trail[j].d_minimalMonomial);
-  //   }
-  // };
+  /**
+   * Returns the term of eq with the smallest absolute coefficient, breaking
+   * ties by VarList order. Returns (0, 0) if eq is constant.
+   */
+  Form::Term minimalTerm(const Form& eq) const;
+
+  /** Compares variables a and b by the VarList order of their nodes. */
+  int varListCmp(Var a, Var b) const;
 
   /**
    * A substitution is stored as a constraint in the trail together with
@@ -133,16 +131,17 @@ class DioSolver : protected EnvObj
    * equality in d_trail[d_subs[i].d_constraint]
    *  - d_subs[i].d_eliminated is normalized to have coefficient -1 in
    *    d_trail[d_subs[i].d_constraint].
-   *  - d_subs[i].d_fresh is either Node::null() or it is variable it is
-   * normalized to have coefficient 1 in d_trail[d_subs[i].d_constraint].
+   *  - if d_subs[i].d_hasFresh, then d_subs[i].d_fresh is a variable that is
+   *    normalized to have coefficient 1 in d_trail[d_subs[i].d_constraint].
    */
   struct Substitution
   {
-    Node d_fresh;
-    Variable d_eliminated;
+    bool d_hasFresh;
+    Var d_fresh;
+    Var d_eliminated;
     TrailIndex d_constraint;
-    Substitution(Node f, const Variable& e, TrailIndex c)
-        : d_fresh(f), d_eliminated(e), d_constraint(c)
+    Substitution(bool hasFresh, Var f, Var e, TrailIndex c)
+        : d_hasFresh(hasFresh), d_fresh(f), d_eliminated(e), d_constraint(c)
     {
     }
   };
@@ -156,8 +155,7 @@ class DioSolver : protected EnvObj
    * All elements in currentF:
    * - are fully substituted according to d_subs.
    * - !isConstant().
-   * - If the element is (+ constant (+ [(* coeff var)] )), then the gcd(coeff)
-   * = 1
+   * - The gcd of the coefficients is 1.
    */
   std::deque<TrailIndex> d_currentF;
   context::CDList<TrailIndex> d_savedQueue;
@@ -229,7 +227,11 @@ class DioSolver : protected EnvObj
   /** Returns true if the TrailIndex refers to a element in the trail. */
   bool inRange(TrailIndex i) const { return i < d_trail.size(); }
 
-  Node columnGcdIsOne() const;
+  /**
+   * Looks for a variable whose coefficients in the queue have gcd 1. Returns
+   * true and sets v to the first such variable found, or returns false.
+   */
+  bool columnGcdIsOne(Var& v) const;
 
   /**
    * Returns true if the context dependent flag for conflicts
@@ -250,13 +252,6 @@ class DioSolver : protected EnvObj
     Assert(inConflict());
     return d_conflictIndex.get();
   }
-
-  /**
-   * Allocates a "unique" proof variable.
-   * This variable is fresh with respect to the context.
-   * Returns index of the variable in d_variablePool;
-   */
-  size_t allocateProofVariable();
 
   /** Empties the unprocessed input constraints into the queue. */
   void enqueueInputConstraints();
@@ -303,11 +298,8 @@ class DioSolver : protected EnvObj
    */
   std::pair<SubIndex, TrailIndex> decomposeIndex(TrailIndex ti);
 
-  /** Solves the index at ti for the value in minimumMonomial. */
+  /** Solves the index at ti for the variable of its minimal term. */
   std::pair<SubIndex, TrailIndex> solveIndex(TrailIndex ti);
-
-  /** Prints the queue for debugging purposes to Trace("arith::dio"). */
-  void printQueue();
 
   /**
    * Exhaustively applies all substitutions discovered to an element of the

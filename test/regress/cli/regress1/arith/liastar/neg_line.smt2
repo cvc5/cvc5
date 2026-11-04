@@ -1,11 +1,10 @@
 ; REQUIRES: normaliz
-; DISABLE-TESTER: proof
+; REQUIRES: unrestricted-mode
 ; The solution set x + y = 0 is a full line through the origin (negative
 ; coordinates included) and is closed under addition, so its star closure
 ; is the line itself: (3, -3) lies on it, (3, 2) does not.
 (set-logic HO_ALL)
 (set-option :incremental true)
-(set-option :quiet true)
 (declare-const a Int)
 (declare-const b Int)
 

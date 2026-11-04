@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: proof
 ; the elements mode introduces the two elements of A as terms, and the theory
 ; makes them falsify the predicate of the filter

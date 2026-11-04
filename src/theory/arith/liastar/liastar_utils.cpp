@@ -19,6 +19,7 @@
 #include "libnormaliz/input.h"
 #include "libnormaliz/libnormaliz.h"
 #include "options/arith_options.h"
+#include "smt/logic_exception.h"
 #include "theory/arith/linear/normal_form.h"
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/datatypes/tuple_utils.h"
@@ -39,12 +40,32 @@ using namespace libnormaliz;
 // prints a std::vector<std::string>, see normalizCheckSat
 using libnormaliz::operator<<;
 
+void LiaStarUtils::traceEquivalenceCheck(const char* step,
+                                         Node before,
+                                         Node after)
+{
+  // TraceIsOn cannot be negated in builds without tracing
+  if (TraceIsOn("liastar-ext-smt"))
+  {
+    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
+    Trace("liastar-ext-smt") << "(echo \"" << step << "\")" << std::endl;
+    Trace("liastar-ext-smt") << "(assert " << std::endl
+                             << "  (distinct" << std::endl
+                             << "    " << before << std::endl
+                             << "    " << after << std::endl
+                             << "  )" << std::endl
+                             << ")" << std::endl;
+    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
+    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+  }
+}
+
 std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
-  // The first child may have been purified into a skolem by lambda
-  // lifting, and the rewriter may normalize a constant lambda to a
-  // function array constant; recover the lambda from either form.
+  // The first child is the lambda, unless the rewriter normalized a constant
+  // lambda to a function array constant, or --no-uf-lazy-ll lifted it to a
+  // skolem. getDefinition recovers the lambda in all three cases.
   Node lambda = uf::FunctionConst::getDefinition(n[0]);
   Assert(!lambda.isNull()) << "Expected a lambda as the first child of " << n
                            << std::endl;
@@ -70,67 +91,57 @@ std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
   return std::make_pair(substitute, nonnegativeConstraints);
 }
 
-Node LiaStarUtils::toDNF(Node n, Env* e, LiaStarStatistics* stats)
+Node LiaStarUtils::toDNF(Node n, Env& e, LiaStarStatistics* stats)
 {
-  if (stats) stats->d_toDnfTime.start();
-  // eliminate ites
-  if (stats) stats->d_removeItesTime.start();
-  Node noItes = removeItes(n, e, stats);
-  if (stats) stats->d_removeItesTime.stop();
-  Trace("liastar-ext-debug") << "noItes: " << noItes << std::endl;
-  // eliminate negation
-  if (stats) stats->d_removeNotTime.start();
-  Node nnf = removeNot(noItes, e);
-  if (stats) stats->d_removeNotTime.stop();
-  Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
-  if (TraceIsOn("liastar-ext-smt"))
+  if (stats)
   {
-    // noItes
-    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(echo \"noItes\")" << std::endl;
-    Trace("liastar-ext-smt") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-    Trace("liastar-ext-smt") << n << std::endl << "    ";
-    Trace("liastar-ext-smt") << noItes << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-    // nnf
-    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(echo \"nnf\")" << std::endl;
-    Trace("liastar-ext-smt") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-    Trace("liastar-ext-smt") << noItes << std::endl << "    ";
-    Trace("liastar-ext-smt") << nnf << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+    stats->d_toDnfTime.start();
   }
-  // distributes conjunctions over disjunctions
-  if (stats) stats->d_distributeTime.start();
+  // eliminate ites
+  if (stats)
+  {
+    stats->d_removeItesTime.start();
+  }
+  Node noItes = removeItes(n, e, stats);
+  if (stats)
+  {
+    stats->d_removeItesTime.stop();
+  }
+  Trace("liastar-ext-debug") << "noItes: " << noItes << std::endl;
+  // each step prints a query that is unsat iff it preserved equivalence,
+  // e.g. (assert (distinct (not (>= x 1)) (< x 1))) for the nnf step, see
+  // traceEquivalenceCheck
+  traceEquivalenceCheck("noItes", n, noItes);
+  // negation normal form with negated atoms flipped
+  if (stats)
+  {
+    stats->d_removeNotTime.start();
+  }
+  Node nnf = removeNot(noItes, e);
+  if (stats)
+  {
+    stats->d_removeNotTime.stop();
+  }
+  Trace("liastar-ext-debug") << "nnf: " << nnf << std::endl;
+  traceEquivalenceCheck("nnf", noItes, nnf);
+  // distribute conjunctions over disjunctions, then flatten the and/or
+  // nesting the distribution leaves behind
+  if (stats)
+  {
+    stats->d_distributeTime.start();
+  }
   Node dnf = distribute(nnf, e, stats);
   Trace("liastar-ext-debug") << "dnf: " << dnf << std::endl;
-  dnf = recursiveFlatten(e->getNodeManager(), dnf);
-  if (stats) stats->d_distributeTime.stop();
-  if (TraceIsOn("liastar-ext-smt"))
+  dnf = recursiveFlatten(e.getNodeManager(), dnf);
+  if (stats)
   {
-    Trace("liastar-ext-smt") << "(push 1)" << std::endl;
-    Trace("liastar-ext-smt") << "(echo \"dnf\")" << std::endl;
-    Trace("liastar-ext-smt") << "(assert " << std::endl
-                             << "  (distinct" << std::endl
-                             << "    ";
-    Trace("liastar-ext-smt") << nnf << std::endl << "    ";
-    Trace("liastar-ext-smt") << dnf << std::endl
-                             << "  )" << std::endl
-                             << ")" << std::endl;
-    Trace("liastar-ext-smt") << "(check-sat)" << std::endl;
-    Trace("liastar-ext-smt") << "(pop 1)" << std::endl;
+    stats->d_distributeTime.stop();
   }
-  if (stats) stats->d_toDnfTime.stop();
+  traceEquivalenceCheck("dnf", nnf, dnf);
+  if (stats)
+  {
+    stats->d_toDnfTime.stop();
+  }
   return dnf;
 }
 
@@ -151,35 +162,22 @@ Node LiaStarUtils::recursiveFlatten(NodeManager* nm, Node n)
 }
 
 Node LiaStarUtils::distribute(Node n,
-                              Env* e,
+                              Env& e,
                               LiaStarStatistics* stats,
                               const std::vector<Node>& context)
 {
   Assert(n.getType().isBoolean())
       << "Expected " << n << " to be boolean" << std::endl;
   Trace("liastar-ext-dnf") << "distribute::n: " << n << std::endl;
-  NodeManager* nm = e->getNodeManager();
-  Node falseConst = nm->mkConst<bool>(false);
-  Node trueConst = nm->mkConst<bool>(true);
+  NodeManager* nm = e.getNodeManager();
 
   Kind k = n.getKind();
   switch (k)
   {
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::CONST_BOOLEAN:
-    case Kind::LT:
-    case Kind::GT:
-    case Kind::LEQ:
-    case Kind::GEQ:
-    case Kind::EQUAL:
-    {
-      return n;
-    }
     case Kind::AND:
     {
-      // the non-OR conjuncts of this conjunction hold in every branch
-      // below it: make them part of the pruning context up front
+      // the atoms of this conjunction hold in every branch below it, so
+      // they strengthen the pruning checks of the recursive calls
       std::vector<Node> childContext = context;
       for (Node child : n)
       {
@@ -201,17 +199,17 @@ Node LiaStarUtils::distribute(Node n,
       {
         return conjunctions[0];
       }
-      // basically we compute the cartesian product
+      // The DNF of a conjunction is the cartesian product of the disjuncts
+      // of its conjuncts. For the conjuncts {(or a b), c, (or d e)},
+      // `disjunctions` holds one partial conjunction per future disjunct
+      // and grows as follows:
+      //   {c}                                   the non-OR conjuncts
+      //   {c a}, {c b}                          times (or a b)
+      //   {c a d}, {c b d}, {c a e}, {c b e}    times (or d e)
+      // Every extension is checked with the subsolver, so an unsat partial
+      // conjunction is dropped before it is multiplied further.
       std::vector<std::vector<Node>> disjunctions;
       disjunctions.push_back({});
-      // {a, b}
-      // {c}
-      // {d, e}
-      // ****
-      // disjunctions: {}
-      // disjunctions: {a}, {b}
-      // disjunctions: {a, c}, {b, c}
-      // disjunctions: {a,c, d},{b, d, d},{a, c, e},{b, c, e}
       for (const Node& conjunct : conjunctions)
       {
         if (conjunct.getKind() != Kind::OR)
@@ -219,10 +217,14 @@ Node LiaStarUtils::distribute(Node n,
           disjunctions[0].push_back(conjunct);
         }
       }
+      // whether a disjunction extended the conjunctions, in which case each
+      // of them was checked by its last extension
+      bool extended = false;
       for (const Node& conjunct : conjunctions)
       {
         if (conjunct.getKind() == Kind::OR)
         {
+          extended = true;
           std::vector<std::vector<Node>> tmp;
           for (const Node& disjunct : conjunct)
           {
@@ -235,8 +237,11 @@ Node LiaStarUtils::distribute(Node n,
               Result r = areAssertionsUnsat(query, e, stats);
               if (r.getStatus() == Result::Status::UNSAT)
               {
-                // we can discard unsat conjunctions
-                if (stats) ++stats->d_disjunctsPrunedUnsat;
+                // unsat under the context: no disjunct can come from it
+                if (stats)
+                {
+                  ++stats->d_disjunctsPrunedUnsat;
+                }
                 continue;
               }
               else
@@ -251,14 +256,25 @@ Node LiaStarUtils::distribute(Node n,
       std::vector<Node> final_disjuncts;
       for (std::vector<Node>& v : disjunctions)
       {
-        std::vector<Node> query = v;
-        query.insert(query.end(), context.begin(), context.end());
-        Result r = areAssertionsUnsat(query, e, stats);
-        if (r.getStatus() == Result::Status::UNSAT)
+        // Extended conjunctions were checked above, so they are not checked
+        // again. For (and (>= x 1) (or (<= x 0) (>= y 0))) the extensions
+        // check (and (>= x 1) (<= x 0)), which is dropped, and
+        // (and (>= x 1) (>= y 0)), which is kept. Without a disjunction
+        // among the conjuncts this is the only check:
+        //   (and (>= x 1) (<= x 0)) --> false
+        if (!extended)
         {
-          // we can discard unsat conjunctions
-          if (stats) ++stats->d_disjunctsPrunedUnsat;
-          continue;
+          std::vector<Node> query = v;
+          query.insert(query.end(), context.begin(), context.end());
+          Result r = areAssertionsUnsat(query, e, stats);
+          if (r.getStatus() == Result::Status::UNSAT)
+          {
+            if (stats)
+            {
+              ++stats->d_disjunctsPrunedUnsat;
+            }
+            continue;
+          }
         }
         if (v.size() == 1)
         {
@@ -292,284 +308,219 @@ Node LiaStarUtils::distribute(Node n,
 
       return nm->mkNode(Kind::OR, disjuncts);
     }
-
     default:
     {
-      break;
+      // anything but and and or is an atom, e.g. a constraint or a negated
+      // Boolean variable that removeNot keeps:
+      //   (and (not p) (or (>= x 1) (<= x 0)))
+      //   --> (or (and (not p) (>= x 1)) (and (not p) (<= x 0)))
+      return n;
     }
   }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
 }
 
-Node LiaStarUtils::removeItes(Node n, Env* e, LiaStarStatistics* stats)
+IteEliminationConverter::IteEliminationConverter(Env& e,
+                                                 LiaStarStatistics* stats)
+    : NodeConverter(e.getNodeManager()),
+      d_rewriter(e.getRewriter()),
+      d_stats(stats)
 {
-  NodeManager* nm = e->getNodeManager();
-  Node falseConst = nm->mkConst<bool>(false);
-  Node trueConst = nm->mkConst<bool>(true);
-  Kind k = n.getKind();
-  switch (k)
+}
+
+Node IteEliminationConverter::postConvert(Node n)
+{
+  if (!n.getType().isBoolean())
   {
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::CONST_BOOLEAN: return n;
-    case Kind::LT:
-    case Kind::GT:
-    case Kind::LEQ:
-    case Kind::GEQ:
+    // an integer ite is eliminated when the atom containing it is split
+    return n;
+  }
+  if (n.getKind() == Kind::ITE)
+  {
+    // (ite c p q) --> (or (and p c) (and q (not c))). The nodes are created
+    // one per statement: the evaluation order of function arguments is
+    // unspecified, and node ids follow the creation order.
+    countEliminated(n);
+    Node thenCase = d_nm->mkNode(Kind::AND, n[1], n[0]);
+    Node notCondition = n[0].notNode();
+    Node elseCase = d_nm->mkNode(Kind::AND, n[2], notCondition);
+    return d_nm->mkNode(Kind::OR, thenCase, elseCase);
+  }
+  // An atom such as (>= t 0) has a non-Boolean child. The children of any
+  // other Boolean term are converted already, hence ite-free.
+  bool isAtom = std::any_of(
+      n.begin(), n.end(), [](TNode c) { return !c.getType().isBoolean(); });
+  if (!isAtom || !expr::hasSubtermKind(Kind::ITE, n))
+  {
+    return n;
+  }
+  return splitAtom(n);
+}
+
+Node IteEliminationConverter::splitAtom(Node atom)
+{
+  // Depth first over the splits, each a pair of an atom and its guards. The
+  // then-branch is split first so that the disjuncts follow the branches:
+  //   (>= (ite c1 x y) (ite c2 1 2))
+  //   --> (or (and (>= x 1) c1 c2) (and (>= x 2) c1 (not c2))
+  //           (and (>= y 1) (not c1) c2) (and (>= y 2) (not c1) (not c2)))
+  std::vector<Node> disjuncts;
+  std::vector<std::pair<Node, std::vector<Node>>> splits{{atom, {}}};
+  while (!splits.empty())
+  {
+    auto [current, guards] = std::move(splits.back());
+    splits.pop_back();
+    std::unordered_set<Node> ites;
+    expr::getKindSubterms(current, Kind::ITE, true, ites);
+    if (ites.empty())
+    {
+      // getMatrices expects integer terms in arithmetic normal form, so the
+      // changed ones are rewritten: (+ x x) --> (* 2 x)
+      std::vector<Node> children;
+      if (current.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        children.push_back(current.getOperator());
+      }
+      for (size_t i = 0; i < current.getNumChildren(); i++)
+      {
+        Node child = current[i];
+        if (child != atom[i] && !child.getType().isBoolean())
+        {
+          child = d_rewriter->rewrite(child);
+        }
+        children.push_back(child);
+      }
+      std::vector<Node> conjuncts{d_nm->mkNode(current.getKind(), children)};
+      conjuncts.insert(conjuncts.end(), guards.begin(), guards.end());
+      disjuncts.push_back(d_nm->mkAnd(conjuncts));
+      continue;
+    }
+    // split on the ite with the smallest id, which keeps the result
+    // independent of the order of the set
+    Node ite = *std::min_element(
+        ites.begin(), ites.end(), [](const Node& a, const Node& b) {
+          return a.getId() < b.getId();
+        });
+    countEliminated(ite);
+    // Substitution replaces every occurrence of the ite, so a repeated ite
+    // is split once: (>= (+ (ite c x y) (ite c x y)) 0) has two disjuncts.
+    // The else-branch is pushed first so that the then-branch is split first.
+    for (size_t branch : {2, 1})
+    {
+      std::vector<Node> branchGuards = guards;
+      branchGuards.push_back(branch == 1 ? ite[0] : ite[0].notNode());
+      splits.push_back(
+          {current.substitute(TNode(ite), TNode(ite[branch])), branchGuards});
+    }
+  }
+  return d_nm->mkOr(disjuncts);
+}
+
+void IteEliminationConverter::countEliminated(Node ite)
+{
+  if (d_stats && d_eliminated.insert(ite).second)
+  {
+    ++d_stats->d_itesRemoved;
+  }
+}
+
+Node LiaStarUtils::removeItes(Node n, Env& e, LiaStarStatistics* stats)
+{
+  Assert(n.getType().isBoolean())
+      << "Expected " << n << " to be boolean" << std::endl;
+  Assert(!expr::hasClosure(n))
+      << "Expected " << n << " to have no binders" << std::endl;
+  IteEliminationConverter converter(e, stats);
+  return converter.convert(n);
+}
+
+NegatedConstraintConverter::NegatedConstraintConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
+
+Node NegatedConstraintConverter::postConvert(Node n)
+{
+  if (n.getKind() != Kind::NOT)
+  {
+    return n;
+  }
+  Node atom = n[0];
+  switch (atom.getKind())
+  {
+    // (not (< a b)) --> (>= a b)
+    case Kind::LT: return d_nm->mkNode(Kind::GEQ, atom[0], atom[1]);
+    // (not (> a b)) --> (<= a b)
+    case Kind::GT: return d_nm->mkNode(Kind::LEQ, atom[0], atom[1]);
+    // (not (<= a b)) --> (> a b)
+    case Kind::LEQ: return d_nm->mkNode(Kind::GT, atom[0], atom[1]);
+    // (not (>= a b)) --> (< a b)
+    case Kind::GEQ: return d_nm->mkNode(Kind::LT, atom[0], atom[1]);
     case Kind::EQUAL:
     {
-      std::vector<std::pair<Node, Node>> left =
-          removeIntegerItes(n[0], e, stats);
-      std::vector<std::pair<Node, Node>> right =
-          removeIntegerItes(n[1], e, stats);
-      if (left.size() == 1 && right.size() == 1)
+      // (not (= a b)) --> (or (> a b) (< a b)): a disequality is not a
+      // single constraint. Only arithmetic equalities have an order.
+      if (atom[0].getType().isRealOrInt())
       {
-        return n;
+        // one node per statement, since the evaluation order of function
+        // arguments is unspecified
+        Node gt = d_nm->mkNode(Kind::GT, atom[0], atom[1]);
+        Node lt = d_nm->mkNode(Kind::LT, atom[0], atom[1]);
+        return d_nm->mkNode(Kind::OR, gt, lt);
       }
-
-      // combine the conditions of left and right
-      std::vector<Node> disjunctions;
-      for (const auto& l : left)
-      {
-        for (const auto& r : right)
-        {
-          Node result = nm->mkNode(k, l.second, r.second);
-          Node combined = result;
-          if (r.first != trueConst)
-          {
-            combined = combined.andNode(r.first);
-          }
-          else if (l.first != trueConst)
-          {
-            combined = combined.andNode(l.first);
-          }
-          disjunctions.push_back(combined);
-        }
-      }
-      return nm->mkNode(Kind::OR, disjunctions);
+      return n;
     }
-    case Kind::ITE:
-    {
-      if (stats) ++stats->d_itesRemoved;
-      Node l = removeItes(n[0].andNode(n[1]), e, stats);
-      Node r = removeItes(n[0].notNode().andNode(n[2]), e, stats);
-      return l.orNode(r);
-    }
-    case Kind::AND:
-    {
-      std::vector<Node> conjuncts;
-      for (Node child : n)
-      {
-        conjuncts.push_back(removeItes(child, e, stats));
-      }
-      return nm->mkNode(Kind::AND, conjuncts);
-    }
-    case Kind::OR:
-    {
-      std::vector<Node> disjuncts;
-      for (Node child : n)
-      {
-        disjuncts.push_back(removeItes(child, e, stats));
-      }
-      return nm->mkNode(Kind::OR, disjuncts);
-    }
-    case Kind::NOT:
-    {
-      return removeItes(n[0], e, stats).notNode();
-    }
-    default:
-    {
-      break;
-    }
+    // any other negation, e.g. (not p) for a Boolean variable p, is kept
+    default: return n;
   }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
 }
 
-Node LiaStarUtils::removeNot(Node n, Env* e)
+BooleanEqualityConverter::BooleanEqualityConverter(NodeManager* nm)
+    : NodeConverter(nm)
 {
-  NodeManager* nm = e->getNodeManager();
-  // eliminate negation nodes of the form (not (or ...)), (not (and ...))
-  Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, n);
-  Kind k = nnf.getKind();
-  switch (k)
-  {
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::CONST_BOOLEAN:
-    case Kind::LT:
-    case Kind::GT:
-    case Kind::LEQ:
-    case Kind::GEQ:
-    case Kind::EQUAL: return nnf;
-    case Kind::AND:
-    {
-      std::vector<Node> conjuncts;
-      for (Node child : nnf)
-      {
-        conjuncts.push_back(removeNot(child, e));
-      }
-      return nm->mkNode(Kind::AND, conjuncts);
-    }
-    case Kind::OR:
-    {
-      std::vector<Node> disjuncts;
-      for (Node child : nnf)
-      {
-        disjuncts.push_back(removeNot(child, e));
-      }
-      return nm->mkNode(Kind::OR, disjuncts);
-    }
-    case Kind::NOT:
-    {
-      Kind kind = nnf[0].getKind();
-      switch (kind)
-      {
-        case Kind::LT:
-        {
-          //(not (< a b)) is rewritten as (>= a b)
-          return nm->mkNode(Kind::GEQ, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::GT:
-        {
-          //(not (> a b)) is rewritten as (<= a b)
-          return nm->mkNode(Kind::LEQ, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::LEQ:
-        {
-          //(not (<= a b)) is rewritten as (> a b)
-          return nm->mkNode(Kind::GT, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::GEQ:
-        {
-          //(not (>= a b)) is rewritten as (< a b)
-          return nm->mkNode(Kind::LT, nnf[0][0], nnf[0][1]);
-        }
-        case Kind::EQUAL:
-        {
-          // (not (= a b)) is rewritten as (or (> a b) (< a b))
-          Node a = nnf[0][0];
-          Node b = nnf[0][1];
-          Node gt = nm->mkNode(Kind::GT, a, b);
-          Node lt = nm->mkNode(Kind::LT, a, b);
-          return gt.orNode(lt);
-        }
-        default:
-          InternalError() << "Unexpected negated kind. Node " << n
-                          << " has kind: " << n.getKind() << std::endl;
-      }
-      break;
-    }
-    default:
-    {
-      break;
-    }
-  }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
 }
 
-std::vector<std::pair<Node, Node>> LiaStarUtils::removeIntegerItes(
-    Node n, Env* e, LiaStarStatistics* stats)
+Node BooleanEqualityConverter::postConvert(Node n)
 {
-  Assert(n.getType().isInteger());
-  // (+
-  //    (ite c1 a b)
-  //    (ite c2 c d))
-  // should return 4 pairs:
-  // <(and c1 c2)           ,(+ a c)>
-  // <(and c1 (not c2)      ,(+ a d)>
-  // <(and (not c1) c2)     ,(+ b c)>
-  // <(and (not c1) (not c2),(+ b d)>
-  NodeManager* nm = e->getNodeManager();
-  Node trueConst = nm->mkConst<bool>(true);
-  auto rw = e->getRewriter();
-  Kind k = n.getKind();
-  switch (k)
+  bool isXor = n.getKind() == Kind::XOR;
+  if (!isXor && (n.getKind() != Kind::EQUAL || !n[0].getType().isBoolean()))
   {
-    case Kind::VARIABLE:
-    case Kind::BOUND_VARIABLE:
-    case Kind::NEG:
-    case Kind::CONST_INTEGER: return {{trueConst, n}};
-    case Kind::ADD:
-    case Kind::SUB:
-    case Kind::MULT:
-    {
-      std::vector<std::pair<Node, Node>> left =
-          removeIntegerItes(n[0], e, stats);
-      std::vector<std::pair<Node, Node>> right =
-          removeIntegerItes(n[1], e, stats);
-      std::vector<std::pair<Node, Node>> combined;
-      // combine the conditions of left and right
-      for (const auto& l : left)
-      {
-        for (const auto& r : right)
-        {
-          Node condition = rw->rewrite(l.first.andNode(r.first));
-          Node result = rw->rewrite(nm->mkNode(k, l.second, r.second));
-          combined.push_back({condition, result});
-        }
-      }
-      return combined;
-    }
-    case Kind::ITE:
-    {
-      if (stats) ++stats->d_itesRemoved;
-      std::vector<std::pair<Node, Node>> iteResult;
-      Node condition = removeItes(n[0], e, stats);
-      std::vector<std::pair<Node, Node>> thenPart =
-          removeIntegerItes(n[1], e, stats);
-      for (const auto& pair : thenPart)
-      {
-        Node newCondition;
-        if (pair.first == trueConst)
-        {
-          newCondition = condition;
-        }
-        else
-        {
-          newCondition = pair.first.andNode(condition);
-        }
-        iteResult.push_back({newCondition, pair.second});
-      }
-
-      // todo: restore this line Node notCondition =
-      // rw->rewrite(condition.notNode());
-      Node notCondition = condition.notNode();
-      std::vector<std::pair<Node, Node>> elsePart =
-          removeIntegerItes(n[2], e, stats);
-      for (const auto& pair : elsePart)
-      {
-        Node newCondition;
-        if (pair.first == trueConst)
-        {
-          newCondition = notCondition;
-        }
-        else
-        {
-          newCondition = pair.first.andNode(notCondition);
-        }
-        iteResult.push_back({newCondition, pair.second});
-      }
-      return iteResult;
-    }
-
-    default:
-    {
-      break;
-    }
+    return n;
   }
-  InternalError() << "Unexpected kind. Node " << n
-                  << " has kind: " << n.getKind() << std::endl;
+  // (= p q)   --> (or (and p q) (and (not p) (not q)))
+  // (xor p q) --> (or (and p (not q)) (and (not p) q))
+  // The nodes are created one per statement: the evaluation order of
+  // function arguments is unspecified, and node ids follow the creation
+  // order.
+  Node notP = n[0].notNode();
+  Node notQ = n[1].notNode();
+  Node first = d_nm->mkNode(Kind::AND, n[0], isXor ? notQ : n[1]);
+  Node second = d_nm->mkNode(Kind::AND, notP, isXor ? n[1] : notQ);
+  return d_nm->mkNode(Kind::OR, first, second);
+}
+
+Node LiaStarUtils::removeNot(Node n, Env& e)
+{
+  NodeManager* nm = e.getNodeManager();
+  // expand the equalities of Booleans and the xors, which computeNnfNorm
+  // keeps:
+  //   (= p (>= x 1)) --> (or (and p (>= x 1)) (and (not p) (not (>= x 1))))
+  BooleanEqualityConverter equalityConverter(nm);
+  Node expanded = equalityConverter.convert(n);
+  // push negations down to the atoms:
+  //   (not (or p (>= x 1))) --> (and (not p) (not (>= x 1)))
+  Node nnf = booleans::TheoryBoolRewriter::computeNnfNorm(nm, expanded);
+  // then flip the negated constraints:
+  //   (and (not p) (not (>= x 1))) --> (and (not p) (< x 1))
+  NegatedConstraintConverter converter(nm);
+  return converter.convert(nnf);
 }
 
 Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
-                                        Env* e,
+                                        Env& e,
                                         LiaStarStatistics* stats)
 {
   // pruning is disabled: report "not known to be unsat"
-  if (!e->getOptions().arith.arithLiaStarSubSolver)
+  if (!e.getOptions().arith.arithLiaStarSubSolver)
   {
     return Result();
   }
@@ -578,7 +529,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
     ++stats->d_subSolverCalls;
     stats->d_subSolverTime.start();
   }
-  NodeManager* nm = e->getNodeManager();
+  NodeManager* nm = e.getNodeManager();
   // {(>= x 1), (<= x 0)} --> (and (>= x 1) (<= x 0))
   Node assertion;
   if (assertions.size() == 1)
@@ -595,7 +546,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
   std::vector<Node> freeVariables(fvs.begin(), fvs.end());
   Result result;
   // Normaliz needs at least one coordinate, so ground assertions go to cvc5
-  if (fvs.size() > 0 && e->getOptions().arith.arithLiaStarNormalizAsSubSolver)
+  if (fvs.size() > 0 && e.getOptions().arith.arithLiaStarNormalizAsSubSolver)
   {
     // the coordinates of the Normaliz space: x is x[1]
     Node variables = nm->mkNode(Kind::BOUND_VAR_LIST, freeVariables);
@@ -605,7 +556,7 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
     result =
         normalizCheckSat(variables,
                          assertion,
-                         e->getOptions().arith.arithLiaStarAssumeNonnegative,
+                         e.getOptions().arith.arithLiaStarAssumeNonnegative,
                          stats);
   }
   else
@@ -627,13 +578,13 @@ Result LiaStarUtils::areAssertionsUnsat(const std::vector<Node>& assertions,
 
 Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
                                   Node assertion,
-                                  Env* e,
+                                  Env& e,
                                   LiaStarStatistics* stats)
 {
   if (stats) stats->d_cvc5SubSolverTime.start();
   // default options rather than e's; the logic is still e's
   Options subOptions;
-  SubsolverSetupInfo ssi(*e, subOptions);
+  SubsolverSetupInfo ssi(e, subOptions);
 
   Result result;
   if (freeVariables.size() == 0)
@@ -642,11 +593,11 @@ Result LiaStarUtils::cvc5CheckSat(const std::vector<Node>& freeVariables,
   }
   else
   {
-    NodeManager* nm = e->getNodeManager();
+    NodeManager* nm = e.getNodeManager();
     // by default nonnegativity is not assumed: the star-contains lambda
     // body (part of `assertion`) carries the user's constraints.
     // With the option: (and (and A (>= x 0)) (>= y 0)).
-    if (e->getOptions().arith.arithLiaStarAssumeNonnegative)
+    if (e.getOptions().arith.arithLiaStarAssumeNonnegative)
     {
       Node zero = nm->mkConstInt(Rational(0));
       for (Node var : freeVariables)
@@ -816,6 +767,13 @@ LiaStarUtils::getMatrices(Node variables, Node n)
     case Kind::GEQ:
     case Kind::EQUAL:
     {
+      // an equality of non-arithmetic terms is no constraint, e.g. of the
+      // bit-vectors in (= b #x00), or of the Booleans in (= p (>= x 1)),
+      // which toDNF expands
+      if (!n[0].getType().isRealOrInt())
+      {
+        break;
+      }
       // (>= (+ (* 2 x) (* (- 1) z)) (- 5)) over (x y z)
       // --> "2x[1] - x[3] >=  - 5;"
       linear::Polynomial l = linear::Polynomial::parsePolynomial(n[0]);
@@ -860,10 +818,16 @@ LiaStarUtils::getMatrices(Node variables, Node n)
       return pairs;
     }
 
-    // other kinds are not expected in DNF: no matrix
     default: break;
   }
-  return pairs;
+  // Any other atom, e.g. a Boolean variable p, has no constraint. Dropping it
+  // would change the set: (lambda ((x Int)) p) would give no disjunct, as if
+  // p were false.
+  std::stringstream ss;
+  ss << "int.star-contains expects a predicate of linear integer "
+        "constraints over the variables of its lambda, found the atom "
+     << n;
+  throw LogicException(ss.str());
 }
 
 std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
@@ -872,8 +836,6 @@ std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
       << "variables: " << variables << std::endl;
 
   size_t size = variables.getNumChildren();
-  Assert(p.isIntegral()) << p.getNode() << " is expected to be linear"
-                         << std::endl;
   // (+ (* 2 x) (* (- 1) z)) over (x y z) --> "2x[1] - x[3]"
   // (- 5)                                --> " - 5"
   std::stringstream ss;
@@ -907,20 +869,31 @@ std::string LiaStarUtils::getString(Node variables, linear::Polynomial& p)
     {
       ss << r;
     }
-    // find the variable: p is linear, so the monomial has a single one, and
-    // the i-th variable of `variables` is x[i + 1]
-    for (size_t i = 0; i < size; i++)
+    // the i-th variable of `variables` is x[i + 1]. Any other term has no
+    // coordinate, e.g. a constant a that the lambda captures, or a product
+    // (* x y), whose var list is the product itself. Dropping it would change
+    // the constraint: (= x (* 2 a)) would become x[1] = 2.
+    Node var = monomial.getVarList().getNode();
+    size_t i = 0;
+    while (i < size && variables[i] != var)
     {
-      linear::VarList varList = monomial.getVarList();
-      for (const auto& var : varList)
-      {
-        if (var.getNode() == variables[i])
-        {
-          ss << "x[" << i + 1 << "]";
-        }
-      }
+      i++;
     }
+    if (i == size)
+    {
+      std::stringstream error;
+      error << "int.star-contains expects a predicate of linear integer "
+               "constraints over the variables of its lambda, found the term "
+            << var;
+      throw LogicException(error.str());
+    }
+    ss << "x[" << i + 1 << "]";
   }
+  // checked only now: a term of another type, e.g. a real r, makes p
+  // nonintegral, and it is rejected above. The integer variables left have
+  // integral coefficients in the arithmetic normal form.
+  Assert(p.isIntegral()) << p.getNode() << " is expected to be integral"
+                         << std::endl;
   Trace("liastar-ext-debug") << "polynomial  : " << p.getNode() << std::endl;
   Trace("liastar-ext-debug") << "string : " << ss.str() << std::endl;
   return ss.str();

@@ -31,7 +31,7 @@ TEST_F(TestApiBlackGrammar, toString)
 {
   d_solver->setOption("sygus", "true");
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   ASSERT_EQ(g.toString(), "");
   g.addRule(start, d_tm.mkBoolean(false));
   ASSERT_NE(g.toString(), "");
@@ -50,7 +50,7 @@ TEST_F(TestApiBlackGrammar, addRule)
   Term start = d_tm.mkVar(d_bool);
   Term nts = d_tm.mkVar(d_bool);
 
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g.addRule(start, d_tm.mkBoolean(false)));
 
@@ -72,7 +72,7 @@ TEST_F(TestApiBlackGrammar, addRules)
   Term start = d_tm.mkVar(d_bool);
   Term nts = d_tm.mkVar(d_bool);
 
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g.addRules(start, {d_tm.mkBoolean(false)}));
 
@@ -94,7 +94,7 @@ TEST_F(TestApiBlackGrammar, addAnyConstant)
   Term start = d_tm.mkVar(d_bool);
   Term nts = d_tm.mkVar(d_bool);
 
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g.addAnyConstant(start));
   ASSERT_NO_THROW(g.addAnyConstant(start));
@@ -116,8 +116,8 @@ TEST_F(TestApiBlackGrammar, addAnyVariable)
   Term start = d_tm.mkVar(d_bool);
   Term nts = d_tm.mkVar(d_bool);
 
-  Grammar g1 = d_solver->mkGrammar({x}, {start});
-  Grammar g2 = d_solver->mkGrammar({}, {start});
+  Grammar g1 = d_tm.mkGrammar({x}, {start});
+  Grammar g2 = d_tm.mkGrammar({}, {start});
 
   ASSERT_NO_THROW(g1.addAnyVariable(start));
   ASSERT_NO_THROW(g1.addAnyVariable(start));
@@ -142,8 +142,8 @@ TEST_F(TestApiBlackGrammar, equalHash)
   ASSERT_EQ(g1, g2);
 
   {
-    g1 = d_solver->mkGrammar({}, {start1});
-    g2 = d_solver->mkGrammar({}, {start1});
+    g1 = d_tm.mkGrammar({}, {start1});
+    g2 = d_tm.mkGrammar({}, {start1});
     ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g1));
     ASSERT_EQ(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
     ASSERT_EQ(g1, g1);
@@ -151,24 +151,24 @@ TEST_F(TestApiBlackGrammar, equalHash)
   }
 
   {
-    g1 = d_solver->mkGrammar({}, {start1});
-    g2 = d_solver->mkGrammar({x}, {start1});
+    g1 = d_tm.mkGrammar({}, {start1});
+    g2 = d_tm.mkGrammar({x}, {start1});
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
     ASSERT_EQ(g1, g1);
     ASSERT_NE(g1, g2);
   }
 
   {
-    g1 = d_solver->mkGrammar({x}, {start1});
-    g2 = d_solver->mkGrammar({x}, {start2});
+    g1 = d_tm.mkGrammar({x}, {start1});
+    g2 = d_tm.mkGrammar({x}, {start2});
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
     ASSERT_EQ(g1, g1);
     ASSERT_NE(g1, g2);
   }
 
   {
-    g1 = d_solver->mkGrammar({x}, {start1});
-    g2 = d_solver->mkGrammar({x}, {start1});
+    g1 = d_tm.mkGrammar({x}, {start1});
+    g2 = d_tm.mkGrammar({x}, {start1});
     g2.addAnyVariable(start1);
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
     ASSERT_EQ(g1, g1);
@@ -176,8 +176,8 @@ TEST_F(TestApiBlackGrammar, equalHash)
   }
 
   {
-    g1 = d_solver->mkGrammar({x}, {start1});
-    g2 = d_solver->mkGrammar({x}, {start1});
+    g1 = d_tm.mkGrammar({x}, {start1});
+    g2 = d_tm.mkGrammar({x}, {start1});
     std::vector<Term> rules = {d_tm.mkFalse()};
     g1.addRules(start1, rules);
     g2.addRules(start1, rules);
@@ -187,8 +187,8 @@ TEST_F(TestApiBlackGrammar, equalHash)
   }
 
   {
-    g1 = d_solver->mkGrammar({x}, {start1});
-    g2 = d_solver->mkGrammar({x}, {start1});
+    g1 = d_tm.mkGrammar({x}, {start1});
+    g2 = d_tm.mkGrammar({x}, {start1});
     std::vector<Term> rules2 = {d_tm.mkFalse()};
     g2.addRules(start1, rules2);
     ASSERT_NE(std::hash<Grammar>{}(g1), std::hash<Grammar>{}(g2));
@@ -197,8 +197,8 @@ TEST_F(TestApiBlackGrammar, equalHash)
   }
 
   {
-    g1 = d_solver->mkGrammar({x}, {start1});
-    g2 = d_solver->mkGrammar({x}, {start1});
+    g1 = d_tm.mkGrammar({x}, {start1});
+    g2 = d_tm.mkGrammar({x}, {start1});
     std::vector<Term> rules1 = {d_tm.mkTrue()};
     std::vector<Term> rules2 = {d_tm.mkFalse()};
     g1.addRules(start1, rules1);

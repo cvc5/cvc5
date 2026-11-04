@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: proof
 ; the fresh elements of the elements mode are terms asserted distinct from the
 ; known ones, which Bool refutes by itself

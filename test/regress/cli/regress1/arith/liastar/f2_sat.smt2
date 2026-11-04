@@ -1,7 +1,7 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-option :produce-models true)
-(set-option :quiet true)
 (set-info :status sat)
 (assert 
  (int.star-contains 

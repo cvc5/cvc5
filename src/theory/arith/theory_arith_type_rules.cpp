@@ -12,8 +12,6 @@
 
 #include "theory/arith/theory_arith_type_rules.h"
 
-#include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
 #include "util/iand.h"
 #include "util/rational.h"
 
@@ -322,10 +320,10 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
   Assert(n.getKind() == Kind::STAR_CONTAINS);
   if (check)
   {
-    // The first argument should be a lambda. STAR_CONTAINS is not a
-    // closure, so its first child is an ordinary term that lambda
-    // lifting may have purified into a skolem; we check its original
-    // form.
+    // The first argument should be a function of type
+    // (-> Int ... Int Bool). STAR_CONTAINS is not a closure, so its first
+    // child may be any such term, e.g. a function array constant;
+    // TheoryArith::ppStaticRewrite checks that it is a lambda.
     Node lambda = n[0];
     // remaining arguments should be elements of integer type
     std::vector<Node> arguments;

@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: proof
 ; the fresh elements the star needs cannot be read back into a bag.map or
 ; bag.filter term by the subsolver mode (which answers unknown here), so the

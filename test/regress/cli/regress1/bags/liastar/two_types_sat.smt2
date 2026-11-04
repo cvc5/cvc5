@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: proof
 ; the models are right (--check-models accepts them), but --debug-check-models
 ; cannot evaluate a star atom whose arguments are count terms

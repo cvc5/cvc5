@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: proof
 ; the two fresh elements of A have to falsify the predicate of the filter, which
 ; cannot be read off the rows of the star, so the model is marked unsound

@@ -1,4 +1,5 @@
 ; REQUIRES: normaliz
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: proof
 ; a guarded star (=> premises star) leaves the star literal free when the
 ; premises are false, and --debug-check-models cannot evaluate a star atom

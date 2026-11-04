@@ -3093,6 +3093,7 @@ class CVC5_EXPORT Grammar
 {
   friend class parser::Cmd;
   friend class Solver;
+  friend class TermManager;
   friend struct std::hash<Grammar>;
 
  public:
@@ -3701,6 +3702,17 @@ class CVC5_EXPORT Proof
    */
   ProofRewriteRule getRewriteRule() const;
 
+  /**
+   * Get the annotation identifier used by the root step of the proof.
+   *
+   * Requires that `getRule()` returns #ANNOTATE.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return The annotation identifier.
+   */
+  AnnotationId getAnnotationId() const;
+
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
 
@@ -3712,6 +3724,23 @@ class CVC5_EXPORT Proof
    *         Some of those terms might be strings.
    */
   const std::vector<Term> getArguments() const;
+
+  /**
+   * Get a string representation of an argument of the root step of the proof.
+   *
+   * The string is computed by the internal proof printer, which takes into
+   * account how the argument is used by the proof rule. For example, an
+   * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+   * is converted to the name of that identifier. All other arguments are
+   * converted to the string representation of the corresponding term returned
+   * by `getArguments()`.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param i The index of the argument.
+   * @return The string representation of the argument.
+   */
+  std::string getArgumentToString(size_t i) const;
 
   /**
    * Operator overloading for referential equality of two proofs.
@@ -4453,6 +4482,19 @@ class CVC5_EXPORT TermManager
   DatatypeDecl mkDatatypeDecl(const std::string& name,
                               const std::vector<Sort>& params,
                               bool isCoDatatype = false);
+
+  /* SyGuS Grammar ------------------------------------------------------ */
+
+  /**
+   * Create a Sygus grammar. The first non-terminal is treated as the starting
+   * non-terminal, so the order of non-terminals matters.
+   *
+   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
+   * @param ntSymbols The pre-declaration of the non-terminal symbols.
+   * @return The grammar.
+   */
+  Grammar mkGrammar(const std::vector<Term>& boundVars,
+                    const std::vector<Term>& ntSymbols);
 
  private:
   /**
@@ -6772,9 +6814,13 @@ class CVC5_EXPORT Solver
    * @param boundVars The parameters to corresponding synth-fun/synth-inv.
    * @param ntSymbols The pre-declaration of the non-terminal symbols.
    * @return The grammar.
+   * @warning This function is deprecated and replaced by
+   *          `TermManager::mkGrammar()`. It will be removed in a future
+   *          release.
    */
-  Grammar mkGrammar(const std::vector<Term>& boundVars,
-                    const std::vector<Term>& ntSymbols) const;
+  [[deprecated("Use TermManager::mkGrammar() instead")]] Grammar mkGrammar(
+      const std::vector<Term>& boundVars,
+      const std::vector<Term>& ntSymbols) const;
 
   /**
    * Synthesize n-ary function.

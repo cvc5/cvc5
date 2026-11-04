@@ -39,6 +39,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ITE_EQ: return "ITE_EQ";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
+    case ProofRule::ANNOTATE: return "ANNOTATE";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     case ProofRule::DRAT_REFUTATION: return "DRAT_REFUTATION";
@@ -390,6 +391,22 @@ std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule)
   return out;
 }
 
+const char* toString(AnnotationId id)
+{
+  switch (id)
+  {
+    case AnnotationId::NONE: return "NONE";
+    case AnnotationId::THEORY_LEMMA: return "THEORY_LEMMA";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, AnnotationId id)
+{
+  out << toString(id);
+  return out;
+}
+
 }  // namespace cvc5
 
 namespace std {
@@ -411,5 +428,12 @@ std::string to_string(cvc5::ProofRewriteRule rule)
 {
   return cvc5::toString(rule);
 }
+
+size_t hash<cvc5::AnnotationId>::operator()(cvc5::AnnotationId id) const
+{
+  return static_cast<size_t>(id);
+}
+
+std::string to_string(cvc5::AnnotationId id) { return cvc5::toString(id); }
 
 }  // namespace std

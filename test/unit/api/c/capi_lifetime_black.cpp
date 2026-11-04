@@ -286,9 +286,9 @@ TEST_F(TestCApiBlackLifetime, grammarOutlivesSolverAndTermManager)
   Cvc5Term start = cvc5_mk_var(tm, b, "start");
   Cvc5Term f = cvc5_mk_boolean(tm, false);
   Cvc5Term symbols[1] = {start};
-  // keep a reference so that the grammar outlives the solver
-  Cvc5Grammar g =
-      cvc5_grammar_copy(cvc5_mk_grammar(slv, 0, nullptr, 1, symbols));
+  // grammars are managed by the term manager, no copy is needed to keep them
+  // valid after the solver has been deleted
+  Cvc5Grammar g = cvc5_mk_grammar(tm, 0, nullptr, 1, symbols);
   cvc5_grammar_add_rule(g, start, f);
   cvc5_term_release(f);
   cvc5_term_release(start);

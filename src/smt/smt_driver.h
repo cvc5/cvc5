@@ -62,6 +62,13 @@ class SmtDriver : protected EnvObj
    * ensure that assertions are only preprocessed in one context.
    */
   void refreshAssertions();
+  /**
+   * Debug check the model of the last call to checkSat, which checks that the
+   * model satisfies all facts asserted to the theory engine.
+   *
+   * @param hardFailure Whether to throw an internal error on failure.
+   */
+  void debugCheckModels(bool hardFailure);
   // --------------------------------------- callbacks from the context manager
   /**
    * Notify push pre, which is called just before the user context of the state
@@ -135,10 +142,22 @@ class SmtDriver : protected EnvObj
    */
   IllegalChecker d_illegalChecker;
   /**
+   * Whether the current call to checkSat has assumptions. If so, the
+   * assertions given to checkSatNext in incremental mode are exactly the
+   * assumptions of that call, since all other assertions were pushed to the
+   * SAT solver when the context was pushed (see notifyPushPre).
+   */
+  bool d_hasAssumptions;
+  /**
    * The utility used for verifying candidate models, when the option
    * modelVerify is enabled.
    */
   ModelVerifier d_modelVerifier;
+  /**
+   * Whether the last call to checkSat was "sat" due to strengthening an
+   * "unknown" result via verifying the candidate model (see modelVerify).
+   */
+  bool d_satFromModelVerify;
 };
 
 /**

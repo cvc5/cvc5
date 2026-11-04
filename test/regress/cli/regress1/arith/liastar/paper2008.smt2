@@ -1,5 +1,5 @@
 ; REQUIRES: normaliz
-; DISABLE-TESTER: proof
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :source "Decision Procedures for Multisets with Cardinality Constraints
 by Ruzica Piskac and Viktor Kuncak
@@ -7,7 +7,6 @@ https://link.springer.com/chapter/10.1007/978-3-540-78163-9_20
 ")
 (set-info :status unsat)
 (set-option :dag-thresh 0)
-(set-option :quiet true)
 (declare-fun k1 () Int)
 (declare-fun k2 () Int)
 (declare-fun x1 () Int)
