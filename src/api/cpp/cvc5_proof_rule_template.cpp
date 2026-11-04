@@ -218,9 +218,7 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_POLY_COMBINATION: return "FF_POLY_COMBINATION";
     case ProofRule::FF_DISEQ: return "FF_DISEQ";
     case ProofRule::FF_POLY_NORM: return "FF_POLY_NORM";
-    case ProofRule::FF_POLY_NORM_EQ:
-      return "FF_POLY_NORM_EQ";
-      //================================================= External rules
+    case ProofRule::FF_POLY_NORM_EQ: return "FF_POLY_NORM_EQ";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

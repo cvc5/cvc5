@@ -63,7 +63,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(ProofRule::TRUST_THEORY_REWRITE, this, 4);
   // trusted rules
   pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
-  // external proof rules
 
   d_rdb = pc->getRewriteDatabase();
 }
