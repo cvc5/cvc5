@@ -1,8 +1,9 @@
 ; EXPECT: unsat
 ; Label exhaustion concludes (is C (unbox (box m))) from (not (is A m)),
 ; (not (is B (unbox (box m)))) and (= m (unbox (box m))). Its proof moves
-; (not (is A m)) to (unbox (box m)) by the equality, which must be used as the
-; substitution (unbox (box m)) -> m, since m occurs in (unbox (box m)).
+; (not (is A m)) to (unbox (box m)) by congruence over the equality. Using the
+; equality as the substitution m -> (unbox (box m)) does not work, since m occurs
+; in (unbox (box m)), and hence the substitution also changes the target.
 (set-logic UFDTLIA)
 (declare-datatypes ((D 0)) (((A (a1 Int)) (B (b1 Int)) (C (c1 Int)))))
 (declare-sort Poly 0)
