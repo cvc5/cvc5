@@ -31,6 +31,11 @@ class JustifyStatistics
   IntStat d_numStatusDecision;
   /** Number of times we considered an assertion that led to backtracking */
   IntStat d_numStatusBacktrack;
+  /**
+   * Number of times we found an assertion to be false in the current
+   * assignment without the SAT solver being in conflict
+   */
+  IntStat d_numFalseAssertion;
   /** Maximum stack size we considered */
   IntStat d_maxStackSize;
   /** Maximum assertion size we considered */
