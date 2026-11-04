@@ -8,6 +8,12 @@ cvc5 1.5.0 prerelease
   satisfiability query results, allowing access to stale models and other
   query-dependent information. (#13077)
 
+- **Arithmetic**: Added a new extension of the arithmetic solver for solving
+  liastar (LIA*) constraints. The new predicate `int.star-contains` denotes
+  membership in a star set. The extension depends on Normaliz, which is
+  available in builds configured with `--normaliz` (requires `--gpl`); other
+  builds raise a logic exception.
+
 - **API**
   * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
     (Java, Python) for creating SyGuS grammars. A grammar is associated with

@@ -85,6 +85,7 @@ set(regress_0_tests
   regress0/arith/issue9643.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
+  regress0/arith/liastar/no_normaliz.smt2
   regress0/arith/log1.smt2
   regress0/arith/log2.smt2
   regress0/arith/log3.smt2
@@ -2865,6 +2866,32 @@ set(regress_1_tests
   regress1/abduction/sygus-abduct-test-user.smt2
   regress1/abduction/uf-abduct.smt2
   regress1/abduction/yoni-true-sol.smt2
+  regress1/arith/liastar/assume_not_nonnegative.smt2
+  regress1/arith/liastar/assume_nonnegative.smt2
+  regress1/arith/liastar/constant_lambda.smt2
+  regress1/arith/liastar/disjoint_union.smt2
+  regress1/arith/liastar/f2_sat.smt2
+  regress1/arith/liastar/f2_unsat.smt2
+  regress1/arith/liastar/function_equalities.smt2
+  regress1/arith/liastar/get_value.smt2
+  regress1/arith/liastar/lineality_line_sat.smt2
+  regress1/arith/liastar/lineality_line_unsat.smt2
+  regress1/arith/liastar/linear_logic.smt2
+  regress1/arith/liastar/neg_line.smt2
+  regress1/arith/liastar/neg_mixed_sat.smt2
+  regress1/arith/liastar/neg_parity_unsat.smt2
+  regress1/arith/liastar/neg_sum_sat.smt2
+  regress1/arith/liastar/neg_sum_unsat.smt2
+  regress1/arith/liastar/nonlinear_negated_sat.smt2
+  regress1/arith/liastar/nonlinear_relevance.smt2
+  regress1/arith/liastar/nonlinear_sat.smt2
+  regress1/arith/liastar/paper2008.smt2
+  regress1/arith/liastar/paper2020.smt2
+  regress1/arith/liastar/query026.smt2
+  regress1/arith/liastar/sat1.smt2
+  regress1/arith/liastar/sat2.smt2
+  regress1/arith/liastar/simple.smt2
+  regress1/arith/liastar/two-star-predicates.smt2
   regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc.smt2
   regress1/arith/arith-int-011.cvc.smt2
