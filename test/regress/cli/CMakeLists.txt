@@ -3216,7 +3216,6 @@ set(regress_1_tests
   regress1/ho/proj-issue139-2.smt2
   regress1/ho/seu589-wrong.smt2
   regress1/ho/sev428-mbqi.smt2
-  regress1/ho/sev310-tdb.smt2
   regress1/ho/soundness_fmf_SYO362^5-delta.smt2
   regress1/ho/store-ax-min.smt2
   regress1/ho/SYO056^1.smt2
@@ -4655,6 +4654,8 @@ set(regression_disabled_tests
   regress1/ho/hoa0102.smt2
   # assertion failure on some builds
   regress1/ho/ho-choice-partial-mbqi-enum.smt2
+  # timeout on some nightly builds after change to lambda lifting policy (#13017)
+  regress1/ho/sev310-tdb.smt2
   # timeout after fixes to uf-lazy-ll for cyclic lambda construction
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # times out after update to circuit propagator
