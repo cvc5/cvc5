@@ -69,6 +69,8 @@ class TheoryBags : public Theory
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort effort) override;
+  /** true in the elements mode of bags-liastar-model, see BagSolver */
+  bool needsCheckLastEffort() override;
   /** Notify fact */
   void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
   //--------------------------------- end standard check

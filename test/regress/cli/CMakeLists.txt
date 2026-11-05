@@ -2982,6 +2982,36 @@ set(regress_1_tests
   regress1/bags/filter5.smt2
   regress1/bags/bag_filter_congruence.smt2
   regress1/bags/fold1.smt2
+  regress1/bags/liastar/bag_make_distinct_sat.smt2
+  regress1/bags/liastar/bag_make_distinct_unsat.smt2
+  regress1/bags/liastar/bag_make_equal_unsat.smt2
+  regress1/bags/liastar/bag_make_inter_min_unsat.smt2
+  regress1/bags/liastar/bag_make_setof_sat.smt2
+  regress1/bags/liastar/bag_make_setof_unsat.smt2
+  regress1/bags/liastar/bag_make_union_max_sat.smt2
+  regress1/bags/liastar/bag_make_union_max_unsat.smt2
+  regress1/bags/liastar/card_difference_remove.smt2
+  regress1/bags/liastar/card_inter_min.smt2
+  regress1/bags/liastar/card_min_max.smt2
+  regress1/bags/liastar/card_setof_sat.smt2
+  regress1/bags/liastar/card_setof_unsat.smt2
+  regress1/bags/liastar/card_union_disjoint.smt2
+  regress1/bags/liastar/count_card_unsat.smt2
+  regress1/bags/liastar/disequality.smt2
+  regress1/bags/liastar/filter_fresh_sat.smt2
+  regress1/bags/liastar/filter_fresh_unknown.smt2
+  regress1/bags/liastar/finite_elements_unknown.smt2
+  regress1/bags/liastar/finite_elements_unsat.smt2
+  regress1/bags/liastar/fold_card_sat.smt2
+  regress1/bags/liastar/fold_card_unsat.smt2
+  regress1/bags/liastar/guarded_star.smt2
+  regress1/bags/liastar/map_card_sat.smt2
+  regress1/bags/liastar/map_card_unsat.smt2
+  regress1/bags/liastar/member_card_sat.smt2
+  regress1/bags/liastar/member_card_unsat.smt2
+  regress1/bags/liastar/setof_fold_sat.smt2
+  regress1/bags/liastar/setof_many_elements.smt2
+  regress1/bags/liastar/two_types_sat.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
   regress1/bags/fuzzy1.smt2
@@ -4648,6 +4678,8 @@ set(regression_disabled_tests
   regress1/bags/fol_0000119.smt2
   regress1/bags/murxla6.smt2
   regress1/bags/table_group4.smt2
+  # unknown since a false star literal gets the forall lemma of liastar7
+  regress1/bags/liastar/dedup_vs_events_sat.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).

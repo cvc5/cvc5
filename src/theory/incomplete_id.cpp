@@ -47,6 +47,9 @@ const char* toString(IncompleteId i)
     case IncompleteId::SETS_HO_CARD: return "SETS_HO_CARD";
     case IncompleteId::SETS_RELS_CARD: return "SETS_RELS_CARD";
     case IncompleteId::SETS_FMF_BOUND_CARD: return "SETS_FMF_BOUND_CARD";
+    case IncompleteId::BAGS_LIASTAR_MODEL: return "BAGS_LIASTAR_MODEL";
+    case IncompleteId::BAGS_LIASTAR_FINITE_ELEMENTS:
+      return "BAGS_LIASTAR_FINITE_ELEMENTS";
     case IncompleteId::STRINGS_LOOP_SKIP: return "STRINGS_LOOP_SKIP";
     case IncompleteId::STRINGS_REGEXP_NO_SIMPLIFY:
       return "STRINGS_REGEXP_NO_SIMPLIFY";
