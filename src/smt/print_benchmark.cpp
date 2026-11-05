@@ -72,6 +72,12 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
     std::vector<TypeNode> datatypeBlock;
     for (const TypeNode& ctn : connectedTypes)
     {
+      if (ctn.isRawSymbolType())
+      {
+        // Raw symbol types are used as atoms in larger type expressions.
+        // They are not declared as ordinary sort symbols.
+        continue;
+      }
       if ((ctn.isUninterpretedSort() && ctn.getNumChildren() == 0)
           || ctn.isUninterpretedSortConstructor())
       {

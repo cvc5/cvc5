@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "expr/node.h"
+#include "proof/proof_node.h"
 
 namespace cvc5::internal {
 
@@ -580,6 +581,19 @@ std::ostream& operator<<(std::ostream& out, AletheRule id);
 
 /** Convert a node holding an id to the corresponding AletheRule */
 AletheRule getAletheRule(Node n);
+
+/**
+ * Is pn an Alethe step, i.e. a ProofRule::TRUST step whose trust id is
+ * TrustId::ALETHE_RULE? The arguments of such steps are
+ * (tid, Q, id, Q', A_1, ..., A_m), see TrustId::ALETHE_RULE.
+ */
+bool isAletheStep(const ProofNode* pn);
+
+/**
+ * Get the Alethe rule of pn, or AletheRule::UNDEFINED if pn is not an Alethe
+ * step.
+ */
+AletheRule getAletheRule(const ProofNode* pn);
 
 }  // namespace proof
 

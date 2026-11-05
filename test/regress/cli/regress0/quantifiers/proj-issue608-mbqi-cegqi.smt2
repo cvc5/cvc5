@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unknown
 
 ; Benchmark unknown due to cegqi-all taking ownership; solvable with finite-model-find.

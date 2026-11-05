@@ -1,3 +1,5 @@
+; Logos does not support parametric datatype declarations.
+; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-datatypes ((Pair 2)) ((par (T1 T2) ((mk-pair (first T1) (second T2))))))

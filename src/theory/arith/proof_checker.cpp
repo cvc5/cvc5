@@ -18,7 +18,6 @@
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_poly_norm.h"
 #include "theory/arith/arith_utilities.h"
-#include "theory/arith/linear/constraint.h"
 #include "theory/arith/operator_elim.h"
 
 using namespace cvc5::internal::kind;
@@ -30,6 +29,7 @@ namespace arith {
 ArithProofRuleChecker::ArithProofRuleChecker(NodeManager* nm)
     : ProofRuleChecker(nm),
       d_extChecker(nm),
+      d_pow2Checker(nm),
       d_trChecker(nm)
 #ifdef CVC5_POLY_IMP
       ,
@@ -52,6 +52,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ARITH_POLY_NORM_REL, this);
   // register the extended proof checkers
   d_extChecker.registerTo(pc);
+  d_pow2Checker.registerTo(pc);
   d_trChecker.registerTo(pc);
 #ifdef CVC5_POLY_IMP
   d_covChecker.registerTo(pc);

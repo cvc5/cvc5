@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --seq-array=eager
 ; EXPECT: unsat
 

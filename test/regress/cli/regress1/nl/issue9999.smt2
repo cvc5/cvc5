@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-difficulty
+; COMMAND-LINE: --produce-difficulty --sat-solver=minisat
 ; EXPECT: sat
 (set-logic QF_UFNRA)
 (declare-fun s (Real Real) Real)

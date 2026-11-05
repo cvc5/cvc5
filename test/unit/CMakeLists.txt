@@ -10,7 +10,7 @@
 # The build system configuration.
 ##
 
-find_package(GTest REQUIRED)
+find_package(GTest 1.10.0 REQUIRED)
 
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)
@@ -37,6 +37,30 @@ add_custom_target(units
 set(CVC5_UNIT_TEST_FLAGS_BLACK
   -D__BUILDING_CVC5LIB_UNIT_TEST -D__BUILDING_CVC5PARSERLIB_UNIT_TEST -Dcvc5_obj_EXPORTS)
 
+# Enable slow (exhaustive) unit tests with -DENABLE_SLOW_TESTS=ON.
+option(ENABLE_SLOW_TESTS "Enable slow (exhaustive) unit tests" OFF)
+if(ENABLE_SLOW_TESTS)
+  list(APPEND CVC5_UNIT_TEST_FLAGS_BLACK -DCVC5_SLOW_TESTS)
+endif()
+
+# Per-test timeout (in seconds) for unit tests. Unit tests are otherwise
+# unbounded: a test that hangs or becomes pathologically slow stalls the whole
+# ctest run until the CI job's own inactivity timeout kills it, which reports
+# no indication of which test was responsible. Regression tests already get an
+# equivalent watchdog via TIMEOUT_AFTER_MATCH in test/regress/cli/CMakeLists.txt.
+set(CVC5_UNIT_TEST_TIMEOUT "" CACHE STRING
+    "Per-test timeout in seconds for unit tests (default: 900, or 7200 with -DENABLE_SLOW_TESTS=ON)")
+if(CVC5_UNIT_TEST_TIMEOUT STREQUAL "")
+  if(ENABLE_SLOW_TESTS)
+    # Exhaustive tests iterate over all Float16 values and are ~30x slower.
+    set(unit_test_timeout 7200)
+  else()
+    set(unit_test_timeout 900)
+  endif()
+else()
+  set(unit_test_timeout ${CVC5_UNIT_TEST_TIMEOUT})
+endif()
+
 # Generate and add unit test.
 macro(cvc5_add_unit_test is_white name output_dir)
   # Only enable white box unit tests if the compiler supports it and the build
@@ -49,6 +73,17 @@ macro(cvc5_add_unit_test is_white name output_dir)
     target_link_libraries(${name} PUBLIC main-test GMP)
     target_link_libraries(${name} PUBLIC GTest::Main)
     target_link_libraries(${name} PUBLIC GTest::GTest)
+
+    if(USE_NORMALIZ)
+      # theory/arith/theory_arith.h includes the liastar extension, whose
+      # header includes Normaliz, so tests that include it need the Normaliz
+      # headers and, through them, GMP's C++ bindings. Make both available
+      # explicitly: cvc5-obj has the Normaliz include directory privately, and
+      # it is on the include path of a test only when another dependency,
+      # e.g. a downloaded GMP or GTest, happens to live in the same directory.
+      target_include_directories(${name} SYSTEM PRIVATE ${Normaliz_INCLUDE_DIR})
+      target_link_libraries(${name} PUBLIC GMPXX)
+    endif()
 
     if(USE_POLY)
       # Make libpoly headers available for tests
@@ -80,7 +115,9 @@ macro(cvc5_add_unit_test is_white name output_dir)
       set(test_name unit/${output_dir}/${name})
     endif()
     add_test(${test_name} ${ENV_PATH_CMD} ${test_bin_dir}/${name})
-    set_tests_properties(${test_name} PROPERTIES LABELS "unit")
+    set_tests_properties(${test_name} PROPERTIES
+      LABELS "unit"
+      TIMEOUT ${unit_test_timeout})
     # set_tests_properties(${test_name} PROPERTIES FIXTURES_REQUIRED build_units_fixture)
   endif()
 endmacro()

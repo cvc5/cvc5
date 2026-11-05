@@ -29,7 +29,8 @@ namespace arith {
  * This class is responsible for rewriting arithmetic equalities based on the
  * current options.
  *
- * In particular, we may rewrite (= x y) to (and (>= x y) (<= x y)).
+ * In particular, we may rewrite (= x y) to (and (>= x y) (<= x y)). Otherwise,
+ * we rewrite an equality to its normal form, e.g. (= (+ x 1) 2) to (= x 1).
  */
 class PreprocessRewriteEq : protected EnvObj
 {
@@ -39,10 +40,20 @@ class PreprocessRewriteEq : protected EnvObj
   /**
    * Preprocess equality, applies ppRewrite for equalities. This method is
    * distinct from ppRewrite since it is not allowed to construct lemmas.
+   *
+   * If the above option is not enabled, this returns the normal form of eq,
+   * see rewriter::normalizeEquality, if it differs from eq. Note this
+   * normalization is not applied by the rewriter, since it does not preserve
+   * the terms of the equality.
    */
   TrustNode ppRewriteEq(TNode eq);
 
  private:
+  /**
+   * Return a trust node proving that eq is equivalent to its normal form eqn,
+   * see rewriter::normalizeEquality.
+   */
+  TrustNode ppNormalizeEq(TNode eq, TNode eqn);
   /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;
 };

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --ieval=use-learn
 ; EXPECT: sat
 ; Preamble  --------------

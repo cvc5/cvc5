@@ -39,7 +39,7 @@ JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_getNullTerm(JNIEnv* env,
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_io_github_cvc5_Term_deletePointer(JNIEnv*,
-                                                              jobject,
+                                                              jclass,
                                                               jlong pointer)
 {
   delete reinterpret_cast<Term*>(pointer);
@@ -1122,31 +1122,15 @@ Java_io_github_cvc5_Term_getSkolemIndices(JNIEnv* env, jobject, jlong pointer)
 
 /*
  * Class:     io_github_cvc5_Term
- * Method:    iterator
+ * Method:    hashCode
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_iterator(JNIEnv* env,
+JNIEXPORT jlong JNICALL Java_io_github_cvc5_Term_hashCode(JNIEnv* env,
                                                           jobject,
                                                           jlong pointer)
 {
   CVC5_JAVA_API_TRY_CATCH_BEGIN;
-  Term* current = reinterpret_cast<Term*>(pointer);
-  Term::const_iterator* retPointer = new Term::const_iterator(current->begin());
-  return reinterpret_cast<jlong>(retPointer);
-  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
-}
-
-/*
- * Class:     io_github_cvc5_Term
- * Method:    hashCode
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_io_github_cvc5_Term_hashCode(JNIEnv* env,
-                                                         jobject,
-                                                         jlong pointer)
-{
-  CVC5_JAVA_API_TRY_CATCH_BEGIN;
   Term* result = reinterpret_cast<Term*>(pointer);
-  return static_cast<jint>(std::hash<cvc5::Term>()(*result));
+  return static_cast<jlong>(std::hash<cvc5::Term>()(*result));
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }

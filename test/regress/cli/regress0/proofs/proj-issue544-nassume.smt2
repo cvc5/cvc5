@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic ALL)
 (set-option :produce-unsat-assumptions true)

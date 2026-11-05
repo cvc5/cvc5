@@ -1,3 +1,5 @@
+; Logos proof checking exceeds the 600-second timeout.
+; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 (set-logic ALL)
 (set-option :incremental false)

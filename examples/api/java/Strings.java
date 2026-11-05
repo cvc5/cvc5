@@ -18,8 +18,7 @@ public class Strings
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       // Set the logic
       slv.setLogic("QF_SLIA");
@@ -86,6 +85,5 @@ public class Strings
         System.out.println("  s1.s2 = " + slv.getValue(s));
       }
     }
-    Context.deletePointers();
   }
 }

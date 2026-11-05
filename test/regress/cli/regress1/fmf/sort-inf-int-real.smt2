@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --sort-inference
 ; EXPECT: unknown
 (set-logic UFLIRA)

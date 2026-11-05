@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --no-nl-cov
 ; EXPECT: unsat
 (set-logic QF_NRA)

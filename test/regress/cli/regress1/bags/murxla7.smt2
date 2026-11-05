@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ALL)
 (set-info :status unsat)
 (declare-sort s 0)

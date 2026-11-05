@@ -1008,7 +1008,9 @@ BagsUtils::splitTableJoinIndices(Node n)
   size_t joinSize = indices.size() / 2;
   std::vector<uint32_t> indices1(joinSize), indices2(joinSize);
 
-  for (size_t i = 0, index = 0; i < joinSize; i += 2, ++index)
+  // Pairs are (m1 n1 ... mk nk). Type rules reject an odd length.
+  Assert(indices.size() % 2 == 0);
+  for (size_t i = 0, index = 0; i < indices.size(); i += 2, ++index)
   {
     indices1[index] = indices[i];
     indices2[index] = indices[i + 1];

@@ -1560,62 +1560,6 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       uint32_t nCard = cc.getUpperBound().getUnsignedInt();
       Trace("uf-ss-debug") << "...check cardinality constraint : " << tn
                            << std::endl;
-      if (options().uf.ufssFairnessMonotone)
-      {
-        SortInference* si = d_state.getSortInference();
-        Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
-        if (tn != d_tn_mono_master)
-        {
-          std::map<TypeNode, bool>::iterator it = d_tn_mono_slave.find(tn);
-          if (it == d_tn_mono_slave.end())
-          {
-            bool isMonotonic;
-            if (si != nullptr)
-            {
-              isMonotonic = si->isMonotonic(tn);
-            }
-            else
-            {
-              // if ground, everything is monotonic
-              isMonotonic = true;
-            }
-            if (isMonotonic)
-            {
-              if (d_tn_mono_master.isNull())
-              {
-                Trace("uf-ss-com-card-debug")
-                    << "uf-ss-fair-monotone: Set master : " << tn << std::endl;
-                d_tn_mono_master = tn;
-              }
-              else
-              {
-                Trace("uf-ss-com-card-debug")
-                    << "uf-ss-fair-monotone: Set slave : " << tn << std::endl;
-                d_tn_mono_slave[tn] = true;
-              }
-            }
-            else
-            {
-              Trace("uf-ss-com-card-debug")
-                  << "uf-ss-fair-monotone: Set non-monotonic : " << tn
-                  << std::endl;
-              d_tn_mono_slave[tn] = false;
-            }
-          }
-        }
-        // set the minimum positive cardinality for master if necessary
-        if (polarity && tn == d_tn_mono_master)
-        {
-          Trace("uf-ss-com-card-debug")
-              << "...set min positive cardinality" << std::endl;
-          if (!d_min_pos_tn_master_card_set.get()
-              || nCard < d_min_pos_tn_master_card.get())
-          {
-            d_min_pos_tn_master_card_set.set(true);
-            d_min_pos_tn_master_card.set(nCard);
-          }
-        }
-      }
       Trace("uf-ss-com-card-debug") << "...assert cardinality" << std::endl;
       d_rep_model[tn]->assertCardinality(nCard, polarity);
       // check if combined cardinality is violated
@@ -1962,62 +1906,17 @@ void CardinalityExtension::checkCombinedCardinality()
         << "Check combined cardinality, get maximum negative cardinalities..."
         << std::endl;
     uint32_t totalCombinedCard = 0;
-    uint32_t maxMonoSlave = 0;
     TypeNode maxSlaveType;
     for (std::map<TypeNode, SortModel*>::iterator it = d_rep_model.begin();
          it != d_rep_model.end();
          ++it)
     {
       uint32_t max_neg = it->second->getMaximumNegativeCardinality();
-      if (!options().uf.ufssFairnessMonotone)
-      {
-        totalCombinedCard += max_neg;
-      }
-      else
-      {
-        std::map<TypeNode, bool>::iterator its =
-            d_tn_mono_slave.find(it->first);
-        if (its == d_tn_mono_slave.end() || !its->second)
-        {
-          totalCombinedCard += max_neg;
-        }
-        else
-        {
-          if (max_neg > maxMonoSlave)
-          {
-            maxMonoSlave = max_neg;
-            maxSlaveType = it->first;
-          }
-        }
-      }
+      totalCombinedCard += max_neg;
     }
     Trace("uf-ss-com-card-debug")
         << "Check combined cardinality, total combined card : "
         << totalCombinedCard << std::endl;
-    if (options().uf.ufssFairnessMonotone)
-    {
-      Trace("uf-ss-com-card-debug")
-          << "Max slave monotonic negated cardinality : " << maxMonoSlave
-          << std::endl;
-      if (!d_min_pos_tn_master_card_set.get()
-          && maxMonoSlave > d_min_pos_tn_master_card.get())
-      {
-        uint32_t mc = d_min_pos_tn_master_card.get();
-        std::vector<Node> conf;
-        conf.push_back(
-            d_rep_model[d_tn_mono_master]->getCardinalityLiteral(mc));
-        conf.push_back(d_rep_model[maxSlaveType]
-                           ->getCardinalityLiteral(maxMonoSlave)
-                           .negate());
-        Node cf = nodeManager()->mkNode(Kind::AND, conf);
-        Trace("uf-ss-lemma") << "*** Combined monotone cardinality conflict"
-                             << " : " << cf << std::endl;
-        Trace("uf-ss-com-card") << "*** Combined monotone cardinality conflict"
-                                << " : " << cf << std::endl;
-        d_im.conflict(cf, InferenceId::UF_CARD_MONOTONE_COMBINED);
-        return;
-      }
-    }
     uint32_t cc = d_min_pos_com_card.get();
     if (d_min_pos_com_card_set.get() && totalCombinedCard > cc)
     {
@@ -2030,28 +1929,15 @@ void CardinalityExtension::checkCombinedCardinality()
            it != d_rep_model.end();
            ++it)
       {
-        bool doAdd = true;
-        if (options().uf.ufssFairnessMonotone)
+        uint32_t c = it->second->getMaximumNegativeCardinality();
+        if (c > 0)
         {
-          std::map<TypeNode, bool>::iterator its =
-              d_tn_mono_slave.find(it->first);
-          if (its != d_tn_mono_slave.end() && its->second)
-          {
-            doAdd = false;
-          }
+          conf.push_back(it->second->getCardinalityLiteral(c).negate());
+          totalAdded += c;
         }
-        if (doAdd)
+        if (totalAdded > cc)
         {
-          uint32_t c = it->second->getMaximumNegativeCardinality();
-          if (c > 0)
-          {
-            conf.push_back(it->second->getCardinalityLiteral(c).negate());
-            totalAdded += c;
-          }
-          if (totalAdded > cc)
-          {
-            break;
-          }
+          break;
         }
       }
       Node cf = nodeManager()->mkNode(Kind::AND, conf);

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-abducts
 ; SCRUBBER: grep -v -E '(\(define-fun)'
 ; EXIT: 0
@@ -8,5 +9,6 @@
 (declare-fun y () Int)
 (assert (>= x 0))
 (get-abduct A (>= (+ x y) 2))
+(define-fun aux () Int 0)
 (get-abduct-next)
 (get-abduct-next)

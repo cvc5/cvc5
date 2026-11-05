@@ -1,4 +1,5 @@
-; EXPECT: unknown
+; REQUIRES: unrestricted-mode
+; EXPECT: sat
 (set-logic ALL)
 (set-option :incremental false)
 (set-option :finite-model-find true)

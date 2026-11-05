@@ -37,6 +37,15 @@ class SymbolManagerTest extends ParserTest
   }
 
   @Test
+  void equalHash()
+  {
+    SymbolManager symman = new SymbolManager(d_tm);
+    assertEquals(d_symman, d_symman);
+    assertNotEquals(d_symman, symman);
+    assertEquals(d_symman.hashCode(), d_symman.hashCode());
+  }
+
+  @Test
   void isLogicSet()
   {
     assertEquals(d_symman.isLogicSet(), false);

@@ -110,7 +110,7 @@ std::string Configuration::copyright()
   }
 
   ss << "  SymFPU - The Symbolic Floating Point Unit\n"
-     << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
+     << "  See https://github.com/martin-cs/symfpu/tree/main for copyright "
      << "information.\n\n";
 
   if (isBuiltWithGmp() || isBuiltWithPoly())
@@ -138,7 +138,8 @@ std::string Configuration::copyright()
     }
   }
 
-  if (isBuiltWithCln() || isBuiltWithGlpk() || isBuiltWithCoCoA())
+  if (isBuiltWithCln() || isBuiltWithGlpk() || isBuiltWithCoCoA()
+      || isBuiltWithNormaliz())
   {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
@@ -162,6 +163,12 @@ std::string Configuration::copyright()
             "copyright"
          << " information\n\n";
     }
+    if (isBuiltWithNormaliz())
+    {
+      ss << "  Normaliz - a rational cones library\n"
+         << "  See https://github.com/Normaliz/Normaliz for copyright"
+         << " information\n\n";
+    }
   }
 
   ss << "See the file COPYING (distributed with the source code, and with\n"
@@ -179,7 +186,9 @@ std::string Configuration::about()
     ss << " [" << getGitInfo() << "]";
   }
   ss << std::endl;
-  ss << "compiled with " << getCompiler() << " on " << getCompiledDateTime();
+  ss << "compiled as a " << Configuration::getBuildType() << " build "
+     << "with " << Configuration::getCompiler() << " on "
+     << Configuration::getCompiledDateTime();
   return ss.str();
 }
 
@@ -212,6 +221,8 @@ bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
 bool Configuration::isBuiltWithPoly() { return IS_POLY_BUILD; }
 
 bool Configuration::isBuiltWithCoCoA() { return IS_COCOA_BUILD; }
+
+bool Configuration::isBuiltWithNormaliz() { return IS_NORMALIZ_BUILD; }
 
 bool Configuration::isBuiltWithPortfolio() { return IS_PORTFOLIO_BUILD; }
 
@@ -249,6 +260,19 @@ std::string Configuration::getCompiler()
 std::string Configuration::getCompiledDateTime()
 {
   return __DATE__ " " __TIME__;
+}
+
+std::string Configuration::getBuildType()
+{
+  stringstream ss;
+  if (Configuration::isStableBuild())
+    ss << "stable";
+  else if (Configuration::isSafeBuild())
+    ss << "safe";
+  else
+    ss << "unrestricted";
+  if (Configuration::isDebugBuild()) ss << " debug";
+  return ss.str();
 }
 
 }  // namespace cvc5::internal

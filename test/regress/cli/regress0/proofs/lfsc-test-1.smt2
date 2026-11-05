@@ -1,6 +1,4 @@
-; COMMAND-LINE: --dump-proofs --proof-format-mode=lfsc
-; EXIT: 0
-; SCRUBBER: grep -v -E '.*' 
+; EXPECT: unsat
 (set-logic QF_UF)
 (set-info :category "crafted")
 

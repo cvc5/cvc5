@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --unconstrained-simp
 (set-logic QF_AUFBVLIA)
 (set-info :smt-lib-version 2.6)

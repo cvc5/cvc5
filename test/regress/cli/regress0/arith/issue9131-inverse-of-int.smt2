@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -q --nl-ext-split-zero
 
 ; This is a minimized version of the problem in the original issue. It

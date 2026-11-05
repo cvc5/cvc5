@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: -i
 ; EXPECT: unsat
 ; EXPECT: unsat

@@ -154,6 +154,7 @@ name   = "Quantifiers"
   long       = "pre-skolem-quant=MODE"
   type       = "PreSkolemQuantMode"
   default    = "OFF"
+  no_support = ["proofs"]
   help       = "modes to apply skolemization eagerly to bodies of quantified formulas"
   help_mode  = "Modes to apply skolemization eagerly to bodies of quantified formulas."
 [[option.mode.OFF]]
@@ -220,7 +221,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "mbqiCheckTimeout"
-  category   = "regular"
+  category   = "common"
   long       = "mbqi-check-timeout=N"
   type       = "uint64_t"
   default    = "500"
@@ -524,6 +525,9 @@ name   = "Quantifiers"
 [[option.mode.LAST_CALL]]
   name = "last-call"
   help = "Run instantiation at last call effort, after theory combination and and theories report sat."
+[[option.mode.LAST_CALL_DELAY]]
+  name = "last-call-delay"
+  help = "Run instantiation at last call effort, after theory combination and theories report sat, after all other theories have finished."
 
 [[option]]
   name       = "instWhenPhase"
@@ -895,7 +899,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "quantSubCbqiTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "sub-cbqi-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1159,7 +1163,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusRepairConstTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "sygus-repair-const-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1415,7 +1419,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusVerifyTimeout"
-  category   = "regular"
+  category   = "common"
   long       = "sygus-verify-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1513,7 +1517,7 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "sygusExprMinerCheckTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "uint64_t"
   default    = "0"
@@ -1692,11 +1696,10 @@ name   = "Quantifiers"
 
 [[option]]
   name       = "cegqiMidpoint"
-  category   = "regular"
+  category   = "expert"
   long       = "cegqi-midpoint"
   type       = "bool"
-  default    = "false"
-  no_support = ["proofs"]
+  default    = "true"
   help       = "choose substitutions based on midpoints of lower and upper bounds for counterexample-based quantifier instantiation"
 
 [[option]]

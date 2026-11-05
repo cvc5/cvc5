@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --deep-restart=input
 ; EXPECT: sat
 (set-logic QF_SLIA)

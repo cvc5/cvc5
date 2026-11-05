@@ -734,6 +734,12 @@ class CVC5_EXPORT TypeNode
   /** Is this a sort constructor kind? */
   bool isUninterpretedSortConstructor() const;
 
+  /** Is this an atomic type that prints as a raw symbol? */
+  bool isRawSymbolType() const;
+
+  /** Get the symbol printed by this raw symbol type. */
+  std::string getRawSymbol() const;
+
   /** Get sort constructor arity. */
   uint64_t getUninterpretedSortConstructorArity() const;
 

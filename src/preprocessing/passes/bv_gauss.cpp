@@ -391,6 +391,15 @@ BVGauss::Result BVGauss::gaussElim(Integer prime,
       }
       continue;
     }
+    // Normalize rhs to a value modulo prime. Constants subtracted from the
+    // rhs while parsing the equations are not reduced modulo prime, and pivot
+    // rows with pivot element 1 are not modified during elimination. Hence the
+    // rhs may still be negative or exceed prime here.
+    // Note: Reducing modulo 2^width via, e.g., the BitVector constructor, would
+    //       yield an incorrect value, see euclidianDivideRemainder (Boute's
+    //       Euclidean definition), which always returns a non-negative
+    //       remainder in [0, prime).
+    rhs[i] = rhs[i].euclidianDivideRemainder(prime);
     for (size_t j = i; j < ncols; ++j)
     {
       if (lhs[i][j] >= prime || lhs[i][j] <= -prime)

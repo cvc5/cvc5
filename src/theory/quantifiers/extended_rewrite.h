@@ -242,6 +242,7 @@ class ExtendedRewriter
    */
   Node extendedRewriteStrings(const Node& ret) const;
   Node extendedRewriteSets(const Node& ret) const;
+  Node extendedRewriteArith(const Node& ret) const;
   //--------------------------------------end theory-specific top-level calls
 
   /**

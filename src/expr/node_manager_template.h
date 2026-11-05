@@ -768,6 +768,9 @@ class NodeManager
   /** Make a new sort with the given name of arity 0. */
   TypeNode mkSort(const std::string& name, bool fresh = true);
 
+  /** Make a type that prints as the given raw symbol. */
+  TypeNode mkRawSymbolType(const std::string& symbol);
+
   /** Make a new sort by parameterizing the given sort constructor. */
   TypeNode mkSort(TypeNode constructor, const std::vector<TypeNode>& children);
 
@@ -991,6 +994,13 @@ class NodeManager
    * Reclaim all zombies.
    */
   void reclaimZombies();
+
+  /**
+   * Reclaim the given zombie (reference count 0): remove it from the pool,
+   * delete its attributes, decrement the reference counts of its children
+   * (which may zombify them), and free it. Only called from reclaimZombies().
+   */
+  void reclaimZombie(expr::NodeValue* nv);
 
   /**
    * It is safe to collect zombies.

@@ -84,6 +84,9 @@ enum class InferenceId
   ARITH_CONF_UNATE_PROP,
   // introduces split on a disequality
   ARITH_SPLIT_DEQ,
+  // states the equivalence of two atoms that correspond to the same internal
+  // constraint, e.g. (= (= x 0) (= (to_real x) 0.0)) for integer x
+  ARITH_EQUIV_ATOM,
   // tighten integer inequalities to ceiling
   ARITH_TIGHTEN_CEIL,
   // tighten integer inequalities to floor
@@ -115,8 +118,6 @@ enum class InferenceId
   // for theory combination when NL has a multiplication term with factors that
   // are not preregistered.
   ARITH_NL_SHARED_TERM_FACTOR_SPLIT,
-  // checkModel found a conflict with a quadratic equality
-  ARITH_NL_CM_QUADRATIC_EQ,
   //-------------------- nonlinear incremental linearization solver
   // splitting on zero (NlSolver::checkSplitZero)
   ARITH_NL_SPLIT_ZERO,
@@ -124,9 +125,8 @@ enum class InferenceId
   ARITH_NL_SIGN,
   // based on comparing (abs) model values (NlSolver::checkMonomialMagnitude)
   ARITH_NL_COMPARISON,
-  // based on inferring bounds (NlSolver::checkMonomialInferBounds)
-  ARITH_NL_INFER_BOUNDS,
-  // same as above, for inferences that introduce new terms
+  // based on inferring bounds (NlSolver::checkMonomialInferBounds), for
+  // inferences that introduce new terms
   ARITH_NL_INFER_BOUNDS_NT,
   // factoring (NlSolver::checkFactoring)
   ARITH_NL_FACTOR,
@@ -186,8 +186,6 @@ enum class InferenceId
   ARITH_NL_POW2_VALUE_REFINE,
   // monotonicity refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_MONOTONE_REFINE,
-  // neg refinements (Pow2Solver::checkFullRefine)
-  ARITH_NL_POW2_NEG_REFINE,
   // div0 refinements (Pow2Solver::checkFullRefine)
   ARITH_NL_POW2_DIV0_CASE_REFINE,
   // lower bound refinements (Pow2Solver::checkFullRefine)
@@ -202,6 +200,14 @@ enum class InferenceId
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
+  // lia star reduction lemma
+  ARITH_LIA_STAR_EXISTS,
+  // lia star reduction lemma for a negated star-contains literal
+  ARITH_LIA_STAR_NOT_EXISTS,
+  // lia star nonnegative constraints
+  ARITH_LIA_STAR_NONNEGATIVE,
+  // lia star split lemma
+  ARITH_LIA_STAR_SPLIT,
   //-------------------- ff inference
   // ---------------------------------- end arith theory
 
@@ -226,7 +232,6 @@ enum class InferenceId
   BAGS_BAG_MAKE,
   BAGS_BAG_MAKE_SPLIT,
   BAGS_SKOLEM,
-  BAGS_EQUALITY,
   BAGS_DISEQUALITY,
   BAGS_CG_SPLIT,
   BAGS_EMPTY,
@@ -238,6 +243,7 @@ enum class InferenceId
   BAGS_SETOF,
   BAGS_MAP_DOWN,
   BAGS_MAP_DOWN_INJECTIVE,
+  BAGS_MAP_UP_INJECTIVE,
   BAGS_MAP_UP1,
   BAGS_MAP_UP2,
   BAGS_FILTER_DOWN,
@@ -247,7 +253,6 @@ enum class InferenceId
   BAGS_CARD_EMPTY,
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
-  TABLES_JOIN_UP,
   TABLES_JOIN_DOWN,
   TABLES_GROUP_NOT_EMPTY,
   TABLES_GROUP_UP1,
@@ -262,10 +267,6 @@ enum class InferenceId
   BV_BITBLAST_CONFLICT,
   BV_BITBLAST_INTERNAL_EAGER_LEMMA,
   BV_BITBLAST_INTERNAL_BITBLAST_LEMMA,
-  BV_LAYERED_CONFLICT,
-  BV_LAYERED_LEMMA,
-  BV_EXTF_LEMMA,
-  BV_EXTF_COLLAPSE,
   // ---------------------------------- end bitvector theory
 
   // ---------------------------------- datatypes theory
@@ -297,9 +298,7 @@ enum class InferenceId
   DATATYPES_REC_SINGLETON_FORCE_DEQ,
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
-  //-------------------- datatypes size/height
-  // (>= (dt.size t) 0)
-  DATATYPES_SIZE_POS,
+  //-------------------- datatypes height
   // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
   DATATYPES_HEIGHT_ZERO,
   //-------------------- sygus extension
@@ -323,8 +322,6 @@ enum class InferenceId
   DATATYPES_SYGUS_FAIR_SIZE_CONFLICT,
   // used for implementing variable agnostic enumeration
   DATATYPES_SYGUS_VAR_AGNOSTIC,
-  // handles case the model value for a sygus term violates the size bound
-  DATATYPES_SYGUS_SIZE_CORRECTION,
   // handles case the model value for a sygus term does not exist
   DATATYPES_SYGUS_VALUE_CORRECTION,
   // s <= (dt.size t), where s is a term that must be less than the current
@@ -554,6 +551,8 @@ enum class InferenceId
   // split when computing care graph
   SETS_SKOLEM,
   SETS_CG_SPLIT,
+  // (or (= A (as set.empty (Set E))) (set.member (set.choose A) A))
+  SETS_CHOOSE_MEMBER,
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,
@@ -610,8 +609,8 @@ enum class InferenceId
   SETS_RELS_TABLE_JOIN_DOWN,
   SETS_RELS_PRODUCE_COMPOSE,
   SETS_RELS_PRODUCT_SPLIT,
-  SETS_RELS_TCLOSURE_FWD,
   SETS_RELS_TCLOSURE_UP,
+  SETS_RELS_TCLOSURE_DOWN,
   SETS_RELS_TRANSPOSE_EQ,
   SETS_RELS_TRANSPOSE_REV,
   SETS_RELS_TUPLE_REDUCTION,
@@ -811,9 +810,6 @@ enum class InferenceId
   //             ( seq.nth(x, d) != seq.nth(y, d) ^ 0 <= d < seq.len(x) ) )
   STRINGS_DEQ_EXTENSIONALITY,
   //-------------------- codes solver
-  // str.to_code( v ) = rewrite( str.to_code(c) )
-  // where v is the proxy variable for c.
-  STRINGS_CODE_PROXY,
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
   //-------------------- sequence update solver
@@ -837,8 +833,6 @@ enum class InferenceId
   STRINGS_ARRAY_UPDATE_BOUND,
   // splitting about equality of sequences
   STRINGS_ARRAY_EQ_SPLIT,
-  // nth over update when updated with an unit term
-  STRINGS_ARRAY_NTH_UPDATE_WITH_UNIT,
   // nth over reverse
   STRINGS_ARRAY_NTH_REV,
   //-------------------- regexp solver
@@ -965,12 +959,6 @@ enum class InferenceId
   UF_CARD_COMBINED,
   // (not (card_T n)) => (distinct t1 ... tn)
   UF_CARD_ENFORCE_NEGATIVE,
-  // used to make the index terms in cardinality constraints equal
-  UF_CARD_EQUIV,
-  // conflict of the form (not (card_T1 n)) ^ (card_T2 m) where the cardinality
-  // of T2 can be assumed to be without loss of generality larger than T1 due to
-  // monotonicity reasoning (Claessen et al 2011).
-  UF_CARD_MONOTONE_COMBINED,
   // conflict of the form (not (card_T n)) ^ (card_T m) where n>m
   UF_CARD_SIMPLE_CONFLICT,
   // equality split requested by cardinality solver
@@ -1006,16 +994,20 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
-  // equivalence of lambda functions
-  //   f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
-  // This is applied when lamda functions f and g are in the same eq class.
+  // equivalence of lambdas
+  //   l1 = l2 => forall x. reduce(l1(x)) = reduce(l2(x))
+  // This is applied when lambdas l1 and l2 are in the same eq class.
   UF_HO_LAMBDA_UNIV_EQ,
-  // equivalence of a lambda function and an ordinary function
-  //   f = h => h(t) = reduce(lambda(f)(t))
-  // This is applied when lamda function f and ordinary function h are in the
-  // same eq class.
+  // equivalence of a lambda and an ordinary function
+  //   h = l => h(t) = reduce(l(t))
+  // This is applied for each application h(t) in the equality engine, when
+  // lambda l and ordinary function h are in the same eq class, and l does not
+  // need lifting (see LambdaLift::needsLift).
   UF_HO_LAMBDA_APP_REDUCE,
   // Lazy lambda lifting
+  //   h = l => forall x. h(x) = l(x)
+  // This is applied when lambda l and ordinary function h are in the same eq
+  // class, and l needs lifting (see LambdaLift::needsLift).
   UF_HO_LAMBDA_LAZY_LIFT,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF

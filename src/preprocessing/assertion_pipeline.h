@@ -126,6 +126,8 @@ class AssertionPipeline : protected EnvObj
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
+  /** Remove all ITE-removal map entries for skolem, if any exist. */
+  void removeIteSkolem(TNode skolem);
 
   /**
    * Returns true if substitutions must be stored as assertions. This is for

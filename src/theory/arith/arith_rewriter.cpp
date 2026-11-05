@@ -26,6 +26,7 @@
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/liastar/liastar_utils.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/rewriter/addition.h"
 #include "theory/arith/rewriter/node_utils.h"
@@ -35,6 +36,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/theory.h"
+#include "theory/uf/function_const.h"
 #include "util/bitvector.h"
 #include "util/divisible.h"
 #include "util/iand.h"
@@ -46,17 +48,6 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
-/**
- * Flatten a node into a vector of its (direct or indirect) children, collecting
- * how many times each child occurs in the sum.
- * A sequence of kinds is given that indicate which kinds to traverse over.
- * This method is similar to expr::algorithm::flatten but does not use a tree
- * traversal. Instead it merges subterms, based on counting the number of
- * occurrences, as a Rational.
- * @param t The node to be flattened
- * @param children The resulting list of children
- * @param kinds A sequence of kinds to consider for flattening
- */
 template <typename... Kinds>
 bool flattenAndCollectSum(TNode t,
                           std::vector<std::pair<TNode, Rational>>& children,
@@ -395,6 +386,10 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, *response));
   }
 
+  if (kind == Kind::STAR_CONTAINS)
+  {
+    return rewriteStarContains(atom);
+  }
   Assert(isRelationOperator(kind));
 
   if (auto response = rewriter::tryEvaluateRelation(kind, left, right);
@@ -403,6 +398,38 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
     return RewriteResponse(REWRITE_DONE, rewriter::mkConst(d_nm, *response));
   }
 
+  if (kind == Kind::EQUAL)
+  {
+    // We do not normalize equalities here, since this does not preserve their
+    // terms, see rewriter::normalizeEquality. However, if the normal form of
+    // the equality is a Boolean constant, we return that constant, which e.g.
+    // is the case for (= (* 2 x) 1) for integer x. This ensures that the
+    // rewritten form of an equality is a Boolean constant whenever it is
+    // equivalent to one, which is relied upon e.g. when setting up atoms in
+    // the linear solver.
+    bool negated = false;
+    Node norm = rewriter::normalizeEquality(d_nm, atom, &negated);
+    if (norm.isConst())
+    {
+      return RewriteResponse(REWRITE_DONE, norm);
+    }
+    // Otherwise, we only orient the equality, which we do so that it points in
+    // the same direction as its normal form, i.e. so that the difference of
+    // its sides is a positive multiple of the difference of the sides of norm.
+    // Note this makes the normal form of an equality itself in rewritten form,
+    // which ensures that the linear solver does not have to introduce a second
+    // atom for an equality that is already in normal form, see
+    // TheoryArithPrivate::setupAtom.
+    if (negated)
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             d_nm->mkNode(Kind::EQUAL, atom[1], atom[0]));
+    }
+    return RewriteResponse(REWRITE_DONE, atom);
+  }
+
+  // Equalities were handled above, hence the atom is an inequality here.
+  Assert(kind != Kind::EQUAL);
   bool negate = false;
 
   switch (atom.getKind())
@@ -426,11 +453,6 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   if (rewriter::isIntegral(sum))
   {
     Trace("arith-rewriter") << "...sum is integral" << std::endl;
-    if (kind == Kind::EQUAL)
-    {
-      return RewriteResponse(
-          REWRITE_DONE, rewriter::buildIntegerEquality(d_nm, std::move(sum)));
-    }
     return RewriteResponse(
         REWRITE_DONE,
         rewriter::buildIntegerInequality(d_nm, std::move(sum), kind));
@@ -438,15 +460,20 @@ RewriteResponse ArithRewriter::postRewriteAtom(TNode atom)
   else
   {
     Trace("arith-rewriter") << "...sum is not integral" << std::endl;
-    if (kind == Kind::EQUAL)
-    {
-      return RewriteResponse(REWRITE_DONE,
-                             rewriter::buildRealEquality(d_nm, std::move(sum)));
-    }
     return RewriteResponse(
         REWRITE_DONE,
         rewriter::buildRealInequality(d_nm, std::move(sum), kind));
   }
+}
+
+Node ArithRewriter::rewriteEqualityExt(Node node)
+{
+  Assert(node.getKind() == Kind::EQUAL);
+  if (!node[0].getType().isRealOrInt())
+  {
+    return node;
+  }
+  return rewriter::normalizeEquality(d_nm, node);
 }
 
 RewriteResponse ArithRewriter::preRewriteTerm(TNode t)
@@ -476,6 +503,7 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t)
       case Kind::INTS_DIVISION_TOTAL:
       case Kind::INTS_MODULUS_TOTAL: return rewriteIntsDivModTotal(t, true);
       case Kind::ABS: return rewriteAbs(t);
+      case Kind::STAR_CONTAINS: return rewriteStarContains(t);
       case Kind::IAND:
       case Kind::PIAND:
       case Kind::POW2:
@@ -1085,6 +1113,56 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre)
       return returnRewrite(t, ret, Rewrite::DIV_OVER_MOD);
     }
   }
+  return RewriteResponse(REWRITE_DONE, t);
+}
+
+RewriteResponse ArithRewriter::rewriteStarContains(TNode t)
+{
+  Assert(t.getKind() == Kind::STAR_CONTAINS);
+#ifdef CVC5_USE_NORMALIZ
+  // The examples use the lambda
+  //   (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+  // of S = {(x, y) | x >= 2 and y = 1}. If the vector is zero, return true,
+  // since 0 is the empty sum:
+  //   (int.star-contains (lambda ...) 0 0) --> true
+  std::vector<Node> elements(t.begin() + 1, t.end());
+  bool isZero =
+      std::all_of(elements.begin(), elements.end(), [](const Node& e) {
+        return e.isConst() && e.getConst<Rational>().isZero();
+      });
+
+  NodeManager* nm = nodeManager();
+  if (isZero)
+  {
+    return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+  }
+
+  bool allConst = std::all_of(elements.begin(),
+                              elements.end(),
+                              [](const Node& e) { return e.isConst(); });
+
+  // if the vector is constant, we can evaluate the predicate
+  // and see if it holds. Only TheoryArith::ppStaticRewrite checks that the
+  // first argument is a lambda, and it may not have run on t yet, see
+  // LiaStarUtils::getVectorPredicate. For (int.star-contains (lambda ...) 3 1)
+  // the conjunction of
+  //   (and (>= 3 2) (= 1 1)) and (and (and true (>= 3 0)) (>= 1 0))
+  // evaluates to true, since (3, 1) is in S, so t --> true. The vector
+  // (5, 2) = (2, 1) + (3, 1) is in S* but not in S, so for 5 2 the term t
+  // is kept for LiaStarExtension. A vector of S that is not nonnegative is
+  // kept too, e.g. (- 3) for (lambda ((x Int)) (< x 0)).
+  if (allConst && !uf::FunctionConst::getDefinition(t[0]).isNull())
+  {
+    auto [vectorPredicate, nonnegative] =
+        liastar::LiaStarUtils::getVectorPredicate(t, nm);
+    Evaluator eval(nullptr);
+    Node value = eval.eval(vectorPredicate.andNode(nonnegative), {}, {});
+    if (value == d_nm->mkConst(true))
+    {
+      return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
+    }
+  }
+#endif /* CVC5_USE_NORMALIZ */
   return RewriteResponse(REWRITE_DONE, t);
 }
 

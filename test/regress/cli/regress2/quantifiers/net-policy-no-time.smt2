@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic UFDTLIRA)
 (set-option :fmf-bound true)

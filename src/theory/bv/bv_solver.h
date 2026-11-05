@@ -128,6 +128,12 @@ class BVSolver : protected EnvObj
     return Node::null();
   }
 
+  /**
+   * @return True if current model is consistent.
+   * @note Can only ever be inconsistent in the case of abstraction.
+   */
+  virtual bool isModelConsistent() const { return true; }
+
  protected:
   TheoryState& d_state;
   TheoryInferenceManager& d_im;

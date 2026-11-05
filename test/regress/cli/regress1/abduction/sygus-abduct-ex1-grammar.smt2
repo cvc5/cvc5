@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --produce-abducts --sygus-stream --sygus-abort-size=3
 ; EXPECT: (error "Maximum term size (3) for enumerative SyGuS exceeded.")
 ; SCRUBBER: sed -e 's/.*(>= j (+ 1 1))/SPURIOUS/; s/(define-fun.*//; /^$/d'

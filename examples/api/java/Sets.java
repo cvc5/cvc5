@@ -18,8 +18,7 @@ public class Sets
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       // Optionally, set the logic. We need at least UF for equality predicate,
       // integers (LIA) and sets (FS).
@@ -89,6 +88,5 @@ public class Sets
         }
       }
     }
-    Context.deletePointers();
   }
 }

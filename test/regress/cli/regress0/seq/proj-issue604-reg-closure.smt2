@@ -1,5 +1,5 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
-; DISABLE-TESTER: lfsc
 (set-logic ALL)
 (set-option :sets-exp true)
 (set-option :strings-eager-reg false)

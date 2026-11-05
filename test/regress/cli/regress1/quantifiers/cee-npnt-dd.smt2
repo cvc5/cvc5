@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --ee-mode=distributed
 ; COMMAND-LINE: --ee-mode=central
 ; EXPECT: unsat

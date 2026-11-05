@@ -1,3 +1,5 @@
+; Safe and stable modes disallow combining finite-model-find with uf-ss.
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --finite-model-find --uf-ss=no-minimal
 ; EXPECT: unsat
 (set-logic ALL)

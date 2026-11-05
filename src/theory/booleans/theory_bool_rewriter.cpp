@@ -419,7 +419,14 @@ Node TheoryBoolRewriter::getBvInvertSolve(
     std::vector<Node> transEq;
     for (const Node& t : ts)
     {
-      Node next = t.eqNode(curr[1][0]);
+      // The right hand side of curr is the inversion term that solveBvLit
+      // constructed for the operator of t. For most operators (NOT, NEG,
+      // ADD->SUB, XOR) the previously solved term is the first child of this
+      // inversion term. For multiplication by an odd constant, however,
+      // solveBvLit builds (bvmul inv t), so the previously solved term
+      // is the second child.
+      size_t innerIndex = (t.getKind() == Kind::BITVECTOR_MULT) ? 1 : 0;
+      Node next = t.eqNode(curr[1][innerIndex]);
       Trace("quant-velim-bv") << "- " << next << " == " << curr << std::endl;
       Node eqc = next.eqNode(curr);
       if (t.getKind() == Kind::BITVECTOR_XOR && curr[0] != t[0])

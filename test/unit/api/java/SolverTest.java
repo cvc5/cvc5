@@ -26,6 +26,7 @@ import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.function.Executable;
@@ -45,7 +46,17 @@ class SolverTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_solver.close();
+    d_tm.close();
+  }
+
+  @Test
+  void equalHash()
+  {
+    Solver solver = new Solver(d_tm);
+    assertEquals(d_solver, d_solver);
+    assertNotEquals(d_solver, solver);
+    assertEquals(d_solver.hashCode(), d_solver.hashCode());
   }
 
   @Test
@@ -480,7 +491,7 @@ class SolverTest
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
     Term output2 = new Term();
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the abduction api, while the resulting abduct is the output
@@ -559,7 +570,7 @@ class SolverTest
     Sort bsort = d_solver.getBooleanSort();
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(EQUAL, zero, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the interpolation api, while the resulting interpolant is the output
@@ -808,6 +819,8 @@ class SolverTest
     for (Map.Entry<String, Stat> s : stats)
     {
       assertFalse(s.getKey().isEmpty());
+      assertFalse(s.getValue().isInternal());
+      assertFalse(s.getValue().isDefault());
     }
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
@@ -1940,10 +1953,10 @@ class SolverTest
     Term start1 = d_solver.mkVar(bool);
     Term start2 = d_solver.mkVar(integer);
 
-    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+    Grammar g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
     g1.addRule(start1, d_solver.mkBoolean(false));
 
-    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
+    Grammar g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start2});
     g2.addRule(start2, d_solver.mkInteger(0));
 
     assertDoesNotThrow(() -> d_solver.synthFun("", new Term[] {}, bool));
@@ -2193,7 +2206,7 @@ class SolverTest
     d_solver.setOption("sygus", "true");
     Sort boolSort = d_solver.getBooleanSort();
     Term start = d_solver.mkVar(boolSort);
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term truen = d_solver.mkBoolean(true);
     Term falsen = d_solver.mkBoolean(false);
     g.addRule(start, truen);
@@ -2212,7 +2225,7 @@ class SolverTest
     d_solver.setOption("incremental", "true");
     Sort boolSort = d_solver.getBooleanSort();
     Term start = d_solver.mkVar(boolSort);
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term truen = d_solver.mkBoolean(true);
     Term falsen = d_solver.mkBoolean(false);
     g.addRule(start, truen);
@@ -2400,6 +2413,7 @@ class SolverTest
   @Test
   void pluginUnsat()
   {
+    d_solver.setOption("sat-solver", "minisat");
     PluginUnsat pu = new PluginUnsat(d_tm);
     d_solver.addPlugin(pu);
     assertTrue(pu.getName().equals("PluginUnsat"));
@@ -2453,7 +2467,8 @@ class SolverTest
   @Test
   void pluginListen()
   {
-    // NOTE: this shouldn't be necessary but ensures notifySatClause is called here.
+    d_solver.setOption("sat-solver", "minisat");
+    // Allow notifications for unit clauses added before the main solve.
     d_solver.setOption("plugin-notify-sat-clause-in-solve", "false");
     PluginListen pl = new PluginListen(d_tm);
     d_solver.addPlugin(pl);
@@ -2527,5 +2542,72 @@ class SolverTest
       Term value3 = s3.getValue(function2);
       assertEquals(value1, value3);
     }
+  }
+
+  @Test
+  void pluginFromAnotherThread() throws Exception
+  {
+    // A plugin registered on one thread is invoked on the thread that uses
+    // the solver afterwards.
+    AtomicInteger checks = new AtomicInteger();
+    List<Solver> handover = new ArrayList<>();
+    Thread producer = new Thread(() -> {
+      Solver solver = new Solver(d_tm);
+      solver.addPlugin(new AbstractPlugin(d_tm) {
+        @Override
+        public Term[] check()
+        {
+          checks.incrementAndGet();
+          return new Term[0];
+        }
+        @Override
+        public String getName()
+        {
+          return "counting";
+        }
+      });
+      handover.add(solver);
+    });
+    producer.start();
+    producer.join();
+    Solver solver = handover.get(0);
+    solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
+    assertTrue(solver.checkSat().isSat());
+    assertTrue(checks.get() > 0);
+  }
+
+  @Test
+  void pluginException()
+  {
+    d_solver.addPlugin(new AbstractPlugin(d_tm) {
+      @Override
+      public Term[] check()
+      {
+        throw new IllegalStateException("plugin failure");
+      }
+      @Override
+      public String getName()
+      {
+        return "throwing";
+      }
+    });
+    d_solver.assertFormula(d_tm.mkConst(d_tm.getBooleanSort(), "b"));
+    assertThrows(CVC5ApiException.class, () -> d_solver.checkSat());
+  }
+
+  @Test
+  void getTermManagerSameInstance()
+  {
+    assertSame(d_solver.getTermManager(), d_solver.getTermManager());
+    assertEquals(d_tm.getBooleanSort(), d_solver.getTermManager().getBooleanSort());
+    // The returned term manager shares the node manager of d_tm.
+    assertEquals(d_tm, d_solver.getTermManager());
+    assertEquals(d_solver.getTermManager(), d_tm);
+    assertEquals(d_tm.hashCode(), d_solver.getTermManager().hashCode());
+    assertEquals(d_tm, new Solver(d_tm).getTermManager());
+    assertNotEquals(new TermManager(), d_solver.getTermManager());
+    TermManager tm = new TermManager();
+    assertNotEquals(d_tm, new Solver(tm).getTermManager());
+    assertEquals(tm, new Solver(tm).getTermManager());
   }
 }

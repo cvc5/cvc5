@@ -77,6 +77,8 @@ class SortInference : protected EnvObj
  private:
   /** the id count for all subsorts we have allocated */
   int d_sortCount;
+  /** The sort constructor for fresh subsorts introduced by sort inference. */
+  TypeNode d_sortInferSubsortSc;
   UnionFind d_type_union_find;
   std::map<int, TypeNode> d_type_types;
   std::map<TypeNode, int> d_id_for_types;
@@ -100,8 +102,7 @@ class SortInference : protected EnvObj
                         bool pol,
                         bool hasPol,
                         std::map<Node, Node>& var_bound,
-                        std::map<Node, std::map<int, bool> >& visited,
-                        bool typeMode = false);
+                        std::map<Node, std::map<int, bool> >& visited);
 
   // for rewriting
  private:
@@ -125,7 +126,7 @@ class SortInference : protected EnvObj
   void reset();
 
  public:
-  SortInference(Env& env) : EnvObj(env), d_sortCount(1) {}
+  SortInference(Env& env);
   ~SortInference() {}
 
   /** initialize
@@ -155,15 +156,6 @@ class SortInference : protected EnvObj
    * equisatisfiable.
    */
   void getNewAssertions(std::vector<Node>& new_asserts);
-  /** compute monotonicity
-   *
-   * This computes whether sorts are monotonic (see e.g. Claessen 2011). If
-   * this function is called, then calls to isMonotonic() can subsequently be
-   * used to query whether sorts are monotonic.
-   */
-  void computeMonotonicity(const std::vector<Node>& assertions);
-  /** return true if tn was inferred to be monotonic */
-  bool isMonotonic(TypeNode tn) const;
   // get sort id for term n
   int getSortId(Node n);
   // get sort id for variable of quantified formula f

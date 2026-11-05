@@ -93,6 +93,61 @@ TypeNode FiniteFieldFixedFieldTypeRule::computeType(NodeManager* nodeManager,
   return t;
 }
 
+TypeNode FiniteFieldIdealTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                  CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FiniteFieldIdealTypeRule::computeType(NodeManager* nodeManager,
+                                               TNode n,
+                                               bool check,
+                                               std::ostream* errOut)
+{
+  TypeNode t = n[0].getType(check);
+  if (check)
+  {
+    for (const Node& nc : n)
+    {
+      TypeNode tc = nc.getType(check);
+      if (!tc.isFiniteField() || tc != t)
+      {
+        if (errOut)
+        {
+          (*errOut) << "expecting generators over a common finite field";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nodeManager->mkSetType(t);
+}
+
+TypeNode FiniteFieldVarietyTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
+                                                    CVC5_UNUSED TNode n)
+{
+  return TypeNode::null();
+}
+TypeNode FiniteFieldVarietyTypeRule::computeType(
+    CVC5_UNUSED NodeManager* nodeManager,
+    TNode n,
+    bool check,
+    std::ostream* errOut)
+{
+  TypeNode t = n[0].getType(check);
+  if (check)
+  {
+    if (!t.isSet() || !t.getSetElementType().isFiniteField())
+    {
+      if (errOut)
+      {
+        (*errOut) << "expecting an ideal over a finite field";
+      }
+      return TypeNode::null();
+    }
+  }
+  return t;
+}
+
 }  // namespace ff
 }  // namespace theory
 }  // namespace cvc5::internal

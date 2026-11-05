@@ -698,6 +698,11 @@ void TermDb::presolve() {}
 
 bool TermDb::reset(Theory::Effort effort)
 {
+  if (effort == Theory::EFFORT_STANDARD)
+  {
+    // not used at standard effort
+    return true;
+  }
   d_op_nonred_count.clear();
   d_arg_reps.clear();
   d_func_map_trie.clear();

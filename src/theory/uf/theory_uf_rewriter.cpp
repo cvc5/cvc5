@@ -662,7 +662,7 @@ RewriteResponse TheoryUfRewriter::rewriteDistinct(TNode node)
   {
     return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst<bool>(true));
   }
-  if (node.getNumChildren() <= 5)
+  if (node.getNumChildren() <= 10)
   {
     return RewriteResponse(REWRITE_DONE, blastDistinct(nodeManager(), node));
   }

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --simplification=none --unsat-cores-mode=sat-proof
 ; SCRUBBER: sed -e '/a[0-9]/d'
 ; EXPECT: unsat

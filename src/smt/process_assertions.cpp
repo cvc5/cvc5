@@ -23,7 +23,6 @@
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
-#include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -54,7 +53,10 @@ class ScopeCounter
 };
 
 ProcessAssertions::ProcessAssertions(Env& env, SolverEngineStatistics& stats)
-    : EnvObj(env), d_slvStats(stats), d_preprocessingPassContext(nullptr)
+    : EnvObj(env),
+      d_slvStats(stats),
+      d_preprocessingPassContext(nullptr),
+      d_simplifyAssertionsDepth(0)
 {
   d_true = nodeManager()->mkConst(true);
 }
@@ -221,6 +223,13 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
   {
     applyPass("foreign-theory-rewrite", ap);
   }
+  // Eagerly eliminate distinct terms up to the configured threshold. Only run
+  // if the threshold option was explicitly set by the user (a value of 0 means
+  // no limit, i.e. eliminate all distinct terms).
+  if (options().smt.distinctElimThresholdWasSetByUser)
+  {
+    applyPass("distinct-elim", ap);
+  }
 
   // Assertions MUST BE guaranteed to be rewritten by this point
   applyPass("rewrite", ap);
@@ -261,7 +270,7 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     // were already solved for in incremental mode
     applyPass("apply-substs", ap);
   }
-  if (options().smt.sortInference || options().uf.ufssFairnessMonotone)
+  if (options().smt.sortInference)
   {
     applyPass("sort-inference", ap);
   }

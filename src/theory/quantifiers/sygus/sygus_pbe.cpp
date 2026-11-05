@@ -54,6 +54,19 @@ bool SygusPbe::initialize(CVC5_UNUSED Node conj,
     return false;
   }
 
+  // PBE does not repair symbolic any-constant constructors in candidate
+  // solutions. Let CEGIS handle these grammars so SygusRepairConst can repair
+  // the concrete values for any-constant holes.
+  for (const Node& c : candidates)
+  {
+    TypeNode tn = c.getType();
+    d_tds->registerSygusType(tn);
+    if (d_tds->getTypeInfo(tn).hasSubtermSymbolicCons())
+    {
+      return false;
+    }
+  }
+
   // check if all candidates are valid examples
   ExampleInfer* ei = d_parent->getExampleInfer();
   d_is_pbe = true;

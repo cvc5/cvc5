@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic HO_ALL)
 (set-info :status sat)
 (define-fun map_fun ((i Int)) Int (+ i 1))

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --use-soi
 ; EXPECT: unsat
 (set-option :incremental false)

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --fmf-fun --macros-quant --macros-quant-mode=ground
 ; DISABLE-TESTER: model
 ; DISABLE-TESTER: unsat-core

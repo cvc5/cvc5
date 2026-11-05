@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --timeout-core-timeout=200 --print-cores-full
 ; REQUIRES: no-competition
 ; EXPECT: sat

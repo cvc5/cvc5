@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-core-connective --sygus-out=status
 ; EXPECT: feasible
 (set-logic ALL)

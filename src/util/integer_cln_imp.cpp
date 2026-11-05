@@ -386,7 +386,8 @@ void Integer::parseInt(const std::string& s, unsigned base)
   if (base == 0)
   {
     // infer base in a manner consistent with GMP
-    if (s[0] == '0')
+    // A lone "0" is decimal zero. Rewriting it to "#o" is not a valid integer.
+    if (s[0] == '0' && s.size() > 1)
     {
       flags.lsyntax = cln::lsyntax_commonlisp;
       std::string st = s;
@@ -454,7 +455,7 @@ bool Integer::fitsSignedInt() const
   Assert(s_fastSignedIntMax <= s_slowSignedIntMax);
 
   return (d_value <= s_fastSignedIntMax || d_value <= s_slowSignedIntMax)
-         && (d_value >= s_fastSignedIntMin || d_value >= s_slowSignedIntMax);
+         && (d_value >= s_fastSignedIntMin || d_value >= s_slowSignedIntMin);
 }
 
 bool Integer::fitsUnsignedInt() const

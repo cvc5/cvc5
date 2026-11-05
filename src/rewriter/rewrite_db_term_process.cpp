@@ -33,9 +33,10 @@ namespace cvc5::internal {
 namespace rewriter {
 
 RewriteDbNodeConverter::RewriteDbNodeConverter(NodeManager* nm,
+                                               bool liftIndexed,
                                                TConvProofGenerator* tpg,
                                                CDProof* p)
-    : NodeConverter(nm), d_tpg(tpg), d_proof(p)
+    : NodeConverter(nm), d_liftIndexed(liftIndexed), d_tpg(tpg), d_proof(p)
 {
 }
 
@@ -135,8 +136,8 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       }
     }
   }
-  // convert indexed operators to symbolic
-  if (GenericOp::isNumeralIndexedOperatorKind(k))
+  // convert indexed operators to symbolic, if applicable
+  if (d_liftIndexed && GenericOp::isNumeralIndexedOperatorKind(k))
   {
     std::vector<Node> indices =
         GenericOp::getIndicesForOperator(k, n.getOperator());
@@ -198,6 +199,104 @@ void RewriteDbNodeConverter::recordProofStep(const Node& n,
   }
 }
 
+struct HasIndexedSymbolicTag
+{
+};
+struct HasIndexedSymbolicComputedTag
+{
+};
+/** Attribute true for terms containing APPLY_INDEXED_SYMBOLIC */
+using HasIndexedSymbolicAttr = expr::Attribute<HasIndexedSymbolicTag, bool>;
+using HasIndexedSymbolicComputedAttr =
+    expr::Attribute<HasIndexedSymbolicComputedTag, bool>;
+
+IndexedOpFoldNodeConverter::IndexedOpFoldNodeConverter(NodeManager* nm)
+    : NodeConverter(nm)
+{
+}
+
+Node IndexedOpFoldNodeConverter::postConvert(Node n)
+{
+  if (n.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+  {
+    // note this returns n itself if the indices are not numeral constants
+    return GenericOp::getConcreteApp(n);
+  }
+  return n;
+}
+
+Node IndexedOpFoldNodeConverter::fold(NodeManager* nm, const Node& n)
+{
+  // check first, to avoid allocating the caches of the converter in the
+  // (common) case where there is nothing to fold
+  if (!hasIndexedSymbolic(n))
+  {
+    return n;
+  }
+  IndexedOpFoldNodeConverter c(nm);
+  return c.convert(n);
+}
+
+bool IndexedOpFoldNodeConverter::hasIndexedSymbolic(TNode n)
+{
+  HasIndexedSymbolicAttr hisa;
+  HasIndexedSymbolicComputedAttr hisca;
+  std::vector<TNode> visit;
+  visit.push_back(n);
+  do
+  {
+    TNode cur = visit.back();
+    if (cur.getAttribute(hisca))
+    {
+      visit.pop_back();
+      continue;
+    }
+    if (cur.getKind() == Kind::APPLY_INDEXED_SYMBOLIC)
+    {
+      visit.pop_back();
+      cur.setAttribute(hisa, true);
+      cur.setAttribute(hisca, true);
+      continue;
+    }
+    // otherwise, compute based on the operator and children, which we visit
+    // if they have not been computed yet
+    bool computed = true;
+    bool hasIs = false;
+    if (cur.hasOperator())
+    {
+      TNode op = cur.getOperator();
+      if (op.getAttribute(hisca))
+      {
+        hasIs = op.getAttribute(hisa);
+      }
+      else
+      {
+        computed = false;
+        visit.push_back(op);
+      }
+    }
+    for (TNode cn : cur)
+    {
+      if (cn.getAttribute(hisca))
+      {
+        hasIs = hasIs || cn.getAttribute(hisa);
+      }
+      else
+      {
+        computed = false;
+        visit.push_back(cn);
+      }
+    }
+    if (computed)
+    {
+      visit.pop_back();
+      cur.setAttribute(hisa, hasIs);
+      cur.setAttribute(hisca, true);
+    }
+  } while (!visit.empty());
+  return n.getAttribute(hisa);
+}
+
 ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
     : EnvObj(env),
       d_wktc(Kind::INST_PATTERN_LIST),
@@ -215,7 +314,7 @@ ProofRewriteDbNodeConverter::ProofRewriteDbNodeConverter(Env& env)
 
 std::shared_ptr<ProofNode> ProofRewriteDbNodeConverter::convert(const Node& n)
 {
-  RewriteDbNodeConverter rdnc(nodeManager(), &d_tpg, &d_proof);
+  RewriteDbNodeConverter rdnc(nodeManager(), false, &d_tpg, &d_proof);
   Node nr = rdnc.convert(n);
   Node equiv = n.eqNode(nr);
   return d_tpg.getProofFor(equiv);

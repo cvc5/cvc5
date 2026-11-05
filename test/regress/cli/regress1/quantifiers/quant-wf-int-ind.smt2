@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --int-wf-ind
 ; EXPECT: unsat
 (set-logic UFLIA)

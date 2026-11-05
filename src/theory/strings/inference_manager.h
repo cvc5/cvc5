@@ -83,15 +83,6 @@ class InferenceManager : public InferSideEffectProcess,
                    SequencesStatistics& statistics);
   ~InferenceManager() {}
 
-  /**
-   * Do pending method. This processes all pending facts, lemmas and pending
-   * phase requests based on the policy of this manager. This means that
-   * we process the pending facts first and abort if in conflict. Otherwise, we
-   * process the pending lemmas and then the pending phase requirements.
-   * Notice that we process the pending lemmas even if there were facts.
-   */
-  void doPending();
-
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set
@@ -210,12 +201,6 @@ class InferenceManager : public InferSideEffectProcess,
   /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp) const;
   //----------------------------end constructing antecedants
-  /**
-   * Have we processed an inference during this call to check? In particular,
-   * this returns true if we have a pending fact or lemma, or have encountered
-   * a conflict.
-   */
-  bool hasProcessed() const;
 
   // ------------------------------------------------- extended theory
   /**

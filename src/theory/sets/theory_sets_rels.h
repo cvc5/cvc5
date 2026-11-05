@@ -86,6 +86,24 @@ class TheorySetsRels : protected EnvObj
    * set of assertions is satisfiable with respect to relations.
    */
   void check(Theory::Effort e);
+  /**
+   * Seed the closure graph of every TC term with the members of its base
+   * relation, then apply the transitive-closure DOWN rule for each asserted TC
+   * membership. The down rule introduces fresh skolem elements (see
+   * applyTCRule) and may do so unboundedly, so the caller should invoke this at
+   * most once per postCheck.
+   *
+   * Both operations add edges to the closure graph (d_tcr_tcGraph) that
+   * checkTransitiveClosureUp consumes. Requires the caches collected by
+   * check(Theory::Effort) earlier in the same check.
+   */
+  void checkTransitiveClosureDown();
+  /**
+   * Apply the transitive-closure UP rule: chain the edges of the graph left by
+   * checkTransitiveClosureDown (doTCInference), which must have run earlier in
+   * the same check.
+   */
+  void checkTransitiveClosureUp();
   /** Is kind k a kind that belongs to the relation theory? */
   static bool isRelationKind(Kind k);
 
@@ -123,10 +141,44 @@ class TheorySetsRels : protected EnvObj
    * involving relational operators */
   std::map<Node, std::map<Kind, std::vector<Node> > > d_terms_cache;
 
-  /** Mapping between transitive closure relation TC(r) and its TC graph
-   * constructed based on the members of r*/
+  /**
+   * Transitive closure (TC) graphs.
+   *
+   * For a term (rel.tclosure r), we maintain a "TC graph": an adjacency-list
+   * representation of the known members of a binary relation, i.e. a map
+   * from element representative a to the set of element representatives b
+   * such that the pair (a, b) is currently asserted to be a member. These
+   * graphs are built during a full-effort check (see buildTCGraphForRel) and
+   * cleared at the start of the next one; they are caches for a single
+   * full-effort check, not context-dependent data structures. Edges are only
+   * ever added to a graph, never removed or replaced.
+   */
+  /**
+   * Mapping between the representative of a base relation r (the argument of a
+   * rel.tclosure term) and the TC graph induced by the asserted members of r
+   * only. Used by isTCReachable to recognize memberships of TC(r) that are
+   * already derivable from the members of r, in which case applyTCRule
+   * skips sending a redundant lemma.
+   */
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_rRep_tcGraph;
+  /**
+   * Mapping between a transitive closure term TC(r) = (rel.tclosure r) and its
+   * TC graph. Seeded by buildTCGraphForRel with the asserted members of r, and
+   * extended by applyTCRule with pairs that are asserted to be members of TC(r)
+   * directly (and are not already reachable in the base graph). Both go through
+   * addTCEdge, so the two sets of edges accumulate. Once per full-effort check,
+   * doTCInference() closes each of these graphs transitively and infers the
+   * implied memberships.
+   */
   std::map<Node, std::map<Node, std::unordered_set<Node> > > d_tcr_tcGraph;
+  /**
+   * Maps a transitive closure term TC(r) to the explanations of the edges in
+   * its TC graph. Each edge (a, b) is keyed by the pair tuple
+   * RelsUtils::constructPair(TC(r), a, b) built from the endpoint
+   * representatives, and maps to the membership assertion that justifies the
+   * edge. doTCInference conjoins these explanations along a path to form the
+   * reason for each inferred membership.
+   */
   std::map<Node, std::map<Node, Node> > d_tcr_tcGraph_exps;
 
  private:
@@ -153,6 +205,13 @@ class TheorySetsRels : protected EnvObj
 
   /** Methods used in full effort */
   void check();
+  /**
+   * Clear the per-check caches populated by collectRelsInfo. Called once per
+   * full-effort check, from check(Theory::Effort), immediately before
+   * collectRelsInfo; the caches stay live for the transitive-closure steps that
+   * run later in the same check.
+   */
+  void clearCaches();
   void collectRelsInfo();
   void applyTransposeRule(std::vector<Node> tp_terms);
   void applyTransposeRule(Node rel, Node rel_rep, Node exp);
@@ -174,12 +233,75 @@ class TheorySetsRels : protected EnvObj
   void applyTableJoinRule(Node n, Node nRep, Node exp);
   void applyJoinImageRule(Node mem_rep, Node rel_rep, Node exp);
   void applyIdenRule(Node mem_rep, Node rel_rep, Node exp);
+  /**
+   * Process a membership in a transitive closure term.
+   *
+   * @param mem a tuple (a, b) asserted to be a member of rel_rep
+   * @param rel a term TC(r) = (rel.tclosure r) occurring in the equivalence
+   *        class of rel_rep
+   * @param rel_rep the representative of rel
+   * @param exp the explanation of the membership, of the form
+   *        (set.member mem s) where s is equal to rel
+   *
+   * If the membership is already derivable from the members of r (see
+   * isTCReachable), this method does nothing. Otherwise it records the edge
+   * (a, b) and its explanation in d_tcr_tcGraph / d_tcr_tcGraph_exps, and
+   * sends the lemma that unfolds the closure one step
+   * (InferenceId::SETS_RELS_TCLOSURE_DOWN):
+   *   (set.member (a, b) TC(r)) =>
+   *     (set.member (a, b) r)
+   *     or ((set.member (a, z1) r) and (set.member (z2, b) r)
+   *         and (z1 = z2 or (set.member (z1, z2) TC(r))))
+   * where z1, z2 are skolems for the intermediate nodes on the path
+   * from a to b.
+   */
   void applyTCRule(Node mem, Node rel, Node rel_rep, Node exp);
+  /**
+   * Add the edge (fst_rep, snd_rep), justified by exp, to the TC graph of
+   * tc_rel. Edges are only added: if the edge is already present it keeps the
+   * explanation it was first added with. This is the only way d_tcr_tcGraph and
+   * d_tcr_tcGraph_exps are written.
+   */
+  void addTCEdge(Node tc_rel, Node fst_rep, Node snd_rep, Node exp);
+  /**
+   * Seed the TC graph of tc_rel = (rel.tclosure r) with the currently asserted
+   * members of r, with all nodes and edges expressed in terms of
+   * representatives. The edges are added to d_tcr_tcGraph / d_tcr_tcGraph_exps
+   * (keyed by tc_rel) via addTCEdge and to d_rRep_tcGraph (keyed by r's
+   * representative); nothing is overwritten, so this can be called at any point
+   * of a check without discarding the edges applyTCRule contributed. It is
+   * called once per TC term per check, by checkTransitiveClosureDown.
+   */
   void buildTCGraphForRel(Node tc_rel);
+  /**
+   * Called at the end of a full-effort check. For each transitive closure
+   * term TC(r) with a graph in d_tcr_tcGraph, computes the transitive
+   * closure of that graph and infers all implied memberships
+   * (InferenceId::SETS_RELS_TCLOSURE_UP) via the overload below.
+   */
   void doTCInference();
+  /**
+   * Infer all memberships implied by the TC graph rel_tc_graph of the
+   * transitive closure term tc_rel: for each edge, start a depth-first
+   * traversal (the recursive overload below) that derives a membership in
+   * tc_rel for every node reachable from the edge's source.
+   * rel_tc_graph_exps maps each edge of the graph to its explanation, as in
+   * d_tcr_tcGraph_exps.
+   */
   void doTCInference(std::map<Node, std::unordered_set<Node> > rel_tc_graph,
                      std::map<Node, Node> rel_tc_graph_exps,
                      Node tc_rel);
+  /**
+   * Recursive step of the traversal above, having reached cur_node_rep from
+   * start_node_rep. reasons holds the explanations of the edges along the
+   * current path; this method sends the inference that the pair (start of
+   * path, end of path) is a member of tc_rel, whose reason is the
+   * conjunction of reasons together with the equalities connecting adjacent
+   * path edges and connecting each explanation's relation term to tc_rel's
+   * base relation. It then recurses into the successors of cur_node_rep that
+   * are not in seen, the set of already-traversed nodes used to terminate on
+   * cycles.
+   */
   void doTCInference(Node tc_rel,
                      std::vector<Node> reasons,
                      std::map<Node, std::unordered_set<Node> >& tc_graph,
@@ -207,7 +329,20 @@ class TheorySetsRels : protected EnvObj
   void computeMembersForUnaryOpRel(Node);
   void computeMembersForJoinImageTerm(Node);
 
+  /**
+   * Is the membership of pair mem_rep in tc_rel = (rel.tclosure r) already
+   * derivable from the asserted members of r? Returns true if mem_rep is a
+   * known member of r's representative, or if the second element of mem_rep
+   * is reachable from its first element in the TC graph stored in
+   * d_rRep_tcGraph for r. Used by applyTCRule to avoid sending redundant
+   * lemmas.
+   */
   bool isTCReachable(Node mem_rep, Node tc_rel);
+  /**
+   * Recursive helper for the above: depth-first search in tc_graph, setting
+   * isReachable to true if dest can be reached from start. hasSeen is the
+   * set of already-visited nodes, used to terminate on cycles.
+   */
   void isTCReachable(Node start,
                      Node dest,
                      std::unordered_set<Node>& hasSeen,

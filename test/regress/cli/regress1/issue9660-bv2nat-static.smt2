@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --solve-bv-as-int=iand
 ; EXPECT: sat
 (set-logic QF_ABV)

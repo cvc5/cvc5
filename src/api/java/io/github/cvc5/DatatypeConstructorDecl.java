@@ -19,12 +19,12 @@ package io.github.cvc5;
 public class DatatypeConstructorDecl extends AbstractPointer
 {
   // region construction and destruction
-  DatatypeConstructorDecl(long pointer)
+  DatatypeConstructorDecl(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, DatatypeConstructorDecl::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -50,7 +50,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
     {
       return true;
     }
-    return equals(pointer, decl.getPointer());
+    return equals(getPointer(), decl.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -62,7 +62,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelector(String name, Sort sort)
   {
-    addSelector(pointer, name, sort.getPointer());
+    addSelector(getPointer(), name, sort.getPointer());
   }
 
   private native void addSelector(long pointer, String name, long sortPointer);
@@ -74,7 +74,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorSelf(String name)
   {
-    addSelectorSelf(pointer, name);
+    addSelectorSelf(getPointer(), name);
   }
 
   private native void addSelectorSelf(long pointer, String name);
@@ -89,7 +89,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public void addSelectorUnresolved(String name, String unresDataypeName)
   {
-    addSelectorUnresolved(pointer, name, unresDataypeName);
+    addSelectorUnresolved(getPointer(), name, unresDataypeName);
   }
 
   private native void addSelectorUnresolved(long pointer, String name, String unresDataypeName);
@@ -101,7 +101,7 @@ public class DatatypeConstructorDecl extends AbstractPointer
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -118,8 +118,8 @@ public class DatatypeConstructorDecl extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return hashCode(pointer);
+    return Long.hashCode(hashCode(getPointer()));
   }
 
-  private native int hashCode(long pointer);
+  private native long hashCode(long pointer);
 }

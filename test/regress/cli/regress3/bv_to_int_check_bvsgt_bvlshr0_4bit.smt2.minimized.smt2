@@ -1,3 +1,5 @@
+; Expert options bv-to-int-use-pow2 and iand-mode require unrestricted mode.
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE:  --solve-bv-as-int=bv
 ; COMMAND-LINE:  --solve-bv-as-int=sum
 ; COMMAND-LINE:  --solve-bv-as-int=sum --bv-to-int-use-pow2

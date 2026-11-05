@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: feasible
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --sygus-grammar-norm

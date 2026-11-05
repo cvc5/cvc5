@@ -70,10 +70,12 @@ add_dependencies(cvc5parser-objs gen-expr gen-options)
 add_dependencies(cvc5parserapi-objs cvc5parser-objs gen-expr)
 
 if(USE_POLY)
-  add_dependencies(cvc5parser-objs Polyxx)
-  target_include_directories(cvc5parser-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
-  add_dependencies(cvc5parserapi-objs Polyxx)
-  target_include_directories(cvc5parserapi-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR})
+  # The LibPoly headers include <gmp.h>, so GMP's include directory is needed
+  # here as well when GMP lives outside the default system include path.
+  add_dependencies(cvc5parser-objs Polyxx GMP)
+  target_include_directories(cvc5parser-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
+  add_dependencies(cvc5parserapi-objs Polyxx GMP)
+  target_include_directories(cvc5parserapi-objs SYSTEM PRIVATE ${Poly_INCLUDE_DIR} ${GMP_INCLUDE_DIR})
 endif()
 
 add_library(cvc5parser
@@ -86,6 +88,12 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)
+
+# See the corresponding comment in src/CMakeLists.txt.
+if(ENABLE_API_COVERAGE)
+  target_compile_options(cvc5parserapi-objs PRIVATE -O0 --coverage)
+  target_link_options(cvc5parser PUBLIC --coverage)
+endif()
 target_link_libraries(cvc5parser PRIVATE cvc5)
 
 # On Windows, CMake's default install action places

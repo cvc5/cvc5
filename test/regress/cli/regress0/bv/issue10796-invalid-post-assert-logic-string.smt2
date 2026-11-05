@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; SCRUBBER: grep set-logic
 ; EXPECT: (set-logic QF_UFBVNIA)
 ; EXIT: 0

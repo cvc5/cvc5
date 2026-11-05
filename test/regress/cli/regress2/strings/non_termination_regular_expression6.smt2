@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --re-elim=on
 ; EXPECT: unsat
 (set-logic ALL)

@@ -160,8 +160,6 @@ void SetDefaults::setDefaultsPre(Options& opts)
       SET_AND_NOTIFY(arith, nlCov, false, "safe options");
       // never use symmetry breaker, which does not have proofs
       SET_AND_NOTIFY(uf, ufSymmetryBreaker, false, "safe options");
-      // always use cegqi midpoint, which avoids virtual term substitution
-      SET_AND_NOTIFY(quantifiers, cegqiMidpoint, true, "safe options");
       // proofs not yet supported on main
       SET_AND_NOTIFY(quantifiers, cegqiBv, false, "safe options");
       // class of rewrites in quantifiers we don't have proof support for but is
@@ -206,14 +204,17 @@ void SetDefaults::setDefaultsPre(Options& opts)
     SET_AND_NOTIFY(smt, produceDifficulty, true, "dumpDifficulty");
   }
   if (opts.smt.checkUnsatCores || opts.driver.dumpUnsatCores
-      || opts.driver.dumpUnsatCoresLemmas || opts.smt.unsatAssumptions
-      || opts.smt.minimalUnsatCores
+      || opts.driver.dumpUnsatCoresLemmas || opts.smt.minimalUnsatCores
       || opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     SET_AND_NOTIFY(
         smt, produceUnsatCores, true, "option requiring unsat cores");
   }
-  if (opts.smt.produceUnsatCores)
+  // Unsat assumptions are computed via the unsat core machinery, but do not
+  // require producing unsat cores. If unsat cores are not produced, only the
+  // assumptions of check-sat-assuming are passed as assumptions to the SAT
+  // solver (see PropEngine::assertInternal).
+  if (opts.smt.produceUnsatCores || opts.smt.unsatAssumptions)
   {
     if (opts.smt.unsatCoresMode == options::UnsatCoresMode::OFF)
     {
@@ -334,7 +335,7 @@ void SetDefaults::setDefaultsPre(Options& opts)
       }
     }
     // if proofs weren't enabled by user, and we are producing unsat cores
-    if (opts.smt.produceUnsatCores)
+    if (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
     {
       SET_AND_NOTIFY(smt, produceProofs, true, "unsat cores");
       if (opts.smt.unsatCoresMode == options::UnsatCoresMode::SAT_PROOF)
@@ -371,9 +372,9 @@ void SetDefaults::setDefaultsPre(Options& opts)
     }
   }
 
-  // if unsat cores are disabled, then unsat cores mode should be OFF. Similarly
-  // for proof mode.
-  Assert(opts.smt.produceUnsatCores
+  // if unsat cores and unsat assumptions are disabled, then unsat cores mode
+  // should be OFF. Similarly for proof mode.
+  Assert((opts.smt.produceUnsatCores || opts.smt.unsatAssumptions)
          == (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF));
   Assert(opts.smt.produceProofs
          == (opts.smt.proofMode != options::ProofMode::OFF));
@@ -402,11 +403,25 @@ void SetDefaults::setDefaultsPre(Options& opts)
                            deepRestartMode,
                            options::DeepRestartMode::NONE,
                            "internal subsolver");
+    // Internal subsolvers do not eliminate subtypes from their assertions
+    // (see SolverEngine::eliminateSubtypesForProof), hence they must not
+    // eliminate subtypes from their proofs either, or else the assumptions of
+    // their proofs would not match their assertions.
+    if (opts.smt.produceProofs)
+    {
+      SET_AND_NOTIFY(proof, proofElimSubtypes, false, "internal subsolver");
+    }
   }
 }
 
 void SetDefaults::finalizeLogic(LogicInfo& logic, Options& opts) const
 {
+  if (opts.base.incrementalSolving && !opts.prop.satSolverWasSetByUser)
+  {
+    // use minisat by default if incremental is enabled, due to performance
+    SET_AND_NOTIFY_VAL_SYM(
+        prop, satSolver, options::SatSolverMode::MINISAT, "incremental");
+  }
   if (opts.quantifiers.sygusInstWasSetByUser)
   {
     if (opts.quantifiers.sygusInst && isSygus(opts))
@@ -623,7 +638,7 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
 
   // Disable options incompatible with unsat cores or output an error if enabled
   // explicitly
-  if (opts.smt.produceUnsatCores)
+  if (opts.smt.unsatCoresMode != options::UnsatCoresMode::OFF)
   {
     // check if the options are not compatible with unsat cores
     std::stringstream reasonNoUc;
@@ -844,14 +859,6 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
     SET_AND_NOTIFY_VAL_SYM(
         arith, arithStandardCheckVarOrderPivots, varOrderPivots, "logic");
   }
-  // DIO solver typically makes things worse for quantifier-free logics with
-  // non-linear arithmetic.
-  if (!logic.isQuantified() && logic.isTheoryEnabled(THEORY_ARITH)
-      && !logic.isLinear())
-  {
-    SET_AND_NOTIFY(
-        arith, arithDioSolver, false, "quantifier-free non-linear logic");
-  }
   if (logic.isPure(THEORY_ARITH) && !logic.areRealsUsed())
   {
     SET_AND_NOTIFY(
@@ -973,6 +980,13 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
       }
       SET_AND_NOTIFY(smt, checkModels, false, sOptNoModel);
     }
+    if (opts.smt.modelVerify)
+    {
+      // Note we do not throw an exception if this was set by the user, since
+      // this option is a best effort attempt at strengthening unknown
+      // responses, which we simply disable here.
+      SET_AND_NOTIFY(smt, modelVerify, false, sOptNoModel);
+    }
   }
 
   if (opts.bv.bitblastMode == options::BitblastMode::EAGER
@@ -1026,6 +1040,15 @@ void SetDefaults::setDefaultsPost(const LogicInfo& logic, Options& opts) const
   if (isOutputOn(OutputTag::NORMALIZE))
   {
     SET_AND_NOTIFY(base, preprocessOnly, true, "normalize output");
+  }
+  if (logic.isQuantified())
+  {
+    SET_AND_NOTIFY_IF_NOT_USER(
+        arith,
+        nlExtInitialSignLemmas,
+        false,
+        "Preemptive lemmas for incremental linearization are disabled "
+        "when the logic has quantifiers");
   }
 }
 
@@ -1275,7 +1298,6 @@ bool SetDefaults::incompatibleWithIncremental(const LogicInfo& logic,
 
   // disable modes not supported by incremental
   SET_AND_NOTIFY(smt, sortInference, false, "incremental solving");
-  SET_AND_NOTIFY(uf, ufssFairnessMonotone, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, globalNegate, false, "incremental solving");
   SET_AND_NOTIFY(quantifiers, cegqiNestedQE, false, "incremental solving");
   SET_AND_NOTIFY(arith, arithMLTrick, false, "incremental solving");
@@ -1910,6 +1932,7 @@ void SetDefaults::disableChecking(Options& opts)
   opts.write_smt().checkProofs = false;
   opts.write_smt().debugCheckModels = false;
   opts.write_smt().checkModels = false;
+  opts.write_smt().modelVerify = false;
   opts.write_proof().checkProofSteps = false;
   opts.write_proof().proofLog = false;
 }

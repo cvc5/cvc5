@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --seq-array=lazy
 ; EXPECT: unsat
 

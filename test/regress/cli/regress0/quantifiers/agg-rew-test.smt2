@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --ext-rewrite-quant
 ; EXPECT: sat
 (set-logic UFLIA)

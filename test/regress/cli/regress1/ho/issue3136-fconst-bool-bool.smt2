@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE:  --ho-elim
 ; EXPECT: unsat
 

@@ -1,4 +1,6 @@
-; DISABLE-TESTER: lfsc
+; REQUIRES: unrestricted-mode
+; CPC checking fails on an instantiate step involving set.comprehension.
+; DISABLE-TESTER: cpc
 (set-logic ALL)
 (set-option :sets-exp true)
 (declare-datatype d ((c (s RoundingMode))))

@@ -1,0 +1,12 @@
+; EXPECT: unsat
+(set-logic ALL)
+(declare-fun A () (Set Int))
+(declare-fun B () (Set Int))
+(assert (set.subset A (set.insert 1 (set.singleton 2))))
+(assert (set.subset B (set.insert 1 (set.singleton 2))))
+(assert (set.member 1 A))
+(assert (set.member 2 A))
+(assert (set.member 1 B))
+(assert (set.member 2 B))
+(assert (not (= (set.choose A) (set.choose B))))
+(check-sat)

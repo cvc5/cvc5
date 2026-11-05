@@ -25,6 +25,7 @@ int main()
   Cvc5Result r = cvc5_check_sat_assuming(solver, 1, assumptions);
   int res = cvc5_result_is_unsat(r) ? 0: 1;
   cvc5_delete(solver);
+  cvc5_term_manager_release(tm);
   cvc5_term_manager_delete(tm);
   return res;
 }

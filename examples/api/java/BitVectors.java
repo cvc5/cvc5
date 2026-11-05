@@ -19,8 +19,7 @@ public class BitVectors
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("QF_BV"); // Set the logic
 
@@ -122,6 +121,5 @@ public class BitVectors
       System.out.println(" Expect sat. ");
       System.out.println(" cvc5: " + slv.checkSat());
     }
-    Context.deletePointers();
   }
 }

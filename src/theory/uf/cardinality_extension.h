@@ -460,9 +460,6 @@ class CardinalityExtension : protected EnvObj
 
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;
-  /** the master monotone type (if ufssFairnessMonotone enabled) */
-  TypeNode d_tn_mono_master;
-  std::map<TypeNode, bool> d_tn_mono_slave;
   /** The minimum positive asserted master cardinality */
   context::CDO<uint32_t> d_min_pos_tn_master_card;
   /** Whether the field above has been set */

@@ -25,6 +25,22 @@ namespace cvc5::internal {
 namespace theory {
 namespace arith {
 
+/**
+ * Flatten a node into a vector of its (direct or indirect) children, collecting
+ * how many times each child occurs in the sum.
+ * A sequence of kinds is given that indicate which kinds to traverse over.
+ * This method is similar to expr::algorithm::flatten but does not use a tree
+ * traversal. Instead it merges subterms, based on counting the number of
+ * occurrences, as a Rational.
+ * @param t The node to be flattened
+ * @param children The resulting list of children
+ * @param kinds A sequence of kinds to consider for flattening
+ */
+template <typename... Kinds>
+bool flattenAndCollectSum(TNode t,
+                          std::vector<std::pair<TNode, Rational>>& children,
+                          Kinds... kinds);
+
 class OperatorElim;
 
 class ArithRewriter : public TheoryRewriter
@@ -38,6 +54,18 @@ class ArithRewriter : public TheoryRewriter
    * the given node.
    */
   Node expandDefinition(Node node) override;
+  /**
+   * Return the normal form of the arithmetic equality node, which is computed
+   * by moving all terms to the left hand side and normalizing the resulting
+   * sum, e.g. this returns (= x 1) for the input (= (+ x 1) 2). The returned
+   * node is either an equality or a Boolean constant.
+   *
+   * Note this normalization is not applied by postRewrite, since it does not
+   * preserve the terms of the equality, which is incompatible with theory
+   * combination, see rewriter::normalizeEquality. It is applied to equalities
+   * in the input via ppStaticRewrite, and by the extended rewriter.
+   */
+  Node rewriteEqualityExt(Node node) override;
   /**
    * Rewrite inequality to bv. If ineq contains a single bv2nat term, then
    * if possible, return an equivalent formula involving a bitvector inequality.
@@ -98,6 +126,8 @@ class ArithRewriter : public TheoryRewriter
   RewriteResponse rewriteIntsDivModTotal(TNode t, bool pre);
   /** rewrite to_int and is_int */
   RewriteResponse rewriteExtIntegerOp(TNode t);
+  /** rewrite int.star-contains  */
+  RewriteResponse rewriteStarContains(TNode t);
 
   /** postRewrite IAND */
   RewriteResponse postRewriteIAnd(TNode t);

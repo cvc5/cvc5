@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 (set-logic HO_UF)
 (set-info :status unsat)

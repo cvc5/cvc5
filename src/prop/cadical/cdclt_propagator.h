@@ -26,8 +26,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
  public:
   CadicalPropagator(prop::TheoryProxy* proxy,
                     context::Context* context,
+                    NodeManager* nm,
                     CaDiCaL::Solver& solver,
-                    StatisticsRegistry& stats);
+                    StatisticsRegistry& stats,
+                    bool proofs);
 
   /**
    * Notification from the SAT solver on assignment of a new literal.
@@ -117,10 +119,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /**
    * Callback of the SAT solver to determine if we have a new clause to add.
-   * @param is_forgettable True if the clause is not irredundant.
+   * @param forgettable True if the clause is not irredundant.
    * @return True to indicate that we have clauses to add.
    */
-  bool cb_has_external_clause(bool& is_forgettable) override;
+  bool cb_has_external_clause(bool& forgettable) override;
 
   /**
    * Callback of the SAT solver to add a new clause.
@@ -155,9 +157,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    *
    * Note: Filters out clauses satisfied by fixed literals.
    *
-   * @param clause The clause to add.
+   * @param clause      The clause to add.
+   * @param forgettable True if the clause is not irredundant.
    */
-  void add_clause(const SatClause& clause);
+  void add_clause(const SatClause& clause, bool forgettable);
 
   /**
    * Add new CaDiCaL variable.
@@ -206,7 +209,27 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    *
    * Note: Returns undefSatLiteral at user level 0.
    */
-  const SatLiteral& current_activation_lit();
+  const SatLiteral& current_activation_lit() const;
+
+  /**
+   * Return the activation literal for the given user level.
+   */
+  const SatLiteral& activation_lit(size_t user_level) const;
+
+  /**
+   * Determine the user level a clause depends on, i.e., the maximum
+   * introduction level over all its literals.
+   *
+   * A learned clause is guarded by the activation literal of this level (see
+   * cb_add_reason_clause_lit()), so that it survives popping user levels above
+   * it and only gets disabled once the level it actually depends on is popped.
+   *
+   * Note that when we are producing proofs the proof of such a clause must be
+   * made to survive the same levels, which is what notify_clause_level() is
+   * for. Any change to how clauses are attached to levels has to keep the two
+   * in sync.
+   */
+  uint32_t clause_user_level(const SatClause& clause) const;
 
   /** Return the current user (assertion) level. */
   size_t current_user_level() const { return d_active_vars_control.size(); }
@@ -237,6 +260,20 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   void theory_propagate();
 
   /**
+   * Notify the proof manager that a clause derived during search was attached
+   * below the current user level, so that the proof of the clause is kept for
+   * as long as the SAT solver keeps the clause.
+   *
+   * This is a no-op if we are not producing SAT proofs, or if the clause is
+   * attached at the current user level, in which case the clause and its proof
+   * have the same lifetime already.
+   *
+   * @param clause The clause, without its activation literal.
+   * @param user_level The user level the clause was attached at.
+   */
+  void notify_clause_level(const SatClause& clause, uint32_t user_level);
+
+  /**
    * Get next propagation.
    *
    * @return Return next propagation queued in d_propagations.
@@ -248,7 +285,12 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /** The SAT context. */
   context::Context& d_context;
+  /** Used to build the node representation of clauses. */
+  NodeManager* d_nm;
   CaDiCaL::Solver& d_solver;
+
+  /** True if we are producing SAT proofs. */
+  bool d_proofs;
 
   /** Struct to store information on variables. */
   struct VarInfo
@@ -281,11 +323,14 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * Current activation literals.
    *
    * For each user level, we push a fresh activation literal to the vector (in
-   * user_pop()). Activation literals get removed and disabled in user_pop().
-   * The size of the vector corresponds to the current user level.
+   * set_activation_lit()). Activation literals get removed and disabled in
+   * user_pop(). The size of the vector corresponds to the current user level.
    *
-   * The activation literals corresponding to the current user level gets
-   * automatically added to each clause added in this user level. With
+   * A clause added to the SAT solver is automatically guarded with the
+   * activation literal of the highest user level among its literals (see
+   * add_clause() and cb_add_reason_clause_lit()), which is not necessarily the
+   * current user level. This keeps the clause alive until that level is popped,
+   * avoiding the need to relearn it when only higher levels are popped. With
    * activation literals we can simulate push/pop of clauses in the SAT solver.
    */
   std::vector<SatLiteral> d_activation_literals;
@@ -323,6 +368,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * cb_add_reason_clause_lit().
    */
   std::deque<CadicalLit> d_new_clauses;
+  /** Keep track of forgettable status of clauses buffered in d_new_clauses. */
+  std::deque<bool> d_new_clauses_forgettable;
 
   /**
    * Flag indicating whether cb_add_reason_clause_lit() is currently
@@ -355,6 +402,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
           cbCheckFoundModel(
               stats.registerInt("cadical::propagator::cb_check_found_model")),
           cbDecide(stats.registerInt("cadical::propagator::cb_decide")),
+          cbDecideSkipped(
+              stats.registerInt("cadical::propagator::cb_decide_skipped")),
           cbPropagate(stats.registerInt("cadical::propagator::cb_propagate")),
           cbAddReasonClauseLit(stats.registerInt(
               "cadical::propagator::cb_add_reason_clause_lit")),
@@ -372,6 +421,7 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
     IntStat notifyBacktrack;
     IntStat cbCheckFoundModel;
     IntStat cbDecide;
+    IntStat cbDecideSkipped;
     IntStat cbPropagate;
     IntStat cbAddReasonClauseLit;
     IntStat cbHasExternalClause;

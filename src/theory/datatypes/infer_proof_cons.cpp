@@ -226,17 +226,28 @@ void InferProofCons::convert(InferenceId infer,
     {
       Assert(2 <= expv.size() && expv.size() <= 3);
       Node tester1 = expv[0];
-      bool pol = expv[1].getKind() != Kind::NOT;
-      Node tester2 = pol ? expv[1] : expv[1][0];
+      Node lit2 = expv[1];
+      // We assume below that tester1 is a positive tester is-C1(x), which
+      // provides the argument x. The two tester literals may however be given
+      // in either order, e.g. the conflict ~is-C(a) ^ is-C(b) ^ a=b may have
+      // the negated tester first. In that case, swap so that the positive
+      // tester takes the tester1 role.
+      if (tester1.getKind() == Kind::NOT
+          && lit2.getKind() == Kind::APPLY_TESTER)
+      {
+        std::swap(tester1, lit2);
+      }
+      bool pol = lit2.getKind() != Kind::NOT;
+      Node tester2 = pol ? lit2 : lit2[0];
       if (tester1.getKind() == Kind::APPLY_TESTER
           && tester2.getKind() == Kind::APPLY_TESTER)
       {
         Node tester1c =
-            nm->mkNode(Kind::APPLY_TESTER, tester2.getOperator(), expv[0][0]);
+            nm->mkNode(Kind::APPLY_TESTER, tester2.getOperator(), tester1[0]);
         tester1c = pol ? tester1c : tester1c.notNode();
-        if (tester1c != expv[1])
+        if (tester1c != lit2)
         {
-          std::vector<Node> targs{expv[1]};
+          std::vector<Node> targs{lit2};
           if (expv.size() == 3)
           {
             targs.push_back(expv[2]);
@@ -267,8 +278,12 @@ void InferProofCons::convert(InferenceId infer,
           // C1(...) = x   x = C2(...)
           // ------------------------- TRANS
           // C1(...) = C2(...)
-          // ----------------- MACRO_DT_CONS_EQ + EQ_RESOLVE
+          // ----------------- DT_CONS_EQ_CLASH + EQ_RESOLVE
           /// false
+          // Note that C1 and C2 are always distinct constructors here, since
+          // this is a conflict between testers is-C1(x) and is-C2(x). Hence
+          // the equality C1(...) = C2(...) rewrites to false by the
+          // (non-macro) DT_CONS_EQ_CLASH rule.
           Rewriter* rr = d_env.getRewriter();
           std::vector<Node> insts;
           for (size_t i = 0; i < 2; i++)
@@ -290,7 +305,10 @@ void InferProofCons::convert(InferenceId infer,
           }
           Node ceq = insts[0][0].eqNode(insts[1][1]);
           cdp->addStep(ceq, ProofRule::TRANS, insts, {});
-          tryRewriteRule(ceq, fn, ProofRewriteRule::MACRO_DT_CONS_EQ, cdp);
+          // C1 and C2 are always distinct constructors here, so that ceq
+          // rewrites to false by the (non-macro) DT_CONS_EQ_CLASH rule.
+          Assert(insts[0][0].getOperator() != insts[1][1].getOperator());
+          tryRewriteRule(ceq, fn, ProofRewriteRule::DT_CONS_EQ_CLASH, cdp);
           Node ceqf = ceq.eqNode(fn);
           cdp->addStep(fn, ProofRule::EQ_RESOLVE, {ceq, ceqf}, {});
         }
@@ -372,19 +390,26 @@ void InferProofCons::convert(InferenceId infer,
             }
             else
             {
-              // otherwise maybe provable modulo equality?
-              // This is to handle e.g.
-              // (and (not (is-cons x)) (= x y)) => (is-nil y)
-              expvs[0] = itt->second;
+              // Otherwise it is provable modulo equality, to handle e.g.
+              // (and (not (is-cons x)) (= x y)) => (is-nil y).
+              // The explanation has the equality of the argument of each
+              // tester with the argument of the conclusion, from which we
+              // prove it by congruence.
               Trace("dt-ipc") << "exh-label: " << itt->second << " vs " << en
-                              << ", substitution " << expvs << std::endl;
-              Node res = pc->checkDebug(
-                  ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
-              if (res == en)
+                              << ", equalities " << expvs << std::endl;
+              successLit = proveTesterModuloEq(itt->second, en, expvs, cdp);
+              if (!successLit)
               {
-                cdp->addStep(
-                    res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
-                successLit = true;
+                // otherwise, by substitution
+                expvs[0] = itt->second;
+                Node res = pc->checkDebug(
+                    ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+                if (res == en)
+                {
+                  cdp->addStep(
+                      res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+                  successLit = true;
+                }
               }
             }
           }
@@ -486,6 +511,44 @@ void InferProofCons::convert(InferenceId infer,
   {
     Trace("dt-ipc") << "...success" << std::endl;
   }
+}
+
+bool InferProofCons::proveTesterModuloEq(const Node& lit,
+                                         const Node& target,
+                                         const std::vector<Node>& eqs,
+                                         CDProof* cdp)
+{
+  Assert(lit.getKind() == Kind::NOT && lit[0].getKind() == Kind::APPLY_TESTER);
+  Assert(target.getKind() == Kind::NOT
+         && target[0].getKind() == Kind::APPLY_TESTER);
+  Node s = lit[0][0];
+  Node t = target[0][0];
+  Node eqst = s.eqNode(t);
+  Node eqts = t.eqNode(s);
+  for (const Node& eq : eqs)
+  {
+    if (eq != eqst && eq != eqts)
+    {
+      continue;
+    }
+    if (eq == eqts)
+    {
+      cdp->addStep(eqst, ProofRule::SYMM, {eq}, {});
+    }
+    //  (= s t)
+    // --------------------------------- CONG
+    // (= (is-C s) (is-C t))
+    // --------------------------------- CONG
+    // (= (not (is-C s)) (not (is-C t)))    (not (is-C s))
+    // --------------------------------------------------- EQ_RESOLVE
+    // (not (is-C t))
+    Node teq = expr::proveCong(d_env, cdp, lit[0], {eqst});
+    Node neq = expr::proveCong(d_env, cdp, lit, {teq});
+    Assert(neq == lit.eqNode(target));
+    cdp->addStep(target, ProofRule::EQ_RESOLVE, {lit, neq}, {});
+    return true;
+  }
+  return false;
 }
 
 void InferProofCons::tryRewriteRule(TNode a,

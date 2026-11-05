@@ -25,6 +25,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: (github.repository == 'cvc5/cvc5') || (github.event_name != 'schedule')
     strategy:
+      fail-fast: false
       matrix:
         name:
           - manylinux-x86_64
@@ -79,27 +80,12 @@ jobs:
         python3 -m venv ~/.venv
         echo "$HOME/.venv/bin" >> $GITHUB_PATH
 
-    - uses: msys2/setup-msys2@v2
-      if: runner.os == 'Windows' && runner.arch == 'X64'
+    - name: Install cvc5 dependencies (Windows)
+      if: runner.os == 'Windows'
+      uses: ./.github/actions/install-dependencies
       with:
-        msystem: clang64
-        path-type: inherit
-        install: |
-          make
-          mingw-w64-clang-x86_64-cmake
-          mingw-w64-clang-x86_64-clang
-          mingw-w64-clang-x86_64-gmp
-
-    - uses: msys2/setup-msys2@v2
-      if: runner.os == 'Windows' && runner.arch == 'ARM64'
-      with:
-        msystem: clangarm64
-        path-type: inherit
-        install: |
-          make
-          mingw-w64-clang-aarch64-cmake
-          mingw-w64-clang-aarch64-clang
-          mingw-w64-clang-aarch64-gmp
+        windows-build: true
+        shell: ${{ matrix.shell }}
 
     # cibuildwheel requires pyproject.toml to be present from the beginning
     - name: Create pyproject.toml
@@ -125,18 +111,15 @@ jobs:
       run: echo "bin=$(cygpath -m $(dirname $(which cc)))" >> $GITHUB_OUTPUT
 
     - name: Build wheels
-      uses: pypa/cibuildwheel@v3.3.0
+      uses: pypa/cibuildwheel@v4.2.0
       with:
         package-dir: ./build/src/api/python/
       env:
         CIBW_ALLOW_EMPTY: True
         CIBW_BUILD: "${{ github.event.inputs.python_versions || '*' }}"
-        CIBW_SKIP: "pp*-win* *-win32 *-manylinux_i686 *-musllinux_* cp31?t-*"
-        CIBW_ENABLE: pypy pypy-eol
+        CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_* cp31?t-*"
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
         CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
-        CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
-        CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: manylinux2014
         CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
         CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
         CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh ${{ matrix.gpl }}
@@ -153,7 +136,6 @@ jobs:
         CIBW_ENVIRONMENT_WINDOWS: >
           PATH="${{ steps.mingw64-path.outputs.bin }};$PATH"
         CIBW_TEST_COMMAND: python {project}/examples/api/python/quickstart.py
-        CIBW_TEST_SKIP: "cp38-macosx_arm64" # Silence warning. See: https://github.com/pypa/cibuildwheel/pull/1171
 
     # - uses: actions/upload-artifact@v6
     #   with:
@@ -185,12 +167,14 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
         echo "::group::Upload to pypi.org"
+        failed=0
         for wheel in `ls ./wheelhouse/*.whl`
         do
           # --skip-existing is only valid when uploading to PyPI
-          twine upload --skip-existing $wheel
+          twine upload --skip-existing $wheel || { echo "::error::Failed to upload $wheel"; failed=1; }
         done
         echo "::endgroup::"
+        exit $failed
 
     - name: Upload wheels to test.pypi.org
       if: >
@@ -201,8 +185,10 @@ jobs:
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
         echo "::group::Upload to test.pypi.org"
+        failed=0
         for wheel in `ls ./wheelhouse/*.whl`
         do
-          twine upload --repository testpypi $wheel
+          twine upload --repository testpypi $wheel || { echo "::error::Failed to upload $wheel"; failed=1; }
         done
         echo "::endgroup::"
+        exit $failed
