@@ -61,8 +61,9 @@ class ElimShadowNodeConverter : public NodeConverter
 
   /**
    * Eliminate shadowing in the closure q. This includes eliminating duplicate
-   * variables in the quantifier prefix of q. For lambdas, duplicate variables
-   * in the top-level prefix are left unchanged since argument order matters.
+   * variables in the prefix of q, by renaming all but the first occurrence of
+   * each variable to a fresh one. This ensures that consumers of closures,
+   * e.g. beta reduction of lambdas, can assume their variables are distinct.
    * @param q The term to process which should have a binder kind.
    * @return The result of eliminating shadowing in q.
    */

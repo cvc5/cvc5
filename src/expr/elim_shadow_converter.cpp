@@ -82,49 +82,37 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   ElimShadowNodeConverter esnc(nm, q);
   // eliminate shadowing in all children
   std::vector<Node> children;
+  // rename duplicate variables
+  std::vector<Node> vars;
   bool childChanged = false;
-  if (q.getKind() == Kind::LAMBDA)
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
-    // Do not rename duplicate lambda arguments, since the argument order is
-    // part of the lambda's semantics.
-    children.push_back(q[0]);
-  }
-  else
-  {
-    // drop duplicate variables
-    std::vector<Node> vars;
-    for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+    const Node& v = q[0][i];
+    if (std::find(vars.begin(), vars.end(), v) == vars.end())
     {
-      const Node& v = q[0][i];
-      if (std::find(vars.begin(), vars.end(), v) == vars.end())
-      {
-        vars.push_back(v);
-      }
-      else
-      {
-        Node vn = getElimShadowVar(q, q, i);
-        vars.push_back(vn);
-        childChanged = true;
-      }
-    }
-    if (childChanged)
-    {
-      children.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, vars));
+      vars.push_back(v);
     }
     else
     {
-      children.push_back(q[0]);
+      // Rename rather than drop, which for lambdas preserves the arity and
+      // argument order. The first occurrence of a variable is the one that
+      // binds it in the body.
+      Node vn = getElimShadowVar(q, q, i);
+      vars.push_back(vn);
+      childChanged = true;
     }
+  }
+  if (childChanged)
+  {
+    children.push_back(nm->mkNode(Kind::BOUND_VAR_LIST, vars));
+  }
+  else
+  {
+    children.push_back(q[0]);
   }
   for (size_t i = 1, nchild = q.getNumChildren(); i < nchild; i++)
   {
-    Node c = esnc.convert(q[i]);
-    childChanged = childChanged || c != q[i];
-    children.push_back(c);
-  }
-  if (!childChanged)
-  {
-    return q;
+    children.push_back(esnc.convert(q[i]));
   }
   return nm->mkNode(q.getKind(), children);
 }
