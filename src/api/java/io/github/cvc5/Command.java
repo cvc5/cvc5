@@ -45,7 +45,8 @@ public class Command extends AbstractPointer
   {
     try
     {
-      return invoke(getPointer(), solver.getPointer(), symbolManager.getPointer());
+      return solver.checkTerminator(
+          invoke(getPointer(), solver.getPointer(), symbolManager.getPointer()));
     }
     finally
     {

@@ -1054,7 +1054,7 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
 
 SynthResult SolverEngine::checkSynth(bool isNext)
 {
-  beginCall();
+  beginCall(true);
   if (isNext && d_state->getMode() != SmtMode::SYNTH)
   {
     throw RecoverableModalException(
@@ -1063,6 +1063,7 @@ SynthResult SolverEngine::checkSynth(bool isNext)
   }
   SynthResult r = d_sygusSolver->checkSynth(isNext);
   d_state->notifyCheckSynthResult(r);
+  endCall();
   return r;
 }
 
@@ -1098,6 +1099,7 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
     {
       Warning() << "Could not find grammar in find-synth :rewrite_input"
                 << std::endl;
+      endCall();
       return Node::null();
     }
   }
@@ -1133,7 +1135,7 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 
 Node SolverEngine::findSynthNext()
 {
-  beginCall();
+  beginCall(true);
   if (d_state->getMode() != SmtMode::FIND_SYNTH)
   {
     throw RecoverableModalException(
@@ -1142,6 +1144,7 @@ Node SolverEngine::findSynthNext()
   }
   Node ret = d_findSynthSolver->findSynthNext();
   d_state->notifyFindSynth(!ret.isNull());
+  endCall();
   return ret;
 }
 
@@ -1220,6 +1223,11 @@ void SolverEngine::addPlugin(Plugin* p)
   }
   // we do not initialize the solver here.
   d_env->addPlugin(p);
+}
+
+void SolverEngine::setTerminator(std::function<bool()> terminator)
+{
+  getResourceManager()->setTerminator(std::move(terminator));
 }
 
 Node SolverEngine::simplify(const Node& t, bool applySubs)

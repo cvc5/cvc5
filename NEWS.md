@@ -3,6 +3,12 @@ This file contains a summary of important user-visible changes.
 cvc5 1.5.0 prerelease
 =====================
 
+- Added a **terminator** to the C++, C, Python and Java APIs (class
+  `Terminator` and `Solver::setTerminator()`, `cvc5_set_terminator()` in C,
+  interface `ITerminator` in Java), which allows to terminate running queries,
+  e.g., from another thread. Terminated queries return `unknown` with
+  explanation `UnknownExplanation::INTERRUPTED`. In Python, this also allows to
+  interrupt queries via `Ctrl-C` while a terminator is connected.
     
 - Fixes a bug where function definitions did not invalidate previous
   satisfiability query results, allowing access to stale models and other
