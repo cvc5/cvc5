@@ -184,6 +184,16 @@ const static std::unordered_map<Kind, std::pair<internal::Kind, std::string>>
         KIND_ENUM(Kind::TO_REAL, internal::Kind::TO_REAL),
         KIND_ENUM(Kind::PI, internal::Kind::PI),
         KIND_ENUM(Kind::STAR_CONTAINS, internal::Kind::STAR_CONTAINS),
+        KIND_ENUM(Kind::IS_ROOT, internal::Kind::IS_ROOT),
+        KIND_ENUM(Kind::SGN_INV, internal::Kind::SGN_INV),
+        KIND_ENUM(Kind::COV_MINUS_INFINITY, internal::Kind::MINUS_INFINITY),
+        KIND_ENUM(Kind::COV_PLUS_INFINITY, internal::Kind::PLUS_INFINITY),
+        KIND_ENUM(Kind::REAL_ALGEBRAIC_NUMBER,
+                  internal::Kind::REAL_ALGEBRAIC_NUMBER),
+        KIND_ENUM(Kind::REAL_ALGEBRAIC_NUMBER_OP,
+                  internal::Kind::REAL_ALGEBRAIC_NUMBER_OP),
+        KIND_ENUM(Kind::REAL_ALGEBRAIC_NUMBER_WITNESS,
+                  internal::Kind::REAL_ALGEBRAIC_NUMBER_WITNESS),
         /* BV --------------------------------------------------------------- */
         KIND_ENUM(Kind::CONST_BITVECTOR, internal::Kind::CONST_BITVECTOR),
         KIND_ENUM(Kind::BITVECTOR_CONCAT, internal::Kind::BITVECTOR_CONCAT),
@@ -585,6 +595,16 @@ const static std::unordered_map<internal::Kind,
         {internal::Kind::PI, Kind::PI},
         {internal::Kind::IAND_OP, Kind::IAND},
         {internal::Kind::STAR_CONTAINS, Kind::STAR_CONTAINS},
+        {internal::Kind::IS_ROOT, Kind::IS_ROOT},
+        {internal::Kind::SGN_INV, Kind::SGN_INV},
+        {internal::Kind::MINUS_INFINITY, Kind::COV_MINUS_INFINITY},
+        {internal::Kind::PLUS_INFINITY, Kind::COV_PLUS_INFINITY},
+        {internal::Kind::REAL_ALGEBRAIC_NUMBER, Kind::REAL_ALGEBRAIC_NUMBER},
+        {internal::Kind::REAL_ALGEBRAIC_NUMBER_OP, Kind::REAL_ALGEBRAIC_NUMBER},
+        {internal::Kind::REAL_ALGEBRAIC_NUMBER_WITNESS,
+         Kind::REAL_ALGEBRAIC_NUMBER_WITNESS},
+        {internal::Kind::REAL_ALGEBRAIC_NUMBER_WITNESS_OP,
+         Kind::REAL_ALGEBRAIC_NUMBER_WITNESS},
         /* BV -------------------------------------------------------------- */
         {internal::Kind::CONST_BITVECTOR, Kind::CONST_BITVECTOR},
         {internal::Kind::BITVECTOR_CONCAT, Kind::BITVECTOR_CONCAT},
@@ -3719,6 +3739,78 @@ Term Term::getRealAlgebraicNumberUpperBound() const
 #else
   return Term();
 #endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::string Term::getRealAlgebraicNumberValue() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER, *d_node)
+      << "Term to be a real algebraic number when calling "
+         "getRealAlgebraicNumberValue()";
+#ifndef CVC5_POLY_IMP
+  throw CVC5ApiException(
+      "expected libpoly enabled build when calling "
+      "getRealAlgebraicNumberValue()");
+#endif
+  //////// all checks before this line
+#ifdef CVC5_POLY_IMP
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return ran.toString();
+#else
+  return "";
+#endif
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+bool Term::isRealAlgebraicNumberWitness() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER_WITNESS;
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+Term Term::getRealAlgebraicNumberWitnessNumber() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER_WITNESS,
+      *d_node)
+      << "Term to be a real algebraic number witness when calling "
+         "getRealAlgebraicNumberWitnessNumber()";
+  //////// all checks before this line
+  const internal::RealAlgebraicNumber& ran =
+      d_node->getOperator().getConst<internal::RealAlgebraicNumber>();
+  return Term(d_nm, d_nm->mkRealAlgebraicNumber(ran));
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
+std::vector<Term> Term::getRealAlgebraicNumberWitnessSturmSequence() const
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_CHECK_NOT_NULL;
+  CVC5_API_ARG_CHECK_EXPECTED(
+      d_node->getKind() == internal::Kind::REAL_ALGEBRAIC_NUMBER_WITNESS,
+      *d_node)
+      << "Term to be a real algebraic number witness when calling "
+         "getRealAlgebraicNumberWitnessSturmSequence()";
+  //////// all checks before this line
+  std::vector<Term> res;
+  for (const internal::Node& p : (*d_node)[0])
+  {
+    res.push_back(Term(d_nm, p));
+  }
+  return res;
   ////////
   CVC5_API_TRY_CATCH_END;
 }

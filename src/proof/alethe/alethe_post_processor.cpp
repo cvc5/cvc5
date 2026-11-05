@@ -54,6 +54,22 @@ std::unordered_map<Kind, AletheRule> s_bvKindToAletheRule = {
     {Kind::EQUAL, AletheRule::BV_BITBLAST_STEP_BVEQUAL},
 };
 
+/**
+ * Appends the elements of the pairs (a b) of the s-expression `seq` to `out`,
+ * as a1 b1 ... an bn. Used by the univariate coverings rules, since Alethe has
+ * no bare s-expressions.
+ */
+static void flattenPairs(const Node& seq, std::vector<Node>& out)
+{
+  Assert(seq.getKind() == Kind::SEXPR);
+  for (const Node& pair : seq)
+  {
+    Assert(pair.getKind() == Kind::SEXPR && pair.getNumChildren() == 2);
+    out.push_back(pair[0]);
+    out.push_back(pair[1]);
+  }
+}
+
 AletheProofPostprocessCallback::AletheProofPostprocessCallback(
     Env& env, AletheNodeConverter& anc, bool resPivots)
     : EnvObj(env), d_anc(anc), d_resPivots(resPivots)
@@ -2915,6 +2931,73 @@ bool AletheProofPostprocessCallback::update(Node res,
                            children,
                            {},
                            *cdp);
+    }
+    // The arguments are p, l, r, lo, hi and three sequences of pairs (a b) (the
+    // Sturm sequence of p and the Sturm-Tarski sequences of l and r). Since
+    // Alethe has no bare s-expressions, each sequence is flattened into its
+    // number of pairs n followed by a1 b1 ... an bn.
+    case ProofRule::SGN_INV_INTRO:
+    {
+      Assert(args.size() == 8);
+      std::vector<Node> newArgs(args.begin(), args.begin() + 5);
+      for (size_t i = 5; i < 8; ++i)
+      {
+        newArgs.push_back(nm->mkConstInt(Rational(args[i].getNumChildren())));
+        flattenPairs(args[i], newArgs);
+      }
+      return addAletheStep(AletheRule::SGN_INV_INTRO,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           newArgs,
+                           *cdp);
+    }
+    // The arguments are p, r and the Sturm-Tarski sequence of pairs (a b),
+    // which is flattened into a1 b1 ... an bn (nothing when it is empty).
+    case ProofRule::IS_ROOT_INTRO:
+    {
+      Assert(args.size() == 3);
+      std::vector<Node> newArgs{args[0], args[1]};
+      flattenPairs(args[2], newArgs);
+      return addAletheStep(AletheRule::IS_ROOT_INTRO,
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           newArgs,
+                           *cdp);
+    }
+    // univariate coverings rules, translated directly into their Alethe
+    // counterparts
+    case ProofRule::SGN_INV_ELIM:
+    case ProofRule::RAN_EVAL:
+    {
+      static const std::map<ProofRule, AletheRule> s_covRules = {
+          {ProofRule::SGN_INV_ELIM, AletheRule::SGN_INV_ELIM},
+          {ProofRule::RAN_EVAL, AletheRule::RAN_EVAL}};
+      return addAletheStep(s_covRules.at(id),
+                           res,
+                           nm->mkNode(Kind::SEXPR, d_cl, res),
+                           children,
+                           args,
+                           *cdp);
+    }
+    // The conclusion of COVER is a tautological disjunction, which is printed
+    // as a clause. The arguments are the variable x and the sequence of
+    // intervals (l u), which is flattened into l1 u1 ... ln un.
+    case ProofRule::COVER:
+    {
+      Assert(args.size() == 2);
+      std::vector<Node> newArgs{args[0]};
+      flattenPairs(args[1], newArgs);
+      return res.getKind() == Kind::OR
+                 ? addAletheStepFromOr(
+                       AletheRule::COVER, res, {}, newArgs, *cdp)
+                 : addAletheStep(AletheRule::COVER,
+                                 res,
+                                 nm->mkNode(Kind::SEXPR, d_cl, res),
+                                 {},
+                                 newArgs,
+                                 *cdp);
     }
     case ProofRule::ARITH_MULT_TANGENT:
     {

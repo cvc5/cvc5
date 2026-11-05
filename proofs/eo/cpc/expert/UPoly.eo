@@ -1,0 +1,377 @@
+(include "../theories/Arith.eo")
+
+; Definitions of univariate polynomials, used by the coverings proof rules.
+; A univariate polynomial is the list of its rational coefficients, from the
+; lowest to the highest degree, with no trailing zeros. For example,
+; (@upoly -2/1 0/1 1/1) is x^2 - 2, and @upoly.zero is the zero polynomial.
+; Since the representation is canonical, two polynomials are equal if and only
+; if they are syntactically equal.
+(declare-const @@UPoly Type)
+
+(define @UPoly () @@UPoly)
+
+(declare-const @@upoly.zero @UPoly)
+
+(define @upoly.zero () @@upoly.zero)
+
+(declare-const @@upoly (-> Real @UPoly @UPoly)
+  :right-assoc-nil @upoly.zero)
+
+(define @upoly () @@upoly)
+
+; define: $upoly_cons
+; args:
+; - c Real: The constant coefficient.
+; - p @UPoly: The remaining coefficients.
+; return: >
+;   The polynomial c + x * p, without trailing zeros.
+(define $upoly_cons ((c Real) (p @UPoly))
+  (eo::ite (eo::and (eo::is_eq p @upoly.zero) (eo::is_eq c 0/1))
+    @upoly.zero
+    (eo::cons @upoly c p)))
+
+; program: $upoly_of_list
+; args:
+; - l @List: A list of rational coefficients, from the lowest to the highest
+;   degree.
+; return: the polynomial with the given coefficients.
+(program $upoly_of_list ((c Real) (l @List :list))
+  :signature (@List) @UPoly
+  (
+  (($upoly_of_list @list.nil)    @upoly.zero)
+  (($upoly_of_list (@list c l))
+    (eo::requires (eo::is_q c) true ($upoly_cons c ($upoly_of_list l))))
+  )
+)
+
+; define: $upoly_eq
+; args:
+; - p @UPoly: The first polynomial.
+; - q @UPoly: The second polynomial.
+; return: true if and only if p and q are the same polynomial.
+(define $upoly_eq ((p @UPoly) (q @UPoly)) (eo::is_eq p q))
+
+; program: $upoly_add
+; args:
+; - p @UPoly: The first polynomial to add.
+; - q @UPoly: The second polynomial to add.
+; return: the addition of the given polynomials.
+(program $upoly_add ((a Real) (b Real) (p @UPoly :list) (q @UPoly :list))
+  :signature (@UPoly @UPoly) @UPoly
+  (
+  (($upoly_add @upoly.zero q)  q)
+  (($upoly_add p @upoly.zero)  p)
+  (($upoly_add (@upoly a p) (@upoly b q))
+    ($upoly_cons (eo::add a b) ($upoly_add p q)))
+  )
+)
+
+; program: $upoly_scale
+; args:
+; - c Real: The constant to multiply by.
+; - p @UPoly: The polynomial to multiply.
+; return: the multiplication of p by the constant c.
+(program $upoly_scale ((c Real) (a Real) (p @UPoly :list))
+  :signature (Real @UPoly) @UPoly
+  (
+  (($upoly_scale c @upoly.zero)  @upoly.zero)
+  (($upoly_scale c (@upoly a p))
+    ($upoly_cons (eo::mul c a) ($upoly_scale c p)))
+  )
+)
+
+; program: $upoly_mul
+; args:
+; - p @UPoly: The first polynomial to multiply.
+; - q @UPoly: The second polynomial to multiply.
+; return: >
+;   The multiplication of the given polynomials, computed as
+;   (a + x * p) * q = a * q + x * (p * q).
+(program $upoly_mul ((a Real) (p @UPoly :list) (q @UPoly))
+  :signature (@UPoly @UPoly) @UPoly
+  (
+  (($upoly_mul @upoly.zero q)  @upoly.zero)
+  (($upoly_mul (@upoly a p) q)
+    ($upoly_add ($upoly_scale a q) ($upoly_cons 0/1 ($upoly_mul p q))))
+  )
+)
+
+; program: $upoly_eval
+; args:
+; - p @UPoly: The polynomial to evaluate.
+; - v Real: The rational point to evaluate it at.
+; return: >
+;   The value of p at v, computed by Horner's method as
+;   (a + x * p)(v) = a + v * p(v).
+(program $upoly_eval ((a Real) (p @UPoly :list) (v Real))
+  :signature (@UPoly Real) Real
+  (
+  (($upoly_eval @upoly.zero v)  0/1)
+  (($upoly_eval (@upoly a p) v)
+    (eo::add a (eo::mul v ($upoly_eval p v))))
+  )
+)
+
+; program: $upoly_lc
+; args:
+; - p @UPoly: The polynomial.
+; return: the leading coefficient of p, which is zero for the zero polynomial.
+(program $upoly_lc ((a Real) (p @UPoly :list))
+  :signature (@UPoly) Real
+  (
+  (($upoly_lc @upoly.zero)    0/1)
+  (($upoly_lc (@upoly a))     a)
+  (($upoly_lc (@upoly a p))   ($upoly_lc p))
+  )
+)
+
+; program: $upoly_deg
+; args:
+; - p @UPoly: The polynomial.
+; return: the degree of p, which is -1 for the zero polynomial.
+(program $upoly_deg ((a Real) (p @UPoly :list))
+  :signature (@UPoly) Int
+  (
+  (($upoly_deg @upoly.zero)   -1)
+  (($upoly_deg (@upoly a p))  (eo::add 1 ($upoly_deg p)))
+  )
+)
+
+; program: $upoly_derivative_rec
+; args:
+; - p @UPoly: The coefficients of the polynomial from degree i on.
+; - i Real: The degree of the first coefficient of p.
+; return: the derivative of the polynomial from degree i - 1 on.
+(program $upoly_derivative_rec ((a Real) (p @UPoly :list) (i Real))
+  :signature (@UPoly Real) @UPoly
+  (
+  (($upoly_derivative_rec @upoly.zero i)   @upoly.zero)
+  (($upoly_derivative_rec (@upoly a p) i)
+    ($upoly_cons (eo::mul i a) ($upoly_derivative_rec p (eo::add i 1/1))))
+  )
+)
+
+; program: $upoly_derivative
+; args:
+; - p @UPoly: The polynomial.
+; return: the derivative of p.
+(program $upoly_derivative ((a Real) (p @UPoly :list))
+  :signature (@UPoly) @UPoly
+  (
+  (($upoly_derivative @upoly.zero)   @upoly.zero)
+  (($upoly_derivative (@upoly a p))  ($upoly_derivative_rec p 1/1))
+  )
+)
+
+; program: $upoly_monomial
+; args:
+; - c Real: The coefficient.
+; - k Int: The degree, which is non-negative.
+; return: the polynomial c * x^k.
+(program $upoly_monomial ((c Real) (k Int))
+  :signature (Real Int) @UPoly
+  (
+  (($upoly_monomial c 0)  ($upoly_cons c @upoly.zero))
+  (($upoly_monomial c k)  ($upoly_cons 0/1 ($upoly_monomial c (eo::add k -1))))
+  )
+)
+
+; program: $upoly_divides
+; args:
+; - b @UPoly: The divisor, which is not zero.
+; - a @UPoly: The dividend.
+; return: >
+;   true if and only if b divides a. The leading term of a is cancelled by a
+;   multiple of b until the degree of a is lower than the degree of b.
+(program $upoly_divides ((a @UPoly) (b @UPoly))
+  :signature (@UPoly @UPoly) Bool
+  (
+  (($upoly_divides b @upoly.zero)  true)
+  (($upoly_divides b a)
+    (eo::define ((da ($upoly_deg a)))
+    (eo::define ((db ($upoly_deg b)))
+    (eo::ite (eo::gt db da)
+      false
+      ($upoly_divides b
+        ($upoly_add a
+          ($upoly_mul
+            ($upoly_monomial
+              (eo::neg (eo::qdiv ($upoly_lc a) ($upoly_lc b)))
+              (eo::add da (eo::neg db)))
+            b)))))))
+  )
+)
+
+; program: $upoly_rem_seq_chain
+; args:
+; - a @UPoly: The second to last element checked so far, which is not zero.
+; - b @UPoly: The last element checked so far, which is not zero.
+; - s @List: The remaining (quotient remainder) pairs of the sequence.
+; return: >
+;   true if and only if each pair (q c) of s is a division of its two
+;   preceding elements a and b, with c the negated remainder up to a positive
+;   factor. That is, m * a = q * b - k * c for some constants m and k with
+;   m * k > 0, and deg c < deg b, where m is chosen so that the leading terms
+;   of m * a and q * b cancel (or is 1 if q is zero, i.e. when deg a < deg b),
+;   and k is then determined by the leading coefficient of c. The sequence
+;   must end with its first pair whose remainder c is zero, for which the
+;   division must be exact, i.e. m * a = q * b.
+(program $upoly_rem_seq_chain ((a @UPoly) (b @UPoly) (ql @List) (cl @List) (s @List :list))
+  :signature (@UPoly @UPoly @List) Bool
+  (
+  (($upoly_rem_seq_chain a b @list.nil)  false)
+  (($upoly_rem_seq_chain a b (@list (@list ql cl) s))
+    (eo::define ((q ($upoly_of_list ql)))
+    (eo::define ((c ($upoly_of_list cl)))
+    (eo::define ((m (eo::ite (eo::is_eq q @upoly.zero)
+                      1/1
+                      (eo::qdiv (eo::mul ($upoly_lc q) ($upoly_lc b)) ($upoly_lc a)))))
+    (eo::define ((r ($upoly_add ($upoly_scale m a) ($upoly_scale -1/1 ($upoly_mul q b)))))
+    (eo::ite (eo::is_eq c @upoly.zero)
+      (eo::and (eo::is_eq s @list.nil) (eo::is_eq r @upoly.zero))
+    (eo::define ((k (eo::qdiv (eo::neg ($upoly_lc r)) ($upoly_lc c))))
+    (eo::ite (eo::and
+               (eo::and
+                 (eo::is_eq ($upoly_add r ($upoly_scale k c)) @upoly.zero)
+                 (eo::gt ($upoly_deg b) ($upoly_deg c)))
+               (eo::gt (eo::mul m k) 0/1))
+      ($upoly_rem_seq_chain b c s)
+      false))))))))
+  )
+)
+
+; program: $upoly_rem_seq_check
+; args:
+; - p @UPoly: The first polynomial.
+; - q @UPoly: The second polynomial.
+; - s @List: >
+;     A sequence of (quotient remainder) pairs, where each quotient and
+;     remainder is a list of coefficients, as given by $upoly_of_list. The
+;     quotients of the first two pairs are not used, and the last pair is the
+;     exact division that ends the sequence, with a zero remainder.
+; return: >
+;   true if and only if the remainders of s are the signed remainder sequence
+;   of p and q, where each element may be scaled by a constant, as long as all
+;   constants have the same sign. The constants of the first two elements are
+;   computed from their leading coefficients. For example, the Sturm sequence
+;   of p is checked by taking q to be the derivative of p.
+(program $upoly_rem_seq_check
+  ((p @UPoly) (q @UPoly) (q0 @List) (l0 @List) (q1 @List) (l1 @List) (s @List :list))
+  :signature (@UPoly @UPoly @List) Bool
+  (
+  (($upoly_rem_seq_check p q (@list (@list q0 l0) (@list q1 l1) s))
+    (eo::ite (eo::or (eo::is_eq p @upoly.zero) (eo::is_eq q @upoly.zero))
+      false
+    (eo::define ((s0 ($upoly_of_list l0)))
+    (eo::define ((s1 ($upoly_of_list l1)))
+    (eo::define ((c0 (eo::qdiv ($upoly_lc s0) ($upoly_lc p))))
+    (eo::define ((c1 (eo::qdiv ($upoly_lc s1) ($upoly_lc q))))
+    (eo::ite (eo::and
+               (eo::and
+                 (eo::is_eq s0 ($upoly_scale c0 p))
+                 (eo::is_eq s1 ($upoly_scale c1 q)))
+               (eo::gt (eo::mul c0 c1) 0/1))
+      ($upoly_rem_seq_chain s0 s1 s)
+      false)))))))
+  (($upoly_rem_seq_check p q s)  false)
+  )
+)
+
+; define: $upoly_sturm_check
+; args:
+; - p @UPoly: The polynomial.
+; - s @List: A sequence of (quotient remainder) pairs.
+; return: true if and only if s is the Sturm sequence of p, up to scaling.
+(define $upoly_sturm_check ((p @UPoly) (s @List))
+  ($upoly_rem_seq_check p ($upoly_derivative p) s))
+
+; program: $sign_variations_rec
+; args:
+; - x Real: The last nonzero value seen so far, or zero if there is none.
+; - l @List: The remaining list of rational values.
+; return: the number of sign variations of l, starting from the sign of x.
+(program $sign_variations_rec ((x Real) (y Real) (l @List :list))
+  :signature (Real @List) Int
+  (
+  (($sign_variations_rec x @list.nil)     0)
+  (($sign_variations_rec x (@list y l))
+    (eo::ite (eo::is_eq y 0/1)
+      ($sign_variations_rec x l)
+      (eo::ite (eo::and (eo::not (eo::is_eq x 0/1))
+                        (eo::not (eo::is_eq (eo::is_neg x) (eo::is_neg y))))
+        (eo::add 1 ($sign_variations_rec y l))
+        ($sign_variations_rec y l))))
+  )
+)
+
+; define: $sign_variations
+; args:
+; - l @List: A list of rational values.
+; return: >
+;   The number of sign variations of l, that is, the number of pairs of
+;   consecutive values with opposite signs once the zeros are removed.
+(define $sign_variations ((l @List)) ($sign_variations_rec 0/1 l))
+
+; program: $upoly_term_var
+; args:
+; - t T: An arithmetic term.
+; return: >
+;   The first leaf of t, from left to right, that is not a numeral, or a
+;   numeral if there is none. If t is a polynomial in a single variable, this
+;   is that variable.
+(program $upoly_term_var ((T Type) (U Type) (V Type) (a T) (a1 U) (a2 V :list))
+  :signature (T) T
+  (
+  (($upoly_term_var (- a1))        ($upoly_term_var a1))
+  (($upoly_term_var (+ a1 a2))
+    (eo::define ((v ($upoly_term_var a1)))
+      (eo::ite (eo::is_q (eo::to_q v)) ($upoly_term_var a2) v)))
+  (($upoly_term_var (- a1 a2))
+    (eo::define ((v ($upoly_term_var a1)))
+      (eo::ite (eo::is_q (eo::to_q v)) ($upoly_term_var a2) v)))
+  (($upoly_term_var (* a1 a2))
+    (eo::define ((v ($upoly_term_var a1)))
+      (eo::ite (eo::is_q (eo::to_q v)) ($upoly_term_var a2) v)))
+  (($upoly_term_var (to_real a1))  ($upoly_term_var a1))
+  (($upoly_term_var a)             a)
+  )
+)
+
+; program: $upoly_of_term
+; args:
+; - x T: The variable.
+; - t U: An arithmetic term built from numerals and x with +, -, * and
+;   to_real.
+; return: >
+;   The polynomial in x denoted by t. This fails to evaluate if t contains
+;   any other leaf.
+(program $upoly_of_term ((T Type) (U Type) (V Type) (x T) (a U) (a1 U) (a2 V :list))
+  :signature (T U) @UPoly
+  (
+  (($upoly_of_term x (- a1))
+    ($upoly_scale -1/1 ($upoly_of_term x a1)))
+  (($upoly_of_term x (+ a1 a2))
+    ($upoly_add ($upoly_of_term x a1) ($upoly_of_term x a2)))
+  (($upoly_of_term x (- a1 a2))
+    ($upoly_add ($upoly_of_term x a1) ($upoly_scale -1/1 ($upoly_of_term x a2))))
+  (($upoly_of_term x (* a1 a2))
+    ($upoly_mul ($upoly_of_term x a1) ($upoly_of_term x a2)))
+  (($upoly_of_term x (to_real a1))  ($upoly_of_term x a1))
+  (($upoly_of_term x a)
+    (eo::define ((aq (eo::to_q a)))
+    (eo::ite (eo::is_q aq)
+      ($upoly_cons aq @upoly.zero)
+      (eo::requires a x ($upoly_cons 0/1 ($upoly_cons 1/1 @upoly.zero))))))
+  )
+)
+
+; define: $upoly_sign_at_inf
+; args:
+; - p @UPoly: The polynomial.
+; - pos Bool: true for +infinity, false for -infinity.
+; return: >
+;   A rational with the sign of p at +infinity or -infinity, that is, the
+;   leading coefficient of p, negated at -infinity if p has an odd degree.
+(define $upoly_sign_at_inf ((p @UPoly) (pos Bool))
+  (eo::define ((c ($upoly_lc p)))
+  (eo::ite (eo::or pos (eo::is_eq (eo::zmod ($upoly_deg p) 2) 0)) c (eo::neg c))))

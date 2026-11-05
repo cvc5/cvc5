@@ -112,6 +112,23 @@ Node mkOne(const TypeNode& tn, bool isNeg)
   return NodeManager::mkConstRealOrInt(tn, isNeg ? -1 : 1);
 }
 
+Node mkOpenPiece(NodeManager* nm,
+                 const Node& var,
+                 const Node& lower,
+                 const Node& upper)
+{
+  std::vector<Node> conjs;
+  if (lower.getKind() != Kind::MINUS_INFINITY)
+  {
+    conjs.push_back(nm->mkNode(Kind::GT, var, lower));
+  }
+  if (upper.getKind() != Kind::PLUS_INFINITY)
+  {
+    conjs.push_back(nm->mkNode(Kind::LT, var, upper));
+  }
+  return conjs.empty() ? Node::null() : nm->mkAnd(conjs);
+}
+
 bool isTranscendentalKind(Kind k)
 {
   switch (k)

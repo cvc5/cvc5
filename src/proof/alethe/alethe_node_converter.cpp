@@ -19,6 +19,7 @@
 #include "theory/builtin/generic_op.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
+#include "util/real_algebraic_number.h"
 
 namespace cvc5::internal {
 namespace proof {
@@ -320,6 +321,33 @@ Node AletheNodeConverter::postConvert(Node n)
       Trace("alethe-conv") << ".. converted to choice: " << converted << "\n";
       return converted;
     }
+    // Alethe has no bare s-expressions, so the Sturm sequence of pairs
+    // `(q r)` is flattened into the arguments of an application of the indexed
+    // operator `(_ @real_algebraic_number_witness ran)`
+    case Kind::REAL_ALGEBRAIC_NUMBER_WITNESS:
+    {
+      std::vector<Node> flat;
+      std::vector<TypeNode> flatTypes;
+      for (const Node& pair : n[0])
+      {
+        Assert(pair.getKind() == Kind::SEXPR && pair.getNumChildren() == 2);
+        for (const Node& poly : pair)
+        {
+          flat.push_back(poly);
+          flatTypes.push_back(poly.getType());
+        }
+      }
+      Assert(!flat.empty());
+      std::stringstream ss;
+      ss << "(_ @real_algebraic_number_witness "
+         << n.getOperator().getConst<RealAlgebraicNumber>() << ")";
+      TypeNode fType = d_nm->mkFunctionType(flatTypes, n.getType());
+      Node op = mkInternalSymbol(ss.str(), fType, true);
+      flat.insert(flat.begin(), op);
+      Node converted = d_nm->mkNode(Kind::APPLY_UF, flat);
+      Trace("alethe-conv") << ".. converted witness: " << converted << "\n";
+      return converted;
+    }
     // other handled kinds but no-op in conversion. Everything else is
     // unsupported
     /* from builtin */
@@ -372,6 +400,14 @@ Node AletheNodeConverter::postConvert(Node n)
     case Kind::INTS_ISPOW2:
     case Kind::INTS_LOG2:
     case Kind::POW2:
+    /* from arith (univariate coverings) */
+    case Kind::REAL_ALGEBRAIC_NUMBER:
+    case Kind::REAL_ALGEBRAIC_NUMBER_OP:
+    case Kind::REAL_ALGEBRAIC_NUMBER_WITNESS_OP:
+    case Kind::SGN_INV:
+    case Kind::IS_ROOT:
+    case Kind::MINUS_INFINITY:
+    case Kind::PLUS_INFINITY:
     /* from arrays */
     case Kind::ARRAY_TYPE:
     case Kind::SELECT:
