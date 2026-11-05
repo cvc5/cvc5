@@ -32,7 +32,35 @@ namespace ff {
 Node varietyIsEmpty(NodeManager* nm, Node ideal);
 
 /**
- * Prove false from a conflict.
+ * Prove false from a conflict L1 ... Ln, where each Li is encoded as
+ * (= pi 0) and qi is the monic form of pi (qi = pi if pi is already monic).
+ *
+ * If pi is not monic, with scale factor c, the step for Li is
+ *
+ *                    ------------------------------------------ FF_POLY_NORM
+ *                     (= (* c (+ pi (- 0))) (* 1 (+ qi (- 0))))
+ *                    ------------------------------------------ FF_POLY_NORM_EQ
+ *   (= Li (= pi 0))   (= (= pi 0) (= qi 0))
+ *  ---------------------------------------- TRANS
+ *   (= Li (= qi 0))
+ *
+ * where (= Li (= pi 0)) must already be justified in cdp. Then
+ *
+ *  (= L1 (= q1 0)) ... (= Ln (= qn 0))
+ *  ----------------------------------- NARY_CONG
+ *   (and L1 ... Ln)  (= (and L1 ... Ln) (and (= q1 0) ... (= qn 0)))
+ *  ---------------------------------------------------------------- EQ_RESOLVE
+ *   (and (= q1 0) ... (= qn 0))
+ *  ---------------------------------------------- FF_POLY_CONVERSION
+ *   (not (set.is_empty (ff.variety (ff.ideal q1 ... qn))))
+ *  ---------------------------------------------- FF_FIELD_POLYS
+ *   (not (set.is_empty (ff.variety (ff.ideal q1 ... qn f1 ... fm))))
+ *  ---------------------------------------------- CONTRA
+ *   false
+ *
+ * where the second premise of CONTRA, (set.is_empty (ff.variety ...)), must
+ * be justified elsewhere, NARY_CONG is skipped when n = 1, and FF_FIELD_POLYS
+ * is skipped when there are no field polynomials f1 ... fm.
  *
  * @param fieldPolys the field polynomials that were used, if any
  * @param litToPolyEq map from each literal to the equality (p = 0) that
@@ -50,13 +78,34 @@ void produceContradiction(
     const std::vector<Node>& conflict);
 
 /**
- * Prove that the disequality orig is equivalent to (conv = 0), where sk is the
- * witness skolem for orig.
+ * Prove (= conv 0) from the disequality orig = (not (= a b)), where sk is the
+ * witness skolem for orig. Letting w = (+ (* (+ a (- b)) sk) -1):
+ *
+ *  -------------------------------------------- FF_POLY_NORM
+ *   (= (* 1 (+ w (- 0))) (* 1 (+ conv (- 0))))
+ *  -------------------------------------------- FF_POLY_NORM_EQ
+ *   (= (= w 0) (= conv 0))
+ *
+ *  ------------------ FF_DISEQ
+ *   (= orig (= w 0))   (= (= w 0) (= conv 0))
+ *  ------------------------------------------ TRANS
+ *   orig   (= orig (= conv 0))
+ *  ---------------------------- EQ_RESOLVE
+ *   (= conv 0)
  */
 void registerDisequalityProof(
     NodeManager* nm, Node orig, Node conv, Node sk, CDProof* cdp);
 
-/** Prove that the equality orig is equivalent to (conv = 0). */
+/**
+ * Prove (= conv 0) from the equality orig = (= a b):
+ *
+ *  ----------------------------------------- FF_POLY_NORM
+ *   (= (* 1 (+ a (- b))) (* 1 (+ conv (- 0))))
+ *  ----------------------------------------- FF_POLY_NORM_EQ
+ *   orig   (= orig (= conv 0))
+ *  ---------------------------- EQ_RESOLVE
+ *   (= conv 0)
+ */
 void registerEqualityProof(NodeManager* nm, Node orig, Node conv, CDProof* cdp);
 
 /** A proof step that has not been added to a proof yet. */
