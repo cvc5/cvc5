@@ -1292,10 +1292,26 @@ void TheoryEngine::assertFact(TNode literal)
     else
     {
       // Not an equality, just assert to the appropriate theory
+      TheoryId tid = d_env.theoryOf(atom);
       assertToTheory(literal,
                      literal,
-                     /* to */ d_env.theoryOf(atom),
+                     /* to */ tid,
                      /* from */ THEORY_SAT_SOLVER);
+      // A theory that uses the central equality engine but explains its own
+      // propagations (see Theory::expUsingCentralEqualityEngine) may assert
+      // this literal (e.g., a Boolean select of arrays) to the central
+      // equality engine, which may then use it as an assumption when
+      // explaining a propagation of THEORY_BUILTIN. We record that
+      // THEORY_BUILTIN got this literal from the SAT solver, as we do for
+      // equalities by asserting them to THEORY_BUILTIN above. Otherwise,
+      // getExplanation() asks THEORY_BUILTIN to explain the literal, whose
+      // explanation is the literal itself.
+      if (options().theory.eeMode == options::EqEngineMode::CENTRAL
+          && EqEngineManagerCentral::usesCentralEqualityEngine(options(), tid)
+          && theoryExpPropagation(tid) != THEORY_BUILTIN)
+      {
+        markPropagation(literal, literal, THEORY_BUILTIN, THEORY_SAT_SOLVER);
+      }
     }
   }
   else

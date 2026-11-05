@@ -127,6 +127,7 @@ set(regress_0_tests
   regress0/arrays/bug3020.smt2
   regress0/arrays/bug4957.smt2
   regress0/arrays/bug637.delta.smt2
+  regress0/arrays/central-ee-bool-select-exp.smt2
   regress0/arrays/constarr.cvc.smt2
   regress0/arrays/constarr.smt2
   regress0/arrays/constarr2.cvc.smt2
