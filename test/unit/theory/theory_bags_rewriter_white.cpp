@@ -14,6 +14,8 @@
 #include "expr/emptybag.h"
 #include "test_smt.h"
 #include "theory/bags/bags_rewriter.h"
+#include "theory/datatypes/project_op.h"
+#include "theory/datatypes/tuple_utils.h"
 #include "theory/strings/type_enumerator.h"
 #include "util/rational.h"
 #include "util/string.h"
@@ -756,6 +758,73 @@ TEST_F(TestTheoryWhiteBagsRewriter, fold)
   RewriteResponse response4 = d_rewriter->postRewrite(node4);
   ASSERT_TRUE(response4.d_node == fold
               && response2.d_status == REWRITE_AGAIN_FULL);
+}
+
+TEST_F(TestTheoryWhiteBagsRewriter, fold_of_map_order)
+{
+  // AGGREGATE_MAP and FOLD_MAP fold the argument of a map instead of the map
+  // only for a step whose value does not depend on the order of the rows:
+  // cvc5 folds each bag in an order of its own
+  NodeManager* nm = d_nodeManager.get();
+  TypeNode intType = nm->integerType();
+  TypeNode row2 = nm->mkTupleType({intType, intType});
+  TypeNode row3 = nm->mkTupleType({intType, intType, intType});
+  Node X = d_skolemManager->mkDummySkolem("X", nm->mkBagType(row2));
+  Node zero = nm->mkConstInt(Rational(0));
+  auto column = [](const Node& t, size_t k) {
+    return datatypes::TupleUtils::nthElementOfTuple(t, k);
+  };
+  auto tuple = [&](const TypeNode& tn, const std::vector<Node>& cs) {
+    return datatypes::TupleUtils::constructTupleFromElements(
+        tn, cs, 0, cs.size() - 1);
+  };
+  // (bag.map (lambda ((t (Tuple Int Int))) (tuple t.0 t.1 0)) X)
+  Node t = NodeManager::mkBoundVar("t", row2);
+  Node g = nm->mkNode(Kind::LAMBDA,
+                      nm->mkNode(Kind::BOUND_VAR_LIST, t),
+                      tuple(row3, {column(t, 0), column(t, 1), zero}));
+  Node map = nm->mkNode(Kind::BAG_MAP, g, X);
+  Node r = NodeManager::mkBoundVar("r", row3);
+  Node acc = NodeManager::mkBoundVar("acc", row2);
+  Node vars = nm->mkNode(Kind::BOUND_VAR_LIST, r, acc);
+  // the sum of column 1 by column 0, and column 1 of the last row
+  Node sum = nm->mkNode(
+      Kind::LAMBDA,
+      vars,
+      tuple(
+          row2,
+          {column(r, 0), nm->mkNode(Kind::ADD, column(acc, 1), column(r, 1))}));
+  Node last =
+      nm->mkNode(Kind::LAMBDA, vars, tuple(row2, {column(r, 0), column(r, 1)}));
+  Node op = nm->mkConst(Kind::TABLE_AGGREGATE_OP, ProjectOp({0}));
+  Node init = tuple(row2, {zero, zero});
+  auto rewrite = [&](Node n) {
+    for (size_t k = 0; k < 10; k++)
+    {
+      Node next = d_rewriter->postRewrite(n).d_node;
+      if (next == n)
+      {
+        break;
+      }
+      n = next;
+    }
+    return n;
+  };
+  Node sumOfMap =
+      rewrite(nm->mkNode(Kind::TABLE_AGGREGATE, {op, sum, init, map}));
+  ASSERT_EQ(sumOfMap.getKind(), Kind::TABLE_AGGREGATE);
+  ASSERT_EQ(sumOfMap[2], X);
+  Node lastOfMap =
+      rewrite(nm->mkNode(Kind::TABLE_AGGREGATE, {op, last, init, map}));
+  ASSERT_EQ(lastOfMap.getKind(), Kind::TABLE_AGGREGATE);
+  ASSERT_EQ(lastOfMap[2], map);
+  // (bag.fold (lambda ((r (Tuple Int Int Int)) (a Int)) r.1) 0 map)
+  Node a = NodeManager::mkBoundVar("a", intType);
+  Node lastFold = nm->mkNode(
+      Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, r, a), column(r, 1));
+  Node foldOfMap = rewrite(nm->mkNode(Kind::BAG_FOLD, lastFold, zero, map));
+  ASSERT_EQ(foldOfMap.getKind(), Kind::BAG_FOLD);
+  ASSERT_EQ(foldOfMap[2], map);
 }
 
 }  // namespace test
