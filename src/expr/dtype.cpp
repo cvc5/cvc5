@@ -12,6 +12,7 @@
 #include "expr/dtype.h"
 
 #include <algorithm>
+#include <limits>
 #include <sstream>
 
 #include "expr/dtype_cons.h"
@@ -39,7 +40,6 @@ DType::DType(std::string name, bool isCo)
       d_involvesUt(false),
       d_sygusAllowConst(false),
       d_sygusAllowAll(false),
-      d_card(CardinalityUnknown()),
       d_wellFounded(0),
       d_nestedRecursion(0),
       d_regular(0)
@@ -60,7 +60,6 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_involvesUt(false),
       d_sygusAllowConst(false),
       d_sygusAllowAll(false),
-      d_card(CardinalityUnknown()),
       d_wellFounded(0),
       d_nestedRecursion(0),
       d_regular(0)
@@ -374,8 +373,8 @@ Cardinality DType::getCardinality(TypeNode t) const
   Assert(isResolved());
   Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
   std::vector<TypeNode> processing;
-  computeCardinality(t, processing);
-  return d_card;
+  size_t minRecIndex = std::numeric_limits<size_t>::max();
+  return computeCardinality(t, processing, minRecIndex);
 }
 
 Cardinality DType::getCardinality() const
@@ -385,25 +384,50 @@ Cardinality DType::getCardinality() const
 }
 
 Cardinality DType::computeCardinality(TypeNode t,
-                                      std::vector<TypeNode>& processing) const
+                                      std::vector<TypeNode>& processing,
+                                      size_t& minRecIndex) const
 {
   Trace("datatypes-init") << "DType::computeCardinality " << std::endl;
   Assert(isResolved());
-  if (std::find(processing.begin(), processing.end(), d_self)
-      != processing.end())
+  Assert(t.isDatatype() && t.getDType().getTypeNode() == d_self);
+  std::map<TypeNode, Cardinality>::const_iterator itc = d_card.find(t);
+  if (itc != d_card.end())
   {
-    d_card = Cardinality::INTEGERS;
-    return d_card;
+    return itc->second;
   }
-  processing.push_back(d_self);
+  // We check for recursion based on the (instantiated) type t, not on this
+  // datatype, since e.g. (Option (Option Bool)) is not recursive.
+  std::vector<TypeNode>::iterator it =
+      std::find(processing.begin(), processing.end(), t);
+  if (it != processing.end())
+  {
+    size_t index = static_cast<size_t>(it - processing.begin());
+    minRecIndex = std::min(minRecIndex, index);
+    return Cardinality::INTEGERS;
+  }
+  size_t index = processing.size();
+  processing.push_back(t);
+  size_t cminRecIndex = std::numeric_limits<size_t>::max();
   Cardinality c = 0;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
-    c += ctor->computeCardinality(t, processing);
+    c += ctor->computeCardinality(t, processing, cminRecIndex);
   }
-  d_card = c;
   processing.pop_back();
-  return d_card;
+  if (cminRecIndex >= index)
+  {
+    // The computation did not depend on a type we are still processing,
+    // other than t itself, hence c is the cardinality of t and can be cached.
+    d_card.emplace(t, c);
+  }
+  else
+  {
+    // Otherwise, c may be incomplete, e.g. for A = a(B) | d(Array Real Real)
+    // and B = b(A), computing B within A does not consider the second
+    // constructor of A.
+    minRecIndex = std::min(minRecIndex, cminRecIndex);
+  }
+  return c;
 }
 
 bool DType::isRecursiveSingleton(TypeNode t) const

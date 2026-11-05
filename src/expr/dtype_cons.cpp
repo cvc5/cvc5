@@ -343,7 +343,7 @@ bool DTypeConstructor::involvesUninterpretedType() const
 }
 
 Cardinality DTypeConstructor::computeCardinality(
-    TypeNode t, std::vector<TypeNode>& processing) const
+    TypeNode t, std::vector<TypeNode>& processing, size_t& minRecIndex) const
 {
   Cardinality c = 1;
   std::vector<TypeNode> instTypes;
@@ -367,7 +367,7 @@ Cardinality DTypeConstructor::computeCardinality(
     if (tc.isDatatype())
     {
       const DType& dt = tc.getDType();
-      c *= dt.computeCardinality(t, processing);
+      c *= dt.computeCardinality(tc, processing, minRecIndex);
     }
     else
     {

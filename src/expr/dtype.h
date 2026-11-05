@@ -503,9 +503,16 @@ class DType
                const std::vector<TypeNode>& paramTypes,
                const std::vector<TypeNode>& paramReplacements);
 
-  /** compute the cardinality of this datatype */
+  /**
+   * Compute the cardinality of t, which is an instance of this datatype.
+   * The vector processing contains the types whose cardinality we are
+   * currently computing, which is used to detect recursion. If a type in
+   * processing is encountered, minRecIndex is updated to the minimum of
+   * its index and its current value.
+   */
   Cardinality computeCardinality(TypeNode t,
-                                 std::vector<TypeNode>& processing) const;
+                                 std::vector<TypeNode>& processing,
+                                 size_t& minRecIndex) const;
   /** compute whether this datatype is a recursive singleton */
   bool computeCardinalityRecSingleton(TypeNode t,
                                       std::vector<TypeNode>& processing,
@@ -618,12 +625,6 @@ class DType
   /** whether all terms are allowed as solutions */
   bool d_sygusAllowAll;
 
-  /** the cardinality of this datatype
-   * "mutable" because computing the cardinality can be expensive,
-   * and so it's computed just once, on demand---this is the cache
-   */
-  mutable Cardinality d_card;
-
   /** is this type a recursive singleton type?
    * The range of this map stores
    * 0 if the field has not been computed,
@@ -661,6 +662,8 @@ class DType
       d_sharedSel;
   /**  A cache for getCardinalityClass. */
   mutable std::map<TypeNode, CardinalityClass> d_cardClass;
+  /** cache for the cardinality of instances of this datatype */
+  mutable std::map<TypeNode, Cardinality> d_card;
 }; /* class DType */
 
 std::ostream& operator<<(std::ostream& os, const DType& dt);
