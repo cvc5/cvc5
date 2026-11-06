@@ -12,16 +12,21 @@
 
 #ifdef CVC5_USE_NORMALIZ
 
+#include <memory>
 #include <vector>
 
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_manager.h"
 #include "expr/skolem_manager.h"
+#include "options/options.h"
+#include "options/smt_options.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "smt/solver_engine.h"
 #include "test_smt.h"
 #include "theory/arith/liastar/liastar_utils.h"
+#include "theory/logic_info.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 
@@ -618,6 +623,134 @@ TEST_F(TestLiaStarUtils, removeItesInConditions)
 
   ASSERT_FALSE(expr::hasSubtermKind(Kind::ITE, noItes)) << noItes;
   ASSERT_TRUE(isEquivalent(geq, noItes)) << noItes;
+}
+
+// The tests below exercise the lazy strategy's model extraction.
+
+class TestLiaStarLazyUtils : public TestSmt
+{
+ protected:
+  TypeNode intType;
+  Node falseConst, zero, one, two;
+  NodeManager* nm;
+  Env* e;
+
+  void SetUp() override
+  {
+    TestSmt::SetUp();
+    d_slvEngine->setOption("dag-thresh", "0", true);
+    nm = d_nodeManager.get();
+    e = &d_slvEngine->getEnv();
+    intType = nm->integerType();
+    falseConst = nm->mkConst<bool>(false);
+    zero = nm->mkConstInt(Rational(0));
+    one = nm->mkConstInt(Rational(1));
+    two = nm->mkConstInt(Rational(2));
+  }
+
+  /**
+   * Create an incremental QF_LIA subsolver seeded with `base` conjoined with
+   * the non-negativity of `variables`, the way
+   * LiaStarExtension::getSubsolver seeds the subsolver that
+   * LiaStarUtils::getDisjunct reads models from. Returns the engine and the
+   * full (nonnegative) assertion it holds.
+   */
+  std::pair<std::unique_ptr<SolverEngine>, Node> mkSeededSubsolver(
+      Node base, const std::vector<Node>& variables)
+  {
+    std::vector<Node> conjuncts{base};
+    for (Node var : variables)
+    {
+      conjuncts.push_back(nm->mkNode(Kind::GEQ, var, zero));
+    }
+    Node assertion = nm->mkAnd(conjuncts);
+    Options subOptions;
+    // getDisjunct reads the model to construct the disjunct
+    subOptions.write_smt().produceModels = true;
+    auto engine = std::make_unique<SolverEngine>(nm, &subOptions);
+    engine->setIsInternalSubsolver();
+    LogicInfo info("QF_LIA");
+    engine->setLogic(info);
+    engine->setOption("incremental", "true");
+    engine->assertFormula(assertion);
+    return {std::move(engine), assertion};
+  }
+};
+
+TEST_F(TestLiaStarLazyUtils, getDisjunctUnsat)
+{
+  // The subsolver is seeded with (< x 0) and the nonnegativity constraint
+  // (>= x 0), which together are unsatisfiable, so the returned disjunct must
+  // be the false constant (the predicate is fully covered).
+  Node xInt = nm->mkVar("x", intType);
+  Node base = nm->mkNode(Kind::LT, xInt, zero);
+  auto [engine, assertion] = mkSeededSubsolver(base, {xInt});
+  Node disjunct =
+      LiaStarUtils::getDisjunct(assertion, {}, {}, *e, engine.get());
+  ASSERT_EQ(falseConst, disjunct);
+}
+
+TEST_F(TestLiaStarLazyUtils, getDisjunctSatEquality)
+{
+  // (= x 5) is satisfiable together with the x >= 0 constraint. The returned
+  // disjunct is a conjunction fixing every atom to its model value; it must
+  // not be false and must itself be satisfiable.
+  Node xInt = nm->mkVar("x", intType);
+  Node five = nm->mkConstInt(Rational(5));
+  Node base = nm->mkNode(Kind::EQUAL, xInt, five);
+  auto [engine, assertion] = mkSeededSubsolver(base, {xInt});
+  Node disjunct =
+      LiaStarUtils::getDisjunct(assertion, {}, {}, *e, engine.get());
+  ASSERT_FALSE(disjunct.isNull());
+  ASSERT_NE(falseConst, disjunct);
+  Result result = LiaStarUtils::cvc5CheckSat({}, disjunct, *e);
+  ASSERT_EQ(Result::Status::SAT, result.getStatus());
+}
+
+TEST_F(TestLiaStarLazyUtils, getDisjunctSatInequalities)
+{
+  // (and (>= x 1) (>= y 2)) is satisfiable with the nonnegativity
+  // constraints; the disjunct must be a satisfiable, non-false formula.
+  Node xInt = nm->mkVar("x", intType);
+  Node yInt = nm->mkVar("y", intType);
+  Node geqX = nm->mkNode(Kind::GEQ, xInt, one);
+  Node geqY = nm->mkNode(Kind::GEQ, yInt, two);
+  Node base = nm->mkNode(Kind::AND, geqX, geqY);
+  auto [engine, assertion] = mkSeededSubsolver(base, {xInt, yInt});
+  Node disjunct =
+      LiaStarUtils::getDisjunct(assertion, {}, {}, *e, engine.get());
+  ASSERT_FALSE(disjunct.isNull());
+  ASSERT_NE(falseConst, disjunct);
+  Result result = LiaStarUtils::cvc5CheckSat({}, disjunct, *e);
+  ASSERT_EQ(Result::Status::SAT, result.getStatus());
+}
+
+TEST_F(TestLiaStarLazyUtils, getDisjunctDisjunction)
+{
+  // (or (> x (+ y z)) (= x (+ y z))) is satisfiable with the nonnegativity
+  // constraints. getDisjunct fixes every atom to its model value, selecting a
+  // single convex cell of the satisfying region, so the result must be a
+  // satisfiable, non-false formula that entails the original disjunction.
+  Node xInt = nm->mkVar("x", intType);
+  Node yInt = nm->mkVar("y", intType);
+  Node zInt = nm->mkVar("z", intType);
+  Node sum = nm->mkNode(Kind::ADD, yInt, zInt);
+  Node gt = nm->mkNode(Kind::GT, xInt, sum);
+  Node eq = nm->mkNode(Kind::EQUAL, xInt, sum);
+  Node base = nm->mkNode(Kind::OR, gt, eq);
+  auto [engine, assertion] = mkSeededSubsolver(base, {xInt, yInt, zInt});
+  Node disjunct =
+      LiaStarUtils::getDisjunct(assertion, {}, {}, *e, engine.get());
+  ASSERT_FALSE(disjunct.isNull());
+  ASSERT_NE(falseConst, disjunct);
+  Result result = LiaStarUtils::cvc5CheckSat({}, disjunct, *e);
+  ASSERT_EQ(Result::Status::SAT, result.getStatus());
+  // The disjunct must entail the original disjunction: (and disjunct (not
+  // base)) is unsatisfiable.
+  Node entailment = nm->mkNode(Kind::AND, disjunct, base.notNode());
+  Result entailmentResult =
+      LiaStarUtils::cvc5CheckSat({xInt, yInt, zInt}, entailment, *e);
+  ASSERT_EQ(Result::Status::UNSAT, entailmentResult.getStatus());
 }
 
 }  // namespace test
