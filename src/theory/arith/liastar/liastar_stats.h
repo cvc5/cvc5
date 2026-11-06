@@ -92,7 +92,6 @@ class LiaStarStatistics
    * (LiaStarUtils::normalizCheckSat).
    */
   TimerStat d_normalizSubSolverTime;
-
   //------------------------- counters
   /** Number of calls to LiaStarExtension::checkFullEffort. */
   IntStat d_checkRuns;
@@ -171,6 +170,8 @@ class LiaStarStatistics
   IntStat d_moduleGeneratorsMax;
   /** Maximum dimension of star vectors. */
   IntStat d_dimensionMax;
+  /** Number of refinement rounds of the lazy strategy (subsolver checks). */
+  IntStat d_lazyRounds;
 };
 
 }  // namespace liastar

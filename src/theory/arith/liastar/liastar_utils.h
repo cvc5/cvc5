@@ -1,4 +1,7 @@
 /******************************************************************************
+ * Top contributors (to current version):
+ *   Mudathir Mohamed
+ *
  * This file is part of the cvc5 project.
  *
  * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
@@ -15,13 +18,20 @@
 #ifndef CVC5__THEORY__LIASTAR__UTILS_H
 #define CVC5__THEORY__LIASTAR__UTILS_H
 
+#include <unordered_set>
+
 #include "expr/node.h"
 #include "expr/node_converter.h"
+#include "libnormaliz/libnormaliz.h"
 #include "smt/env.h"
 #include "theory/arith/liastar/liastar_stats.h"
 #include "theory/arith/linear/normal_form.h"
 #include "util/result.h"
+
 namespace cvc5::internal {
+
+class SolverEngine;
+
 namespace theory {
 namespace arith {
 namespace liastar {
@@ -127,10 +137,23 @@ class IteEliminationConverter : public NodeConverter
 };
 
 /**
- * Utilities shared by the liastar extension: destructuring star-contains
- * atoms, converting their predicates to DNF, deciding satisfiability of
- * candidate disjuncts with a subsolver, and translating disjuncts into the
- * symbolic constraints Normaliz consumes.
+ * Utilities shared by the liastar extension (see liastar_extension.cpp for
+ * the overall decision procedure). They fall into three groups:
+ *
+ * 1. Predicate normalization (`removeItesAndNots`, `toDNF` and their
+ *    workers): turn the body of a star lambda into a flat disjunction of
+ *    conjunctions of unnegated linear (in)equalities, the only shape that can
+ *    be rendered as polyhedral cones.
+ *
+ * 2. The Normaliz bridge (`getMatrix`, `getMatrices`, `buildCone`,
+ *    `isEmptyCone`, `getGeneratorBody`): render conjunctions as Normaliz
+ *    "symbolic" constraint strings, compute cones (Hilbert basis and module
+ *    generators), decide satisfiability of candidate disjuncts, and encode a
+ *    module generator back into arithmetic.
+ *
+ * 3. Model extraction for the lazy strategy (`getDisjunct`, `collectAtoms`):
+ *    read a model from an incremental subsolver and distil the convex cell
+ *    of the predicate containing it.
  *
  * All methods are static and stateless. Methods taking a LiaStarStatistics
  * pointer accumulate timers and counters into it when it is non-null.
@@ -166,8 +189,8 @@ class LiaStarUtils
    * (or (and a_1 a_2 ...) (and b_1 b_2 ...) ...) whose atoms are unnegated,
    * ite-free linear constraints.
    *
-   * The steps are removeItes, removeNot and distribute, followed by
-   * flattening; no new variables are introduced.
+   * The steps are removeItesAndNots (removeItes and removeNot) and
+   * distribute, followed by flattening; no new variables are introduced.
    *
    * @param n a Boolean combination (and, or, not, =>, ite, and = and xor of
    * Booleans) of linear integer constraints (<, <=, =, >=, >) and Boolean
@@ -180,6 +203,25 @@ class LiaStarUtils
    * are dropped, see distribute.
    */
   static Node toDNF(Node n, Env& e, LiaStarStatistics* stats = nullptr);
+
+  /**
+   * Eliminate ite and negated constraints from a LIA predicate: the first two
+   * steps of toDNF, see removeItes and removeNot. The lazy strategy uses this
+   * form to seed its subsolvers and to normalize the cells it reads from
+   * their models, which must be conjunctions of unnegated constraints before
+   * getMatrix renders them.
+   *
+   * @param n a Boolean combination (and, or, not, =>, ite, and = and xor of
+   * Booleans) of linear integer constraints and Boolean variables, whose
+   * integer terms may contain ite
+   * @param e the environment, used for its node manager and rewriter
+   * @param stats optional statistics collector, may be nullptr
+   * @return an equivalent node built from and, or, unnegated constraints and
+   * possibly negated Boolean variables, without ite
+   */
+  static Node removeItesAndNots(Node n,
+                                Env& e,
+                                LiaStarStatistics* stats = nullptr);
 
   /**
    * Eliminate ite from a LIA predicate. cvc5's ite removal would introduce
@@ -258,6 +300,12 @@ class LiaStarUtils
    * arith-liastar-assume-nonnegative option is enabled, the variables are
    * additionally constrained to be nonnegative.
    *
+   * Only genuine bound variables are quantified; free constants among
+   * `freeVariables` are left in place, since checking a formula with free
+   * constants is equivalent to checking its existential closure. The lazy
+   * strategy checks formulas over the skolem constants of its subsolvers this
+   * way.
+   *
    * @param freeVariables the free variables of the assertion to quantify, may
    * be empty in which case the assertion is checked as is
    * @param assertion the assertion to check
@@ -272,7 +320,8 @@ class LiaStarUtils
   /**
    * Check satisfiability of a conjunction of LIA constraints by computing its
    * cone with Normaliz: the constraints are unsatisfiable over the integers
-   * exactly when the resulting inhomogeneous cone is empty.
+   * exactly when the resulting inhomogeneous cone has no integer points, see
+   * isEmptyCone.
    *
    * @param variables a node of Kind BOUND_VAR_LIST giving the coordinates of
    * the ambient space, in order
@@ -289,31 +338,162 @@ class LiaStarUtils
                                  LiaStarStatistics* stats = nullptr);
 
   /**
-   * Convert a LIA predicate in DNF into one constraint system per disjunct,
-   * each a list of linear constraints a_1 x_1 + ... + a_n x_n ~ b with ~ in
-   * {<, <=, =, >=, >} over the Normaliz coordinates x[1]..x[k] of
-   * `variables`.
+   * Convert a single disjunct of a LIA predicate in DNF, i.e. one convex
+   * cell, into a constraint system: a list of linear constraints
+   * a_1 x_1 + ... + a_n x_n ~ b with ~ in {<, <=, =, >=, >} over the Normaliz
+   * coordinates x[1]..x[k] of `variables`.
    *
    * The constraints are Normaliz symbolic constraint strings rather than
    * numeric matrices: libnormaliz::readNormalizInput parses them and does the
-   * translation into Normaliz's internal matrices, see normalizCheckSat. The
-   * string format is easier to debug, its cost is negligible compared to
-   * computing the cone, and the input printed by trace tag
-   * liastar-normalizCheckSat can be fed to the normaliz binary as is.
+   * translation into Normaliz's internal matrices, see buildCone. The string
+   * format is easier to debug, its cost is negligible compared to computing
+   * the cone, and the input printed by trace tag liastar-ext can be fed to
+   * the normaliz binary as is.
    *
    * @param variables a node of Kind BOUND_VAR_LIST; its i-th variable is the
    * Normaliz coordinate x[i + 1]
-   * @param n a LIA predicate in DNF
-   * @return one pair per disjunct of n: its constraints, e.g.
-   * {"2x[1] - x[3] >= 5;", "x[2] = 0;"}, together with the disjunct itself
+   * @param n a linear constraint, a conjunction of linear constraints, or a
+   * Boolean constant (encoded as the tautology "x[1] = x[1];" or the
+   * contradiction "1 = 0;", since Normaliz needs at least one constraint)
+   * @return the constraints of n, e.g. {"2x[1] - x[3] >= 5;", "x[2] = 0;"},
+   * together with n itself
    * @throws LogicException if an atom of n is not a linear integer
    * constraint over `variables`, e.g. a Boolean variable p, an equality of
    * Booleans (= p (>= x 1)), which toDNF expands, an equality of other
    * non-arithmetic terms (= b #x00), or (= x (* 2 a)) for a term a that is
    * not in `variables`, see getString
    */
+  static std::pair<std::vector<std::string>, Node> getMatrix(Node variables,
+                                                             Node n);
+
+  /**
+   * Convert a LIA predicate in DNF into one constraint system per disjunct,
+   * by applying getMatrix to each disjunct of a disjunction, or to the
+   * predicate itself if it is a single conjunction or atom.
+   *
+   * @param variables a node of Kind BOUND_VAR_LIST; its i-th variable is the
+   * Normaliz coordinate x[i + 1]
+   * @param n a LIA predicate in DNF
+   * @return one pair per disjunct of n: its constraints, e.g.
+   * {"2x[1] - x[3] >= 5;", "x[2] = 0;"}, together with the disjunct itself
+   * @throws LogicException as getMatrix
+   */
   static std::vector<std::pair<std::vector<std::string>, Node>> getMatrices(
       Node variables, Node n);
+
+  /**
+   * Build the Normaliz cone of a single convex polyhedron and compute its
+   * Hilbert basis, module generators and maximal subspace. This is the one
+   * place that constructs a libnormaliz cone.
+   *
+   * @param dimension the ambient dimension (the number of star variables; the
+   * Normaliz "amb_space")
+   * @param constraints the rows of the cone, one symbolic constraint each,
+   * as produced by getMatrix
+   * @param assumeNonnegative whether to restrict the cone to the nonnegative
+   * orthant (the arith-liastar-assume-nonnegative option); when false every
+   * coordinate is sign-unrestricted, since int.star-contains does not itself
+   * constrain the sign of the summands: the lambda under the star does
+   * @param stats optional statistics collector, may be nullptr
+   * @return the computed cone
+   */
+  static libnormaliz::Cone<Integer> buildCone(
+      size_t dimension,
+      const std::vector<std::string>& constraints,
+      bool assumeNonnegative,
+      LiaStarStatistics* stats = nullptr);
+
+  /**
+   * Whether a cone computed by buildCone has no integer points. A polyhedron
+   * has integer points exactly when it has module generators; its affine
+   * dimension does not tell, since (and (= x (* 2 z)) (= x (+ (* 2 w) 1)))
+   * has rational points but no integer points. A homogeneous cone always
+   * contains the origin.
+   *
+   * @param cone a cone computed by buildCone
+   * @return true if `cone` has no integer points
+   */
+  static bool isEmptyCone(libnormaliz::Cone<Integer>& cone);
+
+  /**
+   * Normaliz's getHilbertBasis() only covers the pointed part of a cone: for
+   * a cone containing a line, e.g. the one of (= (+ x y) 2) whose maximal
+   * subspace is spanned by (1, -1), the nonnegative combinations of its
+   * Hilbert basis miss lattice points. The basis of the maximal subspace is
+   * appended to complete it. A direction of the maximal subspace can be used
+   * both ways, so its multiplier is unrestricted in sign. Appending m and -m
+   * instead would also be correct, but gives every point infinitely many
+   * representations, which the arithmetic search then has to enumerate.
+   *
+   * @param cone a cone whose HilbertBasis and MaximalSubspace are computed
+   * @param numPointed set to the number of leading vectors that come from
+   * getHilbertBasis() and so take nonnegative multipliers
+   * @return the Hilbert basis followed by the basis of the maximal subspace,
+   * which is just the Hilbert basis for a pointed cone
+   */
+  static std::vector<std::vector<Integer>> getHilbertBasisWithLineality(
+      libnormaliz::Cone<Integer>& cone, size_t& numPointed);
+
+  /**
+   * Check the incremental subsolver `smte` (which must already have the
+   * membership predicate, and the negations of any previously discovered
+   * cone-disjuncts, asserted) and read its model to build one disjunct (cell)
+   * of the predicate's satisfying region: a conjunction that fixes every atom
+   * of `assertion` to its model truth value (splitting a false integer
+   * equality into the strict inequality the model satisfies).
+   *
+   * @param assertion the (skolem-space) predicate, used only to enumerate the
+   * atoms read from the model; it is not asserted here
+   * @param from the lambda's bound variables
+   * @param to the skolem constants substituted for them; the returned
+   * disjunct is mapped back from `to` to `from` (bound-variable space)
+   * @param e the environment, used for its node manager and options
+   * @param smte the incremental subsolver to check
+   * @return the disjunct, `false` if `smte` is unsat (the predicate is fully
+   * covered), or `true` if it has no atoms
+   */
+  static Node getDisjunct(Node assertion,
+                          const std::vector<Node>& from,
+                          const std::vector<Node>& to,
+                          Env& e,
+                          SolverEngine* smte);
+
+  /**
+   * Build the encoding of one module generator of a cone in terms of fresh
+   * variables. The body is shared between the membership encoding
+   * (`LiaStarExtension::getMembershipDisjuncts`, which existentially binds
+   * `vars`) and the star encoding (`LiaStarExtension::getCones` /
+   * `getStarConstraints`, which assert the constraints at the top level).
+   *
+   * @param dimension the ambient dimension of the cone
+   * @param generator a module generator of the cone (a lattice point), or
+   * the zero vector for a homogeneous cone
+   * @param cone the cone, whose Hilbert basis and maximal subspace are the
+   * rays, see getHilbertBasisWithLineality
+   * @param star whether to build the star encoding (introduce a multiplier
+   * `mu` for `generator` and couple the rays to it) or the plain membership
+   * encoding (use `generator` as a fixed offset, with multiplier 1)
+   * @param useSkolems whether the introduced variables are skolems (asserted
+   * at the top level) or bound variables (to be existentially bound)
+   * @param nm the node manager
+   * @param vars output: the fresh variables introduced (the multiplier `mu`
+   * and the ray multipliers `l_j`)
+   * @param constraints output: the side constraints over `vars`
+   * (non-negativity and, for the star encoding, the coupling constraints)
+   * @param point output: the point `mu * generator` (star) or `generator`
+   * @param rays output: the rays `l_j * h_j`, one per vector h_j of the
+   * Hilbert basis and the maximal subspace
+   */
+  static void getGeneratorBody(size_t dimension,
+                               const std::vector<Integer>& generator,
+                               libnormaliz::Cone<Integer>& cone,
+                               bool star,
+                               bool useSkolems,
+                               NodeManager* nm,
+                               std::vector<Node>& vars,
+                               std::vector<Node>& constraints,
+                               std::vector<Node>& point,
+                               std::vector<std::vector<Node>>& rays);
 
   /**
    * Print, under trace tag liastar-ext-smt, an SMT-LIB query asserting that
@@ -341,6 +521,15 @@ class LiaStarUtils
    * @param after the output of the step
    */
   static void traceEquivalenceCheck(const char* step, Node before, Node after);
+
+  /**
+   * Collect the atomic predicates (leaves of the Boolean structure) of `n`
+   * into `atoms`, in deterministic traversal order, using `visited` to avoid
+   * duplicates.
+   */
+  static void collectAtoms(Node n,
+                           std::vector<Node>& atoms,
+                           std::unordered_set<Node>& visited);
 
  private:
   /**

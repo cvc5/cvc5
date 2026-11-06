@@ -13,6 +13,9 @@ cvc5 1.5.0 prerelease
   membership in a star set. The extension depends on Normaliz, which is
   available in builds configured with `--normaliz` (requires `--gpl`); other
   builds raise a logic exception.
+  By default the extension enumerates the convex cells of the predicate
+  lazily, one per refinement round; `--no-arith-liastar-lazy` computes the
+  full disjunctive normal form up front instead.
 
 - **API**
   * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
