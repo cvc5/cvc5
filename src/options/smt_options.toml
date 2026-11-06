@@ -291,6 +291,14 @@ name   = "SMT Layer"
   help       = "do the ite simplification pass again if repeating simplification"
 
 [[option]]
+  name       = "ppIteLift"
+  category   = "expert"
+  long       = "pp-ite-lift"
+  type       = "bool"
+  default    = "true"
+  help       = "lift if-then-else terms out of equalities and arithmetic comparisons whose other argument is a variable or constant during preprocessing, e.g. (= x (ite c t s)) becomes (ite c (= x t) (= x s))"
+
+[[option]]
   name       = "extRewPrep"
   category   = "expert"
   long       = "ext-rew-prep=MODE"

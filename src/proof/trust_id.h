@@ -59,6 +59,8 @@ enum class TrustId : uint32_t
   PREPROCESS_BV_TO_BOOL,
   /** BoolToBv preprocessing pass */
   PREPROCESS_BOOL_TO_BV,
+  /** IteLift preprocessing pass */
+  PREPROCESS_ITE_LIFT,
   /** Ackermann preprocessing pass */
   PREPROCESS_ACKERMANN,
   PREPROCESS_ACKERMANN_LEMMA,
