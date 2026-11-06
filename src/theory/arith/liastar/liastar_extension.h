@@ -1,7 +1,4 @@
 /******************************************************************************
- * Top contributors (to current version):
- *   Mudathir Mohamed
- *
  * This file is part of the cvc5 project.
  *
  * Copyright (c) 2009-2026 by the authors listed in the file AUTHORS
@@ -198,6 +195,57 @@ class LiaStarExtension : EnvObj
    * @param assertions the vector the literals are appended to
    */
   void getAssertions(std::vector<Node>& assertions);
+
+  /**
+   * Build the "sum constraints" that tie the star vector to the cone
+   * contributions: for each coordinate i,
+   *     vec[i] = sum over all generators of (point[i] + sum over rays of
+   * ray[i]). `lambdas` holds one (point, rays) contribution per module
+   * generator across all cones (as produced by
+   * `LiaStarUtils::getGeneratorBody`); `vec` is the star vector (the v_1 ...
+   * v_n). Returns the n equalities. For a polyhedron Normaliz appends a
+   * homogenizing coordinate to each generator, e.g. the module generator 2 1 1
+   * for (and (>= x 2) (= y 1)); the sums ignore it.
+   */
+  static std::vector<Node> buildSumConstraints(
+      NodeManager* nm,
+      Node zero,
+      const std::vector<Node>& vec,
+      const std::vector<std::pair<Vector, std::vector<Vector>>>& lambdas);
+
+  /**
+   * Trace the cone's Hilbert basis and return its module generators -- the base
+   * lattice points g of the decomposition { g + sum_j l_j h_j } of the cone's
+   * integer points. A purely homogeneous cone, e.g. the one of
+   * (and (>= x y) (>= y 0)), has no module generators; its single base point is
+   * then the origin, so the zero vector is returned instead.
+   */
+  static std::vector<std::vector<Integer>> getConeGenerators(
+      libnormaliz::Cone<Integer>& cone, size_t dimension);
+
+  /**
+   * Emit the preamble of a self-contained SMT-LIB script on the
+   * "liastar-ext-smt" channel: solver options plus a declaration for every star
+   * variable in `variables`, and a non-negativity assertion for each of them
+   * when `assumeNonnegative`, since Normaliz only assumes them to be
+   * nonnegative with --arith-liastar-assume-nonnegative. The queries later
+   * emitted on the same channel (see `LiaStarUtils::traceEquivalenceCheck`)
+   * then form a replayable soundness check of the reduction: every (check-sat)
+   * must answer unsat.
+   */
+  static void traceSmtPreamble(Node variables, bool assumeNonnegative);
+
+  /**
+   * Emit, on the "liastar-ext-smt" channel, the queries validating the
+   * membership encoding: one query per disjunct asserting it differs from the
+   * predicate cell it encodes, and a final query asserting the whole predicate
+   * (lambda[1]) differs from the disjunction of all membership formulas. All of
+   * them must be unsat when the trace is replayed.
+   */
+  static void traceMembershipValidation(
+      NodeManager* nm,
+      Node lambda,
+      const std::vector<std::pair<Node, Node>>& lia);
 
   /**
    * Convert the body p of a lambda into one Normaliz constraint system per
