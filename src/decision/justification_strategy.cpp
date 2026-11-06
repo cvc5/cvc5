@@ -99,7 +99,15 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
   // while we are trying to satisfy assertions
   do
   {
-    Assert(d_stack.getCurrent() != nullptr);
+    if (d_stack.getCurrent() == nullptr)
+    {
+      // The current assertion is false in the current assignment, see below.
+      // We cannot justify it and leave the decision to the SAT solver until it
+      // backtracks.
+      Assert(d_jcache.lookupValue(d_stack.getCurrentAssertion())
+             == SAT_VALUE_FALSE);
+      return undefSatLiteral;
+    }
     // We get the next justify node, if it can be found.
     do
     {
@@ -121,8 +129,26 @@ SatLiteral JustificationStrategy::getNextInternal(bool& stopSearch)
 
     if (ji == nullptr)
     {
-      // the assertion we just processed should have value true
-      Assert(lastChildVal == SAT_VALUE_TRUE);
+      Assert(lastChildVal != SAT_VALUE_UNKNOWN);
+      if (lastChildVal == SAT_VALUE_FALSE)
+      {
+        // The assertion we just processed is false in the current
+        // assignment, i.e., the assignment cannot be extended to a model,
+        // although the SAT solver is not in conflict. This may happen since
+        // our evaluation of the Boolean structure of the assertion is
+        // stronger than unit propagation on its clausal form, e.g., if the
+        // SAT solver deleted clauses during inprocessing that are implied by
+        // the remaining clauses (vivification in CaDiCaL may delete the
+        // redundant clauses of the Tseitin encoding of ITE). We cannot justify
+        // this assertion and leave the decision to the SAT solver, which will
+        // eventually run into the conflict. In particular, we must not move
+        // on to the next assertion, since we would otherwise report that
+        // all assertions are satisfied. We keep the assertion as the current
+        // assertion with an empty stack until the SAT solver backtracks,
+        // which restores the stack.
+        ++(d_stats.d_numFalseAssertion);
+        return undefSatLiteral;
+      }
       if (!d_currUnderStatus.isNull())
       {
         // notify status if we are watching it
@@ -554,6 +580,17 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool local)
     // we never add theory literals to our assertions lists
     Assert(!isTheoryLiteral(curr));
     currValue = d_jcache.lookupValue(curr);
+    if (currValue == SAT_VALUE_FALSE)
+    {
+      // The assertion is false in the current assignment, although the SAT
+      // solver is not in conflict, see getNextInternal. We make it the current
+      // assertion with an empty stack, i.e., an assertion we cannot justify.
+      d_stack.reset(curr);
+      d_stack.popStack();
+      d_lastDecisionLit = TNode::null();
+      ++(d_stats.d_numFalseAssertion);
+      return true;
+    }
     if (currValue == SAT_VALUE_UNKNOWN)
     {
       // if not already justified, we reset the stack and push to it
@@ -568,7 +605,6 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(bool local)
       }
       return true;
     }
-    // assertions should all be satisfied, otherwise we are in conflict
     Assert(currValue == SAT_VALUE_TRUE);
     if (doWatchStatus)
     {

@@ -20,6 +20,7 @@ JustifyStatistics::JustifyStatistics(StatisticsRegistry& sr)
           sr.registerInt("JustifyStrategy::StatusNoDecision")),
       d_numStatusDecision(sr.registerInt("JustifyStrategy::StatusDecision")),
       d_numStatusBacktrack(sr.registerInt("JustifyStrategy::StatusBacktrack")),
+      d_numFalseAssertion(sr.registerInt("JustifyStrategy::FalseAssertion")),
       d_maxStackSize(sr.registerInt("JustifyStrategy::MaxStackSize")),
       d_maxAssertionsSize(sr.registerInt("JustifyStrategy::MaxAssertionsSize")),
       d_maxSkolemDefsSize(sr.registerInt("JustifyStrategy::MaxSkolemDefsSize")),
