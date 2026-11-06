@@ -83,6 +83,13 @@ if(NOT BUILD_SHARED_LIBS)
   endif()
   set_target_properties(cvc5-bin PROPERTIES INSTALL_RPATH "")
 endif()
+# Link mimalloc first so that its definitions of malloc and friends are used.
+if(USE_MIMALLOC)
+  set_source_files_properties(${MiMalloc_OBJECT}
+    PROPERTIES EXTERNAL_OBJECT TRUE GENERATED TRUE)
+  target_sources(cvc5-bin PRIVATE ${MiMalloc_OBJECT})
+  add_dependencies(cvc5-bin MiMalloc-EP)
+endif()
 target_link_libraries(cvc5-bin PUBLIC cvc5 cvc5parser)
 if(USE_COCOA)
   target_include_directories(cvc5-bin SYSTEM PRIVATE ${CoCoA_INCLUDE_DIR})

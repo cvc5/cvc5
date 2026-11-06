@@ -98,6 +98,7 @@ cvc5 optionally links against the following libraries:
   Kissat             (https://github.com/arminbiere/kissat)
   LibPoly            (https://github.com/SRI-CSL/libpoly)
   libedit            (https://thrysoee.dk/editline)
+  mimalloc           (https://github.com/microsoft/mimalloc)
 
 Linking cvc5 against these libraries does not affect the license terms of the
 cvc5 code.  See the respective projects for copyright and licensing
