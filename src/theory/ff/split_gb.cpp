@@ -455,6 +455,16 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
           Integer val =
               d_enc->cocoaFfToFfVal(CoCoA::ConstantCoeff(normal)).getValue();
 
+          // The bitsum's integer value lies in [0, 2^n). If 2^n > p, that
+          // value can exceed p, so `bitsum = k (mod p)` does not determine
+          // its bits: skip bit propagation for this bitsum.
+          if (bitsum.getNumChildren() >= d_enc->size().d_val.length())
+          {
+            Trace("ffl::bitprop")
+                << " constant bitsum may wrap around: " << bitsum << std::endl;
+            break;
+          }
+
           if (val >= Integer(2).pow(bitsum.getNumChildren()))
           {
             output.clear();
@@ -499,7 +509,7 @@ Polys BitProp::getBitEqualities(const SplitGb& splitBasis)
             << " (= " << a << "\n    " << b << ")" << std::endl;
         size_t min = std::min(a.getNumChildren(), b.getNumChildren());
         size_t max = std::max(a.getNumChildren(), b.getNumChildren());
-        if (max > d_enc->size().d_val.length())
+        if (max >= d_enc->size().d_val.length())
         {
           Trace("ffl::bitprop") << " bitsum overflow" << std::endl;
           continue;
