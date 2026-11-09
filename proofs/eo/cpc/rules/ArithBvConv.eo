@@ -4,6 +4,22 @@
 (include "../programs/Utils.eo")
 (include "../programs/Nary.eo")
 
+; rule: ubv_to_int_range
+; implements: ProofRule::UBV_TO_INT_RANGE
+; args:
+; - t Int: The ubv_to_int term to compute the range constraint for.
+; conclusion: >
+;   The range constraint for t, namely that it is greater than or equal to
+;   zero and less than two to the power of the bitwidth of the argument of t.
+(declare-rule ubv_to_int_range ((n Int) (b (BitVec n)))
+  :args ((ubv_to_int b))
+  :conclusion
+    (eo::define ((w ($bv_bitwidth (eo::typeof b))))
+      (and (<= 0 (ubv_to_int b))
+        (<= (ubv_to_int b) ($arith_eval_int_pow_2 w))))
+)
+
+;;-------------------- Instances of THEORY_REWRITE
 ;;;;; ProofRewriteRule::UBV_TO_INT_ELIM
 ; program: $abconv_ubv_to_int_elim
 ; args:
