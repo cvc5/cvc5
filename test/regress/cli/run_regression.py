@@ -28,9 +28,11 @@ import time
 g_args = None
 
 # For maximum reliability, we get a fully qualified path for the executable.
+# Bash is only needed to run shell commands (e.g., scrubbers). Executables
+# given as a list of arguments are run directly, without a shell: spawning a
+# shell for every process is expensive on some platforms (e.g., MSYS2 bash on
+# Windows).
 bash_bin = shutil.which("bash")
-if bash_bin is None:
-    raise FileNotFoundError("Bash executable is required but not found.")
 
 class Color:
     BLUE = "\033[94m"
@@ -723,23 +725,29 @@ def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
     arguments to execute, `cwd` is the working directory and `s_input` is the
     input to be sent to the process over stdin. If `args` is a list, the
-    arguments are escaped and concatenated. If `args` is a string, it is
-    executed as-is (without additional escaping. Returns the output, the error
-    output and the exit code of the process. If the process times out, the
-    output and the error output are empty and the exit code is 124."""
+    executable is run directly (without a shell). If `args` is a string, it is
+    executed as-is by bash (without additional escaping). Returns the output,
+    the error output and the exit code of the process. If the process times
+    out, the output and the error output are empty and the exit code is 124."""
 
-    cmd = " ".join([shlex.quote(a)
-                    for a in args]) if isinstance(args, list) else args
-    print("  $ {}".format(str(cmd)))
+    if isinstance(args, list):
+        print("  $ {}".format(" ".join([shlex.quote(a) for a in args])))
+        popen_args = args
+    else:
+        print("  $ {}".format(args))
+        if bash_bin is None:
+            raise FileNotFoundError(
+                "Bash executable is required but not found.")
+        # Instead of setting shell=True, we explicitly call bash. Using
+        # shell=True seems to produce different exit codes on different
+        # platforms under certain circumstances.
+        popen_args = [bash_bin, "-c", args]
     out = bytes()
     err = bytes()
     exit_status = STATUS_TIMEOUT
     try:
-        # Instead of setting shell=True, we explicitly call bash. Using
-        # shell=True seems to produce different exit codes on different
-        # platforms under certain circumstances.
         res = subprocess.run(
-            [bash_bin,"-c", cmd],
+            popen_args,
             cwd=cwd,
             input=s_input,
             timeout=timeout,
@@ -749,6 +757,10 @@ def run_process(args, cwd, timeout, s_input=None):
         out = res.stdout
         err = res.stderr
         exit_status = res.returncode
+        # A process terminated by signal N has a negative return code -N.
+        # Report it as 128 + N, as a shell would.
+        if exit_status < 0:
+            exit_status = 128 - exit_status
     except subprocess.TimeoutExpired:
         exit_status = STATUS_TIMEOUT
 
