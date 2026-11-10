@@ -96,6 +96,12 @@ const std::vector<Poly>& GBasisTimeout(const CoCoA::ideal& ideal,
   {
     return CoCoA::GBasis(ideal);
   }
+  // a GB computation cannot be interrupted by a termination request, so do not
+  // start one if termination has been requested
+  if (rm->terminationRequested())
+  {
+    throw FfTimeoutException("GBasis");
+  }
   double sec = static_cast<double>(rm->getRemainingTime()) / 1e3;
   Trace("ff::gb") << "Computing a GB; limit " << sec << "s" << std::endl;
   try
