@@ -15,6 +15,7 @@ Runs benchmark and checks for correct exit status and output.
 import argparse
 import collections
 import difflib
+import json
 import os
 import re
 import shlex
@@ -767,17 +768,74 @@ def run_process(args, cwd, timeout, s_input=None):
     return out, err, exit_status
 
 
+def binary_cache_key(cvc5_binary):
+    """Returns a key that identifies the current version of the binary
+    `cvc5_binary`."""
+    st = os.stat(cvc5_binary)
+    return [os.path.abspath(cvc5_binary), st.st_size, st.st_mtime_ns]
+
+
+def read_show_config_cache(cache_file, cvc5_binary):
+    """Returns the output of `cvc5_binary --show-config` stored in
+    `cache_file`, or None if there is no valid entry for the binary."""
+    try:
+        with open(cache_file, "r") as f:
+            cache = json.load(f)
+        if cache["key"] == binary_cache_key(cvc5_binary):
+            return cache["output"]
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return None
+
+
+def write_show_config_cache(cache_file, cvc5_binary, output):
+    """Stores the output of `cvc5_binary --show-config` in `cache_file`. The
+    file is replaced atomically, since regressions run in parallel. Errors
+    are ignored: the cache is only an optimization."""
+    tmp_name = None
+    try:
+        cache = {"key": binary_cache_key(cvc5_binary), "output": output}
+        with tempfile.NamedTemporaryFile("w",
+                                         dir=os.path.dirname(cache_file),
+                                         prefix=".show-config-",
+                                         delete=False) as f:
+            tmp_name = f.name
+            json.dump(cache, f)
+        os.replace(tmp_name, cache_file)
+        tmp_name = None
+    except OSError:
+        pass
+    finally:
+        if tmp_name is not None:
+            try:
+                os.remove(tmp_name)
+            except OSError:
+                pass
+
+
 def get_cvc5_features(cvc5_binary, timeout):
-    """Returns a list of features supported by the cvc5 binary `cvc5_binary`."""
+    """Returns a list of features supported by the cvc5 binary `cvc5_binary`.
+    If a cache file is given with --cvc5-config-cache, the output of
+    `cvc5 --show-config` is read from it when it is valid for the binary,
+    which saves starting a process for every regression."""
 
-    output, error, exit_status = run_process([cvc5_binary, "--show-config"],
-                                             None, timeout)
-    if is_timeout(exit_status, output, error):
-        print_error("Timeout")
-        return None, None
+    cache_file = g_args.cvc5_config_cache if g_args else None
+    output = None
+    if cache_file:
+        output = read_show_config_cache(cache_file, cvc5_binary)
 
-    if isinstance(output, bytes):
-        output = output.decode()
+    if output is None:
+        output, error, exit_status = run_process(
+            [cvc5_binary, "--show-config"], None, timeout)
+        if is_timeout(exit_status, output, error):
+            print_error("Timeout")
+            return None, None
+
+        if isinstance(output, bytes):
+            output = output.decode()
+
+        if cache_file and exit_status == 0:
+            write_show_config_cache(cache_file, cvc5_binary, output)
 
     features = []
     disabled_features = []
@@ -1094,6 +1152,8 @@ def main():
     parser.add_argument("--ethos-binary", default="")
     parser.add_argument("--logos-binary", default="")
     parser.add_argument("--cpc-sig-dir", default="")
+    parser.add_argument("--cvc5-config-cache", default="",
+                        help="file to cache the output of `cvc5 --show-config`")
     parser.add_argument("wrapper", nargs="*")
     parser.add_argument("cvc5_binary")
     parser.add_argument("benchmark")
