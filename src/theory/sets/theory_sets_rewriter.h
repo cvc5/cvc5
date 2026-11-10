@@ -156,7 +156,7 @@ class TheorySetsRewriter : public TheoryRewriter
   /**
    *  rewrites for n include:
    *  - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
-   *          (rel.singleton (as set.empty (Relation T) ))
+   *          (as set.empty (Set (Relation T)))
    *  - ((_ rel.group n1 ... nk) (set.singleton x)) =
    *          (set.singleton (set.singleton x))
    *  - Evaluation of ((_ rel.group n1 ... nk) A) when A is a constant

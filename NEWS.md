@@ -14,6 +14,14 @@ cvc5 1.5.0 prerelease
   available in builds configured with `--normaliz` (requires `--gpl`); other
   builds raise a logic exception.
 
+- **Bags, sets and relations**: `table.group` and `rel.group` of an empty table
+  or relation are now empty, since the parts of a partition are not empty;
+  before, they were a single empty part. So `table.aggr` and `rel.aggr` of an
+  empty table or relation are now empty, as SQL's `GROUP BY` gives no rows for
+  an empty table. SQL's aggregate without `GROUP BY`, one row also for an
+  empty table, is `(bag (bag.fold f i A) 1)`.
+  **Note**: this is a breaking change.
+
 - **API**
   * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
     (Java, Python) for creating SyGuS grammars. A grammar is associated with
