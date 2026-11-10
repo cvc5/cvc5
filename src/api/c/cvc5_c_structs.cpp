@@ -721,7 +721,7 @@ std::string Cvc5::PluginCpp::getName()
   return d_plugin->get_name();
 }
 
-bool Cvc5::TerminatorCpp::terminate()
+bool Cvc5::TerminatorCpp::terminate() noexcept
 {
   Assert(d_terminate);
   return d_terminate(d_state);

@@ -27,7 +27,7 @@ void ApiTerminator::release(JNIEnv* env)
   d_terminator = nullptr;
 }
 
-bool ApiTerminator::terminate()
+bool ApiTerminator::terminate() noexcept
 {
   JNIEnv* env = getEnv(d_vm);
   jobject terminator = env->NewLocalRef(d_terminator);

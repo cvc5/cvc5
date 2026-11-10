@@ -28,7 +28,7 @@ class PyTerminator : public Terminator
    * @param obj The Python Terminator object, which owns this object.
    */
   PyTerminator(PyObject* obj);
-  bool terminate() override;
+  bool terminate() noexcept override;
 
  private:
   /** The Python Terminator object (borrowed reference). */

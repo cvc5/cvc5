@@ -3676,7 +3676,9 @@ class CVC5_EXPORT Plugin
  * keeps returning true, subsequent queries are terminated immediately.
  *
  * Function terminate() is called frequently from the thread that executes the
- * query, and must thus be cheap to evaluate and must not throw. To terminate
+ * query, and must thus be cheap to evaluate. It is declared `noexcept`, since
+ * it is called from code that is not exception-safe (e.g., the SAT solvers):
+ * an exception that escapes it terminates the program. To terminate
  * a query from another thread, terminate() can, e.g., check a flag of type
  * `std::atomic<bool>` that is set by that thread.
  *
@@ -3691,7 +3693,7 @@ class CVC5_EXPORT Terminator
    * connected to should be terminated.
    * @return True to terminate the current query.
    */
-  virtual bool terminate() = 0;
+  virtual bool terminate() noexcept = 0;
 };
 
 /* -------------------------------------------------------------------------- */

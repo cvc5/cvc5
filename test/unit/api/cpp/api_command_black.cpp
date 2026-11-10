@@ -69,7 +69,7 @@ TEST_F(TestApiBlackCommand, invokeResetTerminator)
   class TerminatorAlways : public Terminator
   {
    public:
-    bool terminate() override { return true; }
+    bool terminate() noexcept override { return true; }
   };
   TerminatorAlways t;
   d_solver->setTerminator(&t);

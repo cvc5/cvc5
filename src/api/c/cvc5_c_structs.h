@@ -793,7 +793,7 @@ struct CVC5_EXPORT Cvc5
         : d_state(state), d_terminate(fun)
     {
     }
-    bool terminate() override;
+    bool terminate() noexcept override;
 
    private:
     /** The state data passed to the terminator. */

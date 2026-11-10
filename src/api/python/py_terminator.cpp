@@ -28,7 +28,7 @@ PyTerminator::PyTerminator(PyObject* obj) : d_obj(obj)
   }
 }
 
-bool PyTerminator::terminate()
+bool PyTerminator::terminate() noexcept
 {
   PyGILState_STATE state = PyGILState_Ensure();
   // Does not raise, exceptions are stored in the Python object.

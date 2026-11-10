@@ -35,7 +35,7 @@ class ApiTerminator : public cvc5::Terminator
    * @param env The JNI environment.
    */
   void release(JNIEnv* env);
-  bool terminate() override;
+  bool terminate() noexcept override;
 
  private:
   /** The Java VM, to get the JNI environment of the thread of the query. */

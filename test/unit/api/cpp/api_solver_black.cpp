@@ -2701,7 +2701,7 @@ class TerminatorAt : public Terminator
    * @param once If true, termination is only requested on the n-th call.
    */
   TerminatorAt(uint64_t n, bool once = false) : d_n(n), d_once(once) {}
-  bool terminate() override
+  bool terminate() noexcept override
   {
     ++d_calls;
     return d_once ? d_calls == d_n : d_calls >= d_n;
@@ -2718,7 +2718,7 @@ class TerminatorAt : public Terminator
 class TerminatorFlag : public Terminator
 {
  public:
-  bool terminate() override
+  bool terminate() noexcept override
   {
     d_polled.store(true);
     return d_terminate.load();
