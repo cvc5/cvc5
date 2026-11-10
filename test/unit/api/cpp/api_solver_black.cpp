@@ -2946,6 +2946,28 @@ TEST_F(TestApiBlackSolver, terminatorFindSynth)
   ASSERT_FALSE(d_solver->findSynth(modes::FindSynthTarget::ENUM, g).isNull());
 }
 
+TEST_F(TestApiBlackSolver, terminatorCallException)
+{
+  d_solver->setOption("produce-unsat-cores", "true");
+  d_solver->setOption("minimal-unsat-cores", "true");
+  Term zero = d_tm.mkInteger(0);
+  Term x = d_tm.mkConst(d_int, "x");
+  Term y = d_tm.mkConst(d_int, "y");
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {y, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {x, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::LT, {x, zero}));
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  TerminatorAt t(1);
+  d_solver->setTerminator(&t);
+  // the call is ended even if it is left via an exception
+  ASSERT_THROW(d_solver->findSynthNext(), CVC5ApiException);
+  ASSERT_EQ(t.d_calls, 0);
+  // the terminator is thus not called outside of queries, i.e., not while
+  // minimizing the unsat core with subsolvers
+  ASSERT_EQ(d_solver->getUnsatCore().size(), 2);
+  ASSERT_EQ(t.d_calls, 0);
+}
+
 TEST_F(TestApiBlackSolver, verticalBars)
 {
   Term a = d_solver->declareFun("|a |", {}, d_real);
