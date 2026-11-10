@@ -4867,6 +4867,25 @@ endif()
 set(cvc5_config_cache ${CMAKE_CURRENT_BINARY_DIR}/cvc5-show-config.json)
 file(REMOVE ${cvc5_config_cache})
 
+# run_regression.py only uses the Python standard library, so we run it with
+# the base Python interpreter instead of the one of the virtual environment (if
+# any): on Windows, the python executable of a virtual environment is a
+# launcher that starts the base interpreter as a separate process, which is
+# expensive since the script is run for every regression. We ask the base
+# interpreter for the path of its executable because Python_BASE_EXECUTABLE
+# may be a wrapper (e.g., a pyenv shim is a shell script that takes ~100 ms
+# to start).
+execute_process(
+  COMMAND "${Python_BASE_EXECUTABLE}" -c "import sys; print(sys.executable)"
+  OUTPUT_VARIABLE regress_python
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE regress_python_res)
+if(regress_python_res OR NOT EXISTS "${regress_python}")
+  set(regress_python "${Python_EXECUTABLE}")
+endif()
+file(TO_CMAKE_PATH "${regress_python}" regress_python)
+message(STATUS "Python interpreter for regressions: ${regress_python}")
+
 set(regress_test_env CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1)
 if(CVC5_TEST_ENV)
   list(APPEND regress_test_env "${CVC5_TEST_ENV}")
@@ -4881,7 +4900,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
-    ${Python_EXECUTABLE}
+    ${regress_python}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
