@@ -12,12 +12,24 @@
 
 #include "preprocessing/passes/ite_lift.h"
 
+#include <unordered_set>
+
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 
 namespace cvc5::internal {
 namespace preprocessing {
 namespace passes {
+
+namespace {
+
+/**
+ * The maximum number of distinct nodes in the if-then-else tree of a term that
+ * we lift, see IteLift::isSmallIteTree.
+ */
+constexpr size_t kMaxIteTreeSize = 32;
+
+}  // namespace
 
 IteLift::IteLift(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ite-lift")
@@ -94,11 +106,17 @@ Node IteLift::liftAtom(const Node& n)
   {
     return n;
   }
+  std::unordered_map<Node, Node>::iterator it = d_liftCache.find(n);
+  if (it != d_liftCache.end())
+  {
+    return it->second;
+  }
+  Node ret = n;
   for (size_t i = 0; i < 2; i++)
   {
     const Node& other = n[1 - i];
     if (n[i].getKind() == Kind::ITE && (other.isVar() || other.isConst())
-        && !other.getType().isBoolean())
+        && !other.getType().isBoolean() && isSmallIteTree(n[i]))
     {
       // P(x, ite(c, t, s)) ---> ite(c, P(x, t), P(x, s)), where P(x, t) and
       // P(x, s) are lifted recursively
@@ -120,11 +138,40 @@ Node IteLift::liftAtom(const Node& n)
         d_tpg->addRewriteStep(
             n, lifted, nullptr, false, TrustId::PREPROCESS_ITE_LIFT);
       }
-      return nm->mkNode(
-          Kind::ITE, n[i][0], liftedBranches[0], liftedBranches[1]);
+      ret =
+          nm->mkNode(Kind::ITE, n[i][0], liftedBranches[0], liftedBranches[1]);
+      break;
     }
   }
-  return n;
+  d_liftCache[n] = ret;
+  return ret;
+}
+
+bool IteLift::isSmallIteTree(TNode t) const
+{
+  // count the distinct nodes reachable from t via branches of if-then-else
+  // terms, which bounds the number of atoms introduced by lifting
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit{t};
+  while (!visit.empty())
+  {
+    TNode cur = visit.back();
+    visit.pop_back();
+    if (!visited.insert(cur).second)
+    {
+      continue;
+    }
+    if (visited.size() > kMaxIteTreeSize)
+    {
+      return false;
+    }
+    if (cur.getKind() == Kind::ITE)
+    {
+      visit.push_back(cur[1]);
+      visit.push_back(cur[2]);
+    }
+  }
+  return true;
 }
 
 }  // namespace passes

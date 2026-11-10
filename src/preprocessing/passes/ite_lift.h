@@ -50,15 +50,28 @@ class IteLift : public PreprocessingPass
   /**
    * Lift if-then-else terms out of n if it is an equality or arithmetic
    * comparison whose other argument is a variable or constant. Returns n
-   * otherwise. If proofs
-   * are enabled, this records a rewrite step for each single lifting step.
+   * otherwise. If proofs are enabled, this records a rewrite step for each
+   * single lifting step.
    */
   Node liftAtom(const Node& n);
+  /**
+   * Whether the if-then-else tree of t is small enough for lifting, i.e. the
+   * number of distinct nodes reachable from t via branches of if-then-else
+   * terms is bounded. Lifting larger trees, e.g. ones with shared subterms in
+   * large if-then-else DAGs, may introduce too many atoms.
+   */
+  bool isSmallIteTree(TNode t) const;
   /** Cache for convert */
   std::unordered_map<Node, Node> d_cache;
   /**
+   * Cache for liftAtom. This is required since if-then-else terms may share
+   * subterms, in which case lifting without a cache takes time exponential in
+   * the nesting depth.
+   */
+  std::unordered_map<Node, Node> d_liftCache;
+  /**
    * The term conversion proof generator, if proofs are enabled. It is not
-   * user-context dependent, since the cache above is not either.
+   * user-context dependent, since the caches above are not either.
    */
   std::unique_ptr<TConvProofGenerator> d_tpg;
 };
