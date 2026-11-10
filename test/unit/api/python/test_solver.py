@@ -2508,6 +2508,26 @@ def test_terminator_exception_command(tm, solver):
     assert t.calls > 0
 
 
+def test_terminator_shared(tm, solver):
+    # a terminator can be connected to several solvers, its exceptions are
+    # re-raised by the query that called it
+    t = TerminatorRaise(ValueError("terminate"))
+    solver2 = cvc5.Solver(tm)
+    solver.setTerminator(t)
+    solver2.setTerminator(t)
+    with pytest.raises(ValueError, match="terminate"):
+        solver.checkSat()
+    with pytest.raises(ValueError, match="terminate"):
+        solver2.checkSat()
+    # the exceptions do not affect subsequent queries
+    solver.setTerminator(None)
+    assert solver.checkSat().isSat()
+    t2 = TerminatorFlag()
+    solver2.setTerminator(t2)
+    assert solver2.checkSat().isSat()
+    assert t2.calls > 0
+
+
 def test_terminator_thread(tm, solver):
     class TerminatorEvent(Terminator):
         def __init__(self):

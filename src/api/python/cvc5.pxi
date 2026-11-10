@@ -2300,18 +2300,6 @@ cdef class Terminator:
 
             This class is experimental and may change in future versions.
     """
-    cdef c_PyTerminator* cterminator
-    # The exception raised by terminate(), if any.
-    cdef object exception
-
-    # Allow subclasses to define __init__ with arbitrary arguments
-    def __cinit__(self, *args, **kwargs):
-        self.cterminator = new c_PyTerminator(<cpy_ref.PyObject*>self)
-        self.exception = None
-
-    def __dealloc__(self):
-        del self.cterminator
-
     def terminate(self):
         """
             Determine whether the current query of the solver this terminator
@@ -2320,6 +2308,26 @@ cdef class Terminator:
             :return: True to terminate the current query.
         """
         raise NotImplementedError
+
+
+cdef class _TerminatorConnection:
+    """
+        The connection of a terminator to a solver, created by
+        :py:meth:`Solver.setTerminator()`. Stores the exception raised by the
+        terminator during a query of that solver until the query returns.
+    """
+    cdef c_PyTerminator* cterminator
+    cdef Terminator terminator
+    # The exception raised by terminate(), if any.
+    cdef object exception
+
+    def __cinit__(self, Terminator terminator not None):
+        self.cterminator = new c_PyTerminator(<cpy_ref.PyObject*>self)
+        self.terminator = terminator
+        self.exception = None
+
+    def __dealloc__(self):
+        del self.cterminator
 
 
 # ----------------------------------------------------------------------------
@@ -2334,8 +2342,8 @@ cdef class Solver:
     """
     cdef c_Solver* csolver
     cdef TermManager tm
-    # The connected terminator, kept alive while connected.
-    cdef Terminator terminator
+    # The connection of the connected terminator, kept alive while connected.
+    cdef _TerminatorConnection terminator
 
     def __cinit__(self, TermManager tm = None):
         if not tm:
@@ -4603,11 +4611,14 @@ cdef class Solver:
             :param t: The terminator to connect, or None to disconnect the
                       currently connected terminator.
         """
+        cdef _TerminatorConnection c = None
         if t is None:
             self.csolver.setTerminator(NULL)
         else:
-            self.csolver.setTerminator(<c_Terminator*> t.cterminator)
-        self.terminator = t
+            c = _TerminatorConnection(t)
+            self.csolver.setTerminator(<c_Terminator*> c.cterminator)
+        # releases the previous connection, after it was disconnected
+        self.terminator = c
 
     cdef _checkTerminator(self, result):
         """
@@ -4618,10 +4629,10 @@ cdef class Solver:
             :param result: The result of the last query.
             :return: The result of the last query.
         """
-        cdef Terminator t = self.terminator
-        if t is not None and t.exception is not None:
-            e = t.exception
-            t.exception = None
+        cdef _TerminatorConnection c = self.terminator
+        if c is not None and c.exception is not None:
+            e = c.exception
+            c.exception = None
             raise e
         return result
 
@@ -6392,12 +6403,12 @@ cdef class Proof:
 
 cdef public api:
     bint cy_call_terminate(object self) noexcept:
-        cdef Terminator t = <Terminator> self
+        cdef _TerminatorConnection c = <_TerminatorConnection> self
         try:
-            return bool(t.terminate())
+            return bool(c.terminator.terminate())
         except BaseException as e:
             # terminate the query, the exception is re-raised by the solver
-            t.exception = e
+            c.exception = e
             return True
 
     string cy_call_string_func(object self, string method, string *error):
