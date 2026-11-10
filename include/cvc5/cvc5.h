@@ -6126,7 +6126,10 @@ class CVC5_EXPORT Solver
    * of assertions corresponds to a subset of the current assertions that cause
    * a timeout in the specified time :ref:`timeout-core-timeout
    * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list
-   * of formulas correspond to an unsat core for the current assertions.
+   * of formulas correspond to an unsat core for the current assertions. If the
+   * computation was terminated by the connected terminator, the result is
+   * unknown with explanation UnknownExplanation::INTERRUPTED, and the
+   * returned set of assertions is empty.
    * Otherwise, the result is sat, indicating that the current assertions are
    * satisfiable, and the returned set of assertions is empty.
    * \endverbatim
@@ -6159,7 +6162,10 @@ class CVC5_EXPORT Solver
    * timeout when added to the current assertions in the specified time
    * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the
    * result is unsat, then the set of assumptions together with the current
-   * assertions correspond to an unsat core for the current assertions.
+   * assertions correspond to an unsat core for the current assertions. If the
+   * computation was terminated by the connected terminator, the result is
+   * unknown with explanation UnknownExplanation::INTERRUPTED, and the
+   * returned set of assumptions is empty.
    * Otherwise, the result is sat, indicating that the given assumptions plus
    * the current assertions are satisfiable, and the returned set of
    * assumptions is empty.

@@ -279,6 +279,8 @@ Result TimeoutCoreManager::checkSatNext(const std::vector<Node>& nextAssertions,
   if (result.getStatus() == Result::UNKNOWN
       && result.getUnknownExplanation() == UnknownExplanation::INTERRUPTED)
   {
+    // core is discarded if we were interrupted
+    d_ainfo.clear();
     Trace("smt-to-core") << "...return, INTERRUPTED" << std::endl;
     return result;
   }

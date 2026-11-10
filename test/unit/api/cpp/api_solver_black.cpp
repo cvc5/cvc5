@@ -2888,6 +2888,31 @@ TEST_F(TestApiBlackSolver, terminatorTimeoutCore)
   std::pair<cvc5::Result, std::vector<Term>> res = d_solver->getTimeoutCore();
   ASSERT_TRUE(res.first.isUnknown());
   ASSERT_EQ(res.first.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+  ASSERT_TRUE(res.second.empty());
+}
+
+TEST_F(TestApiBlackSolver, terminatorTimeoutCoreLater)
+{
+  // terminate in later subsolver calls, after the first assertions have been
+  // included in the timeout core, which are then discarded
+  bool interrupted = false;
+  for (uint64_t n = 2; n <= 10; ++n)
+  {
+    cvc5::Solver solver(d_tm);
+    solver.setOption("produce-unsat-cores", "true");
+    assertPigeonHole(d_tm, solver, 4);
+    TerminatorAt t(n);
+    solver.setTerminator(&t);
+    std::pair<cvc5::Result, std::vector<Term>> res = solver.getTimeoutCore();
+    if (res.first.isUnknown())
+    {
+      ASSERT_EQ(res.first.getUnknownExplanation(),
+                UnknownExplanation::INTERRUPTED);
+      ASSERT_TRUE(res.second.empty());
+      interrupted = true;
+    }
+  }
+  ASSERT_TRUE(interrupted);
 }
 
 TEST_F(TestApiBlackSolver, terminatorOutsideQuery)

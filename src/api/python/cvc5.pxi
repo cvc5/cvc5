@@ -4260,9 +4260,12 @@ cdef class Solver:
                      specified time
                      :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
                      If the result is unsat, then the list of formulas correspond to an
-                     unsat core for the current assertions. Otherwise, the result is sat,
-                     indicating that the current assertions are satisfiable, and
-                     the list of formulas is empty.
+                     unsat core for the current assertions. If the computation was
+                     terminated by the connected terminator, the result is unknown with
+                     explanation :py:obj:`UnknownExplanation.INTERRUPTED`, and the list
+                     of formulas is empty. Otherwise, the result is sat, indicating that
+                     the current assertions are satisfiable, and the list of formulas
+                     is empty.
         """
         cdef pair[c_Result, vector[c_Term]] res
         res = self.csolver.getTimeoutCore()
@@ -4300,8 +4303,12 @@ cdef class Solver:
                      :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
                      If the result is unsat, then the list of formulas plus the current
                      assertions correspond to an unsat core for the current assertions.
-                     Otherwise, the result is sat, indicating that the given assumptions plus
-                     the current assertions are satisfiable, and the list of formulas is empty.
+                     If the computation was terminated by the connected terminator, the
+                     result is unknown with explanation
+                     :py:obj:`UnknownExplanation.INTERRUPTED`, and the list of formulas
+                     is empty. Otherwise, the result is sat, indicating that the given
+                     assumptions plus the current assertions are satisfiable, and the
+                     list of formulas is empty.
         """
         cdef vector[c_Term] v
         for a in assumptions:
