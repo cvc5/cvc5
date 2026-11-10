@@ -4859,6 +4859,19 @@ endif()
 # add_test(build_regress_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
 # set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
+# The output of `cvc5 --show-config` (the features of the binary) is cached
+# in this file so that it is not computed again for every regression. The
+# cache is keyed on the cvc5 binary; it is also removed whenever CMake
+# reconfigures, since the configuration may change without the binary being
+# relinked (e.g., when only the shared library changes).
+set(cvc5_config_cache ${CMAKE_CURRENT_BINARY_DIR}/cvc5-show-config.json)
+file(REMOVE ${cvc5_config_cache})
+
+set(regress_test_env CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1)
+if(CVC5_TEST_ENV)
+  list(APPEND regress_test_env "${CVC5_TEST_ENV}")
+endif()
+
 macro(cvc5_add_regression_test level file)
   set(wrapper )
   if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -4868,7 +4881,6 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
-    ${ENV_PATH_CMD}
     ${Python_EXECUTABLE}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
@@ -4877,6 +4889,7 @@ macro(cvc5_add_regression_test level file)
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
     --logos-binary ${PROJECT_SOURCE_DIR}/deps/bin/logos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
+    --cvc5-config-cache ${cvc5_config_cache}
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
@@ -4887,7 +4900,7 @@ macro(cvc5_add_regression_test level file)
     LABELS "regress${level}"
     SKIP_RETURN_CODE 77
     TIMEOUT_AFTER_MATCH "1;CVC5_REGRESSION_CTEST_TIMEOUT"
-    ENVIRONMENT "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1")
+    ENVIRONMENT "${regress_test_env}")
   # set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
 

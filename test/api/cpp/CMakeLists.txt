@@ -43,8 +43,10 @@ macro(cvc5_add_api_test name dir)
   else()
     set(test_name api/cpp/${dir}/${name})
   endif()
-  add_test(${test_name} ${ENV_PATH_CMD} ${test_bin_dir}/${name})
-  set_tests_properties(${test_name} PROPERTIES LABELS "api cppapi")
+  add_test(${test_name} ${test_bin_dir}/${name})
+  set_tests_properties(${test_name} PROPERTIES
+    LABELS "api cppapi"
+    ENVIRONMENT "${CVC5_TEST_ENV}")
   # set_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_apitests_fixture)
   add_dependencies(build-cppapitests ${name})
 endmacro()
