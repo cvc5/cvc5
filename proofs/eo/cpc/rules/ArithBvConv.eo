@@ -16,7 +16,7 @@
   :conclusion
     (eo::define ((w ($bv_bitwidth (eo::typeof b))))
       (and (<= 0 (ubv_to_int b))
-        (<= (ubv_to_int b) ($arith_eval_int_pow_2 w))))
+        (< (ubv_to_int b) ($arith_eval_int_pow_2 w))))
 )
 
 ;;-------------------- Instances of THEORY_REWRITE
