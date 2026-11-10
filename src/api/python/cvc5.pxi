@@ -308,8 +308,11 @@ cdef class Command:
             :return: A string representation of the result.
         """
         cdef stringstream ss
-        self.cc.invoke(solver.csolver, sm.csm, ss)
-        return solver._checkTerminator(ss.str().decode())
+        try:
+            self.cc.invoke(solver.csolver, sm.csm, ss)
+        finally:
+            solver._checkTerminator()
+        return ss.str().decode()
 
     def getCommandName(self):
         """
@@ -3441,8 +3444,11 @@ cdef class Solver:
                               variables.
             :return: The simplified term.
         """
-        return self._checkTerminator(
-            _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs)))
+        try:
+            return _term(
+                self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
+        finally:
+            self._checkTerminator()
 
     def assertFormula(self, Term term not None):
         """
@@ -3471,8 +3477,11 @@ cdef class Solver:
             :return: The result of the satisfiability check.
         """
         cdef Result r = Result()
-        r.cr = self.csolver.checkSat()
-        return self._checkTerminator(r)
+        try:
+            r.cr = self.csolver.checkSat()
+        finally:
+            self._checkTerminator()
+        return r
 
     def mkGrammar(self, boundVars, ntSymbols):
         """
@@ -3626,8 +3635,11 @@ cdef class Solver:
                      there is no solution, or "unknown" otherwise.
         """
         cdef SynthResult r = SynthResult()
-        r.cr = self.csolver.checkSynth()
-        return self._checkTerminator(r)
+        try:
+            r.cr = self.csolver.checkSynth()
+        finally:
+            self._checkTerminator()
+        return r
 
     def checkSynthNext(self):
         """
@@ -3649,8 +3661,11 @@ cdef class Solver:
                      there is no solution, or "unknown" otherwise.
         """
         cdef SynthResult r = SynthResult()
-        r.cr = self.csolver.checkSynthNext()
-        return self._checkTerminator(r)
+        try:
+            r.cr = self.csolver.checkSynthNext()
+        finally:
+            self._checkTerminator()
+        return r
 
     def getSynthSolution(self, Term term not None):
         """
@@ -3698,12 +3713,19 @@ cdef class Solver:
                      call failed.
         """
         if grammar is None:
-            return self._checkTerminator(_term(
-                self.tm, self.csolver.findSynth(<c_FindSynthTarget> fst.value)))
-        return self._checkTerminator(_term(
-            self.tm,
-            self.csolver.findSynth(
-              <c_FindSynthTarget> fst.value, grammar.cgrammar)))
+            try:
+                return _term(
+                    self.tm,
+                    self.csolver.findSynth(<c_FindSynthTarget> fst.value))
+            finally:
+                self._checkTerminator()
+        try:
+            return _term(
+                self.tm,
+                self.csolver.findSynth(
+                  <c_FindSynthTarget> fst.value, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
     def findSynthNext(self):
         """
@@ -3722,8 +3744,10 @@ cdef class Solver:
             :return: The result of the find, which is the null term if this
                      call failed.
         """
-        return self._checkTerminator(
-            _term(self.tm, self.csolver.findSynthNext()))
+        try:
+            return _term(self.tm, self.csolver.findSynthNext())
+        finally:
+            self._checkTerminator()
 
     def checkSatAssuming(self, *assumptions):
         """
@@ -3743,8 +3767,11 @@ cdef class Solver:
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
-        return self._checkTerminator(r)
+        try:
+            r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        finally:
+            self._checkTerminator()
+        return r
 
     def declareDatatype(self, str symbol, *ctors):
         """
@@ -4276,13 +4303,16 @@ cdef class Solver:
                      is empty.
         """
         cdef pair[c_Result, vector[c_Term]] res
-        res = self.csolver.getTimeoutCore()
+        try:
+            res = self.csolver.getTimeoutCore()
+        finally:
+            self._checkTerminator()
         core = []
         for a in res.second:
             core.append(_term(self.tm, a))
         cdef Result r = Result()
         r.cr = res.first
-        return self._checkTerminator((r, core))
+        return (r, core)
 
     def getTimeoutCoreAssuming(self, *assumptions):
         """
@@ -4322,13 +4352,16 @@ cdef class Solver:
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
         cdef pair[c_Result, vector[c_Term]] res
-        res = self.csolver.getTimeoutCoreAssuming(v)
+        try:
+            res = self.csolver.getTimeoutCoreAssuming(v)
+        finally:
+            self._checkTerminator()
         core = []
         for ac in res.second:
             core.append(_term(self.tm, ac))
         cdef Result r = Result()
         r.cr = res.first
-        return self._checkTerminator((r, core))
+        return (r, core)
 
     def getValue(self, term_or_list):
         """
@@ -4348,8 +4381,11 @@ cdef class Solver:
         """
         if isinstance(term_or_list, list):
             return [self.getValue(t) for t in term_or_list]
-        return self._checkTerminator(_term(
-            self.tm, self.csolver.getValue((<Term> term_or_list).cterm)))
+        try:
+            return _term(
+                self.tm, self.csolver.getValue((<Term> term_or_list).cterm))
+        finally:
+            self._checkTerminator()
 
     def getModelDomainElements(self, Sort s not None):
         """
@@ -4422,8 +4458,11 @@ cdef class Solver:
                      - :math:`\\phi` is quantifier-free formula containing only
                        free constants in :math:`y_1...y_j`.
         """
-        return self._checkTerminator(
-            _term(self.tm, self.csolver.getQuantifierElimination(term.cterm)))
+        try:
+            return _term(
+                self.tm, self.csolver.getQuantifierElimination(term.cterm))
+        finally:
+            self._checkTerminator()
 
     def getQuantifierEliminationDisjunct(self, Term term not None):
         """
@@ -4481,9 +4520,12 @@ cdef class Solver:
                    In either case, we have that :math:`(\\phi \\wedge Q_j)`
                    will eventually be true or false, for some finite :math:`j`.
         """
-        return self._checkTerminator(_term(
-            self.tm,
-            self.csolver.getQuantifierEliminationDisjunct(term.cterm)))
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getQuantifierEliminationDisjunct(term.cterm))
+        finally:
+            self._checkTerminator()
 
     def getModel(self, sorts, consts):
         """
@@ -4620,21 +4662,19 @@ cdef class Solver:
         # releases the previous connection, after it was disconnected
         self.terminator = c
 
-    cdef _checkTerminator(self, result):
+    cdef _checkTerminator(self):
         """
             Re-raise the exception raised by the connected terminator during
             the last query, if any. Must be called by all methods that execute
-            queries.
-
-            :param result: The result of the last query.
-            :return: The result of the last query.
+            queries when the query returns, also if it raised an exception
+            (i.e., in a ``finally`` block). The exception of the terminator
+            then replaces the exception of the query.
         """
         cdef _TerminatorConnection c = self.terminator
         if c is not None and c.exception is not None:
             e = c.exception
             c.exception = None
             raise e
-        return result
 
     def pop(self, nscopes=1):
         """
@@ -4778,11 +4818,16 @@ cdef class Solver:
             :return: The interpolant, if such a term exists.
         """
         if grammar is None:
-            return self._checkTerminator(
-                _term(self.tm, self.csolver.getInterpolant(conj.cterm)))
-        return self._checkTerminator(_term(
-            self.tm,
-            self.csolver.getInterpolant(conj.cterm, grammar.cgrammar)))
+            try:
+                return _term(self.tm, self.csolver.getInterpolant(conj.cterm))
+            finally:
+                self._checkTerminator()
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getInterpolant(conj.cterm, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
 
     def getInterpolantNext(self):
@@ -4812,8 +4857,10 @@ cdef class Solver:
             :param output: The term where the result will be stored.
             :return: True iff an interpolant was found.
         """
-        return self._checkTerminator(
-            _term(self.tm, self.csolver.getInterpolantNext()))
+        try:
+            return _term(self.tm, self.csolver.getInterpolantNext())
+        finally:
+            self._checkTerminator()
 
 
     def getAbduct(self, Term conj not None, Grammar grammar=None):
@@ -4840,11 +4887,16 @@ cdef class Solver:
                      See :cpp:func:`cvc5::Solver::getAbduct` for details.
         """
         if grammar is None:
-            return self._checkTerminator(
-                _term(self.tm, self.csolver.getAbduct(conj.cterm)))
-        return self._checkTerminator(_term(
-            self.tm,
-            self.csolver.getAbduct(conj.cterm, grammar.cgrammar)))
+            try:
+                return _term(self.tm, self.csolver.getAbduct(conj.cterm))
+            finally:
+                self._checkTerminator()
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getAbduct(conj.cterm, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
     def getAbductNext(self):
         """
@@ -4872,8 +4924,10 @@ cdef class Solver:
             :param output: The term where the result will be stored.
             :return: True iff an abduct was found.
         """
-        return self._checkTerminator(
-            _term(self.tm, self.csolver.getAbductNext()))
+        try:
+            return _term(self.tm, self.csolver.getAbductNext())
+        finally:
+            self._checkTerminator()
 
     def blockModel(self, mode):
         """

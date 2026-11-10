@@ -2021,8 +2021,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term simplify(Term t)
   {
-    long termPointer = simplify(getPointer(), t.getPointer());
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = simplify(getPointer(), t.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long simplify(long pointer, long termPointer);
@@ -2042,8 +2049,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term simplify(Term t, boolean applySubs)
   {
-    long termPointer = simplify(getPointer(), t.getPointer(), applySubs);
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = simplify(getPointer(), t.getPointer(), applySubs);
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long simplify(long pointer, long termPointer, boolean applySubs);
@@ -2074,8 +2088,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Result checkSat()
   {
-    long resultPointer = checkSat(getPointer());
-    return checkTerminator(new Result(ctx, resultPointer));
+    try
+    {
+      long resultPointer = checkSat(getPointer());
+      return new Result(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSat(long pointer);
@@ -2092,11 +2113,18 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Result checkSatAssuming(Term assumption)
   {
-    long resultPointer = checkSatAssuming(getPointer(), assumption.getPointer());
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(assumption);
-    return checkTerminator(new Result(ctx, resultPointer));
+    try
+    {
+      long resultPointer = checkSatAssuming(getPointer(), assumption.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(assumption);
+      return new Result(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSatAssuming(long pointer, long assumptionPointer);
@@ -2114,12 +2142,19 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Result checkSatAssuming(Term[] assumptions)
   {
-    long[] pointers = Utils.getPointers(assumptions);
-    long resultPointer = checkSatAssuming(getPointer(), pointers);
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(assumptions);
-    return checkTerminator(new Result(ctx, resultPointer));
+    try
+    {
+      long[] pointers = Utils.getPointers(assumptions);
+      long resultPointer = checkSatAssuming(getPointer(), pointers);
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(assumptions);
+      return new Result(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
@@ -2684,11 +2719,18 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Pair<Result, Term[]> getTimeoutCore()
   {
-    Pair<Long, long[]> pair = getTimeoutCore(getPointer());
-    Result result = new Result(ctx, pair.first);
-    Term[] terms = Utils.getTerms(ctx, pair.second);
-    Pair<Result, Term[]> ret = new Pair<>(result, terms);
-    return checkTerminator(ret);
+    try
+    {
+      Pair<Long, long[]> pair = getTimeoutCore(getPointer());
+      Result result = new Result(ctx, pair.first);
+      Term[] terms = Utils.getTerms(ctx, pair.second);
+      Pair<Result, Term[]> ret = new Pair<>(result, terms);
+      return ret;
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native Pair<Long, long[]> getTimeoutCore(long pointer);
@@ -2724,15 +2766,22 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Pair<Result, Term[]> getTimeoutCoreAssuming(Term[] assumptions)
   {
-    long[] pointers = Utils.getPointers(assumptions);
-    Pair<Long, long[]> pair = getTimeoutCoreAssuming(getPointer(), pointers);
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(assumptions);
-    Result result = new Result(ctx, pair.first);
-    Term[] terms = Utils.getTerms(ctx, pair.second);
-    Pair<Result, Term[]> ret = new Pair<>(result, terms);
-    return checkTerminator(ret);
+    try
+    {
+      long[] pointers = Utils.getPointers(assumptions);
+      Pair<Long, long[]> pair = getTimeoutCoreAssuming(getPointer(), pointers);
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(assumptions);
+      Result result = new Result(ctx, pair.first);
+      Term[] terms = Utils.getTerms(ctx, pair.second);
+      Pair<Result, Term[]> ret = new Pair<>(result, terms);
+      return ret;
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native Pair<Long, long[]> getTimeoutCoreAssuming(long pointer, long[] assumptionPointers);
@@ -2850,8 +2899,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getValue(Term term)
   {
-    long termPointer = getValue(getPointer(), term.getPointer());
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = getValue(getPointer(), term.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -2869,9 +2925,16 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term[] getValue(Term[] terms)
   {
-    long[] pointers = Utils.getPointers(terms);
-    long[] retPointers = getValue(getPointer(), pointers);
-    return checkTerminator(Utils.getTerms(ctx, retPointers));
+    try
+    {
+      long[] pointers = Utils.getPointers(terms);
+      long[] retPointers = getValue(getPointer(), pointers);
+      return Utils.getTerms(ctx, retPointers);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -2970,8 +3033,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getQuantifierElimination(Term q)
   {
-    long termPointer = getQuantifierElimination(getPointer(), q.getPointer());
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = getQuantifierElimination(getPointer(), q.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getQuantifierElimination(long pointer, long qPointer);
@@ -3020,8 +3090,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getQuantifierEliminationDisjunct(Term q)
   {
-    long termPointer = getQuantifierEliminationDisjunct(getPointer(), q.getPointer());
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = getQuantifierEliminationDisjunct(getPointer(), q.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
@@ -3243,12 +3320,11 @@ public class Solver extends AbstractPointer implements AutoCloseable
 
   /**
    * Rethrow the exception thrown by the connected terminator during the last
-   * query, if any. Must be called by all methods that execute queries.
-   *
-   * @param result The result of the last query.
-   * @return The result of the last query.
+   * query, if any. Must be called by all methods that execute queries when the
+   * query returns, also if it threw an exception (i.e., in a finally block).
+   * The exception of the terminator then replaces the exception of the query.
    */
-  <T> T checkTerminator(T result)
+  void checkTerminator()
   {
     TerminatorWrapper wrapper = terminatorWrapper;
     if (wrapper != null && wrapper.exception != null)
@@ -3265,7 +3341,6 @@ public class Solver extends AbstractPointer implements AutoCloseable
       }
       throw new RuntimeException(t);
     }
-    return result;
   }
 
   /**
@@ -3332,11 +3407,18 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getInterpolant(Term conj)
   {
-    long interpolPtr = getInterpolant(getPointer(), conj.getPointer());
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(conj);
-    return checkTerminator(new Term(ctx, interpolPtr));
+    try
+    {
+      long interpolPtr = getInterpolant(getPointer(), conj.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      return new Term(ctx, interpolPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getInterpolant(long pointer, long conjPointer);
@@ -3373,12 +3455,19 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getInterpolant(Term conj, Grammar grammar)
   {
-    long interpolPtr = getInterpolant(getPointer(), conj.getPointer(), grammar.getPointer());
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(conj);
-    Reference.reachabilityFence(grammar);
-    return checkTerminator(new Term(ctx, interpolPtr));
+    try
+    {
+      long interpolPtr = getInterpolant(getPointer(), conj.getPointer(), grammar.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      Reference.reachabilityFence(grammar);
+      return new Term(ctx, interpolPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
@@ -3409,8 +3498,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getInterpolantNext()
   {
-    long interpolPtr = getInterpolantNext(getPointer());
-    return checkTerminator(new Term(ctx, interpolPtr));
+    try
+    {
+      long interpolPtr = getInterpolantNext(getPointer());
+      return new Term(ctx, interpolPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getInterpolantNext(long pointer);
@@ -3434,11 +3530,18 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getAbduct(Term conj)
   {
-    long abdPtr = getAbduct(getPointer(), conj.getPointer());
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(conj);
-    return checkTerminator(new Term(ctx, abdPtr));
+    try
+    {
+      long abdPtr = getAbduct(getPointer(), conj.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      return new Term(ctx, abdPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getAbduct(long pointer, long conjPointer);
@@ -3463,12 +3566,19 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getAbduct(Term conj, Grammar grammar)
   {
-    long abdPtr = getAbduct(getPointer(), conj.getPointer(), grammar.getPointer());
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(conj);
-    Reference.reachabilityFence(grammar);
-    return checkTerminator(new Term(ctx, abdPtr));
+    try
+    {
+      long abdPtr = getAbduct(getPointer(), conj.getPointer(), grammar.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      Reference.reachabilityFence(grammar);
+      return new Term(ctx, abdPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
@@ -3492,8 +3602,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term getAbductNext()
   {
-    long abdPtr = getAbductNext(getPointer());
-    return checkTerminator(new Term(ctx, abdPtr));
+    try
+    {
+      long abdPtr = getAbductNext(getPointer());
+      return new Term(ctx, abdPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getAbductNext(long pointer);
@@ -3880,8 +3997,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public SynthResult checkSynth()
   {
-    long resultPointer = checkSynth(getPointer());
-    return checkTerminator(new SynthResult(ctx, resultPointer));
+    try
+    {
+      long resultPointer = checkSynth(getPointer());
+      return new SynthResult(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSynth(long pointer);
@@ -3906,8 +4030,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public SynthResult checkSynthNext()
   {
-    long resultPointer = checkSynthNext(getPointer());
-    return checkTerminator(new SynthResult(ctx, resultPointer));
+    try
+    {
+      long resultPointer = checkSynthNext(getPointer());
+      return new SynthResult(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSynthNext(long pointer);
@@ -3967,8 +4098,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term findSynth(FindSynthTarget fst)
   {
-    long termPointer = findSynth(getPointer(), fst.getValue());
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = findSynth(getPointer(), fst.getValue());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
   private native long findSynth(long pointer, int fst);
 
@@ -3989,11 +4127,18 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term findSynth(FindSynthTarget fst, Grammar grammar)
   {
-    long termPointer = findSynth(getPointer(), fst.getValue(), grammar.getPointer());
-    // The native call may re-enter Java code (plugins, oracles), which may
-    // release native objects whose wrappers are unreachable.
-    Reference.reachabilityFence(grammar);
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = findSynth(getPointer(), fst.getValue(), grammar.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(grammar);
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
   private native long findSynth(long pointer, int fst, long grammarPointer);
 
@@ -4013,8 +4158,15 @@ public class Solver extends AbstractPointer implements AutoCloseable
    */
   public Term findSynthNext()
   {
-    long termPointer = findSynthNext(getPointer());
-    return checkTerminator(new Term(ctx, termPointer));
+    try
+    {
+      long termPointer = findSynthNext(getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long findSynthNext(long pointer);

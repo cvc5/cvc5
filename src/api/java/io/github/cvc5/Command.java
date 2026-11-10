@@ -45,8 +45,7 @@ public class Command extends AbstractPointer
   {
     try
     {
-      return solver.checkTerminator(
-          invoke(getPointer(), solver.getPointer(), symbolManager.getPointer()));
+      return invoke(getPointer(), solver.getPointer(), symbolManager.getPointer());
     }
     finally
     {
@@ -55,6 +54,7 @@ public class Command extends AbstractPointer
       // solver and symbol manager reachable until the call has returned.
       Reference.reachabilityFence(solver);
       Reference.reachabilityFence(symbolManager);
+      solver.checkTerminator();
     }
   }
 

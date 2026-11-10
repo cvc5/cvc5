@@ -2508,6 +2508,16 @@ def test_terminator_exception_command(tm, solver):
     assert t.calls > 0
 
 
+def test_terminator_query_exception(tm, solver):
+    # exceptions of queries are raised as usual while a terminator is connected
+    t = TerminatorFlag()
+    solver.setTerminator(t)
+    with pytest.raises(RuntimeError):
+        solver.findSynthNext()
+    assert solver.checkSat().isSat()
+    assert t.calls > 0
+
+
 def test_terminator_shared(tm, solver):
     # a terminator can be connected to several solvers, its exceptions are
     # re-raised by the query that called it

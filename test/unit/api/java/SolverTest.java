@@ -2599,6 +2599,20 @@ class SolverTest
   }
 
   @Test
+  void terminatorQueryException()
+  {
+    // exceptions of queries are thrown as usual while a terminator is connected
+    AtomicInteger calls = new AtomicInteger();
+    d_solver.setTerminator(() -> {
+      calls.incrementAndGet();
+      return false;
+    });
+    assertThrows(CVC5ApiException.class, () -> d_solver.findSynthNext());
+    assertTrue(d_solver.checkSat().isSat());
+    assertTrue(calls.get() > 0);
+  }
+
+  @Test
   void terminatorThread() throws InterruptedException
   {
     AtomicBoolean polled = new AtomicBoolean(false);
