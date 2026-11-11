@@ -118,6 +118,12 @@ class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
    * symmetry-breaking clauses that apply() adds to d_phi.
    */
   std::unordered_map<TNode, std::vector<size_t>> d_phiOccurrences;
+  /**
+   * For each assertion of d_phi, norm() of it, or null if not computed yet.
+   * Used for the assertions that a substitution leaves unchanged, see
+   * normUnchanged().
+   */
+  std::vector<Node> d_phiNorm;
   TermEqs d_termEqs;
   TermEqs d_termEqsOnly;
 
@@ -139,6 +145,12 @@ class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
    * substituting subs.
    */
   std::vector<bool> getAffectedAssertions(const std::vector<Node>& subs) const;
+  /**
+   * Returns norm(d_phi[k]). Calling norm() again on the same input gives the
+   * same result and has no further effects (its cache is hit, or it only
+   * inserts into sets again), so this computes it only on first use.
+   */
+  Node normUnchanged(size_t k);
   bool invariantByPermutations(const Permutation& p);
   void selectTerms(const Permutation& p);
   Terms::iterator selectMostPromisingTerm(Terms& terms);

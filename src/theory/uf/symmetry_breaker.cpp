@@ -561,6 +561,7 @@ void SymmetryBreaker::clear()
   d_template.reset();
   d_normalizationCache.clear();
   d_phiOccurrences.clear();
+  d_phiNorm.clear();
   d_termEqs.clear();
   d_termEqsOnly.clear();
 }
@@ -722,6 +723,7 @@ void SymmetryBreaker::guessPermutations()
 void SymmetryBreaker::computePhiOccurrences()
 {
   d_phiOccurrences.clear();
+  d_phiNorm.assign(d_phi.size(), Node::null());
   for (const Permutation& p : d_permutations)
   {
     for (TNode t : p)
@@ -778,6 +780,21 @@ std::vector<bool> SymmetryBreaker::getAffectedAssertions(
   return affected;
 }
 
+Node SymmetryBreaker::normUnchanged(size_t k)
+{
+  if (k >= d_phiNorm.size())
+  {
+    // the symmetry-breaking clauses that apply() adds to d_phi
+    d_phiNorm.resize(d_phi.size());
+  }
+  Node& n = d_phiNorm[k];
+  if (n.isNull())
+  {
+    n = norm(d_phi[k]);
+  }
+  return n;
+}
+
 bool SymmetryBreaker::invariantByPermutations(const Permutation& p)
 {
   TimerStat::CodeTimer codeTimer(d_stats.d_invariantByPermutationsTimer);
@@ -818,7 +835,7 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p)
                  ? nn.substitute(
                        subs.begin(), subs.end(), repls.begin(), repls.end())
                  : nn;
-    Node n = norm(s);
+    Node n = affected[k] ? norm(s) : normUnchanged(k);
     if (nn != n && d_phiSet.find(n) == d_phiSet.end())
     {
       Trace("ufsymm")
@@ -872,7 +889,7 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p)
                    ? nn.substitute(
                          subs.begin(), subs.end(), repls.begin(), repls.end())
                    : nn;
-      Node n = norm(s);
+      Node n = affected[k] ? norm(s) : normUnchanged(k);
       if (nn != n && d_phiSet.find(n) == d_phiSet.end())
       {
         Trace("ufsymm")
