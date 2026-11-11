@@ -34,9 +34,10 @@ set(MiMalloc_CHECKSUM
 # single-file amalgamation (src/static.c) to the object file that overrides
 # malloc and friends, with the definitions and flags mimalloc's build uses for
 # that object (target mimalloc-obj, with MI_OVERRIDE=ON in a release build).
+# Without MI_MALLOC_OVERRIDE, the object does not define malloc and friends.
 set(MiMalloc_CFLAGS
-  -O3 -DNDEBUG=1 ${CMAKE_C_COMPILE_OPTIONS_PIC}
-  -ftls-model=initial-exec -fno-builtin-malloc
+  -O3 -DNDEBUG=1 -DMI_MALLOC_OVERRIDE ${CMAKE_C_COMPILE_OPTIONS_PIC}
+  -fvisibility=hidden -ftls-model=initial-exec -fno-builtin-malloc
 )
 if(APPLE)
   list(APPEND MiMalloc_CFLAGS -DMI_OSX_ZONE=1 -DMI_OSX_INTERPOSE=1)
