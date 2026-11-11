@@ -7,16 +7,18 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * A multi-precision rational constant.
+ * A multiprecision integer constant; wraps a GMP multiprecision integer.
  */
 
 #include <cmath>
 #include <limits>
+#include <numeric>
 #include <sstream>
 #include <string>
 
 #include "base/check.h"
 #include "base/cvc5config.h"
+#include "util/gmp_util.h"
 #include "util/integer.h"
 #include "util/random.h"
 #include "util/rational.h"
@@ -27,121 +29,164 @@
 
 using namespace std;
 
+/** Declares `name`, a read-only GMP view of the Integer `x` (see mpzView). */
+#define CVC5_MPZ_VIEW(name, x)                \
+  mpz_t name##_tmp;                           \
+  mp_limb_t name##_limbs[gmpz_limbs_per_u64]; \
+  mpz_srcptr name = (x).mpzView(name##_tmp, name##_limbs)
+
 namespace cvc5::internal {
 
-Integer::Integer(const char* s, unsigned base) : d_value(s, base) {}
+namespace {
+constexpr int64_t kMin64 = std::numeric_limits<int64_t>::min();
 
-Integer::Integer(const std::string& s, unsigned base) : d_value(s, base) {}
+/** The Integer with value x. */
+Integer fromU64(uint64_t x) { return Integer(x); }
+}  // namespace
+
+Integer::Integer(const char* s, unsigned base) { setMpz(mpz_class(s, base)); }
+
+Integer::Integer(const std::string& s, unsigned base)
+{
+  setMpz(mpz_class(s, base));
+}
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-Integer::Integer(int64_t z) : d_value(construct_mpz(z)) {}
-Integer::Integer(uint64_t z) : d_value(construct_mpz(z)) {}
+Integer::Integer(uint64_t z)
+{
+  if (z < (uint64_t(1) << 62))
+  {
+    initSmall(static_cast<int64_t>(z));
+  }
+  else
+  {
+    mpz_class* p = new mpz_class();
+    gmpz_set_uint64(p->get_mpz_t(), z);
+    d_rep = toRep(p);
+  }
+}
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
-bool Integer::operator==(const Integer& y) const
+int Integer::cmpSlow(const Integer& y) const
 {
-  return d_value == y.d_value;
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
+  return mpz_cmp(a, b);
 }
 
-Integer Integer::operator-() const { return Integer(-(d_value)); }
-
-bool Integer::operator!=(const Integer& y) const
+Integer Integer::negSlow() const
 {
-  return d_value != y.d_value;
+  CVC5_MPZ_VIEW(a, *this);
+  mpz_class r;
+  mpz_neg(r.get_mpz_t(), a);
+  return Integer(std::move(r));
 }
 
-bool Integer::operator<(const Integer& y) const { return d_value < y.d_value; }
-
-bool Integer::operator<=(const Integer& y) const
+Integer Integer::addSlow(const Integer& y) const
 {
-  return d_value <= y.d_value;
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
+  mpz_class r;
+  mpz_add(r.get_mpz_t(), a, b);
+  return Integer(std::move(r));
 }
 
-bool Integer::operator>(const Integer& y) const { return d_value > y.d_value; }
-
-bool Integer::operator>=(const Integer& y) const
+Integer Integer::subSlow(const Integer& y) const
 {
-  return d_value >= y.d_value;
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
+  mpz_class r;
+  mpz_sub(r.get_mpz_t(), a, b);
+  return Integer(std::move(r));
 }
 
-Integer Integer::operator+(const Integer& y) const
+Integer Integer::mulSlow(const Integer& y) const
 {
-  return Integer(d_value + y.d_value);
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
+  mpz_class r;
+  mpz_mul(r.get_mpz_t(), a, b);
+  return Integer(std::move(r));
 }
 
-Integer& Integer::operator+=(const Integer& y)
+size_t Integer::hashSlow() const
 {
-  d_value += y.d_value;
-  return *this;
-}
-
-Integer Integer::operator-(const Integer& y) const
-{
-  return Integer(d_value - y.d_value);
-}
-
-Integer& Integer::operator-=(const Integer& y)
-{
-  d_value -= y.d_value;
-  return *this;
-}
-
-Integer Integer::operator*(const Integer& y) const
-{
-  return Integer(d_value * y.d_value);
-}
-
-Integer& Integer::operator*=(const Integer& y)
-{
-  d_value *= y.d_value;
-  return *this;
+  // the GMP form of an integer that fits must hash like the inline form
+  return gmpz_hash(bigRef().get_mpz_t());
 }
 
 Integer Integer::bitwiseOr(const Integer& y) const
 {
+  if (bothSmall(y))
+  {
+    return Integer(smallVal() | y.smallVal());
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class result;
-  mpz_ior(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(result);
+  mpz_ior(result.get_mpz_t(), a, b);
+  return Integer(std::move(result));
 }
 
 Integer Integer::bitwiseAnd(const Integer& y) const
 {
+  if (bothSmall(y))
+  {
+    return Integer(smallVal() & y.smallVal());
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class result;
-  mpz_and(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(result);
+  mpz_and(result.get_mpz_t(), a, b);
+  return Integer(std::move(result));
 }
 
 Integer Integer::bitwiseXor(const Integer& y) const
 {
+  if (bothSmall(y))
+  {
+    return Integer(smallVal() ^ y.smallVal());
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class result;
-  mpz_xor(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(result);
+  mpz_xor(result.get_mpz_t(), a, b);
+  return Integer(std::move(result));
 }
 
 Integer Integer::bitwiseNot() const
 {
+  if (isSmallRep())
+  {
+    return Integer(~smallVal());
+  }
+  CVC5_MPZ_VIEW(a, *this);
   mpz_class result;
-  mpz_com(result.get_mpz_t(), d_value.get_mpz_t());
-  return Integer(result);
+  mpz_com(result.get_mpz_t(), a);
+  return Integer(std::move(result));
 }
 
 Integer Integer::multiplyByPow2(uint32_t pow) const
 {
+  CVC5_MPZ_VIEW(a, *this);
   mpz_class result;
-  mpz_mul_2exp(result.get_mpz_t(), d_value.get_mpz_t(), pow);
-  return Integer(result);
+  mpz_mul_2exp(result.get_mpz_t(), a, pow);
+  return Integer(std::move(result));
 }
 
 void Integer::setBit(uint32_t i, bool value)
 {
+  CVC5_MPZ_VIEW(a, *this);
+  mpz_class r(a);
   if (value)
   {
-    mpz_setbit(d_value.get_mpz_t(), i);
+    mpz_setbit(r.get_mpz_t(), i);
   }
   else
   {
-    mpz_clrbit(d_value.get_mpz_t(), i);
+    mpz_clrbit(r.get_mpz_t(), i);
   }
+  *this = Integer(std::move(r));
 }
 
 bool Integer::isBitSet(uint32_t i) const
@@ -153,45 +198,65 @@ Integer Integer::oneExtend(uint32_t size, uint32_t amount) const
 {
   // check that the size is accurate
   Assert((*this) < Integer(1).multiplyByPow2(size));
-  mpz_class res = d_value;
-
+  CVC5_MPZ_VIEW(a, *this);
+  mpz_class res(a);
   for (unsigned i = size; i < size + amount; ++i)
   {
     mpz_setbit(res.get_mpz_t(), i);
   }
 
-  return Integer(res);
+  return Integer(std::move(res));
 }
 
 uint32_t Integer::toUnsignedInt() const
 {
-  return mpz_get_ui(d_value.get_mpz_t());
+  CVC5_MPZ_VIEW(a, *this);
+  return mpz_get_ui(a);
 }
 
 Integer Integer::extractBitRange(uint32_t bitCount, uint32_t low) const
 {
   // bitCount = high-low+1
   uint32_t high = low + bitCount - 1;
-  //- Function: void mpz_fdiv_r_2exp (mpz_t r, mpz_t n, mp_bitcnt_t b)
+  // — Function: void mpz_fdiv_r_2exp (mpz_t r, mpz_t n, mp_bitcnt_t b)
+  CVC5_MPZ_VIEW(a, *this);
   mpz_class rem, div;
-  mpz_fdiv_r_2exp(rem.get_mpz_t(), d_value.get_mpz_t(), high + 1);
+  mpz_fdiv_r_2exp(rem.get_mpz_t(), a, high + 1);
   mpz_fdiv_q_2exp(div.get_mpz_t(), rem.get_mpz_t(), low);
 
-  return Integer(div);
+  return Integer(std::move(div));
 }
 
 Integer Integer::floorDivideQuotient(const Integer& y) const
 {
+  if (bothSmall(y) && y.smallVal() != 0
+      && !(smallVal() == kMin64 && y.smallVal() == -1))
+  {
+    int64_t q = smallVal() / y.smallVal();
+    int64_t r = smallVal() % y.smallVal();
+    return Integer(r != 0 && ((r < 0) != (y.smallVal() < 0)) ? q - 1 : q);
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class q;
-  mpz_fdiv_q(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(q);
+  mpz_fdiv_q(q.get_mpz_t(), a, b);
+  return Integer(std::move(q));
 }
 
 Integer Integer::floorDivideRemainder(const Integer& y) const
 {
+  if (bothSmall(y) && y.smallVal() != 0
+      && !(smallVal() == kMin64 && y.smallVal() == -1))
+  {
+    int64_t r = smallVal() % y.smallVal();
+    return Integer(r != 0 && ((r < 0) != (y.smallVal() < 0)) ? r + y.smallVal()
+                                                             : r);
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class r;
-  mpz_fdiv_r(r.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(r);
+  mpz_fdiv_r(r.get_mpz_t(), a, b);
+  return Integer(std::move(r));
 }
 
 void Integer::floorQR(Integer& q,
@@ -199,24 +264,65 @@ void Integer::floorQR(Integer& q,
                       const Integer& x,
                       const Integer& y)
 {
-  mpz_fdiv_qr(q.d_value.get_mpz_t(),
-              r.d_value.get_mpz_t(),
-              x.d_value.get_mpz_t(),
-              y.d_value.get_mpz_t());
+  if (x.bothSmall(y) && y.smallVal() != 0
+      && !(x.smallVal() == kMin64 && y.smallVal() == -1))
+  {
+    int64_t qq = x.smallVal() / y.smallVal();
+    int64_t rr = x.smallVal() % y.smallVal();
+    if (rr != 0 && ((rr < 0) != (y.smallVal() < 0)))
+    {
+      qq -= 1;
+      rr += y.smallVal();
+    }
+    q = Integer(qq);
+    r = Integer(rr);
+    return;
+  }
+  CVC5_MPZ_VIEW(a, x);
+  CVC5_MPZ_VIEW(b, y);
+  mpz_class qq, rr;
+  mpz_fdiv_qr(qq.get_mpz_t(), rr.get_mpz_t(), a, b);
+  q = Integer(std::move(qq));
+  r = Integer(std::move(rr));
 }
 
 Integer Integer::ceilingDivideQuotient(const Integer& y) const
 {
+  if (bothSmall(y) && y.smallVal() != 0
+      && !(smallVal() == kMin64 && y.smallVal() == -1))
+  {
+    int64_t qq = smallVal() / y.smallVal();
+    int64_t rr = smallVal() % y.smallVal();
+    if (rr != 0 && ((rr > 0) == (y.smallVal() > 0)))
+    {
+      qq += 1;
+    }
+    return Integer(qq);
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class q;
-  mpz_cdiv_q(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(q);
+  mpz_cdiv_q(q.get_mpz_t(), a, b);
+  return Integer(std::move(q));
 }
 
 Integer Integer::ceilingDivideRemainder(const Integer& y) const
 {
+  if (bothSmall(y) && y.smallVal() != 0
+      && !(smallVal() == kMin64 && y.smallVal() == -1))
+  {
+    int64_t rr = smallVal() % y.smallVal();
+    if (rr != 0 && ((rr > 0) == (y.smallVal() > 0)))
+    {
+      rr -= y.smallVal();
+    }
+    return Integer(rr);
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class r;
-  mpz_cdiv_r(r.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(r);
+  mpz_cdiv_r(r.get_mpz_t(), a, b);
+  return Integer(std::move(r));
 }
 
 void Integer::euclidianQR(Integer& q,
@@ -270,139 +376,180 @@ Integer Integer::euclidianDivideRemainder(const Integer& y) const
 Integer Integer::exactQuotient(const Integer& y) const
 {
   Assert(y.divides(*this));
+  if (bothSmall(y) && !(smallVal() == kMin64 && y.smallVal() == -1))
+  {
+    return Integer(smallVal() / y.smallVal());
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class q;
-  mpz_divexact(q.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(q);
+  mpz_divexact(q.get_mpz_t(), a, b);
+  return Integer(std::move(q));
 }
 
 Integer Integer::modByPow2(uint32_t exp) const
 {
+  CVC5_MPZ_VIEW(a, *this);
   mpz_class res;
-  mpz_fdiv_r_2exp(res.get_mpz_t(), d_value.get_mpz_t(), exp);
-  return Integer(res);
+  mpz_fdiv_r_2exp(res.get_mpz_t(), a, exp);
+  return Integer(std::move(res));
 }
 
 Integer Integer::divByPow2(uint32_t exp) const
 {
+  CVC5_MPZ_VIEW(a, *this);
   mpz_class res;
-  mpz_fdiv_q_2exp(res.get_mpz_t(), d_value.get_mpz_t(), exp);
-  return Integer(res);
-}
-
-int Integer::sgn() const { return mpz_sgn(d_value.get_mpz_t()); }
-
-bool Integer::strictlyPositive() const { return sgn() > 0; }
-
-bool Integer::strictlyNegative() const { return sgn() < 0; }
-
-bool Integer::isZero() const { return sgn() == 0; }
-
-bool Integer::isOne() const { return mpz_cmp_si(d_value.get_mpz_t(), 1) == 0; }
-
-bool Integer::isNegativeOne() const
-{
-  return mpz_cmp_si(d_value.get_mpz_t(), -1) == 0;
+  mpz_fdiv_q_2exp(res.get_mpz_t(), a, exp);
+  return Integer(std::move(res));
 }
 
 Integer Integer::pow(uint32_t exp) const
 {
+  CVC5_MPZ_VIEW(a, *this);
   mpz_class result;
-  mpz_pow_ui(result.get_mpz_t(), d_value.get_mpz_t(), exp);
-  return Integer(result);
+  mpz_pow_ui(result.get_mpz_t(), a, exp);
+  return Integer(std::move(result));
 }
 
 Integer Integer::gcd(const Integer& y) const
 {
+  if (bothSmall(y))
+  {
+    return fromU64(std::gcd(absU64(smallVal()), absU64(y.smallVal())));
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class result;
-  mpz_gcd(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(result);
+  mpz_gcd(result.get_mpz_t(), a, b);
+  return Integer(std::move(result));
 }
 
 Integer Integer::lcm(const Integer& y) const
 {
+  if (bothSmall(y))
+  {
+    uint64_t a = absU64(smallVal()), b = absU64(y.smallVal());
+    if (a == 0 || b == 0)
+    {
+      return Integer(0);
+    }
+    uint64_t l;
+    if (!__builtin_mul_overflow(a / std::gcd(a, b), b, &l))
+    {
+      return fromU64(l);
+    }
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
   mpz_class result;
-  mpz_lcm(result.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  return Integer(result);
+  mpz_lcm(result.get_mpz_t(), a, b);
+  return Integer(std::move(result));
 }
 
 Integer Integer::modAdd(const Integer& y, const Integer& m) const
 {
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
+  CVC5_MPZ_VIEW(c, m);
   mpz_class res;
-  mpz_add(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
-  return Integer(res);
+  mpz_add(res.get_mpz_t(), a, b);
+  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), c);
+  return Integer(std::move(res));
 }
 
 Integer Integer::modMultiply(const Integer& y, const Integer& m) const
 {
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
+  CVC5_MPZ_VIEW(c, m);
   mpz_class res;
-  mpz_mul(res.get_mpz_t(), d_value.get_mpz_t(), y.d_value.get_mpz_t());
-  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), m.d_value.get_mpz_t());
-  return Integer(res);
+  mpz_mul(res.get_mpz_t(), a, b);
+  mpz_mod(res.get_mpz_t(), res.get_mpz_t(), c);
+  return Integer(std::move(res));
 }
 
 Integer Integer::modInverse(const Integer& m) const
 {
   Assert(m > 0) << "m must be greater than zero";
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, m);
   mpz_class res;
-  if (mpz_invert(res.get_mpz_t(), d_value.get_mpz_t(), m.d_value.get_mpz_t())
-      == 0)
+  if (mpz_invert(res.get_mpz_t(), a, b) == 0)
   {
     return Integer(-1);
   }
-  return Integer(res);
+  return Integer(std::move(res));
 }
 
 bool Integer::divides(const Integer& y) const
 {
-  int res = mpz_divisible_p(y.d_value.get_mpz_t(), d_value.get_mpz_t());
+  if (bothSmall(y))
+  {
+    // mpz_divisible_p: only 0 is divisible by 0
+    return smallVal() == 0 ? y.smallVal() == 0
+                           : absU64(y.smallVal()) % absU64(smallVal()) == 0;
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  CVC5_MPZ_VIEW(b, y);
+  int res = mpz_divisible_p(b, a);
   return res != 0;
 }
 
-Integer Integer::abs() const { return d_value >= 0 ? *this : -*this; }
+std::string Integer::toString(int base) const
+{
+  if (isSmallRep() && base == 10)
+  {
+    return std::to_string(smallVal());
+  }
+  CVC5_MPZ_VIEW(a, *this);
+  return mpz_class(a).get_str(base);
+}
 
-std::string Integer::toString(int base) const { return d_value.get_str(base); }
+bool Integer::fitsSignedInt() const
+{
+  return isSmallRep() ? smallVal() >= std::numeric_limits<int>::min()
+                            && smallVal() <= std::numeric_limits<int>::max()
+                      : bigRef().fits_sint_p();
+}
 
-bool Integer::fitsSignedInt() const { return d_value.fits_sint_p(); }
-
-bool Integer::fitsUnsignedInt() const { return d_value.fits_uint_p(); }
+bool Integer::fitsUnsignedInt() const
+{
+  return isSmallRep()
+             ? smallVal() >= 0
+                   && smallVal() <= std::numeric_limits<unsigned int>::max()
+             : bigRef().fits_uint_p();
+}
 
 signed int Integer::getSignedInt() const
 {
-  // ensure there isn't overflow
-  Assert(d_value <= std::numeric_limits<int>::max())
-      << "Overflow detected in Integer::getSignedInt().";
-  Assert(d_value >= std::numeric_limits<int>::min())
-      << "Overflow detected in Integer::getSignedInt().";
   Assert(fitsSignedInt()) << "Overflow detected in Integer::getSignedInt().";
-  return (signed int)d_value.get_si();
+  CVC5_MPZ_VIEW(a, *this);
+  return (signed int)mpz_get_si(a);
 }
 
 unsigned int Integer::getUnsignedInt() const
 {
-  // ensure there isn't overflow
-  Assert(d_value <= std::numeric_limits<unsigned int>::max())
-      << "Overflow detected in Integer::getUnsignedInt()";
-  Assert(d_value >= std::numeric_limits<unsigned int>::min())
-      << "Overflow detected in Integer::getUnsignedInt()";
   Assert(fitsUnsignedInt()) << "Overflow detected in Integer::getUnsignedInt()";
-  return (unsigned int)d_value.get_ui();
+  CVC5_MPZ_VIEW(a, *this);
+  return (unsigned int)mpz_get_ui(a);
 }
 
 long Integer::getLong() const
 {
+  CVC5_MPZ_VIEW(a, *this);
   // ensure there it fits
-  Assert(mpz_fits_slong_p(d_value.get_mpz_t()) != 0)
+  Assert(mpz_fits_slong_p(a) != 0)
       << "Overflow detected in Integer::getLong().";
-  return d_value.get_si();
+  return mpz_get_si(a);
 }
 
 unsigned long Integer::getUnsignedLong() const
 {
+  CVC5_MPZ_VIEW(a, *this);
   // ensure that it fits
-  Assert(mpz_fits_ulong_p(d_value.get_mpz_t()) != 0)
+  Assert(mpz_fits_ulong_p(a) != 0)
       << "Overflow detected in Integer::getUnsignedLong().";
-  return d_value.get_ui();
+  return mpz_get_ui(a);
 }
 
 int64_t Integer::getSigned64() const
@@ -413,7 +560,8 @@ int64_t Integer::getSigned64() const
   }
   else
   {
-    if (mpz_fits_slong_p(d_value.get_mpz_t()) != 0)
+    CVC5_MPZ_VIEW(a, *this);
+    if (mpz_fits_slong_p(a) != 0)
     {
       return getLong();
     }
@@ -428,6 +576,7 @@ int64_t Integer::getSigned64() const
   }
   return 0;
 }
+
 uint64_t Integer::getUnsigned64() const
 {
   if constexpr (sizeof(uint64_t) == sizeof(unsigned long int))
@@ -436,7 +585,8 @@ uint64_t Integer::getUnsigned64() const
   }
   else
   {
-    if (mpz_fits_ulong_p(d_value.get_mpz_t()) != 0)
+    CVC5_MPZ_VIEW(a, *this);
+    if (mpz_fits_ulong_p(a) != 0)
     {
       return getUnsignedLong();
     }
@@ -453,21 +603,21 @@ uint64_t Integer::getUnsigned64() const
   return 0;
 }
 
-size_t Integer::hash() const { return gmpz_hash(d_value.get_mpz_t()); }
-
 bool Integer::testBit(unsigned n) const
 {
-  return mpz_tstbit(d_value.get_mpz_t(), n);
+  CVC5_MPZ_VIEW(a, *this);
+  return mpz_tstbit(a, n);
 }
 
 unsigned Integer::isPow2() const
 {
-  if (d_value <= 0) return 0;
-  // check that the number of ones in the binary representation is 1
-  if (mpz_popcount(d_value.get_mpz_t()) == 1)
+  if (sgn() <= 0) return 0;
+  // check that the number of ones in the binary represenation is 1
+  CVC5_MPZ_VIEW(a, *this);
+  if (mpz_popcount(a) == 1)
   {
     // return the index of the first one plus 1
-    return mpz_scan1(d_value.get_mpz_t(), 0) + 1;
+    return mpz_scan1(a, 0) + 1;
   }
   return 0;
 }
@@ -478,27 +628,29 @@ size_t Integer::length() const
   {
     return 1;
   }
-  else
+  if (isSmallRep())
   {
-    return mpz_sizeinbase(d_value.get_mpz_t(), 2);
+    return 64 - __builtin_clzll(absU64(smallVal()));
   }
+  return mpz_sizeinbase(bigRef().get_mpz_t(), 2);
 }
 
 bool Integer::isProbablePrime() const
 {
-  return mpz_probab_prime_p(d_value.get_mpz_t(), 30) > 0;
+  CVC5_MPZ_VIEW(a, *this);
+  return mpz_probab_prime_p(a, 30) > 0;
 }
 
 void Integer::extendedGcd(
     Integer& g, Integer& s, Integer& t, const Integer& a, const Integer& b)
 {
-  // see the documentation for:
-  // mpz_gcdext (mpz_t g, mpz_t s, mpz_t t, mpz_t a, mpz_t b);
-  mpz_gcdext(g.d_value.get_mpz_t(),
-             s.d_value.get_mpz_t(),
-             t.d_value.get_mpz_t(),
-             a.d_value.get_mpz_t(),
-             b.d_value.get_mpz_t());
+  CVC5_MPZ_VIEW(va, a);
+  CVC5_MPZ_VIEW(vb, b);
+  mpz_class gg, ss, tt;
+  mpz_gcdext(gg.get_mpz_t(), ss.get_mpz_t(), tt.get_mpz_t(), va, vb);
+  g = Integer(std::move(gg));
+  s = Integer(std::move(ss));
+  t = Integer(std::move(tt));
 }
 
 const Integer& Integer::min(const Integer& a, const Integer& b)
@@ -506,7 +658,6 @@ const Integer& Integer::min(const Integer& a, const Integer& b)
   return (a <= b) ? a : b;
 }
 
-/** Returns a reference to the maximum of two integers. */
 const Integer& Integer::max(const Integer& a, const Integer& b)
 {
   return (a >= b) ? a : b;
@@ -518,7 +669,7 @@ Integer Integer::mkRandom(uint32_t nbits)
   mpz_class res;
   Random& rnd = Random::getRandom();
   mpz_urandomb(res.get_mpz_t(), *rnd.getGMPRandstate(), nbits);
-  return Integer(res);
+  return Integer(std::move(res));
 }
 
 }  // namespace cvc5::internal
