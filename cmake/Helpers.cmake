@@ -348,6 +348,12 @@ macro(strip_lto_static_library target)
         RESULT_VARIABLE res)
       if(NOT res EQUAL 0)
         message(FATAL_ERROR \"Could not remove LTO bytecode from \${lib}\")
+      endif()
+      # objcopy succeeds even if no section matches, so check the result.
+      execute_process(COMMAND \"${CMAKE_OBJDUMP}\" -h \"\${lib}\"
+        OUTPUT_VARIABLE out RESULT_VARIABLE res)
+      if(NOT res EQUAL 0 OR out MATCHES \"\\\\.gnu\\\\.(debug)?lto_\")
+        message(FATAL_ERROR \"LTO bytecode left in \${lib}\")
       endif()")
   endif()
 endmacro()

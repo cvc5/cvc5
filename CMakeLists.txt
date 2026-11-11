@@ -370,10 +370,10 @@ if(ENABLE_IPO)
     set(ENABLE_IPO OFF)
   else()
     if(NOT BUILD_SHARED_LIBS)
+      # Appended (and not substituted for CMake's -fno-fat-lto-objects) so that
+      # it takes effect whatever CMake's defaults are: the last flag wins.
       foreach(lang C CXX)
-        string(REPLACE "-fno-fat-lto-objects" "-ffat-lto-objects"
-          CMAKE_${lang}_COMPILE_OPTIONS_IPO
-          "${CMAKE_${lang}_COMPILE_OPTIONS_IPO}")
+        list(APPEND CMAKE_${lang}_COMPILE_OPTIONS_IPO -ffat-lto-objects)
       endforeach()
     endif()
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
