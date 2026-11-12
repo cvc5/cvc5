@@ -166,6 +166,13 @@ class TheoryEngine : protected EnvObj
   prop::PropEngine* getPropEngine() const { return d_propEngine; }
 
   /**
+   * Add a module during finishInit. The module is owned by the caller, e.g.
+   * this class or the quantifiers engine, and is notified of the events
+   * it asks for, see TheoryEngineModule.
+   */
+  void addModule(theory::TheoryEngineModule* tem);
+
+  /**
    * Get a pointer to the underlying quantifiers engine.
    */
   theory::QuantifiersEngine* getQuantifiersEngine() const
@@ -680,6 +687,11 @@ class TheoryEngine : protected EnvObj
    * check()
    */
   context::CDO<bool> d_factsAsserted;
+  /**
+   * The modules that are notified of every literal asserted from the SAT
+   * solver, see TheoryEngineModule::needsFacts.
+   */
+  std::vector<theory::TheoryEngineModule*> d_factModules;
 
   /**
    * The splitter produces partitions when the compute-partitions option is

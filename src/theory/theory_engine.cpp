@@ -112,6 +112,7 @@ std::string getTheoryString(theory::TheoryId id)
 void TheoryEngine::finishInit()
 {
   d_modules.clear();
+  d_factModules.clear();
   Trace("theory") << "Begin TheoryEngine::finishInit" << std::endl;
   // NOTE: This seems to be required since
   // theory::TheoryTraits<THEORY>::isParametric cannot be accessed without
@@ -143,7 +144,7 @@ void TheoryEngine::finishInit()
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
     d_relManager.reset(new RelevanceManager(d_env, this));
-    d_modules.push_back(d_relManager.get());
+    addModule(d_relManager.get());
   }
 
   // initialize the quantifiers engine
@@ -196,7 +197,7 @@ void TheoryEngine::finishInit()
   {
     d_partitionGen =
         std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
-    d_modules.push_back(d_partitionGen.get());
+    addModule(d_partitionGen.get());
   }
 
   // add user-provided plugins
@@ -207,9 +208,18 @@ void TheoryEngine::finishInit()
   {
     d_userPlugins.push_back(
         std::unique_ptr<PluginModule>(new PluginModule(d_env, this, p)));
-    d_modules.push_back(d_userPlugins.back().get());
+    addModule(d_userPlugins.back().get());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
+}
+
+void TheoryEngine::addModule(TheoryEngineModule* tem)
+{
+  d_modules.push_back(tem);
+  if (tem->needsFacts())
+  {
+    d_factModules.push_back(tem);
+  }
 }
 
 TheoryEngine::TheoryEngine(Env& env)
@@ -1243,6 +1253,12 @@ void TheoryEngine::assertFact(TNode literal)
   // Get the atom
   bool polarity = literal.getKind() != Kind::NOT;
   TNode atom = polarity ? literal : literal[0];
+
+  // notify the modules that track every fact
+  for (TheoryEngineModule* tem : d_factModules)
+  {
+    tem->notifyFact(literal);
+  }
 
   if (logicInfo().isSharingEnabled())
   {
