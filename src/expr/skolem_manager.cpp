@@ -611,6 +611,13 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       }
       return d_nm->mkFunctionType(intDomain, intRange);
     }
+    case SkolemId::FF_DISEQ_WITNESS:
+    {
+      Assert(cacheVals.size() == 2);
+      Assert(cacheVals[0].getType().isFiniteField());
+      Assert(cacheVals[0].getType() == cacheVals[1].getType());
+      return cacheVals[0].getType();
+    }
     //
     default: break;
   }
@@ -673,7 +680,8 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::SETS_DEQ_DIFF:
     case SkolemId::SETS_MAP_DOWN_ELEMENT:
     case SkolemId::FP_TO_SBV:
-    case SkolemId::FP_TO_UBV: return 2;
+    case SkolemId::FP_TO_UBV:
+    case SkolemId::FF_DISEQ_WITNESS: return 2;
 
     // Number of skolem indices: 3
     case SkolemId::SHARED_SELECTOR:
