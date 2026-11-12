@@ -158,6 +158,48 @@ class StarContainsTypeRule
                               std::ostream* errOut);
 };
 
+/**
+ * Type rule for the interval predicates of the univariate coverings
+ * calculus, SGN_INV: (polynomial, lower bound, upper bound),
+ * where the bounds are real terms or the MINUS_INFINITY / PLUS_INFINITY
+ * markers on the lower / upper side respectively.
+ */
+class SgnInvTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+class IsRootTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
+/**
+ * Type rule for REAL_ALGEBRAIC_NUMBER_WITNESS: the operator is the real
+ * algebraic number, the only child is an SEXPR of real polynomials (the Sturm
+ * sequence).
+ * Returns `realType`.
+ */
+class RealAlgebraicNumberWitnessTypeRule
+{
+ public:
+  static TypeNode preComputeType(NodeManager* nm, TNode n);
+  static TypeNode computeType(NodeManager* nodeManager,
+                              TNode n,
+                              bool check,
+                              std::ostream* errOut);
+};
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

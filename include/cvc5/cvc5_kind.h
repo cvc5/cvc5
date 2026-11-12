@@ -1095,6 +1095,53 @@ enum ENUM(Kind)
    */
   EVALUE(CONST_INTEGER),
   /**
+   * Root predicate
+   * TODO: Add better documentation
+   */
+  EVALUE(IS_ROOT),
+  /**
+   * Negative infinity marker, used as a bound in the univariate coverings
+   * calculus (see SGN_INV).
+   * TODO: Add better documentation
+   */
+  EVALUE(COV_MINUS_INFINITY),
+  /**
+   * Positive infinity marker, used as a bound in the univariate coverings
+   * calculus (see SGN_INV).
+   * TODO: Add better documentation
+   */
+  EVALUE(COV_PLUS_INFINITY),
+  /**
+   * Sign invariance predicate
+   * TODO: Add better documentation
+   */
+  EVALUE(SGN_INV),
+  /**
+   * Real Algebraic Number Constant
+   * TODO: Add better documentation
+   */
+  EVALUE(REAL_ALGEBRAIC_NUMBER),
+  /**
+   * Real Algebraic Number Constant
+   * TODO: Add better documentation
+   */ 
+  EVALUE(REAL_ALGEBRAIC_NUMBER_OP),
+  /**
+   * Real algebraic number together with a Sturm sequence of its defining
+   * polynomial, witnessing that the number is well defined.
+   *
+   * - Arity: ``1``
+   *
+   *   - ``1:`` The Sturm sequence, as an s-expression of Terms of Sort Real
+   *
+   * - Indices: ``1``
+   *
+   *   - ``1:`` The real algebraic number
+   *
+   * TODO: Add better documentation
+   */
+  EVALUE(REAL_ALGEBRAIC_NUMBER_WITNESS),
+  /**
    * Less than, chainable.
    *
    * - Arity: ``n > 1``

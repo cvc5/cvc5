@@ -1904,7 +1904,36 @@ class CVC5_EXPORT Term
    * @return The upper bound.
    */
   Term getRealAlgebraicNumberUpperBound() const;
-
+  /**
+   * Get a real algebraic number string representation.
+   * @note Asserts isRealAlgebraicNumber().
+   * @return The string representation.
+   */
+  std::string getRealAlgebraicNumberValue() const;
+  /**
+   * Determine if this term is a real algebraic number witness, i.e., a real
+   * algebraic number together with the Sturm sequence of its defining
+   * polynomial.
+   * @return True if the term is a real algebraic number witness.
+   */
+  bool isRealAlgebraicNumberWitness() const;
+  /**
+   * Get the real algebraic number of a real algebraic number witness.
+   * @note Asserts isRealAlgebraicNumberWitness().
+   * @return The real algebraic number, a term for which
+   *         isRealAlgebraicNumber() holds.
+   */
+  Term getRealAlgebraicNumberWitnessNumber() const;
+  /**
+   * Get the Sturm sequence of a real algebraic number witness, i.e., the
+   * Sturm sequence of the defining polynomial of its real algebraic number.
+   * @note Asserts isRealAlgebraicNumberWitness().
+   * @return The elements of the Sturm sequence, each an s-expression `(a b)`
+   *         where `b` is the polynomial of the sequence and `a` is the
+   *         pseudo-quotient of the two preceding elements, of which `b` is
+   *         the remainder up to a constant factor (zero for the first two).
+   */
+  std::vector<Term> getRealAlgebraicNumberWitnessSturmSequence() const;
   /**
    * Is this term a skolem?
    * @warning This function is experimental and may change in future versions.

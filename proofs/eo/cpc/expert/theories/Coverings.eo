@@ -1,0 +1,506 @@
+(include "../../theories/Arith.eo")
+(include "../UPoly.eo")
+
+; Rules and operators of the univariate cylindrical algebraic coverings calculus.
+
+; disclaimer: All of the functions in this file are not in SMT-LIB.
+
+; The markers for the infinite endpoints of an interval.
+(declare-const @cov_minus_inf Real)
+(declare-const @cov_plus_inf Real)
+
+; program: $cov_seq_values
+; args:
+; - s @List: A sequence of (quotient remainder) pairs, as in $upoly_rem_seq_check.
+; - v Real: A rational, or one of the markers @cov_minus_inf and @cov_plus_inf.
+; return: >
+;   The list of the values of the remainders of s at v. If v is infinite,
+;   each value is a rational with the sign of the remainder at v, as given by
+;   $upoly_sign_at_inf.
+(program $cov_seq_values ((ql @List) (cl @List) (s @List :list) (v Real))
+  :signature (@List Real) @List
+  (
+  (($cov_seq_values @list.nil v)  @list.nil)
+  (($cov_seq_values (@list (@list ql cl) s) v)
+    (eo::define ((p ($upoly_of_list cl)))
+    (eo::cons @list
+      (eo::ite (eo::is_eq v @cov_minus_inf) ($upoly_sign_at_inf p false)
+      (eo::ite (eo::is_eq v @cov_plus_inf) ($upoly_sign_at_inf p true)
+        ($upoly_eval p v)))
+      ($cov_seq_values s v))))
+  )
+)
+
+; define: $cov_sign_var
+; args:
+; - s @List: A sequence of (quotient remainder) pairs, as in $upoly_rem_seq_check.
+; - v Real: A rational, or one of the markers @cov_minus_inf and @cov_plus_inf.
+; return: the number of sign variations of the remainders of s at v.
+(define $cov_sign_var ((s @List) (v Real))
+  ($sign_variations ($cov_seq_values s v)))
+
+; define: $valid_ran
+; args:
+; - q @List: The coefficients of the defining polynomial.
+; - lo Real: The lower bound of the isolating interval.
+; - hi Real: The upper bound of the isolating interval.
+; - s @List: The Sturm sequence of the defining polynomial.
+; return: >
+;   true if (@ran q lo hi s) is a well defined real algebraic number, that is,
+;   lo and hi are rationals, s is the Sturm sequence of q, q has opposite
+;   signs at lo and hi (and in particular neither is a root of q), and the
+;   number of sign variations of s drops by exactly one from lo to hi, i.e.
+;   q has exactly one root in (lo, hi). This also implies that q is not zero
+;   and that lo < hi. The change of sign is not needed for the number to be
+;   well defined, but allows refining the interval by bisection, keeping the
+;   half where q changes sign.
+(define $valid_ran ((q @List) (lo Real) (hi Real) (s @List))
+  (eo::ite (eo::and (eo::is_q lo) (eo::is_q hi))
+    (eo::define ((p ($upoly_of_list q)))
+    (eo::ite ($upoly_sturm_check p s)
+      (eo::and
+        (eo::is_neg (eo::mul ($upoly_eval p lo) ($upoly_eval p hi)))
+        (eo::is_eq
+          (eo::add ($cov_sign_var s lo) (eo::neg ($cov_sign_var s hi)))
+          1))
+      false))
+    false))
+
+; (@ran q lo hi s): the unique root of the polynomial with coefficients q, from
+; the lowest to the highest degree, in the interval (lo, hi), where s is the
+; Sturm sequence of the polynomial, as a list of (quotient remainder) pairs.
+(declare-parameterized-const @ran
+  ((q @List :opaque) (lo Real :opaque) (hi Real :opaque) (s @List :opaque))
+  (eo::requires ($valid_ran q lo hi s) true Real))
+
+(declare-parameterized-const @sgn_inv ((p Real :opaque)) (-> Real Real Bool))
+(declare-parameterized-const @is_root ((p Real :opaque)) (-> Real Bool))
+
+;;;;; ProofRule::COVER
+
+; The endpoints of an interval are either finite, i.e. a rational or a real
+; algebraic number (@ran q lo hi s), or one of the markers @cov_minus_inf and
+; @cov_plus_inf. An interval (@list l r) is the point {l} if l and r are the
+; same term, and the open interval (l, r) otherwise.
+
+; program: $cov_lt
+; args:
+; - a Real: The first finite endpoint.
+; - b Real: The second finite endpoint.
+; return: >
+;   true if a < b can be decided by comparing a and b, or their isolating
+;   intervals, as rationals. This is a sound test for a < b, which may return
+;   false if the isolating intervals of a and b are not separated. As the
+;   bounds of an isolating interval are not roots of the defining polynomial,
+;   an algebraic number lies strictly inside its interval, so a bound may
+;   touch the other number: e.g. a < (@ran q l2 h2 s2) if a <= l2.
+(program $cov_lt ((q1 @List) (l1 Real) (h1 Real) (s1 @List) (q2 @List) (l2 Real) (h2 Real) (s2 @List) (a Real) (b Real))
+  :signature (Real Real) Bool
+  (
+  (($cov_lt (@ran q1 l1 h1 s1) (@ran q2 l2 h2 s2))  (eo::not (eo::gt h1 l2)))
+  (($cov_lt (@ran q1 l1 h1 s1) b)                   (eo::not (eo::gt h1 b)))
+  (($cov_lt a (@ran q2 l2 h2 s2))                   (eo::not (eo::gt a l2)))
+  (($cov_lt a b)                                    (eo::gt b a))
+  )
+)
+
+; program: $cov_bound_lt
+; args:
+; - a Real: The first endpoint.
+; - b Real: The second endpoint.
+; return: a sound test for a < b, on endpoints that may be infinite.
+(program $cov_bound_lt ((a Real) (b Real))
+  :signature (Real Real) Bool
+  (
+  (($cov_bound_lt @cov_minus_inf @cov_minus_inf)  false)
+  (($cov_bound_lt @cov_minus_inf b)               true)
+  (($cov_bound_lt a @cov_minus_inf)               false)
+  (($cov_bound_lt @cov_plus_inf b)                false)
+  (($cov_bound_lt a @cov_plus_inf)                true)
+  (($cov_bound_lt a b)                            ($cov_lt a b))
+  )
+)
+
+; program: $cov_attach
+; args:
+; - l Real: The lower endpoint of an open interval.
+; - c Real: The end of the covered prefix (-inf, c).
+; return: >
+;   true if the open interval (l, _) attaches to (-inf, c), that is, l is
+;   -inf or l < c.
+(program $cov_attach ((l Real) (c Real))
+  :signature (Real Real) Bool
+  (
+  (($cov_attach @cov_minus_inf c)  true)
+  (($cov_attach @cov_plus_inf c)   false)
+  (($cov_attach l @cov_minus_inf)  false)
+  (($cov_attach l @cov_plus_inf)   true)
+  (($cov_attach l c)               ($cov_lt l c))
+  )
+)
+
+; program: $cov_attach_incl
+; args:
+; - l Real: The lower endpoint of an open interval.
+; - c Real: The end of the covered prefix (-inf, c], which is finite.
+; return: >
+;   true if the open interval (l, _) attaches to (-inf, c], that is, l is
+;   -inf or l <= c.
+(program $cov_attach_incl ((l Real) (c Real))
+  :signature (Real Real) Bool
+  (
+  (($cov_attach_incl @cov_minus_inf c)  true)
+  (($cov_attach_incl @cov_plus_inf c)   false)
+  (($cov_attach_incl l c)               (eo::ite (eo::is_eq l c) true ($cov_lt l c)))
+  )
+)
+
+; define: $cov_is_inf
+; args:
+; - e Real: An endpoint.
+; return: true if e is one of the infinite endpoints.
+(define $cov_is_inf ((e Real))
+  (eo::or (eo::is_eq e @cov_minus_inf) (eo::is_eq e @cov_plus_inf)))
+
+; program: $cov_sweep
+; args:
+; - incl Bool: Whether the covered prefix includes its end, i.e. it is
+;   (-inf, c] rather than (-inf, c).
+; - c Real: The end of the covered prefix, which is finite if incl is true.
+; - ps @List: The remaining intervals.
+; return: >
+;   true if the covered prefix extended with the intervals of ps, in order,
+;   is the whole line. Each interval either extends the prefix, if it attaches
+;   to it and goes beyond its end, or is skipped. A point {r} extends (-inf, c)
+;   to (-inf, c] if r is c, and an open interval (l, r) extends the prefix to
+;   (-inf, r) if l attaches to it and c < r. Points at infinity are rejected.
+;   This is the sweep of the Lean reconstruction of the coverings proofs.
+(program $cov_sweep ((incl Bool) (c Real) (l Real) (r Real) (ps @List :list))
+  :signature (Bool Real @List) Bool
+  (
+  (($cov_sweep incl c @list.nil)
+    (eo::and (eo::not incl) (eo::is_eq c @cov_plus_inf)))
+  (($cov_sweep incl c (@list (@list l r) ps))
+    (eo::ite (eo::is_eq l r)
+      (eo::ite ($cov_is_inf l)
+        false
+        (eo::ite (eo::and (eo::not incl) (eo::is_eq l c))
+          ($cov_sweep true c ps)
+          ($cov_sweep incl c ps)))
+      (eo::ite (eo::and
+                 (eo::ite incl ($cov_attach_incl l c) ($cov_attach l c))
+                 ($cov_bound_lt c r))
+        ($cov_sweep false r ps)
+        ($cov_sweep incl c ps))))
+  )
+)
+
+; program: $mk_cover_piece
+; args:
+; - x T: The variable.
+; - l Real: The lower endpoint of the interval.
+; - r Real: The upper endpoint of the interval.
+; return: >
+;   The formula stating that x is in the interval: (= x l) for a point, and
+;   otherwise the conjunction of (> x l) and (< x r), where a conjunct with an
+;   infinite endpoint is omitted, and which is true if both are omitted.
+(program $mk_cover_piece ((T Type) (x T) (l Real) (r Real))
+  :signature (T Real Real) Bool
+  (
+  (($mk_cover_piece x @cov_minus_inf @cov_plus_inf)  true)
+  (($mk_cover_piece x @cov_minus_inf r)              (< x r))
+  (($mk_cover_piece x l @cov_plus_inf)               (> x l))
+  (($mk_cover_piece x l r)
+    (eo::ite (eo::is_eq l r) (= x l) (and (> x l) (< x r))))
+  )
+)
+
+; program: $mk_cover_rec
+; args:
+; - x T: The variable.
+; - ps @List: The intervals.
+; return: >
+;   The disjunction of the formulas stating that x is in each interval of ps,
+;   or true if one of the intervals is the whole line.
+(program $mk_cover_rec ((T Type) (x T) (l Real) (r Real) (ps @List :list))
+  :signature (T @List) Bool
+  (
+  (($mk_cover_rec x @list.nil)  false)
+  (($mk_cover_rec x (@list (@list l r) ps))
+    (eo::define ((f ($mk_cover_piece x l r)))
+    (eo::ite (eo::is_eq f true)
+      true
+      (eo::define ((fs ($mk_cover_rec x ps)))
+      (eo::ite (eo::is_eq fs true) true (eo::cons or f fs))))))
+  )
+)
+
+; rule: cover
+; implements: ProofRule::COVER
+; args:
+; - x T: The variable.
+; - ps @List: >
+;     The intervals, each a list (@list l r) of its endpoints, which are
+;     rationals, real algebraic numbers or infinite.
+; requires: >
+;   The intervals cover the whole line, as checked by $cov_sweep.
+; conclusion: >
+;   The disjunction of the formulas stating that x is in each interval, where a
+;   single disjunct is not wrapped in an or, or true if one of the intervals is
+;   the whole line.
+(declare-rule cover ((T Type) (x T) (ps @List))
+  :args (x ps)
+  :requires ((($cov_sweep false @cov_minus_inf ps) true))
+  :conclusion
+    (eo::define ((f ($mk_cover_rec x ps)))
+    (eo::ite (eo::is_eq f true) true (eo::list_singleton_elim or f))))
+
+;;;;; ProofRule::SGN_INV_INTRO
+
+; program: $cov_is_root
+; args:
+; - p @UPoly: The polynomial.
+; - e Real: A finite endpoint, i.e. a rational or a real algebraic number.
+; - st @List: >
+;   If e is (@ran q a b s), the Sturm-Tarski sequence of q and p, that is, the
+;   signed remainder sequence of q and q' * p. Empty if e is a rational.
+; return: >
+;   true if e is a root of p. A rational is evaluated. An algebraic number is
+;   a root of p if its defining polynomial q divides p, in which case st is
+;   ignored. Otherwise, by the Sturm-Tarski theorem, the number of sign
+;   variations of st at a minus at b is the sum of the signs of p at the roots
+;   of q in (a, b). As e is the only one, it is zero if and only if p(e) = 0.
+(program $cov_is_root ((p @UPoly) (q @List) (a Real) (b Real) (s @List) (st @List) (e Real))
+  :signature (@UPoly Real @List) Bool
+  (
+  (($cov_is_root p (@ran q a b s) st)
+    (eo::define ((qp ($upoly_of_list q)))
+    (eo::ite ($upoly_divides qp p)
+      true
+    (eo::ite ($upoly_rem_seq_check qp ($upoly_mul ($upoly_derivative qp) p) st)
+      (eo::is_eq ($cov_sign_var st a) ($cov_sign_var st b))
+      false))))
+  (($cov_is_root p e st)
+    (eo::ite (eo::and (eo::is_q e) (eo::is_eq st @list.nil))
+      (eo::is_eq ($upoly_eval p e) 0/1)
+      false))
+  )
+)
+
+; define: $cov_endpoint_ok
+; args:
+; - p @UPoly: The polynomial.
+; - e Real: An endpoint of the interval.
+; - w Real: The window bound next to e.
+; - st @List: The Sturm-Tarski sequence for e, as in $cov_is_root.
+; - below Bool: true if e is the lower endpoint, so that w is below it.
+; return: >
+;   true if e is the infinite endpoint of its side (-inf if below, +inf
+;   otherwise) and w and st are the same marker and empty; or e is a root of
+;   p and w is a rational strictly below (or above) e which is not a root of p.
+(define $cov_endpoint_ok ((p @UPoly) (e Real) (w Real) (st @List) (below Bool))
+  (eo::ite ($cov_is_inf e)
+    (eo::and (eo::and (eo::is_eq w e) (eo::is_eq st @list.nil))
+             (eo::is_eq below (eo::is_eq e @cov_minus_inf)))
+    (eo::ite (eo::is_q w)
+      (eo::and (eo::and ($cov_is_root p e st)
+                        (eo::not (eo::is_eq ($upoly_eval p w) 0/1)))
+               (eo::ite below ($cov_lt w e) ($cov_lt e w)))
+      false)))
+
+; define: $cov_num_finite
+; args:
+; - e Real: An endpoint.
+; return: 0 if e is infinite, 1 otherwise.
+(define $cov_num_finite ((e Real))
+  (eo::ite ($cov_is_inf e) 0 1))
+
+; define: $cov_sgn_inv_intro_ok
+; args:
+; - p Real: The polynomial, as a term over a single variable.
+; - l Real: The lower endpoint of the interval.
+; - r Real: The upper endpoint of the interval.
+; - lo Real: The window bound below l.
+; - hi Real: The window bound above r.
+; - s @List: The Sturm sequence of p.
+; - sl @List: The Sturm-Tarski sequence for l, as in $cov_is_root.
+; - sr @List: The Sturm-Tarski sequence for r, as in $cov_is_root.
+; return: >
+;   true if p has no root in (l, r). The finite endpoints are roots of p in
+;   the window (lo, hi), at whose bounds p is nonzero, and by Sturm's theorem
+;   p has exactly as many roots in the window as there are finite endpoints.
+;   Hence these are the only roots of p in the window, and there are none in
+;   (l, r).
+(define $cov_sgn_inv_intro_ok
+  ((p Real) (l Real) (r Real) (lo Real) (hi Real) (s @List) (sl @List) (sr @List))
+  (eo::define ((pp ($upoly_of_term ($upoly_term_var p) p)))
+  (eo::ite ($upoly_sturm_check pp s)
+    (eo::ite (eo::and ($cov_endpoint_ok pp l lo sl true)
+                      ($cov_endpoint_ok pp r hi sr false))
+      (eo::is_eq (eo::add ($cov_sign_var s lo) (eo::neg ($cov_sign_var s hi)))
+                 (eo::add ($cov_num_finite l) ($cov_num_finite r)))
+      false)
+    false)))
+
+; rule: sgn_inv_intro
+; implements: ProofRule::SGN_INV_INTRO
+; args:
+; - p Real: The polynomial, as a term over a single variable.
+; - l Real: The lower endpoint of the interval, a root of p or @cov_minus_inf.
+; - r Real: The upper endpoint of the interval, a root of p or @cov_plus_inf.
+; - lo Real: A rational below l at which p is nonzero, or @cov_minus_inf.
+; - hi Real: A rational above r at which p is nonzero, or @cov_plus_inf.
+; - s @List: The Sturm sequence of p.
+; - sl @List: The Sturm-Tarski sequence for l, empty if l is not algebraic.
+; - sr @List: The Sturm-Tarski sequence for r, empty if r is not algebraic.
+; requires: The conditions of $cov_sgn_inv_intro_ok.
+; conclusion: p has a constant sign on the open interval (l, r).
+(declare-rule sgn_inv_intro
+  ((p Real) (l Real) (r Real) (lo Real) (hi Real) (s @List) (sl @List) (sr @List))
+  :args (p l r lo hi s sl sr)
+  :requires ((($cov_sgn_inv_intro_ok p l r lo hi s sl sr) true))
+  :conclusion (@sgn_inv p l r)
+)
+
+;;;;; ProofRule::IS_ROOT_INTRO
+
+; rule: is_root_intro
+; implements: ProofRule::IS_ROOT_INTRO
+; args:
+; - p Real: The polynomial, as a term over a single variable.
+; - r Real: A rational or a real algebraic number.
+; - st @List: The Sturm-Tarski sequence for r, as in $cov_is_root, empty if r is rational.
+; requires: r is a root of p, as checked by $cov_is_root.
+; conclusion: r is a root of p.
+(declare-rule is_root_intro ((p Real) (r Real) (st @List))
+  :args (p r st)
+  :requires ((($cov_is_root ($upoly_of_term ($upoly_term_var p) p) r st) true))
+  :conclusion (@is_root p r)
+)
+
+;;;;; Literals comparing a polynomial with zero, for RAN_EVAL and SGN_INV_ELIM
+
+; program: $cov_atom_poly
+; args:
+; - A Bool: An atom.
+; return: >
+;   The term p if A is (~ p 0), where ~ is one of <, <=, =, >= and >. Does not
+;   evaluate otherwise.
+(program $cov_atom_poly ((p Real) (z Real))
+  :signature (Bool) Real
+  (
+  (($cov_atom_poly (< p z))   (eo::requires (eo::to_q z) 0/1 p))
+  (($cov_atom_poly (<= p z))  (eo::requires (eo::to_q z) 0/1 p))
+  (($cov_atom_poly (= p z))   (eo::requires (eo::to_q z) 0/1 p))
+  (($cov_atom_poly (>= p z))  (eo::requires (eo::to_q z) 0/1 p))
+  (($cov_atom_poly (> p z))   (eo::requires (eo::to_q z) 0/1 p))
+  )
+)
+
+; program: $cov_lit_poly
+; args:
+; - F Bool: A literal.
+; return: >
+;   The term p if F is (~ p 0) or (not (~ p 0)), as in $cov_atom_poly. Does
+;   not evaluate otherwise.
+(program $cov_lit_poly ((A Bool))
+  :signature (Bool) Real
+  (
+  (($cov_lit_poly (not A))  ($cov_atom_poly A))
+  (($cov_lit_poly A)        ($cov_atom_poly A))
+  )
+)
+
+; program: $cov_atom_holds
+; args:
+; - A Bool: An atom (~ p 0), as in $cov_atom_poly.
+; - v Real: A rational value for p.
+; return: >
+;   true if A holds when p is v. This only uses arithmetic comparisons, which
+;   do not evaluate if v is not a rational, so that a value which failed to
+;   evaluate is never mistaken for one falsifying A.
+(program $cov_atom_holds ((p Real) (z Real) (v Real))
+  :signature (Bool Real) Bool
+  (
+  (($cov_atom_holds (< p z) v)   (eo::is_neg v))
+  (($cov_atom_holds (<= p z) v)  (eo::not (eo::gt v 0/1)))
+  (($cov_atom_holds (= p z) v)   (eo::and (eo::not (eo::is_neg v)) (eo::not (eo::gt v 0/1))))
+  (($cov_atom_holds (>= p z) v)  (eo::not (eo::is_neg v)))
+  (($cov_atom_holds (> p z) v)   (eo::gt v 0/1))
+  )
+)
+
+; program: $cov_lit_holds
+; args:
+; - F Bool: A literal (~ p 0) or (not (~ p 0)), as in $cov_lit_poly.
+; - v Real: A rational value for p.
+; return: true if F holds when p is v.
+(program $cov_lit_holds ((A Bool) (v Real))
+  :signature (Bool Real) Bool
+  (
+  (($cov_lit_holds (not A) v)  (eo::not ($cov_atom_holds A v)))
+  (($cov_lit_holds A v)        ($cov_atom_holds A v))
+  )
+)
+
+;;;;; ProofRule::RAN_EVAL
+
+; rule: ran_eval
+; implements: ProofRule::RAN_EVAL
+; premises:
+; - (@is_root p r): r is a root of p.
+; - F: A literal comparing p with zero, as in $cov_lit_poly.
+; args:
+; - x Real: The variable of p.
+; - r Real: The root.
+; - p Real: The polynomial, as a term over x.
+; requires: >
+;   F compares p with zero and is false when p is zero, and p is a polynomial
+;   in x, i.e. $upoly_of_term x p evaluates. The latter ensures that F states
+;   that p is not zero at x, so x is not the root r.
+; conclusion: x is not r.
+(declare-rule ran_eval ((x Real) (r Real) (p Real) (F Bool))
+  :premises ((@is_root p r) F)
+  :args (x r p)
+  :requires ((($cov_lit_poly F) p)
+             (($cov_lit_holds F 0/1) false)
+             ((eo::is_ok ($upoly_of_term x p)) true))
+  :conclusion (not (= x r))
+)
+
+;;;;; ProofRule::SGN_INV_ELIM
+
+; rule: sgn_inv_elim
+; implements: ProofRule::SGN_INV_ELIM
+; premises:
+; - (@sgn_inv p l r): p has a constant sign on the open interval (l, r).
+; - F: A literal comparing p with zero, as in $cov_lit_poly.
+; args:
+; - x Real: The variable of p.
+; - p Real: The polynomial, as a term over x.
+; - s Real: A rational sample point in (l, r).
+; - l Real: The lower endpoint of the interval.
+; - r Real: The upper endpoint of the interval.
+; requires: >
+;   F compares p with zero, p is a polynomial in x, s is a rational with
+;   l < s < r, and F is false when x is s. As p has a constant sign on (l, r),
+;   F has the same truth value everywhere in (l, r), so it is false on the
+;   whole interval. Since F holds at x, x is not in (l, r).
+; conclusion: >
+;   x is not in (l, r), i.e. the negation of the piece of (l, r) as built by
+;   $mk_cover_piece for the cover rule, or false if (l, r) is the whole line.
+;   Note the piece is never the point case of $mk_cover_piece: l and r cannot
+;   be the same term, since l < s < r is required.
+(declare-rule sgn_inv_elim ((x Real) (p Real) (s Real) (l Real) (r Real) (F Bool))
+  :premises ((@sgn_inv p l r) F)
+  :args (x p s l r)
+  :requires ((($cov_lit_poly F) p)
+             ((eo::is_ok ($upoly_of_term x p)) true)
+             ((eo::is_q s) true)
+             (($cov_bound_lt l s) true)
+             (($cov_bound_lt s r) true)
+             (($cov_lit_holds F ($upoly_eval ($upoly_of_term x p) s)) false))
+  :conclusion
+    (eo::define ((piece ($mk_cover_piece x l r)))
+    (eo::ite (eo::is_eq piece true) false (not piece)))
+)

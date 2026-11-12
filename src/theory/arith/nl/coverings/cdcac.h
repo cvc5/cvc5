@@ -247,6 +247,13 @@ class CDCAC : protected EnvObj
   /** The next interval id */
   size_t d_nextIntervalId = 1;
 
+  bool d_isUniv = true;
+  /**
+   * Whether the univariate proof data already holds a full cover of the line,
+   * i.e. the intervals of one variable covered it on their own. If so, no
+   * later call may replace it.
+   */
+  bool d_univCovered = false;
   /** See foundNullifiedPolynomial() */
   bool d_nullified = false;
 };

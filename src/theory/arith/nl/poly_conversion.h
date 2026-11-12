@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <map>
 #include <utility>
+#include <vector>
 
 #include "expr/node.h"
 #include "util/real_algebraic_number.h"
@@ -54,6 +55,23 @@ struct VariableMapper
 /** Convert a poly univariate polynomial to a cvc5::internal::Node. */
 cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p,
                                         const cvc5::internal::Node& var);
+
+/**
+ * Takes a list of polynomials (representing a remainder sequence) and returns
+ * another list, which is a pair of elements (a, b) where a is the quocient and
+ * b is the remainder. The i-th pair has the element seq[i] of the sequence and
+ * the pseudo-quotient of seq[i - 2] by seq[i - 1], of which seq[i] is the
+ * remainder up to a constant factor (zero for the first two elements).
+ */
+std::vector<std::pair<poly::UPolynomial, poly::UPolynomial>> enhancedRemSeq(
+    const std::vector<poly::UPolynomial>& seq);
+
+/**
+ * Convert a remainder sequence to a cvc5::internal::Node: an SEXPR with the
+ * pairs of enhancedRemSeq(seq), each an SEXPR (a b) of polynomials over var.
+ */
+cvc5::internal::Node as_cvc_remainder_sequence(
+    const std::vector<poly::UPolynomial>& seq, const cvc5::internal::Node& var);
 
 /**
  * Convert a cvc5::internal::Node to a poly univariate polynomial. Is robust to
@@ -96,6 +114,30 @@ cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
                                        VariableMapper& vm);
 
 /**
+ * Like as_cvc_polynomial, but a power x^d is expanded into d factors x
+ * (nested NONLINEAR_MULT) instead of a POW node. This is the shape expected
+ * by the polynomial normalization of ARITH_POLY_NORM (PolyNorm does not
+ * handle POW) and by its reconstruction in lean-smt. Used for the terms of
+ * the univariate coverings proofs.
+ */
+cvc5::internal::Node as_cvc_polynomial_no_pow(NodeManager* nm,
+                                              const poly::Polynomial& p,
+                                              VariableMapper& vm);
+
+/**
+ * Like value_to_node, but never returns an integer constant: a real algebraic
+ * number that turns out to be rational (e.g. because its isolating interval
+ * collapsed to a point) is converted by mkRealAlgebraicNumber through
+ * mkConstRealOrInt, which yields an integer constant for integral values.
+ * The univariate coverings proofs quantify over a real variable, so their
+ * endpoints must be real constants. Used for the terms of these proofs.
+ * Irrational real algebraic numbers are returned as
+ * REAL_ALGEBRAIC_NUMBER_WITNESS terms (see PolyConverter::ran_to_sturm_witness)
+ * whose Sturm sequence is over ran_variable.
+ */
+Node value_to_node_no_integer(const poly::Value& v, const Node& ran_variable);
+
+/**
  * Constructs a constraints (a polynomial and a sign condition) from the given
  * node.
  */
@@ -106,7 +148,8 @@ Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable);
 
 /**
  * Transforms a poly::Value to a node.
- * The resulting node can be either a constant or a witness term.
+ * The resulting node can be either a constant, a witness term or plus or minus
+ * infinity.
  */
 Node value_to_node(const poly::Value& v, const Node& ran_variable);
 
@@ -178,6 +221,14 @@ class PolyConverter
   static Node ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
                                          const Node& ran_variable);
   /**
+   * Get a REAL_ALGEBRAIC_NUMBER_WITNESS node for the given ran: the ran
+   * together with the Sturm sequence of its defining polynomial (an SEXPR of
+   * polynomials over variable ran_variable). Returns null if the ran is
+   * represented by a rational (and hence has no defining polynomial).
+   */
+  static Node ran_to_sturm_witness(const RealAlgebraicNumber& ran,
+                                   const Node& ran_variable);
+  /**
    * Get the lower bound for the given ran, which is a constant real.
    */
   static Node ran_to_lower(NodeManager* nm, const RealAlgebraicNumber& ran);
@@ -185,6 +236,11 @@ class PolyConverter
    * Get the upper bound for the given ran, which is a constant real.
    */
   static Node ran_to_upper(NodeManager* nm, const RealAlgebraicNumber& ran);
+
+  /**
+   * Gets the list of coefficients of `ran` as a `Node`.
+   */
+  static Node ran_to_coeffs(NodeManager* nm, const RealAlgebraicNumber& ran);
 
   /** Transforms a node to a RealAlgebraicNumber by calling node_to_poly_ran. */
   static RealAlgebraicNumber node_to_ran(const Node& n,

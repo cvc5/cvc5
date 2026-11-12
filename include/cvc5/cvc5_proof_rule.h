@@ -2580,6 +2580,50 @@ enum ENUM(ProofRule)
    */
   EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_POS),
   /**
+   * Introduces the sign invariance of a polynomial on an open interval.
+   * Arguments: a polynomial `p`, the endpoints `l` and `r` of the interval (each either a
+   * root of `p` or the marker `MINUS_INFINITY` / `PLUS_INFINITY`), and rational bounds
+   * `lo` and `hi` with `lo < l` and `r < hi` (or the same markers when the corresponding
+   * endpoint is infinite), the Sturm sequence of `p`, and the Sturm-Tarski sequences of
+   * the defining polynomials of `l` and `r` with `p` (empty when the endpoint is rational
+   * or infinite). Each sequence is an s-expression of pairs `(a b)`, where `b` is an
+   * element of the sequence and `a` is the pseudo-quotient of the two preceding elements,
+   * of which `b` is the remainder up to a constant factor. Side condition: `p` has no root in `(lo, hi)` other than `l`
+   * and `r`, and `p(lo) != 0`, `p(hi) != 0`. Concludes `SGN_INV(p, l, r)`.
+   */
+  EVALUE(SGN_INV_INTRO),
+  /**
+   * Introduces `IS_ROOT(p, r)` for a polynomial `p` and a real (algebraic) number `r`.
+   * Arguments: `p`, `r`, and the Sturm-Tarski sequence of the defining
+   * polynomial of `r` with `p` (empty when `r` is rational), as an
+   * s-expression of pairs `(a b)` as in `SGN_INV_INTRO`.
+   * Side condition: `r` is a root of `p`.
+   */
+  EVALUE(IS_ROOT_INTRO),
+  /**
+   * Generates a clause of the form `(x > i1_l /\ x < i1_r) \/ (x > i2_l /\ x < i2_r) ..`
+   * Given a variable `x` and a list of intervals [i1, i2, ..]. Assumes that the intervals
+   * cover the whole real line. If an endpoint of an interval is not finite then the
+   * corresponding conjunct is omitted in the conclusion.
+   */
+  EVALUE(COVER),
+  /**
+   * Parameters: a variable `x`, a polynomial `p`, a rational `s` and two endpoints
+   * `l` and `r`, as premises `SGN_INV(p, l, r)` and `p(x) ~ 0` (where ~ is either <, <=, =, >= or >)
+   * (or (`\not p(x) ~ 0`)), and as side conditions `l < s < r` and `\not p(s) ~ 0` (or
+   * `p(s) ~ 0`, if the premise was `\not p(x) ~ 0`). Concludes `\not (x > l \and x < r)`.
+   * If `l` is `MINUS_INFINITY` then terms that mention it are omitted, and the same for `r`
+   * if it is `PLUS_INFINITY`. If the interval is the whole line then the conclusion is `false`.
+   */
+  EVALUE(SGN_INV_ELIM),
+  /**
+   * Parameters: a variable `x`, a real algebraic number `r` and a polynomial `p`.
+   * Premises: IS_ROOT(p, r) and one of: `p(x) != 0`, `p(x) < 0`, `p(x) > 0`,
+   * `not (p(x) >= 0)` or `not (p(x) <= 0)`.
+   * Concludes: x != r
+   */
+  EVALUE(RAN_EVAL),
+  /**
    * \verbatim embed:rst:leading-asterisk
    * **Finite Fields -- Polynomial normalization**
    *

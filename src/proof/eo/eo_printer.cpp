@@ -148,6 +148,11 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::ARITH_MULT_SIGN:
     case ProofRule::ARITH_MULT_ABS_COMPARISON:
     case ProofRule::ARITH_TRICHOTOMY:
+    case ProofRule::SGN_INV_INTRO:
+    case ProofRule::IS_ROOT_INTRO:
+    case ProofRule::COVER:
+    case ProofRule::SGN_INV_ELIM:
+    case ProofRule::RAN_EVAL: return true;
     case ProofRule::INT_TIGHT_LB:
     case ProofRule::INT_TIGHT_UB:
     case ProofRule::SKOLEM_INTRO:
