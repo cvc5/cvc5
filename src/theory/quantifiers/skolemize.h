@@ -75,8 +75,10 @@ class Skolemize : protected EnvObj
    */
   TrustNode process(Node q);
   /**
-   * The skolemization lemma of q made by process in this user context, with
-   * its proof, or null if there is none.
+   * The skolemization lemma of q made by process in this user context, or
+   * null if there is none. The proof generator of the returned trust node is
+   * null if no proof is available for the lemma (e.g. if proofs are disabled
+   * or induction skolemization was used).
    */
   TrustNode getSkolemizationLemma(const Node& q) const;
   /** get the skolem constants */

@@ -173,7 +173,10 @@ TrustNode Skolemize::getSkolemizationLemma(const Node& q) const
   {
     return TrustNode::null();
   }
-  return TrustNode::mkTrustLemma((*it).second, d_epg.get());
+  ProofGenerator* pg =
+      (d_epg != nullptr && d_epg->hasProofFor((*it).second)) ? d_epg.get()
+                                                             : nullptr;
+  return TrustNode::mkTrustLemma((*it).second, pg);
 }
 
 bool Skolemize::getSkolemConstantsInduction(Node q, std::vector<Node>& skolems)
