@@ -1066,6 +1066,8 @@ set(regress_0_tests
   regress0/fp/issue12370-from-real-refine.smt2
   regress0/fp/issue12780-from-real-refine.smt2
   regress0/fp/issue12867-min-max-zero.smt2
+  regress0/fp/issue13133-1.smt2
+  regress0/fp/issue13133-2.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue228-fp-inf-53-11.smt2
   regress0/fp/proj-issue328-array-rm-getvalue.smt2
