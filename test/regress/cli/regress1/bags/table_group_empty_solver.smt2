@@ -1,4 +1,6 @@
 ; REQUIRES: unrestricted-mode
+; CPC checking fails because the signature does not define table.aggr.
+; DISABLE-TESTER: cpc
 ; COMMAND-LINE: --simplification=none
 ; As table_group_empty.smt2, through the solver: without simplification, X is
 ; not replaced by the empty table.
