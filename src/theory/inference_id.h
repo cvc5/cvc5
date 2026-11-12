@@ -1012,6 +1012,8 @@ enum class InferenceId
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------- UF arith/bv conversions solver
+  // range constraint for an unsigned bit-vector to integer conversion term
+  UF_ARITH_BV_CONV_RANGE,
   // reductions of an arithmetic/bit-vector conversion term
   UF_ARITH_BV_CONV_REDUCTION,
   // value-based refinement of an arithmetic/bit-vector conversion term

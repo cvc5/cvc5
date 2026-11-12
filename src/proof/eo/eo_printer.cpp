@@ -179,6 +179,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::QUANT_VAR_REORDERING:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
+    case ProofRule::UBV_TO_INT_RANGE:
     case ProofRule::BV_EAGER_ATOM:
     case ProofRule::ACI_NORM:
     case ProofRule::ABSORB:
