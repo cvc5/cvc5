@@ -690,6 +690,9 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses)
                   << "UFSYMM symmetry-breaking clause: " << d << endl;
             }
             newClauses.push_back(d);
+            Node nd = norm(d);
+            d_phi.push_back(nd);
+            d_phiSet.insert(nd);
           }
           else
           {
