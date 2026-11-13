@@ -24,7 +24,9 @@
 
 #include "test_env.h"
 #include "theory/ff/multi_roots.h"
+#include "theory/ff/util.h"
 #include "util/cocoa_globals.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 
@@ -144,6 +146,25 @@ TEST_F(TestTheoryFfModelBlack, ExtractAssignment)
     r = {2, ring->myZero()};
     EXPECT_EQ(ff::extractAssignment(c), r);
   }
+}
+
+TEST_F(TestTheoryFfModelBlack, CommonRootTerminationRequested)
+{
+  CoCoA::ring ring = CoCoA::NewZZmod(3);
+  std::vector<CoCoA::symbol> syms = CoCoA::symbols("a,b");
+  CoCoA::PolyRing polyRing = CoCoA::NewPolyRing(ring, syms);
+  CoCoA::RingElem a = CoCoA::indet(polyRing, 0);
+  CoCoA::RingElem b = CoCoA::indet(polyRing, 1);
+  std::vector<CoCoA::RingElem> gens = {a * a - a, b * b - b, a - b};
+
+  ResourceManager* rm = d_env->getResourceManager();
+  rm->setTerminator([]() { return true; });
+  rm->beginCall();
+  // the search for a common root stops if termination has been requested
+  EXPECT_THROW(ff::findZero(CoCoA::ideal(gens), *d_env),
+               ff::FfTimeoutException);
+  rm->refresh();
+  rm->setTerminator(nullptr);
 }
 
 TEST_F(TestTheoryFfModelBlack, CommonRoot)

@@ -86,7 +86,8 @@ Result SynthVerify::verify(Node query,
     SubsolverSetupInfo ssi(d_subOptions,
                            d_subLogicInfo,
                            d_env.getSepLocType(),
-                           d_env.getSepDataType());
+                           d_env.getSepDataType(),
+                           d_env.getResourceManager());
     r = checkWithSubsolver(queryp,
                            vars,
                            mvs,
