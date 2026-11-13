@@ -173,9 +173,9 @@ TrustNode Skolemize::getSkolemizationLemma(const Node& q) const
   {
     return TrustNode::null();
   }
-  ProofGenerator* pg =
-      (d_epg != nullptr && d_epg->hasProofFor((*it).second)) ? d_epg.get()
-                                                             : nullptr;
+  ProofGenerator* pg = (d_epg != nullptr && d_epg->hasProofFor((*it).second))
+                           ? d_epg.get()
+                           : nullptr;
   return TrustNode::mkTrustLemma((*it).second, pg);
 }
 
