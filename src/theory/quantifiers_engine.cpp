@@ -115,6 +115,10 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_qmodules.reset(new QuantifiersModules());
   d_qmodules->initialize(
       d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
+  for (QuantifiersModule*& mdl : d_modules)
+  {
+    mdl->finishInit(te);
+  }
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -426,15 +430,21 @@ void QuantifiersEngine::checkInternal(Theory::Effort e,
     Trace("quant-engine-debug") << "Reset model..." << std::endl;
     d_model->reset_round();
 
-    // reset the modules
-    Trace("quant-engine-debug") << "Resetting all modules..." << std::endl;
-    for (QuantifiersModule*& mdl : d_modules)
+    // Reset the modules. At standard effort, we only reset the modules that
+    // are checked in this round. Otherwise, we reset all modules, since some
+    // modules compute information in their reset that is used by others, e.g.
+    // cegqi marks quantified formulas whose counterexample literal is false as
+    // inactive.
+    std::vector<QuantifiersModule*>& rqm =
+        e == Theory::EFFORT_STANDARD ? qm : d_modules;
+    Trace("quant-engine-debug") << "Resetting modules..." << std::endl;
+    for (QuantifiersModule*& mdl : rqm)
     {
       Trace("quant-engine-debug2")
           << "Reset " << mdl->identify().c_str() << std::endl;
       mdl->reset_round(e);
     }
-    Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
+    Trace("quant-engine-debug") << "Done resetting modules." << std::endl;
     // reset may have added lemmas
     d_qim.doPending();
     if (d_qim.hasSentLemma())
@@ -780,6 +790,10 @@ void QuantifiersEngine::eqNotifyNewClass(TNode t)
 void QuantifiersEngine::eqNotifyMerge(TNode t1, TNode t2)
 {
   d_treg.eqNotifyMerge(t1, t2);
+  for (QuantifiersModule*& mdl : d_modules)
+  {
+    mdl->notifyMasterMerge(t1, t2);
+  }
 }
 
 void QuantifiersEngine::markRelevant(Node q) { d_model->markRelevant(q); }

@@ -114,6 +114,7 @@ const char* toString(TrustId id)
     case TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE:
       return "MACRO_THEORY_REWRITE_RCONS_SIMPLE";
     case TrustId::INT_BLASTER: return "INT_BLASTER";
+    case TrustId::ALETHE_RULE: return "ALETHE_RULE";
     // unknown sources
     case TrustId::UNKNOWN_PREPROCESS: return "UNKNOWN_PREPROCESS";
     case TrustId::UNKNOWN_PREPROCESS_LEMMA: return "UNKNOWN_PREPROCESS_LEMMA";

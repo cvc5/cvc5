@@ -57,7 +57,7 @@ int main()
   Term leq = tm.mkTerm(Kind::LEQ, {start, start});
 
   // create the grammar object
-  Grammar g = slv.mkGrammar({x, y}, {start, start_bool});
+  Grammar g = tm.mkGrammar({x, y}, {start, start_bool});
 
   // bind each non-terminal to its rules
   g.addRules(start, {zero, one, x, y, plus, minus, ite});

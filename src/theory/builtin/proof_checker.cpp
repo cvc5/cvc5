@@ -15,6 +15,7 @@
 #include "expr/aci_norm.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "proof/annotation_id.h"
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "rewriter/rewrite_proof_rule.h"
@@ -52,6 +53,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::ENCODE_EQ_INTRO, this);
   pc->registerChecker(ProofRule::DSL_REWRITE, this);
   pc->registerChecker(ProofRule::THEORY_REWRITE, this);
+  pc->registerChecker(ProofRule::ANNOTATE, this);
   // rules depending on the rewriter
   pc->registerTrustedChecker(ProofRule::MACRO_REWRITE, this, 4);
   pc->registerTrustedChecker(ProofRule::MACRO_SR_EQ_INTRO, this, 4);
@@ -61,8 +63,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(ProofRule::TRUST_THEORY_REWRITE, this, 4);
   // trusted rules
   pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
-  // external proof rules
-  pc->registerChecker(ProofRule::ALETHE_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -442,18 +442,32 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() >= 2);
     return args[1];
   }
+  else if (id == ProofRule::ANNOTATE)
+  {
+    AnnotationId aid;
+    TheoryId tid;
+    Assert(children.size() == 1);
+    Assert(!args.empty());
+    if (!getAnnotationId(args[0], aid))
+    {
+      return Node::null();
+    }
+    if (aid == AnnotationId::THEORY_LEMMA)
+    {
+      Assert(args.size() >= 2);
+      if (!getTheoryId(args[1], tid))
+      {
+        return Node::null();
+      }
+    }
+    return children[0];
+  }
   else if (id == ProofRule::TRUST_THEORY_REWRITE)
   {
     // "trusted" rules
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
     return args[0];
-  }
-  else if (id == ProofRule::ALETHE_RULE)
-  {
-    Assert(args.size() > 1);
-    Assert(args[0].getType().isInteger());
-    return args[1];
   }
   else if (id == ProofRule::ENCODE_EQ_INTRO)
   {

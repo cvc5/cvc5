@@ -3093,6 +3093,7 @@ class CVC5_EXPORT Grammar
 {
   friend class parser::Cmd;
   friend class Solver;
+  friend class TermManager;
   friend struct std::hash<Grammar>;
 
  public:
@@ -3655,6 +3656,47 @@ class CVC5_EXPORT Plugin
 };
 
 /* -------------------------------------------------------------------------- */
+/* Terminator                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A terminator, which allows to terminate queries of a solver.
+ *
+ * A terminator is connected to a solver via Solver::setTerminator(). While
+ * the solver executes a query (e.g., Solver::checkSat()), it periodically
+ * calls terminate() to determine whether the query should be terminated. If
+ * terminate() returns true, the query is terminated as if a resource limit
+ * had been reached. For queries that return a Result, the result is unknown
+ * with explanation UnknownExplanation::INTERRUPTED.
+ *
+ * A termination request only applies to the query during which it was
+ * issued: after terminate() returned true, it is not called again during
+ * that query, and the solver can be used for further queries afterwards.
+ * Function terminate() is called at the beginning of each query, i.e., if it
+ * keeps returning true, subsequent queries are terminated immediately.
+ *
+ * Function terminate() is called frequently from the thread that executes the
+ * query, and must thus be cheap to evaluate. It is declared `noexcept`, since
+ * it is called from code that is not exception-safe (e.g., the SAT solvers):
+ * an exception that escapes it terminates the program. To terminate
+ * a query from another thread, terminate() can, e.g., check a flag of type
+ * `std::atomic<bool>` that is set by that thread.
+ *
+ * @warning This class is experimental and may change in future versions.
+ */
+class CVC5_EXPORT Terminator
+{
+ public:
+  virtual ~Terminator() = default;
+  /**
+   * Determine whether the current query of the solver this terminator is
+   * connected to should be terminated.
+   * @return True to terminate the current query.
+   */
+  virtual bool terminate() noexcept = 0;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Proof                                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -3701,6 +3743,17 @@ class CVC5_EXPORT Proof
    */
   ProofRewriteRule getRewriteRule() const;
 
+  /**
+   * Get the annotation identifier used by the root step of the proof.
+   *
+   * Requires that `getRule()` returns #ANNOTATE.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @return The annotation identifier.
+   */
+  AnnotationId getAnnotationId() const;
+
   /** @return The conclusion of the root step of the proof. */
   Term getResult() const;
 
@@ -3712,6 +3765,23 @@ class CVC5_EXPORT Proof
    *         Some of those terms might be strings.
    */
   const std::vector<Term> getArguments() const;
+
+  /**
+   * Get a string representation of an argument of the root step of the proof.
+   *
+   * The string is computed by the internal proof printer, which takes into
+   * account how the argument is used by the proof rule. For example, an
+   * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+   * is converted to the name of that identifier. All other arguments are
+   * converted to the string representation of the corresponding term returned
+   * by `getArguments()`.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param i The index of the argument.
+   * @return The string representation of the argument.
+   */
+  std::string getArgumentToString(size_t i) const;
 
   /**
    * Operator overloading for referential equality of two proofs.
@@ -4453,6 +4523,19 @@ class CVC5_EXPORT TermManager
   DatatypeDecl mkDatatypeDecl(const std::string& name,
                               const std::vector<Sort>& params,
                               bool isCoDatatype = false);
+
+  /* SyGuS Grammar ------------------------------------------------------ */
+
+  /**
+   * Create a Sygus grammar. The first non-terminal is treated as the starting
+   * non-terminal, so the order of non-terminals matters.
+   *
+   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
+   * @param ntSymbols The pre-declaration of the non-terminal symbols.
+   * @return The grammar.
+   */
+  Grammar mkGrammar(const std::vector<Term>& boundVars,
+                    const std::vector<Term>& ntSymbols);
 
  private:
   /**
@@ -6043,7 +6126,10 @@ class CVC5_EXPORT Solver
    * of assertions corresponds to a subset of the current assertions that cause
    * a timeout in the specified time :ref:`timeout-core-timeout
    * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list
-   * of formulas correspond to an unsat core for the current assertions.
+   * of formulas correspond to an unsat core for the current assertions. If the
+   * computation was terminated by the connected terminator, the result is
+   * unknown with explanation UnknownExplanation::INTERRUPTED, and the
+   * returned set of assertions is empty.
    * Otherwise, the result is sat, indicating that the current assertions are
    * satisfiable, and the returned set of assertions is empty.
    * \endverbatim
@@ -6076,7 +6162,10 @@ class CVC5_EXPORT Solver
    * timeout when added to the current assertions in the specified time
    * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the
    * result is unsat, then the set of assumptions together with the current
-   * assertions correspond to an unsat core for the current assertions.
+   * assertions correspond to an unsat core for the current assertions. If the
+   * computation was terminated by the connected terminator, the result is
+   * unknown with explanation UnknownExplanation::INTERRUPTED, and the
+   * returned set of assumptions is empty.
    * Otherwise, the result is sat, indicating that the given assumptions plus
    * the current assertions are satisfiable, and the returned set of
    * assumptions is empty.
@@ -6423,6 +6512,23 @@ class CVC5_EXPORT Solver
    * @param p The plugin to add to this solver.
    */
   void addPlugin(Plugin& p);
+  /**
+   * Connect a terminator to this solver, which is called periodically during
+   * queries to determine whether the current query should be terminated.
+   * See Terminator for details.
+   *
+   * Only one terminator can be connected at a time, connecting a terminator
+   * disconnects the previously connected terminator. The terminator stays
+   * connected when the solver is reset via the SMT-LIB command `(reset)`. The
+   * solver does not take ownership of the terminator, which must stay alive
+   * while connected.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param terminator The terminator to connect, or nullptr to disconnect the
+   *                   currently connected terminator.
+   */
+  void setTerminator(Terminator* terminator);
   /**
    * Pop (a) level(s) from the assertion stack.
    *
@@ -6772,9 +6878,13 @@ class CVC5_EXPORT Solver
    * @param boundVars The parameters to corresponding synth-fun/synth-inv.
    * @param ntSymbols The pre-declaration of the non-terminal symbols.
    * @return The grammar.
+   * @warning This function is deprecated and replaced by
+   *          `TermManager::mkGrammar()`. It will be removed in a future
+   *          release.
    */
-  Grammar mkGrammar(const std::vector<Term>& boundVars,
-                    const std::vector<Term>& ntSymbols) const;
+  [[deprecated("Use TermManager::mkGrammar() instead")]] Grammar mkGrammar(
+      const std::vector<Term>& boundVars,
+      const std::vector<Term>& ntSymbols) const;
 
   /**
    * Synthesize n-ary function.
@@ -7121,6 +7231,8 @@ class CVC5_EXPORT Solver
   std::unique_ptr<internal::SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<internal::Random> d_rng;
+  /** The connected terminator, if any, which stays connected on reset. */
+  Terminator* d_terminator = nullptr;
 };
 
 }  // namespace cvc5

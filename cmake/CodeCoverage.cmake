@@ -1,5 +1,5 @@
-find_program(LCOV_BINARY lcov REQUIRED)
-find_program(GENHTML_BINARY NAMES genhtml REQUIRED)
+# genhtml (part of lcov) is only needed for the HTML report.
+find_program(GENHTML_BINARY NAMES genhtml)
 find_program(FASTCOV_BINARY fastcov REQUIRED)
 
 set(COVERAGE_COMPILER_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage"
@@ -65,14 +65,18 @@ function(setup_code_coverage_fastcov)
       "Generate code coverage JSON report."
   )
 
-  add_custom_target(${COVERAGE_NAME}
-    COMMAND
-      ${FASTCOV_BINARY} -C coverage.json --lcov -o coverage.info
-    COMMAND
-      ${GENHTML_BINARY} --branch-coverage --demangle-cpp --no-prefix -o coverage coverage.info
-    DEPENDS
-      coverage-json
-    COMMENT
-      "Generate code coverage report."
-  )
+  if(GENHTML_BINARY)
+    add_custom_target(${COVERAGE_NAME}
+      COMMAND
+        ${FASTCOV_BINARY} -C coverage.json --lcov -o coverage.info
+      COMMAND
+        ${GENHTML_BINARY} --branch-coverage --demangle-cpp --no-prefix -o coverage coverage.info
+      DEPENDS
+        coverage-json
+      COMMENT
+        "Generate code coverage report."
+    )
+  else()
+    message(STATUS "genhtml not found, target '${COVERAGE_NAME}' is not available")
+  endif()
 endfunction()

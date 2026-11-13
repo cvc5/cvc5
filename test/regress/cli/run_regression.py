@@ -15,6 +15,7 @@ Runs benchmark and checks for correct exit status and output.
 import argparse
 import collections
 import difflib
+import json
 import os
 import re
 import shlex
@@ -28,9 +29,11 @@ import time
 g_args = None
 
 # For maximum reliability, we get a fully qualified path for the executable.
+# Bash is only needed to run shell commands (e.g., scrubbers). Executables
+# given as a list of arguments are run directly, without a shell: spawning a
+# shell for every process is expensive on some platforms (e.g., MSYS2 bash on
+# Windows).
 bash_bin = shutil.which("bash")
-if bash_bin is None:
-    raise FileNotFoundError("Bash executable is required but not found.")
 
 class Color:
     BLUE = "\033[94m"
@@ -723,23 +726,29 @@ def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
     arguments to execute, `cwd` is the working directory and `s_input` is the
     input to be sent to the process over stdin. If `args` is a list, the
-    arguments are escaped and concatenated. If `args` is a string, it is
-    executed as-is (without additional escaping. Returns the output, the error
-    output and the exit code of the process. If the process times out, the
-    output and the error output are empty and the exit code is 124."""
+    executable is run directly (without a shell). If `args` is a string, it is
+    executed as-is by bash (without additional escaping). Returns the output,
+    the error output and the exit code of the process. If the process times
+    out, the output and the error output are empty and the exit code is 124."""
 
-    cmd = " ".join([shlex.quote(a)
-                    for a in args]) if isinstance(args, list) else args
-    print("  $ {}".format(str(cmd)))
+    if isinstance(args, list):
+        print("  $ {}".format(" ".join([shlex.quote(a) for a in args])))
+        popen_args = args
+    else:
+        print("  $ {}".format(args))
+        if bash_bin is None:
+            raise FileNotFoundError(
+                "Bash executable is required but not found.")
+        # Instead of setting shell=True, we explicitly call bash. Using
+        # shell=True seems to produce different exit codes on different
+        # platforms under certain circumstances.
+        popen_args = [bash_bin, "-c", args]
     out = bytes()
     err = bytes()
     exit_status = STATUS_TIMEOUT
     try:
-        # Instead of setting shell=True, we explicitly call bash. Using
-        # shell=True seems to produce different exit codes on different
-        # platforms under certain circumstances.
         res = subprocess.run(
-            [bash_bin,"-c", cmd],
+            popen_args,
             cwd=cwd,
             input=s_input,
             timeout=timeout,
@@ -749,23 +758,84 @@ def run_process(args, cwd, timeout, s_input=None):
         out = res.stdout
         err = res.stderr
         exit_status = res.returncode
+        # A process terminated by signal N has a negative return code -N.
+        # Report it as 128 + N, as a shell would.
+        if exit_status < 0:
+            exit_status = 128 - exit_status
     except subprocess.TimeoutExpired:
         exit_status = STATUS_TIMEOUT
 
     return out, err, exit_status
 
 
+def binary_cache_key(cvc5_binary):
+    """Returns a key that identifies the current version of the binary
+    `cvc5_binary`."""
+    st = os.stat(cvc5_binary)
+    return [os.path.abspath(cvc5_binary), st.st_size, st.st_mtime_ns]
+
+
+def read_show_config_cache(cache_file, cvc5_binary):
+    """Returns the output of `cvc5_binary --show-config` stored in
+    `cache_file`, or None if there is no valid entry for the binary."""
+    try:
+        with open(cache_file, "r") as f:
+            cache = json.load(f)
+        if cache["key"] == binary_cache_key(cvc5_binary):
+            return cache["output"]
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return None
+
+
+def write_show_config_cache(cache_file, cvc5_binary, output):
+    """Stores the output of `cvc5_binary --show-config` in `cache_file`. The
+    file is replaced atomically, since regressions run in parallel. Errors
+    are ignored: the cache is only an optimization."""
+    tmp_name = None
+    try:
+        cache = {"key": binary_cache_key(cvc5_binary), "output": output}
+        with tempfile.NamedTemporaryFile("w",
+                                         dir=os.path.dirname(cache_file),
+                                         prefix=".show-config-",
+                                         delete=False) as f:
+            tmp_name = f.name
+            json.dump(cache, f)
+        os.replace(tmp_name, cache_file)
+        tmp_name = None
+    except OSError:
+        pass
+    finally:
+        if tmp_name is not None:
+            try:
+                os.remove(tmp_name)
+            except OSError:
+                pass
+
+
 def get_cvc5_features(cvc5_binary, timeout):
-    """Returns a list of features supported by the cvc5 binary `cvc5_binary`."""
+    """Returns a list of features supported by the cvc5 binary `cvc5_binary`.
+    If a cache file is given with --cvc5-config-cache, the output of
+    `cvc5 --show-config` is read from it when it is valid for the binary,
+    which saves starting a process for every regression."""
 
-    output, error, exit_status = run_process([cvc5_binary, "--show-config"],
-                                             None, timeout)
-    if is_timeout(exit_status, output, error):
-        print_error("Timeout")
-        return None, None
+    cache_file = g_args.cvc5_config_cache if g_args else None
+    output = None
+    if cache_file:
+        output = read_show_config_cache(cache_file, cvc5_binary)
 
-    if isinstance(output, bytes):
-        output = output.decode()
+    if output is None:
+        output, error, exit_status = run_process(
+            [cvc5_binary, "--show-config"], None, timeout)
+        if is_timeout(exit_status, output, error):
+            print_error("Timeout")
+            return None, None
+
+        if isinstance(output, bytes):
+            output = output.decode()
+
+        if cache_file and exit_status == 0:
+            write_show_config_cache(cache_file, cvc5_binary, output)
 
     features = []
     disabled_features = []
@@ -1082,6 +1152,8 @@ def main():
     parser.add_argument("--ethos-binary", default="")
     parser.add_argument("--logos-binary", default="")
     parser.add_argument("--cpc-sig-dir", default="")
+    parser.add_argument("--cvc5-config-cache", default="",
+                        help="file to cache the output of `cvc5 --show-config`")
     parser.add_argument("wrapper", nargs="*")
     parser.add_argument("cvc5_binary")
     parser.add_argument("benchmark")

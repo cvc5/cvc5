@@ -14,6 +14,7 @@
 
 #include "prop/cadical/proof_tracer.h"
 
+#include <algorithm>
 #include <unordered_set>
 
 #include "proof/proof_node.h"
@@ -23,25 +24,6 @@
 namespace cvc5::internal::prop::cadical {
 
 namespace {
-
-Node toNode(NodeManager* nm, TheoryProxy* proxy, const SatClause& clause)
-{
-  if (clause.empty())
-  {
-    return nm->mkConst(false);
-  }
-  std::vector<Node> lits;
-  for (const auto& lit : clause)
-  {
-    lits.push_back(proxy->getNode(lit));
-  }
-  // Sat clause is sorted by literal id. Ensure that node-level clause is
-  // sorted by node ids. Also factor duplicate literals to match the
-  // normalization done by PropPfManager when registering CNF clause proofs.
-  std::sort(lits.begin(), lits.end());
-  lits.erase(std::unique(lits.begin(), lits.end()), lits.end());
-  return lits.size() == 1 ? lits[0] : nm->mkNode(Kind::OR, lits);
-}
 
 /**
  * Normalize a unary CaDiCaL derivation to a proof of conclusion.
@@ -208,11 +190,16 @@ std::shared_ptr<ProofNode> ProofTracer::get_chain_resolution_proof(
         // feature (CaDiCaL's constrain method), which we don't use. The main
         // application is model checking.
         Assert(!clause.antecedents.empty());
-        steps.emplace(cid, steps.at(core[core.size() - 2]));
+        // The assumption clause is derived from its antecedents, which need
+        // not include a derived clause: e.g., two unit clauses of
+        // complementary literals asserted at different user levels are
+        // resolved directly into the clause of their activation literals.
+        steps.emplace(cid,
+                      chain_resolution_step(cid, proxy, pnm, nm, steps, alits));
       }
       else
       {
-        Node assump = toNode(nm, proxy, sat_clause);
+        Node assump = toClauseNode(nm, proxy, sat_clause);
         steps.emplace(cid, pnm->mkAssume(assump));
       }
     }
@@ -245,7 +232,7 @@ std::shared_ptr<ProofNode> ProofTracer::chain_resolution_step(
 {
   const auto& cl = d_clauses.at(cid);
   SatClause expected_cl = toSatClause(activation_literals, cl.literals);
-  Node conclusion = toNode(nm, proxy, expected_cl);
+  Node conclusion = toClauseNode(nm, proxy, expected_cl);
   const auto& antecedents = cl.antecedents;
   // Handle unary derivations separately; see normalizeDerivedClause.
   if (antecedents.size() == 1)

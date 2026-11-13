@@ -47,6 +47,8 @@ from cvc5 cimport TermManager as c_TermManager
 from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Plugin as c_Plugin
 from cvc5 cimport PyPlugin as c_PyPlugin
+from cvc5 cimport Terminator as c_Terminator
+from cvc5 cimport PyTerminator as c_PyTerminator
 from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
@@ -63,6 +65,7 @@ from cvc5types cimport BlockModelsMode as c_BlockModelsMode
 from cvc5types cimport RoundingMode as c_RoundingMode
 from cvc5types cimport UnknownExplanation as c_UnknownExplanation
 from cvc5types cimport InputLanguage as c_InputLanguage
+from cvc5proofrules cimport AnnotationId as c_AnnotationId
 from cvc5proofrules cimport ProofRewriteRule as c_ProofRewriteRule
 from cvc5proofrules cimport ProofRule as c_ProofRule
 from cvc5skolemids cimport SkolemId as c_SkolemId
@@ -305,7 +308,10 @@ cdef class Command:
             :return: A string representation of the result.
         """
         cdef stringstream ss
-        self.cc.invoke(solver.csolver, sm.csm, ss)
+        try:
+            self.cc.invoke(solver.csolver, sm.csm, ss)
+        finally:
+            solver._checkTerminator()
         return ss.str().decode()
 
     def getCommandName(self):
@@ -2172,6 +2178,27 @@ cdef class TermManager:
         raise ValueError("Can't create DatatypeDecl with {}".format(
                     [type(a) for a in [name, sorts_or_bool, isCoDatatype]]))
 
+    def mkGrammar(self, boundVars, ntSymbols):
+        """
+            Create a SyGuS grammar. The first non-terminal is treated as the
+            starting non-terminal, so the order of non-terminals matters.
+
+            :param boundVars: The parameters to corresponding
+                              synth-fun/synth-inv.
+            :param ntSymbols: The pre-declaration of the non-terminal symbols.
+            :return: The grammar.
+        """
+        cdef vector[c_Term] bvc
+        cdef vector[c_Term] ntc
+        for bv in boundVars:
+            bvc.push_back((<Term?> bv).cterm)
+        for nt in ntSymbols:
+            ntc.push_back((<Term?> nt).cterm)
+        return _grammar(
+            self,
+            self.ctm.mkGrammar(
+              <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
+
 # ----------------------------------------------------------------------------
 # Plugin
 # ----------------------------------------------------------------------------
@@ -2239,6 +2266,74 @@ cdef class Plugin:
 
 
 # ----------------------------------------------------------------------------
+# Terminator
+# ----------------------------------------------------------------------------
+
+cdef class Terminator:
+    """
+        A cvc5 terminator, which allows to terminate queries of a solver.
+
+        Wrapper class for :cpp:class:`cvc5::Terminator`.
+
+        A terminator is connected to a solver via
+        :py:meth:`Solver.setTerminator()`. While the solver executes a query
+        (e.g., :py:meth:`Solver.checkSat()`), it periodically calls
+        :py:meth:`terminate()` to determine whether the query should be
+        terminated. If :py:meth:`terminate()` returns ``True``, the query is
+        terminated as if a resource limit had been reached. For queries that
+        return a :py:class:`Result`, the result is unknown with explanation
+        :py:obj:`UnknownExplanation.INTERRUPTED`.
+
+        A termination request only applies to the query during which it was
+        issued, and the solver can be used for further queries afterwards.
+
+        If :py:meth:`terminate()` raises an exception, the query is terminated
+        and the exception is re-raised by the method that executed the query.
+        For example, pressing ``Ctrl-C`` while a query is executed raises a
+        :py:class:`KeyboardInterrupt` in :py:meth:`terminate()`, which thus
+        terminates the query.
+
+        Method :py:meth:`terminate()` is called from the thread that executes
+        the query. Queries do not release the GIL, but other Python threads
+        get to run while :py:meth:`terminate()` is executed. This allows to
+        terminate a query from another thread, e.g., by setting a
+        :py:class:`threading.Event` that is checked in :py:meth:`terminate()`.
+
+        .. warning::
+
+            This class is experimental and may change in future versions.
+    """
+    def terminate(self):
+        """
+            Determine whether the current query of the solver this terminator
+            is connected to should be terminated.
+
+            :return: True to terminate the current query.
+        """
+        raise NotImplementedError
+
+
+cdef class _TerminatorConnection:
+    """
+        The connection of a terminator to a solver, created by
+        :py:meth:`Solver.setTerminator()`. Stores the exception raised by the
+        terminator during a query of that solver until the query returns.
+    """
+    cdef c_PyTerminator* cterminator
+    cdef Terminator terminator
+    # The exception raised by terminate(), if any.
+    cdef object exception
+
+    def __cinit__(self, Terminator terminator not None):
+        self.cterminator = new c_PyTerminator(<cpy_ref.PyObject*>self)
+        self.terminator = terminator
+        self.exception = None
+
+    def __dealloc__(self):
+        del self.cterminator
+
+
+# ----------------------------------------------------------------------------
 # Solver
 # ----------------------------------------------------------------------------
 
@@ -2250,6 +2345,8 @@ cdef class Solver:
     """
     cdef c_Solver* csolver
     cdef TermManager tm
+    # The connection of the connected terminator, kept alive while connected.
+    cdef _TerminatorConnection terminator
 
     def __cinit__(self, TermManager tm = None):
         if not tm:
@@ -3347,7 +3444,11 @@ cdef class Solver:
                               variables.
             :return: The simplified term.
         """
-        return _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
+        try:
+            return _term(
+                self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
+        finally:
+            self._checkTerminator()
 
     def assertFormula(self, Term term not None):
         """
@@ -3376,7 +3477,10 @@ cdef class Solver:
             :return: The result of the satisfiability check.
         """
         cdef Result r = Result()
-        r.cr = self.csolver.checkSat()
+        try:
+            r.cr = self.csolver.checkSat()
+        finally:
+            self._checkTerminator()
         return r
 
     def mkGrammar(self, boundVars, ntSymbols):
@@ -3388,17 +3492,13 @@ cdef class Solver:
                               synth-fun/synth-inv.
             :param ntSymbols: The pre-declaration of the non-terminal symbols.
             :return: The grammar.
+
+            .. warning::
+
+                This function is deprecated and will be removed in a future
+                release.
         """
-        cdef vector[c_Term] bvc
-        cdef vector[c_Term] ntc
-        for bv in boundVars:
-            bvc.push_back((<Term?> bv).cterm)
-        for nt in ntSymbols:
-            ntc.push_back((<Term?> nt).cterm)
-        return _grammar(
-            self.tm,
-            self.csolver.mkGrammar(
-              <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
+        return self.tm.mkGrammar(boundVars, ntSymbols)
 
     def declareSygusVar(self, str symbol, Sort sort not None):
         """
@@ -3535,7 +3635,10 @@ cdef class Solver:
                      there is no solution, or "unknown" otherwise.
         """
         cdef SynthResult r = SynthResult()
-        r.cr = self.csolver.checkSynth()
+        try:
+            r.cr = self.csolver.checkSynth()
+        finally:
+            self._checkTerminator()
         return r
 
     def checkSynthNext(self):
@@ -3558,7 +3661,10 @@ cdef class Solver:
                      there is no solution, or "unknown" otherwise.
         """
         cdef SynthResult r = SynthResult()
-        r.cr = self.csolver.checkSynthNext()
+        try:
+            r.cr = self.csolver.checkSynthNext()
+        finally:
+            self._checkTerminator()
         return r
 
     def getSynthSolution(self, Term term not None):
@@ -3607,12 +3713,19 @@ cdef class Solver:
                      call failed.
         """
         if grammar is None:
+            try:
+                return _term(
+                    self.tm,
+                    self.csolver.findSynth(<c_FindSynthTarget> fst.value))
+            finally:
+                self._checkTerminator()
+        try:
             return _term(
-                self.tm, self.csolver.findSynth(<c_FindSynthTarget> fst.value))
-        return _term(
-            self.tm,
-            self.csolver.findSynth(
-              <c_FindSynthTarget> fst.value, grammar.cgrammar))
+                self.tm,
+                self.csolver.findSynth(
+                  <c_FindSynthTarget> fst.value, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
     def findSynthNext(self):
         """
@@ -3631,7 +3744,10 @@ cdef class Solver:
             :return: The result of the find, which is the null term if this
                      call failed.
         """
-        return _term(self.tm, self.csolver.findSynthNext())
+        try:
+            return _term(self.tm, self.csolver.findSynthNext())
+        finally:
+            self._checkTerminator()
 
     def checkSatAssuming(self, *assumptions):
         """
@@ -3651,7 +3767,10 @@ cdef class Solver:
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        try:
+            r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        finally:
+            self._checkTerminator()
         return r
 
     def declareDatatype(self, str symbol, *ctors):
@@ -4176,12 +4295,18 @@ cdef class Solver:
                      specified time
                      :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
                      If the result is unsat, then the list of formulas correspond to an
-                     unsat core for the current assertions. Otherwise, the result is sat,
-                     indicating that the current assertions are satisfiable, and
-                     the list of formulas is empty.
+                     unsat core for the current assertions. If the computation was
+                     terminated by the connected terminator, the result is unknown with
+                     explanation :py:obj:`UnknownExplanation.INTERRUPTED`, and the list
+                     of formulas is empty. Otherwise, the result is sat, indicating that
+                     the current assertions are satisfiable, and the list of formulas
+                     is empty.
         """
         cdef pair[c_Result, vector[c_Term]] res
-        res = self.csolver.getTimeoutCore()
+        try:
+            res = self.csolver.getTimeoutCore()
+        finally:
+            self._checkTerminator()
         core = []
         for a in res.second:
             core.append(_term(self.tm, a))
@@ -4216,14 +4341,21 @@ cdef class Solver:
                      :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
                      If the result is unsat, then the list of formulas plus the current
                      assertions correspond to an unsat core for the current assertions.
-                     Otherwise, the result is sat, indicating that the given assumptions plus
-                     the current assertions are satisfiable, and the list of formulas is empty.
+                     If the computation was terminated by the connected terminator, the
+                     result is unknown with explanation
+                     :py:obj:`UnknownExplanation.INTERRUPTED`, and the list of formulas
+                     is empty. Otherwise, the result is sat, indicating that the given
+                     assumptions plus the current assertions are satisfiable, and the
+                     list of formulas is empty.
         """
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
         cdef pair[c_Result, vector[c_Term]] res
-        res = self.csolver.getTimeoutCoreAssuming(v)
+        try:
+            res = self.csolver.getTimeoutCoreAssuming(v)
+        finally:
+            self._checkTerminator()
         core = []
         for ac in res.second:
             core.append(_term(self.tm, ac))
@@ -4249,7 +4381,11 @@ cdef class Solver:
         """
         if isinstance(term_or_list, list):
             return [self.getValue(t) for t in term_or_list]
-        return _term(self.tm, self.csolver.getValue((<Term> term_or_list).cterm))
+        try:
+            return _term(
+                self.tm, self.csolver.getValue((<Term> term_or_list).cterm))
+        finally:
+            self._checkTerminator()
 
     def getModelDomainElements(self, Sort s not None):
         """
@@ -4322,7 +4458,11 @@ cdef class Solver:
                      - :math:`\\phi` is quantifier-free formula containing only
                        free constants in :math:`y_1...y_j`.
         """
-        return _term(self.tm, self.csolver.getQuantifierElimination(term.cterm))
+        try:
+            return _term(
+                self.tm, self.csolver.getQuantifierElimination(term.cterm))
+        finally:
+            self._checkTerminator()
 
     def getQuantifierEliminationDisjunct(self, Term term not None):
         """
@@ -4380,9 +4520,12 @@ cdef class Solver:
                    In either case, we have that :math:`(\\phi \\wedge Q_j)`
                    will eventually be true or false, for some finite :math:`j`.
         """
-        return _term(
-            self.tm,
-            self.csolver.getQuantifierEliminationDisjunct(term.cterm))
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getQuantifierEliminationDisjunct(term.cterm))
+        finally:
+            self._checkTerminator()
 
     def getModel(self, sorts, consts):
         """
@@ -4492,6 +4635,46 @@ cdef class Solver:
         """
         cdef c_Plugin* ptr = <c_Plugin*> p.cplugin
         self.csolver.addPlugin(dereference(ptr))
+
+    def setTerminator(self, Terminator t):
+        """
+            Connect a terminator to this solver, which is called periodically
+            during queries to determine whether the current query should be
+            terminated. See :py:class:`Terminator` for details.
+
+            Only one terminator can be connected at a time, connecting a
+            terminator disconnects the previously connected terminator.
+
+            .. warning::
+
+                This function is experimental and may change in future
+                versions.
+
+            :param t: The terminator to connect, or None to disconnect the
+                      currently connected terminator.
+        """
+        cdef _TerminatorConnection c = None
+        if t is None:
+            self.csolver.setTerminator(NULL)
+        else:
+            c = _TerminatorConnection(t)
+            self.csolver.setTerminator(<c_Terminator*> c.cterminator)
+        # releases the previous connection, after it was disconnected
+        self.terminator = c
+
+    cdef _checkTerminator(self):
+        """
+            Re-raise the exception raised by the connected terminator during
+            the last query, if any. Must be called by all methods that execute
+            queries when the query returns, also if it raised an exception
+            (i.e., in a ``finally`` block). The exception of the terminator
+            then replaces the exception of the query.
+        """
+        cdef _TerminatorConnection c = self.terminator
+        if c is not None and c.exception is not None:
+            e = c.exception
+            c.exception = None
+            raise e
 
     def pop(self, nscopes=1):
         """
@@ -4635,10 +4818,16 @@ cdef class Solver:
             :return: The interpolant, if such a term exists.
         """
         if grammar is None:
-            return _term(self.tm, self.csolver.getInterpolant(conj.cterm))
-        return _term(
-            self.tm,
-            self.csolver.getInterpolant(conj.cterm, grammar.cgrammar))
+            try:
+                return _term(self.tm, self.csolver.getInterpolant(conj.cterm))
+            finally:
+                self._checkTerminator()
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getInterpolant(conj.cterm, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
 
     def getInterpolantNext(self):
@@ -4668,7 +4857,10 @@ cdef class Solver:
             :param output: The term where the result will be stored.
             :return: True iff an interpolant was found.
         """
-        return _term(self.tm, self.csolver.getInterpolantNext())
+        try:
+            return _term(self.tm, self.csolver.getInterpolantNext())
+        finally:
+            self._checkTerminator()
 
 
     def getAbduct(self, Term conj not None, Grammar grammar=None):
@@ -4695,10 +4887,16 @@ cdef class Solver:
                      See :cpp:func:`cvc5::Solver::getAbduct` for details.
         """
         if grammar is None:
-            return _term(self.tm, self.csolver.getAbduct(conj.cterm))
-        return _term(
-            self.tm,
-            self.csolver.getAbduct(conj.cterm, grammar.cgrammar))
+            try:
+                return _term(self.tm, self.csolver.getAbduct(conj.cterm))
+            finally:
+                self._checkTerminator()
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getAbduct(conj.cterm, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
     def getAbductNext(self):
         """
@@ -4726,7 +4924,10 @@ cdef class Solver:
             :param output: The term where the result will be stored.
             :return: True iff an abduct was found.
         """
-        return _term(self.tm, self.csolver.getAbductNext())
+        try:
+            return _term(self.tm, self.csolver.getAbductNext())
+        finally:
+            self._checkTerminator()
 
     def blockModel(self, mode):
         """
@@ -6195,6 +6396,18 @@ cdef class Proof:
         """
         return ProofRewriteRule(<int> self.cproof.getRewriteRule())
 
+    def getAnnotationId(self):
+        """
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            :return: The annotation identifier used by the root step of the
+                     proof. Raises an exception if `getRule()` does not return
+                     `ANNOTATE`.
+        """
+        return AnnotationId(<int> self.cproof.getAnnotationId())
+
     def getResult(self):
         """
             :return: The conclusion of the root step of the proof.
@@ -6220,8 +6433,38 @@ cdef class Proof:
             args.append(_term(self.tm, a))
         return args
 
+    def getArgumentToString(self, i):
+        """
+            Get a string representation of an argument of the root step of
+            the proof.
+
+            The string is computed by the internal proof printer, which takes
+            into account how the argument is used by the proof rule. For
+            example, an argument that encodes an identifier (e.g., of a theory
+            or a rewrite rule) is converted to the name of that identifier.
+            All other arguments are converted to the string representation of
+            the corresponding term returned by :py:meth:`getArguments()`.
+
+            .. warning::
+
+                This function is experimental and may change in future versions.
+
+            :param i: The index of the argument.
+            :return: The string representation of the argument.
+        """
+        return self.cproof.getArgumentToString(i).decode()
+
 
 cdef public api:
+    bint cy_call_terminate(object self) noexcept:
+        cdef _TerminatorConnection c = <_TerminatorConnection> self
+        try:
+            return bool(c.terminator.terminate())
+        except BaseException as e:
+            # terminate the query, the exception is re-raised by the solver
+            c.exception = e
+            return True
+
     string cy_call_string_func(object self, string method, string *error):
         try:
             func = getattr(self, method.decode())

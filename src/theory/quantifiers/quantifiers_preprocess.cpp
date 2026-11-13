@@ -16,6 +16,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/skolemize.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 
@@ -122,6 +123,33 @@ Node QuantifiersPreprocess::computePrenexAgg(
   return ret;
 }
 
+namespace {
+
+/**
+ * True if the annotations of the quantified formula q are only patterns and
+ * names (qid), which skolemizing its body keeps valid.
+ */
+bool hasOnlyPatterns(const Node& q)
+{
+  for (const Node& a : q[2])
+  {
+    Kind k = a.getKind();
+    if (k == Kind::INST_PATTERN || k == Kind::INST_NO_PATTERN)
+    {
+      continue;
+    }
+    if (k == Kind::INST_ATTRIBUTE && a[0].getKind() == Kind::CONST_STRING
+        && a[0].getConst<String>().toString() == "qid")
+    {
+      continue;
+    }
+    return false;
+  }
+  return true;
+}
+
+}  // namespace
+
 Node QuantifiersPreprocess::preSkolemizeQuantifiers(
     Node n,
     bool polarity,
@@ -144,12 +172,11 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
   if (n.getKind() == Kind::FORALL)
   {
     Node ret = n;
-    if (n.getNumChildren() == 3)
+    if (n.getNumChildren() == 3 && !hasOnlyPatterns(n))
     {
-      // Do not pre-skolemize quantified formulas with three children.
-      // This includes non-standard quantified formulas
-      // like recursive function definitions, or sygus conjectures, and
-      // quantified formulas with triggers.
+      // Do not pre-skolemize quantified formulas with annotations other than
+      // patterns and names. This includes non-standard quantified formulas
+      // like recursive function definitions, or sygus conjectures.
     }
     else if (polarity)
     {
@@ -166,6 +193,11 @@ Node QuantifiersPreprocess::preSkolemizeQuantifiers(
             visitedSub;
         Node pbody = preSkolemizeQuantifiers(n[1], polarity, fvss, visitedSub);
         children.push_back(pbody);
+        // the patterns mention only the variables of n, which are kept
+        if (n.getNumChildren() == 3)
+        {
+          children.push_back(n[2]);
+        }
         // return processed quantifier
         ret = nm->mkNode(Kind::FORALL, children);
       }

@@ -22,7 +22,7 @@ from libcpp.optional cimport optional
 from libcpp.pair cimport pair
 from cvc5kinds cimport Kind, SortKind
 from cvc5types cimport BlockModelsMode, LearnedLitType, ProofComponent, ProofFormat, RoundingMode, UnknownExplanation, FindSynthTarget, InputLanguage, OptionCategory
-from cvc5proofrules cimport ProofRewriteRule, ProofRule
+from cvc5proofrules cimport AnnotationId, ProofRewriteRule, ProofRule
 from cvc5skolemids cimport SkolemId
 
 
@@ -79,6 +79,11 @@ cdef extern from "py_plugin.h" namespace "cvc5":
         void notifyTheoryLemma(const Term& lem) except +
         void plugin_notifyTheoryLemma(const Term& lem) except +
         string getName() except +
+
+
+cdef extern from "py_terminator.h" namespace "cvc5":
+    cdef cppclass PyTerminator:
+        PyTerminator(cpy_ref.PyObject *obj) except +
 
 
 cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
@@ -325,6 +330,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h
         Term mkVar(Sort sort) except +
+        # Sygus related functions
+        Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
 
     cdef cppclass Plugin:
         Plugin(TermManager& tm) except +
@@ -332,6 +339,9 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         void notifySatClause(const Term& cl) except +
         void notifyTheoryLemma(const Term& lem) except +
         string getName() except +
+
+    cdef cppclass Terminator:
+        pass
 
     cdef cppclass Solver:
         Solver(TermManager& tm) except +
@@ -379,7 +389,6 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
-        Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
         vector[Term] getSygusConstraints() except +
@@ -485,6 +494,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getValueSepNil() except +
         Term declarePool(const string& name, Sort sort, vector[Term]& initValue) except +
         void addPlugin(Plugin& p) except +
+        void setTerminator(Terminator* terminator) except +
         void pop(uint32_t nscopes) except +
         void push(uint32_t nscopes) except +
         void reset() except +
@@ -707,9 +717,11 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         bint operator!=(const Proof&) except +
         ProofRule getRule() except +
         ProofRewriteRule getRewriteRule() except +
+        AnnotationId getAnnotationId() except +
         Term getResult() except +
         vector[Proof] getChildren() except +
         vector[Term] getArguments() except +
+        string getArgumentToString(size_t i) except +
 
     cdef cppclass ProofHashFunction:
         ProofHashFunction() except +

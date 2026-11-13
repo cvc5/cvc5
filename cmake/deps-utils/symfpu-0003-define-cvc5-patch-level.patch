@@ -1,0 +1,24 @@
+Define a marker for the cvc5 patches of SymFPU.
+
+Defines SYMFPU_CVC5_PATCH_LEVEL, the number of cvc5 patches applied to
+SymFPU. cmake/FindSymFPU.cmake only accepts a system installation of SymFPU
+that defines it, and cvc5 fails to compile against SymFPU headers that do not
+define it. The latter catches an unpatched SymFPU that shadows the selected
+one in the include path, e.g., when installed in the same prefix as GMP.
+
+Requires symfpu-0001-fix-conversions-for-experimental-formats.patch and
+symfpu-0002-fix-unpacked-exponent-width-for-small-formats.patch.
+
+--- a/core/unpackedFloat.h
++++ b/core/unpackedFloat.h
+@@ -31,6 +31,10 @@
+ #ifndef SYMFPU_UNPACKED_FLOAT
+ #define SYMFPU_UNPACKED_FLOAT
+ 
++// Defined by the cvc5 patches in cmake/deps-utils/symfpu-*.patch, which
++// cvc5 requires. Increment when adding a patch.
++#define SYMFPU_CVC5_PATCH_LEVEL 3
++
+ namespace symfpu {
+ 
+   template<class t>

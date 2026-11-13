@@ -2102,7 +2102,7 @@ void TheoryArithPrivate::outputConflicts()
       const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (TraceIsOn("arith::conflict"))
       {
-        pf.print(Trace("arith::conflict"), options().smt.produceProofs);
+        pf.print(Trace("arith::conflict"), d_env.isTheoryProofProducing());
         Trace("arith::conflict") << std::endl;
       }
       if (TraceIsOn("arith::pf::tree"))
@@ -4998,7 +4998,7 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic,
       if (!assertedToTheTheory && canBePropagated && !hasProof)
       {
         d_linEq.propagateBasicFromRow(
-            nodeManager(), bestImplied, options().smt.produceProofs);
+            nodeManager(), bestImplied, d_env.isTheoryProofProducing());
         // I think this can be skipped if canBePropagated is true
         // d_learnedBounds.push(bestImplied);
         if (TraceIsOn("arith::prop"))
@@ -5349,12 +5349,12 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx,
   if (!assertedToTheTheory && canBePropagated && !hasProof)
   {
     ConstraintCPVec explain;
-    if (options().smt.produceProofs)
+    if (d_env.isTheoryProofProducing())
     {
       d_farkasBuffer.clear();
     }
     RationalVectorP coeffs =
-        options().smt.produceProofs ? &d_farkasBuffer : nullptr;
+        d_env.isTheoryProofProducing() ? &d_farkasBuffer : nullptr;
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied

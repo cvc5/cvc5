@@ -1700,3 +1700,24 @@ Java_io_github_cvc5_TermManager_mkDatatypeDecl__JLjava_lang_String_2_3JZ(
   return reinterpret_cast<jlong>(retPointer);
   CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
 }
+
+/*
+ * Class:     io_github_cvc5_TermManager
+ * Method:    mkGrammar
+ * Signature: (J[J[J)J
+ */
+JNIEXPORT jlong JNICALL
+Java_io_github_cvc5_TermManager_mkGrammar(JNIEnv* env,
+                                          jobject,
+                                          jlong pointer,
+                                          jlongArray jBoundVars,
+                                          jlongArray jNtSymbols)
+{
+  CVC5_JAVA_API_TRY_CATCH_BEGIN;
+  TermManager* tm = reinterpret_cast<TermManager*>(pointer);
+  std::vector<Term> boundVars = getObjectsFromPointers<Term>(env, jBoundVars);
+  std::vector<Term> ntSymbols = getObjectsFromPointers<Term>(env, jNtSymbols);
+  Grammar* retPointer = new Grammar(tm->mkGrammar(boundVars, ntSymbols));
+  return reinterpret_cast<jlong>(retPointer);
+  CVC5_JAVA_API_TRY_CATCH_END_RETURN(env, 0);
+}

@@ -20,12 +20,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import io.github.cvc5.*;
 import io.github.cvc5.modes.BlockModelsMode;
 import io.github.cvc5.modes.FindSynthTarget;
+import io.github.cvc5.modes.InputLanguage;
 import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.OptionCategory;
 import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.*;
@@ -491,7 +493,7 @@ class SolverTest
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
     Term output2 = new Term();
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(GT, x, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the abduction api, while the resulting abduct is the output
@@ -570,7 +572,7 @@ class SolverTest
     Sort bsort = d_solver.getBooleanSort();
     Term truen = d_solver.mkBoolean(true);
     Term start = d_solver.mkVar(bsort);
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term conj2 = d_solver.mkTerm(EQUAL, zero, zero);
     assertDoesNotThrow(() -> g.addRule(start, truen));
     // Call the interpolation api, while the resulting interpolant is the output
@@ -1953,10 +1955,10 @@ class SolverTest
     Term start1 = d_solver.mkVar(bool);
     Term start2 = d_solver.mkVar(integer);
 
-    Grammar g1 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start1});
+    Grammar g1 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start1});
     g1.addRule(start1, d_solver.mkBoolean(false));
 
-    Grammar g2 = d_solver.mkGrammar(new Term[] {x}, new Term[] {start2});
+    Grammar g2 = d_tm.mkGrammar(new Term[] {x}, new Term[] {start2});
     g2.addRule(start2, d_solver.mkInteger(0));
 
     assertDoesNotThrow(() -> d_solver.synthFun("", new Term[] {}, bool));
@@ -2206,7 +2208,7 @@ class SolverTest
     d_solver.setOption("sygus", "true");
     Sort boolSort = d_solver.getBooleanSort();
     Term start = d_solver.mkVar(boolSort);
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term truen = d_solver.mkBoolean(true);
     Term falsen = d_solver.mkBoolean(false);
     g.addRule(start, truen);
@@ -2225,7 +2227,7 @@ class SolverTest
     d_solver.setOption("incremental", "true");
     Sort boolSort = d_solver.getBooleanSort();
     Term start = d_solver.mkVar(boolSort);
-    Grammar g = d_solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = d_tm.mkGrammar(new Term[] {}, new Term[] {start});
     Term truen = d_solver.mkBoolean(true);
     Term falsen = d_solver.mkBoolean(false);
     g.addRule(start, truen);
@@ -2486,6 +2488,181 @@ class SolverTest
     // above input formulas should induce a theory lemma and SAT clause learning
     assertTrue(pl.hasSeenTheoryLemma());
     assertTrue(pl.hasSeenSatClause());
+  }
+
+  /** Assert that n + 1 pigeons can be placed into n holes (unsat). */
+  private void assertPigeonHole(Solver solver, int n)
+  {
+    Term one = d_tm.mkInteger(1);
+    Term nholes = d_tm.mkInteger(n);
+    Term[] pigeons = new Term[n + 1];
+    for (int i = 0; i <= n; ++i)
+    {
+      pigeons[i] = d_tm.mkConst(d_tm.getIntegerSort());
+      solver.assertFormula(d_tm.mkTerm(Kind.LEQ, one, pigeons[i]));
+      solver.assertFormula(d_tm.mkTerm(Kind.LEQ, pigeons[i], nholes));
+    }
+    solver.assertFormula(d_tm.mkTerm(Kind.DISTINCT, pigeons));
+  }
+
+  private static boolean isInterrupted(Result r)
+  {
+    return r.isUnknown() && r.getUnknownExplanation() == UnknownExplanation.INTERRUPTED;
+  }
+
+  @Test
+  void terminatorImmediate()
+  {
+    AtomicInteger calls = new AtomicInteger();
+    d_solver.setTerminator(() -> {
+      calls.incrementAndGet();
+      return true;
+    });
+    Term x = d_tm.mkConst(d_tm.getBooleanSort(), "x");
+    d_solver.assertFormula(x);
+    assertTrue(isInterrupted(d_solver.checkSat()));
+    assertEquals(1, calls.get());
+    assertTrue(isInterrupted(d_solver.checkSatAssuming(x.notTerm())));
+    assertEquals(2, calls.get());
+  }
+
+  @Test
+  void terminatorNever()
+  {
+    AtomicInteger calls = new AtomicInteger();
+    d_solver.setTerminator(() -> {
+      calls.incrementAndGet();
+      return false;
+    });
+    assertPigeonHole(d_solver, 4);
+    assertTrue(d_solver.checkSat().isUnsat());
+    assertTrue(calls.get() > 0);
+  }
+
+  @Test
+  void terminatorReuse()
+  {
+    AtomicBoolean flag = new AtomicBoolean(true);
+    d_solver.setTerminator(flag::get);
+    assertPigeonHole(d_solver, 4);
+    assertTrue(isInterrupted(d_solver.checkSat()));
+    flag.set(false);
+    assertTrue(d_solver.checkSat().isUnsat());
+    flag.set(true);
+    assertTrue(isInterrupted(d_solver.checkSat()));
+    d_solver.setTerminator(null);
+    assertTrue(d_solver.checkSat().isUnsat());
+  }
+
+  @Test
+  void terminatorException()
+  {
+    d_solver.setOption("produce-unsat-cores", "true");
+    d_solver.setTerminator(() -> { throw new IllegalStateException("terminate"); });
+    assertPigeonHole(d_solver, 4);
+    IllegalStateException e = assertThrows(IllegalStateException.class, () -> d_solver.checkSat());
+    assertEquals("terminate", e.getMessage());
+    assertThrows(IllegalStateException.class, () -> d_solver.getTimeoutCore());
+    // the solver can be used after the exception was thrown
+    d_solver.setTerminator(null);
+    assertTrue(d_solver.checkSat().isUnsat());
+  }
+
+  @Test
+  void terminatorExceptionCommand()
+  {
+    d_solver.setTerminator(() -> { throw new IllegalStateException("terminate"); });
+    SymbolManager sm = new SymbolManager(d_tm);
+    InputParser parser = new InputParser(d_solver, sm);
+    parser.setIncrementalStringInput(InputLanguage.SMT_LIB_2_6, "terminatorExceptionCommand");
+    parser.appendIncrementalStringInput(
+        "(set-logic QF_UF) (declare-const x Bool) (assert x) (check-sat)");
+    // the solver of the parser is the solver the terminator is connected to
+    Solver solver = parser.getSolver();
+    for (int i = 0; i < 3; ++i)
+    {
+      parser.nextCommand().invoke(solver, sm);
+    }
+    // the exception is rethrown by the command that executed the query
+    Command cmd = parser.nextCommand();
+    IllegalStateException e =
+        assertThrows(IllegalStateException.class, () -> cmd.invoke(solver, sm));
+    assertEquals("terminate", e.getMessage());
+    // the exception does not affect subsequent queries
+    AtomicInteger calls = new AtomicInteger();
+    d_solver.setTerminator(() -> {
+      calls.incrementAndGet();
+      return false;
+    });
+    assertTrue(d_solver.checkSat().isSat());
+    assertTrue(calls.get() > 0);
+  }
+
+  @Test
+  void terminatorQueryException()
+  {
+    // exceptions of queries are thrown as usual while a terminator is connected
+    AtomicInteger calls = new AtomicInteger();
+    d_solver.setTerminator(() -> {
+      calls.incrementAndGet();
+      return false;
+    });
+    assertThrows(CVC5ApiException.class, () -> d_solver.findSynthNext());
+    assertTrue(d_solver.checkSat().isSat());
+    assertTrue(calls.get() > 0);
+  }
+
+  @Test
+  void terminatorThread() throws InterruptedException
+  {
+    AtomicBoolean polled = new AtomicBoolean(false);
+    AtomicBoolean flag = new AtomicBoolean(false);
+    d_solver.setTerminator(() -> {
+      polled.set(true);
+      return flag.get();
+    });
+    // hard enough to not be solved before termination is requested
+    assertPigeonHole(d_solver, 12);
+    Thread thread = new Thread(() -> {
+      while (!polled.get())
+      {
+        Thread.onSpinWait();
+      }
+      flag.set(true);
+    });
+    thread.start();
+    Result r = d_solver.checkSat();
+    thread.join();
+    assertTrue(isInterrupted(r));
+  }
+
+  @Test
+  void terminatorQueryThread() throws InterruptedException
+  {
+    // the query is executed by another thread than the one that connected the
+    // terminator
+    d_solver.setTerminator(() -> true);
+    assertPigeonHole(d_solver, 4);
+    AtomicReference<Result> result = new AtomicReference<>();
+    Thread thread = new Thread(() -> result.set(d_solver.checkSat()));
+    thread.start();
+    thread.join();
+    assertTrue(isInterrupted(result.get()));
+  }
+
+  @Test
+  void terminatorSubsolver()
+  {
+    d_solver.setLogic("QF_LIA");
+    d_solver.setOption("produce-abducts", "true");
+    d_solver.setOption("incremental", "false");
+    Term zero = d_tm.mkInteger(0);
+    Term x = d_tm.mkConst(d_tm.getIntegerSort(), "x");
+    Term y = d_tm.mkConst(d_tm.getIntegerSort(), "y");
+    d_solver.assertFormula(d_tm.mkTerm(Kind.GT, x, zero));
+    // abduction is performed by a subsolver, which is terminated
+    d_solver.setTerminator(() -> true);
+    assertTrue(d_solver.getAbduct(d_tm.mkTerm(Kind.GT, y, zero)).isNull());
   }
 
   @Test
