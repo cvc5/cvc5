@@ -310,6 +310,13 @@ children = 1
 comment  ="relation identity"
 typerule = "::cvc5::internal::theory::sets::RelIdenTypeRule"
 
+[[kinds]]
+type     = "operator"
+name     = "RELATION_IS_FUNCTIONAL"
+children = 1
+comment  = "predicate: the binary relation is functional (right-unique)"
+typerule = "::cvc5::internal::theory::sets::RelIsFunctionalTypeRule"
+
 # rel.table_join operator
 [[kinds]]
 type      = "constant"
