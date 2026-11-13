@@ -3101,6 +3101,7 @@ set(regress_1_tests
   regress1/datatypes/issue3266-small.smt2
   regress1/datatypes/issue4851-cdt-model.smt2
   regress1/datatypes/issue8124-real-int-cg.smt2
+  regress1/datatypes/issue13155-cycle-pf.smt2
   regress1/datatypes/issue-variant-dt-zero.smt2
   regress1/datatypes/manos-model.smt2
   regress1/datatypes/nested-rec-array-aa.smt2
