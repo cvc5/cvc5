@@ -206,6 +206,9 @@ enum class TrustId : uint32_t
   QUANTIFIERS_SUB_CBQI_LEMMA,
   /** A quantifiers from the nested quantifier elimination module */
   QUANTIFIERS_NESTED_QE_LEMMA,
+  /** A skolemization lemma for a quantified formula that uses inductive
+     strengthening, e.g. via --dt-stc-ind or --int-wf-ind */
+  QUANTIFIERS_SKOLEMIZE_INDUCTION,
   /** A rewrite performed at TheoryStrings::ppStaticRewrite */
   STRINGS_PP_STATIC_REWRITE,
   /**
