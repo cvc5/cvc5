@@ -19,6 +19,8 @@
 
 (define-cond-rule arith-int-mod-total-neg ((t Int) (s Int)) (< s 0) (mod_total t s) (mod_total t (- s)))
 
+(define-rule arith-int-div-total-over-mod ((t Int) (s Int)) (div_total (mod_total t s) s) 0)
+
 ; Eliminations
 (define-rule arith-elim-gt ((t ?) (s ?)) (> t s) (not (>= s t)))
 (define-rule arith-elim-lt ((t ?) (s ?)) (< t s) (not (>= t s)))
@@ -37,6 +39,8 @@
 (define-rule arith-eq-elim-int ((t Int) (s Int)) (= t s) (and (>= t s) (<= t s)))
 
 (define-rule arith-to-int-elim-to-real ((x Int)) (to_int (to_real x)) x)
+(define-rule arith-is-int-elim-to-real ((x Int)) (is_int (to_real x)) true)
+(define-rule arith-div-elim-to-real ((x Int) (y Int)) (/ (to_real x) (to_real y)) (/ x y))
 
 (define-cond-rule arith-mod-over-mod-1 ((c Int) (r Int))
   (not (= c 0))
