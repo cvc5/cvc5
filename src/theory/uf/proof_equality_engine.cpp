@@ -528,11 +528,7 @@ void ProofEqEngine::explainWithProof(Node lit,
   // avoid duplicates
   for (TNode a : tassumps)
   {
-    if (a == lit)
-    {
-      assumps.push_back(a);
-    }
-    else if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
+    if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
     {
       assumps.push_back(a);
     }

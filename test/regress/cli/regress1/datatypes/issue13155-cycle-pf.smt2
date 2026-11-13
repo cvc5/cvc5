@@ -1,4 +1,4 @@
-; COMMAND-LINE: --inst-max-rounds=9
+; COMMAND-LINE: --inst-max-rounds=9 --check-proofs
 ; EXPECT: unknown
 (set-logic ALL)
 (declare-datatypes ((F 0)) (((L) (N (f! F)) (A (l F) (r F)) (I (h F) (rh F)) (O (lh F) (hs F)))))
