@@ -28,6 +28,9 @@ std::ostream& operator<<(std::ostream& out, Step s)
     case Step::BAGS_CHECK_BASIC_OPERATIONS:
       out << "BAGS_CHECK_BASIC_OPERATIONS";
       break;
+    case Step::BAGS_LIASTAR_CONSTRAINTS:
+      out << "BAGS_LIASTAR_CONSTRAINTS";
+      break;
     case Step::BAGS_CHECK_QUANTIFIED_OPERATIONS:
       out << "BAGS_CHECK_QUANTIFIED_OPERATIONS";
       break;

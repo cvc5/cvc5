@@ -46,6 +46,7 @@ void Strategy::initializeStrategy()
   addStrategyStep(Step::BAGS_CHECK_INIT);
   addStrategyStep(Step::BAGS_CHECK_BAG_MAKE);
   addStrategyStep(Step::BAGS_CHECK_BASIC_OPERATIONS);
+  addStrategyStep(Step::BAGS_LIASTAR_CONSTRAINTS);
   addStrategyStep(Step::BAGS_CHECK_QUANTIFIED_OPERATIONS);
   markEndEffort(Theory::EFFORT_FULL);
   // set the beginning/ending ranges and mark the strategy as initialized
@@ -63,6 +64,9 @@ void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
     case Step::BAGS_CHECK_BAG_MAKE: d_bagSolver->checkBagMake(); break;
     case Step::BAGS_CHECK_BASIC_OPERATIONS:
       d_bagSolver->checkBasicOperations();
+      break;
+    case Step::BAGS_LIASTAR_CONSTRAINTS:
+      d_bagSolver->checkLiastarConstraints();
       break;
     case Step::BAGS_CHECK_QUANTIFIED_OPERATIONS:
       d_bagSolver->checkQuantifiedOperations();
