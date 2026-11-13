@@ -111,6 +111,8 @@ copy_file_from_src(cvc5.pxd)
 copy_file_from_src(cvc5_python_base.pyx)
 copy_file_from_src(py_plugin.h)
 copy_file_from_src(py_plugin.cpp)
+copy_file_from_src(py_terminator.h)
+copy_file_from_src(py_terminator.cpp)
 copy_file_from_src(pyproject.toml)
 
 # Get python extension filename
@@ -149,6 +151,8 @@ set(PYTHON_EXT_SRC_FILES
   ${CMAKE_CURRENT_BINARY_DIR}/cvc5_python_base.pyx
   ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.h
   ${CMAKE_CURRENT_BINARY_DIR}/py_plugin.cpp
+  ${CMAKE_CURRENT_BINARY_DIR}/py_terminator.h
+  ${CMAKE_CURRENT_BINARY_DIR}/py_terminator.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml
   ${CMAKE_CURRENT_BINARY_DIR}/setup.cfg
   ${CMAKE_CURRENT_BINARY_DIR}/setup.py

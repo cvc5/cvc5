@@ -1323,6 +1323,19 @@ enum ENUM(ProofRule)
   EVALUE(HO_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **UF -- Unsigned bit-vector to integer range**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \texttt{ubv_to_int}(x)}{0 \leq
+   *   \texttt{ubv_to_int}(x) \wedge \texttt{ubv_to_int}(x) < 2^n}
+   *
+   * where :math:`n` is the bitwidth of :math:`x`.
+   * \endverbatim
+   */
+  EVALUE(UBV_TO_INT_RANGE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write**
    *
    * .. math::

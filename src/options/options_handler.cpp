@@ -374,6 +374,7 @@ void OptionsHandler::showConfiguration(CVC5_UNUSED const std::string& flag,
   print_config_cond(
       o, "cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond(o, "gmp", Configuration::isBuiltWithGmp());
+  print_config_cond(o, "mpfr", Configuration::isBuiltWithMpfr());
   print_config_cond(o, "kissat", Configuration::isBuiltWithKissat());
   print_config_cond(o, "poly", Configuration::isBuiltWithPoly());
   print_config_cond(o, "cocoa", Configuration::isBuiltWithCoCoA());

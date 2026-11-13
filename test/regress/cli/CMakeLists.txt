@@ -127,6 +127,7 @@ set(regress_0_tests
   regress0/arrays/bug3020.smt2
   regress0/arrays/bug4957.smt2
   regress0/arrays/bug637.delta.smt2
+  regress0/arrays/central-ee-bool-select-exp.smt2
   regress0/arrays/constarr.cvc.smt2
   regress0/arrays/constarr.smt2
   regress0/arrays/constarr2.cvc.smt2
@@ -737,6 +738,7 @@ set(regress_0_tests
   regress0/bv/sizecheck.cvc.smt2
   regress0/bv/smtcompbug.smtv1.smt2
   regress0/bv/test-bv_intro_pow2.smt2
+  regress0/bv/ubv-to-int-range.smt2
   regress0/bv/unsound1-reduced.smt2
   regress0/chained-equality.smt2
   regress0/check-abduct-sample.smt2
@@ -757,6 +759,7 @@ set(regress_0_tests
   regress0/cores/issue5908.smt2
   regress0/cores/issue8705-bool-ppassert.smt2
   regress0/cores/issue8822-arith-static-learn.smt2
+  regress0/cores/sat-proof-cadical-user-levels.smt2
   regress0/cores/unsat-assumptions-only-no-core.smt2
   regress0/cores/unsat-assumptions-only.smt2
   regress0/cores/unsat-core-lemmas.smt2
@@ -824,6 +827,8 @@ set(regress_0_tests
   regress0/datatypes/issue12930-as-quoted-cons.smt2
   regress0/datatypes/issue12930-tester-quoted-cons.smt2
   regress0/datatypes/issue12930-update-quoted-sel.smt2
+  regress0/datatypes/issue13118-param-card-arrays.smt2
+  regress0/datatypes/issue13118-param-card-unc-simp.smt2
   regress0/datatypes/issue12572-nullable-lift-no-arguments.smt2
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/list-bool.smt2
@@ -890,6 +895,7 @@ set(regress_0_tests
   regress0/decision/error20.smtv1.smt2
   regress0/decision/error3.delta01.smtv1.smt2
   regress0/decision/issue8296-sk-def-before-assert.smt2
+  regress0/decision/jh-false-assertion.smt2
   regress0/decision/pp-regfile.delta01.smtv1.smt2
   regress0/decision/pp-regfile.delta02.smtv1.smt2
   regress0/decision/quant-ex1.smt2
@@ -1974,6 +1980,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/pre-skolem-pattern.smt2
+  regress0/quantifiers/prenex-shared-subterms.smt2
   regress0/quantifiers/proj-issue152-2-non-std-nterm-ext-rew.smt2
   regress0/quantifiers/proj-issue283-abs-exists.smt2
   regress0/quantifiers/proj-issue283-abs.smt2
@@ -2013,6 +2020,7 @@ set(regress_0_tests
   regress0/quantifiers/qbv-test-invert-concat-1.smt2
   regress0/quantifiers/qbv-test-invert-sign-extend.smt2
   regress0/quantifiers/qcf-rel-dom-opt.smt2
+  regress0/quantifiers/qcf-shared-subterms.smt2
   regress0/quantifiers/qe-closed-str-re.smt2
   regress0/quantifiers/quant-model-simplification.smt2
   regress0/quantifiers/quant-qid-decl.smt2
@@ -3217,7 +3225,6 @@ set(regress_1_tests
   regress1/ho/proj-issue139-2.smt2
   regress1/ho/seu589-wrong.smt2
   regress1/ho/sev428-mbqi.smt2
-  regress1/ho/sev310-tdb.smt2
   regress1/ho/soundness_fmf_SYO362^5-delta.smt2
   regress1/ho/store-ax-min.smt2
   regress1/ho/SYO056^1.smt2
@@ -4656,6 +4663,8 @@ set(regression_disabled_tests
   regress1/ho/hoa0102.smt2
   # assertion failure on some builds
   regress1/ho/ho-choice-partial-mbqi-enum.smt2
+  # timeout on some nightly builds after change to lambda lifting policy (#13017)
+  regress1/ho/sev310-tdb.smt2
   # timeout after fixes to uf-lazy-ll for cyclic lambda construction
   regress1/ho/bug_freevar_PHI004^4-delta.smt2
   # times out after update to circuit propagator
@@ -4856,6 +4865,38 @@ endif()
 # add_test(build_regress_test "${CMAKE_COMMAND}" --build "${PROJECT_BINARY_DIR}" --config "$<CONFIG>" --target build-regress)
 # set_tests_properties(build_regress_test PROPERTIES FIXTURES_SETUP build_regress_fixture)
 
+# The output of `cvc5 --show-config` (the features of the binary) is cached
+# in this file so that it is not computed again for every regression. The
+# cache is keyed on the cvc5 binary; it is also removed whenever CMake
+# reconfigures, since the configuration may change without the binary being
+# relinked (e.g., when only the shared library changes).
+set(cvc5_config_cache ${CMAKE_CURRENT_BINARY_DIR}/cvc5-show-config.json)
+file(REMOVE ${cvc5_config_cache})
+
+# run_regression.py only uses the Python standard library, so we run it with
+# the base Python interpreter instead of the one of the virtual environment (if
+# any): on Windows, the python executable of a virtual environment is a
+# launcher that starts the base interpreter as a separate process, which is
+# expensive since the script is run for every regression. We ask the base
+# interpreter for the path of its executable because Python_BASE_EXECUTABLE
+# may be a wrapper (e.g., a pyenv shim is a shell script that takes ~100 ms
+# to start).
+execute_process(
+  COMMAND "${Python_BASE_EXECUTABLE}" -c "import sys; print(sys.executable)"
+  OUTPUT_VARIABLE regress_python
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE regress_python_res)
+if(regress_python_res OR NOT EXISTS "${regress_python}")
+  set(regress_python "${Python_EXECUTABLE}")
+endif()
+file(TO_CMAKE_PATH "${regress_python}" regress_python)
+message(STATUS "Python interpreter for regressions: ${regress_python}")
+
+set(regress_test_env CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1)
+if(CVC5_TEST_ENV)
+  list(APPEND regress_test_env "${CVC5_TEST_ENV}")
+endif()
+
 macro(cvc5_add_regression_test level file)
   set(wrapper )
   if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -4865,8 +4906,7 @@ macro(cvc5_add_regression_test level file)
   endif()
 
   add_test(${file}
-    ${ENV_PATH_CMD}
-    ${Python_EXECUTABLE}
+    ${regress_python}
     ${run_regress_script}
     ${RUN_REGRESSION_ARGS}
     --carcara-binary ${PROJECT_SOURCE_DIR}/deps/bin/carcara
@@ -4874,6 +4914,7 @@ macro(cvc5_add_regression_test level file)
     --ethos-binary ${PROJECT_SOURCE_DIR}/deps/bin/ethos
     --logos-binary ${PROJECT_SOURCE_DIR}/deps/bin/logos
     --cpc-sig-dir ${PROJECT_SOURCE_DIR}/proofs/eo
+    --cvc5-config-cache ${cvc5_config_cache}
     ${wrapper}
     ${path_to_cvc5}/cvc5${CMAKE_EXECUTABLE_SUFFIX}
     ${CMAKE_CURRENT_LIST_DIR}/${file})
@@ -4884,7 +4925,7 @@ macro(cvc5_add_regression_test level file)
     LABELS "regress${level}"
     SKIP_RETURN_CODE 77
     TIMEOUT_AFTER_MATCH "1;CVC5_REGRESSION_CTEST_TIMEOUT"
-    ENVIRONMENT "CVC5_REGRESSION_TIMEOUT_AS_CTEST_TIMEOUT=1")
+    ENVIRONMENT "${regress_test_env}")
   # set_tests_properties(${file} PROPERTIES FIXTURES_REQUIRED build_regress_fixture)
 endmacro()
 

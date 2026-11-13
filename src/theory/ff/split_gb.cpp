@@ -76,7 +76,8 @@ std::variant<Point, Poly, bool> splitZeroExtend(const Polys& origPolys,
     return false;
   }
 
-  if (env.getResourceManager()->outOfTime())
+  const ResourceManager* rm = env.getResourceManager();
+  if (rm->outOfTime() || rm->terminationRequested())
   {
     throw FfTimeoutException("splitZeroExtend");
   }

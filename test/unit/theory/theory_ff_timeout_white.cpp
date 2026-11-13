@@ -69,6 +69,30 @@ TEST_F(TestTheoryFfTimeoutWhite, GBasisTimeoutFatalsOnCpuTimeLimitErrorInfo)
                "CoCoA::CpuTimeLimit accepts intervals in \\[0, 1e6\\] seconds");
 }
 
+TEST_F(TestTheoryFfTimeoutWhite, GBasisTimeoutTerminationRequested)
+{
+  Options options;
+  StatisticsRegistry stats;
+  ResourceManager rm(stats, options);
+  bool terminate = false;
+  rm.setTerminator([&terminate]() { return terminate; });
+
+  initCocoaGlobalManager();
+  CoCoA::SparsePolyRing polyRing =
+      CoCoA::NewPolyRing(CoCoA::NewZZmod(7), CoCoA::symbols("x"));
+  CoCoA::ideal id = CoCoA::ideal(CoCoA::indet(polyRing, 0));
+
+  rm.beginCall();
+  EXPECT_EQ(theory::ff::GBasisTimeout(id, &rm).size(), 1);
+  rm.refresh();
+  // a GB computation is not started if termination has been requested
+  terminate = true;
+  rm.beginCall();
+  EXPECT_THROW(theory::ff::GBasisTimeout(id, &rm),
+               theory::ff::FfTimeoutException);
+  rm.refresh();
+}
+
 }  // namespace test
 }  // namespace cvc5::internal
 

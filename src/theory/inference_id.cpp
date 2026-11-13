@@ -587,6 +587,7 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_HO_LAMBDA_LAZY_LIFT: return "UF_HO_LAMBDA_LAZY_LIFT";
+    case InferenceId::UF_ARITH_BV_CONV_RANGE: return "UF_ARITH_BV_CONV_RANGE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
     case InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE:
