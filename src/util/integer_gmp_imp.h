@@ -8,6 +8,13 @@
  * ****************************************************************************
  *
  * A multiprecision integer constant; wraps a GMP multiprecision integer.
+ *
+ * Integers that fit into an int64_t are stored inline, without a GMP object,
+ * so that creating, copying and computing with them does not allocate.
+ * Other integers are stored in a GMP integer. Every operation produces the
+ * inline form when the result fits; getValue() may convert an inline integer
+ * to the GMP form in place, so comparisons and hashing work on the value,
+ * independently of the form.
  */
 
 #include "cvc5_public.h"
@@ -17,9 +24,15 @@
 
 #include <gmpxx.h>
 
+#include <cstdint>
 #include <functional>
 #include <iosfwd>
+#include <limits>
+#include <new>
 #include <string>
+#include <utility>
+
+#include "util/gmp_util.h"
 
 namespace cvc5::internal {
 
@@ -33,10 +46,11 @@ class Integer
   /**
    * Constructs an Integer by copying a GMP C++ primitive.
    */
-  Integer(const mpz_class& val) : d_value(val) {}
+  Integer(const mpz_class& val) { setMpz(val); }
+  Integer(mpz_class&& val) { setMpz(std::move(val)); }
 
   /** Constructs a rational with the value 0. */
-  Integer() : d_value(0) {}
+  Integer() : d_rep(1) {}
 
   /**
    * Constructs a Integer from a C string.
@@ -47,46 +61,184 @@ class Integer
   explicit Integer(const char* s, unsigned base = 10);
   explicit Integer(const std::string& s, unsigned base = 10);
 
-  Integer(signed int z) : d_value(z) {}
-  Integer(unsigned int z) : d_value(z) {}
-  Integer(signed long int z) : d_value(z) {}
-  Integer(unsigned long int z) : d_value(z) {}
+  Integer(signed int z) { initSmall(z); }
+  Integer(unsigned int z) { initSmall(z); }
+  Integer(signed long int z) { initSmall(z); }
+  Integer(unsigned long int z)
+  {
+    if (z < (uint64_t(1) << 62))
+    {
+      initSmall(static_cast<int64_t>(z));
+    }
+    else
+    {
+      d_rep = toRep(new mpz_class(z));
+    }
+  }
 
 #ifdef CVC5_NEED_INT64_T_OVERLOADS
-  Integer(int64_t z);
+  Integer(int64_t z) { initSmall(z); }
   Integer(uint64_t z);
 #endif /* CVC5_NEED_INT64_T_OVERLOADS */
 
-  /** Returns a copy of d_value to enable public access of GMP data. */
-  const mpz_class& getValue() const { return d_value; }
+  Integer(const Integer& x)
+      : d_rep(x.isSmallRep() ? x.d_rep : toRep(new mpz_class(x.bigRef())))
+  {
+  }
+  Integer(Integer&& x) noexcept : d_rep(x.d_rep) { x.d_rep = 1; }
+  ~Integer()
+  {
+    if (!isSmallRep())
+    {
+      delete &bigRef();
+    }
+  }
+  Integer& operator=(const Integer& x)
+  {
+    if (this == &x)
+    {
+      return *this;
+    }
+    if (x.isSmallRep())
+    {
+      if (!isSmallRep())
+      {
+        delete &bigRef();
+      }
+      d_rep = x.d_rep;
+    }
+    else if (isSmallRep())
+    {
+      d_rep = toRep(new mpz_class(x.bigRef()));
+    }
+    else
+    {
+      bigRef() = x.bigRef();
+    }
+    return *this;
+  }
+  Integer& operator=(Integer&& x) noexcept
+  {
+    std::swap(d_rep, x.d_rep);
+    return *this;
+  }
+
+  /**
+   * Returns a reference to the value as a GMP integer, for public access of
+   * GMP data. Converts an inline integer to the GMP form.
+   */
+  const mpz_class& getValue() const
+  {
+    if (isSmallRep())
+    {
+      const_cast<Integer*>(this)->promote();
+    }
+    return bigRef();
+  }
 
   /** Overload equality comparison operator. */
-  bool operator==(const Integer& y) const;
+  bool operator==(const Integer& y) const
+  {
+    return bothSmall(y) ? smallVal() == y.smallVal() : cmpSlow(y) == 0;
+  }
   /** Overload disequality comparison operator. */
-  bool operator!=(const Integer& y) const;
+  bool operator!=(const Integer& y) const { return !(*this == y); }
   /** Overload less than comparison operator. */
-  bool operator<(const Integer& y) const;
+  bool operator<(const Integer& y) const
+  {
+    return bothSmall(y) ? smallVal() < y.smallVal() : cmpSlow(y) < 0;
+  }
   /** Overload less than or equal comparison operator. */
-  bool operator<=(const Integer& y) const;
+  bool operator<=(const Integer& y) const
+  {
+    return bothSmall(y) ? smallVal() <= y.smallVal() : cmpSlow(y) <= 0;
+  }
   /** Overload greater than comparison operator. */
-  bool operator>(const Integer& y) const;
+  bool operator>(const Integer& y) const { return y < *this; }
   /** Overload greater than or equal comparison operator. */
-  bool operator>=(const Integer& y) const;
+  bool operator>=(const Integer& y) const { return y <= *this; }
 
   /** Overload negation operator. */
-  Integer operator-() const;
+  Integer operator-() const
+  {
+    if (isSmallRep())
+    {
+      return Integer(-smallVal());
+    }
+    return negSlow();
+  }
   /** Overload addition operator. */
-  Integer operator+(const Integer& y) const;
+  Integer operator+(const Integer& y) const
+  {
+    int64_t r;
+    if (bothSmall(y) && !__builtin_add_overflow(smallVal(), y.smallVal(), &r))
+    {
+      return Integer(r);
+    }
+    return addSlow(y);
+  }
   /** Overload addition assignment operator. */
-  Integer& operator+=(const Integer& y);
+  Integer& operator+=(const Integer& y)
+  {
+    int64_t r;
+    if (bothSmall(y) && !__builtin_add_overflow(smallVal(), y.smallVal(), &r))
+    {
+      setSmall(r);
+    }
+    else
+    {
+      *this = addSlow(y);
+    }
+    return *this;
+  }
   /** Overload subtraction operator. */
-  Integer operator-(const Integer& y) const;
+  Integer operator-(const Integer& y) const
+  {
+    int64_t r;
+    if (bothSmall(y) && !__builtin_sub_overflow(smallVal(), y.smallVal(), &r))
+    {
+      return Integer(r);
+    }
+    return subSlow(y);
+  }
   /** Overload subtraction assignment operator. */
-  Integer& operator-=(const Integer& y);
+  Integer& operator-=(const Integer& y)
+  {
+    int64_t r;
+    if (bothSmall(y) && !__builtin_sub_overflow(smallVal(), y.smallVal(), &r))
+    {
+      setSmall(r);
+    }
+    else
+    {
+      *this = subSlow(y);
+    }
+    return *this;
+  }
   /** Overload multiplication operator. */
-  Integer operator*(const Integer& y) const;
+  Integer operator*(const Integer& y) const
+  {
+    int64_t r;
+    if (bothSmall(y) && !__builtin_mul_overflow(smallVal(), y.smallVal(), &r))
+    {
+      return Integer(r);
+    }
+    return mulSlow(y);
+  }
   /** Overload multiplication assignment operator. */
-  Integer& operator*=(const Integer& y);
+  Integer& operator*=(const Integer& y)
+  {
+    int64_t r;
+    if (bothSmall(y) && !__builtin_mul_overflow(smallVal(), y.smallVal(), &r))
+    {
+      setSmall(r);
+    }
+    else
+    {
+      *this = mulSlow(y);
+    }
+    return *this;
+  }
 
   /** Return the bit-wise or of this and the given Integer. */
   Integer bitwiseOr(const Integer& y) const;
@@ -175,22 +327,34 @@ class Integer
   Integer divByPow2(uint32_t exp) const;
 
   /** Return 1 if this is > 0, 0 if it is 0, and -1 if it is < 0. */
-  int sgn() const;
+  int sgn() const
+  {
+    return isSmallRep() ? (smallVal() > 0) - (smallVal() < 0)
+                        : mpz_sgn(bigRef().get_mpz_t());
+  }
 
   /** Return true if this is > 0. */
-  bool strictlyPositive() const;
+  bool strictlyPositive() const { return sgn() > 0; }
 
   /** Return true if this is < 0. */
-  bool strictlyNegative() const;
+  bool strictlyNegative() const { return sgn() < 0; }
 
   /** Return true if this is 0. */
-  bool isZero() const;
+  bool isZero() const { return sgn() == 0; }
 
   /** Return true if this is 1. */
-  bool isOne() const;
+  bool isOne() const
+  {
+    return isSmallRep() ? smallVal() == 1
+                        : mpz_cmp_si(bigRef().get_mpz_t(), 1) == 0;
+  }
 
   /** Return true if this is -1. */
-  bool isNegativeOne() const;
+  bool isNegativeOne() const
+  {
+    return isSmallRep() ? smallVal() == -1
+                        : mpz_cmp_si(bigRef().get_mpz_t(), -1) == 0;
+  }
 
   /** Raise this Integer to the power 'exp'. */
   Integer pow(uint32_t exp) const;
@@ -228,7 +392,7 @@ class Integer
   bool divides(const Integer& y) const;
 
   /** Return the absolute value of this integer.  */
-  Integer abs() const;
+  Integer abs() const { return sgn() >= 0 ? *this : -*this; }
 
   /** Return a string representation of this Integer. */
   std::string toString(int base = 10) const;
@@ -261,7 +425,11 @@ class Integer
    * Computes the hash of the node from the first word of the
    * numerator, the denominator.
    */
-  size_t hash() const;
+  size_t hash() const
+  {
+    // the same value as gmpz_hash() of the GMP form
+    return isSmallRep() ? gmpz_hash_u64(absU64(smallVal())) : hashSlow();
+  }
 
   /**
    * Returns true iff bit n is set.
@@ -315,17 +483,100 @@ class Integer
   static Integer mkRandom(uint32_t nbits);
 
  private:
+  /** |x| as an unsigned 64-bit integer (also for the minimum int64_t). */
+  static uint64_t absU64(int64_t x)
+  {
+    return x < 0 ? 0 - static_cast<uint64_t>(x) : static_cast<uint64_t>(x);
+  }
+  /** Whether x fits into the inline form (63 bits). */
+  static bool fitsInline(int64_t x)
+  {
+    return x >= -(int64_t(1) << 62) && x < (int64_t(1) << 62);
+  }
+  bool isSmallRep() const { return d_rep & 1; }
+  int64_t smallVal() const { return static_cast<int64_t>(d_rep) >> 1; }
+  mpz_class& bigRef() const
+  {
+    return *reinterpret_cast<mpz_class*>(static_cast<uintptr_t>(d_rep));
+  }
+  static uint64_t toRep(mpz_class* p) { return reinterpret_cast<uintptr_t>(p); }
+  /** A heap-allocated GMP integer with value x. */
+  static mpz_class* newMpz(int64_t x)
+  {
+    mpz_class* p = new mpz_class();
+    gmpz_set_int64(p->get_mpz_t(), x);
+    return p;
+  }
+  bool bothSmall(const Integer& y) const
+  {
+    return isSmallRep() && y.isSmallRep();
+  }
+  /** Initializes the value to x. */
+  void initSmall(int64_t x)
+  {
+    if (fitsInline(x))
+    {
+      d_rep = (static_cast<uint64_t>(x) << 1) | 1;
+    }
+    else
+    {
+      d_rep = toRep(newMpz(x));
+    }
+  }
+  /** Sets the value to x. */
+  void setSmall(int64_t x)
+  {
+    if (!isSmallRep())
+    {
+      delete &bigRef();
+    }
+    initSmall(x);
+  }
+  /** Initializes the value to that of x, in the inline form if it fits. */
+  template <class T>
+  void setMpz(T&& x)
+  {
+    int64_t v;
+    if (gmpz_get_int64(x.get_mpz_t(), &v) && fitsInline(v))
+    {
+      initSmall(v);
+    }
+    else
+    {
+      d_rep = toRep(new mpz_class(std::forward<T>(x)));
+    }
+  }
+  /** Converts an inline integer to the GMP form, keeping its value. */
+  void promote() { d_rep = toRep(newMpz(smallVal())); }
   /**
-   * Gets a reference to the gmp data that backs up the integer.
-   * Only accessible to friend classes.
+   * Returns a read-only GMP view of the value, without allocating: for an
+   * inline integer, `tmp` and the gmpz_limbs_per_u64 `limbs` are set up to
+   * represent it, and the view is valid while they live.
    */
-  const mpz_class& get_mpz() const { return d_value; }
+  mpz_srcptr mpzView(mpz_t tmp, mp_limb_t* limbs) const
+  {
+    if (!isSmallRep())
+    {
+      return bigRef().get_mpz_t();
+    }
+    gmpz_limbs_from_u64(limbs, absU64(smallVal()));
+    // mpz_roinit_n ignores high zero limbs
+    return mpz_roinit_n(
+        tmp, limbs, smallVal() < 0 ? -gmpz_limbs_per_u64 : gmpz_limbs_per_u64);
+  }
+  /** Out-of-line implementations for the general case. */
+  int cmpSlow(const Integer& y) const;
+  Integer negSlow() const;
+  Integer addSlow(const Integer& y) const;
+  Integer subSlow(const Integer& y) const;
+  Integer mulSlow(const Integer& y) const;
+  size_t hashSlow() const;
 
   /**
-   * The value of the rational is stored in a C++ GMP integer class.
-   * Using this instead of mpz_t allows for easier destruction.
+   * The value: if the lowest bit is 1, the integer (value << 1) | 1, which
+   * covers [-2^62, 2^62); otherwise a pointer to a heap-allocated GMP integer.
    */
-  mpz_class d_value;
+  uint64_t d_rep;
 }; /* class Integer */
 
 inline std::ostream& operator<<(std::ostream& os, const Integer& n)
