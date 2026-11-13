@@ -182,6 +182,8 @@ class QuantInfo : protected EnvObj
 
  private:
   void registerNode(Node n, bool hasPol, bool pol, bool beneathQuant = false);
+  /** The nodes that have been registered by registerNode */
+  std::unordered_set<Node> d_registered;
   void flatten(Node n, bool beneathQuant);
   void getPropagateVars(std::vector<TNode>& vars,
                         TNode n,
