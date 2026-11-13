@@ -296,7 +296,7 @@ name   = "SMT Layer"
   long       = "pp-ite-lift"
   type       = "bool"
   default    = "true"
-  help       = "lift if-then-else terms out of equalities and arithmetic comparisons whose other argument is a variable or constant during preprocessing, e.g. (= x (ite c t s)) becomes (ite c (= x t) (= x s))"
+  help       = "lift if-then-else terms out of arithmetic equalities and comparisons whose other argument is a variable or constant during preprocessing, e.g. (= x (ite c t s)) becomes (ite c (= x t) (= x s))"
 
 [[option]]
   name       = "extRewPrep"

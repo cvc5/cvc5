@@ -27,7 +27,7 @@ namespace preprocessing {
 namespace passes {
 
 /**
- * Lifts if-then-else terms out of equalities and arithmetic comparisons whose
+ * Lifts if-then-else terms out of arithmetic equalities and comparisons whose
  * other argument is a variable or constant, e.g.
  *   (= x (ite c t (ite d s r))) ---> (ite c (= x t) (ite d (= x s) (= x r)))
  * This avoids introducing fresh variables for the if-then-else terms during
@@ -48,7 +48,7 @@ class IteLift : public PreprocessingPass
   /** Lift if-then-else terms out of all predicates in n */
   Node convert(TNode n);
   /**
-   * Lift if-then-else terms out of n if it is an equality or arithmetic
+   * Lift if-then-else terms out of n if it is an arithmetic equality or
    * comparison whose other argument is a variable or constant. Returns n
    * otherwise. If proofs are enabled, this records a rewrite step for each
    * single lifting step.

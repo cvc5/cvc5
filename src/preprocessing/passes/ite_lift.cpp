@@ -98,11 +98,15 @@ Node IteLift::convert(TNode n)
 
 Node IteLift::liftAtom(const Node& n)
 {
-  // We only consider equalities and arithmetic comparisons, for which the
-  // lifting steps can be reconstructed by RARE rewrite rules in proofs.
+  // We only consider arithmetic equalities and comparisons. For these, lifting
+  // avoids introducing arithmetic variables for if-then-else terms, and the
+  // lifting steps can be reconstructed by RARE rewrite rules in proofs. For
+  // other types, e.g. arrays, lifting may instead prevent simplifications such
+  // as substituting x by ite(c, t, s) based on the equality (= x (ite c t s)).
   Kind k = n.getKind();
-  if (k != Kind::EQUAL && k != Kind::GEQ && k != Kind::GT && k != Kind::LEQ
-      && k != Kind::LT)
+  if ((k != Kind::EQUAL && k != Kind::GEQ && k != Kind::GT && k != Kind::LEQ
+       && k != Kind::LT)
+      || !n[0].getType().isRealOrInt())
   {
     return n;
   }
@@ -116,7 +120,7 @@ Node IteLift::liftAtom(const Node& n)
   {
     const Node& other = n[1 - i];
     if (n[i].getKind() == Kind::ITE && (other.isVar() || other.isConst())
-        && !other.getType().isBoolean() && isSmallIteTree(n[i]))
+        && isSmallIteTree(n[i]))
     {
       // P(x, ite(c, t, s)) ---> ite(c, P(x, t), P(x, s)), where P(x, t) and
       // P(x, s) are lifted recursively
