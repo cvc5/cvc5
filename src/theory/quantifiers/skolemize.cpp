@@ -166,6 +166,19 @@ void Skolemize::getSelfSel(const DType& dt,
   }
 }
 
+TrustNode Skolemize::getSkolemizationLemma(const Node& q) const
+{
+  NodeNodeMap::const_iterator it = d_skolemized.find(q);
+  if (it == d_skolemized.end())
+  {
+    return TrustNode::null();
+  }
+  ProofGenerator* pg = (d_epg != nullptr && d_epg->hasProofFor((*it).second))
+                           ? d_epg.get()
+                           : nullptr;
+  return TrustNode::mkTrustLemma((*it).second, pg);
+}
+
 bool Skolemize::getSkolemConstantsInduction(Node q, std::vector<Node>& skolems)
 {
   std::unordered_map<Node, std::vector<Node>>::iterator it =
