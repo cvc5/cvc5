@@ -3033,6 +3033,8 @@ set(regress_1_tests
   regress1/bags/table_group2.smt2
   regress1/bags/table_group3.smt2
   regress1/bags/table_group5.smt2
+  regress1/bags/table_group_empty.smt2
+  regress1/bags/table_group_empty_solver.smt2
   regress1/bags/table_join1.smt2
   regress1/bags/table_join2.smt2
   regress1/bags/table_join3.smt2
@@ -3887,6 +3889,7 @@ set(regress_1_tests
   regress1/sets/relation_group4.smt2
   regress1/sets/relation_group5.smt2
   regress1/sets/relation_group_congruence.smt2
+  regress1/sets/relation_group_empty.smt2
   regress1/sets/relation_project1.smt2
   regress1/sets/relation_project2.smt2
   regress1/sets/remove_check_free_31_6.smt2

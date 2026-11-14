@@ -103,9 +103,9 @@
      (set.singleton (set.singleton (tuple "B" "Y" "0")))
      (set.singleton (set.singleton (tuple "B" "Y" "1"))))))
 
-; group of set.empty
+; group of set.empty: no parts
 (assert
  (= ((_ rel.group 0) (as set.empty (Relation String String String)))
-    (set.singleton (as set.empty (Relation String String String)))))
+    (as set.empty (Set (Relation String String String)))))
 
 (check-sat)

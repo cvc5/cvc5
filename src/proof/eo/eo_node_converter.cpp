@@ -304,7 +304,8 @@ Node EoNodeConverter::postConvert(Node n)
     // return app of?
     std::vector<Node> args =
         GenericOp::getIndicesForOperator(k, n.getOperator());
-    if (k == Kind::RELATION_GROUP || k == Kind::TABLE_GROUP)
+    if (k == Kind::RELATION_GROUP || k == Kind::TABLE_GROUP
+        || k == Kind::TABLE_AGGREGATE)
     {
       Node list = mkList(args);
       std::vector<Node> children;
