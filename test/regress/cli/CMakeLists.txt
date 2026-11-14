@@ -1570,6 +1570,8 @@ set(regress_0_tests
   regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/issue5943-non-clausal-simp.smt2
   regress0/preprocess/issue6754-tpp.smt2
+  regress0/preprocess/ite-lift-shared-dag.smt2
+  regress0/preprocess/ite-lift.smt2
   regress0/preprocess/preprocess_00.cvc.smt2
   regress0/preprocess/preprocess_01.cvc.smt2
   regress0/preprocess/preprocess_02.cvc.smt2

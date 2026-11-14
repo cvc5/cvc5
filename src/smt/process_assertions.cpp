@@ -198,6 +198,11 @@ bool ProcessAssertions::apply(AssertionPipeline& ap)
     applyPass("ext-rew-pre", ap);
   }
 
+  if (options().smt.ppIteLift)
+  {
+    applyPass("ite-lift", ap);
+  }
+
   // Unconstrained simplification
   if (options().smt.unconstrainedSimp)
   {
