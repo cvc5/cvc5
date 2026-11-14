@@ -303,15 +303,17 @@ enum class Rewrite : uint32_t
    */
   AGGREGATE_SORT_OUTPUT,
   /**
-   * An aggregate grouped by no column has one group, all of its table, even
-   * when the table is empty.
+   * An aggregate grouped by no column has one group, all of its table, unless
+   * the table is empty: an empty table has no group.
    *
    * For X : (Bag (Tuple Int Int)) and
    *   f = (lambda ((t (Tuple Int Int)) (acc (Tuple Int)))
    *         (tuple (+ ((_ tuple.select 0) acc) ((_ tuple.select 1) t)))),
    *
    *   (table.aggr f (tuple 0) X)
-   *   ---> (bag (bag.fold f (tuple 0) X) 1)
+   *   ---> (ite (= X (as bag.empty (Bag (Tuple Int Int))))
+   *             (as bag.empty (Bag (Tuple Int)))
+   *             (bag (bag.fold f (tuple 0) X) 1))
    */
   AGGREGATE_NO_KEYS,
   /**

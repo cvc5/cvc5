@@ -2962,7 +2962,7 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
 // applies returns:
 // - NOT_NULL_COLUMNS, for f a lambda of a row and an accumulator, over rows
 //   of tuples (assumeNonNull);
-// - AGGREGATE_NO_KEYS, for K empty: one group, all of X;
+// - AGGREGATE_NO_KEYS, for K empty: one group, all of X, unless X is empty;
 // - AGGREGATE_SORT_OUTPUT (rewriteAggregateSortOutput);
 // - CANONICAL_VARIABLE (canonicalLambda), for f a lambda node;
 // - AGGREGATE_MAP, for X a map (rewriteAggregateOfMap);
@@ -2972,7 +2972,9 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
 //   f = (lambda ((t (Tuple Int Int)) (acc (Tuple Int)))
 //         (tuple (+ ((_ tuple.select 0) acc) ((_ tuple.select 1) t)))),
 //   (table.aggr f (tuple 0) X)
-//   ---> (bag (bag.fold f (tuple 0) X) 1)                 (AGGREGATE_NO_KEYS)
+//   ---> (ite (= X (as bag.empty (Bag (Tuple Int Int))))
+//             (as bag.empty (Bag (Tuple Int)))
+//             (bag (bag.fold f (tuple 0) X) 1))           (AGGREGATE_NO_KEYS)
 BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
 {
   Assert(n.getKind() == Kind::TABLE_AGGREGATE);
@@ -3000,12 +3002,20 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
   }
   if (n.getOperator().getConst<ProjectOp>().getIndices().empty())
   {
-    // AGGREGATE_NO_KEYS: grouping by no column makes one group, all of X, also
-    // when X is empty (table.group by no column of an empty table is one
-    // empty part), so the result is that group folded, once:
-    //   (table.aggr f i X) ---> (bag (bag.fold f i X) 1)
+    // AGGREGATE_NO_KEYS: grouping by no column makes one group, all of X,
+    // folded once; an empty X has no group (the parts of table.group are not
+    // empty), so the aggregate is empty:
+    //   (table.aggr f i X)
+    //   ---> (ite (= X (as bag.empty (Bag T)))
+    //             (as bag.empty (Bag S))
+    //             (bag (bag.fold f i X) 1))
+    // The nodes are created one per statement, in this order.
     Node fold = d_nm->mkNode(Kind::BAG_FOLD, n[0], n[1], n[2]);
-    Node ret = d_nm->mkNode(Kind::BAG_MAKE, fold, d_one);
+    Node group = d_nm->mkNode(Kind::BAG_MAKE, fold, d_one);
+    Node emptyTable = d_nm->mkConst(EmptyBag(n[2].getType()));
+    Node isEmpty = n[2].eqNode(emptyTable);
+    Node noGroup = d_nm->mkConst(EmptyBag(n.getType()));
+    Node ret = d_nm->mkNode(Kind::ITE, isEmpty, noGroup, group);
     return BagsRewriteResponse(ret, Rewrite::AGGREGATE_NO_KEYS);
   }
   {
@@ -4001,9 +4011,9 @@ Node BagsRewriter::keyedAggregateRows(const Node& A) const
   const std::vector<uint32_t>& K =
       A.getOperator().getConst<ProjectOp>().getIndices();
   Node f = asLambda(A[0]);
-  // The rule needs some group column (an aggregate by no column has one group,
-  // all of X, see AGGREGATE_NO_KEYS) and a step that is a lambda of a row and
-  // an accumulator, so that (f t i) can be beta-reduced.
+  // The rule needs some group column (an aggregate by no column folds all of
+  // X as one group, see AGGREGATE_NO_KEYS) and a step that is a lambda of a
+  // row and an accumulator, so that (f t i) can be beta-reduced.
   if (K.empty() || f.getKind() != Kind::LAMBDA || f[0].getNumChildren() != 2)
   {
     return Node::null();
