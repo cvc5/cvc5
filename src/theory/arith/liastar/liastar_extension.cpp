@@ -62,7 +62,7 @@ LiaStarExtension::LiaStarExtension(Env& env, TheoryArith& containing)
       d_im(containing.getInferenceManager()),
       d_extTheoryCb(),
       d_extTheory(env, d_extTheoryCb, d_im),
-      d_hasLiaStarTerms(context(), false),
+      d_hasAssertions(context(), false),
       d_negatedReductions(userContext()),
       d_negatedReductionsSent(userContext()),
       d_stats(statisticsRegistry())
@@ -80,21 +80,35 @@ void LiaStarExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-dependent simplification. n is, e.g.,
-  // (int.star-contains k a b), where k is the skolem by which lambda lifting
-  // replaced the lambda.
+  // (int.star-contains (lambda ((x Int)) (= x 2)) a).
   if (d_extTheory.hasFunctionKind(n.getKind()))
   {
-    d_hasLiaStarTerms = true;
     d_extTheory.registerTerm(n);
   }
+}
+
+bool LiaStarExtension::collectModelValues(TheoryModel* m)
+{
+  std::vector<Node> assertions;
+  getAssertions(assertions);
+  for (const Node& lit : assertions)
+  {
+    bool polarity = lit.getKind() != Kind::NOT;
+    Node atom = polarity ? lit : lit[0];
+    if (!m->assertPredicate(atom, polarity))
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("liastar-ext") << "Getting assertions..." << std::endl;
   Trace("liastar-ext") << "---------------------" << std::endl;
-  // of the facts (int.star-contains k a b), (>= b 2) and (not (= b 1)) only
-  // the first is collected
+  // of the facts L, (>= b 2) and (not (= b 1)), for L of checkFullEffort,
+  // only the first is collected
   for (auto it = d_arith.facts_begin(); it != d_arith.facts_end(); ++it)
   {
     Node lit = (*it).d_assertion;
@@ -111,12 +125,12 @@ void LiaStarExtension::getAssertions(std::vector<Node>& assertions)
 void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
                                        const std::set<Node>& termSet)
 {
+  Assert(hasAssertions());
   d_stats.d_checkFullEffortTime.start();
   // The steps 1-4 below are those documented in liastar_extension.h. The
   // examples follow the literal of the class documentation
-  //   L = (int.star-contains k a b)
-  // where k is the skolem by which lambda lifting replaced the lambda
-  //   (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+  //   L = (int.star-contains (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+  //                          a b)
   // of S = {(x, y) | x >= 2 and y = 1}, asserted together with (>= b 2).
   // The first call sends the split of step 2, the second, with arithModel
   // {a -> 2, b -> 2}, the reduction lemma of step 4, and later calls find
@@ -140,10 +154,9 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     bool polarity = literal.getKind() != Kind::NOT;
     Node atom = polarity ? literal : literal[0];
     Assert(atom.getKind() == Kind::STAR_CONTAINS);
-    // The first child may have been purified into a skolem by lambda
-    // lifting, and the rewriter may normalize a constant lambda to a
-    // function array constant; recover the lambda from either form:
-    // k --> (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1)))
+    // The first child is the lambda, unless the rewriter normalized a
+    // constant lambda to a function array constant, or --no-uf-lazy-ll lifted
+    // it to a skolem. getDefinition recovers the lambda in all three cases.
     Node lambda = uf::FunctionConst::getDefinition(atom[0]);
     Assert(!lambda.isNull())
         << "Expected a lambda as the first child of " << atom << std::endl;
@@ -161,9 +174,15 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
       // by the SAT solver, corrupting unsat cores and other contexts
       // where the literal does not hold.
       //   (=> L (and (and true (>= a 0)) (>= b 0)))
+      // The lemma is an assumption rather than a valid fact, so like the
+      // split and the reduction below it needs justification (see
+      // RelevanceManager): the model must satisfy it.
       Node lemma = atom.impNode(nonnegative);
-      d_im.addPendingLemma(
-          lemma, InferenceId::ARITH_LIA_STAR_NONNEGATIVE, nullptr);
+      d_im.addPendingLemma(lemma,
+                           InferenceId::ARITH_LIA_STAR_NONNEGATIVE,
+                           nullptr,
+                           false,
+                           LemmaProperty::NEEDS_JUSTIFY);
     }
     // 2. split on p(y):
     //   (or (and (>= a 2) (= b 1)) (not (and (>= a 2) (= b 1))))
@@ -172,7 +191,16 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     // context. It only rewrites to the cached true when p(y) is a constant,
     // e.g. for a constant y, which leaves nothing to split.
     Node split = vectorPredicate.orNode(vectorPredicate.notNode());
-    d_im.addPendingLemma(split, InferenceId::ARITH_LIA_STAR_SPLIT, nullptr);
+    // The asserted side of the split certifies step 3 below, which skips a
+    // literal whose p(y) holds in the model, so the split needs justification
+    // (see RelevanceManager): relevance filtering, e.g. --nl-rlv, must keep
+    // p(y) in the nonlinear model check, or the model repair could change a
+    // nonlinear coordinate of y after the literal was skipped.
+    d_im.addPendingLemma(split,
+                         InferenceId::ARITH_LIA_STAR_SPLIT,
+                         nullptr,
+                         false,
+                         LemmaProperty::NEEDS_JUSTIFY);
     d_im.doPendingLemmas();
     if (d_im.hasSentLemma())
     {
@@ -290,7 +318,20 @@ void LiaStarExtension::checkFullEffort(std::map<Node, Node>& arithModel,
     star = rewrite(star);
     Node lemma = atom.eqNode(star);
     Trace("liastar-ext") << "star lemma: " << lemma << std::endl;
-    d_im.addPendingLemma(lemma, InferenceId::ARITH_LIA_STAR_EXISTS, nullptr);
+    // With skolems the lemma skolemizes (= L (exists ((mu Int) (l Int)) star)),
+    // so like other skolemization lemmas it needs justification (see
+    // RelevanceManager): a model that makes L true must satisfy the
+    // constraints on mu and l. Without skolems the lemma is exact, e.g.
+    // (= L (= a 0)) for (lambda ((x Int)) false), but star is still the only
+    // constraint that keeps y in S*, and L itself is not an arithmetic
+    // constraint. So the lemma needs justification in both cases: otherwise
+    // relevance filtering, e.g. --nl-rlv, could drop star and let the
+    // nonlinear model repair move y out of S*.
+    d_im.addPendingLemma(lemma,
+                         InferenceId::ARITH_LIA_STAR_EXISTS,
+                         nullptr,
+                         false,
+                         LemmaProperty::NEEDS_JUSTIFY);
     ++d_stats.d_starTermsReduced;
     // the lemma for a negated atom, see the class documentation. Without
     // skolems the lemma above is exact and it is not needed, e.g.
@@ -373,8 +414,8 @@ LiaStarExtension::getCones(
     std::vector<Node>& skolems)
 {
   d_stats.d_getConesTime.start();
-  // The examples follow n = (int.star-contains k a b) for the lambda
-  // (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1))), see checkFullEffort.
+  // The examples follow n = L of checkFullEffort, for the lambda
+  // (lambda ((x Int) (y Int)) (and (>= x 2) (= y 1))).
   std::vector<std::pair<Node, Cone<Integer>>> cones;
   // the vector y = (a b), so dimension is 2 and zeroVector is (0 0)
   std::vector<Node> vec(n.begin() + 1, n.end());

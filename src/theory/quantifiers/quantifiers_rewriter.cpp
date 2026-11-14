@@ -1922,6 +1922,12 @@ Node QuantifiersRewriter::computePrenex(Node q,
                                         bool pol,
                                         bool prenexAgg) const
 {
+  if (!expr::hasClosure(body))
+  {
+    // There is nothing to pull out of body. We return here so that we do not
+    // traverse body once for each path to a shared subterm.
+    return body;
+  }
   NodeManager* nm = nodeManager();
   Kind k = body.getKind();
   if (k == Kind::FORALL)

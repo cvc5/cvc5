@@ -109,6 +109,7 @@ const char* toString(ProofRule rule)
     case ProofRule::FALSE_ELIM: return "FALSE_ELIM";
     case ProofRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case ProofRule::HO_CONG: return "HO_CONG";
+    case ProofRule::UBV_TO_INT_RANGE: return "UBV_TO_INT_RANGE";
     //================================================= Array rules
     case ProofRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
@@ -218,10 +219,7 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_POLY_COMBINATION: return "FF_POLY_COMBINATION";
     case ProofRule::FF_DISEQ: return "FF_DISEQ";
     case ProofRule::FF_POLY_NORM: return "FF_POLY_NORM";
-    case ProofRule::FF_POLY_NORM_EQ:
-      return "FF_POLY_NORM_EQ";
-      //================================================= External rules
-    case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
+    case ProofRule::FF_POLY_NORM_EQ: return "FF_POLY_NORM_EQ";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

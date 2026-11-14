@@ -1323,6 +1323,19 @@ enum ENUM(ProofRule)
   EVALUE(HO_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **UF -- Unsigned bit-vector to integer range**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \texttt{ubv_to_int}(x)}{0 \leq
+   *   \texttt{ubv_to_int}(x) \wedge \texttt{ubv_to_int}(x) < 2^n}
+   *
+   * where :math:`n` is the bitwidth of :math:`x`.
+   * \endverbatim
+   */
+  EVALUE(UBV_TO_INT_RANGE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write**
    *
    * .. math::
@@ -2743,23 +2756,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(FF_ONE_UNSAT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- Alethe**
-   *
-   * Place holder for Alethe rules.
-   *
-   * .. math::
-   *
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external Alethe calculus,
-   * and that :math:`Q'` be the representation of Q to be printed by the Alethe
-   * printer.
-   * \endverbatim
-   */
-  EVALUE(ALETHE_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),

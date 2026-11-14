@@ -96,8 +96,9 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
 
   // connect theory proxy
   d_theoryProxy->finishInit(d_satSolver, d_cnfStream);
-  // if proof producing at all
-  if (options().smt.produceProofs)
+  // if producing SAT proofs or logging proofs. Note that the proof manager is
+  // not needed if we are only producing preprocessing proofs.
+  if (d_env.isSatProofProducing() || options().proof.proofLog)
   {
     PropPfManager* ppm =
         new PropPfManager(env, d_satSolver, *d_cnfStream, d_assumptions);
@@ -405,6 +406,15 @@ void PropEngine::notifyExplainedPropagation(TrustNode texp)
   if (d_ppm != nullptr)
   {
     d_ppm->notifyExplainedPropagation(texp);
+  }
+}
+
+void PropEngine::notifyClauseInsertedAtLevel(const Node& clauseNode,
+                                             uint32_t assertionLevel)
+{
+  if (d_ppm != nullptr)
+  {
+    d_ppm->notifyClauseInsertedAtLevel(clauseNode, assertionLevel);
   }
 }
 

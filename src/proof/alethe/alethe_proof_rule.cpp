@@ -15,6 +15,7 @@
 #include <iostream>
 
 #include "proof/proof_checker.h"
+#include "proof/trust_id.h"
 
 namespace cvc5::internal {
 
@@ -188,6 +189,27 @@ AletheRule getAletheRule(Node n)
     return static_cast<AletheRule>(id);
   }
   return AletheRule::UNDEFINED;
+}
+
+bool isAletheStep(const ProofNode* pn)
+{
+  if (pn->getRule() != ProofRule::TRUST)
+  {
+    return false;
+  }
+  const std::vector<Node>& args = pn->getArguments();
+  TrustId tid;
+  return args.size() > 3 && getTrustId(args[0], tid)
+         && tid == TrustId::ALETHE_RULE;
+}
+
+AletheRule getAletheRule(const ProofNode* pn)
+{
+  if (!isAletheStep(pn))
+  {
+    return AletheRule::UNDEFINED;
+  }
+  return getAletheRule(pn->getArguments()[2]);
 }
 
 }  // namespace proof

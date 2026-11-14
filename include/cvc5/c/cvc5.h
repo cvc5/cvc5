@@ -4714,9 +4714,12 @@ CVC5_EXPORT void cvc5_get_difficulty(Cvc5* cvc5,
  * formulas correspond to a subset of the current assertions that cause a
  * timeout in the specified time :ref:`timeout-core-timeout
  * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list of
- * formulas correspond to an unsat core for the current assertions. Otherwise,
- * the result is sat, indicating that the current assertions are satisfiable,
- * and the returned set of assertions is empty.
+ * formulas correspond to an unsat core for the current assertions. If the
+ * computation was terminated by the connected terminator, the result is
+ * unknown with explanation CVC5_UNKNOWN_EXPLANATION_INTERRUPTED, and the
+ * returned set of assertions is empty. Otherwise, the result is sat,
+ * indicating that the current assertions are satisfiable, and the returned set
+ * of assertions is empty.
  * \endverbatim
  *
  * @note This command  does not require being preceeded by a call to
@@ -4759,9 +4762,12 @@ CVC5_EXPORT const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
  * timeout when added to the current assertions in the specified time
  * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the result
  * is unsat, then the set of assumptions together with the current assertions
- * correspond to an unsat core for the current assertions. Otherwise, the
- * result is sat, indicating that the given assumptions plus the current
- * assertions are satisfiable, and the returned set of assumptions is empty.
+ * correspond to an unsat core for the current assertions. If the computation
+ * was terminated by the connected terminator, the result is unknown with
+ * explanation CVC5_UNKNOWN_EXPLANATION_INTERRUPTED, and the returned set of
+ * assumptions is empty. Otherwise, the result is sat, indicating that the
+ * given assumptions plus the current assertions are satisfiable, and the
+ * returned set of assumptions is empty.
  * \endverbatim
  *
  * @note This command does not require being preceeded by a call to
@@ -5152,6 +5158,38 @@ CVC5_EXPORT Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
  * @param plugin The plugin to add to this solver.
  */
 CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
+
+/**
+ * Set a terminator, which is called periodically during queries to determine
+ * whether the current query should be terminated.
+ *
+ * If the terminator returns true, the query is terminated as if a resource
+ * limit had been reached. For queries that return a result, the result is
+ * unknown with explanation #CVC5_UNKNOWN_EXPLANATION_INTERRUPTED.
+ *
+ * A termination request only applies to the query during which it was
+ * issued: after the terminator returned true, it is not called again during
+ * that query, and the solver can be used for further queries afterwards. The
+ * terminator is called at the beginning of each query, i.e., if it keeps
+ * returning true, subsequent queries are terminated immediately.
+ *
+ * The terminator is called frequently from the thread that executes the
+ * query, and must thus be cheap to evaluate. To terminate a query from
+ * another thread, the terminator can, e.g., check an atomic flag that is set
+ * by that thread.
+ *
+ * Only one terminator can be set at a time, setting a terminator replaces the
+ * previously set terminator.
+ *
+ * @warning This function is experimental and may change in future versions.
+ * @param cvc5      The solver instance.
+ * @param state     The state data passed to the terminator, may be NULL.
+ * @param terminate The terminator, or NULL to unset the currently set
+ *                  terminator.
+ */
+CVC5_EXPORT void cvc5_set_terminator(Cvc5* cvc5,
+                                     void* state,
+                                     bool (*terminate)(void*));
 
 /**
  * Get an interpolant.

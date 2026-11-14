@@ -302,6 +302,7 @@ ProofRule getCongRule(const Node& n, std::vector<Node>& args)
     case Kind::FLOATINGPOINT_GT:
     case Kind::FLOATINGPOINT_GEQ:
     case Kind::NULLABLE_LIFT:
+    case Kind::STAR_CONTAINS:
     case Kind::APPLY_INDEXED_SYMBOLIC:
       // takes arbitrary but we use CONG
       break;

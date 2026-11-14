@@ -142,9 +142,9 @@ class LiaStarUtils
    * Destructure a star-contains atom into the predicate its vector must
    * satisfy, by instantiating the lambda with the vector elements.
    *
-   * The first child may be a purified skolem or a function array constant
-   * rather than a syntactic lambda; both are resolved, see
-   * uf::FunctionConst::getDefinition.
+   * The first child may also be a function array constant, e.g. for
+   * (lambda ((x Int)) (= x 5)), or with --no-uf-lazy-ll the skolem of the
+   * lifted lambda; both are resolved, see uf::FunctionConst::getDefinition.
    *
    * The type rule of int.star-contains does not require its first argument
    * to be a lambda; this is enforced by TheoryArith::ppStaticRewrite. Callers

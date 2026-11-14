@@ -77,7 +77,8 @@ std::string extractStr(const T& t)
 
 /**
  * Compute a GB, with timeout given by `rm`.
- * Throws an FfTimeoutException if the timeout is exceeded.
+ * Throws an FfTimeoutException if the timeout is exceeded, or if termination
+ * has been requested before the computation starts.
  */
 const std::vector<Poly>& GBasisTimeout(const CoCoA::ideal& ideal,
                                        const ResourceManager* rm);

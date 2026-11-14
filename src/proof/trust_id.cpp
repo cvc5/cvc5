@@ -106,6 +106,8 @@ const char* toString(TrustId id)
       return "QUANTIFIERS_SUB_CBQI_LEMMA";
     case TrustId::QUANTIFIERS_NESTED_QE_LEMMA:
       return "QUANTIFIERS_NESTED_QE_LEMMA";
+    case TrustId::QUANTIFIERS_SKOLEMIZE_INDUCTION:
+      return "QUANTIFIERS_SKOLEMIZE_INDUCTION";
     case TrustId::STRINGS_PP_STATIC_REWRITE: return "STRINGS_PP_STATIC_REWRITE";
     case TrustId::VALID_WITNESS: return "VALID_WITNESS";
     case TrustId::SUBTYPE_ELIMINATION: return "SUBTYPE_ELIMINATION";
@@ -114,6 +116,7 @@ const char* toString(TrustId id)
     case TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE:
       return "MACRO_THEORY_REWRITE_RCONS_SIMPLE";
     case TrustId::INT_BLASTER: return "INT_BLASTER";
+    case TrustId::ALETHE_RULE: return "ALETHE_RULE";
     // unknown sources
     case TrustId::UNKNOWN_PREPROCESS: return "UNKNOWN_PREPROCESS";
     case TrustId::UNKNOWN_PREPROCESS_LEMMA: return "UNKNOWN_PREPROCESS_LEMMA";

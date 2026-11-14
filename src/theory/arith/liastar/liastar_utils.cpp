@@ -63,9 +63,9 @@ void LiaStarUtils::traceEquivalenceCheck(const char* step,
 std::pair<Node, Node> LiaStarUtils::getVectorPredicate(Node n, NodeManager* nm)
 {
   Assert(n.getKind() == Kind::STAR_CONTAINS);
-  // The first child may have been purified into a skolem by lambda
-  // lifting, and the rewriter may normalize a constant lambda to a
-  // function array constant; recover the lambda from either form.
+  // The first child is the lambda, unless the rewriter normalized a constant
+  // lambda to a function array constant, or --no-uf-lazy-ll lifted it to a
+  // skolem. getDefinition recovers the lambda in all three cases.
   Node lambda = uf::FunctionConst::getDefinition(n[0]);
   Assert(!lambda.isNull()) << "Expected a lambda as the first child of " << n
                            << std::endl;

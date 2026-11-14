@@ -74,6 +74,13 @@ class TheoryEngineModule : protected EnvObj
                            LemmaProperty p,
                            const std::vector<Node>& skAsserts,
                            const std::vector<Node>& sks);
+  /** Needs facts, return true if the method below requires calling */
+  virtual bool needsFacts();
+  /**
+   * Notify that the SAT solver asserted literal to the theory engine, whichever
+   * theory it is for.
+   */
+  virtual void notifyFact(TNode literal);
   /** Needs candidate model, return true if the method below requires calling */
   virtual bool needsCandidateModel();
   /** Notify that m is a (candidate) model */

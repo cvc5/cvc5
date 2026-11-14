@@ -234,8 +234,21 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const
   Trace("register::internal") << "SharedTermsVisitor::alreadyVisited("
                               << current << "," << parent << ")" << std::endl;
   Kind k = parent.getKind();
+  // Do not visit the children of the terms below, so that no theory
+  // preregisters them and none of them becomes a shared term:
+  // - a closure, e.g. (> (f x) 0) in (forall ((x Int)) (> (f x) 0)), since x
+  //   is a bound variable. Instances such as (> (f 3) 0) are visited when
+  //   quantifiers sends them as lemmas.
+  // - a separation logic constraint, e.g. (pto x y) in
+  //   (sep (pto x y) (pto z w)), which holds only in part of the heap. The
+  //   theory of separation logic sends lemmas over labeled heaps instead.
+  // - int.star-contains, e.g. the lambda in
+  //   (int.star-contains (lambda ((x Int)) (= x 2)) y), which would otherwise
+  //   be a shared term of arithmetic and UF. The liastar extension of
+  //   arithmetic sends lemmas over argument y instead.
   if ((isClosureKind(k) || k == Kind::SEP_STAR || k == Kind::SEP_WAND
-       || (k == Kind::SEP_LABEL && current.getType().isBoolean()))
+       || (k == Kind::SEP_LABEL && current.getType().isBoolean())
+       || k == Kind::STAR_CONTAINS)
       && current != parent)
   {
     Trace("register::internal") << "quantifier:true" << std::endl;

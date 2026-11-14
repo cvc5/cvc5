@@ -88,8 +88,8 @@ Node RelsUtils::evaluateGroup(TNode n)
 
   if (A.getKind() == Kind::SET_EMPTY)
   {
-    // return a nonempty partition
-    return NodeManager::mkNode(Kind::SET_SINGLETON, A);
+    // an empty relation has no parts
+    return n.getNodeManager()->mkConst(EmptySet(partitionType));
   }
 
   std::vector<uint32_t> indices =

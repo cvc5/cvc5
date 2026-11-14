@@ -54,6 +54,7 @@ public class Command extends AbstractPointer
       // solver and symbol manager reachable until the call has returned.
       Reference.reachabilityFence(solver);
       Reference.reachabilityFence(symbolManager);
+      solver.checkTerminator();
     }
   }
 

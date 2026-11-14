@@ -3,10 +3,22 @@ This file contains a summary of important user-visible changes.
 cvc5 1.5.0 prerelease
 =====================
 
+- Added a **terminator** to the C++, C, Python and Java APIs (class
+  `Terminator` and `Solver::setTerminator()`, `cvc5_set_terminator()` in C,
+  interface `ITerminator` in Java), which allows to terminate running queries,
+  e.g., from another thread. Terminated queries return `unknown` with
+  explanation `UnknownExplanation::INTERRUPTED`. In Python, this also allows to
+  interrupt queries via `Ctrl-C` while a terminator is connected.
     
 - Fixes a bug where function definitions did not invalidate previous
   satisfiability query results, allowing access to stale models and other
   query-dependent information. (#13077)
+
+- **Arithmetic**: Added a new extension of the arithmetic solver for solving
+  liastar (LIA*) constraints. The new predicate `int.star-contains` denotes
+  membership in a star set. The extension depends on Normaliz, which is
+  available in builds configured with `--normaliz` (requires `--gpl`); other
+  builds raise a logic exception.
 
 - **API**
   * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
@@ -36,7 +48,11 @@ cvc5 1.5.0 prerelease
     without contention or unbounded memory growth. Memory can still be
     released deterministically via `deletePointer()`; `TermManager`, `Solver`,
     `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
-    `Context.deletePointers()` is deprecated.
+    `Context.deletePointers()` is deprecated. `TermManager.close()` frees the
+    native objects of a term manager and of all objects derived from it at
+    once, without waiting for the garbage collector, while
+    `TermManager.deletePointer()` frees only the term manager itself and
+    keeps the objects derived from it usable.
   * Using an object after its native memory has been released, via
     `deletePointer()`, `close()` or `Context.deletePointers()`, now raises an
     `IllegalStateException` instead of crashing the JVM.
@@ -57,6 +73,23 @@ cvc5 1.5.0 prerelease
   concurrently in different threads: the initialization of the CoCoA global
   manager is now thread-safe. Previously, the losing thread crashed the
   process with an uncaught `CoCoA::ErrorInfo` exception.
+
+- Fixed incorrect encodings in SymFPU for some **experimental floating-point
+  formats** (`--fp-exp`), which could cause wrong answers, invalid models,
+  errors ("resulting bit-vector size is too large") or assertion failures.
+  If cvc5 is configured without MPFR,
+  this also affected constant folding. Formats Float16, Float32, Float64 and
+  Float128 are not affected. Affected were:
+  * `fp.roundToIntegral` and `to_fp` conversions from floating-point and
+    signed/unsigned bit-vector terms, e.g., in `(_ FloatingPoint 3 4)` and
+    `(_ FloatingPoint 3 5)`.
+  * Formats with significand size <= 3, e.g., `(_ FloatingPoint 2 3)`
+    (#13072), and formats with exponent size 2 and a significand size that is
+    a power of two, e.g., `(_ FloatingPoint 2 4)`.
+
+  The SymFPU version built by cvc5 is now patched to fix these issues
+  (`cmake/deps-utils/symfpu-*.patch`). A system-wide SymFPU is only used if
+  it includes these patches.
 
 
 cvc5 1.4.2

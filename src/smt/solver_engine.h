@@ -486,6 +486,14 @@ class CVC5_EXPORT SolverEngine
    */
   void addPlugin(Plugin* p);
   /**
+   * Set the terminator of this solver engine, which is polled periodically to
+   * determine whether the current call should be terminated. An empty
+   * function disconnects the current terminator.
+   *
+   * @param terminator The terminator.
+   */
+  void setTerminator(std::function<bool()> terminator);
+  /**
    * Simplify a term or formula based on rewriting and (optionally) applying
    * substitutions for solved variables.
    *
@@ -884,6 +892,26 @@ class CVC5_EXPORT SolverEngine
    * was true.
    */
   void endCall();
+  /**
+   * RAII guard for a call that is subject to resource limits (and the
+   * terminator). Calls beginCall(true) on construction and endCall() on
+   * destruction, which ensures that the call is also ended if it is left via
+   * an exception.
+   */
+  class ResourceLimitedCall
+  {
+   public:
+    explicit ResourceLimitedCall(SolverEngine& slv) : d_slv(slv)
+    {
+      d_slv.beginCall(true);
+    }
+    ~ResourceLimitedCall() { d_slv.endCall(); }
+    ResourceLimitedCall(const ResourceLimitedCall&) = delete;
+    ResourceLimitedCall& operator=(const ResourceLimitedCall&) = delete;
+
+   private:
+    SolverEngine& d_slv;
+  };
 
   /** Set solver instance that owns this SolverEngine. */
   void setSolver(cvc5::Solver* solver) { d_solver = solver; }
