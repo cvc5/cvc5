@@ -61,6 +61,11 @@
   :conclusion (= (mod_total t1 s1) (mod_total t1 (- s1)))
 )
 
+(declare-rule arith-int-div-total-over-mod ((t1 Int) (s1 Int))
+  :args (t1 s1)
+  :conclusion (= (div_total (mod_total t1 s1) s1) 0)
+)
+
 (declare-rule arith-elim-gt ((@T0 Type) (@T1 Type) (t1 @T0) (s1 @T1))
   :args (t1 s1)
   :conclusion (= (> t1 s1) (not (>= s1 t1)))
@@ -119,6 +124,16 @@
 (declare-rule arith-to-int-elim-to-real ((x1 Int))
   :args (x1)
   :conclusion (= (to_int (to_real x1)) x1)
+)
+
+(declare-rule arith-is-int-elim-to-real ((x1 Int))
+  :args (x1)
+  :conclusion (= (is_int (to_real x1)) true)
+)
+
+(declare-rule arith-div-elim-to-real ((x1 Int) (y1 Int))
+  :args (x1 y1)
+  :conclusion (= (/ (to_real x1) (to_real y1)) (/ x1 y1))
 )
 
 (declare-rule arith-mod-over-mod-1 ((c1 Int) (r1 Int))
