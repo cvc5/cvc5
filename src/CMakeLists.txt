@@ -1532,6 +1532,7 @@ target_include_directories(cvc5
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
 install(TARGETS cvc5 EXPORT cvc5-targets)
+strip_lto_static_library(cvc5)
 
 if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
   update_rpath_macos(libcvc5.dylib)

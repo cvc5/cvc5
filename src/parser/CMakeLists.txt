@@ -93,3 +93,4 @@ target_link_libraries(cvc5parser PRIVATE cvc5)
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
 install(TARGETS cvc5parser EXPORT cvc5-targets)
+strip_lto_static_library(cvc5parser)
