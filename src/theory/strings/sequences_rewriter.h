@@ -63,6 +63,26 @@ class SequencesRewriter : public TheoryRewriter
    * in another child).
    */
   Node rewriteViaMacroReInterUnionConstElim(const Node& n, Node& conflict);
+  /**
+   * Rewrite based on MACRO_STR_INDEXOF_STRIP_SYM_LENGTH, e.g.
+   *   str.indexof(str.++(x1, x2), y, z) --->
+   *   str.len(x1) + str.indexof(x2, y, z')
+   * if z >= str.len(x1), str.len(str.++(x1, x2)) >= z, and
+   * str.contains(str.substr(str.++(x1, x2), z, str.len(str.++(x1, x2))), y),
+   * where z' is equivalent to z - str.len(x1).
+   * Returns null if this does not apply.
+   *
+   * @param n The indexof term to rewrite.
+   * @param ch1 The components of the stripped prefix (x1 above).
+   * @param ch2 The components of the remainder (x2 above).
+   * @param checkCtn Whether we should check the containment condition. This is
+   * false if the caller has already checked it.
+   * @return The result of the rewrite.
+   */
+  Node rewriteViaMacroStrIndexofStripSymLength(const Node& n,
+                                               std::vector<Node>& ch1,
+                                               std::vector<Node>& ch2,
+                                               bool checkCtn = true);
 
  protected:
   /** rewrite regular expression all

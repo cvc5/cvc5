@@ -1801,8 +1801,11 @@ set(regress_0_tests
   regress0/proofs/re-char-in-str-star.smt2
   regress0/proofs/re-concat-star-repeat-fixpoint.smt2
   regress0/proofs/re-emp-star-eval.smt2
+  regress0/proofs/re-inter-const-const-conflict.smt2
+  regress0/proofs/re-inter-const-elim.smt2
   regress0/proofs/re-range-empty.smt2
   regress0/proofs/re-range-refl.smt2
+  regress0/proofs/re-union-const-elim.smt2
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/shadow_quant.smt2
@@ -1811,6 +1814,7 @@ set(regress_0_tests
   regress0/proofs/str-contains-strip-from-int.smt2
   regress0/proofs/str-indexof-len.smt2
   regress0/proofs/str-indexof-strip-char-pre.smt2
+  regress0/proofs/str-indexof-strip-prefix-len.smt2
   regress0/proofs/str-leq-id.smt2
   regress0/proofs/subtype-elim-1.smt2
   regress0/proofs/subtype-elim-2.smt2

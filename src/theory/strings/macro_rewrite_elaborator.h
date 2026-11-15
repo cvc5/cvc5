@@ -99,6 +99,22 @@ class MacroRewriteElaborator : protected EnvObj
   bool ensureProofForSubstrStripSymLength(CDProof* cdp, const Node& eq);
   /**
    * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofForStrIndexofStripSymLength(CDProof* cdp, const Node& eq);
+  /**
+   * Add a proof of (= s t) to cdp, where t is a concatenation that is
+   * equivalent to s modulo ACI or splitting word constants.
+   * @return true if successful.
+   */
+  bool ensureProofForConcatRegroup(CDProof* cdp, const Node& s, const Node& t);
+  /**
+   * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX.
    *
    * @param cdp The proof to add to.

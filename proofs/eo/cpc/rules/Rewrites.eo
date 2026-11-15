@@ -2654,6 +2654,18 @@
   :conclusion (= (seq.indexof (seq.++ c1 t1 ts1) s1 0) (+ 1 (seq.indexof (eo::list_singleton_elim str.++ (seq.++ t1 ts1)) s1 0)))
 )
 
+(declare-rule str-indexof-strip-prefix-len ((@T0 Type) (@T1 Type) (@T2 Type) (s1 (Seq @T0)) (s2 (Seq @T1)) (t1 (Seq @T2)) (n1 Int))
+  :premises ((= (seq.len s1) n1) (= (seq.contains s2 t1) true))
+  :args (s1 s2 t1 n1)
+  :conclusion (= (seq.indexof (seq.++ s1 s2) t1 n1) (+ (seq.len s1) (seq.indexof s2 t1 0)))
+)
+
+(declare-rule str-indexof-strip-sym-len ((@T0 Type) (@T1 Type) (@T2 Type) (s1 (Seq @T0)) (s2 (Seq @T1)) (t1 (Seq @T2)) (n1 Int) (m1 Int))
+  :premises ((= m1 (- n1 (seq.len s1))) (= (>= m1 0) true) (= (>= (seq.len s2) m1) true) (= (seq.contains (seq.extract s2 m1 (seq.len s2)) t1) true))
+  :args (s1 s2 t1 n1 m1)
+  :conclusion (= (seq.indexof (seq.++ s1 s2) t1 n1) (+ (seq.len s1) (seq.indexof s2 t1 m1)))
+)
+
 (declare-rule str-indexof-contains-pre
   ((@T0 Type) (@T1 Type) (@T2 Type) (t1 (Seq @T0)) (t2 (Seq @T1) :list)
     (s1 (Seq @T2)) (n1 Int))
@@ -3119,10 +3131,20 @@
   :conclusion (= (re.union xs1 (re.* re.allchar) ys1) (re.* re.allchar))
 )
 
-(declare-rule re-union-const-elim ((r1 RegLan) (s1 String))
+(declare-rule re-union-const-elim ((r1 RegLan) (ys1 RegLan :list) (s1 String))
   :premises ((= (str.in_re s1 r1) true))
-  :args (r1 s1)
-  :conclusion (= (re.union (str.to_re s1) r1) r1)
+  :args (r1 ys1 s1)
+  :conclusion
+    (= (re.union (str.to_re s1) r1 ys1)
+      (eo::list_singleton_elim re.union (re.union r1 ys1)))
+)
+
+(declare-rule re-inter-const-elim ((r1 RegLan) (ys1 RegLan :list) (s1 String))
+  :premises ((= (str.in_re s1 r1) true))
+  :args (r1 ys1 s1)
+  :conclusion
+    (= (re.inter (str.to_re s1) r1 ys1)
+      (eo::list_singleton_elim re.inter (re.inter (str.to_re s1) ys1)))
 )
 
 (declare-rule re-inter-all ((xs1 RegLan :list) (ys1 RegLan :list))
@@ -3207,6 +3229,12 @@
   :premises ((= (str.in_re s1 (re.inter (str.to_re s1) x1 ys1)) false))
   :args (x1 ys1 s1)
   :conclusion (= (re.inter (str.to_re s1) x1 ys1) re.none)
+)
+
+(declare-rule re-inter-const-const-conflict ((xs1 RegLan :list) (s1 String) (ys1 RegLan :list) (t1 String) (zs1 RegLan :list))
+  :premises ((= (= s1 t1) false))
+  :args (xs1 s1 ys1 t1 zs1)
+  :conclusion (= (re.inter xs1 (str.to_re s1) ys1 (str.to_re t1) zs1) re.none)
 )
 
 (declare-rule str-substr-len-include

@@ -31,6 +31,7 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/string.h"
 #include "util/rational.h"
 
 using namespace cvc5::internal::kind;
@@ -58,6 +59,8 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
       return ensureProofForReInterUnionConstElim(cdp, eq);
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return ensureProofForSubstrStripSymLength(cdp, eq);
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH:
+      return ensureProofForStrIndexofStripSymLength(cdp, eq);
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX:
       return ensureProofForStrEqLenUnifyPrefix(cdp, eq);
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
@@ -395,8 +398,13 @@ bool MacroRewriteElaborator::ensureProofForReInterUnionConstElim(CDProof* cdp,
   NodeManager* nm = nodeManager();
   Trace("brc-macro") << "Expand macro re inter union const elim for " << eq
                      << std::endl;
-  if (eq[0].getKind() == Kind::REGEXP_INTER)
+  Kind k = eq[0].getKind();
+  Assert(k == Kind::REGEXP_INTER || k == Kind::REGEXP_UNION);
+  if (k == Kind::REGEXP_INTER && eq[1].getKind() != Kind::REGEXP_INTER)
   {
+    // the result is a single (str.to_re c) or re.none, which is handled by
+    // re-inter-cstring or re-inter-cstring-neg, after ensuring the relevant
+    // constant is first.
     ArithEntail ae(nm, nullptr);
     StringsEntail se(nullptr, ae);
     SequencesRewriter srew(nm, ae, se, nullptr);
@@ -431,10 +439,13 @@ bool MacroRewriteElaborator::ensureProofForReInterUnionConstElim(CDProof* cdp,
     }
     return true;
   }
-  Assert(eq[0].getKind() == Kind::REGEXP_UNION);
+  // Otherwise, some members were removed. We remove them one at a time, where
+  // each removed member b is justified by a kept member a, where:
+  // - for re.inter, a is (str.to_re c) and c is in b, via re-inter-const-elim,
+  // - for re.union, b is (str.to_re c) and c is in a, via re-union-const-elim.
   std::vector<Node> ch1(eq[0].begin(), eq[0].end());
   std::vector<Node> ch2;
-  if (eq[1].getKind() == Kind::REGEXP_UNION)
+  if (eq[1].getKind() == k)
   {
     ch2.insert(ch2.end(), eq[1].begin(), eq[1].end());
   }
@@ -443,28 +454,88 @@ bool MacroRewriteElaborator::ensureProofForReInterUnionConstElim(CDProof* cdp,
     ch2.push_back(eq[1]);
   }
   std::vector<Node> diff;
-  size_t i2 = 0;
-  for (size_t i1 = 0, nchild = ch1.size(); i1 < nchild; i1++)
+  for (const Node& c : ch1)
   {
-    if (i2 < ch2.size() && ch1[i1] == ch2[i2])
+    if (std::find(ch2.begin(), ch2.end(), c) == ch2.end())
     {
-      i2++;
-    }
-    else
-    {
-      diff.push_back(ch1[i1]);
+      diff.push_back(c);
     }
   }
   Node curr = eq[1];
+  std::vector<Node> currCh = ch2;
   std::vector<Node> transEq;
   for (size_t i = 0, ndiff = diff.size(); i < ndiff; i++)
   {
-    size_t ii = ndiff - i - 1;
-    Node next = nm->mkNode(Kind::REGEXP_UNION, diff[ii], curr);
-    Node eqc = next.eqNode(curr);
+    const Node& b = diff[ndiff - i - 1];
+    // find the justifying member
+    Node a;
+    for (const Node& cc : currCh)
+    {
+      const Node& cstr = k == Kind::REGEXP_INTER ? cc : b;
+      const Node& r = k == Kind::REGEXP_INTER ? b : cc;
+      if (cstr.getKind() != Kind::STRING_TO_REGEXP || !cstr[0].isConst()
+          || !RegExpEntail::isConstRegExp(r))
+      {
+        continue;
+      }
+      String s = cstr[0].getConst<String>();
+      if (RegExpEntail::testConstStringInRegExp(s, r))
+      {
+        a = cc;
+        break;
+      }
+    }
+    if (a.isNull())
+    {
+      Trace("brc-macro") << "...failed to find justification for " << b
+                         << std::endl;
+      return false;
+    }
+    std::vector<Node> rest;
+    bool removedA = false;
+    for (const Node& cc : currCh)
+    {
+      if (!removedA && cc == a)
+      {
+        removedA = true;
+        continue;
+      }
+      rest.push_back(cc);
+    }
+    std::vector<Node> nextCh;
+    if (k == Kind::REGEXP_INTER)
+    {
+      nextCh.push_back(a);
+      nextCh.push_back(b);
+    }
+    else
+    {
+      nextCh.push_back(b);
+      nextCh.push_back(a);
+    }
+    nextCh.insert(nextCh.end(), rest.begin(), rest.end());
+    Node next = nm->mkNode(k, nextCh);
+    // the result of the rewrite, which is (k a rest)
+    std::vector<Node> resCh;
+    resCh.push_back(a);
+    resCh.insert(resCh.end(), rest.begin(), rest.end());
+    Node res = resCh.size() == 1 ? resCh[0] : nm->mkNode(k, resCh);
+    if (res != curr)
+    {
+      Node eqr = res.eqNode(curr);
+      if (!cdp->addStep(eqr, ProofRule::ACI_NORM, {}, {eqr}))
+      {
+        DebugUnhandled();
+        return false;
+      }
+      transEq.push_back(eqr);
+    }
+    Node eqc = next.eqNode(res);
+    Trace("brc-macro") << "...step " << eqc << std::endl;
     cdp->addTrustedStep(eqc, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
     transEq.push_back(eqc);
     curr = next;
+    currCh = nextCh;
   }
   if (eq[0] != curr)
   {
@@ -517,25 +588,9 @@ bool MacroRewriteElaborator::ensureProofForSubstrStripSymLength(CDProof* cdp,
     return false;
   }
   Node eq1 = nm->mkNode(Kind::EQUAL, lhs[0], cm);
-  if (expr::isACINorm(lhs[0], cm))
+  if (!ensureProofForConcatRegroup(cdp, lhs[0], cm))
   {
-    cdp->addStep(eq1, ProofRule::ACI_NORM, {}, {eq1});
-    Trace("brc-macro") << "- via ACI_NORM " << eq1 << std::endl;
-  }
-  else
-  {
-    rewriter::RewriteDbNodeConverter rdnc(nodeManager());
-    Node eq1t = rdnc.convert(eq1);
-    Assert(eq1t.getKind() == Kind::EQUAL);
-    if (eq1t[0] != eq1t[1])
-    {
-      return false;
-    }
-    ensureProofForEncodeTransform(cdp, eq1, eq1t);
-    Node equivs = eq1t.eqNode(eq1);
-    cdp->addStep(equivs, ProofRule::SYMM, {eq1.eqNode(eq1t)}, {});
-    cdp->addStep(eq1t, ProofRule::REFL, {}, {eq1t[0]});
-    cdp->addStep(eq1, ProofRule::EQ_RESOLVE, {eq1t, equivs}, {});
+    return false;
   }
   std::vector<Node> cargs;
   ProofRule cr = expr::getCongRule(lhs, cargs);
@@ -544,6 +599,83 @@ bool MacroRewriteElaborator::ensureProofForSubstrStripSymLength(CDProof* cdp,
   cdp->addStep(eq2, ProofRule::REFL, {}, {lhs[1]});
   cdp->addStep(eq3, ProofRule::REFL, {}, {lhs[2]});
   Node lhsm = nm->mkNode(Kind::STRING_SUBSTR, cm, lhs[1], lhs[2]);
+  Node eqLhs = lhs.eqNode(lhsm);
+  cdp->addStep(eqLhs, cr, {eq1, eq2, eq3}, cargs);
+  Node eqm = lhsm.eqNode(rhs);
+  cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+  Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
+  cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForConcatRegroup(CDProof* cdp,
+                                                         const Node& s,
+                                                         const Node& t)
+{
+  Node eq = s.eqNode(t);
+  if (expr::isACINorm(s, t))
+  {
+    cdp->addStep(eq, ProofRule::ACI_NORM, {}, {eq});
+    Trace("brc-macro") << "- via ACI_NORM " << eq << std::endl;
+    return true;
+  }
+  rewriter::RewriteDbNodeConverter rdnc(nodeManager());
+  Node eqt = rdnc.convert(eq);
+  Assert(eqt.getKind() == Kind::EQUAL);
+  if (eqt[0] != eqt[1])
+  {
+    return false;
+  }
+  ensureProofForEncodeTransform(cdp, eq, eqt);
+  Node equivs = eqt.eqNode(eq);
+  cdp->addStep(equivs, ProofRule::SYMM, {eq.eqNode(eqt)}, {});
+  cdp->addStep(eqt, ProofRule::REFL, {}, {eqt[0]});
+  cdp->addStep(eq, ProofRule::EQ_RESOLVE, {eqt, equivs}, {});
+  return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForStrIndexofStripSymLength(
+    CDProof* cdp, const Node& eq)
+{
+  NodeManager* nm = nodeManager();
+  Trace("brc-macro") << "Expand indexof strip for " << eq << std::endl;
+  Assert(eq.getKind() == Kind::EQUAL);
+  Node lhs = eq[0];
+  Assert(lhs.getKind() == Kind::STRING_INDEXOF);
+  ArithEntail ae(nm, nullptr);
+  StringsEntail se(nullptr, ae);
+  SequencesRewriter srew(nm, ae, se, nullptr);
+  std::vector<Node> ch1;
+  std::vector<Node> ch2;
+  // we do not check the containment, which is proven in the step below
+  Node rhs = srew.rewriteViaMacroStrIndexofStripSymLength(lhs, ch1, ch2, false);
+  if (rhs != eq[1])
+  {
+    Trace("brc-macro") << "...failed to replicate " << rhs << std::endl;
+    return false;
+  }
+  TypeNode stype = lhs[0].getType();
+  // group the first argument into the stripped prefix and the remainder
+  Node cm = nm->mkNode(Kind::STRING_CONCAT,
+                       utils::mkConcat(ch1, stype),
+                       utils::mkConcat(ch2, stype));
+  if (cm == lhs[0])
+  {
+    // the rewrite is already an instance of the RARE rule
+    return false;
+  }
+  Node eq1 = lhs[0].eqNode(cm);
+  if (!ensureProofForConcatRegroup(cdp, lhs[0], cm))
+  {
+    return false;
+  }
+  std::vector<Node> cargs;
+  ProofRule cr = expr::getCongRule(lhs, cargs);
+  Node eq2 = lhs[1].eqNode(lhs[1]);
+  Node eq3 = lhs[2].eqNode(lhs[2]);
+  cdp->addStep(eq2, ProofRule::REFL, {}, {lhs[1]});
+  cdp->addStep(eq3, ProofRule::REFL, {}, {lhs[2]});
+  Node lhsm = nm->mkNode(Kind::STRING_INDEXOF, cm, lhs[1], lhs[2]);
   Node eqLhs = lhs.eqNode(lhsm);
   cdp->addStep(eqLhs, cr, {eq1, eq2, eq3}, cargs);
   Node eqm = lhsm.eqNode(rhs);

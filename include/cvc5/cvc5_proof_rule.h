@@ -4195,6 +4195,22 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- strings indexof strip symbolic length**
+   *
+   * .. math::
+   *
+   *   str.indexof(s, t, n) = str.len(s_1) + str.indexof(s_2, t, n - str.len(s_1))
+   *
+   * where :math:`s` is equivalent to :math:`s_1 \cdot s_2`, the length of
+   * :math:`s_1` is at most :math:`n`, :math:`n` is at most the length of
+   * :math:`s`, and :math:`t` is contained in the suffix of :math:`s` starting
+   * at :math:`n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_INDEXOF_STRIP_SYM_LENGTH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- sets evaluate operator**
    *
    * .. math::
@@ -4881,6 +4897,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_LEN),
   /** Auto-generated from RARE rule str-indexof-strip-char-pre */
   EVALUE(STR_INDEXOF_STRIP_CHAR_PRE),
+  /** Auto-generated from RARE rule str-indexof-strip-prefix-len */
+  EVALUE(STR_INDEXOF_STRIP_PREFIX_LEN),
+  /** Auto-generated from RARE rule str-indexof-strip-sym-len */
+  EVALUE(STR_INDEXOF_STRIP_SYM_LEN),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
@@ -5013,6 +5033,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_UNION_ALL),
   /** Auto-generated from RARE rule re-union-const-elim */
   EVALUE(RE_UNION_CONST_ELIM),
+  /** Auto-generated from RARE rule re-inter-const-elim */
+  EVALUE(RE_INTER_CONST_ELIM),
   /** Auto-generated from RARE rule re-inter-all */
   EVALUE(RE_INTER_ALL),
   /** Auto-generated from RARE rule re-star-none */
@@ -5041,6 +5063,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_CSTRING),
   /** Auto-generated from RARE rule re-inter-cstring-neg */
   EVALUE(RE_INTER_CSTRING_NEG),
+  /** Auto-generated from RARE rule re-inter-const-const-conflict */
+  EVALUE(RE_INTER_CONST_CONST_CONFLICT),
   /** Auto-generated from RARE rule str-substr-len-include */
   EVALUE(STR_SUBSTR_LEN_INCLUDE),
   /** Auto-generated from RARE rule str-substr-len-include-pre */

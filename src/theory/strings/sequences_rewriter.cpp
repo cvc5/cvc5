@@ -64,6 +64,9 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(
+      ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH,
+      TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_CTN_MULTISET_SUBSET,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX,
@@ -115,6 +118,11 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     case ProofRewriteRule::STR_IN_RE_SIGMA: return rewriteViaStrInReSigma(n);
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR:
       return rewriteViaStrInReSigmaStar(n);
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH:
+    {
+      std::vector<Node> ch1, ch2;
+      return rewriteViaMacroStrIndexofStripSymLength(n, ch1, ch2);
+    }
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
     {
       // Rewrite without using the rewriter as a subutility, which ensures
@@ -1811,6 +1819,63 @@ Node SequencesRewriter::rewriteViaMacroReInterUnionConstElim(const Node& n,
   return Node::null();
 }
 
+Node SequencesRewriter::rewriteViaMacroStrIndexofStripSymLength(
+    const Node& n,
+    std::vector<Node>& ch1,
+    std::vector<Node>& ch2,
+    bool checkCtn)
+{
+  if (n.getKind() != Kind::STRING_INDEXOF)
+  {
+    return Node::null();
+  }
+  NodeManager* nm = nodeManager();
+  Node len0 = nm->mkNode(Kind::STRING_LENGTH, n[0]);
+  // To show that the first argument definitely contains the second, the
+  // index must be a valid index in the first argument. This ensures that
+  // (str.indexof t "" n) is not rewritten to something other than -1 when n
+  // is beyond the length of t.
+  if (!d_arithEntail.check(n[2]) || !d_arithEntail.check(len0, n[2]))
+  {
+    return Node::null();
+  }
+  if (checkCtn)
+  {
+    Node fstr = n[0];
+    if (!n[2].isConst() || n[2].getConst<Rational>().sgn() != 0)
+    {
+      fstr = nm->mkNode(Kind::STRING_SUBSTR, n[0], n[2], len0);
+    }
+    Node cmp = d_stringsEntail.checkContains(fstr, n[1]);
+    if (cmp.isNull() || !cmp.getConst<bool>())
+    {
+      return Node::null();
+    }
+  }
+  ch1.clear();
+  ch2.clear();
+  utils::getConcat(n[0], ch2);
+  Node newLen = n[2];
+  if (!d_stringsEntail.stripSymbolicLength(ch2, ch1, 1, newLen))
+  {
+    return Node::null();
+  }
+  // For example:
+  // z>=str.len( x1 ) and str.len( str.++( x1, x2 ) )>=z and
+  // str.contains( str.substr( str.++( x1, x2 ), z, ... ), y )-->true
+  // implies
+  // str.indexof( str.++( x1, x2 ), y, z ) --->
+  // str.len( x1 ) + str.indexof( x2, y, z' )
+  // where z' is equivalent to z-str.len(x1).
+  TypeNode stype = n[0].getType();
+  Node lenPre = nm->mkNode(Kind::STRING_LENGTH, utils::mkConcat(ch1, stype));
+  Node rem = utils::mkConcat(ch2, stype);
+  // note that newLen is equivalent to n[2] - lenPre
+  return nm->mkNode(Kind::ADD,
+                    lenPre,
+                    nm->mkNode(Kind::STRING_INDEXOF, rem, n[1], newLen));
+}
+
 Node SequencesRewriter::rewriteViaStrIndexofReEval(const Node& n)
 {
   if (n.getKind() == Kind::STRING_INDEXOF_RE && n[0].isConst() && n[2].isConst()
@@ -3309,30 +3374,13 @@ Node SequencesRewriter::rewriteIndexof(Node node)
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
         }
       }
-      // To show that the first argument definitely contains the second, the
-      // index must be a valid index in the first argument. This ensures that
-      // (str.indexof t "" n) is not rewritten to something other than -1 when n
-      // is beyond the length of t. This is not required for the above rewrites,
-      // which only apply when n=0.
-      if (d_arithEntail.check(node[2]) && d_arithEntail.check(len0, node[2]))
+      // strip symbolic length, where note the containment was checked above
+      std::vector<Node> ch1, ch2;
+      Node ret =
+          rewriteViaMacroStrIndexofStripSymLength(node, ch1, ch2, false);
+      if (!ret.isNull())
       {
-        // strip symbolic length
-        Node new_len = node[2];
-        std::vector<Node> nr;
-        if (d_stringsEntail.stripSymbolicLength(children0, nr, 1, new_len))
-        {
-          // For example:
-          // z>=0 and z>str.len( x1 ) and str.contains( x2, y )-->true
-          // implies
-          // str.indexof( str.++( x1, x2 ), y, z ) --->
-          // str.len( x1 ) + str.indexof( x2, y, z-str.len(x1) )
-          Node nn = utils::mkConcat(children0, stype);
-          Node ret = nm->mkNode(
-              Kind::ADD,
-              {nm->mkNode(Kind::SUB, node[2], new_len),
-               nm->mkNode(Kind::STRING_INDEXOF, nn, node[1], new_len)});
-          return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
-        }
+        return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
       }
     }
     else

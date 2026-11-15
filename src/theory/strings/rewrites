@@ -419,6 +419,18 @@
   (str.indexof (str.++ c t ts) s 0)
   (+ 1 (str.indexof (str.++ t ts) s 0)))
 
+; used for macro expansion
+(define-cond-rule str-indexof-strip-prefix-len ((s1 ?Seq) (s2 ?Seq) (t ?Seq) (n Int))
+  (and (= (str.len s1) n) (str.contains s2 t))
+  (str.indexof (str.++ s1 s2) t n)
+  (+ (str.len s1) (str.indexof s2 t 0)))
+
+; used for macro expansion
+(define-cond-rule str-indexof-strip-sym-len ((s1 ?Seq) (s2 ?Seq) (t ?Seq) (n Int) (m Int))
+  (and (= m (- n (str.len s1))) (>= m 0) (>= (str.len s2) m) (str.contains (str.substr s2 m (str.len s2)) t))
+  (str.indexof (str.++ s1 s2) t n)
+  (+ (str.len s1) (str.indexof s2 t m)))
+
 (define-cond-rule str-indexof-contains-pre ((t1 ?Seq) (t2 ?Seq :list) (s ?Seq) (n Int))
   (and (> (str.len s) 0) (str.contains (str.substr t1 n (str.len t1)) s))
   (str.indexof (str.++ t1 t2) s n)
@@ -709,10 +721,16 @@
 (define-rule re-union-all ((xs RegLan :list) (ys RegLan :list)) (re.union xs (re.* re.allchar) ys) (re.* re.allchar))
 
 ; used for macro expansion
-(define-cond-rule re-union-const-elim ((r RegLan) (s String))
+(define-cond-rule re-union-const-elim ((r RegLan) (ys RegLan :list) (s String))
   (str.in_re s r)
-  (re.union (str.to_re s) r)
-  r)
+  (re.union (str.to_re s) r ys)
+  (re.union r ys))
+
+; used for macro expansion
+(define-cond-rule re-inter-const-elim ((r RegLan) (ys RegLan :list) (s String))
+  (str.in_re s r)
+  (re.inter (str.to_re s) r ys)
+  (re.inter (str.to_re s) ys))
 
 (define-rule* re-inter-all ((xs RegLan :list) (ys RegLan :list)) (re.inter xs (re.* re.allchar) ys) (re.inter xs ys))
 
@@ -771,6 +789,11 @@
 (define-cond-rule re-inter-cstring-neg ((x RegLan) (ys RegLan :list) (s String))
   (not (str.in_re s (re.inter (str.to_re s) x ys)))
   (re.inter (str.to_re s) x ys)
+  re.none)
+
+(define-cond-rule re-inter-const-const-conflict ((xs RegLan :list) (s String) (ys RegLan :list) (t String) (zs RegLan :list))
+  (not (= s t))
+  (re.inter xs (str.to_re s) ys (str.to_re t) zs)
   re.none)
 
 (define-cond-rule str-substr-len-include ((s1 ?Seq) (s2 ?Seq :list) (n Int) (m Int))
