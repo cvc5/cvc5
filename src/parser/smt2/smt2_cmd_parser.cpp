@@ -852,8 +852,14 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::SET_INFO_TOK:
     {
       std::string key = d_tparser.parseKeyword();
-      Term sexpr = d_tparser.parseSymbolicExpr();
-      cmd.reset(new SetInfoCommand(key, sexprToString(sexpr)));
+      // the attribute value is optional
+      std::string value;
+      if (d_lex.peekToken() != Token::RPAREN_TOK)
+      {
+        Term sexpr = d_tparser.parseSymbolicExpr();
+        value = sexprToString(sexpr);
+      }
+      cmd.reset(new SetInfoCommand(key, value));
     }
     break;
     // (set-logic <symbol>)
