@@ -51,6 +51,8 @@ const char* toString(Rewrite r)
     case Rewrite::FOLD_CONSTANT_STEP: return "FOLD_CONSTANT_STEP";
     case Rewrite::MAP_FIXED_COLUMNS: return "MAP_FIXED_COLUMNS";
     case Rewrite::SETOF_PROJECTION_SORT: return "SETOF_PROJECTION_SORT";
+    case Rewrite::AGGREGATE_CONSTANT_COLUMNS:
+      return "AGGREGATE_CONSTANT_COLUMNS";
     case Rewrite::AGGREGATE_KEYED: return "AGGREGATE_KEYED";
     case Rewrite::NOT_NULL_COLUMNS: return "NOT_NULL_COLUMNS";
     case Rewrite::FILTER_NULLABLE_TRUTH: return "FILTER_NULLABLE_TRUTH";

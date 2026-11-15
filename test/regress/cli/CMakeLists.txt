@@ -3026,6 +3026,7 @@ set(regress_1_tests
   regress1/bags/proj-issue566.smt2
   regress1/bags/proj-issue584.smt2
   regress1/bags/proj-issue603.smt2
+  regress1/bags/rewriter/aggr_constant_columns.smt2
   regress1/bags/rewriter/aggr_keyed.smt2
   regress1/bags/rewriter/canonical_function_variable.smt2
   regress1/bags/rewriter/canonical_variable.smt2

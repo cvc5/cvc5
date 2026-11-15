@@ -311,9 +311,10 @@ enum class Rewrite : uint32_t
    *         (tuple (+ ((_ tuple.select 0) acc) ((_ tuple.select 1) t)))),
    *
    *   (table.aggr f (tuple 0) X)
-   *   ---> (ite (= X (as bag.empty (Bag (Tuple Int Int))))
-   *             (as bag.empty (Bag (Tuple Int)))
-   *             (bag (bag.fold f (tuple 0) X) 1))
+   *   ---> (bag (bag.fold f (tuple 0) X)
+   *             (ite (= X (as bag.empty (Bag (Tuple Int Int)))) 0 1))
+   *
+   * The row occurs once, or not at all for an empty X.
    */
   AGGREGATE_NO_KEYS,
   /**
@@ -388,9 +389,6 @@ enum class Rewrite : uint32_t
    *   ---> (bag.map
    *          (lambda ((t (Tuple Int Int))) (tuple ((_ tuple.select 0) t) 5 0))
    *          (bag.filter P X))
-   *
-   * Also over an aggregate, with or without a filter in between, for the
-   * columns every group computes as a constant.
    */
   MAP_FIXED_COLUMNS,
   /**
@@ -441,6 +439,35 @@ enum class Rewrite : uint32_t
    * of rows is 1.
    */
   AGGREGATE_KEYED,
+  /**
+   * A column of an aggregate that has one constant in every row, because the
+   * step sets it to the constant or keeps a constant initial value, leaves the
+   * aggregate: a map above writes it.
+   *
+   * For X : (Bag (Tuple Int Int)),
+   *
+   *   ((_ table.aggr 0)
+   *     (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int Int)))
+   *       (tuple ((_ tuple.select 0) t)
+   *              7
+   *              (+ ((_ tuple.select 2) acc) ((_ tuple.select 1) t))))
+   *     (tuple 0 0 0)
+   *     X)
+   *   ---> (bag.map
+   *          (lambda ((r (Tuple Int Int)))
+   *            (tuple ((_ tuple.select 0) r) 7 ((_ tuple.select 1) r)))
+   *          ((_ table.aggr 0)
+   *            (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 0) t)
+   *                     (+ ((_ tuple.select 1) acc) ((_ tuple.select 1) t))))
+   *            (tuple 0 0)
+   *            X))
+   *
+   * Every group has a row, so column 1 is 7 in the row of every group. When
+   * every column is a constant, the map is over the set of the group columns
+   * of X, (bag.setof ((_ table.project 0) X)) here.
+   */
+  AGGREGATE_CONSTANT_COLUMNS,
   /**
    * The null tests of columns that are never null are decided, in the lambdas
    * of filters, maps, folds and aggregates.

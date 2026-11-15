@@ -273,8 +273,7 @@ class BagsRewriter : public TheoryRewriter
    * - MAP_MAP, for X a map (rewriteMapOfMap)
    * - AGGREGATE_DEAD_COLUMNS, for X an aggregate (rewriteAggregateDeadColumns)
    * - MAP_EQUAL_COLUMNS, for X a filter
-   * - MAP_FIXED_COLUMNS, for X a filter or an aggregate (fixedColumns,
-   *   aggregateConstants, readFixed)
+   * - MAP_FIXED_COLUMNS, for X a filter (fixedColumns, readFixed)
    * - CANONICAL_VARIABLE (canonicalLambda)
    */
   BagsRewriteResponse postRewriteMap(const TNode& n) const;
@@ -339,6 +338,7 @@ class BagsRewriter : public TheoryRewriter
    *
    * - NOT_NULL_COLUMNS (assumeNonNull)
    * - AGGREGATE_NO_KEYS
+   * - AGGREGATE_CONSTANT_COLUMNS (rewriteAggregateConstantColumns)
    * - AGGREGATE_SORT_OUTPUT (rewriteAggregateSortOutput)
    * - CANONICAL_VARIABLE (canonicalLambda)
    * - AGGREGATE_MAP, for X a map (rewriteAggregateOfMap)
@@ -397,7 +397,7 @@ class BagsRewriter : public TheoryRewriter
    * fold or an aggregate folds, as AGGREGATE_MAP does, keeps its value only
    * for such a step. Each column of the result of f must be a term of the
    * columns of the row in same, which the rows folded together share, or of
-   * none; its own accumulator; a sum, as the counter
+   * none; its own accumulator; a sum, as the count of rows
    * (+ ((_ tuple.select 2) acc) 1) or COUNT(*); a minimum or a maximum; SQL's
    * SUM, MIN or MAX, which skip nulls, of an argument tested not null or never
    * null, nonNull the columns of the row that are never null; or one of these
@@ -421,6 +421,12 @@ class BagsRewriter : public TheoryRewriter
    * and a filter in between, do not read are not computed.
    */
   BagsRewriteResponse rewriteAggregateDeadColumns(const TNode& n) const;
+  /**
+   * AGGREGATE_CONSTANT_COLUMNS, the columns of an aggregate that have one
+   * constant in every row (see aggregateConstants) as columns of a map above
+   * the aggregate of the others.
+   */
+  BagsRewriteResponse rewriteAggregateConstantColumns(const TNode& n) const;
   /**
    * AGGREGATE_KEYED: for A = ((_ table.aggr K) f i X) whose group columns K
    * contain a key of X (see rowKeys), every group is one row t of X, folded
