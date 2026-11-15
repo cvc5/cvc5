@@ -125,6 +125,34 @@ ArithRewriter::ArithRewriter(NodeManager* nm,
   // MACRO_ARITH_STRING_PRED_ENTAIL.
 }
 
+namespace {
+/**
+ * Remove to_real from the monomials of sum, e.g. the monomial (to_real x) is
+ * replaced by x, where coefficients of monomials that become equal are
+ * combined.
+ */
+rewriter::Sum removeToRealMonomials(const rewriter::Sum& sum)
+{
+  rewriter::Sum ret;
+  for (const auto& s : sum)
+  {
+    Node m = s.first.getKind() == Kind::TO_REAL ? s.first[0] : s.first;
+    auto it = ret.find(m);
+    if (it == ret.end())
+    {
+      ret.emplace(m, s.second);
+      continue;
+    }
+    it->second += s.second;
+    if (it->second.isZero())
+    {
+      ret.erase(it);
+    }
+  }
+  return ret;
+}
+}  // namespace
+
 Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
@@ -220,6 +248,8 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         // allow dropping TO_REAL
         rewriter::addToSumNoMixed(sum, a, false);
         rewriter::addToSumNoMixed(sum, b, true);
+        // e.g. (* 1/3 (to_real x)) gives the monomial (to_real x)
+        sum = removeToRealMonomials(sum);
         if (rewriter::isIntegral(sum))
         {
           std::pair<Node, Node> p = decomposeSum(d_nm, std::move(sum));
@@ -243,6 +273,8 @@ Node ArithRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
         // allow dropping TO_REAL
         rewriter::addToSumNoMixed(sum, a, false);
         rewriter::addToSumNoMixed(sum, b, true);
+        // e.g. (* 1/3 (to_real x)) gives the monomial (to_real x)
+        sum = removeToRealMonomials(sum);
         if (rewriter::isIntegral(sum))
         {
           // decompose the sum into a non-constant and constant part
@@ -917,9 +949,20 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     // requires again full since ensureReal may have added a to_real
     return RewriteResponse(REWRITE_AGAIN_FULL, mult);
   }
-  // We also convert integral rationals in the numerator to integers,
-  // e.g. (/ 1 x) ---> (/ 1.0 x).
-  if (left.getKind() == Kind::CONST_INTEGER)
+  // We prefer integer arguments. If the denominator is an integer, we convert
+  // integral rationals in the numerator to integers, e.g. (/ 1.0 x) ---> (/ 1 x)
+  // for integer x. Otherwise, we convert integers in the numerator to
+  // rationals, to avoid mixed arithmetic, e.g. (/ 1 x) ---> (/ 1.0 x) for real
+  // x.
+  if (right.getType().isInteger())
+  {
+    if (left.getKind() == Kind::CONST_RATIONAL
+        && left.getConst<Rational>().isIntegral())
+    {
+      left = nm->mkConstInt(left.getConst<Rational>());
+    }
+  }
+  else if (left.getKind() == Kind::CONST_INTEGER)
   {
     left = nm->mkConstReal(left.getConst<Rational>());
   }

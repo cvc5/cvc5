@@ -2008,6 +2008,15 @@ Node ExtendedRewriter::extendedRewriteStrings(const Node& node) const
       }
     }
   }
+  else if (k == Kind::STRING_INDEXOF)
+  {
+    Node ret = sr.rewriteIndexofNormPrefix(node);
+    if (ret != node)
+    {
+      debugExtendedRewrite(node, ret, "IDOF_NORM_PREFIX");
+      return ret;
+    }
+  }
   else if (k == Kind::STRING_CONTAINS)
   {
     if (node[0].getKind() == Kind::STRING_REPLACE)

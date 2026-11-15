@@ -2387,6 +2387,24 @@
   :conclusion (= (seq.contains x1 y1) true)
 )
 
+(declare-rule str-contains-cnst-split-leq-one ((@T0 Type) (@T1 Type) (@T2 Type) (@T3 Type) (c1 (Seq @T0)) (d1 (Seq @T1)) (ds1 (Seq @T2) :list) (t1 (Seq @T3)))
+  :premises ((= (seq.len c1) 1) (= (<= (seq.len t1) 1) true))
+  :args (c1 d1 ds1 t1)
+  :conclusion (= (seq.contains (seq.++ c1 d1 ds1) t1) (or (= c1 t1) (seq.contains (eo::list_singleton_elim str.++ (seq.++ d1 ds1)) t1)))
+)
+
+(declare-rule str-contains-strip-from-int-pre ((n1 Int) (x1 String) (xs1 String :list) (s1 String))
+  :premises ((= (str.is_digit (str.substr s1 0 1)) false))
+  :args (n1 x1 xs1 s1)
+  :conclusion (= (str.contains (str.++ (str.from_int n1) x1 xs1) s1) (str.contains (eo::list_singleton_elim str.++ (str.++ x1 xs1)) s1))
+)
+
+(declare-rule str-contains-strip-from-int-post ((xs1 String :list) (x1 String) (n1 Int) (s1 String))
+  :premises ((= (str.is_digit (str.substr s1 (- (str.len s1) 1) 1)) false))
+  :args (xs1 x1 n1 s1)
+  :conclusion (= (str.contains (str.++ xs1 x1 (str.from_int n1)) s1) (str.contains (eo::list_singleton_elim str.++ (str.++ xs1 x1)) s1))
+)
+
 (declare-rule str-contains-char
   ((@T0 Type) (@T1 Type) (x1 (Seq @T0)) (y1 (Seq @T1)))
   :premises ((= (seq.len x1) 1))
@@ -2623,6 +2641,19 @@
   :conclusion (= (seq.indexof t1 s1 n1) -1)
 )
 
+(declare-rule str-indexof-len
+  ((@T0 Type) (@T1 Type) (t1 (Seq @T0)) (s1 (Seq @T1)) (n1 Int))
+  :premises ((= (> (seq.len s1) (- (seq.len t1) n1)) true))
+  :args (t1 s1 n1)
+  :conclusion (= (seq.indexof t1 s1 n1) -1)
+)
+
+(declare-rule str-indexof-strip-char-pre ((@T0 Type) (@T1 Type) (@T2 Type) (@T3 Type) (c1 (Seq @T0)) (t1 (Seq @T1)) (ts1 (Seq @T2) :list) (s1 (Seq @T3)))
+  :premises ((= (seq.len c1) 1) (= (seq.prefixof s1 (seq.++ c1 t1 ts1)) false) (= (seq.contains (seq.++ c1 t1 ts1) s1) true))
+  :args (c1 t1 ts1 s1)
+  :conclusion (= (seq.indexof (seq.++ c1 t1 ts1) s1 0) (+ 1 (seq.indexof (eo::list_singleton_elim str.++ (seq.++ t1 ts1)) s1 0)))
+)
+
 (declare-rule str-indexof-contains-pre
   ((@T0 Type) (@T1 Type) (@T2 Type) (t1 (Seq @T0)) (t2 (Seq @T1) :list)
     (s1 (Seq @T2)) (n1 Int))
@@ -2780,6 +2811,11 @@
   :conclusion (= (str.<= s1 "") (= s1 ""))
 )
 
+(declare-rule str-leq-id ((s1 String))
+  :args (s1)
+  :conclusion (= (str.<= s1 s1) true)
+)
+
 (declare-rule str-leq-concat-false
   ((s1 String :list) (t1 String) (s2 String) (t2 String :list)
     (s3 String :list))
@@ -2884,6 +2920,14 @@
   ((@T0 Type) (@T1 Type) (@T2 Type) (x1 (Seq @T0)) (y1 (Seq @T1))
     (w1 (Seq @T2)))
   :premises ((= (seq.len w1) 1))
+  :args (x1 y1 w1)
+  :conclusion (= (seq.contains (seq.replace x1 y1 x1) w1) (seq.contains x1 w1))
+)
+
+(declare-rule str-contains-repl-self-tgt-leq-one
+  ((@T0 Type) (@T1 Type) (@T2 Type) (x1 (Seq @T0)) (y1 (Seq @T1))
+    (w1 (Seq @T2)))
+  :premises ((= (<= (seq.len w1) 1) true))
   :args (x1 y1 w1)
   :conclusion (= (seq.contains (seq.replace x1 y1 x1) w1) (seq.contains x1 w1))
 )
@@ -3374,6 +3418,12 @@
 (declare-rule str-in-re-from-int-dig-range ((n1 Int))
   :args (n1)
   :conclusion (= (str.in_re (str.from_int n1) (re.* (re.range "0" "9"))) true)
+)
+
+(declare-rule re-char-in-str-star ((c1 String) (s1 String))
+  :premises ((= (str.len c1) 1))
+  :args (c1 s1)
+  :conclusion (= (str.in_re c1 (re.* (str.to_re s1))) (= s1 c1))
 )
 
 (declare-rule eq-refl ((@T0 Type) (t1 @T0))

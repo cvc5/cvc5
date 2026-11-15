@@ -2854,20 +2854,29 @@ Node SequencesRewriter::rewriteContains(Node node)
       }
       else if (d_stringsEntail.checkLengthOne(t))
       {
-        std::vector<Node> vec = Word::getChars(node[0]);
-        Node emp = Word::mkEmptyWord(t.getType());
-        NodeBuilder nb(nodeManager(), Kind::OR);
-        nb << emp.eqNode(t);
-        for (const Node& c : vec)
+        // Split off the first character of the constant, i.e.
+        // str.contains("Abc", t) ---> t = "A" v str.contains("bc", t)
+        // if len(t) <= 1. Repeated application of this rewrite gives e.g.
+        // str.contains("Abc", t) --->* t = "A" v t = "b" v t = "" v t = "c".
+        // For a single character, we have
+        // str.contains("A", t) ---> t = "" v t = "A".
+        size_t len = Word::getLength(node[0]);
+        Node c = Word::prefix(node[0], 1);
+        AssertEqual(c.getType(), t.getType());
+        Node ret;
+        if (len == 1)
         {
-          AssertEqual(c.getType(), t.getType());
-          nb << c.eqNode(t);
+          Node emp = Word::mkEmptyWord(t.getType());
+          ret = nodeManager()->mkNode(Kind::OR, emp.eqNode(t), c.eqNode(t));
         }
-
-        // str.contains("ABCabc", t) --->
-        // t = "" v t = "A" v t = "B" v t = "C" v t = "a" v t = "b" v t = "c"
-        // if len(t) <= 1
-        Node ret = nb;
+        else
+        {
+          ret = nodeManager()->mkNode(
+              Kind::OR,
+              c.eqNode(t),
+              nodeManager()->mkNode(
+                  Kind::STRING_CONTAINS, Word::suffix(node[0], len - 1), t));
+        }
         return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
       }
       else
@@ -3255,18 +3264,48 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         }
 
         // Strip components from the beginning that are guaranteed not to match
+        std::vector<Node> children0orig = children0;
         if (d_stringsEntail.stripConstantEndpoints(
                 children0, children1, nb, ne, 1))
         {
-          // str.indexof(str.++("AB", x, "C"), "C", 0) --->
-          // 2 + str.indexof(str.++(x, "C"), "C", 0)
-          Node ret = nm->mkNode(
-              Kind::ADD,
-              {nm->mkNode(Kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
-               nm->mkNode(Kind::STRING_INDEXOF,
-                          utils::mkConcat(children0, stype),
-                          node[1],
-                          node[2])});
+          Node ret;
+          if (children0orig[0].isConst()
+              && (children0orig.size() > 1
+                  || Word::getLength(children0orig[0]) > 1))
+          {
+            // If the first component is a constant, we strip its first
+            // character only, which is justified by a RARE rule. Repeated
+            // application of this rewrite strips the remaining characters,
+            // e.g.
+            // str.indexof(str.++("AB", x, "C"), "C", 0) --->
+            // 1 + str.indexof(str.++("B", x, "C"), "C", 0)
+            size_t len = Word::getLength(children0orig[0]);
+            std::vector<Node> rem(children0orig.begin() + 1,
+                                  children0orig.end());
+            if (len > 1)
+            {
+              rem.insert(rem.begin(), Word::suffix(children0orig[0], len - 1));
+            }
+            ret = nm->mkNode(
+                Kind::ADD,
+                {nm->mkConstInt(Rational(1)),
+                 nm->mkNode(Kind::STRING_INDEXOF,
+                            utils::mkConcat(rem, stype),
+                            node[1],
+                            node[2])});
+          }
+          else
+          {
+            // str.indexof(str.++(str.from_int(n), "AB", x, "C"), "C", 0) --->
+            // str.len(str.from_int(n)) + 2 + str.indexof(str.++(x, "C"), "C", 0)
+            ret = nm->mkNode(
+                Kind::ADD,
+                {nm->mkNode(Kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
+                 nm->mkNode(Kind::STRING_INDEXOF,
+                            utils::mkConcat(children0, stype),
+                            node[1],
+                            node[2])});
+          }
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
         }
       }
@@ -3301,31 +3340,6 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       // str.contains( x, y ) --> false  implies  str.indexof(x,y,z) --> -1
       Node negone = nm->mkConstInt(Rational(-1));
       return returnRewrite(node, negone, Rewrite::IDOF_NCTN);
-    }
-  }
-  else
-  {
-    Node new_len = node[2];
-    std::vector<Node> nr;
-    if (d_stringsEntail.stripSymbolicLength(children0, nr, 1, new_len))
-    {
-      // Normalize the string before the start index.
-      //
-      // For example:
-      // str.indexof(str.++("ABCD", x), y, 3) --->
-      // str.indexof(str.++("AAAD", x), y, 3)
-      Node nodeNr = utils::mkConcat(nr, stype);
-      Node normNr = lengthPreserveRewrite(nodeNr);
-      if (normNr != nodeNr)
-      {
-        std::vector<Node> normNrChildren;
-        utils::getConcat(normNr, normNrChildren);
-        std::vector<Node> children(normNrChildren);
-        children.insert(children.end(), children0.begin(), children0.end());
-        Node nn = utils::mkConcat(children, stype);
-        Node res = nm->mkNode(Kind::STRING_INDEXOF, nn, node[1], node[2]);
-        return returnRewrite(node, res, Rewrite::IDOF_NORM_PREFIX);
-      }
     }
   }
 
@@ -4091,6 +4105,49 @@ Node SequencesRewriter::rewritePrefixSuffix(Node n)
       n[0].eqNode(nodeManager()->mkNode(Kind::STRING_SUBSTR, n[1], val, lens));
 
   return returnRewrite(n, retNode, Rewrite::SUF_PREFIX_ELIM);
+}
+
+Node SequencesRewriter::rewriteIndexofNormPrefix(const Node& node)
+{
+  Assert(node.getKind() == Kind::STRING_INDEXOF);
+  NodeManager* nm = nodeManager();
+  TypeNode stype = node[0].getType();
+  Node len0 = nm->mkNode(Kind::STRING_LENGTH, node[0]);
+  Node fstr = node[0];
+  if (!node[2].isConst() || node[2].getConst<Rational>().sgn() != 0)
+  {
+    fstr = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[2], len0);
+  }
+  // only applies if we cannot determine whether the substring starting at
+  // the start index contains the second argument
+  if (!d_stringsEntail.checkContains(fstr, node[1]).isNull())
+  {
+    return node;
+  }
+  std::vector<Node> children0;
+  utils::getConcat(node[0], children0);
+  Node new_len = node[2];
+  std::vector<Node> nr;
+  if (d_stringsEntail.stripSymbolicLength(children0, nr, 1, new_len))
+  {
+    // Normalize the string before the start index.
+    //
+    // For example:
+    // str.indexof(str.++("ABCD", x), y, 3) --->
+    // str.indexof(str.++("AAAD", x), y, 3)
+    Node nodeNr = utils::mkConcat(nr, stype);
+    Node normNr = lengthPreserveRewrite(nodeNr);
+    if (normNr != nodeNr)
+    {
+      std::vector<Node> normNrChildren;
+      utils::getConcat(normNr, normNrChildren);
+      std::vector<Node> children(normNrChildren);
+      children.insert(children.end(), children0.begin(), children0.end());
+      Node nn = utils::mkConcat(children, stype);
+      return nm->mkNode(Kind::STRING_INDEXOF, nn, node[1], node[2]);
+    }
+  }
+  return node;
 }
 
 Node SequencesRewriter::lengthPreserveRewrite(Node n)

@@ -1645,8 +1645,10 @@ set(regress_0_tests
   regress0/proofs/annotate-theory-lemmas-pp-merge.smt2
   regress0/proofs/arith-dio-lemma-diseq-tighten.smt2
   regress0/proofs/arith-div-elim-to-real.smt2
+  regress0/proofs/arith-div-const-to-int.smt2
   regress0/proofs/arith-div-total-elim-to-real.smt2
   regress0/proofs/arith-div-total-over-mod.smt2
+  regress0/proofs/arith-int-geq-tighten-coeff.smt2
   regress0/proofs/arith-is-int-elim-to-real.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
@@ -1795,6 +1797,7 @@ set(regress_0_tests
   regress0/proofs/qgu-fuzz-3-chainres-checking.smt2
   regress0/proofs/qgu-fuzz-4-bool-chainres-postprocessing-singleton.smt2
   regress0/proofs/qgu-fuzz-5-bool-open-sat.smt2
+  regress0/proofs/re-char-in-str-star.smt2
   regress0/proofs/re-concat-star-repeat-fixpoint.smt2
   regress0/proofs/re-emp-star-eval.smt2
   regress0/proofs/re-range-empty.smt2
@@ -1802,6 +1805,12 @@ set(regress_0_tests
   regress0/proofs/RF-11-aci-norm-ndet.smt2
   regress0/proofs/scope.smt2
   regress0/proofs/shadow_quant.smt2
+  regress0/proofs/str-contains-cnst-split-leq-one.smt2
+  regress0/proofs/str-contains-repl-self-tgt-leq-one.smt2
+  regress0/proofs/str-contains-strip-from-int.smt2
+  regress0/proofs/str-indexof-len.smt2
+  regress0/proofs/str-indexof-strip-char-pre.smt2
+  regress0/proofs/str-leq-id.smt2
   regress0/proofs/subtype-elim-1.smt2
   regress0/proofs/subtype-elim-2.smt2
   regress0/proofs/subtype-elim-rare-fail.smt2

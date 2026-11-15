@@ -4817,6 +4817,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_LEQ_LEN_EQ),
   /** Auto-generated from RARE rule str-contains-emp */
   EVALUE(STR_CONTAINS_EMP),
+  /** Auto-generated from RARE rule str-contains-cnst-split-leq-one */
+  EVALUE(STR_CONTAINS_CNST_SPLIT_LEQ_ONE),
+  /** Auto-generated from RARE rule str-contains-strip-from-int-pre */
+  EVALUE(STR_CONTAINS_STRIP_FROM_INT_PRE),
+  /** Auto-generated from RARE rule str-contains-strip-from-int-post */
+  EVALUE(STR_CONTAINS_STRIP_FROM_INT_POST),
   /** Auto-generated from RARE rule str-contains-char */
   EVALUE(STR_CONTAINS_CHAR),
   /** Auto-generated from RARE rule str-at-elim */
@@ -4871,6 +4877,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_OOB),
   /** Auto-generated from RARE rule str-indexof-oob2 */
   EVALUE(STR_INDEXOF_OOB2),
+  /** Auto-generated from RARE rule str-indexof-len */
+  EVALUE(STR_INDEXOF_LEN),
+  /** Auto-generated from RARE rule str-indexof-strip-char-pre */
+  EVALUE(STR_INDEXOF_STRIP_CHAR_PRE),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
@@ -4917,6 +4927,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEQ_EMPTY),
   /** Auto-generated from RARE rule str-leq-empty-eq */
   EVALUE(STR_LEQ_EMPTY_EQ),
+  /** Auto-generated from RARE rule str-leq-id */
+  EVALUE(STR_LEQ_ID),
   /** Auto-generated from RARE rule str-leq-concat-false */
   EVALUE(STR_LEQ_CONCAT_FALSE),
   /** Auto-generated from RARE rule str-leq-concat-true */
@@ -4947,6 +4959,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_REPL_CHAR),
   /** Auto-generated from RARE rule str-contains-repl-self-tgt-char */
   EVALUE(STR_CONTAINS_REPL_SELF_TGT_CHAR),
+  /** Auto-generated from RARE rule str-contains-repl-self-tgt-leq-one */
+  EVALUE(STR_CONTAINS_REPL_SELF_TGT_LEQ_ONE),
   /** Auto-generated from RARE rule str-contains-repl-self */
   EVALUE(STR_CONTAINS_REPL_SELF),
   /** Auto-generated from RARE rule str-contains-repl-tgt */
@@ -5085,6 +5099,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_FROM_INT_NEMP_DIG_RANGE),
   /** Auto-generated from RARE rule str-in-re-from-int-dig-range */
   EVALUE(STR_IN_RE_FROM_INT_DIG_RANGE),
+  /** Auto-generated from RARE rule re-char-in-str-star */
+  EVALUE(RE_CHAR_IN_STR_STAR),
   /** Auto-generated from RARE rule eq-refl */
   EVALUE(EQ_REFL),
   /** Auto-generated from RARE rule eq-symm */

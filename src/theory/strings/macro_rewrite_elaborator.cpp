@@ -63,6 +63,19 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return ensureProofForStrEqLenUnify(cdp, eq);
     case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
+      if (ensureProofForOverlap(id, cdp, eq))
+      {
+        return true;
+      }
+      // Otherwise, we fall back to reconstruction via RARE rules, which
+      // e.g. cover endpoints that are applications of str.from_int.
+      cdp->addTrustedStep(eq,
+                          TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE,
+                          {},
+                          {},
+                          false,
+                          CDPOverwrite::ALWAYS);
+      return true;
     case ProofRewriteRule::MACRO_STR_SPLIT_CTN:
       return ensureProofForOverlap(id, cdp, eq);
     case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:

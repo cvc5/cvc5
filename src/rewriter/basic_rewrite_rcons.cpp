@@ -96,6 +96,14 @@ bool BasicRewriteRCons::prove(CDProof* cdp,
     return true;
   }
 
+  // (k c (to_real y)) = (k x y) where k is a division, c is the evaluation
+  // of (to_real x).
+  if (ensureProofArithDivToInt(cdp, eq))
+  {
+    Trace("trewrite-rcons") << "...ARITH_DIV_TO_INT" << std::endl;
+    return true;
+  }
+
   // try theory rewrite (pre-rare)
   if (tmode == TheoryRewriteMode::STANDARD)
   {
@@ -325,6 +333,55 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
   // above
   cdp->addStep(
       eq, ProofRule::THEORY_REWRITE, {}, args, false, CDPOverwrite::ALWAYS);
+}
+
+bool BasicRewriteRCons::ensureProofArithDivToInt(CDProof* cdp, const Node& eq)
+{
+  // a is the side of eq with integer arguments
+  const Node& b = eq[0];
+  const Node& a = eq[1];
+  Kind k = a.getKind();
+  if ((k != Kind::DIVISION && k != Kind::DIVISION_TOTAL) || b.getKind() != k
+      || !a[0].getType().isInteger() || !a[1].getType().isInteger())
+  {
+    return false;
+  }
+  NodeManager* nm = nodeManager();
+  // prove (to_real a[i]) = b[i] for each i, by refl or evaluation
+  std::vector<Node> premises;
+  std::vector<Node> tr;
+  for (size_t i = 0; i < 2; i++)
+  {
+    Node t = nm->mkNode(Kind::TO_REAL, a[i]);
+    Node eqi = t.eqNode(b[i]);
+    if (t == b[i])
+    {
+      cdp->addStep(eqi, ProofRule::REFL, {}, {t});
+    }
+    else if (!tryRule(cdp, eqi, ProofRule::EVALUATE, {t}))
+    {
+      return false;
+    }
+    tr.push_back(t);
+    premises.push_back(eqi);
+  }
+  Node ar = nm->mkNode(k, tr);
+  if (ar == b)
+  {
+    // the subgoal below would be the symmetric form of eq
+    return false;
+  }
+  // (k (to_real a[0]) (to_real a[1])) = a is a subgoal, which is a rewrite
+  // that removes to_real from the arguments of division.
+  Node eqr = ar.eqNode(a);
+  cdp->addTrustedStep(eqr, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  // b = (k (to_real a[0]) (to_real a[1])) by congruence
+  Node eqc = expr::proveCong(d_env, cdp, ar, premises);
+  Assert(eqc == ar.eqNode(b));
+  Node eqcs = b.eqNode(ar);
+  cdp->addStep(eqcs, ProofRule::SYMM, {eqc}, {});
+  cdp->addStep(eq, ProofRule::TRANS, {eqcs, eqr}, {});
+  return true;
 }
 
 bool BasicRewriteRCons::ensureProofMacroBoolNnfNorm(CDProof* cdp,

@@ -218,6 +218,15 @@ class SequencesRewriter : public TheoryRewriter
    * necessarily one of { s = t, t = s, true, false }.
    */
   Node rewriteEqualityExt(Node node) override;
+  /**
+   * Normalize the prefix of the first argument of str.indexof that is before
+   * the start index, e.g.
+   *   str.indexof(str.++("ABCD", x), y, 3) ---> str.indexof(str.++("AAAD", x), y, 3)
+   * Returns node if this does not apply. This is not applied by the standard
+   * rewriter, since the introduced characters ("A") do not have a proof, and
+   * is instead applied by the extended rewriter.
+   */
+  Node rewriteIndexofNormPrefix(const Node& node);
   /** rewrite string length
    * This is the entry point for post-rewriting terms node of the form
    *   str.len( t )

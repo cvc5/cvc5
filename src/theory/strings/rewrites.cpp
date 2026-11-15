@@ -63,7 +63,6 @@ const char* toString(Rewrite r)
     case Rewrite::IDOF_NCTN: return "IDOF_NCTN";
     case Rewrite::IDOF_NEG: return "IDOF_NEG";
     case Rewrite::IDOF_NFIND: return "IDOF_NFIND";
-    case Rewrite::IDOF_NORM_PREFIX: return "IDOF_NORM_PREFIX";
     case Rewrite::IDOF_PULL_ENDPT: return "IDOF_PULL_ENDPT";
     case Rewrite::IDOF_STRIP_CNST_ENDPTS: return "IDOF_STRIP_CNST_ENDPTS";
     case Rewrite::IDOF_STRIP_SYM_LEN: return "IDOF_STRIP_SYM_LEN";

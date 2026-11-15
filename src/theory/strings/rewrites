@@ -255,6 +255,21 @@
   (str.contains x y)
   true)
 
+(define-cond-rule str-contains-cnst-split-leq-one ((c ?Seq) (d ?Seq) (ds ?Seq :list) (t ?Seq))
+  (and (= (str.len c) 1) (<= (str.len t) 1))
+  (str.contains (str.++ c d ds) t)
+  (or (= c t) (str.contains (str.++ d ds) t)))
+
+(define-cond-rule str-contains-strip-from-int-pre ((n Int) (x String) (xs String :list) (s String))
+  (not (str.is_digit (str.substr s 0 1)))
+  (str.contains (str.++ (str.from_int n) x xs) s)
+  (str.contains (str.++ x xs) s))
+
+(define-cond-rule str-contains-strip-from-int-post ((xs String :list) (x String) (n Int) (s String))
+  (not (str.is_digit (str.substr s (- (str.len s) 1) 1)))
+  (str.contains (str.++ xs x (str.from_int n)) s)
+  (str.contains (str.++ xs x) s))
+
 (define-cond-rule str-contains-char ((x ?Seq) (y ?Seq))
   (= (str.len x) 1)
   (str.contains x y)
@@ -394,6 +409,16 @@
   (str.indexof t s n)
   (- 1))
 
+(define-cond-rule str-indexof-len ((t ?Seq) (s ?Seq) (n Int))
+  (> (str.len s) (- (str.len t) n))
+  (str.indexof t s n)
+  (- 1))
+
+(define-cond-rule str-indexof-strip-char-pre ((c ?Seq) (t ?Seq) (ts ?Seq :list) (s ?Seq))
+  (and (= (str.len c) 1) (not (str.prefixof s (str.++ c t ts))) (str.contains (str.++ c t ts) s))
+  (str.indexof (str.++ c t ts) s 0)
+  (+ 1 (str.indexof (str.++ t ts) s 0)))
+
 (define-cond-rule str-indexof-contains-pre ((t1 ?Seq) (t2 ?Seq :list) (s ?Seq) (n Int))
   (and (> (str.len s) 0) (str.contains (str.substr t1 n (str.len t1)) s))
   (str.indexof (str.++ t1 t2) s n)
@@ -495,6 +520,10 @@
   (str.<= s "")
   (= s ""))
 
+(define-rule str-leq-id ((s String))
+  (str.<= s s)
+  true)
+
 (define-cond-rule str-leq-concat-false ((s String :list) (t1 String) (s1 String) (t2 String :list) (s2 String :list))
   (and (= (str.len t1) (str.len s1)) (= (str.<= t1 s1) false))
   (str.<= (str.++ s t1 t2) (str.++ s s1 s2))
@@ -565,6 +594,11 @@
 
 (define-cond-rule str-contains-repl-self-tgt-char ((x ?Seq) (y ?Seq) (w ?Seq))
   (= (str.len w) 1)
+  (str.contains (str.replace x y x) w)
+  (str.contains x w))
+
+(define-cond-rule str-contains-repl-self-tgt-leq-one ((x ?Seq) (y ?Seq) (w ?Seq))
+  (<= (str.len w) 1)
   (str.contains (str.replace x y x) w)
   (str.contains x w))
 
