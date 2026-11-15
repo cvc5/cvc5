@@ -4533,6 +4533,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_NEGO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ite-equal-children */
   EVALUE(BV_ITE_EQUAL_CHILDREN),
+  /** Auto-generated from RARE rule bv-ite-const-cond-1 */
+  EVALUE(BV_ITE_CONST_COND_1),
+  /** Auto-generated from RARE rule bv-ite-const-cond-2 */
+  EVALUE(BV_ITE_CONST_COND_2),
   /** Auto-generated from RARE rule bv-ite-const-children-1 */
   EVALUE(BV_ITE_CONST_CHILDREN_1),
   /** Auto-generated from RARE rule bv-ite-const-children-2 */
