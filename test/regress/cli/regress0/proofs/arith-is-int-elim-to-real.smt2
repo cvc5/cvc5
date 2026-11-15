@@ -1,3 +1,4 @@
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic QF_LIRA)
 (declare-const x Int)
