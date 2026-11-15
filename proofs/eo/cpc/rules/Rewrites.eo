@@ -131,14 +131,14 @@
   :conclusion (= (is_int (to_real x1)) true)
 )
 
-(declare-rule arith-div-elim-to-real ((x1 Int) (y1 Int))
+(declare-rule arith-div-int-to-real ((x1 Int) (y1 Int))
   :args (x1 y1)
-  :conclusion (= (/ (to_real x1) (to_real y1)) (/ x1 y1))
+  :conclusion (= (/ x1 y1) (/ (to_real x1) (to_real y1)))
 )
 
-(declare-rule arith-div-total-elim-to-real ((x1 Int) (y1 Int))
+(declare-rule arith-div-total-int-to-real ((x1 Int) (y1 Int))
   :args (x1 y1)
-  :conclusion (= (/_total (to_real x1) (to_real y1)) (/_total x1 y1))
+  :conclusion (= (/_total x1 y1) (/_total (to_real x1) (to_real y1)))
 )
 
 (declare-rule arith-mod-over-mod-1 ((c1 Int) (r1 Int))
