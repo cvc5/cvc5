@@ -40,8 +40,8 @@
 
 (define-rule arith-to-int-elim-to-real ((x Int)) (to_int (to_real x)) x)
 (define-rule arith-is-int-elim-to-real ((x Int)) (is_int (to_real x)) true)
-(define-rule arith-div-elim-to-real ((x Int) (y Int)) (/ (to_real x) (to_real y)) (/ x y))
-(define-rule arith-div-total-elim-to-real ((x Int) (y Int)) (/_total (to_real x) (to_real y)) (/_total x y))
+(define-rule arith-div-int-to-real ((x Int) (y Int)) (/ x y) (/ (to_real x) (to_real y)))
+(define-rule arith-div-total-int-to-real ((x Int) (y Int)) (/_total x y) (/_total (to_real x) (to_real y)))
 
 (define-cond-rule arith-mod-over-mod-1 ((c Int) (r Int))
   (not (= c 0))

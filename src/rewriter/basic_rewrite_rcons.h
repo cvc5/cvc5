@@ -115,18 +115,6 @@ class BasicRewriteRCons : protected EnvObj
                const std::vector<Node>& args,
                bool addStep = true);
   /**
-   * Elaborate a rewrite eq of the form b = (k x y), where k is division or
-   * total division, x and y are integers, and b is (k s t) where s and t are
-   * either (to_real x) and (to_real y) or their evaluations, e.g.
-   *   (/ 3/1 (to_real y)) = (/ 3 y).
-   * This is proven by the subgoal
-   *   (k (to_real x) (to_real y)) = (k x y),
-   * which is left as a step to be reconstructed by the rewrite database,
-   * and congruence over evaluation.
-   * Returns true if we successfully added a proof of eq to cdp.
-   */
-  bool ensureProofArithDivToInt(CDProof* cdp, const Node& eq);
-  /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_BOOL_NNF_NORM.
    *
