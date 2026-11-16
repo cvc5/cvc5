@@ -45,13 +45,20 @@ bool Variable::isDivMember(Node n)
 {
   switch (n.getKind())
   {
-    case Kind::DIVISION:
     case Kind::INTS_DIVISION:
     case Kind::INTS_MODULUS:
-    case Kind::DIVISION_TOTAL:
     case Kind::INTS_DIVISION_TOTAL:
     case Kind::INTS_MODULUS_TOTAL:
       return Polynomial::isMember(n[0]) && Polynomial::isMember(n[1]);
+    case Kind::DIVISION:
+    case Kind::DIVISION_TOTAL:
+    {
+      // Real division retains TO_REAL casts on integer operands. Check the
+      // underlying polynomials, as in Polynomial::parsePolynomial.
+      Node lhs = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
+      Node rhs = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
+      return Polynomial::isMember(lhs) && Polynomial::isMember(rhs);
+    }
     default: return false;
   }
 }
