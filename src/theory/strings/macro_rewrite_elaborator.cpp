@@ -31,8 +31,8 @@
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "util/string.h"
 #include "util/rational.h"
+#include "util/string.h"
 
 using namespace cvc5::internal::kind;
 

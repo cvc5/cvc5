@@ -64,9 +64,8 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH,
                            TheoryRewriteCtx::POST_DSL);
-  registerProofRewriteRule(
-      ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH,
-      TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_CTN_MULTISET_SUBSET,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX,
@@ -1871,9 +1870,8 @@ Node SequencesRewriter::rewriteViaMacroStrIndexofStripSymLength(
   Node lenPre = nm->mkNode(Kind::STRING_LENGTH, utils::mkConcat(ch1, stype));
   Node rem = utils::mkConcat(ch2, stype);
   // note that newLen is equivalent to n[2] - lenPre
-  return nm->mkNode(Kind::ADD,
-                    lenPre,
-                    nm->mkNode(Kind::STRING_INDEXOF, rem, n[1], newLen));
+  return nm->mkNode(
+      Kind::ADD, lenPre, nm->mkNode(Kind::STRING_INDEXOF, rem, n[1], newLen));
 }
 
 Node SequencesRewriter::rewriteViaStrIndexofReEval(const Node& n)
@@ -3351,18 +3349,18 @@ Node SequencesRewriter::rewriteIndexof(Node node)
             {
               rem.insert(rem.begin(), Word::suffix(children0orig[0], len - 1));
             }
-            ret = nm->mkNode(
-                Kind::ADD,
-                {nm->mkConstInt(Rational(1)),
-                 nm->mkNode(Kind::STRING_INDEXOF,
-                            utils::mkConcat(rem, stype),
-                            node[1],
-                            node[2])});
+            ret = nm->mkNode(Kind::ADD,
+                             {nm->mkConstInt(Rational(1)),
+                              nm->mkNode(Kind::STRING_INDEXOF,
+                                         utils::mkConcat(rem, stype),
+                                         node[1],
+                                         node[2])});
           }
           else
           {
             // str.indexof(str.++(str.from_int(n), "AB", x, "C"), "C", 0) --->
-            // str.len(str.from_int(n)) + 2 + str.indexof(str.++(x, "C"), "C", 0)
+            // str.len(str.from_int(n)) + 2 + str.indexof(str.++(x, "C"), "C",
+            // 0)
             ret = nm->mkNode(
                 Kind::ADD,
                 {nm->mkNode(Kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
@@ -3376,8 +3374,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
       }
       // strip symbolic length, where note the containment was checked above
       std::vector<Node> ch1, ch2;
-      Node ret =
-          rewriteViaMacroStrIndexofStripSymLength(node, ch1, ch2, false);
+      Node ret = rewriteViaMacroStrIndexofStripSymLength(node, ch1, ch2, false);
       if (!ret.isNull())
       {
         return returnRewrite(node, ret, Rewrite::IDOF_STRIP_SYM_LEN);
