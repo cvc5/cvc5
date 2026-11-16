@@ -1052,14 +1052,19 @@ RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
   Assert(n.getKind() == Kind::RELATION_GROUP);
   Node A = n[0];
   Kind k = A.getKind();
-  if (k == Kind::SET_EMPTY || k == Kind::SET_SINGLETON)
+  if (k == Kind::SET_EMPTY)
   {
-    NodeManager* nm = nodeManager();
-    // - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
-    //    (rel.singleton (as set.empty (Relation T) ))
-    // - ((_ rel.group n1 ... nk) (set.singleton x)) =
-    //      (set.singleton (set.singleton x))
-    Node singleton = nm->mkNode(Kind::SET_SINGLETON, A);
+    // ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
+    //   (as set.empty (Set (Relation T))), since an empty relation has no
+    //   parts
+    return RewriteResponse(REWRITE_AGAIN_FULL,
+                           nodeManager()->mkConst(EmptySet(n.getType())));
+  }
+  if (k == Kind::SET_SINGLETON)
+  {
+    // ((_ rel.group n1 ... nk) (set.singleton x)) =
+    //   (set.singleton (set.singleton x))
+    Node singleton = nodeManager()->mkNode(Kind::SET_SINGLETON, A);
     return RewriteResponse(REWRITE_AGAIN_FULL, singleton);
   }
   if (A.isConst())

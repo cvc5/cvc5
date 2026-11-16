@@ -52,47 +52,43 @@ TrustNode Skolemize::process(Node q)
   {
     return TrustNode::null();
   }
-  Node lem;
+  // We always use the skolemization with inductive strengthening, which
+  // coincides with standard skolemization if no variables of q are induction
+  // terms. Whether proofs are enabled does not impact the lemma we return.
+  Node body = getSkolemizedBodyInduction(q);
+  Node qnot = q.notNode();
+  Node res = body.notNode();
+  Node lem = nodeManager()->mkNode(Kind::IMPLIES, qnot, res);
   ProofGenerator* pg = nullptr;
-  if (isProofEnabled() && !options().quantifiers.dtStcInduction
-      && !options().quantifiers.intWfInduction)
+  if (isProofEnabled())
   {
     ProofNodeManager* pnm = d_env.getProofNodeManager();
-    // if using proofs and not using induction, we use the justified
-    // skolemization
-    NodeManager* nm = d_env.getNodeManager();
-    // cache the skolems in d_skolem_constants[q]
-    std::vector<Node>& skolems = d_skolem_constants[q];
-    skolems = getSkolemConstants(q);
+    std::shared_ptr<ProofNode> pfs;
+    // check whether the body corresponds to standard skolemization, i.e.
+    // whether it is justified by the SKOLEMIZE proof rule
     std::vector<Node> vars(q[0].begin(), q[0].end());
-    Node res = q[1].substitute(
+    std::vector<Node> skolems = getSkolemConstants(q);
+    Node sbody = q[1].substitute(
         vars.begin(), vars.end(), skolems.begin(), skolems.end());
-    Node qnot = q.notNode();
-    CDProof cdp(d_env);
-    res = res.notNode();
-    cdp.addStep(res, ProofRule::SKOLEMIZE, {qnot}, {});
-    std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
-    std::vector<Node> assumps;
-    assumps.push_back(qnot);
-    std::shared_ptr<ProofNode> pfs = pnm->mkScope({pf}, assumps);
-    lem = nm->mkNode(Kind::IMPLIES, qnot, res);
+    if (body == sbody)
+    {
+      CDProof cdp(d_env);
+      cdp.addStep(res, ProofRule::SKOLEMIZE, {qnot}, {});
+      std::shared_ptr<ProofNode> pf = cdp.getProofFor(res);
+      std::vector<Node> assumps{qnot};
+      pfs = pnm->mkScope({pf}, assumps);
+    }
+    else
+    {
+      // inductive strengthening is not supported in proofs, we use a trusted
+      // step
+      pfs = pnm->mkTrustedNode(
+          TrustId::QUANTIFIERS_SKOLEMIZE_INDUCTION, {}, {}, lem);
+    }
     d_epg->setProofFor(lem, pfs);
     pg = d_epg.get();
-    Trace("quantifiers-sk")
-        << "Skolemize (with proofs) : " << d_skolem_constants[q] << " for "
-        << std::endl;
-    Trace("quantifiers-sk") << "   " << q << std::endl;
-    Trace("quantifiers-sk") << "   " << res << std::endl;
   }
-  else
-  {
-    // otherwise, we use the more general skolemization with inductive
-    // strengthening, which does not support proofs
-    Node body = getSkolemizedBodyInduction(q);
-    NodeBuilder nb(nodeManager(), Kind::OR);
-    nb << q << body.notNode();
-    lem = nb;
-  }
+  Trace("quantifiers-sk") << "Skolemize lemma : " << lem << std::endl;
   d_skolemized[q] = lem;
   // triggered when skolemizing
   d_treg.processSkolemization(q, d_skolem_constants[q]);
