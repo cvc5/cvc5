@@ -1644,6 +1644,10 @@ set(regress_0_tests
   regress0/proofs/alpha-eq-bv-reorder-2.smt2
   regress0/proofs/annotate-theory-lemmas-pp-merge.smt2
   regress0/proofs/arith-dio-lemma-diseq-tighten.smt2
+  regress0/proofs/arith-div-int-to-real.smt2
+  regress0/proofs/arith-div-total-int-to-real.smt2
+  regress0/proofs/arith-div-total-over-mod.smt2
+  regress0/proofs/arith-is-int-elim-to-real.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
   regress0/proofs/assume-false-final-step-check.smt2
@@ -1651,6 +1655,7 @@ set(regress_0_tests
   regress0/proofs/big-rec-len.smt2
   regress0/proofs/big-ss-len-include.smt2
   regress0/proofs/cyclic-ucp.smt2
+  regress0/proofs/bv-ite-const-cond.smt2
   regress0/proofs/bv-mul-pow2-neg-middle.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
   regress0/proofs/bvrewrite-extract.smt2
