@@ -127,9 +127,13 @@ Token Smt2Lexer::computeNextToken()
         {
           return Token::UNTERMINATED_QUOTED_SYMBOL;
         }
-        else if (ch == 0)
+        // SMT-LIB quoted symbols may contain whitespace and printable
+        // characters other than `\\` (and `|`, which terminates the symbol).
+        // We additionally accept non-ASCII characters, e.g. for UTF-8 input.
+        else if (ch == '\\'
+                 || (ch < 128 && !isCharacterClass(ch, CharacterClass::PRINTABLE)))
         {
-          parseError("Null character in quoted symbol");
+          parseError("Illegal character in quoted symbol");
         }
         pushToToken(ch);
       } while (ch != '|');

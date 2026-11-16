@@ -859,6 +859,11 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
         Term sexpr = d_tparser.parseSymbolicExpr();
         value = sexprToString(sexpr);
       }
+      else if (key == "status" || key == "smt-lib-version")
+      {
+        // these keywords require a value
+        d_lex.parseError("Expected a value for :" + key);
+      }
       cmd.reset(new SetInfoCommand(key, value));
     }
     break;
@@ -884,8 +889,13 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::SET_OPTION_TOK:
     {
       std::string key = d_tparser.parseKeyword();
-      Term sexpr = d_tparser.parseSymbolicExpr();
-      std::string ss = sexprToString(sexpr);
+      // the attribute value is optional
+      std::string ss;
+      if (d_lex.peekToken() != Token::RPAREN_TOK)
+      {
+        Term sexpr = d_tparser.parseSymbolicExpr();
+        ss = sexprToString(sexpr);
+      }
       // special case: for channel settings, we are expected to parse e.g.
       // `"stdin"` which should be treated as `stdin`
       // Note we could consider a more general solution where knowing whether

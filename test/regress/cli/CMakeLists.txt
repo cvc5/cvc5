@@ -1518,6 +1518,7 @@ set(regress_0_tests
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
   regress0/parser/neg-decimal-no-digit.smt2
+  regress0/parser/neg-rational-no-digit.smt2
   regress0/parser/no-fresh.smt2
   regress0/parser/non-std-char.smt2
   regress0/parser/non-strict-real-vs-int.smt2

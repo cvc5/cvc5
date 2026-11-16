@@ -531,8 +531,7 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       parseError("Unexpected number of numerals for bit-vector constant.");
     }
     std::string bvStr = name.substr(2);
-    if (bvStr.empty()
-        || bvStr.find_first_not_of("0123456789") != std::string::npos)
+    if (!isNumeral(bvStr))
     {
       parseError("Expected a numeral in bit-vector constant `" + name + "'");
     }
