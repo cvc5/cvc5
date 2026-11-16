@@ -1650,6 +1650,7 @@ set(regress_0_tests
   regress0/proofs/arith-div-total-over-mod.smt2
   regress0/proofs/arith-int-eq-coeff-false.smt2
   regress0/proofs/arith-int-geq-tighten-coeff.smt2
+  regress0/proofs/arith-int-geq-tighten-mixed.smt2
   regress0/proofs/arith-is-int-elim-to-real.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
