@@ -240,7 +240,9 @@ TEST_F(TestParserBlackSmt2InputParser, bad_inputs)
   // illegal characters in quoted symbols
   tryBadInput("(set-info :notes |a" + std::string(1, '\0') + "b|)");
   tryBadInput("(set-info :notes |a\\b|)");
-  tryBadInput("(set-info :notes |a\x01" "b|)");
+  tryBadInput(
+      "(set-info :notes |a\x01"
+      "b|)");
   // keywords that require a value
   tryBadInput("(set-info :status)");
   tryBadInput("(set-info :smt-lib-version)");
