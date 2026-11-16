@@ -656,9 +656,9 @@ bool MacroRewriteElaborator::ensureProofForStrIndexofStripSymLength(
   }
   TypeNode stype = lhs[0].getType();
   // group the first argument into the stripped prefix and the remainder
-  Node cm = nm->mkNode(Kind::STRING_CONCAT,
-                       utils::mkConcat(ch1, stype),
-                       utils::mkConcat(ch2, stype));
+  Node cm =
+      nm->mkNode(Kind::STRING_CONCAT,
+                 {utils::mkConcat(ch1, stype), utils::mkConcat(ch2, stype)});
   if (cm == lhs[0])
   {
     // the rewrite is already an instance of the RARE rule

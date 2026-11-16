@@ -2930,15 +2930,15 @@ Node SequencesRewriter::rewriteContains(Node node)
         if (len == 1)
         {
           Node emp = Word::mkEmptyWord(t.getType());
-          ret = nodeManager()->mkNode(Kind::OR, emp.eqNode(t), c.eqNode(t));
+          ret = nodeManager()->mkNode(Kind::OR, {emp.eqNode(t), c.eqNode(t)});
         }
         else
         {
           ret = nodeManager()->mkNode(
               Kind::OR,
-              c.eqNode(t),
-              nodeManager()->mkNode(
-                  Kind::STRING_CONTAINS, Word::suffix(node[0], len - 1), t));
+              {c.eqNode(t),
+               nodeManager()->mkNode(
+                   Kind::STRING_CONTAINS, Word::suffix(node[0], len - 1), t)});
         }
         return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
       }

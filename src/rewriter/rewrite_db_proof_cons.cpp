@@ -1143,8 +1143,7 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
   // the defining condition of a variable in a conditional rewrite rule, and
   // which can be shown e.g. by arithmetic normalization.
   if (eqi[0].isConst()
-      && (!eqi[0].getType().isRealOrInt()
-          || rewriteConcrete(eqi) != nodeManager()->mkConst(true)))
+      && (!eqi[0].getType().isRealOrInt() || rewriteConcrete(eqi) != d_true))
   {
     Trace("rpc-debug2") << "...fail (constant head)" << std::endl;
     ProvenInfo& pi = d_pcache[eqi];
