@@ -42,34 +42,21 @@ struct BagsRewriteResponse
 }; /* struct BagsRewriteResponse */
 
 /**
- * The rewriter of the theory of bags and tables.
- *
- * Besides evaluating constants and simplifying the bag operators, it brings
- * the terms of relational algebra over tables (bags of tuples) to a normal
- * form, so that the encodings of two equivalent SQL queries often become one
- * term. A query SELECT h FROM X1, X2 WHERE P becomes
+ * The rewriter of bags and tables. Its normal form for
+ * SELECT h FROM X1, X2 WHERE P is
  *
  *   (bag.map h (bag.filter P (table.product X1 X2)))
  *
- * with maps above filters above products, and every lambda over the same
- * variables (see canonicalLambda).
- *
- * Each rule is a Rewrite id, documented with an example in rewrites.h. The
- * functions below that apply several rules list them; a function that
- * implements a rule is documented with its conditions. Some rules read facts
- * about the tables of the problem, their keys and NOT NULL columns, that
- * top-level assertions state (see recordFacts).
+ * Each function below lists its rules, each a Rewrite id (see rewrites.h),
+ * with an example.
  */
 class BagsRewriter : public TheoryRewriter
 {
  public:
   /**
-   * With higherOrder false, for a logic without higher-order terms, the rules
-   * that build a lambda where the term has none do not apply, since the theory
-   * of uninterpreted functions rejects lambdas there:
-   * - FILTER_MAP, MAP_MAP and PROJECT_TO_MAP
-   * The rewriter does not know the logic, so the default is false: the owner
-   * of the rewriter passes true for a higher-order logic.
+   * With higherOrder false, FILTER_MAP, MAP_MAP and PROJECT_TO_MAP do not
+   * apply: they build lambdas, which a logic without higher-order terms
+   * rejects.
    */
   BagsRewriter(NodeManager* nm,
                Rewriter* r,
@@ -77,28 +64,25 @@ class BagsRewriter : public TheoryRewriter
                bool higherOrder = false);
 
   /**
-   * postRewrite nodes with kinds: EQUAL, BAG_MAKE, BAG_COUNT, BAG_SETOF,
-   * BAG_UNION_MAX, BAG_UNION_DISJOINT, BAG_INTER_MIN,
-   * BAG_DIFFERENCE_SUBTRACT, BAG_DIFFERENCE_REMOVE, BAG_CHOOSE, BAG_CARD,
-   * BAG_MAP, BAG_FILTER, BAG_ALL, BAG_SOME, BAG_FOLD, BAG_PARTITION,
-   * TABLE_PRODUCT, TABLE_PROJECT and TABLE_AGGREGATE; a node
-   * whose children are constants is evaluated. See the rewrite rules for
-   * these kinds below.
+   * Calls the function below for n's kind. A node of constants is evaluated:
+   *
+   * - CONSTANT_EVALUATION
+   *     (bag.union_disjoint (bag 1 2) (bag 1 3))
+   *     ---> (bag 1 5)
    */
   RewriteResponse postRewrite(TNode n) override;
   /**
-   * preRewrite nodes with kinds: EQUAL, BAG_SUBBAG, BAG_MEMBER.
-   * See the rewrite rules for these kinds below.
+   * Calls preRewriteEqual, rewriteSubBag or rewriteMember.
    */
   RewriteResponse preRewrite(TNode n) override;
 
   /**
-   * Record the facts that a top-level assertion states about a table constant,
-   * which some rules read: a key of the table (see recordKey) or a NOT NULL
-   * column (see recordNotNull), also in the conjuncts of a conjunction. For
-   * X : (Bag (Tuple Int (Nullable Int))), the assertions
+   * Records the facts of a top-level assertion, also of its conjuncts. For
+   * X : (Bag (Tuple Int (Nullable Int))):
    *
    *   (assert (= (bag.setof ((_ table.project 0) X)) ((_ table.project 0) X)))
+   *
+   * column 0 is a key of X (recordKey), and
    *
    *   (assert (= (bag.filter
    *                (lambda ((t (Tuple Int (Nullable Int))))
@@ -107,10 +91,8 @@ class BagsRewriter : public TheoryRewriter
    *                X)
    *              (as bag.empty (Bag (Tuple Int (Nullable Int))))))
    *
-   * state that column 0 is a key of X (no two rows agree on it) and that column
-   * 1 is never null. The bags-facts preprocessing pass calls this on every
-   * top-level assertion, before any of them is rewritten. Facts are never read
-   * off an equality the rewriter meets, which may be under a negation.
+   * column 1 of X is NOT NULL (recordNotNull). Called by the bags-facts pass,
+   * before any assertion is rewritten.
    */
   void recordFacts(TNode assertion) const;
 
@@ -121,321 +103,604 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * rewrites for n include:
-   * - (= A A) = true where A is a bag
+   * For A : (Bag Int),
+   *
+   * - IDENTICAL_NODES
+   *     (= A A)
+   *     ---> true
    */
   BagsRewriteResponse preRewriteEqual(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.subbag A B) = ((bag.difference_subtract A B) == bag.empty)
+   * For A, B : (Bag Int),
+   *
+   * - SUB_BAG
+   *     (bag.subbag A B)
+   *     ---> (= (bag.difference_subtract A B) (as bag.empty (Bag Int)))
    */
   BagsRewriteResponse rewriteSubBag(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.member x A) = (>= (bag.count x A) 1)
+   * For x : Int and A : (Bag Int),
+   *
+   * - MEMBER
+   *     (bag.member x A)
+   *     ---> (>= (bag.count x A) 1)
    */
   BagsRewriteResponse rewriteMember(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag x 0) = (bag.empty T) where T is the type of x
-   * - (bag x (-c)) = (bag.empty T) where T is the type of x, and c > 0 is a
-   *   constant
-   * - otherwise = n
+   * For x : Int,
+   *
+   * - BAG_MAKE_COUNT_NEGATIVE
+   *     (bag x 0)
+   *     ---> (as bag.empty (Bag Int))
+   *
+   *     (bag x (- 2))
+   *     ---> (as bag.empty (Bag Int))
    */
   BagsRewriteResponse rewriteMakeBag(const TNode& n) const;
 
   /**
-   * The rules for (bag.count e X), each a Rewrite id with an example in
-   * rewrites.h:
+   * For x : Int,
    *
-   * - COUNT_EMPTY and COUNT_BAG_MAKE
+   * - COUNT_EMPTY
+   *     (bag.count x (as bag.empty (Bag Int)))
+   *     ---> 0
+   * - COUNT_BAG_MAKE
+   *     (bag.count x (bag x 3))
+   *     ---> 3
    */
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
 
   /**
-   * The rules for (bag.setof X), each a Rewrite id with an example in
-   * rewrites.h, except for the bag.setof of a key assertion
-   * (see BagsKeyTermAttribute in the .cpp):
+   * For x, c : Int and X : (Bag (Tuple Int Int Int)), and none for the
+   * bag.setof of a key assertion (see recordKey):
    *
    * - SETOF_BAG_MAKE
+   *     (bag.setof (bag x 3))
+   *     ---> (bag x 1)
+   *
+   *     (bag.setof (bag x c))
+   *     ---> (bag x (ite (>= c 1) 1 0))
    * - SETOF_PROJECTION_SORT (rewriteSetofOfMap)
+   *     (bag.setof
+   *       (bag.map
+   *         (lambda ((t (Tuple Int Int Int)))
+   *           (tuple ((_ tuple.select 2) t) ((_ tuple.select 0) t)))
+   *         X))
+   *     ---> (bag.map
+   *            (lambda ((r (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 1) r) ((_ tuple.select 0) r)))
+   *            (bag.setof
+   *              (bag.map
+   *                (lambda ((t (Tuple Int Int Int)))
+   *                  (tuple ((_ tuple.select 0) t) ((_ tuple.select 2) t)))
+   *                X)))
    */
   BagsRewriteResponse rewriteSetof(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.union_max A bag.empty) = A
-   * - (bag.union_max bag.empty A) = A
-   * - (bag.union_max A A) = A
-   * - (bag.union_max A (bag.union_max A B)) = (bag.union_max A B)
-   * - (bag.union_max A (bag.union_max B A)) = (bag.union_max B A)
-   * - (bag.union_max (bag.union_max A B) A) = (bag.union_max A B)
-   * - (bag.union_max (bag.union_max B A) A) = (bag.union_max B A)
-   * - (bag.union_max A (bag.union_disjoint A B)) = (bag.union_disjoint A B)
-   * - (bag.union_max A (bag.union_disjoint B A)) = (bag.union_disjoint B A)
-   * - (bag.union_max (bag.union_disjoint A B) A) = (bag.union_disjoint A B)
-   * - (bag.union_max (bag.union_disjoint B A) A) = (bag.union_disjoint B A)
-   * - otherwise = n
+   * For A, B : (Bag Int),
+   *
+   * - UNION_MAX_SAME_OR_EMPTY
+   *     (bag.union_max A A)
+   *     ---> A
+   *
+   *     (bag.union_max A (as bag.empty (Bag Int)))
+   *     ---> A
+   * - UNION_MAX_EMPTY
+   *     (bag.union_max (as bag.empty (Bag Int)) A)
+   *     ---> A
+   * - UNION_MAX_UNION_LEFT, also for bag.union_max and (bag.union_disjoint B A)
+   *     (bag.union_max A (bag.union_disjoint A B))
+   *     ---> (bag.union_disjoint A B)
+   * - UNION_MAX_UNION_RIGHT, also for bag.union_disjoint and
+   *   (bag.union_max B A)
+   *     (bag.union_max (bag.union_max A B) A)
+   *     ---> (bag.union_max A B)
    */
   BagsRewriteResponse rewriteUnionMax(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.union_disjoint A bag.empty) = A
-   * - (bag.union_disjoint bag.empty A) = A
-   * - (bag.union_disjoint (bag.union_max A B) (bag.inter_min A B)) =
-   *         (bag.union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
-   * - other permutations of the above like swapping A and B, or swapping
-   *   bag.intersection_min and bag.union_max
-   * - otherwise = n
+   * For A, B : (Bag Int),
+   *
+   * - UNION_DISJOINT_EMPTY_RIGHT
+   *     (bag.union_disjoint A (as bag.empty (Bag Int)))
+   *     ---> A
+   * - UNION_DISJOINT_EMPTY_LEFT
+   *     (bag.union_disjoint (as bag.empty (Bag Int)) A)
+   *     ---> A
+   * - UNION_DISJOINT_MAX_MIN, also with the sides swapped
+   *     (bag.union_disjoint (bag.union_max A B) (bag.inter_min A B))
+   *     ---> (bag.union_disjoint A B)
    */
   BagsRewriteResponse rewriteUnionDisjoint(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.inter_min A bag.empty) = bag.empty
-   * - (bag.inter_min bag.empty A) = bag.empty
-   * - (bag.inter_min A A) = A
-   * - (bag.inter_min A (bag.union_disjoint A B)) = A
-   * - (bag.inter_min A (bag.union_disjoint B A)) = A
-   * - (bag.inter_min (bag.union_disjoint A B) A) = A
-   * - (bag.inter_min (bag.union_disjoint B A) A) = A
-   * - (bag.inter_min A (bag.union_max A B)) = A
-   * - (bag.inter_min A (bag.union_max B A)) = A
-   * - (bag.inter_min (bag.union_max A B) A) = A
-   * - (bag.inter_min (bag.union_max B A) A) = A
-   * - otherwise = n
+   * For A, B : (Bag Int),
+   *
+   * - INTERSECTION_EMPTY_LEFT
+   *     (bag.inter_min (as bag.empty (Bag Int)) A)
+   *     ---> (as bag.empty (Bag Int))
+   * - INTERSECTION_EMPTY_RIGHT
+   *     (bag.inter_min A (as bag.empty (Bag Int)))
+   *     ---> (as bag.empty (Bag Int))
+   * - INTERSECTION_SAME
+   *     (bag.inter_min A A)
+   *     ---> A
+   * - INTERSECTION_SHARED_LEFT, also for bag.union_max and (bag.union_disjoint
+   *   B A)
+   *     (bag.inter_min A (bag.union_disjoint A B))
+   *     ---> A
+   * - INTERSECTION_SHARED_RIGHT, also for bag.union_disjoint and
+   *   (bag.union_max B A)
+   *     (bag.inter_min (bag.union_max A B) A)
+   *     ---> A
    */
   BagsRewriteResponse rewriteIntersectionMin(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.difference_subtract A bag.empty) = A
-   * - (bag.difference_subtract bag.empty A) = bag.empty
-   * - (bag.difference_subtract A A) = bag.empty
-   * - (bag.difference_subtract (bag.union_disjoint A B) A) = B
-   * - (bag.difference_subtract (bag.union_disjoint B A) A) = B
-   * - (bag.difference_subtract A (bag.union_disjoint A B)) = bag.empty
-   * - (bag.difference_subtract A (bag.union_disjoint B A)) = bag.empty
-   * - (bag.difference_subtract A (bag.union_max A B)) = bag.empty
-   * - (bag.difference_subtract A (bag.union_max B A)) = bag.empty
-   * - (bag.difference_subtract (bag.inter_min A B) A) = bag.empty
-   * - (bag.difference_subtract (bag.inter_min B A) A) = bag.empty
-   * - otherwise = n
+   * For A, B : (Bag Int),
+   *
+   * - SUBTRACT_RETURN_LEFT
+   *     (bag.difference_subtract A (as bag.empty (Bag Int)))
+   *     ---> A
+   *
+   *     (bag.difference_subtract (as bag.empty (Bag Int)) B)
+   *     ---> (as bag.empty (Bag Int))
+   * - SUBTRACT_SAME
+   *     (bag.difference_subtract A A)
+   *     ---> (as bag.empty (Bag Int))
+   * - SUBTRACT_DISJOINT_SHARED_LEFT
+   *     (bag.difference_subtract (bag.union_disjoint A B) A)
+   *     ---> B
+   * - SUBTRACT_DISJOINT_SHARED_RIGHT
+   *     (bag.difference_subtract (bag.union_disjoint B A) A)
+   *     ---> B
+   * - SUBTRACT_FROM_UNION, also for bag.union_disjoint and (bag.union_max B A)
+   *     (bag.difference_subtract A (bag.union_max A B))
+   *     ---> (as bag.empty (Bag Int))
+   * - SUBTRACT_MIN, also for (bag.inter_min B A)
+   *     (bag.difference_subtract (bag.inter_min A B) A)
+   *     ---> (as bag.empty (Bag Int))
    */
   BagsRewriteResponse rewriteDifferenceSubtract(const TNode& n) const;
 
   /**
-   * rewrites for n include:
-   * - (bag.difference_remove A bag.empty) = A
-   * - (bag.difference_remove bag.empty A) = bag.empty
-   * - (bag.difference_remove A A) = bag.empty
-   * - (bag.difference_remove A (bag.union_disjoint A B)) = bag.empty
-   * - (bag.difference_remove A (bag.union_disjoint B A)) = bag.empty
-   * - (bag.difference_remove A (bag.union_max A B)) = bag.empty
-   * - (bag.difference_remove A (bag.union_max B A)) = bag.empty
-   * - (bag.difference_remove (bag.inter_min A B) A) = bag.empty
-   * - (bag.difference_remove (bag.inter_min B A) A) = bag.empty
-   * - otherwise = n
+   * For A, B : (Bag Int),
+   *
+   * - REMOVE_RETURN_LEFT
+   *     (bag.difference_remove A (as bag.empty (Bag Int)))
+   *     ---> A
+   *
+   *     (bag.difference_remove (as bag.empty (Bag Int)) B)
+   *     ---> (as bag.empty (Bag Int))
+   * - REMOVE_SAME
+   *     (bag.difference_remove A A)
+   *     ---> (as bag.empty (Bag Int))
+   * - REMOVE_FROM_UNION, also for bag.union_max and (bag.union_disjoint B A)
+   *     (bag.difference_remove A (bag.union_disjoint A B))
+   *     ---> (as bag.empty (Bag Int))
+   * - REMOVE_MIN, also for (bag.inter_min B A)
+   *     (bag.difference_remove (bag.inter_min A B) A)
+   *     ---> (as bag.empty (Bag Int))
    */
   BagsRewriteResponse rewriteDifferenceRemove(const TNode& n) const;
   /**
-   * rewrites for n include:
-   * - (bag.choose (bag x c)) = x where c is a constant > 0
-   * - otherwise = n
+   * For x : Int,
+   *
+   * - CHOOSE_BAG_MAKE
+   *     (bag.choose (bag x 3))
+   *     ---> x
    */
   BagsRewriteResponse rewriteChoose(const TNode& n) const;
   /**
-   * rewrites for n include:
-   * - (bag.card (bag x c)) = c where c is a constant
-   * - otherwise = n
+   * For x : Int,
+   *
+   * - CARD_BAG_MAKE
+   *     (bag.card (bag x 3))
+   *     ---> 3
    */
   BagsRewriteResponse rewriteCard(const TNode& n) const;
 
   /**
-   * The rules for an equality of bags (= A B), each a Rewrite id with an
-   * example in rewrites.h:
+   * For A, B : (Bag Int),
    *
-   * - EQ_REFL, EQ_CONST_FALSE and EQ_SYM
+   * - EQ_REFL
+   *     (= (bag.union_disjoint A (as bag.empty (Bag Int))) A)
+   *     ---> true
+   * - EQ_CONST_FALSE
+   *     (= (bag 1 2) (bag 1 3))
+   *     ---> false
+   * - EQ_SYM, the smaller node first
+   *     (= B A)
+   *     ---> (= A B)
    */
   BagsRewriteResponse postRewriteEqual(const TNode& n) const;
 
   /**
-   * The rules for (bag.map f X), each a Rewrite id with an example in
-   * rewrites.h:
+   * For x : Int, A, B : (Bag Int), X : (Bag (Tuple Int Int)),
+   * Y : (Bag (Tuple Int (Nullable Int))) with column 1 NOT NULL (see
+   * recordFacts), g = (lambda ((y Int)) (+ y 1)) and
+   * h = (lambda ((z Int)) (* z 2)),
    *
    * - MAP_IDENTITY
+   *     (bag.map
+   *       (lambda ((t (Tuple Int Int)))
+   *         (tuple ((_ tuple.select 0) t) ((_ tuple.select 1) t)))
+   *       X)
+   *     ---> X
    * - NOT_NULL_COLUMNS (assumeNonNull)
-   * - MAP_CONST, MAP_BAG_MAKE and MAP_UNION_DISJOINT
-   * - MAP_MAP, for X a map (rewriteMapOfMap)
-   * - AGGREGATE_DEAD_COLUMNS, for X an aggregate (rewriteAggregateDeadColumns)
-   * - MAP_EQUAL_COLUMNS, for X a filter
-   * - MAP_FIXED_COLUMNS, for X a filter (fixedColumns, readFixed)
+   *     (bag.map
+   *       (lambda ((t (Tuple Int (Nullable Int))))
+   *         (tuple (ite (nullable.is_some ((_ tuple.select 1) t))
+   *                     (nullable.val ((_ tuple.select 1) t))
+   *                     0)))
+   *       Y)
+   *     ---> (bag.map
+   *            (lambda ((t (Tuple Int (Nullable Int))))
+   *              (tuple (nullable.val ((_ tuple.select 1) t))))
+   *            Y)
+   * - MAP_CONST
+   *     (bag.map g (bag 1 3))
+   *     ---> (bag 2 3)
+   * - MAP_BAG_MAKE
+   *     (bag.map g (bag x 3))
+   *     ---> (bag (+ x 1) 3)
+   * - MAP_UNION_DISJOINT
+   *     (bag.map g (bag.union_disjoint A B))
+   *     ---> (bag.union_disjoint (bag.map g A) (bag.map g B))
+   * - MAP_MAP (rewriteMapOfMap)
+   *     (bag.map h (bag.map g A))
+   *     ---> (bag.map (lambda ((y Int)) (* (+ y 1) 2)) A)
+   * - AGGREGATE_DEAD_COLUMNS (rewriteAggregateDeadColumns), also with a filter
+   *   between the map and the aggregate
+   *     (bag.map
+   *       (lambda ((r (Tuple Int Int Int)))
+   *         (tuple ((_ tuple.select 0) r) ((_ tuple.select 2) r)))
+   *       ((_ table.aggr 0)
+   *         (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int Int)))
+   *           (tuple ((_ tuple.select 0) t)
+   *                  (+ ((_ tuple.select 1) acc) ((_ tuple.select 1) t))
+   *                  (+ ((_ tuple.select 2) acc) 1)))
+   *         (tuple 0 0 0)
+   *         X))
+   *     ---> (bag.map
+   *            (lambda ((r (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 0) r) ((_ tuple.select 1) r)))
+   *            ((_ table.aggr 0)
+   *              (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
+   *                (tuple ((_ tuple.select 0) t)
+   *                       (+ ((_ tuple.select 1) acc) 1)))
+   *              (tuple 0 0)
+   *              X))
+   * - MAP_EQUAL_COLUMNS, for
+   *   P = (lambda ((s (Tuple Int Int)))
+   *         (= ((_ tuple.select 0) s) ((_ tuple.select 1) s)))
+   *     (bag.map
+   *       (lambda ((t (Tuple Int Int))) (tuple ((_ tuple.select 1) t)))
+   *       (bag.filter P X))
+   *     ---> (bag.map
+   *            (lambda ((t (Tuple Int Int))) (tuple ((_ tuple.select 0) t)))
+   *            (bag.filter P X))
+   * - MAP_FIXED_COLUMNS (fixedColumns, readFixed), for
+   *   Q = (lambda ((s (Tuple Int Int))) (= ((_ tuple.select 1) s) 5))
+   *     (bag.map
+   *       (lambda ((t (Tuple Int Int)))
+   *         (tuple ((_ tuple.select 0) t) ((_ tuple.select 1) t) 0))
+   *       (bag.filter Q X))
+   *     ---> (bag.map
+   *            (lambda ((t (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 0) t) 5 0))
+   *            (bag.filter Q X))
    * - CANONICAL_VARIABLE (canonicalLambda)
+   *     (bag.map g A)
+   *     ---> (bag.map (lambda ((t_N Int)) (+ t_N 1)) A)
    */
   BagsRewriteResponse postRewriteMap(const TNode& n) const;
 
   /**
-   * The rules for (bag.filter p X), each a Rewrite id with an example in
-   * rewrites.h, except for the filter of a NOT NULL assertion
-   * (see BagsKeyTermAttribute in the .cpp):
+   * For x : Int, A, B : (Bag Int), C : (Bag (Nullable Int)),
+   * Y : (Bag (Tuple Int (Nullable Int))) with column 1 NOT NULL (see
+   * recordFacts), p = (lambda ((y Int)) (> y 0)),
+   * g = (lambda ((z Int)) (+ z 1)) and
+   * b = (ite (nullable.is_some y)
+   *          (nullable.some (> (nullable.val y) 3))
+   *          (as nullable.null (Nullable Bool))),
+   * and none for the filter of a NOT NULL assertion (see recordNotNull):
    *
    * - NOT_NULL_COLUMNS (assumeNonNull)
-   * - FILTER_TRUE and FILTER_FALSE
+   *     (bag.filter
+   *       (lambda ((t (Tuple Int (Nullable Int))))
+   *         (and (nullable.is_some ((_ tuple.select 1) t))
+   *              (> ((_ tuple.select 0) t) 3)))
+   *       Y)
+   *     ---> (bag.filter
+   *            (lambda ((t (Tuple Int (Nullable Int))))
+   *              (> ((_ tuple.select 0) t) 3))
+   *            Y)
+   * - FILTER_TRUE
+   *     (bag.filter (lambda ((y Int)) true) A)
+   *     ---> A
+   * - FILTER_FALSE
+   *     (bag.filter (lambda ((y Int)) false) A)
+   *     ---> (as bag.empty (Bag Int))
+   *
+   *     (bag.filter (lambda ((y Int)) (and (> y 3) (not (> y 3)))) A)
+   *     ---> (as bag.empty (Bag Int))
    * - FILTER_NULLABLE_TRUTH (normalizeTruth)
+   *     (bag.filter
+   *       (lambda ((y (Nullable Int)))
+   *         (and (nullable.is_some b) (nullable.val b)))
+   *       C)
+   *     ---> (bag.filter
+   *            (lambda ((y (Nullable Int)))
+   *              (and (nullable.is_some y) (> (nullable.val y) 3)))
+   *            C)
    * - FILTER_CONFLICTING_CONSTANTS
+   *     (bag.filter (lambda ((y Int)) (and (= y 1) (= y 2))) A)
+   *     ---> (as bag.empty (Bag Int))
+   *
+   *     (bag.filter
+   *       (lambda ((y (Nullable Int)))
+   *         (and (nullable.is_some y) (= y (nullable.some 5))))
+   *       C)
+   *     ---> (bag.filter
+   *            (lambda ((y (Nullable Int))) (= y (nullable.some 5)))
+   *            C)
    * - CANONICAL_VARIABLE (canonicalLambda)
-   * - FILTER_CONST, FILTER_BAG_MAKE and FILTER_UNION_DISJOINT
-   * - FILTER_MAP, for X a map (rewriteFilterOfMap)
+   *     (bag.filter p A)
+   *     ---> (bag.filter (lambda ((t_N Int)) (> t_N 0)) A)
+   * - FILTER_CONST
+   *     (bag.filter p (bag.union_disjoint (bag 1 2) (bag (- 3) 1)))
+   *     ---> (bag 1 2)
+   * - FILTER_BAG_MAKE
+   *     (bag.filter p (bag x 2))
+   *     ---> (bag x (ite (> x 0) 2 0))
+   * - FILTER_UNION_DISJOINT
+   *     (bag.filter p (bag.union_disjoint A B))
+   *     ---> (bag.union_disjoint (bag.filter p A) (bag.filter p B))
+   * - FILTER_MAP (rewriteFilterOfMap)
+   *     (bag.filter p (bag.map g A))
+   *     ---> (bag.map g (bag.filter (lambda ((z Int)) (> (+ z 1) 0)) A))
    */
   BagsRewriteResponse postRewriteFilter(const TNode& n) const;
 
   /**
-   *  rewrites for n include:
-   *  - (bag.all p (as bag.empty (Bag T)) is rewritten as true
-   *  - (bag.all p (bag x n)) is rewritten as ((p x) or (<= n 0))
-   *  - (bag.all p (bag.union_disjoint A B)) is rewritten as
-   *       (and (bag.all p A) (bag.all p B))
-   *  - otherwise (bag.all p A) is rewritten as (= (bag.filter p A) A)
-   *  where p: T -> Bool
+   * For x, c : Int, A, B : (Bag Int) and p = (lambda ((y Int)) (> y 0)),
+   *
+   * - ALL_EMPTY
+   *     (bag.all p (as bag.empty (Bag Int)))
+   *     ---> true
+   * - ALL_BAG_MAKE
+   *     (bag.all p (bag x c))
+   *     ---> (or (> x 0) (<= c 0))
+   * - ALL_UNION_DISJOINT
+   *     (bag.all p (bag.union_disjoint A B))
+   *     ---> (and (bag.all p A) (bag.all p B))
+   * - ALL_FILTER
+   *     (bag.all p A)
+   *     ---> (= (bag.filter p A) A)
    */
   BagsRewriteResponse postRewriteAll(TNode n);
   /**
-   *  rewrites for n include:
-   *  - (bag.some p (as bag.empty (Bag T)) is rewritten as false
-   *  - (bag.some p (bag x n)) is rewritten as (and (> n 0) (p x))
-   *  - (bag.some p (bag.union A B)) is rewritten as
-   *       (or (bag.some p A) (bag.some p B))
-   *  - otherwise (bag.some p A) is rewritten as
-   *       (distinct (bag.filter p A) (as bag.empty (Bag T)))
-   *  where p: T -> Bool
+   * For x, c : Int, A, B : (Bag Int) and p = (lambda ((y Int)) (> y 0)),
+   *
+   * - SOME_EMPTY
+   *     (bag.some p (as bag.empty (Bag Int)))
+   *     ---> false
+   * - SOME_BAG_MAKE
+   *     (bag.some p (bag x c))
+   *     ---> (and (> c 0) (> x 0))
+   * - SOME_UNION_DISJOINT
+   *     (bag.some p (bag.union_disjoint A B))
+   *     ---> (or (bag.some p A) (bag.some p B))
+   * - SOME_FILTER
+   *     (bag.some p A)
+   *     ---> (not (= (bag.filter p A) (as bag.empty (Bag Int))))
    */
   BagsRewriteResponse postRewriteSome(TNode n);
 
   /**
-   * The rules for (bag.fold f i X), each a Rewrite id with an example in
-   * rewrites.h:
+   * For x : Int, A, B : (Bag Int), Y : (Bag (Tuple Int (Nullable Int))) with
+   * column 1 NOT NULL (see recordFacts) and
+   * f = (lambda ((y Int) (a Int)) (+ y a)),
    *
-   * - FOLD_CONST and FOLD_BAG, for X a constant or (bag x c)
+   * - FOLD_CONST
+   *     (bag.fold f 0 (bag.union_disjoint (bag 3 2) (bag 4 1)))
+   *     ---> 10
+   * - FOLD_BAG
+   *     (bag.fold f 0 (bag x 2))
+   *     ---> (+ x (+ x 0))
    * - NOT_NULL_COLUMNS (assumeNonNull)
+   *     (bag.fold
+   *       (lambda ((t (Tuple Int (Nullable Int))) (a Int))
+   *         (ite (nullable.is_some ((_ tuple.select 1) t)) (+ a 1) a))
+   *       0
+   *       Y)
+   *     ---> (bag.fold
+   *            (lambda ((t (Tuple Int (Nullable Int))) (a Int)) (+ a 1))
+   *            0
+   *            Y)
    * - FOLD_TUPLE (rewriteFoldOfTuple)
+   *     (bag.fold
+   *       (lambda ((y Int) (acc (Tuple Int Int)))
+   *         (tuple (+ ((_ tuple.select 0) acc) y)
+   *                (+ ((_ tuple.select 1) acc) 1)))
+   *       (tuple 0 0)
+   *       A)
+   *     ---> (tuple (bag.fold (lambda ((y Int) (a Int)) (+ a y)) 0 A)
+   *                 (bag.fold (lambda ((y Int) (a Int)) (+ a 1)) 0 A))
    * - FOLD_CONSTANT_STEP
-   * - FOLD_UNION_DISJOINT
+   *     (bag.fold (lambda ((y Int) (a Int)) 7) 0 A)
+   *     ---> (ite (= A (as bag.empty (Bag Int))) 0 7)
+   * - FOLD_UNION_DISJOINT, the smaller node first
+   *     (bag.fold f 0 (bag.union_disjoint A B))
+   *     ---> (bag.fold f (bag.fold f 0 A) B)
    * - CANONICAL_VARIABLE (canonicalLambda)
+   *     (bag.fold f 0 A)
+   *     ---> (bag.fold (lambda ((t_N Int) (acc_N Int)) (+ t_N acc_N)) 0 A)
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
   /**
-   * rewrites for n include:
-   * - PARTITION_CONST: a bag.partition of a constant bag is evaluated
+   * For r = (lambda ((a Int) (b Int)) (= (mod a 2) (mod b 2))),
+   *
+   * - PARTITION_CONST
+   *     (bag.partition r (bag.union_disjoint (bag 1 1) (bag 2 1)))
+   *     ---> (bag.union_disjoint (bag (bag 1 1) 1) (bag (bag 2 1) 1))
    */
   BagsRewriteResponse postRewritePartition(const TNode& n) const;
   /**
-   * The rules for ((_ table.aggr K) f i X), each a Rewrite id with an example
-   * in rewrites.h:
+   * For X : (Bag (Tuple Int Int)), Y : (Bag (Tuple Int (Nullable Int))) with
+   * column 1 NOT NULL (see recordFacts), the step of SUM(column 1)
+   *   f = (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
+   *         (tuple ((_ tuple.select 0) t)
+   *                (+ ((_ tuple.select 1) acc) ((_ tuple.select 1) t))))
+   * and the step of COUNT(*)
+   *   g = (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
+   *         (tuple ((_ tuple.select 0) t) (+ ((_ tuple.select 1) acc) 1))),
    *
    * - NOT_NULL_COLUMNS (assumeNonNull)
+   *     ((_ table.aggr 0)
+   *       (lambda ((t (Tuple Int (Nullable Int))) (acc (Tuple Int Int)))
+   *         (tuple ((_ tuple.select 0) t)
+   *                (ite (nullable.is_some ((_ tuple.select 1) t))
+   *                     (+ ((_ tuple.select 1) acc) 1)
+   *                     ((_ tuple.select 1) acc))))
+   *       (tuple 0 0)
+   *       Y)
+   *     ---> ((_ table.aggr 0)
+   *            (lambda ((t (Tuple Int (Nullable Int))) (acc (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 0) t)
+   *                     (+ ((_ tuple.select 1) acc) 1)))
+   *            (tuple 0 0)
+   *            Y)
    * - AGGREGATE_NO_KEYS
+   *     (table.aggr f (tuple 0 0) X)
+   *     ---> (bag (bag.fold f (tuple 0 0) X)
+   *               (ite (= X (as bag.empty (Bag (Tuple Int Int)))) 0 1))
    * - AGGREGATE_CONSTANT_COLUMNS (rewriteAggregateConstantColumns)
+   *     ((_ table.aggr 0)
+   *       (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int Int)))
+   *         (tuple ((_ tuple.select 0) t)
+   *                7
+   *                (+ ((_ tuple.select 2) acc) ((_ tuple.select 1) t))))
+   *       (tuple 0 0 0)
+   *       X)
+   *     ---> (bag.map
+   *            (lambda ((r (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 0) r) 7 ((_ tuple.select 1) r)))
+   *            ((_ table.aggr 0) f (tuple 0 0) X))
    * - AGGREGATE_SORT_OUTPUT (rewriteAggregateSortOutput)
+   *     ((_ table.aggr 0)
+   *       (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
+   *         (tuple (+ ((_ tuple.select 0) acc) ((_ tuple.select 1) t))
+   *                ((_ tuple.select 0) t)))
+   *       (tuple 0 0)
+   *       X)
+   *     ---> (bag.map
+   *            (lambda ((r (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 1) r) ((_ tuple.select 0) r)))
+   *            ((_ table.aggr 0) f (tuple 0 0) X))
    * - CANONICAL_VARIABLE (canonicalLambda)
-   * - AGGREGATE_MAP, for X a map (rewriteAggregateOfMap)
+   *     ((_ table.aggr 0) g (tuple 0 0) X)
+   *     ---> ((_ table.aggr 0)
+   *            (lambda ((t_N (Tuple Int Int)) (acc_N (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 0) t_N)
+   *                     (+ ((_ tuple.select 1) acc_N) 1)))
+   *            (tuple 0 0)
+   *            X)
+   * - AGGREGATE_MAP (rewriteAggregateOfMap)
+   *     ((_ table.aggr 0)
+   *       f
+   *       (tuple 0 0)
+   *       (bag.map
+   *         (lambda ((t (Tuple Int Int)))
+   *           (tuple ((_ tuple.select 1) t) ((_ tuple.select 0) t)))
+   *         X))
+   *     ---> ((_ table.aggr 1)
+   *            (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 1) t)
+   *                     (+ ((_ tuple.select 1) acc) ((_ tuple.select 0) t))))
+   *            (tuple 0 0)
+   *            X)
    * - AGGREGATE_CONST
-   * - AGGREGATE_KEYED (keyedAggregateRows)
+   *     ((_ table.aggr 0)
+   *       f
+   *       (tuple 0 0)
+   *       (bag.union_disjoint (bag (tuple 1 2) 1) (bag (tuple 1 3) 1)))
+   *     ---> (bag (tuple 1 5) 1)
+   * - AGGREGATE_KEYED (keyedAggregateRows), with column 0 a key of X (see
+   *   recordFacts)
+   *     ((_ table.aggr 0) g (tuple 0 0) X)
+   *     ---> (bag.map
+   *            (lambda ((t (Tuple Int Int))) (tuple ((_ tuple.select 0) t) 1))
+   *            X)
    */
   BagsRewriteResponse postRewriteAggregate(const TNode& n) const;
   /**
-   * The rules for (table.product A B), each a Rewrite id with an example in
-   * rewrites.h:
+   * For X : (Bag (Tuple Int)),
    *
    * - PRODUCT_EMPTY
+   *     (table.product X (as bag.empty (Bag (Tuple Int))))
+   *     ---> (as bag.empty (Bag (Tuple Int Int)))
    */
   BagsRewriteResponse postRewriteProduct(const TNode& n) const;
 
   /**
-   * PROJECT_TO_MAP, the rule for ((_ table.project J) X), with an example at
-   * its Rewrite id in rewrites.h.
+   * For X : (Bag (Tuple Int Int)),
+   *
+   * - PROJECT_TO_MAP
+   *     ((_ table.project 1 0) X)
+   *     ---> (bag.map (lambda ((t (Tuple Int Int))) ((_ tuple.project 1 0) t))
+   *                   X)
    */
   BagsRewriteResponse postRewriteProject(const TNode& n) const;
 
   // ---------------------------------------------------------------------------
   // The normal form of select-project-join: maps above filters above
-  // products. The functions compose lambdas only (see composable); a declared
-  // function symbol is left to the rules above.
+  // products. The functions compose lambdas only (see composable).
   // ---------------------------------------------------------------------------
 
-  /**
-   * FILTER_MAP, a filter of a map as a map of a filter. The map's function must
-   * be a lambda (see composable).
-   */
+  /** FILTER_MAP, see postRewriteFilter */
   BagsRewriteResponse rewriteFilterOfMap(const TNode& n) const;
-  /**
-   * MAP_MAP, a map of a map as one map, by the composition. Both functions must
-   * be lambdas (see composable).
-   */
+  /** MAP_MAP, see postRewriteMap */
   BagsRewriteResponse rewriteMapOfMap(const TNode& n) const;
 
   // ---------------------------------------------------------------------------
   // Aggregates ((_ table.aggr K) f i X): X grouped by its columns K, each
-  // group folded by f from i. A group holds at least one row, so the
-  // aggregate of an empty table is empty, as SQL's GROUP BY.
+  // group folded by f from i. An empty X has no group.
   // ---------------------------------------------------------------------------
 
-  /**
-   * AGGREGATE_MAP, an aggregate of a map as an aggregate of the map's argument.
-   * It applies when the map copies a column of its argument to each group
-   * column, so that the groups are the same, and when the value of the step
-   * does not depend on the order of the rows (see orderIndependentStep).
-   */
+  /** AGGREGATE_MAP, see postRewriteAggregate and orderIndependentStep */
   BagsRewriteResponse rewriteAggregateOfMap(const TNode& n) const;
   /**
-   * Whether folding the rows of a bag with the step f gives one value in any
-   * order of the rows. Each bag is folded in an order of its own (see
-   * BagReduction::reduceFoldOperator), so a rule that replaces the bag that a
-   * fold or an aggregate folds, as AGGREGATE_MAP does, keeps its value only
-   * for such a step. Each column of the result of f must be a term of the
-   * columns of the row in same, which the rows folded together share, or of
-   * none; its own accumulator; a sum, as the count of rows
-   * (+ ((_ tuple.select 2) acc) 1) or COUNT(*); a minimum or a maximum; SQL's
-   * SUM, MIN or MAX, which skip nulls, of an argument tested not null or never
-   * null, nonNull the columns of the row that are never null; or one of these
-   * on the rows that a condition reading no accumulator holds of, as COUNT(x).
+   * Whether the step f gives one value in any order of the rows, which
+   * AGGREGATE_MAP needs. For same = {0}, nonNull = {} and
+   * t, acc : (Tuple Int Int), true for the body of SUM(column 1)
+   *
+   *   (tuple ((_ tuple.select 0) t)
+   *          (+ ((_ tuple.select 1) acc) ((_ tuple.select 1) t)))
+   *
+   * and false for the body that keeps the last column 1
+   *
+   *   (tuple ((_ tuple.select 0) t) ((_ tuple.select 1) t))
    */
   bool orderIndependentStep(const Node& f,
                             const std::set<uint32_t>& same,
                             const std::set<uint32_t>& nonNull) const;
-  /**
-   * AGGREGATE_SORT_OUTPUT, the columns of an aggregate's rows in one order, the
-   * copies of the group columns first, under a map that puts them back.
-   */
+  /** AGGREGATE_SORT_OUTPUT, see postRewriteAggregate */
   BagsRewriteResponse rewriteAggregateSortOutput(const TNode& n) const;
-  /**
-   * FOLD_TUPLE, a fold of tuples whose components each read only their own
-   * accumulator as the tuple of the folds of the components.
-   */
+  /** FOLD_TUPLE, see postRewriteFold */
   BagsRewriteResponse rewriteFoldOfTuple(const TNode& n) const;
-  /**
-   * AGGREGATE_DEAD_COLUMNS, the columns of an aggregate that the map above it,
-   * and a filter in between, do not read are not computed.
-   */
+  /** AGGREGATE_DEAD_COLUMNS, see postRewriteMap */
   BagsRewriteResponse rewriteAggregateDeadColumns(const TNode& n) const;
-  /**
-   * AGGREGATE_CONSTANT_COLUMNS, the columns of an aggregate that have one
-   * constant in every row (see aggregateConstants) as columns of a map above
-   * the aggregate of the others.
-   */
+  /** AGGREGATE_CONSTANT_COLUMNS, see postRewriteAggregate */
   BagsRewriteResponse rewriteAggregateConstantColumns(const TNode& n) const;
   /**
-   * AGGREGATE_KEYED: for A = ((_ table.aggr K) f i X) whose group columns K
-   * contain a key of X (see rowKeys), every group is one row t of X, folded
-   * once from i, so A is
-   *
-   *   (bag.map (lambda ((t (Tuple Int Int))) (f t i)) X)
-   *
-   * for rows of sort (Tuple Int Int), with (f t i) beta-reduced; null when K
-   * holds no key.
+   * AGGREGATE_KEYED, see postRewriteAggregate: the map of A, or null when A's
+   * group columns hold no key.
    */
   Node keyedAggregateRows(const Node& A) const;
 
@@ -443,25 +708,23 @@ class BagsRewriter : public TheoryRewriter
   // Sets, keys and semi-joins
   // ---------------------------------------------------------------------------
 
-  /**
-   * SETOF_PROJECTION_SORT, the set of a projection onto columns in another
-   * order than theirs as the set of the projection onto the sorted columns,
-   * under a map that puts them in their order.
-   */
+  /** SETOF_PROJECTION_SORT, see rewriteSetof */
   BagsRewriteResponse rewriteSetofOfMap(const TNode& n) const;
   /**
-   * The keys of B, read off its structure: the declared keys of a table
-   * constant (see recordKey), kept by filters, intersections and differences
-   * and by maps that copy them, combined by products; all the columns of a
-   * bag.setof; the group columns of an aggregate. For X and Y of two columns,
-   * both with the key {0}, (table.product X Y) has the key {0, 2}. A bag with a
-   * key has no row twice.
+   * The keys of B. For X, Y : (Bag (Tuple Int Int)) with the key {0}:
+   *
+   *   X                          {{0}}
+   *   (table.product X Y)        {{0, 2}}
+   *   (bag.map
+   *     (lambda ((t (Tuple Int Int)))
+   *       (tuple ((_ tuple.select 1) t) ((_ tuple.select 0) t)))
+   *     X)                       {{1}}
+   *   (bag.setof X)              {{0}, {0, 1}}
    */
   std::vector<std::set<uint32_t>> rowKeys(const Node& B) const;
   /**
-   * The keys declared for the table constant B, or for the table constant a
-   * filter B filters (see BagsKeysAttribute in the .cpp): {{0, 2}, {1}} for
-   * keys {0, 2} and {1}.
+   * The keys recorded for the table constant B, also under filters:
+   * {{0, 2}, {1}} for the keys {0, 2} and {1}.
    */
   std::vector<std::set<uint32_t>> keysOf(const Node& B) const;
 
@@ -470,20 +733,15 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * Record the key that a key assertion states. For
-   * X : (Bag (Tuple Int Int Int)) and
+   * For X : (Bag (Tuple Int Int Int)) and
    *
    *   n = (= (bag.setof ((_ table.project 0 2) X)) ((_ table.project 0 2) X))
    *
-   * either way round, or with the projection written as a bag.map, {0, 2} is a
-   * key of X (see BagsKeysAttribute in the .cpp), and the bag.setof of n is not
-   * rewritten (BagsKeyTermAttribute). Called for top-level assertions only, see
-   * recordFacts.
+   * records the key {0, 2} of X; the bag.setof of n stays.
    */
   void recordKey(const TNode& n) const;
   /**
-   * Record the NOT NULL column that a NOT NULL assertion states. For
-   * X : (Bag (Tuple Int (Nullable Int))) and
+   * For X : (Bag (Tuple Int (Nullable Int))) and
    *
    *   n = (= (bag.filter
    *            (lambda ((t (Tuple Int (Nullable Int))))
@@ -491,18 +749,19 @@ class BagsRewriter : public TheoryRewriter
    *            X)
    *          (as bag.empty (Bag (Tuple Int (Nullable Int)))))
    *
-   * either way round, column 1 of X is never null
-   * (see BagsNotNullAttribute in the .cpp), and the filter of n is not
-   * rewritten (BagsKeyTermAttribute). Called for top-level assertions only, see
-   * recordFacts.
+   * records that column 1 of X is NOT NULL; the filter of n stays.
    */
   void recordNotNull(const TNode& n) const;
   /**
-   * Whether the term t is never null, given the columns nx of the row x and
-   * nacc of the accumulator acc that are never null: true for
-   * (nullable.some a), for ((_ tuple.select k) x) with k in nx, for an ite of
-   * such terms, and for a fold from (nullable.some a) whose step keeps the
-   * accumulator so. x and acc may be null.
+   * Whether t is never null, for the never-null columns nx of the row x and
+   * nacc of the accumulator acc; x and acc may be null. For
+   * x : (Tuple Int (Nullable Int)), nx = {1} and y : (Nullable Int), true for
+   *
+   *   (ite (> ((_ tuple.select 0) x) 3)
+   *        ((_ tuple.select 1) x)
+   *        (nullable.some 0))
+   *
+   * and for ((_ tuple.select 0) x) : Int, false for y.
    */
   bool nonNullTerm(const Node& t,
                    const Node& x,
@@ -510,25 +769,38 @@ class BagsRewriter : public TheoryRewriter
                    const Node& acc,
                    const std::set<uint32_t>& nacc) const;
   /**
-   * The columns of the rows of the aggregate B that are never null: those the
-   * step makes never null, given the columns of the accumulator whose initial
-   * value is never null and that the step keeps so. Every row is a group
-   * folded by at least one step.
+   * The never-null columns of the aggregate B. For X : (Bag (Tuple Int Int)),
+   * {0, 1} for
+   *
+   *   ((_ table.aggr 0)
+   *     (lambda ((t (Tuple Int Int))
+   *              (acc (Tuple (Nullable Int) (Nullable Int))))
+   *       (tuple ((_ tuple.select 0) acc) (nullable.some 1)))
+   *     (tuple (nullable.some 0) (as nullable.null (Nullable Int)))
+   *     X)
    */
   std::set<uint32_t> aggregateNonNull(const Node& B) const;
   /**
-   * The columns of the rows of B that are never null, read off its structure:
-   * the NOT NULL columns of a table constant (see recordNotNull), kept by
-   * filters, maps, unions (of both sides), products and aggregates
-   * (see aggregateNonNull), and those a filter tests with
-   * (nullable.is_some ((_ tuple.select k) t)). Cached in d_nonNull.
+   * The never-null columns of B. For
+   * X : (Bag (Tuple (Nullable Int) (Nullable Int))) with column 0 NOT NULL,
+   * {0, 1} for
+   *
+   *   (bag.filter
+   *     (lambda ((t (Tuple (Nullable Int) (Nullable Int))))
+   *       (nullable.is_some ((_ tuple.select 1) t)))
+   *     X)
+   *
+   * Cached in d_nonNull.
    */
   std::set<uint32_t> nonNullColumns(const Node& B) const;
   /**
-   * body with the null tests of the columns cols of the row x decided, for
-   * columns that are never null. With cols {1},
-   * (nullable.is_some ((_ tuple.select 1) x)) becomes true and
-   * (= ((_ tuple.select 1) x) (as nullable.null (Nullable Int))) becomes false.
+   * For x : (Tuple Int (Nullable Int)) and cols = {1},
+   *
+   *   (nullable.is_some ((_ tuple.select 1) x))
+   *   ---> true
+   *
+   *   (= ((_ tuple.select 1) x) (as nullable.null (Nullable Int)))
+   *   ---> false
    */
   Node assumeNonNull(const Node& body,
                      const Node& x,
@@ -539,19 +811,20 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * The columns that a filter predicate fixes to constants: {1 -> 5} for
+   * {1 -> 5} for
    * (lambda ((t (Tuple Int Int))) (and (= ((_ tuple.select 1) t) 5) q)).
    */
   std::map<uint32_t, Node> fixedColumns(const Node& p) const;
   /**
-   * The columns that every group of the aggregate A computes as a constant:
-   * those the step sets to a constant, and those it keeps at a constant
-   * initial value.
+   * {1 -> 7} for the aggregate of AGGREGATE_CONSTANT_COLUMNS in
+   * postRewriteAggregate.
    */
   std::map<uint32_t, Node> aggregateConstants(const Node& A) const;
   /**
-   * body with the columns of var that fixed maps to constants read as those
-   * constants: ((_ tuple.select 1) var) becomes 5 for {1 -> 5}.
+   * For fixed = {1 -> 5},
+   *
+   *   (+ ((_ tuple.select 0) var) ((_ tuple.select 1) var))
+   *   ---> (+ ((_ tuple.select 0) var) 5)
    */
   Node readFixed(const Node& body,
                  const Node& var,
@@ -562,46 +835,43 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * The formula that a nullable Boolean X built of ites over (nullable.some b)
-   * and null is (nullable.some true): (ite c b false) for
-   * (ite c (nullable.some b) (as nullable.null (Nullable Bool))); null when X
-   * is not one.
+   * (ite c b false) for
+   * X = (ite c (nullable.some b) (as nullable.null (Nullable Bool))); null
+   * when X is not such an ite.
    */
   Node truthOf(const Node& X) const;
   /**
-   * FILTER_NULLABLE_TRUTH: body with the conjuncts (nullable.is_some X) and
-   * (nullable.val X) replaced by truthOf(X), the one formula they say.
+   * FILTER_NULLABLE_TRUTH, see postRewriteFilter. For X with truthOf(X) = T,
+   *
+   *   (and (nullable.is_some X) (nullable.val X))
+   *   ---> T
    */
   Node normalizeTruth(const Node& body) const;
 
   // ---------------------------------------------------------------------------
-  // Canonical lambdas: one variable per role and type, named after the
-  // lambda's alpha key, so that alpha-equivalent lambdas are one node, which
-  // the solver purifies into one function symbol
+  // Canonical lambdas: alpha-equivalent lambdas become one node
   // ---------------------------------------------------------------------------
 
-  /**
-   * The variable for the accumulator of an aggregate's step, one per type.
-   */
+  /** The variable accrow_N of an aggregate's accumulator of sort type */
   Node accumulatorVariable(TypeNode type) const;
   /**
-   * CANONICAL_VARIABLE: the lambda f with its variables renamed to t_N and
-   * acc_N, N the id of f's alpha key (see alphaKey), so that lambdas that
-   * differ only in the names of their variables become one node. f's body is
-   * first simplified (see simplifyIteSame).
+   * CANONICAL_VARIABLE, for N the id of f's alpha key (see alphaKey):
+   *
+   *   (lambda ((s Int) (b Int)) (+ s b))
+   *   ---> (lambda ((t_N Int) (acc_N Int)) (+ t_N acc_N))
+   *
+   * f's body is first simplified (see simplifyIteSame).
    */
   Node canonicalLambda(const Node& f) const;
   /**
-   * A node that is the same for lambdas that differ only in the names of their
-   * variables: f with every variable it binds replaced by a placeholder for its
-   * binding depth, every free variable by one placeholder per sort, the
-   * arguments of commutative operators sorted and arithmetic atoms oriented.
-   * Cached in d_alphaKeys.
+   * One node for lambdas that differ only in the names of their variables:
+   * (lambda ((s Int)) (+ s 1)) and (lambda ((y Int)) (+ 1 y)) have the same
+   * key. Cached in d_alphaKeys.
    */
   Node alphaKey(const Node& f) const;
   /**
    * The alpha key of root, with bound mapping the variables of the binders
-   * that enclose root to their placeholders, at binding depth depth.
+   * around root to their placeholders, at binding depth depth.
    */
   Node alphaKeyScope(TNode root,
                      std::unordered_map<TNode, Node>& bound,
@@ -611,9 +881,11 @@ class BagsRewriter : public TheoryRewriter
   /** cache of nonNullColumns, cleared when a not-null fact is recorded */
   mutable std::unordered_map<Node, std::set<uint32_t>> d_nonNull;
   /**
-   * body with (ite (= a b) b a) replaced by a and (ite (= a b) a b) by b, which
-   * the null-aware steps of sqleq's translator leave once an accumulator is
-   * known.
+   *   (ite (= a b) b a)
+   *   ---> a
+   *
+   *   (ite (= a b) a b)
+   *   ---> b
    */
   Node simplifyIteSame(const Node& body) const;
 
@@ -622,19 +894,21 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * The columns that a projection lambda selects, in order: {2, 0} for
-   * (lambda ((t (Tuple Int Int Int))) (tuple ((_ tuple.select 2) t) ((_
-   * tuple.select 0) t))) or for
-   * (lambda ((t (Tuple Int Int Int))) ((_ tuple.project 2 0) t)); empty when f
-   * is not one.
+   * {2, 0} for
+   *   (lambda ((t (Tuple Int Int Int)))
+   *     (tuple ((_ tuple.select 2) t) ((_ tuple.select 0) t)))
+   * or (lambda ((t (Tuple Int Int Int))) ((_ tuple.project 2 0) t)); empty
+   * for any other f.
    */
   std::vector<uint32_t> projectionIndices(const Node& f) const;
   /**
-   * (f x) beta-reduced, for f =
-   * (lambda ((s (Tuple Int Int))) (> ((_ tuple.select 1) s) 3)) and x =
-   * (tuple a b): (> ((_ tuple.select 1) (tuple a b)) 3), which the rewriter
-   * simplifies to (> b 3). (f x) as an application when f is not a lambda; null
-   * when the substitution would capture a variable.
+   * For f = (lambda ((s (Tuple Int Int))) (> ((_ tuple.select 1) s) 3)) and
+   * x = (tuple a b),
+   *
+   *   (> ((_ tuple.select 1) (tuple a b)) 3)
+   *
+   * (f x) when f is not a lambda; null when the substitution would capture a
+   * variable.
    */
   Node applyFunction(const Node& f, const Node& x) const;
   /** f as a lambda when it is a function array constant, else f */
@@ -650,16 +924,14 @@ class BagsRewriter : public TheoryRewriter
   /** whether f is a lambda of one variable, which the rules may compose */
   bool composable(const Node& f) const;
   /**
-   * The variable and the body of the lambda that the function f stands for: the
-   * lambda's own, or, for a function that is not a lambda, the row variable t
-   * of its argument sort and (f t).
+   * (t, (f t)) for a declared function f, with t the row variable of f's
+   * argument sort; the variable and the body for a lambda.
    */
   std::pair<Node, Node> lambdaOf(const Node& f) const;
   /**
-   * The columns of its variable var that body reads, through
-   * ((_ tuple.select k) var): {0, 2} for
-   * (> ((_ tuple.select 0) t) ((_ tuple.select 2) t)) and var t; false when
-   * body uses var otherwise.
+   * {0, 2} for the variable t and the body
+   * (> ((_ tuple.select 0) t) ((_ tuple.select 2) t)); false when body uses
+   * var other than through tuple.select.
    */
   bool readPositions(const Node& body,
                      const Node& var,
