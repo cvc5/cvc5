@@ -24,7 +24,7 @@
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
  * not fully agree on what is (in)valid input, which requires extra checks for
- * consistent behavior (see Solver::mkRealOrIntegerFromStrHelper for example).
+ * consistent behavior (see TermManager::mkRealOrIntegerFromStrHelper for example).
  */
 
 #include <cvc5/cvc5.h>
@@ -3973,11 +3973,11 @@ bool DatatypeDecl::isResolved() const
     return true;
   }
   // We are resolved if a constructor is resolved. Note that since
-  // internal::DType objects are copied in Solver::mkDatatypeSorts, the
+  // internal::DType objects are copied in TermManager::mkDatatypeSorts, the
   // constructors of d_dtype are passed to NodeManager but not d_type itself.
   // Thus, we must check whether our constructors are resolved.
   // This is a workaround; a clearer implementation would avoid the
-  // copying of DType in Solver::mkDatatypeSorts.
+  // copying of DType in TermManager::mkDatatypeSorts.
   const std::vector<std::shared_ptr<internal::DTypeConstructor>>& cons =
       d_dtype->getConstructors();
   for (const std::shared_ptr<internal::DTypeConstructor>& c : cons)

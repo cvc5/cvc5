@@ -362,8 +362,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
    *   ( declare-sort <symbol> <numeral> )
    * }
    *
-   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
-   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   * @api.note This corresponds to {@link TermManager#mkUninterpretedSort} if
+   *           arity = 0, and to
+   *           {@link TermManager#mkUninterpretedSortConstructorSort} if
+   *           arity &gt; 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
@@ -387,8 +389,10 @@ public class Solver extends AbstractPointer implements AutoCloseable
    *   ( declare-sort <symbol> <numeral> )
    * }
    *
-   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
-   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   * @api.note This corresponds to {@link TermManager#mkUninterpretedSort} if
+   *           arity = 0, and to
+   *           {@link TermManager#mkUninterpretedSortConstructorSort} if
+   *           arity &gt; 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.

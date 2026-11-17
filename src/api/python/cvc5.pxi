@@ -2808,7 +2808,8 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
+            Create elements of parameter ``funs`` with
+            :py:meth:`TermManager.mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -2846,7 +2847,8 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
+            Create elements of parameter ``funs`` with
+            :py:meth:`TermManager.mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.

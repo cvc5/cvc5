@@ -2172,8 +2172,8 @@ class Solver;
  * `declare-datatypes` command.
  *
  * Datatype sorts can be constructed from a DatatypeDecl using:
- *   - Solver::mkDatatypeSort()
- *   - Solver::mkDatatypeSorts()
+ *   - TermManager::mkDatatypeSort()
+ *   - TermManager::mkDatatypeSorts()
  */
 class CVC5_EXPORT DatatypeDecl
 {
@@ -4799,10 +4799,10 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @note This corresponds to
-   *       mkUninterpretedSort(const std::optional<std::string>&)
+   *       TermManager::mkUninterpretedSort(const std::optional<std::string>&)
    *       if arity = 0, and to
-   *       mkUninterpretedSortConstructorSort(size_t arity, const
-   * std::optional<std::string>&) if arity > 0.
+   *       TermManager::mkUninterpretedSortConstructorSort(size_t arity, const
+   *       std::optional<std::string>&) if arity > 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
