@@ -20,7 +20,7 @@ public class ParserSymbolManager
     TermManager tm = new TermManager();
     Solver slv = new Solver(tm);
 
-    SymbolManager sm = new SymbolManager(slv);
+    SymbolManager sm = new SymbolManager(tm);
 
     // construct an input parser associated the solver above
     InputParser parser = new InputParser(slv, sm);

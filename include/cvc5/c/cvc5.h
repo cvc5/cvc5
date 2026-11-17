@@ -1421,24 +1421,6 @@ CVC5_EXPORT const char* cvc5_term_get_integer_value(Cvc5Term term);
  */
 CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
 /**
- * Get the native string representation of a string value.
- * @note Requires that the term is a string value (see
- *       cvc5_term_is_string_value()).
- * @note This is not to be confused with cvc5_term_to_string(), which returns
- *       some string representation of the term, whatever data it may hold.
- * @param term The term.
- * @return The string term as a native string value.
- *
- * @warning This function is deprecated and replaced by
- *          cvc5_term_get_u32string_value(). It will be removed in a future
- *          release.
- */
-CVC5_EXPORT
-__attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
-const wchar_t*
-cvc5_term_get_string_value(Cvc5Term term);
-
-/**
  * Get the native UTF-32 string representation of a string value.
  * @note Requires that the term is a string value (see
  *       cvc5_term_is_string_value()).
@@ -3253,22 +3235,6 @@ CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
                                     bool use_esc_seq);
 
 /**
- * Create a String constant from a wide character string.
- * This function does not support escape sequences as wide character already
- * supports unicode characters.
- * @param tm The term manager instance.
- * @param s The string this constant represents.
- * @return The String constant.
- *
- * @warning This function is deprecated and replaced by
- *          cvc5_mk_string_from_char32(). It will be removed in a future
- *          release.
- */
-CVC5_EXPORT __attribute__((
-    deprecated("Use cvc5_mk_string_from_char32 instead"))) Cvc5Term
-cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s);
-
-/**
  * Create a String constant from a UTF-32 string.
  * This function does not support escape sequences as wide character already
  * supports unicode characters.
@@ -3665,22 +3631,6 @@ struct Cvc5OptionInfo
   const char** no_supports;
   /** True if the option was explicitly set by the user */
   bool is_set_by_user;
-  /**
-   * True if the option is an expert option
-   * @warning This field is deprecated and replaced by `category`. It will be
-   *          removed in a future release.
-   */
-  bool is_expert
-      __attribute__((deprecated("Query Cvc5OptionCategory category for "
-                                "CVC5_OPTION_CATEGORY_EXPERT instead")));
-  /**
-   * True if the option is a regular option
-   * @warning This field is deprecated and replaced by `category`. It will be
-   *          removed in a future release.
-   */
-  bool is_regular
-      __attribute__((deprecated("Query Cvc5OptionCategory category for "
-                                "CVC5_OPTION_CATEGORY_REGULAR instead")));
   /** The category of this option. */
   Cvc5OptionCategory category;
 

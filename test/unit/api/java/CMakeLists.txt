@@ -102,8 +102,4 @@ cvc5_add_java_api_test(TripletTest)
 cvc5_add_java_api_test(ProofTest)
 cvc5_add_java_api_test(UtilsTest)
 
-# suppress deprecated warnings to not error in CI
-set_source_files_properties(UncoveredTest.cpp
-  PROPERTIES COMPILE_OPTIONS
-  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
 cvc5_add_unit_test_black(UncoveredTest api/java)
