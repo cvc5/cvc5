@@ -113,12 +113,8 @@ class Assertions : protected EnvObj
   /**
    * Get the input form of assertion n, that is, the form of n prior to
    * expanding the definitions that are treated as macros. Returns n itself if
-   * n was not modified.
-   *
-   * Note that n and its input form are equivalent modulo the expansion of the
-   * definitions returned by getMacroDefinitions above. Hence, the input form
-   * can be used in an output (e.g. a proof) that treats these definitions as
-   * macros.
+   * n was not modified. This is used e.g. for reporting unsat cores in terms
+   * of the input.
    */
   Node getInputForm(const Node& n) const;
   /** Get the set corresponding to the above */
@@ -177,21 +173,6 @@ class Assertions : protected EnvObj
    * @return The expanded form of n.
    */
   Node applyDefinitions(TNode n);
-  /**
-   * Return true if expanding the definitions that are treated as macros in n
-   * (see applyDefinitions) coincides with expanding them as macros, that is,
-   * with replacing their applications by their bodies.
-   *
-   * This is false e.g. for (P f), where f is a defined function that is
-   * passed as a higher-order argument, since expanding f there requires
-   * replacing it by a lambda term.
-   *
-   * @param n The node to check.
-   * @return true if expanding the definitions in n is macro expansion.
-   */
-  bool isMacroExpansion(TNode n) const;
-  /** Return true if n is a definition treated as a macro that has parameters */
-  bool isMacroWithParams(TNode n) const;
   /**
    * The assertion list (before any conversion) for supporting getAssertions().
    */

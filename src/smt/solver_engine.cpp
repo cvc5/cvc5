@@ -1647,7 +1647,6 @@ void SolverEngine::printProof(std::ostream& out,
                           fp,
                           mode,
                           ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-                          d_smtSolver->getAssertions(),
                           assertionNames);
   out << ")" << std::endl;
 }
@@ -2046,11 +2045,8 @@ void SolverEngine::proofToString(std::ostream& out,
                                  std::shared_ptr<ProofNode> fp)
 {
   options::ProofFormatMode format_mode = getOptions().proof.proofFormatMode;
-  d_pfManager->printProof(out,
-                          fp,
-                          format_mode,
-                          ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-                          d_smtSolver->getAssertions());
+  d_pfManager->printProof(
+      out, fp, format_mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS);
 }
 
 void SolverEngine::printInstantiations(std::ostream& out)

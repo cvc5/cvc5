@@ -145,13 +145,10 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
       // assertion, and hence will not appear as an assumption in proofs.
       return;
     }
-    if (nn != n && isMacroExpansion(n))
+    if (nn != n)
     {
-      // Remember the input form of this assertion, which is used when
-      // printing proofs and unsat cores. We only do so if expanding the
-      // definitions in n is equivalent to macro expansion, in which case nn
-      // and n can be used interchangeably in an output that treats these
-      // definitions as macros.
+      // Remember the input form of this assertion, which is used e.g. when
+      // reporting unsat cores and the result of get-assertions.
       if (d_inputForm.find(nn) == d_inputForm.end())
       {
         d_inputForm.insert(nn, n);
@@ -292,9 +289,9 @@ bool Assertions::addMacroDefinition(const Node& n)
   Trace("smt-define-fun") << "Macro definition: " << n[0] << " = " << n[1]
                           << std::endl;
   // Note that we do not rewrite the body of the definition here, in contrast
-  // to definitions that are treated as assumptions. This ensures that the
-  // definition we print in proofs is the one from the input, and hence that
-  // expanding it in the output is the same as the expansion we perform here.
+  // to definitions that are treated as assumptions. This ensures that
+  // expanding it coincides with how a proof checker expands the definition
+  // as a macro, e.g. Ethos with --reference-define-fun.
   if (d_defSubs == nullptr)
   {
     d_defSubs.reset(new theory::SubstitutionMap(userContext()));
@@ -307,8 +304,7 @@ bool Assertions::addMacroDefinition(const Node& n)
   // is added to the top-level substitutions so that it is expanded in terms
   // from the user, e.g. for get-value.
   d_env.getTopLevelSubstitutions().addSubstitution(n[0], n[1], nullptr, false);
-  // Remember the definition, which is printed as a definition command (e.g.
-  // a Eunoia define, which is a macro) when printing proofs.
+  // Remember the definition, e.g. for checking unsat cores.
   d_macroDefs.push_back(n);
   return true;
 }
@@ -329,60 +325,6 @@ Node Assertions::applyDefinitions(TNode n)
     ns = brc.convert(ns);
   }
   return ns;
-}
-
-bool Assertions::isMacroExpansion(TNode n) const
-{
-  if (d_defSubs == nullptr)
-  {
-    return true;
-  }
-  std::unordered_set<TNode> visited;
-  std::vector<TNode> visit;
-  visit.push_back(n);
-  do
-  {
-    TNode cur = visit.back();
-    visit.pop_back();
-    if (!visited.insert(cur).second)
-    {
-      continue;
-    }
-    if (cur.getKind() == Kind::APPLY_UF)
-    {
-      TNode op = cur.getOperator();
-      if (op.getKind() == Kind::LAMBDA)
-      {
-        // A beta redex from the input, which is eliminated when expanding
-        // definitions, whereas macro expansion would retain it.
-        return false;
-      }
-      if (isMacroWithParams(op))
-      {
-        // An application of a definition with parameters, which is fully
-        // applied by construction of APPLY_UF. Note we do not traverse the
-        // operator, since it is expanded as a macro.
-        visit.insert(visit.end(), cur.begin(), cur.end());
-        continue;
-      }
-      visit.push_back(op);
-    }
-    else if (isMacroWithParams(cur))
-    {
-      // An occurrence of a definition with parameters that is not applied,
-      // e.g. where it is passed as a higher-order argument. Expanding it
-      // requires replacing it by a lambda term.
-      return false;
-    }
-    visit.insert(visit.end(), cur.begin(), cur.end());
-  } while (!visit.empty());
-  return true;
-}
-
-bool Assertions::isMacroWithParams(TNode n) const
-{
-  return n.isVar() && d_defSubs->hasSubstitution(n)
-         && d_defSubs->getSubstitution(n).getKind() == Kind::LAMBDA;
 }
 
 void Assertions::addDefineFunDefinition(Node n, bool global)

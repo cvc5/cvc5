@@ -2,8 +2,8 @@
 ; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 ; The name f is used for both a sort and a defined function, which are in
-; separate namespaces in SMT-LIB but not in the proof output. Thus f cannot
-; be printed as a macro definition in proofs.
+; separate namespaces in SMT-LIB but not in the proof output. Since f is
+; expanded in all assertions, it does not appear in the proof.
 (set-logic UFLIA)
 (declare-sort f 0)
 (declare-fun a () f)
