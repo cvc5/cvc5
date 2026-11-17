@@ -2287,6 +2287,7 @@ set(regress_0_tests
   regress0/sets/sets-equal.smt2
   regress0/sets/sets-extr.smt2
   regress0/sets/sets-inter.smt2
+  regress0/sets/sets-inter-self-rw.smt2
   regress0/sets/sets-ising-elim-pf.smt2
   regress0/sets/sets-new.smt2
   regress0/sets/sets-of-sets-subtypes.smt2
@@ -2298,6 +2299,7 @@ set(regress_0_tests
   regress0/sets/sets-testlemma-reals.smt2
   regress0/sets/sets-testlemma.smt2
   regress0/sets/sets-union.smt2
+  regress0/sets/sets-union-self-rw.smt2
   regress0/sets/sharing-simp.smt2
   regress0/sets/union-1a-flip.smt2
   regress0/sets/union-1a.smt2
