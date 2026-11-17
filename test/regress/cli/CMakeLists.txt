@@ -1448,6 +1448,7 @@ set(regress_0_tests
   regress0/parser/bang-lex.smt2
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/bv_nat.smt2
+  regress0/parser/bv-const-non-numeral.smt2
   regress0/parser/constraint.smt2
   regress0/parser/datatype-tester-user-symbol.smt2
   regress0/parser/dd.define-named.smt2
@@ -1507,6 +1508,7 @@ set(regress_0_tests
   regress0/parser/issue10489.smt2
   regress0/parser/issue11763-quoted-dt-cons.smt2
   regress0/parser/issue12356.smt2
+  regress0/parser/keyword-one-char.smt2
   regress0/parser/legacy-datatype-tester.smt2
   regress0/parser/legacy-datatype-tester-lenient.smt2
   regress0/parser/legacy-datatype-tester-strict.smt2
@@ -1515,6 +1517,8 @@ set(regress_0_tests
   regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/named-attr-error.smt2
   regress0/parser/named-attr.smt2
+  regress0/parser/neg-decimal-no-digit.smt2
+  regress0/parser/neg-rational-no-digit.smt2
   regress0/parser/no-fresh.smt2
   regress0/parser/non-std-char.smt2
   regress0/parser/non-strict-real-vs-int.smt2
@@ -1644,6 +1648,10 @@ set(regress_0_tests
   regress0/proofs/alpha-eq-bv-reorder-2.smt2
   regress0/proofs/annotate-theory-lemmas-pp-merge.smt2
   regress0/proofs/arith-dio-lemma-diseq-tighten.smt2
+  regress0/proofs/arith-div-int-to-real.smt2
+  regress0/proofs/arith-div-total-int-to-real.smt2
+  regress0/proofs/arith-div-total-over-mod.smt2
+  regress0/proofs/arith-is-int-elim-to-real.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
   regress0/proofs/assume-false-final-step-check.smt2
@@ -1651,6 +1659,7 @@ set(regress_0_tests
   regress0/proofs/big-rec-len.smt2
   regress0/proofs/big-ss-len-include.smt2
   regress0/proofs/cyclic-ucp.smt2
+  regress0/proofs/bv-ite-const-cond.smt2
   regress0/proofs/bv-mul-pow2-neg-middle.smt2
   regress0/proofs/bvrewrite-concat-merge.smt2
   regress0/proofs/bvrewrite-extract.smt2
