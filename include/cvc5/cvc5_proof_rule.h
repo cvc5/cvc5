@@ -4211,6 +4211,36 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_STR_INDEXOF_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- strings indexof strip constant prefix**
+   *
+   * .. math::
+   *
+   *   str.indexof(c \cdot s, t, 0) = str.len(c_1) + str.indexof(c_2 \cdot s, t, 0)
+   *
+   * where :math:`c` is a constant that is equivalent to :math:`c_1 \cdot c_2`,
+   * :math:`c \cdot s` contains :math:`t`, and :math:`t` does not occur
+   * in :math:`c \cdot s` starting at any of the first :math:`|c_1|`
+   * positions.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_INDEXOF_STRIP_CONST_PREFIX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- strings contains split constant**
+   *
+   * .. math::
+   *
+   *   str.contains(c, t) = (t = \epsilon \vee t = c_1 \vee \ldots \vee t = c_n)
+   *
+   * where :math:`c` is a constant consisting of the characters
+   * :math:`c_1, \ldots, c_n`, and the length of :math:`t` is at most one.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_CTN_CONST_SPLIT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- sets evaluate operator**
    *
    * .. math::

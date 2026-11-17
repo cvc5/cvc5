@@ -61,24 +61,15 @@ bool MacroRewriteElaborator::ensureProofFor(CDProof* cdp,
       return ensureProofForSubstrStripSymLength(cdp, eq);
     case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH:
       return ensureProofForStrIndexofStripSymLength(cdp, eq);
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX:
+      return ensureProofForStrIndexofStripConstPrefix(cdp, eq);
+    case ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT:
+      return ensureProofForStrCtnConstSplit(cdp, eq);
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX:
       return ensureProofForStrEqLenUnifyPrefix(cdp, eq);
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
       return ensureProofForStrEqLenUnify(cdp, eq);
     case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:
-      if (ensureProofForOverlap(id, cdp, eq))
-      {
-        return true;
-      }
-      // Otherwise, we fall back to reconstruction via RARE rules, which
-      // e.g. cover endpoints that are applications of str.from_int.
-      cdp->addTrustedStep(eq,
-                          TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE,
-                          {},
-                          {},
-                          false,
-                          CDPOverwrite::ALWAYS);
-      return true;
     case ProofRewriteRule::MACRO_STR_SPLIT_CTN:
       return ensureProofForOverlap(id, cdp, eq);
     case ProofRewriteRule::MACRO_STR_COMPONENT_CTN:
@@ -570,7 +561,11 @@ bool MacroRewriteElaborator::ensureProofForSubstrStripSymLength(CDProof* cdp,
   std::vector<Node> ch2;
   Node rhs = sent.rewriteViaMacroSubstrStripSymLength(lhs, rule, ch1, ch2);
   Trace("brc-macro") << "...was via string rewrite rule " << rule << std::endl;
-  Assert(rhs == eq[1]);
+  if (rhs != eq[1])
+  {
+    Trace("brc-macro") << "...failed to replicate " << rhs << std::endl;
+    return false;
+  }
   TypeNode stype = lhs.getType();
   Node cm1 = utils::mkConcat(ch1, stype);
   Node cm2 = utils::mkConcat(ch2, stype);
@@ -583,25 +578,39 @@ bool MacroRewriteElaborator::ensureProofForSubstrStripSymLength(CDProof* cdp,
   {
     cm = nm->mkNode(Kind::STRING_CONCAT, cm2, cm1);
   }
+  return ensureProofForRegroupFirstArg(cdp, eq, cm);
+}
+
+bool MacroRewriteElaborator::ensureProofForRegroupFirstArg(CDProof* cdp,
+                                                           const Node& eq,
+                                                           const Node& cm)
+{
+  Node lhs = eq[0];
   if (cm == lhs[0])
   {
+    // the rewrite is already an instance of the RARE rule
     return false;
   }
-  Node eq1 = nm->mkNode(Kind::EQUAL, lhs[0], cm);
+  Node eq1 = lhs[0].eqNode(cm);
   if (!ensureProofForConcatRegroup(cdp, lhs[0], cm))
   {
     return false;
   }
   std::vector<Node> cargs;
   ProofRule cr = expr::getCongRule(lhs, cargs);
-  Node eq2 = lhs[1].eqNode(lhs[1]);
-  Node eq3 = lhs[2].eqNode(lhs[2]);
-  cdp->addStep(eq2, ProofRule::REFL, {}, {lhs[1]});
-  cdp->addStep(eq3, ProofRule::REFL, {}, {lhs[2]});
-  Node lhsm = nm->mkNode(Kind::STRING_SUBSTR, cm, lhs[1], lhs[2]);
+  std::vector<Node> premises{eq1};
+  std::vector<Node> children{cm};
+  for (size_t i = 1, nchild = lhs.getNumChildren(); i < nchild; i++)
+  {
+    Node eqi = lhs[i].eqNode(lhs[i]);
+    cdp->addStep(eqi, ProofRule::REFL, {}, {lhs[i]});
+    premises.push_back(eqi);
+    children.push_back(lhs[i]);
+  }
+  Node lhsm = nodeManager()->mkNode(lhs.getKind(), children);
   Node eqLhs = lhs.eqNode(lhsm);
-  cdp->addStep(eqLhs, cr, {eq1, eq2, eq3}, cargs);
-  Node eqm = lhsm.eqNode(rhs);
+  cdp->addStep(eqLhs, cr, premises, cargs);
+  Node eqm = lhsm.eqNode(eq[1]);
   cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
   Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
   cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
@@ -659,29 +668,187 @@ bool MacroRewriteElaborator::ensureProofForStrIndexofStripSymLength(
   Node cm =
       nm->mkNode(Kind::STRING_CONCAT,
                  {utils::mkConcat(ch1, stype), utils::mkConcat(ch2, stype)});
-  if (cm == lhs[0])
+  return ensureProofForRegroupFirstArg(cdp, eq, cm);
+}
+
+bool MacroRewriteElaborator::ensureProofForStrIndexofStripConstPrefix(
+    CDProof* cdp, const Node& eq)
+{
+  NodeManager* nm = nodeManager();
+  Trace("brc-macro") << "Expand indexof strip constant prefix for " << eq
+                     << std::endl;
+  Node lhs = eq[0];
+  Node rhs = eq[1];
+  // the right hand side is (+ (str.len c1) (str.indexof r t 0))
+  if (lhs.getKind() != Kind::STRING_INDEXOF || rhs.getKind() != Kind::ADD
+      || rhs.getNumChildren() != 2 || rhs[0].getKind() != Kind::STRING_LENGTH
+      || !rhs[0][0].isConst() || rhs[1].getKind() != Kind::STRING_INDEXOF)
   {
-    // the rewrite is already an instance of the RARE rule
     return false;
   }
-  Node eq1 = lhs[0].eqNode(cm);
-  if (!ensureProofForConcatRegroup(cdp, lhs[0], cm))
+  // We only handle the case where the second argument is a single character.
+  // Otherwise, the side condition of str-indexof-strip-char-pre that the
+  // first argument contains the second cannot be shown in general, since
+  // RARE matches string constants as concatenations of their characters.
+  if (!lhs[1].isConst() || Word::getLength(lhs[1]) != 1)
+  {
+    Trace("brc-macro") << "...fail, not a single character" << std::endl;
+    return false;
+  }
+  std::vector<Node> children0;
+  utils::getConcat(lhs[0], children0);
+  if (!children0[0].isConst())
   {
     return false;
   }
+  TypeNode stype = lhs[0].getType();
+  Node c = children0[0];
+  size_t len = Word::getLength(c);
+  size_t plen = Word::getLength(rhs[0][0]);
+  if (plen == 0 || plen > len)
+  {
+    return false;
+  }
+  // The first argument after stripping i characters.
+  std::vector<Node> rest(children0.begin() + 1, children0.end());
+  auto stripped = [&](size_t i) {
+    std::vector<Node> ch;
+    if (i < len)
+    {
+      ch.push_back(Word::suffix(c, len - i));
+    }
+    ch.insert(ch.end(), rest.begin(), rest.end());
+    return utils::mkConcat(ch, stype);
+  };
+  Node idofRem = rhs[1];
+  if (stripped(plen) != idofRem[0] || idofRem[1] != lhs[1]
+      || idofRem[2] != lhs[2])
+  {
+    Trace("brc-macro") << "...failed to match remainder" << std::endl;
+    return false;
+  }
+  // We strip one character at a time via str-indexof-strip-char-pre, from the
+  // last stripped character to the first, where curr is a proof of
+  //   (str.indexof x_i t 0) = (+ k idofRem)
+  // where x_i is the first argument after stripping i characters, and
+  // k = plen - i.
+  Node one = nm->mkConstInt(Rational(1));
+  Node curr;
+  for (size_t j = 0; j < plen; j++)
+  {
+    size_t i = plen - j - 1;
+    Node idof = nm->mkNode(Kind::STRING_INDEXOF, stripped(i), lhs[1], lhs[2]);
+    Node idofNext =
+        i + 1 == plen
+            ? idofRem
+            : nm->mkNode(Kind::STRING_INDEXOF, stripped(i + 1), lhs[1], lhs[2]);
+    Node sum = nm->mkNode(Kind::ADD, one, idofNext);
+    Node eqs = idof.eqNode(sum);
+    cdp->addTrustedStep(eqs, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    Trace("brc-macro") << "- rely on rewrite " << eqs << std::endl;
+    if (curr.isNull())
+    {
+      curr = eqs;
+      continue;
+    }
+    // (+ 1 idofNext) = (+ 1 (+ k idofRem))
+    Node eqOne = one.eqNode(one);
+    cdp->addStep(eqOne, ProofRule::REFL, {}, {one});
+    Node sumc = nm->mkNode(Kind::ADD, one, curr[1]);
+    Node eqc = sum.eqNode(sumc);
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(sum, cargs);
+    cdp->addStep(eqc, cr, {eqOne, curr}, cargs);
+    // (+ 1 (+ k idofRem)) = (+ k+1 idofRem)
+    Node next =
+        nm->mkNode(Kind::ADD, nm->mkConstInt(Rational(plen - i)), idofRem);
+    Node eqn = sumc.eqNode(next);
+    cdp->addStep(eqn, ProofRule::ARITH_POLY_NORM, {}, {eqn});
+    curr = idof.eqNode(next);
+    cdp->addStep(curr, ProofRule::TRANS, {eqs, eqc, eqn}, {});
+  }
+  Assert(curr[0] == lhs);
+  // (+ (str.len c1) idofRem) = (+ plen idofRem)
+  Node lenEq = rhs[0].eqNode(nm->mkConstInt(Rational(plen)));
+  cdp->addStep(lenEq, ProofRule::EVALUATE, {}, {rhs[0]});
+  Node eqRem = idofRem.eqNode(idofRem);
+  cdp->addStep(eqRem, ProofRule::REFL, {}, {idofRem});
+  Node lenSum = nm->mkNode(Kind::ADD, lenEq[1], idofRem);
+  Node eqLen = rhs.eqNode(lenSum);
   std::vector<Node> cargs;
-  ProofRule cr = expr::getCongRule(lhs, cargs);
-  Node eq2 = lhs[1].eqNode(lhs[1]);
-  Node eq3 = lhs[2].eqNode(lhs[2]);
-  cdp->addStep(eq2, ProofRule::REFL, {}, {lhs[1]});
-  cdp->addStep(eq3, ProofRule::REFL, {}, {lhs[2]});
-  Node lhsm = nm->mkNode(Kind::STRING_INDEXOF, cm, lhs[1], lhs[2]);
-  Node eqLhs = lhs.eqNode(lhsm);
-  cdp->addStep(eqLhs, cr, {eq1, eq2, eq3}, cargs);
-  Node eqm = lhsm.eqNode(rhs);
-  cdp->addTrustedStep(eqm, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
-  Trace("brc-macro") << "- rely on rewrite " << eqm << std::endl;
-  cdp->addStep(eq, ProofRule::TRANS, {eqLhs, eqm}, {});
+  ProofRule cr = expr::getCongRule(rhs, cargs);
+  cdp->addStep(eqLen, cr, {lenEq, eqRem}, cargs);
+  Node eqLenSymm = lenSum.eqNode(rhs);
+  cdp->addStep(eqLenSymm, ProofRule::SYMM, {eqLen}, {});
+  Assert(curr[1] == lenSum);
+  cdp->addStep(eq, ProofRule::TRANS, {curr, eqLenSymm}, {});
+  return true;
+}
+
+bool MacroRewriteElaborator::ensureProofForStrCtnConstSplit(CDProof* cdp,
+                                                            const Node& eq)
+{
+  NodeManager* nm = nodeManager();
+  Trace("brc-macro") << "Expand contains constant split for " << eq
+                     << std::endl;
+  Node lhs = eq[0];
+  if (lhs.getKind() != Kind::STRING_CONTAINS || !lhs[0].isConst()
+      || Word::isEmpty(lhs[0]))
+  {
+    return false;
+  }
+  const Node& t = lhs[1];
+  size_t len = Word::getLength(lhs[0]);
+  // We split one character at a time, from the last to the first, where curr
+  // is a proof of (str.contains s_i t) = F_i where s_i is the suffix of the
+  // constant starting at position i, and F_i is a disjunction that is
+  // equivalent to the right hand side modulo ACI. We first have, by
+  // str-contains-char:
+  //   (str.contains c_n t) = (or (= "" t) (= c_n t))
+  Node last = Word::suffix(lhs[0], 1);
+  Node emp = Word::mkEmptyWord(t.getType());
+  Node curr = nm->mkNode(Kind::STRING_CONTAINS, last, t)
+                  .eqNode(nm->mkNode(Kind::OR, emp.eqNode(t), last.eqNode(t)));
+  cdp->addTrustedStep(curr, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+  Trace("brc-macro") << "- rely on rewrite " << curr << std::endl;
+  for (size_t j = 1; j < len; j++)
+  {
+    size_t i = len - j - 1;
+    // (str.contains s_i t) = (or (= c_i t) (str.contains s_{i+1} t)) by
+    // str-contains-cnst-split-leq-one
+    Node si = Word::suffix(lhs[0], len - i);
+    Node ci = Word::prefix(si, 1);
+    Node ceq = ci.eqNode(t);
+    Node ctn = nm->mkNode(Kind::STRING_CONTAINS, si, t);
+    Node split = nm->mkNode(Kind::OR, ceq, curr[0]);
+    Node eqs = ctn.eqNode(split);
+    cdp->addTrustedStep(eqs, TrustId::MACRO_THEORY_REWRITE_RCONS, {}, {});
+    Trace("brc-macro") << "- rely on rewrite " << eqs << std::endl;
+    // (or (= c_i t) (str.contains s_{i+1} t)) = (or (= c_i t) F_{i+1})
+    Node eqRefl = ceq.eqNode(ceq);
+    cdp->addStep(eqRefl, ProofRule::REFL, {}, {ceq});
+    Node splitc = nm->mkNode(Kind::OR, ceq, curr[1]);
+    Node eqc = split.eqNode(splitc);
+    std::vector<Node> cargs;
+    ProofRule cr = expr::getCongRule(split, cargs);
+    cdp->addStep(eqc, cr, {eqRefl, curr}, cargs);
+    Node next = ctn.eqNode(splitc);
+    cdp->addStep(next, ProofRule::TRANS, {eqs, eqc}, {});
+    curr = next;
+  }
+  Assert(curr[0] == lhs);
+  if (curr[1] == eq[1])
+  {
+    return true;
+  }
+  Node eqa = curr[1].eqNode(eq[1]);
+  if (!expr::isACINorm(curr[1], eq[1]))
+  {
+    Trace("brc-macro") << "...failed ACI_NORM " << eqa << std::endl;
+    return false;
+  }
+  cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa});
+  cdp->addStep(eq, ProofRule::TRANS, {curr, eqa}, {});
   return true;
 }
 

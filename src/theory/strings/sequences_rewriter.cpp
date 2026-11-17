@@ -66,6 +66,11 @@ SequencesRewriter::SequencesRewriter(NodeManager* nm,
                            TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH,
                            TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(
+      ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX,
+      TheoryRewriteCtx::POST_DSL);
+  registerProofRewriteRule(ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT,
+                           TheoryRewriteCtx::POST_DSL);
   registerProofRewriteRule(ProofRewriteRule::STR_CTN_MULTISET_SUBSET,
                            TheoryRewriteCtx::DSL_SUBCALL);
   registerProofRewriteRule(ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX,
@@ -122,6 +127,10 @@ Node SequencesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       std::vector<Node> ch1, ch2;
       return rewriteViaMacroStrIndexofStripSymLength(n, ch1, ch2);
     }
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX:
+      return rewriteViaMacroStrIndexofStripConstPrefix(n);
+    case ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT:
+      return rewriteViaMacroStrCtnConstSplit(n);
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
     {
       // Rewrite without using the rewriter as a subutility, which ensures
@@ -1840,12 +1849,7 @@ Node SequencesRewriter::rewriteViaMacroStrIndexofStripSymLength(
   }
   if (checkCtn)
   {
-    Node fstr = n[0];
-    if (!n[2].isConst() || n[2].getConst<Rational>().sgn() != 0)
-    {
-      fstr = nm->mkNode(Kind::STRING_SUBSTR, n[0], n[2], len0);
-    }
-    Node cmp = d_stringsEntail.checkContains(fstr, n[1]);
+    Node cmp = d_stringsEntail.checkContains(mkSuffixFrom(n[0], n[2]), n[1]);
     if (cmp.isNull() || !cmp.getConst<bool>())
     {
       return Node::null();
@@ -1872,6 +1876,99 @@ Node SequencesRewriter::rewriteViaMacroStrIndexofStripSymLength(
   // note that newLen is equivalent to n[2] - lenPre
   return nm->mkNode(
       Kind::ADD, lenPre, nm->mkNode(Kind::STRING_INDEXOF, rem, n[1], newLen));
+}
+
+Node SequencesRewriter::rewriteViaMacroStrIndexofStripConstPrefix(const Node& n,
+                                                                  bool checkCtn)
+{
+  if (n.getKind() != Kind::STRING_INDEXOF || !n[2].isConst()
+      || n[2].getConst<Rational>().sgn() != 0)
+  {
+    return Node::null();
+  }
+  std::vector<Node> children0;
+  utils::getConcat(n[0], children0);
+  if (!children0[0].isConst())
+  {
+    return Node::null();
+  }
+  if (checkCtn)
+  {
+    Node cmp = d_stringsEntail.checkContains(n[0], n[1]);
+    if (cmp.isNull() || !cmp.getConst<bool>())
+    {
+      return Node::null();
+    }
+  }
+  std::vector<Node> children1;
+  utils::getConcat(n[1], children1);
+  std::vector<Node> cc = children0;
+  std::vector<Node> nb;
+  std::vector<Node> ne;
+  if (!d_stringsEntail.stripConstantEndpoints(cc, children1, nb, ne, 1))
+  {
+    return Node::null();
+  }
+  // The stripped prefix starts with a prefix of the first component, which
+  // is the only part we strip here.
+  Assert(!nb.empty() && nb[0].isConst());
+  Node pre = nb[0];
+  size_t plen = Word::getLength(pre);
+  size_t len = Word::getLength(children0[0]);
+  Assert(plen > 0 && plen <= len);
+  std::vector<Node> rem(children0.begin() + 1, children0.end());
+  if (plen < len)
+  {
+    rem.insert(rem.begin(), Word::suffix(children0[0], len - plen));
+  }
+  if (rem.empty())
+  {
+    return Node::null();
+  }
+  // For example:
+  // str.indexof(str.++("AB", x, "C"), "C", 0) --->
+  // str.len("AB") + str.indexof(str.++(x, "C"), "C", 0)
+  NodeManager* nm = nodeManager();
+  TypeNode stype = n[0].getType();
+  return nm->mkNode(
+      Kind::ADD,
+      nm->mkNode(Kind::STRING_LENGTH, pre),
+      nm->mkNode(
+          Kind::STRING_INDEXOF, utils::mkConcat(rem, stype), n[1], n[2]));
+}
+
+Node SequencesRewriter::rewriteViaMacroStrCtnConstSplit(const Node& n)
+{
+  if (n.getKind() != Kind::STRING_CONTAINS || !n[0].isConst() || n[1].isConst()
+      || Word::isEmpty(n[0]) || !d_stringsEntail.checkLengthOne(n[1]))
+  {
+    return Node::null();
+  }
+  // str.contains("ABCabc", t) --->
+  // t = "" v t = "A" v t = "B" v t = "C" v t = "a" v t = "b" v t = "c"
+  // if len(t) <= 1
+  const Node& t = n[1];
+  std::vector<Node> vec = Word::getChars(n[0]);
+  Node emp = Word::mkEmptyWord(t.getType());
+  NodeBuilder nb(nodeManager(), Kind::OR);
+  nb << emp.eqNode(t);
+  for (const Node& c : vec)
+  {
+    AssertEqual(c.getType(), t.getType());
+    nb << c.eqNode(t);
+  }
+  return nb;
+}
+
+Node SequencesRewriter::mkSuffixFrom(const Node& t, const Node& n)
+{
+  if (n.isConst() && n.getConst<Rational>().sgn() == 0)
+  {
+    return t;
+  }
+  NodeManager* nm = nodeManager();
+  return nm->mkNode(
+      Kind::STRING_SUBSTR, t, n, nm->mkNode(Kind::STRING_LENGTH, t));
 }
 
 Node SequencesRewriter::rewriteViaStrIndexofReEval(const Node& n)
@@ -2917,29 +3014,11 @@ Node SequencesRewriter::rewriteContains(Node node)
       }
       else if (d_stringsEntail.checkLengthOne(t))
       {
-        // Split off the first character of the constant, i.e.
-        // str.contains("Abc", t) ---> t = "A" v str.contains("bc", t)
-        // if len(t) <= 1. Repeated application of this rewrite gives e.g.
-        // str.contains("Abc", t) --->* t = "A" v t = "b" v t = "" v t = "c".
-        // For a single character, we have
-        // str.contains("A", t) ---> t = "" v t = "A".
-        size_t len = Word::getLength(node[0]);
-        Node c = Word::prefix(node[0], 1);
-        AssertEqual(c.getType(), t.getType());
-        Node ret;
-        if (len == 1)
-        {
-          Node emp = Word::mkEmptyWord(t.getType());
-          ret = nodeManager()->mkNode(Kind::OR, {emp.eqNode(t), c.eqNode(t)});
-        }
-        else
-        {
-          ret = nodeManager()->mkNode(
-              Kind::OR,
-              {c.eqNode(t),
-               nodeManager()->mkNode(
-                   Kind::STRING_CONTAINS, Word::suffix(node[0], len - 1), t)});
-        }
+        // str.contains("ABCabc", t) --->
+        // t = "" v t = "A" v t = "B" v t = "C" v t = "a" v t = "b" v t = "c"
+        // if len(t) <= 1
+        Node ret = rewriteViaMacroStrCtnConstSplit(node);
+        Assert(!ret.isNull());
         return returnRewrite(node, ret, Rewrite::CTN_SPLIT);
       }
       else
@@ -3294,12 +3373,7 @@ Node SequencesRewriter::rewriteIndexof(Node node)
     return returnRewrite(node, negone, Rewrite::IDOF_LEN);
   }
 
-  Node fstr = node[0];
-  if (!node[2].isConst() || node[2].getConst<Rational>().sgn() != 0)
-  {
-    fstr = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[2], len0);
-  }
-
+  Node fstr = mkSuffixFrom(node[0], node[2]);
   Node cmp_conr = d_stringsEntail.checkContains(fstr, node[1]);
   Trace("strings-rewrite-debug") << "For " << node << ", check contains("
                                  << fstr << ", " << node[1] << ")" << std::endl;
@@ -3327,48 +3401,31 @@ Node SequencesRewriter::rewriteIndexof(Node node)
         }
 
         // Strip components from the beginning that are guaranteed not to match
-        std::vector<Node> children0orig = children0;
+        if (children0[0].isConst())
+        {
+          // If the first component is a constant, we strip only (a prefix
+          // of) it, e.g.
+          // str.indexof(str.++("AB", x, "C"), "C", 0) --->
+          // str.len("AB") + str.indexof(str.++(x, "C"), "C", 0)
+          Node ret = rewriteViaMacroStrIndexofStripConstPrefix(node, false);
+          if (!ret.isNull())
+          {
+            return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
+          }
+        }
         if (d_stringsEntail.stripConstantEndpoints(
                 children0, children1, nb, ne, 1))
         {
-          Node ret;
-          if (children0orig[0].isConst()
-              && (children0orig.size() > 1
-                  || Word::getLength(children0orig[0]) > 1))
-          {
-            // If the first component is a constant, we strip its first
-            // character only, which is justified by a RARE rule. Repeated
-            // application of this rewrite strips the remaining characters,
-            // e.g.
-            // str.indexof(str.++("AB", x, "C"), "C", 0) --->
-            // 1 + str.indexof(str.++("B", x, "C"), "C", 0)
-            size_t len = Word::getLength(children0orig[0]);
-            std::vector<Node> rem(children0orig.begin() + 1,
-                                  children0orig.end());
-            if (len > 1)
-            {
-              rem.insert(rem.begin(), Word::suffix(children0orig[0], len - 1));
-            }
-            ret = nm->mkNode(Kind::ADD,
-                             {nm->mkConstInt(Rational(1)),
-                              nm->mkNode(Kind::STRING_INDEXOF,
-                                         utils::mkConcat(rem, stype),
-                                         node[1],
-                                         node[2])});
-          }
-          else
-          {
-            // str.indexof(str.++(str.from_int(n), "AB", x, "C"), "C", 0) --->
-            // str.len(str.from_int(n)) + 2 + str.indexof(str.++(x, "C"), "C",
-            // 0)
-            ret = nm->mkNode(
-                Kind::ADD,
-                {nm->mkNode(Kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
-                 nm->mkNode(Kind::STRING_INDEXOF,
-                            utils::mkConcat(children0, stype),
-                            node[1],
-                            node[2])});
-          }
+          // str.indexof(str.++(str.from_int(n), "AB", x, "C"), "C", 0) --->
+          // str.len(str.++(str.from_int(n), "AB")) +
+          //   str.indexof(str.++(x, "C"), "C", 0)
+          Node ret = nm->mkNode(
+              Kind::ADD,
+              {nm->mkNode(Kind::STRING_LENGTH, utils::mkConcat(nb, stype)),
+               nm->mkNode(Kind::STRING_INDEXOF,
+                          utils::mkConcat(children0, stype),
+                          node[1],
+                          node[2])});
           return returnRewrite(node, ret, Rewrite::IDOF_STRIP_CNST_ENDPTS);
         }
       }
@@ -4157,12 +4214,7 @@ Node SequencesRewriter::rewriteIndexofNormPrefix(const Node& node)
   Assert(node.getKind() == Kind::STRING_INDEXOF);
   NodeManager* nm = nodeManager();
   TypeNode stype = node[0].getType();
-  Node len0 = nm->mkNode(Kind::STRING_LENGTH, node[0]);
-  Node fstr = node[0];
-  if (!node[2].isConst() || node[2].getConst<Rational>().sgn() != 0)
-  {
-    fstr = nm->mkNode(Kind::STRING_SUBSTR, node[0], node[2], len0);
-  }
+  Node fstr = mkSuffixFrom(node[0], node[2]);
   // only applies if we cannot determine whether the substring starting at
   // the start index contains the second argument
   if (!d_stringsEntail.checkContains(fstr, node[1]).isNull())

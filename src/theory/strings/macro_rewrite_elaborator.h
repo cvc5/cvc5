@@ -114,6 +114,42 @@ class MacroRewriteElaborator : protected EnvObj
    */
   bool ensureProofForConcatRegroup(CDProof* cdp, const Node& s, const Node& t);
   /**
+   * Add a proof of eq to cdp, where eq is of the form (= (f s u1 ... un) r),
+   * by regrouping the first argument s of f to cm, i.e. we prove
+   *   (f s u1 ... un) = (f cm u1 ... un)
+   * via congruence and ensureProofForConcatRegroup, and rely on the rewrite
+   *   (f cm u1 ... un) = r
+   * being proven by a RARE rule.
+   *
+   * @return true if successful. This method returns false if cm is s, as the
+   * rewrite is then already the rewrite that is proven by a RARE rule.
+   */
+  bool ensureProofForRegroupFirstArg(CDProof* cdp,
+                                     const Node& eq,
+                                     const Node& cm);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX. We strip one
+   * character at a time, using str-indexof-strip-char-pre.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofForStrIndexofStripConstPrefix(CDProof* cdp, const Node& eq);
+  /**
+   * Elaborate a rewrite eq that was proven by
+   * ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT. We split one character at a
+   * time, using str-contains-cnst-split-leq-one and str-contains-char.
+   *
+   * @param cdp The proof to add to.
+   * @param eq The rewrite proven by
+   * ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT.
+   * @return true if added a closed proof of eq to cdp.
+   */
+  bool ensureProofForStrCtnConstSplit(CDProof* cdp, const Node& eq);
+  /**
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX.
    *

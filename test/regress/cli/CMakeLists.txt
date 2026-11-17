@@ -1809,8 +1809,10 @@ set(regress_0_tests
   regress0/proofs/str-contains-cnst-split-leq-one.smt2
   regress0/proofs/str-contains-repl-self-tgt-leq-one.smt2
   regress0/proofs/str-contains-strip-from-int.smt2
+  regress0/proofs/str-ctn-const-split-macro.smt2
   regress0/proofs/str-indexof-len.smt2
   regress0/proofs/str-indexof-strip-char-pre.smt2
+  regress0/proofs/str-indexof-strip-const-prefix-macro.smt2
   regress0/proofs/str-indexof-strip-prefix-len.smt2
   regress0/proofs/str-leq-id.smt2
   regress0/proofs/subtype-elim-1.smt2

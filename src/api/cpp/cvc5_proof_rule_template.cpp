@@ -375,6 +375,10 @@ const char* toString(cvc5::ProofRewriteRule rule)
       return "macro-substr-strip-sym-length";
     case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH:
       return "macro-str-indexof-strip-sym-length";
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX:
+      return "macro-str-indexof-strip-const-prefix";
+    case ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT:
+      return "macro-str-ctn-const-split";
     case ProofRewriteRule::SETS_EVAL_OP:
       return "sets-eval-op";
       //================================================= RARE rules
