@@ -132,8 +132,8 @@ void InferProofCons::convert(InferenceId infer,
         //   ------------------------------ TRUE_ELIM
         //   (= x (tuple ...))
         Node truen = nm->mkConst(true);
-        Node concr =
-            d_env.getRewriter()->rewriteViaRule(ProofRewriteRule::DT_INST, conc);
+        Node concr = d_env.getRewriter()->rewriteViaRule(
+            ProofRewriteRule::DT_INST, conc);
         if (concr == truen)
         {
           Node eq = truen.eqNode(conc);
