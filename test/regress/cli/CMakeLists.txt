@@ -3283,6 +3283,7 @@ set(regress_1_tests
   regress1/nl/combine.smt2
   regress1/nl/cos-bound.smt2
   regress1/nl/cos1-tc.smt2
+  regress1/nl/cov-coprime-basis.smt2
   regress1/nl/disj-eval.smt2
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
