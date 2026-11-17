@@ -360,7 +360,10 @@
     (eo::define ((index (eo::list_find eo::List::cons ss s)))
       (eo::ite (eo::is_neg index)
         t ; unchanged if not correct constructor
-        ($dt_collapse_updater_rhs t a (eo::add (eo::len ss) index -1))))))
+        ; The selector at index (from the front) is the argument at position
+        ; len-index-1 from the end, which $dt_collapse_updater_rhs expects.
+        ($dt_collapse_updater_rhs t a
+          (eo::add (eo::list_len eo::List::cons ss) (eo::neg index) -1))))))
   (($mk_dt_collapse_updater_rhs (tuple.update n t a))
     ($tuple_collapse_updater_rhs t a n))
   )
