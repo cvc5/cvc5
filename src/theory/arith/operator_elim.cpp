@@ -407,7 +407,8 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
           rlem = nm->mkNode(
               Kind::AND,
               {nm->mkNode(Kind::LEQ, nm->mkConstReal(Rational(0)), var),
-               nm->mkNode(k == Kind::ARCCOSINE ? Kind::LEQ : Kind::LT, var, pi)});
+               nm->mkNode(
+                   k == Kind::ARCCOSINE ? Kind::LEQ : Kind::LT, var, pi)});
         }
         Node cond;
         if (k == Kind::ARCSINE || k == Kind::ARCCOSINE || k == Kind::ARCSECANT
