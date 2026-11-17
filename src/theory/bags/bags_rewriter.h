@@ -20,6 +20,7 @@
 
 #include <set>
 #include <utility>
+#include <vector>
 
 #include "theory/bags/rewrites.h"
 #include "theory/theory_rewriter.h"
@@ -42,6 +43,34 @@ struct BagsRewriteResponse
 }; /* struct BagsRewriteResponse */
 
 /**
+ * Keys and NOT NULL columns of table constants that the input asserts. The
+ * rewriter of the theory has none, so what it returns depends only on the
+ * node it rewrites. The learned-rewrite pass reads them off the learned
+ * literals (BagsRewriter::readTableFact) and rewrites the assertions with a
+ * BagsRewriter of its own that has them (see
+ * preprocessing::passes::LearnedRewrite). For
+ * X : (Bag (Tuple Int (Nullable Int) Int)), the learned literals
+ *
+ *   (= (bag.setof ((_ table.project 0 2) X)) ((_ table.project 0 2) X))
+ *   (= (bag.filter
+ *        (lambda ((t (Tuple Int (Nullable Int) Int)))
+ *          (= ((_ tuple.select 1) t) (as nullable.null (Nullable Int))))
+ *        X)
+ *      (as bag.empty (Bag (Tuple Int (Nullable Int) Int))))
+ *
+ * give d_keys = {X: {{0, 2}}} and d_notNull = {X: {1}}.
+ */
+struct TableFacts
+{
+  /** whether no table has a key or a NOT NULL column */
+  bool empty() const { return d_keys.empty() && d_notNull.empty(); }
+  /** the keys of each table constant */
+  std::map<Node, std::vector<std::set<uint32_t>>> d_keys;
+  /** the NOT NULL columns of each table constant */
+  std::map<Node, std::set<uint32_t>> d_notNull;
+};
+
+/**
  * The rewriter of bags and tables. Its normal form for
  * SELECT h FROM X1, X2 WHERE P is
  *
@@ -56,12 +85,14 @@ class BagsRewriter : public TheoryRewriter
   /**
    * With higherOrder false, FILTER_MAP, MAP_MAP and PROJECT_TO_MAP do not
    * apply: they build lambdas, which a logic without higher-order terms
-   * rejects.
+   * rejects. With facts null, as for the rewriter of the theory, no table has
+   * a key or a NOT NULL column, and the rules that need one do not apply.
    */
   BagsRewriter(NodeManager* nm,
                Rewriter* r,
                HistogramStat<Rewrite>* statistics = nullptr,
-               bool higherOrder = false);
+               bool higherOrder = false,
+               const TableFacts* facts = nullptr);
 
   /**
    * Calls the function below for n's kind. A node of constants is evaluated:
@@ -77,24 +108,12 @@ class BagsRewriter : public TheoryRewriter
   RewriteResponse preRewrite(TNode n) override;
 
   /**
-   * Records the facts of a top-level assertion, also of its conjuncts. For
-   * X : (Bag (Tuple Int (Nullable Int))):
-   *
-   *   (assert (= (bag.setof ((_ table.project 0) X)) ((_ table.project 0) X)))
-   *
-   * column 0 is a key of X (recordKey), and
-   *
-   *   (assert (= (bag.filter
-   *                (lambda ((t (Tuple Int (Nullable Int))))
-   *                  (= ((_ tuple.select 1) t)
-   *                     (as nullable.null (Nullable Int))))
-   *                X)
-   *              (as bag.empty (Bag (Tuple Int (Nullable Int))))))
-   *
-   * column 1 of X is NOT NULL (recordNotNull). Called by the bags-facts pass,
-   * before any assertion is rewritten.
+   * Adds to facts the key or the NOT NULL column that the literal lit states
+   * of a table constant, and returns whether it states one (see TableFacts,
+   * readKey and readNotNull). The learned-rewrite pass calls it on each
+   * learned literal, which the rewriter of the theory has already rewritten.
    */
-  void recordFacts(TNode assertion) const;
+  bool readTableFact(TNode lit, TableFacts& facts) const;
 
  private:
   // ---------------------------------------------------------------------------
@@ -154,8 +173,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
 
   /**
-   * For x, c : Int and X : (Bag (Tuple Int Int Int)), and none for the
-   * bag.setof of a key assertion (see recordKey):
+   * For x, c : Int and X : (Bag (Tuple Int Int Int)):
    *
    * - SETOF_BAG_MAKE
    *     (bag.setof (bag x 3))
@@ -322,7 +340,7 @@ class BagsRewriter : public TheoryRewriter
   /**
    * For x : Int, A, B : (Bag Int), X : (Bag (Tuple Int Int)),
    * Y : (Bag (Tuple Int (Nullable Int))) with column 1 NOT NULL (see
-   * recordFacts), g = (lambda ((y Int)) (+ y 1)) and
+   * TableFacts), g = (lambda ((y Int)) (+ y 1)) and
    * h = (lambda ((z Int)) (* z 2)),
    *
    * - MAP_IDENTITY
@@ -403,12 +421,11 @@ class BagsRewriter : public TheoryRewriter
   /**
    * For x : Int, A, B : (Bag Int), C : (Bag (Nullable Int)),
    * Y : (Bag (Tuple Int (Nullable Int))) with column 1 NOT NULL (see
-   * recordFacts), p = (lambda ((y Int)) (> y 0)),
+   * TableFacts), p = (lambda ((y Int)) (> y 0)),
    * g = (lambda ((z Int)) (+ z 1)) and
    * b = (ite (nullable.is_some y)
    *          (nullable.some (> (nullable.val y) 3))
-   *          (as nullable.null (Nullable Bool))),
-   * and none for the filter of a NOT NULL assertion (see recordNotNull):
+   *          (as nullable.null (Nullable Bool))):
    *
    * - NOT_NULL_COLUMNS (assumeNonNull)
    *     (bag.filter
@@ -504,7 +521,7 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    * For x : Int, A, B : (Bag Int), Y : (Bag (Tuple Int (Nullable Int))) with
-   * column 1 NOT NULL (see recordFacts) and
+   * column 1 NOT NULL (see TableFacts) and
    * f = (lambda ((y Int) (a Int)) (+ y a)),
    *
    * - FOLD_CONST
@@ -553,7 +570,7 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse postRewritePartition(const TNode& n) const;
   /**
    * For X : (Bag (Tuple Int Int)), Y : (Bag (Tuple Int (Nullable Int))) with
-   * column 1 NOT NULL (see recordFacts), the step of SUM(column 1)
+   * column 1 NOT NULL (see TableFacts), the step of SUM(column 1)
    *   f = (lambda ((t (Tuple Int Int)) (acc (Tuple Int Int)))
    *         (tuple ((_ tuple.select 0) t)
    *                (+ ((_ tuple.select 1) acc) ((_ tuple.select 1) t))))
@@ -632,7 +649,7 @@ class BagsRewriter : public TheoryRewriter
    *       (bag.union_disjoint (bag (tuple 1 2) 1) (bag (tuple 1 3) 1)))
    *     ---> (bag (tuple 1 5) 1)
    * - AGGREGATE_KEYED (keyedAggregateRows), with column 0 a key of X (see
-   *   recordFacts)
+   *   TableFacts)
    *     ((_ table.aggr 0) g (tuple 0 0) X)
    *     ---> (bag.map
    *            (lambda ((t (Tuple Int Int))) (tuple ((_ tuple.select 0) t) 1))
@@ -723,8 +740,8 @@ class BagsRewriter : public TheoryRewriter
    */
   std::vector<std::set<uint32_t>> rowKeys(const Node& B) const;
   /**
-   * The keys recorded for the table constant B, also under filters:
-   * {{0, 2}, {1}} for the keys {0, 2} and {1}.
+   * The keys that the facts give the table constant B, also under filters:
+   * {{0, 2}, {1}} for the keys {0, 2} and {1} (see TableFacts).
    */
   std::vector<std::set<uint32_t>> keysOf(const Node& B) const;
 
@@ -733,15 +750,31 @@ class BagsRewriter : public TheoryRewriter
   // ---------------------------------------------------------------------------
 
   /**
-   * For X : (Bag (Tuple Int Int Int)) and
+   * Adds to facts the key that the equality n states, and returns whether it
+   * states one. The projection M onto the columns of the key is a set, with n
+   * either way round. For X : (Bag (Tuple Int Int Int)), the key {0, 2} of X
+   * from
    *
    *   n = (= (bag.setof ((_ table.project 0 2) X)) ((_ table.project 0 2) X))
    *
-   * records the key {0, 2} of X; the bag.setof of n stays.
+   * and, as the rewriter of the theory leaves a key on columns out of order
+   * (SETOF_PROJECTION_SORT), from
+   *
+   *   n = (= ((_ table.project 2 0) X)
+   *          (bag.map
+   *            (lambda ((r (Tuple Int Int)))
+   *              (tuple ((_ tuple.select 1) r) ((_ tuple.select 0) r)))
+   *            (bag.setof ((_ table.project 0 2) X))))
+   *
+   * where the map only puts the columns back in order, so its image of a set
+   * is a set. A projection may also be a bag.map of a projection lambda
+   * (PROJECT_TO_MAP).
    */
-  void recordKey(const TNode& n) const;
+  bool readKey(const TNode& n, TableFacts& facts) const;
   /**
-   * For X : (Bag (Tuple Int (Nullable Int))) and
+   * Adds to facts the NOT NULL column that the equality n states, and returns
+   * whether it states one. For X : (Bag (Tuple Int (Nullable Int))), column 1
+   * of X from
    *
    *   n = (= (bag.filter
    *            (lambda ((t (Tuple Int (Nullable Int))))
@@ -749,9 +782,9 @@ class BagsRewriter : public TheoryRewriter
    *            X)
    *          (as bag.empty (Bag (Tuple Int (Nullable Int)))))
    *
-   * records that column 1 of X is NOT NULL; the filter of n stays.
+   * with both equalities either way round.
    */
-  void recordNotNull(const TNode& n) const;
+  bool readNotNull(const TNode& n, TableFacts& facts) const;
   /**
    * Whether t is never null, for the never-null columns nx of the row x and
    * nacc of the accumulator acc; x and acc may be null. For
@@ -950,6 +983,8 @@ class BagsRewriter : public TheoryRewriter
   HistogramStat<Rewrite>* d_statistics;
   /** whether the logic has higher-order terms, see the constructor */
   bool d_higherOrder;
+  /** the keys and NOT NULL columns of tables, null for none (TableFacts) */
+  const TableFacts* d_facts;
 
 }; /* class TheoryBagsRewriter */
 
