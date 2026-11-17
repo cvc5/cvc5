@@ -416,11 +416,12 @@ class InferenceGenerator : protected EnvObj
    * @return an inference that represents:
    * (=>
    *  (= A (as bag.empty T))
-   *  (= skolem (bag (as bag.empty T) 1))
+   *  (= skolem (as bag.empty (Bag T)))
    * )
-   * where skolem is a variable equals ((_ table.group n1 ... nk) A)
+   * where skolem is a variable equals ((_ table.group n1 ... nk) A). An empty
+   * table has no parts.
    */
-  InferInfo groupNotEmpty(Node n);
+  InferInfo groupEmpty(Node n);
   /**
    * @param n has form ((_ table.group n1 ... nk) A) where A has type (Table T)
    * @param e an element of type T

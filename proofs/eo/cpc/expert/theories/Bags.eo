@@ -48,6 +48,8 @@
   (-> (Bag T) (Bag U) (Bag (eo::list_concat Tuple U T))))
 (declare-parameterized-const table.group ((T Type :implicit))
   (-> @List (Bag T) (Bag (Bag T))))
+(declare-parameterized-const table.aggr ((T Type :implicit) (U Type :implicit))
+  (-> @List (-> T U U) U (Bag T) (Bag U)))
 
 ; Skolems for the theory of bags.
 (declare-parameterized-const @bags_deq_diff

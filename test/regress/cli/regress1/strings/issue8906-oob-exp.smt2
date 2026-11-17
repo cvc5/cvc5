@@ -1,5 +1,5 @@
-; COMMAND-LINE:
-; EXPECT: unknown
+; COMMAND-LINE: --produce-models
+; EXPECT: sat
 (set-logic ALL)
 (declare-const x1 Bool)
 (declare-const x Int)

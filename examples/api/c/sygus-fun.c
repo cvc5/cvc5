@@ -63,7 +63,7 @@ int main()
   // create the grammar object
   Cvc5Term b[2] = {x, y};
   Cvc5Term s[2] = {start, start_bool};
-  Cvc5Grammar g = cvc5_mk_grammar(slv, 2, b, 2, s);
+  Cvc5Grammar g = cvc5_mk_grammar(tm, 2, b, 2, s);
 
   // bind each non-terminal to its rules
   Cvc5Term rules7[7] = {zero, one, x, y, plus, minus, ite};

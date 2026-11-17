@@ -30,7 +30,9 @@ ProofLoggerCpc::ProofLoggerCpc(Env& env,
       // we use thresh 1 since terms may come incrementally and would benefit
       // from previous eager letification
       d_eop(env, d_atp, pm->getRewriteDatabase(), 1),
-      d_eout(out, d_eop.getLetBinding(), "@t", false)
+      d_eout(out, d_eop.getLetBinding(), "@t", false),
+      d_ppLogged(false),
+      d_numLemmasPrinted(0)
 {
   Trace("pf-log-debug") << "Make proof logger" << std::endl;
   // global options on out
@@ -52,6 +54,7 @@ void ProofLoggerCpc::logCnfPreprocessInputs(const std::vector<Node>& inputs)
   ProofScopeMode m = ProofScopeMode::DEFINITIONS_AND_ASSERTIONS;
   d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
   d_eop.print(d_eout, d_ppProof, m);
+  printPendingLemmas();
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
 }
 
@@ -75,15 +78,39 @@ void ProofLoggerCpc::logCnfPreprocessInputProofs(
     d_ppProof = d_pm->connectProofToAssertions(pfn, d_as, m);
     d_eop.print(d_eout, d_ppProof, m);
   }
+  printPendingLemmas();
   Trace("pf-log") << "; log: cnf preprocess input proof end" << std::endl;
+}
+
+void ProofLoggerCpc::printPendingLemmas()
+{
+  d_ppLogged = true;
+  for (size_t i = d_numLemmasPrinted, nlemmas = d_lemmaPfs.size(); i < nlemmas;
+       i++)
+  {
+    d_eop.printNext(d_eout, d_lemmaPfs[i]);
+  }
+  d_numLemmasPrinted = d_lemmaPfs.size();
+}
+
+void ProofLoggerCpc::logLemmaProof(std::shared_ptr<ProofNode>& pfn)
+{
+  d_lemmaPfs.emplace_back(pfn);
+  // Theory lemmas may be logged before the preprocessing proof, e.g. when
+  // they are generated while asserting the input formulas. We defer printing
+  // them until the preprocessing proof has been printed, since the latter
+  // must be printed first.
+  if (d_ppLogged)
+  {
+    printPendingLemmas();
+  }
 }
 
 void ProofLoggerCpc::logTheoryLemmaProof(std::shared_ptr<ProofNode>& pfn)
 {
   Trace("pf-log") << "; log theory lemma proof start " << pfn->getResult()
                   << std::endl;
-  d_lemmaPfs.emplace_back(pfn);
-  d_eop.printNext(d_eout, pfn);
+  logLemmaProof(pfn);
   Trace("pf-log") << "; log theory lemma proof end" << std::endl;
 }
 
@@ -92,8 +119,7 @@ void ProofLoggerCpc::logTheoryLemma(const Node& n)
   Trace("pf-log") << "; log theory lemma start " << n << std::endl;
   std::shared_ptr<ProofNode> ptl =
       d_pnm->mkTrustedNode(TrustId::THEORY_LEMMA, {}, {}, n);
-  d_lemmaPfs.emplace_back(ptl);
-  d_eop.printNext(d_eout, ptl);
+  logLemmaProof(ptl);
   Trace("pf-log") << "; log theory lemma end" << std::endl;
 }
 

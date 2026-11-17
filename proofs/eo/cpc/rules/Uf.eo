@@ -3,19 +3,17 @@
 (include "../programs/DistinctValues.eo")
 
 ;;;;; ProofRule::REFL
-
 ; rule: refl
 ; implements: ProofRule::REFL
 ; args:
 ; - t T: The term to apply reflexivity to.
 ; conclusion: The equality between t and itself.
 (declare-rule refl ((T Type) (t T))
-    :args (t)
-    :conclusion (= t t)
+  :args (t)
+  :conclusion (= t t)
 )
 
 ;;;;; ProofRule::SYMM
-
 ; program: $mk_symm
 ; args:
 ; - E Bool: An equality or disequality.
@@ -23,8 +21,8 @@
 (program $mk_symm ((T Type) (t1 T) (t2 T))
   :signature (Bool) Bool
   (
-    (($mk_symm (= t1 t2))       (= t2 t1))
-    (($mk_symm (not (= t1 t2))) (not (= t2 t1)))
+  (($mk_symm (= t1 t2))       (= t2 t1))
+  (($mk_symm (not (= t1 t2))) (not (= t2 t1)))
   )
 )
 
@@ -34,12 +32,11 @@
 ; - F Bool: The (dis)equality to apply symmetry to.
 ; conclusion: The inverted version of the (dis)equality F.
 (declare-rule symm ((F Bool))
-    :premises (F)
-    :conclusion ($mk_symm F)
+  :premises (F)
+  :conclusion ($mk_symm F)
 )
 
 ;;;;; ProofRule::TRANS
-
 ; program: $mk_trans
 ; args:
 ; - t1 U: The current left hand side of the equality we have proven.
@@ -50,12 +47,12 @@
 ;   hand side. Each additional equality checks that its left hand side matches
 ;   the current right hand side.
 (program $mk_trans ((U Type) (t1 U) (t2 U) (t3 U) (t4 U) (tail Bool :list))
-    :signature (U U Bool) Bool
-    (
-        (($mk_trans t1 t2 (and (= t3 t4) tail))
-            (eo::requires t2 t3 ($mk_trans t1 t4 tail)))
-        (($mk_trans t1 t2 true)              (= t1 t2))
-    )
+  :signature (U U Bool) Bool
+  (
+  (($mk_trans t1 t2 (and (= t3 t4) tail))
+    (eo::requires t2 t3 ($mk_trans t1 t4 tail)))
+  (($mk_trans t1 t2 true) (= t1 t2))
+  )
 )
 
 ; rule: trans
@@ -67,24 +64,25 @@
 ;   and the right hand side of the last equality, assuming that the right hand
 ;   side of each equality matches the left hand side of the one that follows it.
 (declare-rule trans ((T Type) (t1 T) (t2 T) (tail Bool :list))
-    :premise-list (and (= t1 t2) tail) and
-    :conclusion ($mk_trans t1 t2 tail)
+  :premise-list (and (= t1 t2) tail) and
+  :conclusion ($mk_trans t1 t2 tail)
 )
 
 ;;;;; ProofRule::CONG
-
 ; program: $mk_cong_rhs
 ; args:
 ; - t U: The left hand side of the equality we have yet to process.
-; - E Bool: A conjunction of the remaining equalities we have left to process, in reverse order.
+; - E Bool: A conjunction of the remaining equalities we have left to process,
+; in reverse order.
 ; return: >
 ;   The right hand side of the equality.
-(program $mk_cong_rhs ((T Type) (U Type) (f (-> T U)) (t1 U) (t2 U) (tail Bool :list))
-    :signature (U Bool) U
-    (
-        (($mk_cong_rhs (f t1) (and (= t1 t2) tail))  (_ ($mk_cong_rhs f tail) t2))
-        (($mk_cong_rhs f true)                       f)
-    )
+(program $mk_cong_rhs
+  ((T Type) (U Type) (f (-> T U)) (t1 U) (t2 U) (tail Bool :list))
+  :signature (U Bool) U
+  (
+  (($mk_cong_rhs (f t1) (and (= t1 t2) tail)) (_ ($mk_cong_rhs f tail) t2))
+  (($mk_cong_rhs f true)                      f)
+  )
 )
 
 ; rule: cong
@@ -101,26 +99,28 @@
 ; note: >
 ;   Congruence for n-ary operators requires a different rule (nary_cong) below.
 (declare-rule cong ((U Type) (E Bool) (t U))
-    :premise-list E and
-    :args (t)
-    :conclusion (= t ($mk_cong_rhs t (eo::list_rev and E)))
+  :premise-list E and
+  :args (t)
+  :conclusion (= t ($mk_cong_rhs t (eo::list_rev and E)))
 )
 
 ;;;;; ProofRule::NARY_CONG
-
 ; program: $mk_nary_cong_rhs
 ; args:
-; - t U: The term (left hand side of the equality) we are applying congruence over.
+; - t U: The term (left hand side of the equality) we are applying congruence
+; over.
 ; - E Bool: A conjunction of the remaining equalities we have left to process.
 ; return: >
 ;   The right hand side of the equality proven by nary_cong for f and
 ;   the given premises E.
-(program $mk_nary_cong_rhs ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
-    :signature (U Bool) U
-    (
-        (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))  (_ f s2 ($mk_nary_cong_rhs t tail)))
-        (($mk_nary_cong_rhs nil true)                       nil)
-    )
+(program $mk_nary_cong_rhs
+  ((U Type) (f (-> U U U)) (s1 U) (s2 U) (t U :list) (tail Bool :list) (nil U))
+  :signature (U Bool) U
+  (
+  (($mk_nary_cong_rhs (f s1 t) (and (= s1 s2) tail))
+    (_ f s2 ($mk_nary_cong_rhs t tail)))
+  (($mk_nary_cong_rhs nil true) nil)
+  )
 )
 
 ; rule: nary_cong
@@ -137,13 +137,12 @@
 ;   An equality between applications of f whose arguments are given
 ;   by the equalities in E.
 (declare-rule nary_cong ((U Type) (E Bool) (t U))
-    :premise-list E and
-    :args (t)
-    :conclusion (= t ($mk_nary_cong_rhs t E))
+  :premise-list E and
+  :args (t)
+  :conclusion (= t ($mk_nary_cong_rhs t E))
 )
 
 ;;;;; ProofRule::PAIRWISE_CONG
-
 ; rule: pairwise_cong
 ; implements: ProofRule::PAIRWISE_CONG
 ; premises:
@@ -157,61 +156,56 @@
 ;   An equality between applications of f whose argument lists are given
 ;   by the equalities in E.
 (declare-rule pairwise_cong ((E Bool) (T Type) (U Type) (xs U) (f (-> U T)))
-    :premise-list E and
-    :args ((f xs))
-    :conclusion (= (f xs) (f ($mk_nary_cong_rhs xs E)))
+  :premise-list E and
+  :args ((f xs))
+  :conclusion (= (f xs) (f ($mk_nary_cong_rhs xs E)))
 )
 
 ;;;;; ProofRule::TRUE_INTRO
-
 ; rule: true_intro
 ; implements: ProofRule::TRUE_INTRO
 ; premises:
 ; - F: A formula.
 ; conclusion: The equality between F and true.
 (declare-rule true_intro ((F Bool))
-    :premises (F)
-    :conclusion (= F true)
+  :premises (F)
+  :conclusion (= F true)
 )
 
 ;;;;; ProofRule::TRUE_ELIM
-
 ; rule: true_elim
 ; implements: ProofRule::TRUE_ELIM
 ; premises:
 ; - F1: The formula, which is an equality whose right hand side is true.
 ; conclusion: The left hand side of the premise.
 (declare-rule true_elim ((F Bool))
-    :premises ((= F true))
-    :conclusion F
+  :premises ((= F true))
+  :conclusion F
 )
 
 ;;;;; ProofRule::FALSE_INTRO
-
 ; rule: false_intro
 ; implements: ProofRule::FALSE_INTRO
 ; premises:
 ; - F1: The formula, which is a negation.
 ; conclusion: The equality between the formula the premise negates and false.
 (declare-rule false_intro ((F Bool))
-    :premises ((not F))
-    :conclusion (= F false)
+  :premises ((not F))
+  :conclusion (= F false)
 )
 
 ;;;;; ProofRule::FALSE_ELIM
-
 ; rule: false_elim
 ; implements: ProofRule::FALSE_ELIM
 ; premises:
 ; - F1: The formula, which is an equality whose right hand side is false.
 ; conclusion: The negation of the left hand side of the premise.
 (declare-rule false_elim ((F Bool))
-    :premises ((= F false))
-    :conclusion (not F)
+  :premises ((= F false))
+  :conclusion (not F)
 )
 
 ;;;;; ProofRule::HO_CONG
-
 ; program: $mk_ho_cong
 ; args:
 ; - t1 U: The current left hand side of the equality we have proven.
@@ -220,12 +214,14 @@
 ; return: >
 ;   An equality where the original terms are applied to the left and
 ;   right hand sides of the equalities given by E.
-(program $mk_ho_cong ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U) (tail Bool :list))
-    :signature (U U Bool) Bool
-    (
-        (($mk_ho_cong f1 f2 (and (= t1 t2) tail)) ($mk_ho_cong (f1 t1) (f2 t2) tail))
-        (($mk_ho_cong t1 t2 true)                 (= t1 t2))
-    )
+(program $mk_ho_cong
+  ((T Type) (U Type) (f1 (-> T U)) (f2 (-> T U)) (t1 U) (t2 U)
+    (tail Bool :list))
+  :signature (U U Bool) Bool
+  (
+  (($mk_ho_cong f1 f2 (and (= t1 t2) tail)) ($mk_ho_cong (f1 t1) (f2 t2) tail))
+  (($mk_ho_cong t1 t2 true)                 (= t1 t2))
+  )
 )
 
 ; rule: ho_cong
@@ -235,16 +231,15 @@
 ; conclusion: >
 ;   An equality between a function application that is given by
 ;   the premises E. Note that the first equality in E should be an equality
-;   between the functions that are respectively applied to the arguments given by
+; between the functions that are respectively applied to the arguments given by
 ;   the remaining equalities.
 (declare-rule ho_cong ((T Type) (t1 T) (t2 T) (tail Bool :list))
-    :premise-list (and (= t1 t2) tail) and
-    :args ()
-    :conclusion ($mk_ho_cong t1 t2 tail)
+  :premise-list (and (= t1 t2) tail) and
+  :args ()
+  :conclusion ($mk_ho_cong t1 t2 tail)
 )
 
 ;;-------------------- Instances of THEORY_REWRITE
-
 ; program: $mk_distinct_elim_rec
 ; args:
 ; - t T: The current term we are processing.
@@ -252,11 +247,13 @@
 ; - b Bool: The current accumulated elimination of distinct.
 ; return: >
 ;   The result of eliminating distinct after taking into account t.
-(program $mk_distinct_elim_rec ((T Type) (x T) (y T) (xs (@TList T) :list) (b Bool))
+(program $mk_distinct_elim_rec
+  ((T Type) (x T) (y T) (xs (@TList T) :list) (b Bool))
   :signature (T (@TList T) Bool) Bool
   (
-  (($mk_distinct_elim_rec x (@tlist y xs) b)    (_ and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
-  (($mk_distinct_elim_rec x (@tlist.nil T) b)   b)
+  (($mk_distinct_elim_rec x (@tlist y xs) b)
+    (_ and (not (= x y)) ($mk_distinct_elim_rec x xs b)))
+  (($mk_distinct_elim_rec x (@tlist.nil T) b) b)
   )
 )
 
@@ -264,12 +261,14 @@
 ; args:
 ; - b Bool: The distinct term.
 ; return: >
-;   The result of eliminating the distinct term as a conjunction of disequalities.
+; The result of eliminating the distinct term as a conjunction of disequalities.
 (program $mk_distinct_elim ((T Type) (x T) (xs (@TList T) :list))
   :signature (Bool) Bool
   (
-  (($mk_distinct_elim (distinct x xs))   ($mk_distinct_elim_rec x xs ($mk_distinct_elim (distinct xs))))
-  (($mk_distinct_elim (distinct xs))     true) ;; nil case (only match is when `xs` is nil)
+  (($mk_distinct_elim (distinct x xs))
+    ($mk_distinct_elim_rec x xs ($mk_distinct_elim (distinct xs))))
+  ;; nil case (only match is when `xs` is nil)
+  (($mk_distinct_elim (distinct xs))  true)
   )
 )
 
@@ -277,7 +276,8 @@
 ; implements: ProofRewriteRule::DISTINCT_ELIM.
 ; args:
 ; - eq Bool: The equality between formulas b1 and b2 to prove.
-; requires: Showing that eliminating the operator "distinct" from b1 results in b2.
+; requires: Showing that eliminating the operator "distinct" from b1 results in
+; b2.
 ; conclusion: The equality (= b1 b2).
 (declare-rule distinct-elim ((b1 Bool) (b2 Bool))
   :args ((= b1 b2))
@@ -293,7 +293,9 @@
 ; conclusion: The given equality.
 (declare-rule distinct-true ((T Type) (xs (@TList T) :list))
   :args ((= (distinct xs) true))
-  :requires ((($are_distinct_terms_list xs ($typed_list_element_type (eo::typeof xs))) true))
+  :requires
+    ((($are_distinct_terms_list xs ($typed_list_element_type (eo::typeof xs)))
+        true))
   :conclusion (= (distinct xs) true)
 )
 

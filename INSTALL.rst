@@ -229,7 +229,11 @@ of SMT-LIB/IEEE-754 floating-point operations in terms of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and can be
 downloaded and built automatically. Note that SymFPU does not expose its
 version, cvc5 therefore determines whether a system installation is recent
-enough by probing for an API change introduced in SymFPU 1.2.0.
+enough by probing for an API change introduced in SymFPU 1.2.0. cvc5 further
+applies the patches in ``cmake/deps-utils/symfpu-*.patch`` to SymFPU, which
+fix incorrect encodings for some experimental floating-point formats
+(``--fp-exp``). A system installation is only used if it includes these
+patches, otherwise SymFPU is downloaded and built automatically.
 
 
 Optional Dependencies
@@ -372,7 +376,7 @@ Dependencies for Language Bindings
 
 - Java
 
-  - `JDK >= 1.8 <https://www.java.com>`_
+  - `JDK >= 11 <https://www.java.com>`_
 
 - Python
 

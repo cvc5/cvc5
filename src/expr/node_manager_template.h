@@ -996,6 +996,13 @@ class NodeManager
   void reclaimZombies();
 
   /**
+   * Reclaim the given zombie (reference count 0): remove it from the pool,
+   * delete its attributes, decrement the reference counts of its children
+   * (which may zombify them), and free it. Only called from reclaimZombies().
+   */
+  void reclaimZombie(expr::NodeValue* nv);
+
+  /**
    * It is safe to collect zombies.
    */
   bool safeToReclaimZombies() const;

@@ -161,12 +161,6 @@ class Smt2State : public ParserState
   Kind getClosureKind(const std::string& name);
 
   /**
-   * If we are in a version < 2.6, this updates name to the tester name of cons,
-   * e.g. "is-cons".
-   */
-  bool getTesterName(Term cons, std::string& name) override;
-
-  /**
    * Make function defined by a define-fun(s)-rec command and bind it.
    *
    * fname : the name of the function.
@@ -376,16 +370,6 @@ class Smt2State : public ParserState
    * that expression has the given type and throw a parse error otherwise.
    */
   void parseOpApplyTypeAscription(ParseOp& p, Sort type);
-  /**
-   * This converts a ParseOp to expression, assuming it is a standalone term.
-   *
-   * In particular:
-   * - If p's expression field is set, then that expression is returned.
-   * - If p's name field is set, then we look up that name in the symbol table
-   * of this class.
-   * In other cases, a parse error is thrown.
-   */
-  Term parseOpToExpr(ParseOp& p);
   /**
    * Apply parse operator to list of arguments, and return the resulting
    * expression.

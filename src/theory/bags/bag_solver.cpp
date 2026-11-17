@@ -409,8 +409,8 @@ void BagSolver::checkGroup(Node n)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
 
-  InferInfo notEmpty = d_ig.groupNotEmpty(n);
-  d_im.lemmaTheoryInference(&notEmpty);
+  InferInfo empty = d_ig.groupEmpty(n);
+  d_im.lemmaTheoryInference(&empty);
 
   Node part = d_ig.defineSkolemPartFunction(n);
 

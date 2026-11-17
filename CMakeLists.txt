@@ -114,6 +114,7 @@ cvc5_set_option(USE_PYTHON_VENV ON)
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_CLANG_TIDY       "Enable clang-tidy static analysis during build")
 option(ENABLE_COVERAGE         "Enable support for gcov coverage testing")
+option(ENABLE_API_COVERAGE     "Enable gcov coverage testing of the API sources only")
 option(ENABLE_DEBUG_CONTEXT_MM "Enable the debug context memory manager")
 option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
@@ -349,14 +350,34 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Use interprocedural optimization if requested
+#
+# In static builds, the static libraries are built with fat LTO objects, which
+# contain regular object code in addition to the LTO bytecode. The LTO
+# bytecode is used to link the cvc5 binary, and removed from the installed
+# libraries (see strip_lto_static_library). Otherwise, every program linked
+# against libcvc5.a would perform an LTO link of all of cvc5 (which takes
+# minutes and requires the same GCC version). The tests are linked with
+# -fno-lto for the same reason. Only GCC supports this reliably, so IPO is
+# disabled for static builds with other compilers.
 
 if(ENABLE_IPO)
   check_ipo_supported(RESULT have_ipo_support)
-  if(have_ipo_support)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-  else()
+  if(NOT have_ipo_support)
     message(STATUS "Interprocedural optimization not supported.")
     set(ENABLE_IPO OFF)
+  elseif(NOT BUILD_SHARED_LIBS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS
+      "Interprocedural optimization in static builds requires GCC, disabled.")
+    set(ENABLE_IPO OFF)
+  else()
+    if(NOT BUILD_SHARED_LIBS)
+      # Appended (and not substituted for CMake's -fno-fat-lto-objects) so that
+      # it takes effect whatever CMake's defaults are: the last flag wins.
+      foreach(lang C CXX)
+        list(APPEND CMAKE_${lang}_COMPILE_OPTIONS_IPO -ffat-lto-objects)
+      endforeach()
+    endif()
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   endif()
 endif()
 
@@ -544,6 +565,15 @@ if(ENABLE_COVERAGE)
   setup_code_coverage_fastcov(
     NAME coverage
     PATH "${PROJECT_SOURCE_DIR}"
+    EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
+    DEPENDENCIES cvc5-bin
+  )
+elseif(ENABLE_API_COVERAGE)
+  # Only the API sources are instrumented, see src/CMakeLists.txt.
+  include(CodeCoverage)
+  setup_code_coverage_fastcov(
+    NAME coverage
+    PATH "${PROJECT_BINARY_DIR}"
     EXCLUDE "${PROJECT_BINARY_DIR}/deps/*"
     DEPENDENCIES cvc5-bin
   )
@@ -737,6 +767,12 @@ if(BUILD_DOCS)
   add_subdirectory(docs)
 endif()
 
+# In static builds, link the tests against the regular object code in the
+# fat LTO objects (see "Use interprocedural optimization" above).
+if(ENABLE_IPO AND NOT BUILD_SHARED_LIBS)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+  add_link_options(-fno-lto)
+endif()
 add_subdirectory(test)
 
 include(target-graphs)
@@ -862,6 +898,7 @@ print_config("ASan                      " ${ENABLE_ASAN})
 print_config("UBSan                     " ${ENABLE_UBSAN})
 print_config("TSan                      " ${ENABLE_TSAN})
 print_config("Coverage (gcov)           " ${ENABLE_COVERAGE})
+print_config("API coverage (gcov)       " ${ENABLE_API_COVERAGE})
 print_config("Profiling (gprof)         " ${ENABLE_PROFILING})
 print_config("Unit tests                " ${ENABLE_UNIT_TESTING})
 print_config("Valgrind                  " ${ENABLE_VALGRIND})

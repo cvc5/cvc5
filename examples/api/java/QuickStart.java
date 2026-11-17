@@ -29,6 +29,8 @@ public class QuickStart
     //! [docs-java-quickstart-1 start]
     Solver solver = new Solver(tm);
     //! [docs-java-quickstart-1 end]
+    // Release the native memory of the term manager and solver when done
+    try (tm; solver)
     {
       // We will ask the solver to produce models and unsat cores,
       // hence these options should be turned on.
@@ -198,6 +200,5 @@ public class QuickStart
       }
       //! [docs-java-quickstart-16 end]
     }
-    Context.deletePointers();
   }
 }

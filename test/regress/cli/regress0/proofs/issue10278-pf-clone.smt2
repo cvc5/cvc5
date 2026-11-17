@@ -1,6 +1,8 @@
 ; COMMAND-LINE: --produce-proofs
 ; DISABLE-TESTER: dump
 ; DISABLE-TESTER: unsat-core
+; External proof checking is disabled because the repeated get-proof
+; commands print multiple proofs to the same output stream.
 ; DISABLE-TESTER: cpc
 ; DISABLE-TESTER: alethe
 ; REQUIRES: no-competition

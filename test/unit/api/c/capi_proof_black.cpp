@@ -157,6 +157,32 @@ TEST_F(TestCApiBlackProof, get_rewrite_rule)
   (void)cvc5_proof_get_rewrite_rule(proof);
 }
 
+TEST_F(TestCApiBlackProof, get_annotation_id)
+{
+  ASSERT_CVC5_ERROR(cvc5_proof_get_annotation_id(nullptr), "invalid proof");
+
+  cvc5_set_option(d_solver, "proof-annotate-theory-lemmas", "true");
+  Cvc5Proof proof = create_proof();
+  ASSERT_CVC5_ERROR(cvc5_proof_get_annotation_id(proof),
+                    "to return `ANNOTATE`");
+  Cvc5ProofRule rule;
+  std::vector<Cvc5Proof> stack = {proof};
+  do
+  {
+    proof = stack.back();
+    stack.pop_back();
+    rule = cvc5_proof_get_rule(proof);
+    size_t size;
+    const Cvc5Proof* children = cvc5_proof_get_children(proof, &size);
+    for (size_t i = 0; i < size; ++i)
+    {
+      stack.push_back(children[i]);
+    }
+  } while (rule != CVC5_PROOF_RULE_ANNOTATE);
+  ASSERT_EQ(cvc5_proof_get_annotation_id(proof),
+            CVC5_ANNOTATION_ID_THEORY_LEMMA);
+}
+
 TEST_F(TestCApiBlackProof, get_result)
 {
   ASSERT_CVC5_ERROR(cvc5_proof_get_result(nullptr), "invalid proof");
@@ -183,6 +209,47 @@ TEST_F(TestCApiBlackProof, get_arguments)
   ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(nullptr, &size), "invalid proof");
   ASSERT_CVC5_ERROR(cvc5_proof_get_arguments(proof, nullptr),
                     "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackProof, get_argument_to_string)
+{
+  ASSERT_CVC5_ERROR(cvc5_proof_get_argument_to_string(nullptr, 0),
+                    "invalid proof");
+  cvc5_set_option(d_solver, "proof-annotate-theory-lemmas", "true");
+  Cvc5Proof proof = create_proof();
+  size_t size;
+  (void)cvc5_proof_get_arguments(proof, &size);
+  ASSERT_CVC5_ERROR(cvc5_proof_get_argument_to_string(proof, size),
+                    "index out of bound");
+  bool found_assume = false;
+  bool found_annotate = false;
+  std::vector<Cvc5Proof> stack = {proof};
+  while (!stack.empty())
+  {
+    proof = stack.back();
+    stack.pop_back();
+    Cvc5ProofRule rule = cvc5_proof_get_rule(proof);
+    if (rule == CVC5_PROOF_RULE_ASSUME)
+    {
+      found_assume = true;
+      const Cvc5Term* args = cvc5_proof_get_arguments(proof, &size);
+      ASSERT_EQ(std::string(cvc5_proof_get_argument_to_string(proof, 0)),
+                std::string(cvc5_term_to_string(args[0])));
+    }
+    else if (rule == CVC5_PROOF_RULE_ANNOTATE)
+    {
+      found_annotate = true;
+      ASSERT_EQ(std::string(cvc5_proof_get_argument_to_string(proof, 0)),
+                "THEORY_LEMMA");
+    }
+    const Cvc5Proof* children = cvc5_proof_get_children(proof, &size);
+    for (size_t i = 0; i < size; ++i)
+    {
+      stack.push_back(children[i]);
+    }
+  }
+  ASSERT_TRUE(found_assume);
+  ASSERT_TRUE(found_annotate);
 }
 
 TEST_F(TestCApiBlackProof, is_equal_disequal_hash)

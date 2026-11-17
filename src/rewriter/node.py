@@ -221,6 +221,7 @@ class Op(Enum):
     SET_SUBSET = ('set.subset', 'SET_SUBSET')
     SET_MEMBER = ('set.member', 'SET_MEMBER')
     SET_SINGLETON = ('set.singleton', 'SET_SINGLETON')
+    SET_INSERT = ('set.insert', 'SET_INSERT')
     SET_CHOOSE = ('set.choose', 'SET_CHOOSE')
     SET_CARD = ('set.card', 'SET_CARD')
     SET_IS_EMPTY = ('set.is_empty', 'SET_IS_EMPTY')

@@ -568,6 +568,8 @@ void SolverEngine::defineFunction(Node func,
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(def));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  // Definitions invalidate the previous check-sat result.
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunction(Node func, Node lambda, bool global)
@@ -579,6 +581,7 @@ void SolverEngine::defineFunction(Node func, Node lambda, bool global)
   // eliminate subtypes (mixed arithmetic) if proof producing, see cvc5#12754
   Node feq = eliminateSubtypesForProof(func.eqNode(lambda));
   d_smtSolver->getAssertions().addDefineFunDefinition(feq, global);
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionsRec(
@@ -652,6 +655,7 @@ void SolverEngine::defineFunctionsRec(
     lem = eliminateSubtypesForProof(lem);
     d_smtSolver->getAssertions().addDefineFunDefinition(lem, global);
   }
+  d_state->notifyDefinition();
 }
 
 void SolverEngine::defineFunctionRec(Node func,
@@ -794,31 +798,25 @@ QuantifiersEngine* SolverEngine::getAvailableQuantifiersEngine(
 
 Result SolverEngine::checkSat()
 {
-  beginCall(true);
-  Result res = checkSatInternal({});
-  endCall();
-  return res;
+  ResourceLimitedCall call(*this);
+  return checkSatInternal({});
 }
 
 Result SolverEngine::checkSat(const Node& assumption)
 {
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   std::vector<Node> assump;
   if (!assumption.isNull())
   {
     assump.push_back(assumption);
   }
-  Result res = checkSatInternal(assump);
-  endCall();
-  return res;
+  return checkSatInternal(assump);
 }
 
 Result SolverEngine::checkSat(const std::vector<Node>& assumptions)
 {
-  beginCall(true);
-  Result res = checkSatInternal(assumptions);
-  endCall();
-  return res;
+  ResourceLimitedCall call(*this);
+  return checkSatInternal(assumptions);
 }
 
 Result SolverEngine::checkSatInternal(const std::vector<Node>& assumptions)
@@ -879,7 +877,7 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
     const std::vector<Node>& assumptions)
 {
   Trace("smt") << "SolverEngine::getTimeoutCore()" << std::endl;
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   if (d_tcm == nullptr)
   {
     d_tcm.reset(new TimeoutCoreManager(*d_env.get()));
@@ -920,7 +918,6 @@ std::pair<Result, std::vector<Node>> SolverEngine::getTimeoutCore(
   SolverEngine* solver = d_tcm->getSubSolver();
   Assert(solver != nullptr);
   d_state->notifyCheckSatResult(ret.first, solver);
-  endCall();
   return std::pair<Result, std::vector<Node>>(ret.first, core);
 }
 
@@ -1050,7 +1047,7 @@ void SolverEngine::assertSygusInvConstraint(Node inv,
 
 SynthResult SolverEngine::checkSynth(bool isNext)
 {
-  beginCall();
+  ResourceLimitedCall call(*this);
   if (isNext && d_state->getMode() != SmtMode::SYNTH)
   {
     throw RecoverableModalException(
@@ -1065,7 +1062,7 @@ SynthResult SolverEngine::checkSynth(bool isNext)
 Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
 {
   Trace("smt") << "SolverEngine::findSynth " << fst << std::endl;
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   // The grammar(s) we will use. This may be more than one if doing rewrite
   // rule synthesis from input or if no grammar is specified, indicating we
   // wish to use grammars for each function-to-synthesize.
@@ -1123,13 +1120,12 @@ Node SolverEngine::findSynth(modes::FindSynthTarget fst, const TypeNode& gtn)
   }
   Node ret = d_findSynthSolver->findSynth(fst, gtnu);
   d_state->notifyFindSynth(!ret.isNull());
-  endCall();
   return ret;
 }
 
 Node SolverEngine::findSynthNext()
 {
-  beginCall();
+  ResourceLimitedCall call(*this);
   if (d_state->getMode() != SmtMode::FIND_SYNTH)
   {
     throw RecoverableModalException(
@@ -1218,9 +1214,14 @@ void SolverEngine::addPlugin(Plugin* p)
   d_env->addPlugin(p);
 }
 
+void SolverEngine::setTerminator(std::function<bool()> terminator)
+{
+  getResourceManager()->setTerminator(std::move(terminator));
+}
+
 Node SolverEngine::simplify(const Node& t, bool applySubs)
 {
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   Node tt = t;
   // if we are applying substitutions
   if (applySubs)
@@ -1235,7 +1236,6 @@ Node SolverEngine::simplify(const Node& t, bool applySubs)
   // make so that the returned term does not involve arithmetic subtyping
   SubtypeElimNodeConverter senc(d_env->getNodeManager());
   ret = senc.convert(ret);
-  endCall();
   return ret;
 }
 
@@ -1774,7 +1774,9 @@ StatisticsRegistry& SolverEngine::getStatisticsRegistry()
 
 UnsatCore SolverEngine::getUnsatCoreInternal(bool isInternal)
 {
-  if (!d_env->getOptions().smt.produceUnsatCores)
+  // note that unsat cores may be computed internally for unsat assumptions
+  // even if produce-unsat-cores is off
+  if (d_env->getOptions().smt.unsatCoresMode == options::UnsatCoresMode::OFF)
   {
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
@@ -1864,9 +1866,7 @@ void SolverEngine::checkModel(bool hardFailure)
   // check the model with the theory engine for debugging
   if (options().smt.debugCheckModels)
   {
-    TheoryEngine* te = d_smtSolver->getTheoryEngine();
-    Assert(te != nullptr);
-    te->checkTheoryAssertionsWithModel(hardFailure);
+    d_smtDriver->debugCheckModels(hardFailure);
   }
 
   // check the model with the check models utility
@@ -1883,6 +1883,12 @@ UnsatCore SolverEngine::getUnsatCore()
     return ssolver->getUnsatCore();
   }
   Trace("smt") << "SMT getUnsatCore()" << std::endl;
+  if (!d_env->getOptions().smt.produceUnsatCores)
+  {
+    throw ModalException(
+        "Cannot get an unsat core when produce-unsat-cores or produce-proofs "
+        "option is off.");
+  }
   return getUnsatCoreInternal(false);
 }
 
@@ -2177,17 +2183,15 @@ bool SolverEngine::getSubsolverSynthSolutions(std::map<Node, Node>& solMap)
 Node SolverEngine::getQuantifierElimination(Node q, bool doFull)
 {
   Assert(d_state->getStatusSolver() == nullptr);
-  beginCall(true);
-  Node result = d_quantElimSolver->getQuantifierElimination(
+  ResourceLimitedCall call(*this);
+  return d_quantElimSolver->getQuantifierElimination(
       q, doFull, d_isInternalSubsolver);
-  endCall();
-  return result;
 }
 
 Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 {
   Assert(d_state->getStatusSolver() == nullptr);
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   // Analogous to getAbduct, ensure that assertions are current.
   d_smtDriver->refreshAssertions();
   std::vector<Node> axioms = getAssertions();
@@ -2197,7 +2201,6 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
   // notify the state of whether the get-interpolant call was successfuly, which
   // impacts the SMT mode.
   d_state->notifyGetInterpol(success);
-  endCall();
   Assert(success == !interpol.isNull());
   return interpol;
 }
@@ -2205,7 +2208,7 @@ Node SolverEngine::getInterpolant(const Node& conj, const TypeNode& grammarType)
 Node SolverEngine::getInterpolantNext()
 {
   Assert(d_state->getStatusSolver() == nullptr);
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   if (d_state->getMode() != SmtMode::INTERPOL)
   {
     throw RecoverableModalException(
@@ -2217,7 +2220,6 @@ Node SolverEngine::getInterpolantNext()
   bool success = d_interpolSolver->getInterpolantNext(interpol);
   // notify the state of whether the get-interpolantant-next call was successful
   d_state->notifyGetInterpol(success);
-  endCall();
   Assert(success == !interpol.isNull());
   return interpol;
 }
@@ -2225,7 +2227,7 @@ Node SolverEngine::getInterpolantNext()
 Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 {
   Assert(d_state->getStatusSolver() == nullptr);
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   // ensure that assertions are current
   d_smtDriver->refreshAssertions();
   std::vector<Node> axioms = getAssertions();
@@ -2235,7 +2237,6 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
   // notify the state of whether the get-abduct call was successful, which
   // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
-  endCall();
   Assert(success == !abd.isNull());
   return abd;
 }
@@ -2243,7 +2244,7 @@ Node SolverEngine::getAbduct(const Node& conj, const TypeNode& grammarType)
 Node SolverEngine::getAbductNext()
 {
   Assert(d_state->getStatusSolver() == nullptr);
-  beginCall(true);
+  ResourceLimitedCall call(*this);
   if (d_state->getMode() != SmtMode::ABDUCT)
   {
     throw RecoverableModalException(
@@ -2254,7 +2255,6 @@ Node SolverEngine::getAbductNext()
   bool success = d_abductSolver->getAbductNext(abd);
   // notify the state of whether the get-abduct-next call was successful
   d_state->notifyGetAbduct(success);
-  endCall();
   Assert(success == !abd.isNull());
   return abd;
 }

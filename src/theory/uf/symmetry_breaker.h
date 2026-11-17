@@ -111,6 +111,19 @@ class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
   Terms d_terms;
   Template d_template;
   std::unordered_map<Node, Node> d_normalizationCache;
+  /**
+   * Maps each term occurring in some permutation of d_permutations to the
+   * (increasing) indices of the assertions in d_phi it occurs in. Computed by
+   * computePhiOccurrences(), and updated by addPhiOccurrences() for the
+   * symmetry-breaking clauses that apply() adds to d_phi.
+   */
+  std::unordered_map<TNode, std::vector<size_t>> d_phiOccurrences;
+  /**
+   * For each assertion of d_phi, norm() of it, or null if not computed yet.
+   * Used for the assertions that a substitution leaves unchanged, see
+   * normUnchanged().
+   */
+  std::vector<Node> d_phiNorm;
   TermEqs d_termEqs;
   TermEqs d_termEqsOnly;
 
@@ -118,6 +131,26 @@ class SymmetryBreaker : protected EnvObj, public context::ContextNotifyObj
   void rerunAssertionsIfNecessary();
 
   void guessPermutations();
+  /** Compute d_phiOccurrences for the current d_phi and d_permutations. */
+  void computePhiOccurrences();
+  /**
+   * Add the occurrences of the terms of d_permutations in the assertion
+   * d_phi[i] to d_phiOccurrences. Must be called for each assertion added to
+   * d_phi after computePhiOccurrences.
+   */
+  void addPhiOccurrences(size_t i);
+  /**
+   * Returns a vector that is true at the indices of the assertions of d_phi
+   * that contain some term of subs, i.e., the assertions that may change when
+   * substituting subs.
+   */
+  std::vector<bool> getAffectedAssertions(const std::vector<Node>& subs) const;
+  /**
+   * Returns norm(d_phi[k]). Calling norm() again on the same input gives the
+   * same result and has no further effects (its cache is hit, or it only
+   * inserts into sets again), so this computes it only on first use.
+   */
+  Node normUnchanged(size_t k);
   bool invariantByPermutations(const Permutation& p);
   void selectTerms(const Permutation& p);
   Terms::iterator selectMostPromisingTerm(Terms& terms);

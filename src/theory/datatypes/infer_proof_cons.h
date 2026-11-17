@@ -94,6 +94,15 @@ class InferProofCons : protected EnvObj, public ProofGenerator
                  const Node& conc,
                  const Node& exp,
                  const Node& narg);
+  /**
+   * Prove the negated tester target (not (is-C t)) from the negated tester
+   * lit (not (is-C s)) and the equality of s and t among the equalities eqs,
+   * by congruence, adding the steps to cdp. Returns true if successful.
+   */
+  bool proveTesterModuloEq(const Node& lit,
+                           const Node& target,
+                           const std::vector<Node>& eqs,
+                           CDProof* cdp);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** The lazy fact map */

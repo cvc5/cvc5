@@ -1,6 +1,8 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bv-abstraction --bv-abstraction-size=3
 ; EXPECT: unsat
+; Proof testing is disabled because it switches to --bv-solver=bitblast-internal,
+; which does not support the bit-vector abstraction exercised by this test.
 ; DISABLE-TESTER: proof
 ; The division identity a = (a udiv b) * b + (a urem b) for b != 0. The
 ; inconsistency stems from the interaction of three abstracted terms (bvudiv,

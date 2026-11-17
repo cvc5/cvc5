@@ -1,0 +1,58 @@
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; EXPECT: feasible
+(set-logic ALL)
+(define-fun safe-mod ((x Int) (y Int)) Int (mod x (+ 1 (abs y))))
+(define-fun clamp-int ((x Int)) Int (ite (< 5 x) 5 (ite (< x 0) 0 x)))
+(synth-fun args_0_refinement_0 
+  ((r__size_m_FilterConcat_0 Int)) Bool 
+  ((fv_B Bool) (B Bool) (fv_I Int) (I Int) (IClamp Int) (IConst Int)) 
+  (
+    (fv_B Bool ((Variable Bool) true false (=> fv_B B) (=> B fv_B) (and fv_B B) (and B fv_B) (not fv_B) (= fv_I I) (= I fv_I) (< fv_I I) (< I fv_I) (<= fv_I I) (<= I fv_I))) 
+    (B Bool ((Variable Bool) true false (=> B B) (and B B) (not B) (= I I) (< I I) (<= I I))) 
+    (fv_I Int ((Variable Int) IClamp (+ fv_I I) (+ I fv_I) (- fv_I I) (- I fv_I) r__size_m_FilterConcat_0)) 
+    (I Int ((Variable Int) IClamp (+ I I) (- I I) r__size_m_FilterConcat_0)) 
+    (IClamp Int ((clamp-int IConst))) 
+    (IConst Int ((Constant Int)))
+  )
+)
+(synth-fun args_1_refinement_0 
+  ((x0__size_m_FilterConcat_0 Int) (r__size_m_FilterConcat_0 Int)) Bool 
+  ((fv_B Bool) (B Bool) (fv_I Int) (I Int) (IClamp Int) (IConst Int)) 
+  (
+    (fv_B Bool ((Variable Bool) true false (=> fv_B B) (=> B fv_B) (and fv_B B) (and B fv_B) (not fv_B) (= fv_I I) (= I fv_I) (< fv_I I) (< I fv_I) (<= fv_I I) (<= I fv_I))) 
+    (B Bool ((Variable Bool) true false (=> B B) (and B B) (not B) (= I I) (< I I) (<= I I))) 
+    (fv_I Int ((Variable Int) IClamp (+ fv_I I) (+ I fv_I) (- fv_I I) (- I fv_I) r__size_m_FilterConcat_0)) 
+    (I Int ((Variable Int) IClamp (+ I I) (- I I) r__size_m_FilterConcat_0)) 
+    (IClamp Int ((clamp-int IConst))) 
+    (IConst Int ((Constant Int)))
+  )
+)
+(synth-fun ret_refinement_0 
+  ((x0__size_m_FilterConcat_0 Int) (x1__size_m_FilterConcat_0 Int) (r__size_m_FilterConcat_0 Int)) Bool 
+  ((fv_B Bool) (B Bool) (fv_I Int) (I Int) (IClamp Int) (IConst Int)) 
+  (
+    (fv_B Bool ((Variable Bool) true false (=> fv_B B) (=> B fv_B) (and fv_B B) (and B fv_B) (not fv_B) (= fv_I I) (= I fv_I) (< fv_I I) (< I fv_I) (<= fv_I I) (<= I fv_I))) 
+    (B Bool ((Variable Bool) true false (=> B B) (and B B) (not B) (= I I) (< I I) (<= I I))) 
+    (fv_I Int ((Variable Int) IClamp (+ fv_I I) (+ I fv_I) (- fv_I I) (- I fv_I) (* fv_I I) (* I fv_I) (safe-mod fv_I IConst) r__size_m_FilterConcat_0)) 
+    (I Int ((Variable Int) IClamp (+ I I) (- I I) (* I I) (safe-mod I IConst) r__size_m_FilterConcat_0)) 
+    (IClamp Int ((clamp-int IConst))) 
+    (IConst Int ((Constant Int)))
+  )
+)
+(constraint (args_0_refinement_0 0))
+(constraint (args_1_refinement_0 0 0))
+(constraint (ret_refinement_0 0 0 0))
+(constraint (=> true (not (and (ret_refinement_0 0 0 3)))))
+(constraint (args_0_refinement_0 1))
+(constraint (args_1_refinement_0 1 0))
+(constraint (ret_refinement_0 1 0 1))
+(constraint (=> true (not (and (ret_refinement_0 1 0 3)))))
+(constraint (=> true (not (and (ret_refinement_0 0 0 2)))))
+(constraint (=> true (not (and (ret_refinement_0 1 0 2)))))
+(constraint (=> true (not (and (ret_refinement_0 0 0 1)))))
+(constraint (=> (and (args_0_refinement_0 2) (args_1_refinement_0 2 1)) (and (ret_refinement_0 2 1 3))))
+(constraint (=> (and (args_1_refinement_0 0 2)) (and (ret_refinement_0 0 2 2))))
+(constraint (=> (and (args_1_refinement_0 1 2)) (and (ret_refinement_0 1 2 3))))
+(constraint (=> (and (args_1_refinement_0 1 1)) (and (ret_refinement_0 1 1 2))))
+(constraint (=> (and (args_1_refinement_0 0 1)) (and (ret_refinement_0 0 1 1))))
+(check-synth)
