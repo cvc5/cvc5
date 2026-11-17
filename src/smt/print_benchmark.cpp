@@ -12,6 +12,9 @@
 
 #include "smt/print_benchmark.h"
 
+#include <algorithm>
+#include <unordered_map>
+
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
@@ -94,10 +97,41 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
         datatypeBlock.push_back(ctn);
       }
     }
-    // print the mutually recursive datatype block if necessary
-    if (!datatypeBlock.empty())
+    // Datatypes connected to st need not be mutually recursive, which is the
+    // case only if they are reachable from one another. We print each set of
+    // mutually recursive datatypes as its own block, where a datatype reaches
+    // strictly fewer types than the ones that depend on it, hence sorting by
+    // this number ensures that dependencies are printed first.
+    std::unordered_map<TypeNode, std::unordered_set<TypeNode>> reach;
+    for (const TypeNode& dt : datatypeBlock)
     {
-      d_printer->toStreamCmdDatatypeDeclaration(outDecl, datatypeBlock);
+      std::vector<TypeNode> reachable;
+      std::unordered_set<TypeNode> processed;
+      getConnectedSubfieldTypes(dt, reachable, processed);
+      reach[dt].insert(reachable.begin(), reachable.end());
+    }
+    std::stable_sort(datatypeBlock.begin(),
+                     datatypeBlock.end(),
+                     [&reach](const TypeNode& a, const TypeNode& b) {
+                       return reach[a].size() < reach[b].size();
+                     });
+    std::unordered_set<TypeNode> printed;
+    for (const TypeNode& dt : datatypeBlock)
+    {
+      if (printed.find(dt) != printed.end())
+      {
+        continue;
+      }
+      std::vector<TypeNode> block;
+      for (const TypeNode& odt : datatypeBlock)
+      {
+        if (reach[dt].count(odt) > 0 && reach[odt].count(dt) > 0)
+        {
+          block.push_back(odt);
+          printed.insert(odt);
+        }
+      }
+      d_printer->toStreamCmdDatatypeDeclaration(outDecl, block);
       outDecl << std::endl;
     }
   }
