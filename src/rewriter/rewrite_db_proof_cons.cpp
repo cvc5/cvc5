@@ -1138,7 +1138,12 @@ bool RewriteDbProofCons::proveInternalBase(const Node& eqi,
     pi.d_id = idb;
     return true;
   }
-  if (eqi[0].isConst())
+  // A constant cannot be rewritten. An exception is arithmetic equalities
+  // that are valid, e.g. (= 0 (- (str.len x) (str.len x))), which may arise as
+  // the defining condition of a variable in a conditional rewrite rule, and
+  // which can be shown e.g. by arithmetic normalization.
+  if (eqi[0].isConst()
+      && (!eqi[0].getType().isRealOrInt() || rewriteConcrete(eqi) != d_true))
   {
     Trace("rpc-debug2") << "...fail (constant head)" << std::endl;
     ProvenInfo& pi = d_pcache[eqi];

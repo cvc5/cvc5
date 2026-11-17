@@ -33,3 +33,8 @@
 (define-rule str-in-re-from-int-dig-range ((n Int))
   (str.in_re (str.from_int n) (re.* (re.range "0" "9")))
   true)
+
+(define-cond-rule re-char-in-str-star ((c String) (s String))
+  (= (str.len c) 1)
+  (str.in_re c (re.* (str.to_re s)))
+  (= s c))
