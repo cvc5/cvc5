@@ -2338,11 +2338,13 @@ cdef class Solver:
     # The connection of the connected terminator, kept alive while connected.
     cdef _TerminatorConnection terminator
 
-    def __cinit__(self, TermManager tm = None):
-        if not tm:
-          self.tm = TermManager()
-        else:
-          self.tm = tm
+    def __cinit__(self, TermManager tm not None):
+        """
+            Constructor.
+
+            :param tm: The associated term manager.
+        """
+        self.tm = tm
         self.csolver = new c_Solver(dereference(self.tm.ctm))
 
     def __dealloc__(self):
@@ -2354,25 +2356,6 @@ cdef class Solver:
             :return: The term manager instance.
         """
         return self.tm
-
-    def mkSkolem(self, id, *indices):
-        """
-            Create a skolem.
-
-            :param id: The skolem id.
-            :param indices: The indices for the skolem.
-            :return: The skolem with the given id and indices.
-        """
-        return self.tm.mkSkolem(id, indices)
-
-    def getNumIndicesForSkolemId(self, id):
-        """
-            Get the number of indices for a skolem id.
-
-            :param id: The skolem id.
-            :return: The number of indice for a skolem with the given id.
-        """
-        return self.tm.getNumIndicesForSkolemId(id)
 
     def simplify(self, Term t not None, applySubs=False):
         """

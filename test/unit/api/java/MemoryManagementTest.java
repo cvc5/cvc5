@@ -241,6 +241,26 @@ class MemoryManagementTest
   }
 
   @Test
+  @SuppressWarnings("deprecation")
+  void contextDeletePointersFreesEverything() throws Exception
+  {
+    TermManager tm = new TermManager();
+    Solver solver = new Solver(tm);
+    Term t = tm.mkTrue();
+    long freedBefore = freedObjects(tm);
+    Context.deletePointers();
+    assertEquals(freedBefore + 3, freedObjects(tm));
+    assertThrows(IllegalStateException.class, () -> tm.getPointer());
+    assertThrows(IllegalStateException.class, () -> solver.getPointer());
+    assertThrows(IllegalStateException.class, () -> t.getPointer());
+    // Idempotent, and new objects can still be created.
+    Context.deletePointers();
+    assertEquals(freedBefore + 3, freedObjects(tm));
+    TermManager tm2 = new TermManager();
+    assertTrue(tm2.mkTrue().isBooleanValue());
+  }
+
+  @Test
   void termManagerCloseFreesItsObjects() throws Exception
   {
     TermManager tm = new TermManager();
@@ -488,5 +508,18 @@ class MemoryManagementTest
     assertThrows(IllegalStateException.class, () -> tm.getBooleanSort());
     // Objects derived from a term manager released via deletePointer() remain usable.
     assertTrue(y.getSort().isBoolean());
+  }
+
+  @Test
+  @SuppressWarnings("deprecation")
+  void useAfterContextDeletePointersThrows() throws Exception
+  {
+    TermManager tm = new TermManager();
+    Term t = tm.mkTrue();
+    Context.deletePointers();
+    assertThrows(IllegalStateException.class, () -> t.isBooleanValue());
+    assertThrows(IllegalStateException.class, () -> tm.mkFalse());
+    // Null objects are never released.
+    assertTrue(new Term().isNull());
   }
 }
