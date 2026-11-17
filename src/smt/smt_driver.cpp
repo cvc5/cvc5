@@ -32,7 +32,9 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
       d_ctx(ctx),
       d_ap(env),
       d_illegalChecker(env),
-      d_modelVerifier(env)
+      d_hasAssumptions(false),
+      d_modelVerifier(env),
+      d_satFromModelVerify(false)
 {
   // set up proofs, this is done after options are finalized, so the
   // preprocess proof has been setup
@@ -47,10 +49,12 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
 Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
 {
   bool hasAssumptions = !assumptions.empty();
+  d_satFromModelVerify = false;
   if (d_ctx)
   {
     d_ctx->notifyCheckSat(hasAssumptions);
   }
+  d_hasAssumptions = hasAssumptions;
   Assertions& as = d_smt.getAssertions();
   Result result;
   try
@@ -67,12 +71,19 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     Trace("smt") << "SmtSolver::check()" << std::endl;
 
     ResourceManager* rm = d_env.getResourceManager();
-    // if we are already out of (cumulative) resources
+    // if we are already out of (cumulative) resources, or termination has
+    // been requested
     if (rm->out())
     {
-      UnknownExplanation why = rm->outOfResources()
-                                   ? UnknownExplanation::RESOURCEOUT
-                                   : UnknownExplanation::TIMEOUT;
+      UnknownExplanation why = UnknownExplanation::INTERRUPTED;
+      if (rm->outOfResources())
+      {
+        why = UnknownExplanation::RESOURCEOUT;
+      }
+      else if (rm->outOfTime())
+      {
+        why = UnknownExplanation::TIMEOUT;
+      }
       result = Result(Result::UNKNOWN, why);
     }
     else
@@ -128,6 +139,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
                       "on verifying the candidate model"
                    << std::endl;
       result = Result(Result::SAT);
+      d_satFromModelVerify = true;
     }
   }
   if (d_ctx)
@@ -166,6 +178,21 @@ bool SmtDriver::verifyUnknownModel(const Result& r)
   bool ret = d_modelVerifier.verify(m, al);
   rm->setEnabled(true);
   return ret;
+}
+
+void SmtDriver::debugCheckModels(bool hardFailure)
+{
+  // If the result was obtained by verifying a candidate model after an
+  // "unknown" result, the theory engine may have asserted facts (e.g.
+  // quantified formulas) that are not satisfied by the model, so we skip
+  // the check.
+  if (d_satFromModelVerify)
+  {
+    return;
+  }
+  TheoryEngine* te = d_smt.getTheoryEngine();
+  Assert(te != nullptr);
+  te->checkTheoryAssertionsWithModel(hardFailure);
 }
 
 void SmtDriver::getNextAssertionsInternal(preprocessing::AssertionPipeline& ap)
@@ -218,7 +245,7 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
   }
 
   // assert to internal
-  d_smt.assertToInternal(ap);
+  d_smt.assertToInternal(ap, d_hasAssumptions);
   // get result
   Result result = d_smt.checkSatInternal();
   // handle preprocessing-specific modifications to result

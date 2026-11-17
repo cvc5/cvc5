@@ -7,10 +7,10 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Implementation of lazy proof utility.
+ * Implementation of the manager of proofs for optimized clauses.
  */
 
-#include "prop/minisat/opt_clauses_manager.h"
+#include "prop/opt_clauses_manager.h"
 
 #include "proof/proof_node.h"
 

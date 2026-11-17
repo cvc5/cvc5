@@ -61,6 +61,11 @@
   :conclusion (= (mod_total t1 s1) (mod_total t1 (- s1)))
 )
 
+(declare-rule arith-int-div-total-over-mod ((t1 Int) (s1 Int))
+  :args (t1 s1)
+  :conclusion (= (div_total (mod_total t1 s1) s1) 0)
+)
+
 (declare-rule arith-elim-gt ((@T0 Type) (@T1 Type) (t1 @T0) (s1 @T1))
   :args (t1 s1)
   :conclusion (= (> t1 s1) (not (>= s1 t1)))
@@ -119,6 +124,21 @@
 (declare-rule arith-to-int-elim-to-real ((x1 Int))
   :args (x1)
   :conclusion (= (to_int (to_real x1)) x1)
+)
+
+(declare-rule arith-is-int-elim-to-real ((x1 Int))
+  :args (x1)
+  :conclusion (= (is_int (to_real x1)) true)
+)
+
+(declare-rule arith-div-int-to-real ((x1 Int) (y1 Int))
+  :args (x1 y1)
+  :conclusion (= (/ x1 y1) (/ (to_real x1) (to_real y1)))
+)
+
+(declare-rule arith-div-total-int-to-real ((x1 Int) (y1 Int))
+  :args (x1 y1)
+  :conclusion (= (/_total x1 y1) (/_total (to_real x1) (to_real y1)))
 )
 
 (declare-rule arith-mod-over-mod-1 ((c1 Int) (r1 Int))
@@ -1123,6 +1143,18 @@
   ((@n0 Int) (c1 (_ BitVec 1)) (x1 (BitVec @n0)))
   :args (c1 x1)
   :conclusion (= (bvite c1 x1 x1) x1)
+)
+
+(declare-rule bv-ite-const-cond-1
+  ((@n0 Int) (@n1 Int) (t1 (BitVec @n0)) (e1 (BitVec @n1)))
+  :args (t1 e1)
+  :conclusion (= (bvite (@bv 1 1) t1 e1) t1)
+)
+
+(declare-rule bv-ite-const-cond-2
+  ((@n0 Int) (@n1 Int) (t1 (BitVec @n0)) (e1 (BitVec @n1)))
+  :args (t1 e1)
+  :conclusion (= (bvite (@bv 0 1) t1 e1) e1)
 )
 
 (declare-rule bv-ite-const-children-1 ((c1 (_ BitVec 1)))

@@ -53,7 +53,9 @@ if(NOT MPFR_FOUND_SYSTEM)
 
   set(MPFR_INCLUDE_DIR "${DEPS_BASE}/include/")
 
-  set(MPFR_CFLAGS "")
+  # Setting CFLAGS replaces configure's default flags, so we have to request
+  # optimization explicitly.
+  set(MPFR_CFLAGS "-O2")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)

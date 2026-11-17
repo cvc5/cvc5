@@ -161,6 +161,10 @@ libcvc5_add_sources(
   proof/eo/eo_printer.h
   proof/assumption_proof_generator.cpp
   proof/assumption_proof_generator.h
+  proof/annotation_id.cpp
+  proof/annotation_id.h
+  proof/annotation_proof_generator.cpp
+  proof/annotation_proof_generator.h
   proof/buffered_proof_generator.cpp
   proof/buffered_proof_generator.h
   proof/conv_proof_generator.cpp
@@ -272,13 +276,13 @@ libcvc5_add_sources(
   prop/minisat/mtl/Sort.h
   prop/minisat/mtl/Vec.h
   prop/minisat/mtl/XAlloc.h
-  prop/minisat/opt_clauses_manager.cpp
-  prop/minisat/opt_clauses_manager.h
   prop/minisat/sat_proof_manager.cpp
   prop/minisat/sat_proof_manager.h
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
+  prop/opt_clauses_manager.cpp
+  prop/opt_clauses_manager.h
   prop/proof_cnf_stream.cpp
   prop/proof_cnf_stream.h
   prop/proof_post_processor.cpp
@@ -410,6 +414,12 @@ libcvc5_add_sources(
   theory/arith/equality_solver.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
+  theory/arith/liastar/liastar_extension.cpp
+  theory/arith/liastar/liastar_extension.h
+  theory/arith/liastar/liastar_stats.cpp
+  theory/arith/liastar/liastar_stats.h
+  theory/arith/liastar/liastar_utils.cpp
+  theory/arith/liastar/liastar_utils.h
   theory/arith/linear/approx_simplex.cpp
   theory/arith/linear/approx_simplex.h
   theory/arith/linear/arith_static_learner.cpp
@@ -1522,6 +1532,24 @@ add_library(cvc5 $<TARGET_OBJECTS:cvc5-obj> $<TARGET_OBJECTS:cvc5base> $<TARGET_
 
 set_target_properties(cvc5 PROPERTIES OUTPUT_NAME cvc5)
 
+# Instrument only the API sources checked by contrib/uncovered-api-functions.py.
+# All sources that include api/cpp/cvc5_checks.h are instrumented: each of them
+# emits a copy of its inline functions, and the linker may otherwise keep an
+# uninstrumented copy. The parser API sources are instrumented in
+# src/parser/CMakeLists.txt. The link option is public since consumers of the
+# static library must link against the gcov runtime.
+if(ENABLE_API_COVERAGE)
+  set_property(SOURCE
+      api/c/cvc5.cpp
+      api/c/cvc5_c_structs.cpp
+      api/cpp/cvc5.cpp
+      api/cpp/cvc5_skolem_id.cpp
+      api/cpp/cvc5_types.cpp
+      ${PROJECT_BINARY_DIR}/src/api/cpp/cvc5_proof_rule.cpp
+    APPEND PROPERTY COMPILE_OPTIONS -O0 --coverage)
+  target_link_options(cvc5 PUBLIC --coverage)
+endif()
+
 # Link the shared library
 target_include_directories(cvc5
   PUBLIC
@@ -1532,6 +1560,7 @@ target_include_directories(cvc5
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
 install(TARGETS cvc5 EXPORT cvc5-targets)
+strip_lto_static_library(cvc5)
 
 if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
   update_rpath_macos(libcvc5.dylib)

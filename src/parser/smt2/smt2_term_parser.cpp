@@ -271,6 +271,11 @@ Term Smt2TermParser::parseTerm()
       {
         std::string name = tokenStrToSymbol(tok);
         ret = d_state.getVariable(name);
+        // getVariable returns null if the symbol is overloaded
+        if (ret.isNull())
+        {
+          d_lex.parseError("Overloaded constants must be type cast.");
+        }
       }
       break;
       case Token::UNTERMINATED_QUOTED_SYMBOL:

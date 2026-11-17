@@ -19,8 +19,7 @@ public class Bags
   public static void main(String args[]) throws CVC5ApiException
 
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("ALL");
 
@@ -106,6 +105,5 @@ public class Bags
         }
       }
     }
-    Context.deletePointers();
   }
 }

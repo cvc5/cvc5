@@ -149,6 +149,11 @@ TEST_F(TestCApiBlackUncovered, deprecated)
 
   (void)slv.mkVar(slv.getIntegerSort());
   (void)slv.mkDatatypeDecl("paramlist", {slv.mkParamSort("T")});
+  {
+    Term x = slv.mkVar(slv.getBooleanSort(), "x");
+    Term start = slv.mkVar(slv.getBooleanSort(), "start");
+    (void)slv.mkGrammar({x}, {start});
+  }
   (void)cvc5::parser::SymbolManager(&slv);
 }
 
@@ -168,6 +173,7 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   ss << cvc5::modes::ProofFormat::CPC;
   ss << cvc5::ProofRule::ASSUME << std::to_string(cvc5::ProofRule::ASSUME);
   ss << cvc5::ProofRewriteRule::NONE;
+  ss << cvc5::AnnotationId::THEORY_LEMMA;
   ss << cvc5::SkolemId::PURIFY;
   ss << d_tm.mkOp(Kind::BITVECTOR_EXTRACT, {4, 0});
   ss << d_tm.mkDatatypeConstructorDecl("cons");
@@ -182,7 +188,7 @@ TEST_F(TestCApiBlackUncovered, stream_operators)
   d_solver->setOption("sygus", "true");
   (void)d_solver->synthFun("f", {}, d_bool);
   ss << d_solver->checkSynth();
-  ss << d_solver->mkGrammar({}, {d_tm.mkVar(d_bool)});
+  ss << d_tm.mkGrammar({}, {d_tm.mkVar(d_bool)});
   ss << d_solver->checkSat();
 
   DatatypeDecl decl = d_tm.mkDatatypeDecl("list");

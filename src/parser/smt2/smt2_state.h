@@ -371,16 +371,6 @@ class Smt2State : public ParserState
    */
   void parseOpApplyTypeAscription(ParseOp& p, Sort type);
   /**
-   * This converts a ParseOp to expression, assuming it is a standalone term.
-   *
-   * In particular:
-   * - If p's expression field is set, then that expression is returned.
-   * - If p's name field is set, then we look up that name in the symbol table
-   * of this class.
-   * In other cases, a parse error is thrown.
-   */
-  Term parseOpToExpr(ParseOp& p);
-  /**
    * Apply parse operator to list of arguments, and return the resulting
    * expression.
    *

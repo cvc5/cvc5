@@ -39,7 +39,8 @@ class TermManagerTest
   @AfterEach
   void tearDown()
   {
-    Context.deletePointers();
+    d_solver.close();
+    d_tm.close();
   }
 
   @Test
@@ -1015,6 +1016,36 @@ class TermManagerTest
   }
 
   @Test
+  void mkGrammar() throws CVC5ApiException
+  {
+    Term nullTerm = new Term();
+    Term boolTerm = d_tm.mkBoolean(true);
+    Term boolVar = d_tm.mkVar(d_tm.getBooleanSort());
+    Term intVar = d_tm.mkVar(d_tm.getIntegerSort());
+
+    assertDoesNotThrow(() -> d_tm.mkGrammar(new Term[] {}, new Term[] {intVar}));
+    assertDoesNotThrow(() -> d_tm.mkGrammar(new Term[] {boolVar}, new Term[] {intVar}));
+
+    assertThrows(CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {nullTerm}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {}, new Term[] {boolTerm}));
+    assertThrows(
+        CVC5ApiException.class, () -> d_tm.mkGrammar(new Term[] {boolTerm}, new Term[] {intVar}));
+
+    TermManager tm = new TermManager();
+    Term boolVar2 = tm.mkVar(tm.getBooleanSort());
+    Term intVar2 = tm.mkVar(tm.getIntegerSort());
+    assertDoesNotThrow(() -> tm.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar2}));
+
+    assertThrows(
+        CVC5ApiException.class, () -> tm.mkGrammar(new Term[] {boolVar}, new Term[] {intVar2}));
+    assertThrows(
+        CVC5ApiException.class, () -> tm.mkGrammar(new Term[] {boolVar2}, new Term[] {intVar}));
+  }
+
+  @Test
   void uFIteration()
   {
     Sort intSort = d_tm.getIntegerSort();
@@ -1051,6 +1082,8 @@ class TermManagerTest
     for (Map.Entry<String, Stat> s : stats)
     {
       assertFalse(s.getKey().isEmpty());
+      assertFalse(s.getValue().isInternal());
+      assertFalse(s.getValue().isDefault());
     }
     for (Statistics.ConstIterator it = stats.iterator(true, true); it.hasNext();)
     {
@@ -1065,5 +1098,29 @@ class TermManagerTest
         assertEquals(elem.getValue().toString(), "{ integer type: 1 }");
       }
     }
+  }
+
+  @Test
+  void getStatisticsIterator()
+  {
+    d_tm.mkConst(d_tm.getIntegerSort(), "i");
+    Statistics stats = d_tm.getStatistics();
+    Statistics.ConstIterator it = stats.iterator(true, true);
+    assertTrue(it.hasNext());
+    // The iterator keeps no native state, so it remains usable after the
+    // statistics object has been released.
+    stats.deletePointer();
+    int count = 0;
+    while (it.hasNext())
+    {
+      Map.Entry<String, Stat> entry = it.next();
+      assertFalse(entry.getKey().isEmpty());
+      assertDoesNotThrow(() -> entry.getValue().toString());
+      count++;
+    }
+    assertTrue(count > 0);
+    assertThrows(NoSuchElementException.class, () -> it.next());
+    // A new iterator cannot be created from the released statistics object.
+    assertThrows(IllegalStateException.class, () -> stats.iterator());
   }
 }

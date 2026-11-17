@@ -947,7 +947,7 @@ void TheorySetsPrivate::checkGroups()
 void TheorySetsPrivate::checkGroup(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  groupNotEmpty(n);
+  groupEmpty(n);
   d_im.doPendingLemmas();
   if (d_im.hasSent())
   {
@@ -1065,7 +1065,7 @@ void TheorySetsPrivate::checkGroup(Node n)
   }
 }
 
-void TheorySetsPrivate::groupNotEmpty(Node n)
+void TheorySetsPrivate::groupEmpty(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
   NodeManager* nm = nodeManager();
@@ -1077,12 +1077,9 @@ void TheorySetsPrivate::groupNotEmpty(Node n)
   Node A_isEmpty = A.eqNode(emptyPart);
   std::vector<Node> exp;
   exp.push_back(A_isEmpty);
-  Node singleton = nm->mkNode(Kind::SET_SINGLETON, emptyPart);
-  Node groupIsSingleton = skolem.eqNode(singleton);
-
-  Node conclusion = groupIsSingleton;
-  d_im.assertInference(
-      conclusion, InferenceId::SETS_RELS_GROUP_NOT_EMPTY, exp, 1);
+  // an empty relation has no parts
+  Node conclusion = skolem.eqNode(nm->mkConst(EmptySet(bagType)));
+  d_im.assertInference(conclusion, InferenceId::SETS_RELS_GROUP_EMPTY, exp, 1);
 }
 
 void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)
@@ -1592,10 +1589,31 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
                                      ? d_cardSolver->getOrderedSetsEqClasses()
                                      : d_state.getSetsEqClasses();
   Valuation& val = getValuation();
+  // The representative of a sets equivalence class may not be relevant even
+  // if other terms in it are. We map each representative to a relevant term
+  // in its equivalence class, if one exists, preferring the representative
+  // itself.
+  std::map<Node, Node> relTerm;
+  for (const Node& t : termSet)
+  {
+    if (t.getType().isSet())
+    {
+      Node r = d_state.getRepresentative(t);
+      if (r == t)
+      {
+        relTerm[r] = t;
+      }
+      else
+      {
+        relTerm.emplace(r, t);
+      }
+    }
+  }
   for (int i = (int)(sec.size() - 1); i >= 0; i--)
   {
     Node eqc = sec[i];
-    if (termSet.find(eqc) == termSet.end())
+    std::map<Node, Node>::iterator itr = relTerm.find(eqc);
+    if (itr == relTerm.end())
     {
       Trace("sets-model") << "* Do not assign value for " << eqc
                           << " since is not relevant." << std::endl;
@@ -1634,7 +1652,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
       Trace("sets-model") << "* Assign representative of " << eqc << " to "
                           << rep << std::endl;
       mvals[eqc] = rep;
-      if (!m->assertEquality(eqc, rep, true))
+      if (!m->assertEquality(itr->second, rep, true))
       {
         return false;
       }

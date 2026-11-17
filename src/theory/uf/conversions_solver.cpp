@@ -13,6 +13,7 @@
 #include "theory/uf/conversions_solver.h"
 
 #include "options/uf_options.h"
+#include "proof/eager_proof_generator.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
@@ -31,7 +32,12 @@ ConversionsSolver::ConversionsSolver(Env& env,
       d_state(state),
       d_im(im),
       d_preRegistered(userContext()),
-      d_reduced(userContext())
+      d_reduced(userContext()),
+      d_rangeLemma(userContext()),
+      d_epg(env.isTheoryProofProducing()
+                ? new EagerProofGenerator(
+                      env, userContext(), "uf::ConversionsSolver::epg")
+                : nullptr)
 {
 }
 
@@ -45,6 +51,23 @@ void ConversionsSolver::preRegisterTerm(TNode term)
 void ConversionsSolver::check()
 {
   Trace("bv-convs") << "Bitvector conversion terms : " << std::endl;
+  Trace("bv-convs") << "ConversionsSolver: Check range for "
+                    << d_preRegistered.size() << " terms" << std::endl;
+  // Add the range constraints for all ubv_to_int terms first. These are
+  // small lemmas that often suffice to show a conflict, in which case we
+  // avoid the (much larger) reduction lemmas below.
+  bool addedRangeLemma = false;
+  for (const Node& a : d_preRegistered)
+  {
+    if (checkRange(a))
+    {
+      addedRangeLemma = true;
+    }
+  }
+  if (addedRangeLemma)
+  {
+    return;
+  }
   Trace("bv-convs") << "ConversionsSolver: Check reductions for "
                     << d_preRegistered.size() << " terms" << std::endl;
   // check reductions for all bv conversion terms
@@ -52,6 +75,29 @@ void ConversionsSolver::check()
   {
     checkReduction(a);
   }
+}
+
+bool ConversionsSolver::checkRange(Node n)
+{
+  // the range of int2bv terms is implied by their type
+  if (n.getKind() != Kind::BITVECTOR_UBV_TO_INT)
+  {
+    return false;
+  }
+  if (d_rangeLemma.find(n) != d_rangeLemma.end())
+  {
+    return false;
+  }
+  d_rangeLemma.insert(n);
+  Node lem = arith::ubvToIntRange(n);
+  Trace("bv-convs") << "...range lemma " << lem << std::endl;
+  if (d_epg != nullptr)
+  {
+    TrustNode trn =
+        d_epg->mkTrustNode(lem, ProofRule::UBV_TO_INT_RANGE, {}, {n});
+    return d_im.trustedLemma(trn, InferenceId::UF_ARITH_BV_CONV_RANGE);
+  }
+  return d_im.lemma(lem, InferenceId::UF_ARITH_BV_CONV_RANGE);
 }
 
 void ConversionsSolver::checkReduction(Node n)

@@ -117,12 +117,9 @@ jobs:
       env:
         CIBW_ALLOW_EMPTY: True
         CIBW_BUILD: "${{ github.event.inputs.python_versions || '*' }}"
-        CIBW_SKIP: "pp*-win* *-win32 *-manylinux_i686 *-musllinux_* cp31?t-*"
-        CIBW_ENABLE: pypy pypy-eol
+        CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux_* cp31?t-*"
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
         CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
-        CIBW_MANYLINUX_PYPY_X86_64_IMAGE: manylinux2014
-        CIBW_MANYLINUX_PYPY_AARCH64_IMAGE: manylinux2014
         CIBW_ARCHS_LINUX: "${{ matrix.arch }}"
         CIBW_BEFORE_ALL_LINUX: bash ./contrib/cibw/before_all_linux.sh ${{ matrix.gpl }}
         CIBW_BEFORE_ALL_MACOS: bash ./contrib/cibw/before_all_macos.sh ${{ matrix.gpl }}

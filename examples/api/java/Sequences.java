@@ -18,8 +18,7 @@ public class Sequences
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       // Set the logic
       slv.setLogic("QF_SLIA");
@@ -63,6 +62,5 @@ public class Sequences
         System.out.println("  y = " + slv.getValue(y));
       }
     }
-    Context.deletePointers();
   }
 }

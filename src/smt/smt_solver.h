@@ -119,8 +119,13 @@ class SmtSolver : protected EnvObj
    * Push the assertions to the prop engine. Assumes that the assertions
    * (d_asserts) have been preprocessed. This pushes the assertions
    * into the prop engine of this solver and subsequently clears d_asserts.
+   *
+   * @param ap The assertions to push.
+   * @param isAssumptions Whether the assertions are the (preprocessed)
+   * assumptions of the current check-sat-assuming call.
    */
-  void assertToInternal(preprocessing::AssertionPipeline& ap);
+  void assertToInternal(preprocessing::AssertionPipeline& ap,
+                        bool isAssumptions = false);
   /**
    * Check satisfiability based on the current state of the prop engine.
    * This assumes we have pushed the necessary assertions to it. It post

@@ -180,6 +180,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::QUANT_VAR_REORDERING:
     case ProofRule::ENCODE_EQ_INTRO:
     case ProofRule::HO_APP_ENCODE:
+    case ProofRule::UBV_TO_INT_RANGE:
     case ProofRule::BV_EAGER_ATOM:
     case ProofRule::ACI_NORM:
     case ProofRule::ABSORB:
@@ -188,6 +189,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     case ProofRule::BV_POLY_NORM:
     case ProofRule::BV_POLY_NORM_EQ:
     case ProofRule::EXISTS_STRING_LENGTH:
+    case ProofRule::ANNOTATE:
     case ProofRule::DSL_REWRITE: return true;
     case ProofRule::BV_BITBLAST_STEP:
     {
@@ -196,7 +198,7 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     break;
     case ProofRule::THEORY_REWRITE:
     {
-      ProofRewriteRule id;
+      ProofRewriteRule id = ProofRewriteRule::NONE;
       rewriter::getRewriteRule(pfn->getArguments()[0], id);
       return isHandledTheoryRewrite(opts, id, pfn->getArguments()[1]);
     }
@@ -650,7 +652,7 @@ std::string EoPrinter::getRuleName(const ProofNode* pfn) const
   ProofRule r = pfn->getRule();
   if (r == ProofRule::DSL_REWRITE)
   {
-    ProofRewriteRule id;
+    ProofRewriteRule id = ProofRewriteRule::NONE;
     rewriter::getRewriteRule(pfn->getArguments()[0], id);
     std::stringstream ss;
     ss << id;
@@ -658,7 +660,7 @@ std::string EoPrinter::getRuleName(const ProofNode* pfn) const
   }
   else if (r == ProofRule::THEORY_REWRITE)
   {
-    ProofRewriteRule id;
+    ProofRewriteRule id = ProofRewriteRule::NONE;
     rewriter::getRewriteRule(pfn->getArguments()[0], id);
     std::stringstream ss;
     ss << id;
@@ -1519,7 +1521,7 @@ void EoPrinter::printStepPost(EoPrintChannel* out, const ProofNode* pn)
       ss << pn->getRule();
       if (pn->getRule() == ProofRule::THEORY_REWRITE)
       {
-        ProofRewriteRule prid;
+        ProofRewriteRule prid = ProofRewriteRule::NONE;
         rewriter::getRewriteRule(pn->getArguments()[0], prid);
         ss << " (" << prid << ")";
       }
@@ -1541,6 +1543,12 @@ void EoPrinter::printStepPost(EoPrintChannel* out, const ProofNode* pn)
                         premises,
                         pn->getArguments(),
                         conclusion);
+    return;
+  }
+  if (r == ProofRule::ANNOTATE)
+  {
+    Assert(premises.size() == 1);
+    d_pletMap[pn] = premises[0];
     return;
   }
   std::string rname = getRuleName(pn);

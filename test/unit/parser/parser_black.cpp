@@ -222,6 +222,11 @@ TEST_F(TestParserBlackSmt2InputParser, good_inputs)
       "(assert (= (ite true x y) x))");
   tryGoodInput(";; nothing but a comment");
   tryGoodInput("; a comment\n(check-sat ; goodbye\n)");
+  // attribute values are optional
+  tryGoodInput("(set-info :a)");
+  tryGoodInput("(set-info :notes)");
+  // quoted symbols may contain whitespace
+  tryGoodInput("(set-info :notes |a b\tc\nd|)");
 }
 
 TEST_F(TestParserBlackSmt2InputParser, bad_inputs)
@@ -232,6 +237,15 @@ TEST_F(TestParserBlackSmt2InputParser, bad_inputs)
   tryBadInput("(assert)");
   // illegal character in symbol
   tryBadInput("(set-info :notes |Symbols can't contain the | character|)");
+  // illegal characters in quoted symbols
+  tryBadInput("(set-info :notes |a" + std::string(1, '\0') + "b|)");
+  tryBadInput("(set-info :notes |a\\b|)");
+  tryBadInput(
+      "(set-info :notes |a\x01"
+      "b|)");
+  // keywords that require a value
+  tryBadInput("(set-info :status)");
+  tryBadInput("(set-info :smt-lib-version)");
   // check-sat should not have an argument
   tryBadInput("(set-logic QF_UF) (check-sat true)", true);
   // no argument

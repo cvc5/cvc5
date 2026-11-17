@@ -206,7 +206,7 @@ void SortInference::initialize(const std::vector<Node>& assertions)
     Trace("sort-inference-debug")
         << "Process type monotonicity for " << a << std::endl;
     std::map<Node, Node> var_bound;
-    processMonotonic(a, true, true, var_bound, visitedmt, true);
+    processMonotonic(a, true, true, var_bound, visitedmt);
   }
   Trace("sort-inference-proc") << "...done" << std::endl;
 
@@ -610,8 +610,7 @@ void SortInference::processMonotonic(
     bool pol,
     bool hasPol,
     std::map<Node, Node>& var_bound,
-    std::map<Node, std::map<int, bool> >& visited,
-    bool typeMode)
+    std::map<Node, std::map<int, bool> >& visited)
 {
   int pindex = hasPol ? (pol ? 1 : -1) : 0;
   if (visited[n].find(pindex) == visited[n].end())
@@ -630,7 +629,11 @@ void SortInference::processMonotonic(
           var_bound[n[0][i]] = n;
         }
       }
-      processMonotonic(n[1], pol, hasPol, var_bound, visited, typeMode);
+      // Use a fresh cache for the body, since whether a term is marked below
+      // depends on var_bound, which differs when the same quantified formula
+      // occurs both positively and negatively.
+      std::map<Node, std::map<int, bool> > new_visited;
+      processMonotonic(n[1], pol, hasPol, var_bound, new_visited);
       if (!hasPol || pol)
       {
         for (unsigned i = 0; i < n[0].getNumChildren(); i++)
@@ -648,17 +651,24 @@ void SortInference::processMonotonic(
         {
           if (var_bound.find(n[i]) != var_bound.end())
           {
-            if (!typeMode)
-            {
-              int sid = getSortId(var_bound[n[i]], n[i]);
-              d_non_monotonic_sorts[sid] = true;
-            }
-            else
-            {
-              d_non_monotonic_sorts_orig[n[i].getType()] = true;
-            }
+            d_non_monotonic_sorts_orig[n[i].getType()] = true;
             break;
           }
+        }
+      }
+    }
+    else if (!isHandledApplyUf(n.getKind()))
+    {
+      // A variable that is not an argument of an uninterpreted function, e.g.
+      // a branch of an ITE or an argument of a datatype constructor, may also
+      // restrict the cardinality of its sort, so we conservatively mark it.
+      // Variables of other types are not split into subsorts.
+      for (const Node& nc : n)
+      {
+        if (var_bound.find(nc) != var_bound.end()
+            && nc.getType().isUninterpretedSort())
+        {
+          d_non_monotonic_sorts_orig[nc.getType()] = true;
         }
       }
     }
@@ -667,7 +677,7 @@ void SortInference::processMonotonic(
       bool npol;
       bool nhasPol;
       theory::QuantPhaseReq::getPolarity(n, i, hasPol, pol, nhasPol, npol);
-      processMonotonic(n[i], npol, nhasPol, var_bound, visited, typeMode);
+      processMonotonic(n[i], npol, nhasPol, var_bound, visited);
     }
   }
 }

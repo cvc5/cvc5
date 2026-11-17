@@ -76,8 +76,10 @@ if(NOT GMP_FOUND_SYSTEM)
   # Newer versions of gcc use C23 as default C standard but GMP (as of 6.3.0)
   # only supports C17. To also support older compiler versions, we fix the
   # standard for GMP to C99.
-  set(GMP_CFLAGS "-std=gnu99")
-  set(GMP_CXXFLAGS "")
+  # Setting CFLAGS/CXXFLAGS replaces configure's default flags, so we have to
+  # request optimization explicitly.
+  set(GMP_CFLAGS "-O2 -std=gnu99")
+  set(GMP_CXXFLAGS "-O2")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)

@@ -378,6 +378,13 @@ Node eliminateBv2Nat(TNode node);
  * where n is the bit-width of x.
  */
 Node eliminateInt2Bv(TNode node);
+/**
+ * Returns the range constraint for node, which is a term of the form
+ * bv2nat(x). The return value of this method is:
+ *   (and (<= 0 (bv2nat x)) (< (bv2nat x) (^ 2 n)))
+ * where n is the bitwidth of x.
+ */
+Node ubvToIntRange(TNode node);
 
 }  // namespace arith
 }  // namespace theory

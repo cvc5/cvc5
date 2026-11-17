@@ -75,18 +75,17 @@ bool AletheProofPostprocessCallback::shouldUpdate(
     CVC5_UNUSED const std::vector<Node>& fa,
     CVC5_UNUSED bool& continueUpdate)
 {
-  return d_reasonForConversionFailure.empty()
-         && pn->getRule() != ProofRule::ALETHE_RULE;
+  return d_reasonForConversionFailure.empty() && !isAletheStep(pn.get());
 }
 
 bool AletheProofPostprocessCallback::shouldUpdatePost(
     std::shared_ptr<ProofNode> pn, CVC5_UNUSED const std::vector<Node>& fa)
 {
-  if (!d_reasonForConversionFailure.empty() || pn->getArguments().empty())
+  if (!d_reasonForConversionFailure.empty())
   {
     return false;
   }
-  AletheRule rule = getAletheRule(pn->getArguments()[0]);
+  AletheRule rule = getAletheRule(pn.get());
   return rule == AletheRule::RESOLUTION_OR || rule == AletheRule::REORDERING
          || rule == AletheRule::CONTRACTION;
 }
@@ -3202,7 +3201,7 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   {
     return false;
   }
-  Node premisePfConclusion = premisePf->getArguments()[2];
+  Node premisePfConclusion = premisePf->getArguments()[3];
   // not a proof of a non-singleton clause
   if (premisePfConclusion.getNumChildren() <= 2
       || premisePfConclusion[0] != d_cl)
@@ -3237,10 +3236,9 @@ bool AletheProofPostprocessCallback::maybeReplacePremiseProof(Node premise,
   // (cl (or t1' ... tn')) using n or_neg steps, as shown below.
   NodeManager* nm = nodeManager();
   Trace("alethe-proof") << "\n";
-  AletheRule premiseProofRule = getAletheRule(premisePf->getArguments()[0]);
+  AletheRule premiseProofRule = getAletheRule(premisePf.get());
   if (premiseProofRule == AletheRule::CONTRACTION
-      && getAletheRule(premisePf->getChildren()[0]->getArguments()[0])
-             == AletheRule::OR)
+      && getAletheRule(premisePf->getChildren()[0].get()) == AletheRule::OR)
   {
     // get great grand child
     std::shared_ptr<ProofNode> premiseChildPf =
@@ -3340,7 +3338,7 @@ bool AletheProofPostprocessCallback::updatePost(
     CDProof* cdp)
 {
   NodeManager* nm = nodeManager();
-  AletheRule rule = getAletheRule(args[0]);
+  AletheRule rule = getAletheRule(args[2]);
   Trace("alethe-proof") << "...Alethe post-update " << rule << " / " << res
                         << " / args: " << args << std::endl;
   bool success = true;
@@ -3356,15 +3354,15 @@ bool AletheProofPostprocessCallback::updatePost(
     {
       // We need pivots to more easily do the computations here, so we require
       // them.
-      Assert(args.size() >= 4);
+      Assert(args.size() >= 5);
       std::vector<Node> newChildren = children;
       bool hasUpdated = false;
 
       // Note that we will have inverted the order of polarity/pivot.
       size_t polIdx, pivIdx;
       // their starting positions in the arguments
-      polIdx = 4;
-      pivIdx = 3;
+      polIdx = 5;
+      pivIdx = 4;
       // The first child is used as a non-singleton clause if it is not equal
       // to its pivot L_1. Since it's the first clause in the resolution it can
       // only be equal to the pivot in the case the polarity is true. Note
@@ -3379,7 +3377,7 @@ bool AletheProofPostprocessCallback::updatePost(
         std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
         bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
         Node childConclusion =
-            childPfIsAssume ? childPf->getResult() : childPf->getArguments()[2];
+            childPfIsAssume ? childPf->getResult() : childPf->getArguments()[3];
         // if child conclusion is of the form (sexpr cl (or ...)), then we need
         // to add an OR step, since this child must not be a singleton
         if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
@@ -3435,8 +3433,8 @@ bool AletheProofPostprocessCallback::updatePost(
       // true if it isn't the pivot element.
       for (std::size_t i = 1, size = children.size(); i < size; ++i)
       {
-        polIdx = 2 * (i - 1) + 3 + 1;
-        pivIdx = 2 * (i - 1) + 3;
+        polIdx = 2 * (i - 1) + 4 + 1;
+        pivIdx = 2 * (i - 1) + 4;
         if (children[i].getKind() == Kind::OR
             && (args[polIdx] != d_false
                 || !CVC5_EQUAL(d_anc.convert(args[pivIdx]),
@@ -3451,7 +3449,7 @@ bool AletheProofPostprocessCallback::updatePost(
           std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[i]);
           bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
           Node childConclusion = childPfIsAssume ? childPf->getResult()
-                                                 : childPf->getArguments()[2];
+                                                 : childPf->getArguments()[3];
           // Add or step
           if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
               || (childConclusion.getNumChildren() == 2
@@ -3513,9 +3511,9 @@ bool AletheProofPostprocessCallback::updatePost(
       success &= addAletheStep(
           AletheRule::RESOLUTION,
           res,
-          args[2],
+          args[3],
           newChildren,
-          d_resPivots ? std::vector<Node>{args.begin() + 3, args.end()}
+          d_resPivots ? std::vector<Node>{args.begin() + 4, args.end()}
                       : std::vector<Node>{},
           *cdp);
       return success;
@@ -3550,7 +3548,7 @@ bool AletheProofPostprocessCallback::updatePost(
       std::shared_ptr<ProofNode> childPf = cdp->getProofFor(children[0]);
       bool childPfIsAssume = childPf->getRule() == ProofRule::ASSUME;
       Node childConclusion =
-          childPfIsAssume ? childPf->getResult() : childPf->getArguments()[2];
+          childPfIsAssume ? childPf->getResult() : childPf->getArguments()[3];
       if ((childPfIsAssume && childConclusion.getKind() == Kind::OR)
           || (childConclusion.getNumChildren() == 2
               && childConclusion[0] == d_cl
@@ -3576,7 +3574,7 @@ bool AletheProofPostprocessCallback::updatePost(
             << "Added OR step in finalizer to child " << childConclusion
             << " / " << newChild << std::endl;
         // update res step
-        cdp->addStep(res, ProofRule::ALETHE_RULE, {newChild}, args);
+        cdp->addStep(res, ProofRule::TRUST, {newChild}, args);
         return success;
       }
       Trace("alethe-proof") << "... no update\n";
@@ -3611,9 +3609,9 @@ bool AletheProofPostprocessCallback::ensureFinalStep(
   //  (cl false)             (cl (not false))
   // -------------------------------------------------- resolution
   //                       (cl)
-  if ((childPf->getRule() == ProofRule::ALETHE_RULE
-       && childPf->getArguments()[2].getNumChildren() == 2
-       && childPf->getArguments()[2][1] == d_false)
+  if ((isAletheStep(childPf.get())
+       && childPf->getArguments()[3].getNumChildren() == 2
+       && childPf->getArguments()[3][1] == d_false)
       || (childPf->getRule() == ProofRule::ASSUME
           && childPf->getResult() == d_false))
   {
@@ -3666,9 +3664,9 @@ bool AletheProofPostprocessCallback::addAletheStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  std::vector<Node> newArgs{
-      nodeManager()->mkConstInt(Rational(static_cast<uint32_t>(rule)))};
-  newArgs.push_back(res);
+  NodeManager* nm = nodeManager();
+  std::vector<Node> newArgs{mkTrustId(nm, TrustId::ALETHE_RULE), res};
+  newArgs.push_back(nm->mkConstInt(Rational(static_cast<uint32_t>(rule))));
   conclusion = d_anc.maybeConvert(conclusion);
   if (conclusion.isNull())
   {
@@ -3689,7 +3687,7 @@ bool AletheProofPostprocessCallback::addAletheStep(
   Trace("alethe-proof") << "... add alethe step " << res << " / " << conclusion
                         << " " << rule << " " << children << " / " << newArgs
                         << std::endl;
-  return cdp.addStep(res, ProofRule::ALETHE_RULE, children, newArgs);
+  return cdp.addStep(res, ProofRule::TRUST, children, newArgs);
 }
 
 bool AletheProofPostprocessCallback::addAletheStepFromOr(

@@ -1,0 +1,16 @@
+; SCRUBBER: grep -v -E '(\(define-fun)'
+; EXIT: 0
+(set-option :produce-interpolants true)
+(set-option :incremental true)
+(set-logic QF_BV)
+(declare-fun a () (_ BitVec 8))
+(declare-fun b () (_ BitVec 8))
+(declare-fun c () (_ BitVec 8))
+(declare-fun d () (_ BitVec 8))
+(push)
+(assert (bvult d a))
+(get-interpolant A (not (and (and (bvult a b) (bvult a c)) (bvult b d))))
+(push)
+(assert (and (bvult a b) (bvult a c)))
+(get-interpolant B (not (bvult b d)))
+(get-interpolant C (not (and (and (bvult a b) (bvult a c)) (bvult c d))))

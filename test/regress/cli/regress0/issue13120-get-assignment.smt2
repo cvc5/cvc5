@@ -1,0 +1,16 @@
+; EXPECT: sat
+; EXPECT: ()
+; EXPECT: sat
+; EXPECT: ((b0 true))
+(set-option :produce-assignments true)
+(set-option :incremental true)
+(set-logic QF_UFLIA)
+(declare-fun f (Int) Int)
+(declare-const x Int)
+(assert (> x 0))
+(check-sat)
+(get-assignment)
+(assert (= (! (f x) :named nx) 1))
+(assert (! (> x 0) :named b0))
+(check-sat)
+(get-assignment)

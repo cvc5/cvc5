@@ -39,6 +39,7 @@ const char* toString(ProofRule rule)
     case ProofRule::ITE_EQ: return "ITE_EQ";
     //================================================= Trusted rules
     case ProofRule::TRUST: return "TRUST";
+    case ProofRule::ANNOTATE: return "ANNOTATE";
     case ProofRule::TRUST_THEORY_REWRITE: return "TRUST_THEORY_REWRITE";
     case ProofRule::SAT_REFUTATION: return "SAT_REFUTATION";
     case ProofRule::DRAT_REFUTATION: return "DRAT_REFUTATION";
@@ -108,6 +109,7 @@ const char* toString(ProofRule rule)
     case ProofRule::FALSE_ELIM: return "FALSE_ELIM";
     case ProofRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case ProofRule::HO_CONG: return "HO_CONG";
+    case ProofRule::UBV_TO_INT_RANGE: return "UBV_TO_INT_RANGE";
     //================================================= Array rules
     case ProofRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:
@@ -217,10 +219,7 @@ const char* toString(ProofRule rule)
     case ProofRule::FF_POLY_COMBINATION: return "FF_POLY_COMBINATION";
     case ProofRule::FF_DISEQ: return "FF_DISEQ";
     case ProofRule::FF_POLY_NORM: return "FF_POLY_NORM";
-    case ProofRule::FF_POLY_NORM_EQ:
-      return "FF_POLY_NORM_EQ";
-      //================================================= External rules
-    case ProofRule::ALETHE_RULE: return "ALETHE_RULE";
+    case ProofRule::FF_POLY_NORM_EQ: return "FF_POLY_NORM_EQ";
     //================================================= Unknown rule
     case ProofRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
@@ -390,6 +389,22 @@ std::ostream& operator<<(std::ostream& out, ProofRewriteRule rule)
   return out;
 }
 
+const char* toString(AnnotationId id)
+{
+  switch (id)
+  {
+    case AnnotationId::NONE: return "NONE";
+    case AnnotationId::THEORY_LEMMA: return "THEORY_LEMMA";
+    default: return "?";
+  }
+}
+
+std::ostream& operator<<(std::ostream& out, AnnotationId id)
+{
+  out << toString(id);
+  return out;
+}
+
 }  // namespace cvc5
 
 namespace std {
@@ -411,5 +426,12 @@ std::string to_string(cvc5::ProofRewriteRule rule)
 {
   return cvc5::toString(rule);
 }
+
+size_t hash<cvc5::AnnotationId>::operator()(cvc5::AnnotationId id) const
+{
+  return static_cast<size_t>(id);
+}
+
+std::string to_string(cvc5::AnnotationId id) { return cvc5::toString(id); }
 
 }  // namespace std

@@ -20,10 +20,10 @@ using namespace cvc5;
 
 ApiSolver::ApiSolver(TermManager& tm) : Solver(tm) {}
 
-jobject ApiSolver::addGlobalReference(JNIEnv* env, jobject object)
+jweak ApiSolver::addWeakGlobalReference(JNIEnv* env, jobject object)
 {
-  jobject reference = env->NewGlobalRef(object);
-  d_globalReferences.push_back(reference);
+  jweak reference = env->NewWeakGlobalRef(object);
+  d_weakGlobalReferences.push_back(reference);
   return reference;
 }
 
@@ -32,17 +32,34 @@ void ApiSolver::addPluginPointer(jlong pluginPointer)
   d_pluginPointers.push_back(pluginPointer);
 }
 
+void ApiSolver::connectTerminator(JNIEnv* env, jobject terminator)
+{
+  std::unique_ptr<ApiTerminator> t;
+  if (terminator != nullptr)
+  {
+    t.reset(new ApiTerminator(env, terminator));
+  }
+  setTerminator(t.get());
+  // release the previously connected terminator after disconnecting it
+  if (d_terminator)
+  {
+    d_terminator->release(env);
+  }
+  d_terminator = std::move(t);
+}
+
 void ApiSolver::deletePointers(JNIEnv* env)
 {
-  for (jobject ref : d_globalReferences)
+  connectTerminator(env, nullptr);
+  for (jweak ref : d_weakGlobalReferences)
   {
-    env->DeleteGlobalRef(ref);
+    env->DeleteWeakGlobalRef(ref);
   }
   for (jlong p : d_pluginPointers)
   {
     ApiPlugin* plugin = reinterpret_cast<ApiPlugin*>(p);
     delete plugin;
   }
-  d_globalReferences.clear();
+  d_weakGlobalReferences.clear();
   d_pluginPointers.clear();
 }

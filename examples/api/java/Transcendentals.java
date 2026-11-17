@@ -18,8 +18,7 @@ public class Transcendentals
 {
   public static void main(String args[]) throws CVC5ApiException
   {
-    TermManager tm = new TermManager();
-    Solver slv = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver slv = new Solver(tm))
     {
       slv.setLogic("QF_NRAT");
 
@@ -48,6 +47,5 @@ public class Transcendentals
       System.out.println("cvc5 should report UNSAT.");
       System.out.println("Result from cvc5 is: " + slv.checkSat());
     }
-    Context.deletePointers();
   }
 }
