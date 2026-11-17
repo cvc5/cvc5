@@ -69,7 +69,8 @@ This command must be executed when the solver is in its Start mode (see page 52 
 
 The syntax for the operators of separation logic is summarized in the following
 table. For the C++ API examples in this table, we assume that we have created
-a :cpp:class:`cvc5::Solver` object.
+a :cpp:class:`TermManager <cvc5::TermManager>` object ``tm`` and a
+:cpp:class:`Solver <cvc5::Solver>` object ``solver`` constructed from it.
 
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                            |

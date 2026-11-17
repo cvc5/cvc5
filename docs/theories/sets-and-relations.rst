@@ -8,7 +8,8 @@ cvc5 supports the theory of finite sets using the following sorts, constants,
 functions and predicates.  More details can be found in :cite:`BansalBRT17`.
 
 For the C++ API examples in the table below, we assume that we have created
-a `cvc5::Solver solver` object.
+a :cpp:class:`TermManager <cvc5::TermManager>` object ``tm`` and a
+:cpp:class:`Solver <cvc5::Solver>` object ``solver`` constructed from it.
 
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                                   |
