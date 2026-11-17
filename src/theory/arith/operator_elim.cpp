@@ -393,18 +393,21 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
           Node pi2 = nm->mkNode(Kind::MULT, half, pi);
           Node npi2 =
               nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi2);
-          // -pi/2 < var <= pi/2
-          rlem = nm->mkNode(Kind::AND,
-                            {nm->mkNode(Kind::LT, npi2, var),
-                             nm->mkNode(Kind::LEQ, var, pi2)});
+          // -pi/2 <= var <= pi/2 for arcsine, since arcsin(-1) = -pi/2,
+          // and -pi/2 < var <= pi/2 otherwise.
+          rlem = nm->mkNode(
+              Kind::AND,
+              {nm->mkNode(k == Kind::ARCSINE ? Kind::LEQ : Kind::LT, npi2, var),
+               nm->mkNode(Kind::LEQ, var, pi2)});
         }
         else
         {
-          // 0 <= var < pi
+          // 0 <= var <= pi for arccosine, since arccos(-1) = pi, and
+          // 0 <= var < pi otherwise.
           rlem = nm->mkNode(
               Kind::AND,
               {nm->mkNode(Kind::LEQ, nm->mkConstReal(Rational(0)), var),
-               nm->mkNode(Kind::LT, var, pi)});
+               nm->mkNode(k == Kind::ARCCOSINE ? Kind::LEQ : Kind::LT, var, pi)});
         }
         Node cond;
         if (k == Kind::ARCSINE || k == Kind::ARCCOSINE || k == Kind::ARCSECANT
