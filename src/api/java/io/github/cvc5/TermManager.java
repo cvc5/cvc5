@@ -55,15 +55,46 @@ public class TermManager extends AbstractPointer implements AutoCloseable
   }
 
   /**
-   * Free the native term manager, see {@code deletePointer()}.
+   * Free the native objects of this term manager and of every object derived
+   * from it (solvers, terms, sorts, operators, datatypes, symbol managers,
+   * input parsers, commands, ...), whether or not they are still referenced
+   * from Java.
    *
-   * <p>Objects created via this term manager remain valid, they keep the
-   * underlying node manager alive.</p>
+   * <p>Native objects are otherwise freed automatically once their Java
+   * objects are no longer reachable. However, the objects that are left once
+   * a term manager is no longer used are freed by a single background thread
+   * shared by all term managers, which may lag behind if many term managers
+   * are used concurrently. Closing a term manager once it is no longer needed,
+   * e.g., via a try-with-resources statement, frees its native memory
+   * immediately instead.</p>
+   *
+   * <p>Afterwards, using this term manager or any object derived from it
+   * raises an {@link IllegalStateException}. To free only the term manager
+   * itself and keep using the objects derived from it, use
+   * {@link #deletePointer()} instead. Like {@code deletePointer()}, this
+   * method must be called from the thread that is using this term manager.
+   * Calling it more than once has no further effect.</p>
    */
   @Override
   public void close()
   {
-    deletePointer();
+    ctx.releaseAllObjects();
+  }
+
+  /**
+   * Free the native term manager only.
+   *
+   * <p>Unlike {@link #close()}, this does not free the objects derived from
+   * this term manager: they remain valid and keep the underlying node manager
+   * alive until they are freed themselves. Afterwards, using this term
+   * manager raises an {@link IllegalStateException}. Must be called from the
+   * thread that is using this term manager. Calling it more than once has no
+   * further effect.</p>
+   */
+  @Override
+  public void deletePointer()
+  {
+    super.deletePointer();
   }
 
   @Override
@@ -103,8 +134,9 @@ public class TermManager extends AbstractPointer implements AutoCloseable
    * term manager.
    *
    * Term manager statistics are independent from any solver instance. The
-   * returned object is completely decoupled from the term manager and will
-   * not change when the solver is used again.
+   * returned object will not change when the term manager is used again.
+   * Like every object derived from this term manager, it is released when
+   * this term manager is closed, see {@link #close()}.
    *
    * @return A snapshot of the current state of the statistic values.
    */

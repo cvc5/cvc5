@@ -1323,6 +1323,19 @@ enum ENUM(ProofRule)
   EVALUE(HO_CONG),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **UF -- Unsigned bit-vector to integer range**
+   *
+   * .. math::
+   *
+   *   \inferrule{-\mid \texttt{ubv_to_int}(x)}{0 \leq
+   *   \texttt{ubv_to_int}(x) \wedge \texttt{ubv_to_int}(x) < 2^n}
+   *
+   * where :math:`n` is the bitwidth of :math:`x`.
+   * \endverbatim
+   */
+  EVALUE(UBV_TO_INT_RANGE),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Arrays -- Read over write**
    *
    * .. math::
@@ -2743,23 +2756,6 @@ enum ENUM(ProofRule)
    * \endverbatim
    */
   EVALUE(FF_ONE_UNSAT),
-  /**
-   * \verbatim embed:rst:leading-asterisk
-   * **External -- Alethe**
-   *
-   * Place holder for Alethe rules.
-   *
-   * .. math::
-   *
-   *   \inferrule{P_1, \dots, P_n\mid \texttt{id}, Q, Q', A_1,\dots, A_m}{Q}
-   *
-   * Note that the premises and arguments are arbitrary. It's expected that
-   * :math:`\texttt{id}` refer to a proof rule in the external Alethe calculus,
-   * and that :math:`Q'` be the representation of Q to be printed by the Alethe
-   * printer.
-   * \endverbatim
-   */
-  EVALUE(ALETHE_RULE),
 
   //================================================= Unknown rule
   EVALUE(UNKNOWN),
@@ -4237,6 +4233,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_INT_MOD_TOTAL_ZERO),
   /** Auto-generated from RARE rule arith-int-mod-total-neg */
   EVALUE(ARITH_INT_MOD_TOTAL_NEG),
+  /** Auto-generated from RARE rule arith-int-div-total-over-mod */
+  EVALUE(ARITH_INT_DIV_TOTAL_OVER_MOD),
   /** Auto-generated from RARE rule arith-elim-gt */
   EVALUE(ARITH_ELIM_GT),
   /** Auto-generated from RARE rule arith-elim-lt */
@@ -4261,6 +4259,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(ARITH_EQ_ELIM_INT),
   /** Auto-generated from RARE rule arith-to-int-elim-to-real */
   EVALUE(ARITH_TO_INT_ELIM_TO_REAL),
+  /** Auto-generated from RARE rule arith-is-int-elim-to-real */
+  EVALUE(ARITH_IS_INT_ELIM_TO_REAL),
+  /** Auto-generated from RARE rule arith-div-int-to-real */
+  EVALUE(ARITH_DIV_INT_TO_REAL),
+  /** Auto-generated from RARE rule arith-div-total-int-to-real */
+  EVALUE(ARITH_DIV_TOTAL_INT_TO_REAL),
   /** Auto-generated from RARE rule arith-mod-over-mod-1 */
   EVALUE(ARITH_MOD_OVER_MOD_1),
   /** Auto-generated from RARE rule arith-mod-over-mod */
@@ -4531,6 +4535,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(BV_NEGO_ELIMINATE),
   /** Auto-generated from RARE rule bv-ite-equal-children */
   EVALUE(BV_ITE_EQUAL_CHILDREN),
+  /** Auto-generated from RARE rule bv-ite-const-cond-1 */
+  EVALUE(BV_ITE_CONST_COND_1),
+  /** Auto-generated from RARE rule bv-ite-const-cond-2 */
+  EVALUE(BV_ITE_CONST_COND_2),
   /** Auto-generated from RARE rule bv-ite-const-children-1 */
   EVALUE(BV_ITE_CONST_CHILDREN_1),
   /** Auto-generated from RARE rule bv-ite-const-children-2 */

@@ -76,7 +76,7 @@ bool isFfTerm(const Node& n);
 /** Is this a field fact (equality of disequality)? */
 bool isFfFact(const Node& n);
 
-/** Used to signal check timeouts */
+/** Used to signal check timeouts and termination requests */
 class FfTimeoutException : public Exception
 {
  public:

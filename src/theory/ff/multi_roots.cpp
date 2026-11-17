@@ -261,8 +261,9 @@ std::vector<CoCoA::RingElem> findZero(const CoCoA::ideal& initialIdeal,
   // while some ideal might have a zero.
   while (!ideals.empty())
   {
-    // check for timeout
-    if (env.getResourceManager()->outOfTime())
+    // check for timeout or termination request
+    const ResourceManager* rm = env.getResourceManager();
+    if (rm->outOfTime() || rm->terminationRequested())
     {
       throw FfTimeoutException("findZero");
     }

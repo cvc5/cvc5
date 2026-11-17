@@ -67,7 +67,6 @@ add_dependencies(build-units build-junit-tests)
 macro(cvc5_add_java_api_test name)
   add_test (NAME unit/api/java/${name}
     COMMAND
-      ${ENV_PATH_CMD}
       ${Java_JAVA_EXECUTABLE}
       -Djava.library.path=${CVC5_JNI_LIBDIR}
       -jar ${JUnit_JAR}
@@ -75,7 +74,9 @@ macro(cvc5_add_java_api_test name)
       -select-package tests
       -n tests.${name}
   )
-  set_tests_properties(unit/api/java/${name} PROPERTIES LABELS "unit java")
+  set_tests_properties(unit/api/java/${name} PROPERTIES
+    LABELS "unit java"
+    ENVIRONMENT "${CVC5_TEST_ENV}")
 endmacro()
 
 if(USE_COCOA)

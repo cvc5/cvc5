@@ -42,7 +42,8 @@ public class Context
    * @deprecated Native memory is released automatically once the
    *             corresponding Java objects are no longer reachable. Use
    *             {@code deletePointer()} or {@code close()} to release
-   *             individual objects deterministically.
+   *             individual objects deterministically; closing a term
+   *             manager releases all objects derived from it.
    */
   @Deprecated
   public static void deletePointers()

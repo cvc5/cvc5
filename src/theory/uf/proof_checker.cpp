@@ -12,6 +12,7 @@
 
 #include "theory/uf/proof_checker.h"
 
+#include "theory/arith/arith_utilities.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace cvc5::internal::kind;
@@ -35,6 +36,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(ProofRule::FALSE_ELIM, this);
   pc->registerChecker(ProofRule::HO_CONG, this);
   pc->registerChecker(ProofRule::HO_APP_ENCODE, this);
+  pc->registerChecker(ProofRule::UBV_TO_INT_RANGE, this);
 }
 
 Node UfProofRuleChecker::checkInternal(ProofRule id,
@@ -202,6 +204,16 @@ Node UfProofRuleChecker::checkInternal(ProofRule id,
     Assert(args.size() == 1);
     Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
     return args[0].eqNode(ret);
+  }
+  else if (id == ProofRule::UBV_TO_INT_RANGE)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    if (args[0].getKind() != Kind::BITVECTOR_UBV_TO_INT)
+    {
+      return Node::null();
+    }
+    return arith::ubvToIntRange(args[0]);
   }
   // no rule
   return Node::null();

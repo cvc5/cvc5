@@ -63,8 +63,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(ProofRule::TRUST_THEORY_REWRITE, this, 4);
   // trusted rules
   pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
-  // external proof rules
-  pc->registerChecker(ProofRule::ALETHE_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -470,12 +468,6 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
     return args[0];
-  }
-  else if (id == ProofRule::ALETHE_RULE)
-  {
-    Assert(args.size() > 1);
-    Assert(args[0].getType().isInteger());
-    return args[1];
   }
   else if (id == ProofRule::ENCODE_EQ_INTRO)
   {

@@ -254,7 +254,7 @@ enum class InferenceId
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
   TABLES_JOIN_DOWN,
-  TABLES_GROUP_NOT_EMPTY,
+  TABLES_GROUP_EMPTY,
   TABLES_GROUP_UP1,
   TABLES_GROUP_UP2,
   TABLES_GROUP_DOWN,
@@ -614,7 +614,7 @@ enum class InferenceId
   SETS_RELS_TRANSPOSE_EQ,
   SETS_RELS_TRANSPOSE_REV,
   SETS_RELS_TUPLE_REDUCTION,
-  SETS_RELS_GROUP_NOT_EMPTY,
+  SETS_RELS_GROUP_EMPTY,
   SETS_RELS_GROUP_UP1,
   SETS_RELS_GROUP_UP2,
   SETS_RELS_GROUP_DOWN,
@@ -1012,6 +1012,8 @@ enum class InferenceId
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------- UF arith/bv conversions solver
+  // range constraint for an unsigned bit-vector to integer conversion term
+  UF_ARITH_BV_CONV_RANGE,
   // reductions of an arithmetic/bit-vector conversion term
   UF_ARITH_BV_CONV_REDUCTION,
   // value-based refinement of an arithmetic/bit-vector conversion term
