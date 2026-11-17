@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --proof-define-fun-macros --check-proofs
 ; DISABLE-TESTER: alethe
 ; EXPECT: unsat
