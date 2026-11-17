@@ -175,7 +175,7 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
-    case InferenceId::TABLES_GROUP_NOT_EMPTY: return "TABLES_GROUP_NOT_EMPTY";
+    case InferenceId::TABLES_GROUP_EMPTY: return "TABLES_GROUP_EMPTY";
     case InferenceId::TABLES_GROUP_UP1: return "TABLES_GROUP_UP1";
     case InferenceId::TABLES_GROUP_UP2: return "TABLES_GROUP_UP2";
     case InferenceId::TABLES_GROUP_DOWN: return "TABLES_GROUP_DOWN";
@@ -446,8 +446,7 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
       return "SETS_RELS_TUPLE_REDUCTION";
-    case InferenceId::SETS_RELS_GROUP_NOT_EMPTY:
-      return "SETS_RELS_GROUP_NOT_EMPTY";
+    case InferenceId::SETS_RELS_GROUP_EMPTY: return "SETS_RELS_GROUP_EMPTY";
     case InferenceId::SETS_RELS_GROUP_UP1: return "SETS_RELS_GROUP_UP1";
     case InferenceId::SETS_RELS_GROUP_UP2: return "SETS_RELS_GROUP_UP2";
     case InferenceId::SETS_RELS_GROUP_DOWN: return "SETS_RELS_GROUP_DOWN";

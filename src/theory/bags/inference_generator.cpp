@@ -795,7 +795,7 @@ InferInfo InferenceGenerator::joinDown(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::groupNotEmpty(Node n)
+InferInfo InferenceGenerator::groupEmpty(Node n)
 {
   Assert(n.getKind() == Kind::TABLE_GROUP);
 
@@ -803,13 +803,11 @@ InferInfo InferenceGenerator::groupNotEmpty(Node n)
   Node A = n[0];
   Node emptyPart = d_nm->mkConst(EmptyBag(A.getType()));
   Node skolem = registerAndAssertSkolemLemma(n);
-  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_NOT_EMPTY);
+  InferInfo inferInfo(d_im, InferenceId::TABLES_GROUP_EMPTY);
   Node A_isEmpty = A.eqNode(emptyPart);
   inferInfo.d_premises.push_back(A_isEmpty);
-  Node singleton = d_nm->mkNode(Kind::BAG_MAKE, emptyPart, d_one);
-  Node groupIsSingleton = skolem.eqNode(singleton);
-
-  inferInfo.d_conclusion = groupIsSingleton;
+  // an empty table has no parts
+  inferInfo.d_conclusion = skolem.eqNode(d_nm->mkConst(EmptyBag(bagType)));
   return inferInfo;
 }
 

@@ -1,6 +1,8 @@
 ; -- Simplification Rules --
 
 (define-rule bv-ite-equal-children ((c (_ BitVec 1)) (x ?BitVec)) (bvite c x x) x)
+(define-rule bv-ite-const-cond-1 ((t ?BitVec) (e ?BitVec)) (bvite (@bv 1 1) t e) t)
+(define-rule bv-ite-const-cond-2 ((t ?BitVec) (e ?BitVec)) (bvite (@bv 0 1) t e) e)
 (define-rule bv-ite-const-children-1 (
     (c (_ BitVec 1))
   )

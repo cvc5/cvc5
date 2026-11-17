@@ -947,7 +947,7 @@ void TheorySetsPrivate::checkGroups()
 void TheorySetsPrivate::checkGroup(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
-  groupNotEmpty(n);
+  groupEmpty(n);
   d_im.doPendingLemmas();
   if (d_im.hasSent())
   {
@@ -1065,7 +1065,7 @@ void TheorySetsPrivate::checkGroup(Node n)
   }
 }
 
-void TheorySetsPrivate::groupNotEmpty(Node n)
+void TheorySetsPrivate::groupEmpty(Node n)
 {
   Assert(n.getKind() == Kind::RELATION_GROUP);
   NodeManager* nm = nodeManager();
@@ -1077,12 +1077,9 @@ void TheorySetsPrivate::groupNotEmpty(Node n)
   Node A_isEmpty = A.eqNode(emptyPart);
   std::vector<Node> exp;
   exp.push_back(A_isEmpty);
-  Node singleton = nm->mkNode(Kind::SET_SINGLETON, emptyPart);
-  Node groupIsSingleton = skolem.eqNode(singleton);
-
-  Node conclusion = groupIsSingleton;
-  d_im.assertInference(
-      conclusion, InferenceId::SETS_RELS_GROUP_NOT_EMPTY, exp, 1);
+  // an empty relation has no parts
+  Node conclusion = skolem.eqNode(nm->mkConst(EmptySet(bagType)));
+  d_im.assertInference(conclusion, InferenceId::SETS_RELS_GROUP_EMPTY, exp, 1);
 }
 
 void TheorySetsPrivate::groupUp1(Node n, Node x, Node part)

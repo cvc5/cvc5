@@ -127,10 +127,12 @@ class TheorySetsPrivate : protected EnvObj
    * @return an inference that represents:
    * (=>
    *  (= A (as set.empty T))
-   *  (= skolem (set.singleton (as set.empty T)))
+   *  (= skolem (as set.empty (Set T)))
    * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A). An empty
+   * relation has no parts.
    */
-  void groupNotEmpty(Node n);
+  void groupEmpty(Node n);
   /**
    * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
    * @param e an element of type T

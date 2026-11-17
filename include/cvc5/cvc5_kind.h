@@ -3990,6 +3990,13 @@ enum ENUM(Kind)
    * It returns a set of relations of type :math:`(Set \; T)` where
    * :math:`T` is the type of :math:`A`.
    *
+   * The parts are not empty, so an empty relation has no parts:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ rel.group 0) (as set.empty (Relation Int Int)))
+   *     ; = (as set.empty (Set (Relation Int Int)))
+   *
    * - Arity: ``1``
    *
    *   - ``1:`` Term of relation sort
@@ -4028,6 +4035,18 @@ enum ENUM(Kind)
    * This operator aggregates elements in A that have the same tuple projection
    * with indices n_1, ..., n_k using the combining function :math:`f`,
    * and initial value :math:`i`.
+   *
+   * Each part of :math:`((\_ \; rel.group \; n_1 ... n_k) \; A)` gives one
+   * element, so an empty relation gives the empty set, as SQL's ``GROUP BY``
+   * gives no rows for an empty table:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ rel.aggr 0) f i (as set.empty (Relation Int Int)))
+   *     ; = (as set.empty (Set T))
+   *
+   * SQL's aggregate without ``GROUP BY``, one row also for an empty table,
+   * is a fold: ``(set.singleton (set.fold f i A))``.
    *
    * - Arity: ``3``
    *
@@ -4478,6 +4497,7 @@ enum ENUM(Kind)
    * of type :math:`(Bag \; E)` based on the equivalence relations :math:`r` of
    * type :math:`(\rightarrow \; E \; E \; Bool)`.
    * It returns a bag of bags of type :math:`(Bag \; (Bag \; E))`.
+   * The parts are not empty, so an empty bag has no parts.
    *
    * - Arity: ``2``
    *
@@ -4560,6 +4580,18 @@ enum ENUM(Kind)
    * with indices n_1, ..., n_k using the combining function :math:`f`,
    * and initial value :math:`i`.
    *
+   * Each part of :math:`((\_ \; table.group \; n_1 ... n_k) \; A)` gives one
+   * element, the fold of the part, so an empty table gives the empty bag, as
+   * SQL's ``GROUP BY`` gives no rows for an empty table:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ table.aggr 0) f i (as bag.empty (Table Int Int)))
+   *     ; = (as bag.empty (Bag T))
+   *
+   * SQL's aggregate without ``GROUP BY``, one row also for an empty table,
+   * is a fold: ``(bag (bag.fold f i A) 1)``.
+   *
    * - Arity: ``3``
    *
    *   - ``1:`` Term of sort :math:`(\rightarrow (Tuple \;  T_1 \; ... \; T_j)\; T \; T)`
@@ -4626,6 +4658,13 @@ enum ENUM(Kind)
    * with indices :math:`n_1 \; \dots \; n_k` are in the same part.
    * It returns a bag of tables of type :math:`(Bag \; T)` where
    * :math:`T` is the type of :math:`A`.
+   *
+   * The parts are not empty, so an empty table has no parts:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ table.group 0) (as bag.empty (Table Int Int)))
+   *     ; = (as bag.empty (Bag (Table Int Int)))
    *
    * - Arity: ``1``
    *
