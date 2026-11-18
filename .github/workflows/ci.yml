@@ -211,7 +211,7 @@ jobs:
 
           - name: macos:unrestricted
             os: macos-15-intel
-            config: unrestricted --auto-download --all-bindings --editline -DBUILD_GMP=1
+            config: unrestricted --auto-download --ipo --all-bindings --editline -DBUILD_GMP=1
             cache-key: unrestricted
             strip-bin: strip
             python-bindings: true
@@ -318,7 +318,7 @@ jobs:
 
           - name: macos:unrestricted-gpl
             os: macos-15-intel
-            config: unrestricted --auto-download --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
+            config: unrestricted --auto-download --ipo --editline --gpl --cln --glpk --cocoa --normaliz -DBUILD_GMP=1 -DBUILD_CLN=1
             cache-key: unrestricted-gpl
             strip-bin: strip
             package-name: cvc5-macOS-x86_64

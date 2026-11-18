@@ -1066,6 +1066,8 @@ set(regress_0_tests
   regress0/fp/issue12370-from-real-refine.smt2
   regress0/fp/issue12780-from-real-refine.smt2
   regress0/fp/issue12867-min-max-zero.smt2
+  regress0/fp/issue13133-1.smt2
+  regress0/fp/issue13133-2.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue228-fp-inf-53-11.smt2
   regress0/fp/proj-issue328-array-rm-getvalue.smt2
@@ -1976,6 +1978,7 @@ set(regress_0_tests
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
   regress0/quantifiers/matching-lia-1arg.smt2
+  regress0/quantifiers/mbqi-const-array.smt2
   regress0/quantifiers/mbqi-simple.smt2
   regress0/quantifiers/merge-shadow.smt2
   regress0/quantifiers/miniscope-ite.smt2
@@ -2286,6 +2289,7 @@ set(regress_0_tests
   regress0/sets/sets-equal.smt2
   regress0/sets/sets-extr.smt2
   regress0/sets/sets-inter.smt2
+  regress0/sets/sets-inter-self-rw.smt2
   regress0/sets/sets-ising-elim-pf.smt2
   regress0/sets/sets-new.smt2
   regress0/sets/sets-of-sets-subtypes.smt2
@@ -2297,6 +2301,7 @@ set(regress_0_tests
   regress0/sets/sets-testlemma-reals.smt2
   regress0/sets/sets-testlemma.smt2
   regress0/sets/sets-union.smt2
+  regress0/sets/sets-union-self-rw.smt2
   regress0/sets/sharing-simp.smt2
   regress0/sets/union-1a-flip.smt2
   regress0/sets/union-1a.smt2
@@ -2984,6 +2989,7 @@ set(regress_1_tests
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
   regress1/bags/choose4.smt2
+  regress1/bags/constant_function_evaluation.smt2
   regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
