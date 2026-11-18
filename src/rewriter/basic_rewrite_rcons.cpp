@@ -1185,7 +1185,7 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
       cdp->addStep(equivc, cr, {equiv}, cargs);
       transEq.push_back(equivc);
       lhsqg = rhsq;
-      Trace("brc-macro") << "...ACI_NORM to " << lhsq << std::endl;
+      Trace("brc-macro") << "...ACI_NORM to " << rhsq << std::endl;
     }
     theory::Rewriter* rr = d_env.getRewriter();
     Node mq = rr->rewriteViaRule(ProofRewriteRule::QUANT_MINISCOPE_OR, lhsqg);
@@ -1269,6 +1269,12 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
     transEq.push_back(equiv);
     cdp->addStep(eq, ProofRule::TRANS, transEq, {});
     return true;
+  }
+  // in the single variable case, the quantified formula is equivalent to false
+  if (eq[1] != nm->mkConst(false))
+  {
+    Trace("brc-macro") << "...unexpected rhs " << eq[1] << std::endl;
+    return false;
   }
 
   // find the instantiation term
@@ -1572,9 +1578,11 @@ bool BasicRewriteRCons::ensureProofMacroQuantVarElimIneq(CDProof* cdp,
       Node tgt = ipremises[index];
       index++;
       Assert(!src.isNull());
-      if (src != tgt)
+      // if this fails, tgt would be an open assumption of the proof
+      if (src != tgt && !proveIneqWeaken(cdp, src, tgt))
       {
-        proveIneqWeaken(cdp, src, tgt);
+        Trace("brc-macro") << "...failed to prove " << tgt << std::endl;
+        return false;
       }
       src = next;
     } while (!src.isNull());

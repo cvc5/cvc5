@@ -412,8 +412,8 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
       // ----------------------------------------- anchor_onepoint, (:= (x T) t)
       // (= (forall (x T) (or (not (= x t)) F1 ... Fn)) (or (F1 ... Fn){x->t}))
       //
-      // where when the used RARE rule is `or-not-refl` when n > 0 and otherwise
-      // `bool-not-false`:
+      // where the used RARE rule is `or-not-refl` when n > 0 and otherwise
+      // `bool-not-eq-false`:
       //
       // (define-rule or-not-refl ((t ?) (xs Bool :list))
       //    (or (not (= t t)) xs) (or xs))
@@ -466,12 +466,6 @@ bool AletheProofPostprocessCallback::updateTheoryRewriteProofRewriteRule(
                     *cdp);
       // build rw step
       Node rwConc = reflRhs.eqNode(res[1]);
-      addAletheStep(AletheRule::REFL,
-                    reflConc,
-                    nm->mkNode(Kind::SEXPR, d_cl, reflConc),
-                    {},
-                    {},
-                    *cdp);
       addAletheStep(AletheRule::RARE_REWRITE,
                     rwConc,
                     nm->mkNode(Kind::SEXPR, d_cl, rwConc),
