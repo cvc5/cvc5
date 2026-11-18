@@ -28,6 +28,14 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
   // Notice that skolem should have kind SKOLEM
   Trace("sk-defs") << "notifySkolemDefinition: " << def << " for " << skolem
                    << std::endl;
+  // A definition that preprocessing rewrote to a constant defines nothing,
+  // e.g. the purification (= t k) once t is replaced by k itself. Keeping it
+  // would make the actual definition of k, notified later, be ignored below,
+  // so that k is never constrained when its definition becomes active.
+  if (def.isConst())
+  {
+    return;
+  }
   // in very rare cases, a skolem may be generated twice for terms that are
   // equivalent up to purification
   if (d_skDefs.find(skolem) == d_skDefs.end())

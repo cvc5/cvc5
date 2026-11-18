@@ -142,21 +142,27 @@ void TheoryProxy::notifyInputFormulas(
   // since (preregistration) lemmas may occur during calls to assertInternal.
   // These lemmas we want to be notified about after the theory proxy has
   // been notified about all input assertions.
-  std::unordered_map<size_t, Node>::iterator it;
+  //
+  // The skolem definitions come first, as in PropEngine::assertLemmasInternal,
+  // so that whether an assertion contains a skolem is computed knowing all
+  // the definitions. A skolem may have two: the purification (= t k) of a
+  // term t becomes true once a later pass replaces t by its purification k,
+  // and that pass adds the definition of k that replaces it. The first is
+  // a constant, and SkolemDefManager ignores it.
+  std::vector<Node> skolems(assertions.size());
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {
     // is the assertion a skolem definition?
-    it = skolemMap.find(i);
-    Node skolem;
+    std::unordered_map<size_t, Node>::iterator it = skolemMap.find(i);
     if (it != skolemMap.end())
     {
-      skolem = it->second;
+      skolems[i] = it->second;
+      notifySkolemDefinition(assertions[i], skolems[i]);
     }
-    if (!skolem.isNull())
-    {
-      notifySkolemDefinition(assertions[i], skolem);
-    }
-    notifyAssertion(assertions[i], skolem, false);
+  }
+  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
+  {
+    notifyAssertion(assertions[i], skolems[i], false);
   }
 
   // the zero-level learner needs to be notified of the input assertions, to
