@@ -91,6 +91,10 @@ cvc5 1.5.0 prerelease
   (`cmake/deps-utils/symfpu-*.patch`). A system-wide SymFPU is only used if
   it includes these patches.
 
+- **Coverings**: fix a bug on `makeFinestSquareFreeBasis`. In certain cases
+  this function was returning a set of polynomials that are not pairwise
+  coprime, which led to wrong answers by the coverings solver. We fix this
+  on PR #13184.
 
 cvc5 1.4.2
 ==========
