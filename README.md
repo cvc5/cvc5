@@ -1,7 +1,7 @@
 [![License: BSD](
     https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](
         https://opensource.org/licenses/BSD-3-Clause)
-![CI](https://github.com/cvc5/cvc5/workflows/CI/badge.svg)
+![CI](https://github.com/cvc5/cvc5/actions/workflows/ci.yml/badge.svg?branch=main)
 [![Coverage](
   https://img.shields.io/endpoint?url=https://cvc5.stanford.edu/downloads/builds/coverage/nightly-coverage.json)](
     https://cvc5.stanford.edu/downloads/builds/coverage)
@@ -43,13 +43,17 @@ https://github.com/cvc5/cvc5/wiki/Developer-Guide
 Download
 -------------------------------------------------------------------------------
 
-The latest version of cvc5 is available on GitHub:
+The latest version of cvc5 is actively maintained on GitHub:
 https://github.com/cvc5/cvc5
 
-Source tar balls and binaries for releases of the
-[main branch](https://github.com/cvc5/cvc5) can be
-found [here](https://github.com/cvc5/cvc5/releases).
-Nightly builds are available [here](https://cvc5.github.io/downloads).
+You can download pre-compiled binaries and source tarballs from the following locations:
+
+* **Official Releases:** Browse all versions on
+  the [cvc5 Releases page](https://github.com/cvc5/cvc5/releases).
+* **Latest Stable Release:** Grab the most recent production-ready version from
+  the [latest release page](https://github.com/cvc5/cvc5/releases/latest).
+* **Development Builds:** Access the latest continuous build from
+  the `main` branch via the [latest development build tag](https://github.com/cvc5/cvc5/releases/tag/latest).
 
 
 Build and Dependencies

@@ -249,10 +249,14 @@ class TheorySep : public Theory
    */
   std::map<Node, std::vector<Node> > d_parentMap;
   /**
-   * Maps label sets to their direct children. This map is only stored for
-   * labels with children that do not share a root label with the base label.
+   * Maps label sets to the lists of their direct children. This map is only
+   * stored for labels with children that do not share a root label with the
+   * base label. A label may have more than one list of children: the label of
+   * the conclusion of a sep.wand is the disjoint union of the label of the
+   * wand and the label of its premise, and if that conclusion is itself a
+   * sep.star, it is also the disjoint union of the labels of its arguments.
    */
-  std::map<Node, std::vector<Node> > d_childrenMap;
+  std::map<Node, std::vector<std::vector<Node> > > d_childrenMap;
 
   /**
    * This sends the lemmas:

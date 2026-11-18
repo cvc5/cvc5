@@ -37,10 +37,6 @@ TheorySetsRewriter::TheorySetsRewriter(NodeManager* nm,
                                        bool relsEnabled)
     : TheoryRewriter(nm), d_cardEnabled(cardEnabled), d_relsEnabled(relsEnabled)
 {
-  // Needs to be a subcall in DSL reconstruction since set.is_empty is used
-  // as a premise to test emptiness of a set.
-  registerProofRewriteRule(ProofRewriteRule::SETS_INSERT_ELIM,
-                           TheoryRewriteCtx::PRE_DSL);
   registerProofRewriteRule(ProofRewriteRule::SETS_EVAL_OP,
                            TheoryRewriteCtx::POST_DSL);
 }
@@ -49,23 +45,6 @@ Node TheorySetsRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
 {
   switch (id)
   {
-    case ProofRewriteRule::SETS_INSERT_ELIM:
-    {
-      if (n.getKind() == Kind::SET_INSERT)
-      {
-        NodeManager* nm = nodeManager();
-        size_t setNodeIndex = n.getNumChildren() - 1;
-        Node elems = n[setNodeIndex];
-        for (size_t i = 0; i < setNodeIndex; ++i)
-        {
-          size_t ii = (setNodeIndex - i) - 1;
-          Node singleton = nm->mkNode(Kind::SET_SINGLETON, n[ii]);
-          elems = nm->mkNode(Kind::SET_UNION, singleton, elems);
-        }
-        return elems;
-      }
-    }
-    break;
     case ProofRewriteRule::SETS_EVAL_OP:
     {
       if (n.getNumChildren() != 2 || !n[0].isConst() || !n[1].isConst())
@@ -412,7 +391,11 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node)
         // we return true for (is_singleton (singleton x))
         return RewriteResponse(REWRITE_DONE, nodeManager()->mkConst(true));
       }
-      break;
+      // (set.is_singleton A) ---> (= A (set.singleton (set.choose A)))
+      Node choose = nm->mkNode(Kind::SET_CHOOSE, node[0]);
+      Node singleton = nm->mkNode(Kind::SET_SINGLETON, choose);
+      return RewriteResponse(REWRITE_AGAIN_FULL,
+                             nm->mkNode(Kind::EQUAL, node[0], singleton));
     }  // Kind::SET_IS_SINGLETON
 
     case Kind::SET_COMPREHENSION: return postRewriteComprehension(node); break;
@@ -808,7 +791,9 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node)
   }
   else if (k == Kind::SET_INSERT)
   {
-    Node ret = rewriteViaRule(ProofRewriteRule::SETS_INSERT_ELIM, node);
+    // (set.insert x S) ---> (set.union (set.singleton x) S)
+    Node ret = nm->mkNode(
+        Kind::SET_UNION, nm->mkNode(Kind::SET_SINGLETON, node[0]), node[1]);
     return RewriteResponse(REWRITE_AGAIN, ret);
   }
   else if (k == Kind::SET_SUBSET)
@@ -1067,14 +1052,19 @@ RewriteResponse TheorySetsRewriter::postRewriteGroup(TNode n)
   Assert(n.getKind() == Kind::RELATION_GROUP);
   Node A = n[0];
   Kind k = A.getKind();
-  if (k == Kind::SET_EMPTY || k == Kind::SET_SINGLETON)
+  if (k == Kind::SET_EMPTY)
   {
-    NodeManager* nm = nodeManager();
-    // - ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
-    //    (rel.singleton (as set.empty (Relation T) ))
-    // - ((_ rel.group n1 ... nk) (set.singleton x)) =
-    //      (set.singleton (set.singleton x))
-    Node singleton = nm->mkNode(Kind::SET_SINGLETON, A);
+    // ((_ rel.group n1 ... nk) (as set.empty (Relation T))) =
+    //   (as set.empty (Set (Relation T))), since an empty relation has no
+    //   parts
+    return RewriteResponse(REWRITE_AGAIN_FULL,
+                           nodeManager()->mkConst(EmptySet(n.getType())));
+  }
+  if (k == Kind::SET_SINGLETON)
+  {
+    // ((_ rel.group n1 ... nk) (set.singleton x)) =
+    //   (set.singleton (set.singleton x))
+    Node singleton = nodeManager()->mkNode(Kind::SET_SINGLETON, A);
     return RewriteResponse(REWRITE_AGAIN_FULL, singleton);
   }
   if (A.isConst())

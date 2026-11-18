@@ -45,6 +45,11 @@ evaluate to true iff their argument has top-symbol ``C``. It also allows for
 updater indexed symbols of the form ``(_ update Sij)`` for each selector ``Sij``,
 whose semantics are described below.
 
+Use the indexed tester application ``((_ is C) t)`` to test whether ``t`` has
+constructor ``C``. Datatype declarations also introduce the legacy tester names
+``is-C`` unless strict parsing is enabled with ``--strict-parsing`` or
+``--parsing-mode=strict``.
+
 Semantics
 ---------
 

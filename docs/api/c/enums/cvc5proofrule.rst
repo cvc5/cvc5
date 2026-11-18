@@ -31,3 +31,18 @@ These identifiers are arguments of the proof rules
 
 .. doxygenfunction:: cvc5_proof_rewrite_rule_hash
     :project: cvc5_c
+
+----
+
+Enum :cpp:enum:`Cvc5AnnotationId` is used as an argument of the proof rule
+:cpp:enumerator:`CVC5_PROOF_RULE_ANNOTATE`. It is experimental and may change
+in future versions.
+
+.. doxygenenum:: Cvc5AnnotationId
+    :project: cvc5_c
+
+.. doxygenfunction:: cvc5_annotation_id_to_string
+    :project: cvc5_c
+
+.. doxygenfunction:: cvc5_annotation_id_hash
+    :project: cvc5_c

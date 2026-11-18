@@ -87,6 +87,12 @@ namespace cvc5::internal {
 #define IS_CLN_BUILD false
 #endif /* CVC5_CLN_IMP */
 
+#if CVC5_USE_MPFR
+#define IS_MPFR_BUILD true
+#else /* CVC5_USE_MPFR */
+#define IS_MPFR_BUILD false
+#endif /* CVC5_USE_MPFR */
+
 #if CVC5_USE_GLPK
 #define IS_GLPK_BUILD true
 #else /* CVC5_USE_GLPK */

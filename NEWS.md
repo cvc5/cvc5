@@ -1,5 +1,122 @@
 This file contains a summary of important user-visible changes.
 
+cvc5 1.5.0 prerelease
+=====================
+
+- Added a **terminator** to the C++, C, Python and Java APIs (class
+  `Terminator` and `Solver::setTerminator()`, `cvc5_set_terminator()` in C,
+  interface `ITerminator` in Java), which allows to terminate running queries,
+  e.g., from another thread. Terminated queries return `unknown` with
+  explanation `UnknownExplanation::INTERRUPTED`. In Python, this also allows to
+  interrupt queries via `Ctrl-C` while a terminator is connected.
+    
+- Fixes a bug where function definitions did not invalidate previous
+  satisfiability query results, allowing access to stale models and other
+  query-dependent information. (#13077)
+
+- **Arithmetic**: Added a new extension of the arithmetic solver for solving
+  liastar (LIA*) constraints. The new predicate `int.star-contains` denotes
+  membership in a star set. The extension depends on Normaliz, which is
+  available in builds configured with `--normaliz` (requires `--gpl`); other
+  builds raise a logic exception.
+
+- **API**
+  * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
+    (Java, Python) for creating SyGuS grammars. A grammar is associated with
+    a term manager, not with a solver, and can be used with any solver
+    instance that uses this term manager. `Solver::mkGrammar()` is deprecated
+    and will be removed in a future release.
+  * **C API**: `cvc5_mk_grammar()` now takes a term manager
+    (`Cvc5TermManager*`) instead of a solver instance (`Cvc5*`). Grammars are
+    now managed by the term manager, like sorts and terms: they are no longer
+    released when the solver is deleted, but via `cvc5_grammar_release()` or
+    `cvc5_term_manager_release()`.
+    **Note**: this is a breaking change.
+  
+- **C++ API**
+  * `Statistics::begin()` now skips internal and defaulted statistics by
+    default, as documented. This also affects iterating over `Statistics` in
+    the Java API (`Statistics.iterator()`). Pass `true` for both arguments to
+    visit all statistics.
+    
+- **Java API**
+  * Native memory is now released automatically: the native object behind a
+    Java object (term manager, solver, term, sort, ...) is freed once the Java
+    object is no longer reachable. Native objects are no longer kept alive by a
+    global registry, and creating them no longer takes a global lock, so
+    applications that use separate term managers in separate threads scale
+    without contention or unbounded memory growth. Memory can still be
+    released deterministically via `deletePointer()`; `TermManager`, `Solver`,
+    `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
+    `Context.deletePointers()` is deprecated. `TermManager.close()` frees the
+    native objects of a term manager and of all objects derived from it at
+    once, without waiting for the garbage collector, while
+    `TermManager.deletePointer()` frees only the term manager itself and
+    keeps the objects derived from it usable.
+  * Using an object after its native memory has been released, via
+    `deletePointer()`, `close()` or `Context.deletePointers()`, now raises an
+    `IllegalStateException` instead of crashing the JVM.
+  * `Solver.getTermManager()` now returns the same `TermManager` object on
+    every call, which is equal to the term manager the solver was created
+    with, and `InputParser.getSolver()` and `InputParser.getSymbolManager()`
+    return the objects the parser was created with. Previously, they returned
+    new wrappers around the same native objects, and releasing such a wrapper
+    as well as the original freed the native object twice.
+  * Plugin and oracle callbacks may now be invoked from a thread other than
+    the one that registered them, and an exception thrown by a callback is
+    now reported as a `CVC5ApiException` instead of crashing the JVM.
+  * The helper functions `Utils.getSorts()`, `Utils.getTerms()` and
+    `Utils.getProofs()`, which wrap raw native pointers, are no longer public.
+  * The minimum required Java version is now 11 (previously 8).
+
+- Fixed a race in builds with CoCoA support when solvers are created
+  concurrently in different threads: the initialization of the CoCoA global
+  manager is now thread-safe. Previously, the losing thread crashed the
+  process with an uncaught `CoCoA::ErrorInfo` exception.
+
+- Fixed incorrect encodings in SymFPU for some **experimental floating-point
+  formats** (`--fp-exp`), which could cause wrong answers, invalid models,
+  errors ("resulting bit-vector size is too large") or assertion failures.
+  If cvc5 is configured without MPFR,
+  this also affected constant folding. Formats Float16, Float32, Float64 and
+  Float128 are not affected. Affected were:
+  * `fp.roundToIntegral` and `to_fp` conversions from floating-point and
+    signed/unsigned bit-vector terms, e.g., in `(_ FloatingPoint 3 4)` and
+    `(_ FloatingPoint 3 5)`.
+  * Formats with significand size <= 3, e.g., `(_ FloatingPoint 2 3)`
+    (#13072), and formats with exponent size 2 and a significand size that is
+    a power of two, e.g., `(_ FloatingPoint 2 4)`.
+
+  The SymFPU version built by cvc5 is now patched to fix these issues
+  (`cmake/deps-utils/symfpu-*.patch`). A system-wide SymFPU is only used if
+  it includes these patches.
+
+
+cvc5 1.4.2
+==========
+
+- Adds techniques for returning "sat" when the returned candidate model
+  happens to satisfy the set of input assertions (`--model-verify`).
+
+- `set.insert` is now a binary operator, where applications with more than two
+  arguments are constructed as nested binary applications, e.g.
+  `(set.insert a b S)` is constructed as `(set.insert a (set.insert b S))`.
+  This impacts the children of such terms when inspected via the API, as well
+  as how they are printed.
+
+- The **bit-vector abstraction refinement strategy** (`--bv-abstraction`) now
+  also abstracts n-ary multiplications, i.e., `bvmul` with more than two
+  arguments, which were previously not abstracted. They are left-associated
+  into a chain of binary multiplications, each abstracted separately. (#12935)
+
+- Fixes a **refutation soundness** issue in the bit-vector rewrite rule for
+  signed comparisons of multiplications, which was incorrectly applied when
+  one operand was zero-extended and the other was sign-extended. (#13039)
+
+- Fixes a **model soundness** issue for arrays indexed by reals, where the
+  candidate model values of `to_real` terms had type Int, leading to missed
+  care pairs during theory combination. (#13040)
+
 cvc5 1.4.1
 ==========
 

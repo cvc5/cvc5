@@ -271,6 +271,11 @@ Term Smt2TermParser::parseTerm()
       {
         std::string name = tokenStrToSymbol(tok);
         ret = d_state.getVariable(name);
+        // getVariable returns null if the symbol is overloaded
+        if (ret.isNull())
+        {
+          d_lex.parseError("Overloaded constants must be type cast.");
+        }
       }
       break;
       case Token::UNTERMINATED_QUOTED_SYMBOL:
@@ -965,16 +970,27 @@ Grammar* Smt2TermParser::parseGrammar(const std::vector<Term>& sygusVars)
         if (tok2 == Token::SYMBOL)
         {
           std::string tokenStr(d_lex.tokenStr());
+          if (tokenStr == "Constant" || tokenStr == "Variable")
+          {
+            // the sort must match the type of the non-terminal
+            Sort ts = parseSort();
+            if (ts != t)
+            {
+              std::stringstream sse;
+              sse << "Type " << ts << " of (" << tokenStr << " " << ts
+                  << ") does not match the type of non-terminal " << name
+                  << " (" << t << ")." << std::endl;
+              d_lex.parseError(sse.str().c_str());
+            }
+          }
           if (tokenStr == "Constant")
           {
-            t = parseSort();
             ret->addAnyConstant(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;
           }
           else if (tokenStr == "Variable")
           {
-            t = parseSort();
             ret->addAnyVariable(ntSyms[i]);
             d_lex.eatToken(Token::RPAREN_TOK);
             parsedGTerm = true;

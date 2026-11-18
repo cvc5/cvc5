@@ -1,0 +1,68 @@
+Fix roundToIntegral() and conversions for small floating-point formats.
+
+SymFPU's roundToIntegral() and convertFloatToFloat() produce incorrect
+encodings for some experimental floating-point formats:
+
+* roundToIntegral() calls matchWidth() on the rounding point when the
+  significand is as wide as the unpacked exponent, e.g., for (3 4), which
+  would require shrinking it.
+* roundToIntegral() does not handle overflow to infinity in formats where the
+  largest finite values are not integral, e.g., for (3 5), where rounding 15.5
+  up yields 16.
+* convertFloatToFloat() takes the fast path for strict promotions based on the
+  unpacked exponent width only, which may not decrease even though the
+  exponent range of the target format does, e.g., for (4 4) -> (2 9). This
+  also affects conversions from bit-vectors.
+
+The changes only branch on format sizes and do not affect Float16, Float32,
+Float64 and Float128.
+
+--- a/core/convert.h
++++ b/core/convert.h
+@@ -37,8 +37,12 @@
+ 
+   bwt expExtension = (exponentIncreased) ? unpackedFloat<t>::exponentWidth(targetFormat) - unpackedFloat<t>::exponentWidth(sourceFormat) : 0;
+ 
++  // The unpacked exponent width may not decrease even though the exponent
++  // range of the target format is smaller, e.g., for (4 4) -> (2 9).
++  bool exponentRangeIncreased = sourceFormat.exponentWidth() <= targetFormat.exponentWidth();
++
+   // Format sizes are literal so it is safe to branch on them
+-  if (exponentIncreased && significandIncreased) {
++  if (exponentIncreased && significandIncreased && exponentRangeIncreased) {
+     bwt sigExtension = (significandIncreased) ? unpackedFloat<t>::significandWidth(targetFormat) - unpackedFloat<t>::significandWidth(sourceFormat) : 0;
+ 
+     // Fast path strict promotions
+@@ -119,7 +123,7 @@
+   // Round
+   ubv significand(input.getSignificand());
+   bwt significandWidth(significand.getWidth());
+-  ubv roundingPoint((significandWidth >= exponentWidth) ?
++  ubv roundingPoint((significandWidth > exponentWidth) ?
+ 		    collaredRoundingPoint.toUnsigned().matchWidth(significand) :
+ 		    collaredRoundingPoint.toUnsigned().extract(significandWidth - 1, 0));
+   // Extract is safe because of the collar
+@@ -139,11 +143,22 @@
+ 				 roundedResult.significand);
+ 					    
+   
++  // In formats where the largest finite numbers are not integral, i.e.,
++  // the significand is wider than the maximum exponent + 1, rounding up
++  // can overflow to infinity.
++  unsigned long long maxNormalExp = (1ULL << (format.exponentWidth() - 1)) - 1;
++  bool canOverflow = format.packedSignificandWidth() > maxNormalExp;
++  unpackedFloat<t> roundedOrInf(canOverflow ?
++				ITE(reconstructed.getExponent() > unpackedFloat<t>::maxNormalExponent(format),
++				    unpackedFloat<t>::makeInf(format, input.getSign()),
++				    reconstructed) :
++				reconstructed);
++
+   unpackedFloat<t> result(ITE(isID,
+ 			      input,
+ 			      ITE(roundedResult.significand.isAllZeros(),
+ 				  unpackedFloat<t>::makeZero(format, input.getSign()),
+-				  reconstructed)));
++				  roundedOrInf)));
+ 
+   POSTCONDITION(result.valid(format));
+   

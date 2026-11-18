@@ -1,6 +1,7 @@
 ; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --deep-restart=input-and-prop
 ; EXPECT: unsat
+; Deep restarts are not supported with proofs or unsat cores.
 ; DISABLE-TESTER: unsat-core
 ; DISABLE-TESTER: proof
 (set-logic ALL)

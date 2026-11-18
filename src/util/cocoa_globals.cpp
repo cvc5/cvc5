@@ -16,16 +16,20 @@
 
 #include <CoCoA/GlobalManager.H>
 
+#include <mutex>
+
 namespace cvc5::internal {
 
 CoCoA::GlobalManager* s_cocoaGlobalManager = nullptr;
 
 void initCocoaGlobalManager()
 {
-  if (s_cocoaGlobalManager == nullptr)
-  {
-    s_cocoaGlobalManager = new CoCoA::GlobalManager();
-  }
+  // CoCoA allows a single GlobalManager per process and throws if a second
+  // one is constructed. Solvers may be created concurrently in different
+  // threads, so the initialization must be synchronized.
+  static std::once_flag s_initialized;
+  std::call_once(s_initialized,
+                 []() { s_cocoaGlobalManager = new CoCoA::GlobalManager(); });
 }
 
 }  // namespace cvc5::internal

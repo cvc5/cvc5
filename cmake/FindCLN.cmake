@@ -96,6 +96,11 @@ if(NOT CLN_FOUND_SYSTEM)
   # it is possible to get around this issue by just disabling it:
   set(CONFIGURE_ENV env "MAKEINFO=true")
 
+  # Set the compiler flags explicitly, as otherwise autotools defaults to
+  # "-g -O2", and the debug info makes up most of the size of the library.
+  set(CLN_CFLAGS "-O2")
+  set(CLN_CXXFLAGS "-O2")
+
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
@@ -106,12 +111,14 @@ if(NOT CLN_FOUND_SYSTEM)
     if (CMAKE_CROSSCOMPILING_MACOS)
       set(CONFIGURE_ENV
         ${CONFIGURE_ENV}
-        env "CFLAGS=--target=${TOOLCHAIN_PREFIX}"
         env "LDFLAGS=-arch ${CMAKE_OSX_ARCHITECTURES}")
+      set(CLN_CFLAGS "${CLN_CFLAGS} --target=${TOOLCHAIN_PREFIX}")
+      set(CLN_CXXFLAGS "${CLN_CXXFLAGS} --target=${TOOLCHAIN_PREFIX}")
     endif()
   else()
     set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
+  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${CLN_CXXFLAGS}" env "CFLAGS=${CLN_CFLAGS}")
 
   set(CLN_WITH_GMP)
   if(NOT GMP_FOUND_SYSTEM)

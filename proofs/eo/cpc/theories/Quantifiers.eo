@@ -23,7 +23,7 @@
 (program $get_var_type ((s String) (T Type))
   :signature (T) Type
   (
-  (($get_var_type (eo::var s T)) T)
+  (($get_var_type (eo::var s T))  T)
   )
 )
 

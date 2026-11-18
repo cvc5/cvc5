@@ -472,9 +472,8 @@ TypeNode SkolemManager::getTypeFor(SkolemId id,
       Assert(stype.getNumChildren() == 1);
       return stype[0];
     }
-    // skolems that return the set to set element type
+    // skolems that return the bag to bag element type
     case SkolemId::BAGS_CHOOSE:
-    case SkolemId::SETS_CHOOSE:
     {
       Assert(cacheVals.size() > 0);
       TypeNode stype = cacheVals[0].getType();
@@ -652,7 +651,6 @@ size_t SkolemManager::getNumIndicesForSkolemId(SkolemId id) const
     case SkolemId::BAGS_DISTINCT_ELEMENTS_SIZE:
     case SkolemId::TABLES_GROUP_PART:
     case SkolemId::RELATIONS_GROUP_PART:
-    case SkolemId::SETS_CHOOSE:
     case SkolemId::SETS_FOLD_CARD:
     case SkolemId::SETS_FOLD_ELEMENTS:
     case SkolemId::SETS_FOLD_UNION:

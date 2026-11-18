@@ -1229,6 +1229,23 @@ enum ENUM(Kind)
    * \endrst
    */
   EVALUE(PI),
+  /**
+   * Star contains predicate.
+   * Given a set S of integer vectors of the same dimension,
+   * the star operator (S*) represents the set of all linear combinations
+   * of vectors from S.
+   * Here we are interested only in sets of vectors given using
+   * set-builder notation (set comprehension).
+   * Suppose S = {(x_1,...,x_n) | p(x_1,...,x_n}, then the syntax
+   * (int.star-contains (lambda ((x_1 Int) ... (x_n Int)) p) y_1 ... y_n)
+   * represents the predicate (y_1,...,y_n) ∈ S*
+   * where y_1, ..., y_n are integer terms.
+   * This membership means either (p y_1 ... y_n) holds or there exists
+   * nonnegative integers l_1,...,l_k and vectors
+   * v_1,...,v_k such that p(v_i) holds for all i=1,...,k and
+   * (y_1,..., y_n) = l_1*v_1 + ... + l_k*v_k.
+   */
+  EVALUE(STAR_CONTAINS),
 
   /* BV -------------------------------------------------------------------- */
 
@@ -3467,9 +3484,9 @@ enum ENUM(Kind)
    */
   EVALUE(SET_SINGLETON),
   /**
-   * The set obtained by inserting elements;
+   * The set obtained by inserting elements, right associative.
    *
-   * - Arity: ``n > 0``
+   * - Arity: ``n > 1``
    *
    *   - ``1..n-1:`` Terms of any Sort (must match the element sort of the given set Term)
    *   - ``n:`` Term of set Sort
@@ -3482,6 +3499,15 @@ enum ENUM(Kind)
    * - Create Op of this kind with:
    *
    *   - TermManager::mkOp(Kind, const std::vector<uint32_t>&)
+   *
+   * \rst
+   * .. note::
+   *
+   *     Similar to :cpp:enumerator:`IMPLIES`, terms of this kind with more
+   *     than two arguments are constructed as nested binary applications,
+   *     e.g. ``(set.insert a b S)`` is constructed as
+   *     ``(set.insert a (set.insert b S))``.
+   * \endrst
    */
   EVALUE(SET_INSERT),
   /**
@@ -3964,6 +3990,13 @@ enum ENUM(Kind)
    * It returns a set of relations of type :math:`(Set \; T)` where
    * :math:`T` is the type of :math:`A`.
    *
+   * The parts are not empty, so an empty relation has no parts:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ rel.group 0) (as set.empty (Relation Int Int)))
+   *     ; = (as set.empty (Set (Relation Int Int)))
+   *
    * - Arity: ``1``
    *
    *   - ``1:`` Term of relation sort
@@ -4002,6 +4035,18 @@ enum ENUM(Kind)
    * This operator aggregates elements in A that have the same tuple projection
    * with indices n_1, ..., n_k using the combining function :math:`f`,
    * and initial value :math:`i`.
+   *
+   * Each part of :math:`((\_ \; rel.group \; n_1 ... n_k) \; A)` gives one
+   * element, so an empty relation gives the empty set, as SQL's ``GROUP BY``
+   * gives no rows for an empty table:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ rel.aggr 0) f i (as set.empty (Relation Int Int)))
+   *     ; = (as set.empty (Set T))
+   *
+   * SQL's aggregate without ``GROUP BY``, one row also for an empty table,
+   * is a fold: ``(set.singleton (set.fold f i A))``.
    *
    * - Arity: ``3``
    *
@@ -4452,6 +4497,7 @@ enum ENUM(Kind)
    * of type :math:`(Bag \; E)` based on the equivalence relations :math:`r` of
    * type :math:`(\rightarrow \; E \; E \; Bool)`.
    * It returns a bag of bags of type :math:`(Bag \; (Bag \; E))`.
+   * The parts are not empty, so an empty bag has no parts.
    *
    * - Arity: ``2``
    *
@@ -4534,6 +4580,18 @@ enum ENUM(Kind)
    * with indices n_1, ..., n_k using the combining function :math:`f`,
    * and initial value :math:`i`.
    *
+   * Each part of :math:`((\_ \; table.group \; n_1 ... n_k) \; A)` gives one
+   * element, the fold of the part, so an empty table gives the empty bag, as
+   * SQL's ``GROUP BY`` gives no rows for an empty table:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ table.aggr 0) f i (as bag.empty (Table Int Int)))
+   *     ; = (as bag.empty (Bag T))
+   *
+   * SQL's aggregate without ``GROUP BY``, one row also for an empty table,
+   * is a fold: ``(bag (bag.fold f i A) 1)``.
+   *
    * - Arity: ``3``
    *
    *   - ``1:`` Term of sort :math:`(\rightarrow (Tuple \;  T_1 \; ... \; T_j)\; T \; T)`
@@ -4600,6 +4658,13 @@ enum ENUM(Kind)
    * with indices :math:`n_1 \; \dots \; n_k` are in the same part.
    * It returns a bag of tables of type :math:`(Bag \; T)` where
    * :math:`T` is the type of :math:`A`.
+   *
+   * The parts are not empty, so an empty table has no parts:
+   *
+   * .. code:: smtlib
+   *
+   *     ((_ table.group 0) (as bag.empty (Table Int Int)))
+   *     ; = (as bag.empty (Bag (Table Int Int)))
    *
    * - Arity: ``1``
    *

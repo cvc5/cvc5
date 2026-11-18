@@ -127,6 +127,15 @@ Token Smt2Lexer::computeNextToken()
         {
           return Token::UNTERMINATED_QUOTED_SYMBOL;
         }
+        // SMT-LIB quoted symbols may contain whitespace and printable
+        // characters other than `\\` (and `|`, which terminates the symbol).
+        // We additionally accept non-ASCII characters, e.g. for UTF-8 input.
+        else if (ch == '\\'
+                 || (ch < 128
+                     && !isCharacterClass(ch, CharacterClass::PRINTABLE)))
+        {
+          parseError("Illegal character in quoted symbol");
+        }
         pushToToken(ch);
       } while (ch != '|');
       return Token::QUOTED_SYMBOL;
@@ -204,7 +213,8 @@ Token Smt2Lexer::computeNextToken()
       {
         parseError("Error expected symbol following :");
       }
-      parseNonEmptyCharList(CharacterClass::SYMBOL);
+      // the remainder of the keyword may be empty, e.g. `:a`
+      parseCharList(CharacterClass::SYMBOL);
       return Token::KEYWORD;
     default:
       if (isCharacterClass(ch, CharacterClass::DECIMAL_DIGIT))
@@ -366,7 +376,7 @@ Token Smt2Lexer::tokenizeCurrentSymbol() const
           {
             continue;
           }
-          else if (i + 1 < tsize && ret == Token::INTEGER_LITERAL)
+          else if (i > 1 && i + 1 < tsize && ret == Token::INTEGER_LITERAL)
           {
             if (d_token[i] == '.')
             {

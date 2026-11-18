@@ -127,10 +127,12 @@ class TheorySetsPrivate : protected EnvObj
    * @return an inference that represents:
    * (=>
    *  (= A (as set.empty T))
-   *  (= skolem (set.singleton (as set.empty T)))
+   *  (= skolem (as set.empty (Set T)))
    * )
+   * where skolem is a variable equals ((_ rel.group n1 ... nk) A). An empty
+   * relation has no parts.
    */
-  void groupNotEmpty(Node n);
+  void groupEmpty(Node n);
   /**
    * @param n has form ((_ rel.group n1 ... nk) A) where A has type (Relation T)
    * @param e an element of type T
@@ -386,9 +388,6 @@ class TheorySetsPrivate : protected EnvObj
 
   void preRegisterTerm(TNode node);
 
-  /** ppRewrite, which expands choose and is_singleton.  */
-  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
-
   void presolve();
 
   /** get the valuation */
@@ -419,11 +418,6 @@ class TheorySetsPrivate : protected EnvObj
 
   bool isCareArg(Node n, unsigned a);
 
-  /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node,
-                                 std::vector<SkolemLemma>& lems);
-  /** expand the definition of is_singleton operator */
-  TrustNode expandIsSingletonOperator(const Node& node);
   /** ensure that the set type is over first class type, throw logic exception
    * if not */
   void ensureFirstClassSetType(TypeNode tn) const;
@@ -465,9 +459,6 @@ class TheorySetsPrivate : protected EnvObj
    */
   bool d_higher_order_kinds_enabled;
 
-  /** a map that maps each set to an existential quantifier generated for
-   * operator is_singleton */
-  std::map<Node, Node> d_isSingletonNodes;
   /** Reference to care pair argument callback, used for theory combination */
   CarePairArgumentCallback& d_cpacb;
   /**

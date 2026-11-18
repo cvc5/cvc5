@@ -12,6 +12,7 @@
   ((Start Int (0 1 x y))))
 
 (check-synth)
+(define-fun aux () Int 0)
 (check-synth-next)
 (check-synth-next)
 (check-synth-next)

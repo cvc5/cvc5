@@ -152,10 +152,9 @@ std::uint64_t TaylorGenerator::getPolynomialApproximationBoundForArg(
       Trace("nl-ext-exp-taylor")
           << "*** Increase Taylor bound to " << ds << " > " << d << " for ("
           << k << " " << c << ")" << std::endl;
-      // must use sound upper bound
-      ApproximationBounds pboundss;
-      getPolynomialApproximationBounds(k, ds, pboundss);
-      pbounds.d_upperPos = pboundss.d_upperPos;
+      // must use sound upper bound, we also use the lower bound of the same
+      // degree so that all returned bounds are of degree ds
+      getPolynomialApproximationBounds(k, ds, pbounds);
     }
     return ds;
   }

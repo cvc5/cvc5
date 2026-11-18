@@ -53,10 +53,11 @@ bool LetUpdaterPfCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   }
   // Letification done on the converted terms (thus from the converted
   // conclusion) and potentially on arguments, which means to ignore the first
-  // two arguments (which are the Alethe rule and the original conclusion).
-  AlwaysAssert(args.size() > 2)
+  // three arguments (which are the trust id, the original conclusion and the
+  // Alethe rule).
+  AlwaysAssert(isAletheStep(pn.get()))
       << "res: " << pn->getResult() << "\nid: " << pn->getRule();
-  for (size_t i = 2, size = args.size(); i < size; ++i)
+  for (size_t i = 3, size = args.size(); i < size; ++i)
   {
     Trace("alethe-printer") << "Process " << args[i] << std::endl;
     // We do not share s-expressions, but rather their children
@@ -94,7 +95,7 @@ void AletheProofPrinter::printStep(
 {
   out << "(step " << stepId << " ";
   // print the conclusion and the rule
-  printTerm(out, pfArgs[2]);
+  printTerm(out, pfArgs[3]);
   out << " :rule " << arule;
   if (!pfChildren.empty())
   {
@@ -108,10 +109,10 @@ void AletheProofPrinter::printStep(
     }
     out << ")";
   }
-  if (pfArgs.size() > 3)
+  if (pfArgs.size() > 4)
   {
     out << " :args (";
-    for (size_t i = 3, size = pfArgs.size(); i < size; i++)
+    for (size_t i = 4, size = pfArgs.size(); i < size; i++)
     {
       printTerm(out, pfArgs[i]);
       out << (i < pfArgs.size() - 1 ? " " : "");
@@ -248,17 +249,17 @@ void AletheProofPrinter::printInternal(std::ostream& out,
       d_pfMap.find(pfn.get());
   if (pfIt != d_pfMap.end())
   {
-    Trace("alethe-printer") << "... step is already printed t" << pfIt->second
-                            << " " << pfn->getResult() << " "
-                            << getAletheRule(pfn->getArguments()[0]) << "\n";
+    Trace("alethe-printer")
+        << "... step is already printed t" << pfIt->second << " "
+        << pfn->getResult() << " " << getAletheRule(pfn.get()) << "\n";
     return;
   }
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& pfChildren =
       pfn->getChildren();
   // Get the alethe proof rule
-  AletheRule arule = getAletheRule(args[0]);
-  Trace("alethe-printer") << "... print step " << arule << " : " << args[2]
+  AletheRule arule = getAletheRule(pfn.get());
+  Trace("alethe-printer") << "... print step " << arule << " : " << args[3]
                           << std::endl;
   // We special case printing anchors
   if (arule >= AletheRule::ANCHOR_SUBPROOF
@@ -275,12 +276,12 @@ void AletheProofPrinter::printInternal(std::ostream& out,
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << ")" << std::endl;
-      Assert(args.size() >= 3);
-      for (size_t i = 3, size = args.size(); i < size; ++i)
+      Assert(args.size() >= 4);
+      for (size_t i = 4, size = args.size(); i < size; ++i)
       {
         Trace("alethe-printer")
             << "... print assumption " << args[i] << std::endl;
-        std::string assumptionId = subproofPrefix + "a" + std::to_string(i - 3);
+        std::string assumptionId = subproofPrefix + "a" + std::to_string(i - 4);
         out << "(assume " << assumptionId << " ";
         printTerm(out, args[i]);
         out << ")" << std::endl;
@@ -293,7 +294,7 @@ void AletheProofPrinter::printInternal(std::ostream& out,
       Assert(arule >= AletheRule::ANCHOR_BIND
              && arule <= AletheRule::ANCHOR_ONEPOINT);
       out << " :args (";
-      for (size_t i = 3, size = args.size(); i < size; ++i)
+      for (size_t i = 4, size = args.size(); i < size; ++i)
       {
         if (args[i].getKind() == Kind::EQUAL)
         {
@@ -318,7 +319,7 @@ void AletheProofPrinter::printInternal(std::ostream& out,
       const std::vector<Node>& childArgs = pfChildren[0]->getArguments();
       const std::vector<std::shared_ptr<ProofNode>>& childPfChildren =
           pfChildren[0]->getChildren();
-      AletheRule childArule = getAletheRule(childArgs[0]);
+      AletheRule childArule = getAletheRule(pfChildren[0].get());
       printStep(out, childStepId, childArule, childArgs, childPfChildren);
     }
     else
@@ -330,15 +331,15 @@ void AletheProofPrinter::printInternal(std::ostream& out,
     Trace("alethe-printer") << pop;
     std::string stepId = prefix + "t" + std::to_string(id++);
     out << "(step " << stepId << " ";
-    printTerm(out, args[2]);
+    printTerm(out, args[3]);
     out << " :rule " << arule;
     // Discharge assumptions in the case of subproof
     if (arule == AletheRule::ANCHOR_SUBPROOF)
     {
       out << " :discharge (";
-      for (size_t i = 3, size = args.size(); i < size; ++i)
+      for (size_t i = 4, size = args.size(); i < size; ++i)
       {
-        out << dischargeIds[i - 3] << (i < args.size() - 1 ? " " : "");
+        out << dischargeIds[i - 4] << (i < args.size() - 1 ? " " : "");
       }
       out << ")";
     }

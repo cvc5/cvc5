@@ -1,4 +1,5 @@
 ; REQUIRES: no-competition
+; DISABLE-TESTER: dump
 ; SCRUBBER: grep -o "Symbol 'a' not declared as a variable"
 ; EXPECT: Symbol 'a' not declared as a variable
 ; EXIT: 1

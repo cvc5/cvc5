@@ -117,10 +117,90 @@ TEST_F(TestApiBlackProof, getChildren)
   ASSERT_FALSE(children.empty());
 }
 
+TEST_F(TestApiBlackProof, annotateTheoryLemmas)
+{
+  d_solver->setOption("proof-annotate-theory-lemmas", "true");
+  Proof proof = createProof();
+  ASSERT_THROW(proof.getAnnotationId(), CVC5ApiException);
+  std::vector<Proof> stack{proof};
+  bool foundAnnotate = false;
+  while (!stack.empty())
+  {
+    Proof cur = stack.back();
+    stack.pop_back();
+    if (cur.getRule() == ProofRule::ANNOTATE)
+    {
+      foundAnnotate = true;
+      ASSERT_EQ(cur.getChildren().size(), 1);
+      ASSERT_GE(cur.getArguments().size(), 2);
+      ASSERT_EQ(cur.getAnnotationId(), AnnotationId::THEORY_LEMMA);
+      break;
+    }
+    std::vector<Proof> children = cur.getChildren();
+    stack.insert(stack.end(), children.begin(), children.end());
+  }
+  ASSERT_TRUE(foundAnnotate);
+}
+
 TEST_F(TestApiBlackProof, getArguments)
 {
   Proof proof = createProof();
   ASSERT_NO_THROW(proof.getArguments());
+}
+
+TEST_F(TestApiBlackProof, getArgumentToString)
+{
+  ASSERT_THROW(Proof().getArgumentToString(0), CVC5ApiException);
+  d_solver->setOption("proof-annotate-theory-lemmas", "true");
+  Proof proof = createProof();
+  ASSERT_THROW(proof.getArgumentToString(proof.getArguments().size()),
+               CVC5ApiException);
+  std::vector<Proof> stack{proof};
+  bool foundAssume = false;
+  bool foundAnnotate = false;
+  while (!stack.empty())
+  {
+    Proof cur = stack.back();
+    stack.pop_back();
+    std::vector<Term> args = cur.getArguments();
+    for (size_t i = 0, nargs = args.size(); i < nargs; i++)
+    {
+      ASSERT_NO_THROW(cur.getArgumentToString(i));
+    }
+    if (cur.getRule() == ProofRule::ASSUME)
+    {
+      // ordinary term arguments print as terms
+      foundAssume = true;
+      ASSERT_EQ(cur.getArgumentToString(0), args[0].toString());
+    }
+    else if (cur.getRule() == ProofRule::ANNOTATE)
+    {
+      // identifier arguments print as their names
+      foundAnnotate = true;
+      ASSERT_EQ(cur.getArgumentToString(0),
+                std::to_string(AnnotationId::THEORY_LEMMA));
+      ASSERT_EQ(cur.getArgumentToString(1).rfind("THEORY_", 0), 0);
+    }
+    std::vector<Proof> children = cur.getChildren();
+    stack.insert(stack.end(), children.begin(), children.end());
+  }
+  ASSERT_TRUE(foundAssume);
+  ASSERT_TRUE(foundAnnotate);
+}
+
+TEST_F(TestApiBlackProof, getArgumentToStringRewrite)
+{
+  Proof proof = createRewriteProof();
+  std::vector<Proof> stack{proof};
+  while (proof.getRule() != ProofRule::DSL_REWRITE)
+  {
+    proof = stack.back();
+    stack.pop_back();
+    std::vector<Proof> children = proof.getChildren();
+    stack.insert(stack.end(), children.begin(), children.end());
+  }
+  ASSERT_EQ(proof.getArgumentToString(0),
+            std::to_string(proof.getRewriteRule()));
 }
 
 TEST_F(TestApiBlackProof, equalhash)

@@ -102,8 +102,7 @@ class SortInference : protected EnvObj
                         bool pol,
                         bool hasPol,
                         std::map<Node, Node>& var_bound,
-                        std::map<Node, std::map<int, bool> >& visited,
-                        bool typeMode = false);
+                        std::map<Node, std::map<int, bool> >& visited);
 
   // for rewriting
  private:

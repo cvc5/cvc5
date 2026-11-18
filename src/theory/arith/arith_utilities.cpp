@@ -388,6 +388,16 @@ Node eliminateInt2Bv(TNode node)
   return Node(result);
 }
 
+Node ubvToIntRange(TNode node)
+{
+  Assert(node.getKind() == Kind::BITVECTOR_UBV_TO_INT);
+  const uint32_t size = bv::utils::getSize(node[0]);
+  NodeManager* const nm = node.getNodeManager();
+  Node zero = nm->mkConstInt(Rational(0));
+  Node ub = nm->mkConstInt(Rational(Integer(2).pow(size)));
+  return mkInRange(node, zero, ub);
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

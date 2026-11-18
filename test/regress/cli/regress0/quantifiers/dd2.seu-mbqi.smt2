@@ -1,5 +1,5 @@
 ; REQUIRES: unrestricted-mode
-; COMMAND-LINE: --mbqi
+; COMMAND-LINE: --mbqi -q
 ; EXPECT: sat
 (set-logic HO_ALL)
 (declare-sort $ 0)

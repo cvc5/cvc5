@@ -24,17 +24,20 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort()
   {
-    super(getNullSort());
+    super(null, NULL_POINTER, null);
   }
+
+  /** The native null object shared by all null sort instances. It is never freed. */
+  private static final long NULL_POINTER = getNullSort();
 
   private static native long getNullSort();
 
-  Sort(long pointer)
+  Sort(NativeContext ctx, long pointer)
   {
-    super(pointer);
+    super(ctx, pointer, Sort::deletePointer);
   }
 
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
 
   // endregion
 
@@ -59,7 +62,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
     {
       return true;
     }
-    return equals(pointer, sort.getPointer());
+    return equals(getPointer(), sort.getPointer());
   }
 
   private native boolean equals(long pointer1, long pointer2);
@@ -74,7 +77,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   @Override
   public int compareTo(Sort s)
   {
-    return this.compareTo(pointer, s.getPointer());
+    return this.compareTo(getPointer(), s.getPointer());
   }
 
   private native int compareTo(long pointer1, long pointer2);
@@ -88,7 +91,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public SortKind getKind() throws CVC5ApiException
   {
-    int value = getKind(pointer);
+    int value = getKind(getPointer());
     return SortKind.fromInt(value);
   }
 
@@ -100,7 +103,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean hasSymbol()
   {
-    return hasSymbol(pointer);
+    return hasSymbol(getPointer());
   }
 
   private native boolean hasSymbol(long pointer);
@@ -113,7 +116,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public String getSymbol()
   {
-    return getSymbol(pointer);
+    return getSymbol(getPointer());
   }
 
   private native String getSymbol(long pointer);
@@ -124,7 +127,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isNull()
   {
-    return isNull(pointer);
+    return isNull(getPointer());
   }
 
   private native boolean isNull(long pointer);
@@ -135,7 +138,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isBoolean()
   {
-    return isBoolean(pointer);
+    return isBoolean(getPointer());
   }
 
   private native boolean isBoolean(long pointer);
@@ -146,7 +149,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isInteger()
   {
-    return isInteger(pointer);
+    return isInteger(getPointer());
   }
 
   private native boolean isInteger(long pointer);
@@ -157,7 +160,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isReal()
   {
-    return isReal(pointer);
+    return isReal(getPointer());
   }
 
   private native boolean isReal(long pointer);
@@ -168,7 +171,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isString()
   {
-    return isString(pointer);
+    return isString(getPointer());
   }
 
   private native boolean isString(long pointer);
@@ -179,7 +182,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isRegExp()
   {
-    return isRegExp(pointer);
+    return isRegExp(getPointer());
   }
 
   private native boolean isRegExp(long pointer);
@@ -190,7 +193,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isRoundingMode()
   {
-    return isRoundingMode(pointer);
+    return isRoundingMode(getPointer());
   }
 
   private native boolean isRoundingMode(long pointer);
@@ -201,7 +204,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isBitVector()
   {
-    return isBitVector(pointer);
+    return isBitVector(getPointer());
   }
 
   private native boolean isBitVector(long pointer);
@@ -212,7 +215,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isFiniteField()
   {
-    return isFiniteField(pointer);
+    return isFiniteField(getPointer());
   }
 
   private native boolean isFiniteField(long pointer);
@@ -224,7 +227,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isFloatingPoint()
   {
-    return isFloatingPoint(pointer);
+    return isFloatingPoint(getPointer());
   }
 
   private native boolean isFloatingPoint(long pointer);
@@ -235,7 +238,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isDatatype()
   {
-    return isDatatype(pointer);
+    return isDatatype(getPointer());
   }
 
   private native boolean isDatatype(long pointer);
@@ -246,7 +249,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isDatatypeConstructor()
   {
-    return isDatatypeConstructor(pointer);
+    return isDatatypeConstructor(getPointer());
   }
 
   private native boolean isDatatypeConstructor(long pointer);
@@ -257,7 +260,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isDatatypeSelector()
   {
-    return isDatatypeSelector(pointer);
+    return isDatatypeSelector(getPointer());
   }
 
   private native boolean isDatatypeSelector(long pointer);
@@ -268,7 +271,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isDatatypeTester()
   {
-    return isDatatypeTester(pointer);
+    return isDatatypeTester(getPointer());
   }
 
   private native boolean isDatatypeTester(long pointer);
@@ -279,7 +282,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isDatatypeUpdater()
   {
-    return isDatatypeUpdater(pointer);
+    return isDatatypeUpdater(getPointer());
   }
 
   private native boolean isDatatypeUpdater(long pointer);
@@ -290,7 +293,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isFunction()
   {
-    return isFunction(pointer);
+    return isFunction(getPointer());
   }
 
   private native boolean isFunction(long pointer);
@@ -305,7 +308,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isPredicate()
   {
-    return isPredicate(pointer);
+    return isPredicate(getPointer());
   }
 
   private native boolean isPredicate(long pointer);
@@ -316,7 +319,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isTuple()
   {
-    return isTuple(pointer);
+    return isTuple(getPointer());
   }
 
   private native boolean isTuple(long pointer);
@@ -327,7 +330,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isNullable()
   {
-    return isNullable(pointer);
+    return isNullable(getPointer());
   }
 
   private native boolean isNullable(long pointer);
@@ -339,7 +342,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isRecord()
   {
-    return isRecord(pointer);
+    return isRecord(getPointer());
   }
 
   private native boolean isRecord(long pointer);
@@ -350,7 +353,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isArray()
   {
-    return isArray(pointer);
+    return isArray(getPointer());
   }
 
   private native boolean isArray(long pointer);
@@ -361,7 +364,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isSet()
   {
-    return isSet(pointer);
+    return isSet(getPointer());
   }
 
   private native boolean isSet(long pointer);
@@ -372,7 +375,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isBag()
   {
-    return isBag(pointer);
+    return isBag(getPointer());
   }
 
   private native boolean isBag(long pointer);
@@ -383,7 +386,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isSequence()
   {
-    return isSequence(pointer);
+    return isSequence(getPointer());
   }
 
   private native boolean isSequence(long pointer);
@@ -396,7 +399,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isAbstract()
   {
-    return isAbstract(pointer);
+    return isAbstract(getPointer());
   }
 
   private native boolean isAbstract(long pointer);
@@ -407,7 +410,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isUninterpretedSort()
   {
-    return isUninterpretedSort(pointer);
+    return isUninterpretedSort(getPointer());
   }
 
   private native boolean isUninterpretedSort(long pointer);
@@ -422,7 +425,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isUninterpretedSortConstructor()
   {
-    return isUninterpretedSortConstructor(pointer);
+    return isUninterpretedSortConstructor(getPointer());
   }
 
   private native boolean isUninterpretedSortConstructor(long pointer);
@@ -439,7 +442,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public boolean isInstantiated()
   {
-    return isInstantiated(pointer);
+    return isInstantiated(getPointer());
   }
 
   private native boolean isInstantiated(long pointer);
@@ -452,8 +455,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getUninterpretedSortConstructor()
   {
-    long sortPointer = getUninterpretedSortConstructor(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getUninterpretedSortConstructor(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getUninterpretedSortConstructor(long pointer);
@@ -465,8 +468,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Datatype getDatatype()
   {
-    long datatypePointer = getDatatype(pointer);
-    return new Datatype(datatypePointer);
+    long datatypePointer = getDatatype(getPointer());
+    return new Datatype(ctx, datatypePointer);
   }
 
   private native long getDatatype(long pointer);
@@ -485,8 +488,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   public Sort instantiate(Sort[] params)
   {
     long[] paramsPointers = Utils.getPointers(params);
-    long sortPointer = instantiate(pointer, paramsPointers);
-    return new Sort(sortPointer);
+    long sortPointer = instantiate(getPointer(), paramsPointers);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long instantiate(long pointer, long[] paramsPointers);
@@ -501,8 +504,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort[] getInstantiatedParameters()
   {
-    long[] pointers = getInstantiatedParameters(pointer);
-    return Utils.getSorts(pointers);
+    long[] pointers = getInstantiatedParameters(getPointer());
+    return Utils.getSorts(ctx, pointers);
   }
 
   private native long[] getInstantiatedParameters(long pointer);
@@ -522,8 +525,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort substitute(Sort sort, Sort replacement)
   {
-    long sortPointer = substitute(pointer, sort.getPointer(), replacement.getPointer());
-    return new Sort(sortPointer);
+    long sortPointer = substitute(getPointer(), sort.getPointer(), replacement.getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long substitute(long pointer, long sortPointer, long replacementPointer);
@@ -551,8 +554,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long[] replacementPointers = Utils.getPointers(sorts);
-    long sortPointer = substitute(pointer, sortPointers, replacementPointers);
-    return new Sort(sortPointer);
+    long sortPointer = substitute(getPointer(), sortPointers, replacementPointers);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long substitute(long pointer, long[] sortPointers, long[] replacementPointers);
@@ -571,7 +574,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getDatatypeConstructorArity()
   {
-    return getDatatypeConstructorArity(pointer);
+    return getDatatypeConstructorArity(getPointer());
   }
 
   private native int getDatatypeConstructorArity(long pointer);
@@ -583,8 +586,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort[] getDatatypeConstructorDomainSorts()
   {
-    long[] pointers = getDatatypeConstructorDomainSorts(pointer);
-    return Utils.getSorts(pointers);
+    long[] pointers = getDatatypeConstructorDomainSorts(getPointer());
+    return Utils.getSorts(ctx, pointers);
   }
 
   private native long[] getDatatypeConstructorDomainSorts(long pointer);
@@ -596,8 +599,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getDatatypeConstructorCodomainSort()
   {
-    long sortPointer = getDatatypeConstructorCodomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getDatatypeConstructorCodomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getDatatypeConstructorCodomainSort(long pointer);
@@ -610,8 +613,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getDatatypeSelectorDomainSort()
   {
-    long sortPointer = getDatatypeSelectorDomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getDatatypeSelectorDomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getDatatypeSelectorDomainSort(long pointer);
@@ -623,8 +626,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getDatatypeSelectorCodomainSort()
   {
-    long sortPointer = getDatatypeSelectorCodomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getDatatypeSelectorCodomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getDatatypeSelectorCodomainSort(long pointer);
@@ -638,8 +641,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getDatatypeTesterDomainSort()
   {
-    long sortPointer = getDatatypeTesterDomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getDatatypeTesterDomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getDatatypeTesterDomainSort(long pointer);
@@ -652,8 +655,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getDatatypeTesterCodomainSort()
   {
-    long sortPointer = getDatatypeTesterCodomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getDatatypeTesterCodomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getDatatypeTesterCodomainSort(long pointer);
@@ -667,7 +670,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getFunctionArity()
   {
-    return getFunctionArity(pointer);
+    return getFunctionArity(getPointer());
   }
 
   private native int getFunctionArity(long pointer);
@@ -679,8 +682,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort[] getFunctionDomainSorts()
   {
-    long[] pointers = getFunctionDomainSorts(pointer);
-    return Utils.getSorts(pointers);
+    long[] pointers = getFunctionDomainSorts(getPointer());
+    return Utils.getSorts(ctx, pointers);
   }
 
   private native long[] getFunctionDomainSorts(long pointer);
@@ -692,8 +695,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getFunctionCodomainSort()
   {
-    long sortPointer = getFunctionCodomainSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getFunctionCodomainSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getFunctionCodomainSort(long pointer);
@@ -706,8 +709,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getArrayIndexSort()
   {
-    long sortPointer = getArrayIndexSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getArrayIndexSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getArrayIndexSort(long pointer);
@@ -719,8 +722,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getArrayElementSort()
   {
-    long sortPointer = getArrayElementSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getArrayElementSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getArrayElementSort(long pointer);
@@ -734,8 +737,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getSetElementSort()
   {
-    long sortPointer = getSetElementSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getSetElementSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getSetElementSort(long pointer);
@@ -749,8 +752,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getBagElementSort()
   {
-    long sortPointer = getBagElementSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getBagElementSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getBagElementSort(long pointer);
@@ -764,8 +767,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getSequenceElementSort()
   {
-    long sortPointer = getSequenceElementSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getSequenceElementSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getSequenceElementSort(long pointer);
@@ -784,7 +787,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public SortKind getAbstractedKind() throws CVC5ApiException
   {
-    int value = getAbstractedKind(pointer);
+    int value = getAbstractedKind(getPointer());
     return SortKind.fromInt(value);
   }
 
@@ -799,7 +802,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getUninterpretedSortConstructorArity()
   {
-    return getUninterpretedSortConstructorArity(pointer);
+    return getUninterpretedSortConstructorArity(getPointer());
   }
 
   private native int getUninterpretedSortConstructorArity(long pointer);
@@ -813,7 +816,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getBitVectorSize()
   {
-    return getBitVectorSize(pointer);
+    return getBitVectorSize(getPointer());
   }
 
   private native int getBitVectorSize(long pointer);
@@ -827,7 +830,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public String getFiniteFieldSize()
   {
-    return getFiniteFieldSize(pointer);
+    return getFiniteFieldSize(getPointer());
   }
 
   private native String getFiniteFieldSize(long pointer);
@@ -841,7 +844,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getFloatingPointExponentSize()
   {
-    return getFloatingPointExponentSize(pointer);
+    return getFloatingPointExponentSize(getPointer());
   }
 
   private native int getFloatingPointExponentSize(long pointer);
@@ -853,7 +856,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getFloatingPointSignificandSize()
   {
-    return getFloatingPointSignificandSize(pointer);
+    return getFloatingPointSignificandSize(getPointer());
   }
 
   private native int getFloatingPointSignificandSize(long pointer);
@@ -867,7 +870,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getDatatypeArity()
   {
-    return getDatatypeArity(pointer);
+    return getDatatypeArity(getPointer());
   }
 
   private native int getDatatypeArity(long pointer);
@@ -881,7 +884,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public int getTupleLength()
   {
-    return getTupleLength(pointer);
+    return getTupleLength(getPointer());
   }
 
   private native int getTupleLength(long pointer);
@@ -893,8 +896,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort[] getTupleSorts()
   {
-    long[] pointers = getTupleSorts(pointer);
-    return Utils.getSorts(pointers);
+    long[] pointers = getTupleSorts(getPointer());
+    return Utils.getSorts(ctx, pointers);
   }
 
   private native long[] getTupleSorts(long pointer);
@@ -906,8 +909,8 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
    */
   public Sort getNullableElementSort()
   {
-    long sortPointer = getNullableElementSort(pointer);
-    return new Sort(sortPointer);
+    long sortPointer = getNullableElementSort(getPointer());
+    return new Sort(ctx, sortPointer);
   }
 
   private native long getNullableElementSort(long pointer);
@@ -919,7 +922,7 @@ public class Sort extends AbstractPointer implements Comparable<Sort>
   @Override
   public int hashCode()
   {
-    return Long.hashCode(hashCode(pointer));
+    return Long.hashCode(hashCode(getPointer()));
   }
 
   private native long hashCode(long pointer);
