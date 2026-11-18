@@ -20,6 +20,7 @@
 
 #include "base/output.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/rewriter/node_utils.h"
 #include "theory/theory.h"
 
 using namespace std;
@@ -55,8 +56,8 @@ bool Variable::isDivMember(Node n)
     {
       // Real division retains TO_REAL casts on integer operands. Check the
       // underlying polynomials, as in Polynomial::parsePolynomial.
-      Node lhs = n[0].getKind() == Kind::TO_REAL ? n[0][0] : n[0];
-      Node rhs = n[1].getKind() == Kind::TO_REAL ? n[1][0] : n[1];
+      Node lhs = rewriter::removeToReal(n[0]);
+      Node rhs = rewriter::removeToReal(n[1]);
       return Polynomial::isMember(lhs) && Polynomial::isMember(rhs);
     }
     default: return false;

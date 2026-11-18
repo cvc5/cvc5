@@ -210,7 +210,7 @@ void addToSumNoMixed(Sum& sum, TNode n, bool negate)
   std::vector<Node> factors;
   for (const Node& f : monomial)
   {
-    Node fr = f.getKind() == Kind::TO_REAL ? f[0] : f;
+    Node fr = removeToReal(f);
     if (fr.isConst())
     {
       multiplicity *= fr.getConst<Rational>();
