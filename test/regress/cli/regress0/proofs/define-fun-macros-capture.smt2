@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --proof-define-fun-macros
+; DISABLE-TESTER: alethe
 ; Logos does not yet support the proof of this benchmark, independently of
 ; whether definitions are treated as macros.
 ; DISABLE-TESTER: cpc-logos

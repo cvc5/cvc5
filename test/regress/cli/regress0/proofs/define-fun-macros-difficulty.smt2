@@ -1,4 +1,7 @@
 ; COMMAND-LINE: --proof-define-fun-macros --produce-difficulty
+; The difficulty map is empty when unsat cores are checked, independently of
+; whether definitions are treated as macros.
+; DISABLE-TESTER: unsat-core
 ; EXPECT: unsat
 ; EXPECT: (
 ; EXPECT: (A1 1)

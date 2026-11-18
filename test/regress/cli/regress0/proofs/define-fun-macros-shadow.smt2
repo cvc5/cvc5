@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --proof-define-fun-macros
+; DISABLE-TESTER: alethe
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-fun f (Int) Int)
