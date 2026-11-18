@@ -203,8 +203,8 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
         // Term formula removal would replace t by k in (= k t), which would
         // make this lemma true. We use the definition it would give k
         // instead.
-        lem = nodeManager()->mkNode(
-            Kind::ITE, t[0], k.eqNode(t[1]), k.eqNode(t[2]));
+        lem = nodeManager()->mkNode(Kind::ITE,
+                                    {t[0], k.eqNode(t[1]), k.eqNode(t[2])});
       }
       else
       {
