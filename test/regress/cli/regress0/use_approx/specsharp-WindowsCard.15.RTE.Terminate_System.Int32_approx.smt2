@@ -1,6 +1,9 @@
 ; REQUIRES: glpk
 ; DISABLE-TESTER: unsat-core
-; COMMAND-LINE: --use-approx
+;; --enum-inst is required since #12833, after which the rewriter no longer
+;; fully normalizes arithmetic equalities and E-matching alone does not find
+;; the instantiation needed to close this benchmark.
+; COMMAND-LINE: --use-approx --enum-inst
 ; EXPECT: unsat
 ;; Unary AND is not supported in Alethe
 ; DISABLE-TESTER: alethe

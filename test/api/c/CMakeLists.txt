@@ -41,8 +41,10 @@ macro(cvc5_add_capi_test name dir)
   else()
     set(testname api/c/${dir}/${cname})
   endif()
-  add_test(${testname} ${ENV_PATH_CMD} ${test_bin_dir}/${cname})
-  set_tests_properties(${testname} PROPERTIES LABELS "api capi")
+  add_test(${testname} ${test_bin_dir}/${cname})
+  set_tests_properties(${testname} PROPERTIES
+    LABELS "api capi"
+    ENVIRONMENT "${CVC5_TEST_ENV}")
   # set_tests_properties(api/cpp/${name} PROPERTIES FIXTURES_REQUIRED build_capitests_fixture)
   add_dependencies(build-capitests ${cname})
 endmacro()

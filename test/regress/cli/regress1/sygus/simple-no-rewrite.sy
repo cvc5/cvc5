@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-si=all  --sygus-out=status
 ; EXPECT: feasible
 

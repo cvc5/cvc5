@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ;; unsupported operator int.pow2
 ; DISABLE-TESTER: alethe

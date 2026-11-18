@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --cegqi-all
 ; EXPECT: sat
 ;AJR:BROKEN

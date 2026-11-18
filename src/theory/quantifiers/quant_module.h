@@ -150,6 +150,15 @@ class QuantifiersModule : protected EnvObj
   {
   }
   /**
+   * Called when the quantifiers engine is initialized, for the theory engine
+   * te.
+   */
+  virtual void finishInit(CVC5_UNUSED TheoryEngine* te) {}
+  /**
+   * Called when the classes of t1 and t2 merge in the master equality engine.
+   */
+  virtual void notifyMasterMerge(CVC5_UNUSED TNode t1, CVC5_UNUSED TNode t2) {}
+  /**
    * Identify this module (for debugging, dynamic configuration, etc..).
    * This name is printed in -o inst-strategy.
    */

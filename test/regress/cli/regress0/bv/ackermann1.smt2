@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --bitblast=eager 
 ; COMMAND-LINE: --bitblast=eager --bv-solver=bitblast-internal 
 ; EXPECT: sat

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --incremental --abstract-values
 ; EXPECT: sat
 ; EXPECT: ((a (as @ABSTRACT_VALUE_1 (Array Int Int))) (b (as @ABSTRACT_VALUE_2 (Array Int Int))))

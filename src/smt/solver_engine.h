@@ -60,6 +60,7 @@ class ContextManager;
 class SolverEngineState;
 class ResourceOutListener;
 class CheckModels;
+class ExpandDefs;
 /** Subsolvers */
 class SmtSolver;
 class SmtDriver;
@@ -485,6 +486,14 @@ class CVC5_EXPORT SolverEngine
    */
   void addPlugin(Plugin* p);
   /**
+   * Set the terminator of this solver engine, which is polled periodically to
+   * determine whether the current call should be terminated. An empty
+   * function disconnects the current terminator.
+   *
+   * @param terminator The terminator.
+   */
+  void setTerminator(std::function<bool()> terminator);
+  /**
    * Simplify a term or formula based on rewriting and (optionally) applying
    * substitutions for solved variables.
    *
@@ -883,6 +892,26 @@ class CVC5_EXPORT SolverEngine
    * was true.
    */
   void endCall();
+  /**
+   * RAII guard for a call that is subject to resource limits (and the
+   * terminator). Calls beginCall(true) on construction and endCall() on
+   * destruction, which ensures that the call is also ended if it is left via
+   * an exception.
+   */
+  class ResourceLimitedCall
+  {
+   public:
+    explicit ResourceLimitedCall(SolverEngine& slv) : d_slv(slv)
+    {
+      d_slv.beginCall(true);
+    }
+    ~ResourceLimitedCall() { d_slv.endCall(); }
+    ResourceLimitedCall(const ResourceLimitedCall&) = delete;
+    ResourceLimitedCall& operator=(const ResourceLimitedCall&) = delete;
+
+   private:
+    SolverEngine& d_slv;
+  };
 
   /** Set solver instance that owns this SolverEngine. */
   void setSolver(cvc5::Solver* solver) { d_solver = solver; }
@@ -969,6 +998,17 @@ class CVC5_EXPORT SolverEngine
    * this method was called.
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
+  /**
+   * Check that a model is available, i.e. that cvc5 is producing models and is
+   * in "SAT mode", otherwise throw a (recoverable) exception. This is the
+   * portion of getAvailableModel that does not require the theory model to
+   * have been built. It is used by get-value in cases where the value of a
+   * term can be determined without building a model, see getValue.
+   *
+   * @param c used for giving an error message to indicate the context
+   * this method was called.
+   */
+  void checkModelAvailable(const char* c) const;
   /**
    * Get the available proof, which is that of the prop engine if SAT
    * proof producing, or else a dummy proof SAT_REFUTATION whose assumptions
@@ -1092,6 +1132,14 @@ class CVC5_EXPORT SolverEngine
    * The utility used for checking models
    */
   std::unique_ptr<smt::CheckModels> d_checkModels;
+
+  /**
+   * The utility used for expanding definitions, which is used when getting
+   * model values. Note this object maintains a cache of expanded forms that
+   * is valid for the lifetime of this solver engine, see
+   * ExpandDefs::expandDefinitions.
+   */
+  std::unique_ptr<smt::ExpandDefs> d_expDef;
 
   /**
    * The proof manager, which manages all things related to checking,

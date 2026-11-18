@@ -105,6 +105,17 @@ class TheoryProxy : protected EnvObj, public Registrar
 
   /** Get an explanation for literal `l` and save it on clause `explanation`. */
   void explainPropagation(SatLiteral l, SatClause& explanation);
+
+  /**
+   * Notify that a clause derived during search was attached in the SAT solver
+   * at an assertion level below the current one, so that its proof is kept for
+   * as long as the SAT solver keeps the clause.
+   *
+   * @param clauseNode The clause, in its normalized node form.
+   * @param assertionLevel The SAT solver assertion level it was attached at.
+   */
+  void notifyClauseInsertedAtLevel(const Node& clauseNode,
+                                   uint32_t assertionLevel);
   /**
    * Notify SAT clause. This should be called whenever the SAT solver learns
    * a SAT clause. It notifies user plugins of the added clauses.

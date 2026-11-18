@@ -214,6 +214,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       std::vector<std::string> dnames;
       std::vector<size_t> arities;
       std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+      d_state.checkReservedSymbol(name);
       dnames.push_back(name);
       bool isCo = (tok == Token::DECLARE_CODATATYPE_TOK);
       // parse <datatype_dec>
@@ -238,6 +239,7 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
       while (d_lex.eatTokenChoice(Token::LPAREN_TOK, Token::RPAREN_TOK))
       {
         std::string name = d_tparser.parseSymbol(CHECK_UNDECLARED, SYM_SORT);
+        d_state.checkReservedSymbol(name);
         size_t arity = d_tparser.parseIntegerNumeral();
         dnames.push_back(name);
         arities.push_back(arity);
@@ -850,8 +852,19 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::SET_INFO_TOK:
     {
       std::string key = d_tparser.parseKeyword();
-      Term sexpr = d_tparser.parseSymbolicExpr();
-      cmd.reset(new SetInfoCommand(key, sexprToString(sexpr)));
+      // the attribute value is optional
+      std::string value;
+      if (d_lex.peekToken() != Token::RPAREN_TOK)
+      {
+        Term sexpr = d_tparser.parseSymbolicExpr();
+        value = sexprToString(sexpr);
+      }
+      else if (key == "status" || key == "smt-lib-version")
+      {
+        // these keywords require a value
+        d_lex.parseError("Expected a value for :" + key);
+      }
+      cmd.reset(new SetInfoCommand(key, value));
     }
     break;
     // (set-logic <symbol>)
@@ -876,8 +889,13 @@ std::unique_ptr<Cmd> Smt2CmdParser::parseNextCommand()
     case Token::SET_OPTION_TOK:
     {
       std::string key = d_tparser.parseKeyword();
-      Term sexpr = d_tparser.parseSymbolicExpr();
-      std::string ss = sexprToString(sexpr);
+      // the attribute value is optional
+      std::string ss;
+      if (d_lex.peekToken() != Token::RPAREN_TOK)
+      {
+        Term sexpr = d_tparser.parseSymbolicExpr();
+        ss = sexprToString(sexpr);
+      }
       // special case: for channel settings, we are expected to parse e.g.
       // `"stdin"` which should be treated as `stdin`
       // Note we could consider a more general solution where knowing whether

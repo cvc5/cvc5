@@ -30,7 +30,11 @@ class TestCApiBlackSort : public ::testing::Test
     d_int = cvc5_get_integer_sort(d_tm);
     d_real = cvc5_get_real_sort(d_tm);
   }
-  void TearDown() override { cvc5_term_manager_delete(d_tm); }
+  void TearDown() override
+  {
+    cvc5_term_manager_release(d_tm);
+    cvc5_term_manager_delete(d_tm);
+  }
 
   Cvc5Sort create_datatype_sort()
   {

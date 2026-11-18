@@ -390,19 +390,26 @@ void InferProofCons::convert(InferenceId infer,
             }
             else
             {
-              // otherwise maybe provable modulo equality?
-              // This is to handle e.g.
-              // (and (not (is-cons x)) (= x y)) => (is-nil y)
-              expvs[0] = itt->second;
+              // Otherwise it is provable modulo equality, to handle e.g.
+              // (and (not (is-cons x)) (= x y)) => (is-nil y).
+              // The explanation has the equality of the argument of each
+              // tester with the argument of the conclusion, from which we
+              // prove it by congruence.
               Trace("dt-ipc") << "exh-label: " << itt->second << " vs " << en
-                              << ", substitution " << expvs << std::endl;
-              Node res = pc->checkDebug(
-                  ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
-              if (res == en)
+                              << ", equalities " << expvs << std::endl;
+              successLit = proveTesterModuloEq(itt->second, en, expvs, cdp);
+              if (!successLit)
               {
-                cdp->addStep(
-                    res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
-                successLit = true;
+                // otherwise, by substitution
+                expvs[0] = itt->second;
+                Node res = pc->checkDebug(
+                    ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+                if (res == en)
+                {
+                  cdp->addStep(
+                      res, ProofRule::MACRO_SR_PRED_TRANSFORM, expvs, {en});
+                  successLit = true;
+                }
               }
             }
           }
@@ -504,6 +511,44 @@ void InferProofCons::convert(InferenceId infer,
   {
     Trace("dt-ipc") << "...success" << std::endl;
   }
+}
+
+bool InferProofCons::proveTesterModuloEq(const Node& lit,
+                                         const Node& target,
+                                         const std::vector<Node>& eqs,
+                                         CDProof* cdp)
+{
+  Assert(lit.getKind() == Kind::NOT && lit[0].getKind() == Kind::APPLY_TESTER);
+  Assert(target.getKind() == Kind::NOT
+         && target[0].getKind() == Kind::APPLY_TESTER);
+  Node s = lit[0][0];
+  Node t = target[0][0];
+  Node eqst = s.eqNode(t);
+  Node eqts = t.eqNode(s);
+  for (const Node& eq : eqs)
+  {
+    if (eq != eqst && eq != eqts)
+    {
+      continue;
+    }
+    if (eq == eqts)
+    {
+      cdp->addStep(eqst, ProofRule::SYMM, {eq}, {});
+    }
+    //  (= s t)
+    // --------------------------------- CONG
+    // (= (is-C s) (is-C t))
+    // --------------------------------- CONG
+    // (= (not (is-C s)) (not (is-C t)))    (not (is-C s))
+    // --------------------------------------------------- EQ_RESOLVE
+    // (not (is-C t))
+    Node teq = expr::proveCong(d_env, cdp, lit[0], {eqst});
+    Node neq = expr::proveCong(d_env, cdp, lit, {teq});
+    Assert(neq == lit.eqNode(target));
+    cdp->addStep(target, ProofRule::EQ_RESOLVE, {lit, neq}, {});
+    return true;
+  }
+  return false;
 }
 
 void InferProofCons::tryRewriteRule(TNode a,

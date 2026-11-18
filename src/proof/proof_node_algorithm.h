@@ -15,6 +15,7 @@
 #ifndef CVC5__PROOF__PROOF_NODE_ALGORITHM_H
 #define CVC5__PROOF__PROOF_NODE_ALGORITHM_H
 
+#include <functional>
 #include <vector>
 
 #include "cvc5/cvc5_proof_rule.h"
@@ -27,6 +28,12 @@ class ProofNode;
 class CDProof;
 
 namespace expr {
+
+/**
+ * A strict weak ordering on nodes used to align children of commutative terms
+ * during recursive equality reconstruction.
+ */
+using EqualityNodeLessCallback = std::function<bool(const Node&, const Node&)>;
 
 /**
  * This adds to the vector assump all formulas that are "free assumptions" of
@@ -147,6 +154,51 @@ Node proveCong(Env& env,
                CDProof* cdp,
                const Node& n,
                const std::vector<Node>& premises);
+
+/**
+ * Try to prove (= a b) using rewrite-oriented proof steps and add the proof to
+ * cdp.
+ *
+ * This utility is intended for equalities that can be justified by a
+ * combination of:
+ * - reflexivity,
+ * - ACI normalization,
+ * - arithmetic / bit-vector polynomial normalization,
+ * - rewriting the equality directly to true, and
+ * - recursively proving equalities between corresponding children and lifting
+ *   them with congruence.
+ *
+ * For closure terms, this method only applies congruence when their binder
+ * lists are syntactically equal; it then proves equality of the remaining
+ * children (e.g. body and annotation list) and lifts those equalities via a
+ * closure-aware congruence step.
+ *
+ * For example, to construct proofs for alpha equivalence, we need a way to
+ * impose an arbitrary ordering so that ACI_NORM can lead us to the right
+ * recursive subgoals e.g. say alpha equivalence showed: (or d (and a b) c) =
+ * (or c d (and b a)) This method allows that module to provide the ordering it
+ * used such that we get e.g. (or d (and a b) c) = (or (and a b) c d), (or c d
+ * (and b a)) = (or (and b a) c d), which aligns the subgoals (and a b) = (and b
+ * a), c = c, d = d.
+ *
+ * @param env The proof environment used for rewriting and congruence checks.
+ * @param cdp The proof to extend with the derived steps.
+ * @param a The left-hand side of the equality to prove.
+ * @param b The right-hand side of the equality to prove.
+ * @param allowPredIntro Whether this method may use MACRO_SR_PRED_INTRO when
+ * the equality rewrites directly to true.
+ * @param orderChildren An optional ordering used during pre-rewrite
+ * normalization to reorder commutative terms before recursively proving
+ * equalities between their children.
+ * @return true if a proof of (= a b) was added to cdp.
+ */
+bool proveEqualityWithRewriteSteps(
+    Env& env,
+    CDProof& cdp,
+    const Node& a,
+    const Node& b,
+    bool allowPredIntro = true,
+    const EqualityNodeLessCallback& orderChildren = EqualityNodeLessCallback());
 
 }  // namespace expr
 }  // namespace cvc5::internal

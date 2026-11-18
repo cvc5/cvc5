@@ -27,25 +27,15 @@ import java.util.*;
  *
  * The symbol manager's interface is otherwise not publicly available.
  */
-public class SymbolManager extends AbstractPointer
+public class SymbolManager extends AbstractPointer implements AutoCloseable
 {
-  /**
-   * This is an internal constructor intended to be used only
-   * inside cvc5 package.
-   * @param pointer The cpp pointer to symbol manager.
-   */
-  SymbolManager(long pointer)
-  {
-    super(pointer);
-  }
-
   /**
    * Create symbol manager instance.
    * @param tm The associated term manager.
    */
   public SymbolManager(TermManager tm)
   {
-    super(newSymbolManager(tm.getPointer()));
+    super(tm.ctx, newSymbolManager(tm.getPointer()), SymbolManager::deletePointer);
   }
 
   /**
@@ -69,7 +59,16 @@ public class SymbolManager extends AbstractPointer
     throw new UnsupportedOperationException(
         "SymbolManager.toString() is not supported in the cpp api");
   }
-  protected native void deletePointer(long pointer);
+  private static native void deletePointer(long pointer);
+
+  /**
+   * Free the native symbol manager, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
 
   @Override
   public boolean equals(Object s)
@@ -91,13 +90,28 @@ public class SymbolManager extends AbstractPointer
   }
 
   /**
+   * Return a hash code value for this symbol manager.
+   *
+   * The hash code is derived from the underlying native pointer, which is what
+   * {@link #equals(Object)} compares, so that instances that are equal have the
+   * same hash code.
+   *
+   * @return a hash code value for this symbol manager
+   */
+  @Override
+  public int hashCode()
+  {
+    return Long.hashCode(getPointer());
+  }
+
+  /**
    * Determine if the logic of this symbol manager has been set.
    *
    * @return True if the logic of this symbol manager has been set.
    */
   public boolean isLogicSet()
   {
-    return isLogicSet(pointer);
+    return isLogicSet(getPointer());
   }
 
   private native boolean isLogicSet(long pointer);
@@ -110,7 +124,7 @@ public class SymbolManager extends AbstractPointer
    */
   public String getLogic()
   {
-    return getLogic(pointer);
+    return getLogic(getPointer());
   }
 
   private native String getLogic(long pointer);
@@ -124,8 +138,8 @@ public class SymbolManager extends AbstractPointer
    */
   public Sort[] getDeclaredSorts()
   {
-    long[] pointers = getDeclaredSorts(pointer);
-    return Utils.getSorts(pointers);
+    long[] pointers = getDeclaredSorts(getPointer());
+    return Utils.getSorts(ctx, pointers);
   }
 
   private native long[] getDeclaredSorts(long pointer);
@@ -139,8 +153,8 @@ public class SymbolManager extends AbstractPointer
    */
   public Term[] getDeclaredTerms()
   {
-    long[] retPointers = getDeclaredTerms(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getDeclaredTerms(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getDeclaredTerms(long pointer);
@@ -153,11 +167,11 @@ public class SymbolManager extends AbstractPointer
    */
   public Map<Term, String> getNamedTerms()
   {
-    Map<Long, String> map = getNamedTerms(pointer);
+    Map<Long, String> map = getNamedTerms(getPointer());
     Map<Term, String> ret = new HashMap<>();
     for (Map.Entry<Long, String> entry : map.entrySet())
     {
-      Term key = new Term(entry.getKey());
+      Term key = new Term(ctx, entry.getKey());
       String value = entry.getValue();
       ret.put(key, value);
     }

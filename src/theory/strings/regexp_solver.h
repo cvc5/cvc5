@@ -78,8 +78,10 @@ class RegExpSolver : protected EnvObj
   /**
    * Check inclusions,
    * Assumes d_assertedMems has been computed.
+   *
+   * @param e The current effort.
    */
-  void checkInclusions();
+  void checkInclusions(Theory::Effort e);
   /**
    * Check evaluations, which applies substitutions for normal forms to
    * regular expression memberships and evaluates them, and also calls
@@ -102,13 +104,14 @@ class RegExpSolver : protected EnvObj
    * assertions, and true otherwise. It discovers a conflict e.g. if mems
    * contains str.in.re(xi, Ri) and ~str.in.re(xj, Rj) and Rj includes Ri.
    *
+   * @param e The current effort.
    * @param mems Vector of memberships of the form: (~)str.in.re(x1, R1)
    *             ... (~)str.in.re(xn, Rn) where x1 = ... = xn in the
    *             current context. The function removes elements from this
    *             vector that were marked as reduced.
    * @return False if a conflict was detected, true otherwise
    */
-  bool checkEqcInclusion(std::vector<Node>& mems);
+  bool checkEqcInclusion(Theory::Effort e, std::vector<Node>& mems);
 
   /**
    * Check memberships for equivalence class.

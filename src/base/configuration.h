@@ -98,6 +98,8 @@ class CVC5_EXPORT Configuration final
 
   static bool isBuiltWithGmp();
 
+  static bool isBuiltWithMpfr();
+
   static bool isBuiltWithCln();
 
   static bool isBuiltWithGlpk();
@@ -126,6 +128,8 @@ class CVC5_EXPORT Configuration final
 
   static std::string getCompiler();
   static std::string getCompiledDateTime();
+
+  static std::string getBuildType();
 
 }; /* class Configuration */
 

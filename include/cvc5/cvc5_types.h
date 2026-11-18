@@ -53,7 +53,7 @@ enum ENUM(UnknownExplanation)
   EVALUE(RESOURCEOUT),
   /** Memory limit reached. */
   EVALUE(MEMOUT),
-  /** Solver was interrupted. */
+  /** Solver was interrupted (e.g., via a terminator). */
   EVALUE(INTERRUPTED),
   /** Unsupported feature encountered. */
   EVALUE(UNSUPPORTED),
@@ -475,8 +475,6 @@ enum ENUM(ProofFormat)
   EVALUE(NONE) = 0,
   /** Output DOT proof. */
   EVALUE(DOT),
-  /** Output LFSC proof. */
-  EVALUE(LFSC),
   /** Output Alethe proof. */
   EVALUE(ALETHE),
   /** Output Cooperating Proof Calculus proof based on Eunoia signatures. */

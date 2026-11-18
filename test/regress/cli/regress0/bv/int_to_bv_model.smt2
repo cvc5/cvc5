@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --solve-int-as-bv=9
 ; EXPECT: sat
 (set-logic QF_NIA)

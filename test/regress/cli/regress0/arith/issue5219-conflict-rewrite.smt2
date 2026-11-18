@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; REQUIRES: poly
 ; COMMAND-LINE: --theoryof-mode=term --nl-icp
 ; EXPECT: sat

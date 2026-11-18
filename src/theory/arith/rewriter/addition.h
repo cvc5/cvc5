@@ -71,7 +71,9 @@ bool isIntegral(const Sum& sum);
 void addToSum(Sum& sum, TNode n, bool negate = false);
 
 /**
- * Same as above, but also handles occurrences of TO_REAL.
+ * Same as above, but also removes occurrences of TO_REAL, both applied to
+ * summands and to factors of monomials, e.g. (* 1/3 (to_real x)) is added as
+ * the monomial x with coefficient 1/3.
  * @param sum The sum to add to.
  * @param n The term to add to sum.
  * @param negate Whether to negate n.

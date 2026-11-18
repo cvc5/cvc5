@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --nl-ext=full --decision=internal -q
 ; EXPECT: sat
 (set-logic ALL)

@@ -3,10 +3,10 @@ name   = "SAT Layer"
 
 [[option]]
   name       = "satSolver"
-  category   = "expert"
+  category   = "common"
   long       = "sat-solver=MODE"
   type       = "SatSolverMode"
-  default    = "MINISAT"
+  default    = "CADICAL"
   help       = "choose which sat solver to use, see --sat-solver=help"
   help_mode  = "CDCL(T) SAT solver backend."
 [[option.mode.MINISAT]]

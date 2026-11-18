@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; COMMAND-LINE: --var-ent-eq-elim-quant
 ; EXPECT: sat
 (set-logic BV)

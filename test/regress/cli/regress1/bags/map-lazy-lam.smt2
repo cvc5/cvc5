@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-bound --uf-lazy-ll
 ; EXPECT: sat
 (set-logic HO_ALL)

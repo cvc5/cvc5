@@ -15,6 +15,7 @@
 
 #include "proof/unsat_core.h"
 #include "smt/env.h"
+#include "util/resource_manager.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -22,11 +23,13 @@ namespace theory {
 SubsolverSetupInfo::SubsolverSetupInfo(const Options& opts,
                                        const LogicInfo& logicInfo,
                                        TypeNode sepLocType,
-                                       TypeNode sepDataType)
+                                       TypeNode sepDataType,
+                                       const ResourceManager* parentRm)
     : d_opts(opts),
       d_logicInfo(logicInfo),
       d_sepLocType(sepLocType),
-      d_sepDataType(sepDataType)
+      d_sepDataType(sepDataType),
+      d_parentRm(parentRm)
 {
 }
 
@@ -34,7 +37,8 @@ SubsolverSetupInfo::SubsolverSetupInfo(const Env& env)
     : d_opts(env.getOptions()),
       d_logicInfo(env.getLogicInfo()),
       d_sepLocType(env.getSepLocType()),
-      d_sepDataType(env.getSepDataType())
+      d_sepDataType(env.getSepDataType()),
+      d_parentRm(env.getResourceManager())
 {
 }
 
@@ -42,7 +46,8 @@ SubsolverSetupInfo::SubsolverSetupInfo(const Env& env, const Options& opts)
     : d_opts(opts),
       d_logicInfo(env.getLogicInfo()),
       d_sepLocType(env.getSepLocType()),
-      d_sepDataType(env.getSepDataType())
+      d_sepDataType(env.getSepDataType()),
+      d_parentRm(env.getResourceManager())
 {
 }
 
@@ -72,6 +77,8 @@ void initializeSubsolver(NodeManager* nm,
   smte.reset(new SolverEngine(nm, &info.d_opts));
   smte->setIsInternalSubsolver();
   smte->setLogic(info.d_logicInfo);
+  // termination requests of the parent solver also apply to the subsolver
+  smte->getResourceManager()->setParent(info.d_parentRm);
   // set the options
   if (needsTimeout)
   {

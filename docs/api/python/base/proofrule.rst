@@ -21,3 +21,13 @@ rewrites performed on terms. These identifiers are arguments of the proof rules
 .. autoclass:: cvc5.ProofRewriteRule
     :members:
     :undoc-members:
+
+----
+
+Enum :py:obj:`AnnotationId <cvc5.AnnotationId>` is used as an argument of the
+proof rule :py:obj:`ANNOTATE <cvc5.ProofRule.ANNOTATE>`. It is experimental and
+may change in future versions.
+
+.. autoclass:: cvc5.AnnotationId
+    :members:
+    :undoc-members:

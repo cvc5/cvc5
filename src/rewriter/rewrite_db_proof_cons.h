@@ -308,6 +308,35 @@ class RewriteDbProofCons : protected EnvObj
    * have concrete bitwidths).
    */
   Node rewriteConcrete(const Node& n);
+  /**
+   * Fold the applications of APPLY_INDEXED_SYMBOLIC in n to their concrete
+   * representation, e.g. the term denoting (extract 3 0 x) is folded to
+   * ((_ extract 3 0) x).
+   *
+   * The internal search of this class operates on terms where indexed
+   * operators are lifted to APPLY_INDEXED_SYMBOLIC, since this is required for
+   * matching against the left hand side of RARE rules. Such terms have no
+   * counterpart in external proof formats, so all conclusions are folded when
+   * the proof is constructed in ensureProofInternal.
+   *
+   * This method is a no-op (and does no traversal at all) when d_currFold is
+   * false, which is the case whenever the current call to prove does not
+   * involve indexed operators. This is the common case.
+   */
+  Node fold(const Node& n);
+  /** Fold each node in ns, see above. */
+  std::vector<Node> fold(const std::vector<Node>& ns);
+  /**
+   * Adjust the premises ps of a congruence step over n, where fn is the folded
+   * form of n. If n is an application of APPLY_INDEXED_SYMBOLIC that was folded
+   * to an ordinary application of an indexed operator, its indices are part of
+   * the operator of fn and hence are no longer arguments the congruence step is
+   * over. In this case, the premises for the indices are dropped from ps.
+   * Otherwise, this method does nothing.
+   */
+  static void getCongPremises(const Node& n,
+                              const Node& fn,
+                              std::vector<Node>& ps);
   /** Notify class for matches */
   RdpcMatchTrieNotify d_notify;
   /**
@@ -318,6 +347,13 @@ class RewriteDbProofCons : protected EnvObj
   BasicRewriteRCons d_trrc;
   /** Node converter utility */
   RewriteDbNodeConverter d_rdnc;
+  /** Node converter for folding APPLY_INDEXED_SYMBOLIC, see fold below */
+  IndexedOpFoldNodeConverter d_iofnc;
+  /**
+   * Whether the current call to prove may involve APPLY_INDEXED_SYMBOLIC, and
+   * hence whether folding is required when constructing its proof.
+   */
+  bool d_currFold;
   /** Pointer to rewrite database */
   RewriteDb* d_db;
   /** the evaluator utility */

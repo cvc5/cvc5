@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --full-saturate-quant --ho-elim
 (set-logic HO_ALL)
 (set-info :status unsat)

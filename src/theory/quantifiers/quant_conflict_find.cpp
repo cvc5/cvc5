@@ -222,6 +222,14 @@ bool QuantInfo::isBaseMatchComplete()
 void QuantInfo::registerNode(Node n, bool hasPol, bool pol, bool beneathQuant)
 {
   Trace("qcf-qregister-debug2") << "Register : " << n << std::endl;
+  // What is registered for n does not depend on hasPol, pol or beneathQuant,
+  // so we register each node once, even if it occurs more than once in the
+  // body.
+  if (!d_registered.insert(n).second)
+  {
+    Trace("qcf-qregister-debug2") << "...already registered" << std::endl;
+    return;
+  }
   if (n.getKind() == Kind::FORALL)
   {
     registerNode(n[1], hasPol, pol, true);

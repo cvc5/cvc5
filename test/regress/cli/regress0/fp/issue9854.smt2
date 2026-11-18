@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: unsat
 ; REQUIRES: no-assertions
 ; This regression test failed with a check-model failure prior to #10589 without

@@ -1,4 +1,4 @@
-; COMMAND-LINE: -o incomplete
+; COMMAND-LINE: -o incomplete --no-model-verify
 ; EXPECT: (incomplete INCOMPLETE QUANTIFIERS)
 ; EXPECT: unknown
 (set-logic ALL)

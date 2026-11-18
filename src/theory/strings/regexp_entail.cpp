@@ -418,6 +418,68 @@ bool RegExpEntail::isConstRegExp(TNode t)
   return true;
 }
 
+bool RegExpEntail::isNullable(TNode r, bool& res)
+{
+  // Note the cases below are intentionally in sync with the $re_nullable
+  // program of the cpc signature.
+  Kind k = r.getKind();
+  switch (k)
+  {
+    case Kind::REGEXP_ALL:
+    case Kind::REGEXP_STAR: res = true; break;
+    case Kind::REGEXP_NONE:
+    case Kind::REGEXP_ALLCHAR:
+    case Kind::REGEXP_RANGE:
+      // note a range never contains the empty string, regardless of whether
+      // its arguments are characters
+      res = false;
+      break;
+    case Kind::STRING_TO_REGEXP:
+      if (!r[0].isConst())
+      {
+        // cannot determine whether the argument is the empty string
+        return false;
+      }
+      res = Word::isEmpty(r[0]);
+      break;
+    case Kind::REGEXP_COMPLEMENT:
+      if (!isNullable(r[0], res))
+      {
+        return false;
+      }
+      res = !res;
+      break;
+    case Kind::REGEXP_UNION:
+    case Kind::REGEXP_INTER:
+    case Kind::REGEXP_CONCAT:
+    {
+      // (re.union r1 ... rn) is nullable if some ri is nullable,
+      // (re.inter r1 ... rn) and (re.++ r1 ... rn) if all ri are nullable.
+      bool isUnion = (k == Kind::REGEXP_UNION);
+      res = !isUnion;
+      for (const Node& rc : r)
+      {
+        bool cres;
+        if (!isNullable(rc, cres))
+        {
+          // note we require determining this for all children, even if the
+          // result is already known, to remain in sync with the signature
+          return false;
+        }
+        if (cres == isUnion)
+        {
+          res = isUnion;
+        }
+      }
+    }
+    break;
+    default:
+      // e.g. re.loop, or a variable of regular expression type
+      return false;
+  }
+  return true;
+}
+
 bool RegExpEntail::testConstStringInRegExp(String& s, TNode r)
 {
   Kind k = r.getKind();

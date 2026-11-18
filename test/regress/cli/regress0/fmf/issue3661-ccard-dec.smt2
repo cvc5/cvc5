@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --fmf-fun -i
 ; EXPECT: sat
 ; EXPECT: sat

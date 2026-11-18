@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: sat
 (set-logic ABV)
 (set-option :check-unsat-cores true)

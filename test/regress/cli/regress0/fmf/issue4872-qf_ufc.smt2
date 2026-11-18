@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic QF_UFC)
 (set-info :status sat)
 (declare-sort S0 0)

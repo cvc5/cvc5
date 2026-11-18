@@ -90,7 +90,15 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   # avoid configure script and instantiate the makefile manually the configure
   # scripts unnecessarily fails for cross compilation thus we do the bare
   # minimum from the configure script here
-  set(CaDiCaL_CXXFLAGS "-fPIC -O3 -DNDEBUG -DQUIET -std=c++11")
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CaDiCaL_CXXFLAGS "-fPIC -Og -g -DQUIET -std=c++11")
+  else()
+    set(CaDiCaL_CXXFLAGS "-fPIC -O3 -DQUIET -std=c++11")
+  endif()
+  # Also enable assertions in CaDiCaL when cvc5 assertions are enabled
+  if(NOT ENABLE_ASSERTIONS)
+    string(APPEND CaDiCaL_CXXFLAGS " -DNDEBUG")
+  endif()
   if(CMAKE_CROSSCOMPILING_MACOS)
     set(CaDiCaL_CXXFLAGS "${CaDiCaL_CXXFLAGS} -arch ${CMAKE_OSX_ARCHITECTURES}")
   endif()
@@ -104,6 +112,14 @@ if(NOT CaDiCaL_FOUND_SYSTEM)
   check_symbol_exists("closefrom" "fcntl.h" HAVE_CLOSEFROM)
   if(NOT HAVE_CLOSEFROM)
     string(APPEND CaDiCaL_CXXFLAGS " -DNCLOSEFROM")
+  endif()
+
+  # emcc defaults to -fignore-exceptions, which emits no landing pads. cvc5
+  # runs as a CaDiCaL::ExternalPropagator callback, so exceptions it throws
+  # from inside the SAT search (e.g. FfTimeoutException) unwind back out
+  # through CaDiCaL frames; without this flag their destructors are skipped.
+  if(EMSCRIPTEN)
+    string(APPEND CaDiCaL_CXXFLAGS " -fexceptions")
   endif()
 
   # On macOS, we have to set `-isysroot` to make sure that include headers are

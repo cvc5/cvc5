@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 (set-logic ALL)
 (assert (= 1.0 (exp 0.0)))

@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 ; EXPECT: unsat
 (set-logic QF_BV)
 (set-option :solve-bv-as-int bitwise)

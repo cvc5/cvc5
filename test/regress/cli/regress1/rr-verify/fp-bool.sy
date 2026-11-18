@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-stream --lang=sygus2 --sygus-rr-synth-check --tlimit-per=500 --fp-exp
 ; SCRUBBER: grep -v -E '\(.*|fail'
 ; EXIT: 0

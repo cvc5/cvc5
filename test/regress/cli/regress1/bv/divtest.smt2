@@ -1,4 +1,3 @@
-; DISABLE-TESTER: lfsc
 ; DISABLE-TESTER: proof
 ;; slow conversion
 ; DISABLE-TESTER: alethe

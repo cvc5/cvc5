@@ -68,6 +68,14 @@ name   = "SMT Layer"
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
 
 [[option]]
+  name       = "modelVerify"
+  category   = "regular"
+  long       = "model-verify"
+  type       = "bool"
+  default    = "true"
+  help       = "after UNKNOWN, check whether the candidate model satisfies the user assertions; if successful, respond SAT instead. Requires produce-models"
+
+[[option]]
   name       = "debugCheckModels"
   category   = "common"
   long       = "debug-check-models"
@@ -403,7 +411,7 @@ name   = "SMT Layer"
   long       = "bv-to-int-use-pow2"
   type       = "bool"
   default    = "false"
-  help       = "use internal pow2 operator when translating shift notes"
+  help       = "use internal pow2 operator when translating shift nodes"
 
 [[option]]
   name       = "BVAndIntegerGranularity"
@@ -542,7 +550,7 @@ name   = "SMT Layer"
 
 [[option]]
   name       = "toCoreTimeout"
-  category   = "expert"
+  category   = "common"
   long       = "timeout-core-timeout=N"
   type       = "uint64_t"
   default    = "10000"

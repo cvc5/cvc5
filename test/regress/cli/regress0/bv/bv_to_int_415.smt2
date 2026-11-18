@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: 
 ; SCRUBBER: grep -v "higher.order"
 ; EXIT: 1

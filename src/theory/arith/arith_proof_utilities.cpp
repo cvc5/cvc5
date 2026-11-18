@@ -146,10 +146,11 @@ std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
   {
     return pf;
   }
-  // Two arithmetic relations may be equivalent while having distinct rewritten
-  // forms, e.g. (= (+ x 1) 2) and (= x 1), or (= (to_real x) 0.0) and (= x 0),
-  // in which case they cannot be related by MACRO_SR_PRED_TRANSFORM. We relate
-  // such predicates by polynomial normalization instead, whenever possible.
+  // The rewriter does not normalize equalities and does not change the type
+  // of an equality, hence e.g. (= (+ x 1) 2) and (= x 1), or
+  // (= (to_real x) 0.0) and (= x 0), have distinct rewritten forms and cannot
+  // be related by MACRO_SR_PRED_TRANSFORM. We relate such predicates by
+  // polynomial normalization instead, whenever possible.
   if (Pf epf = mkArithPolyNormRel(pnm, res, pred); epf != nullptr)
   {
     return pnm->mkNode(ProofRule::EQ_RESOLVE, {pf, epf}, {}, pred);

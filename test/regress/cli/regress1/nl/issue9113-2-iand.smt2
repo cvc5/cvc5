@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 (set-logic ANIRA)
 (set-info :status sat)
 (declare-fun a () (Array Int Int))

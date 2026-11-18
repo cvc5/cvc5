@@ -55,6 +55,7 @@
 namespace cvc5::internal {
 
 class EagerProofGenerator;
+class LazyCDProof;
 
 namespace theory {
 
@@ -103,6 +104,11 @@ class TheoryArithPrivate : protected EnvObj
   ProofNodeManager* d_pnm;
   /** Stores proposition(node)/proof pairs. */
   std::unique_ptr<EagerProofGenerator> d_pfGen;
+  /**
+   * Proves the equalities in solved form that we infer in ppAssert, which are
+   * proven based on the (lazy) proof of the equality we solved.
+   */
+  std::unique_ptr<LazyCDProof> d_ppAssertPf;
 
   /**
    * The constraint database associated with the theory.
@@ -488,6 +494,18 @@ class TheoryArithPrivate : protected EnvObj
   void presolve();
   void notifyRestart();
   bool ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions);
+  /**
+   * Make the trust node for the equality (= x t) in solved form, which was
+   * inferred from the equality proven by tin in ppAssert above. When proofs
+   * are enabled, the returned trust node proves (= x t) based on the (lazy)
+   * proof of tin, where the two are related by polynomial normalization.
+   *
+   * @param x The variable we solved for.
+   * @param t The solved form of x.
+   * @param tin The trust node proving the equality we solved.
+   * @return The trust node proving (= x t).
+   */
+  TrustNode mkSolvedEq(const Node& x, const Node& t, TrustNode tin);
   void ppStaticLearn(TNode in, std::vector<TrustNode>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }

@@ -1,0 +1,22 @@
+; EXPECT: unsat
+(set-logic NIA)
+(declare-const a0 Int)
+(declare-const b0 Int)
+(declare-const a1 Int)
+(declare-const b1 Int)
+(declare-const a2 Int)
+(declare-const b2 Int)
+(declare-const a3 Int)
+(declare-const b3 Int)
+(assert (and
+	(= a0 12)
+	(= b0 9)
+	(exists ((q Int)) (and (>= b1 0) (< b1 b0) (= (+ (* b0 q) b1) a0)))
+	(= a1 b0)
+	(exists ((q Int)) (and (>= b2 0) (< b2 b1) (= (+ (* b1 q) b2) a1)))
+	(= a2 b1)
+	; remove the next two lines to have an example that is solved very fast
+	(exists ((q Int)) (and (>= b3 0) (< b3 b2) (= (+ (* b2 q) b3) a2)))
+	(= a3 b2)
+))
+(check-sat)

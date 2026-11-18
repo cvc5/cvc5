@@ -113,7 +113,7 @@ std::string Configuration::copyright()
      << "  See https://github.com/martin-cs/symfpu/tree/main for copyright "
      << "information.\n\n";
 
-  if (isBuiltWithGmp() || isBuiltWithPoly())
+  if (isBuiltWithGmp() || isBuiltWithMpfr() || isBuiltWithPoly())
   {
     ss << "This version of cvc5 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
@@ -122,6 +122,11 @@ std::string Configuration::copyright()
     {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
+    }
+    if (isBuiltWithMpfr())
+    {
+      ss << "  MPFR - GNU Multiple Precision Floating-Point Reliable Library\n"
+         << "  See https://www.mpfr.org for copyright information.\n\n";
     }
     if (isBuiltWithPoly())
     {
@@ -186,7 +191,9 @@ std::string Configuration::about()
     ss << " [" << getGitInfo() << "]";
   }
   ss << std::endl;
-  ss << "compiled with " << getCompiler() << " on " << getCompiledDateTime();
+  ss << "compiled as a " << Configuration::getBuildType() << " build "
+     << "with " << Configuration::getCompiler() << " on "
+     << Configuration::getCompiledDateTime();
   return ss.str();
 }
 
@@ -202,6 +209,8 @@ std::string Configuration::aboutAndCopyright()
 bool Configuration::licenseIsGpl() { return IS_GPL_BUILD; }
 
 bool Configuration::isBuiltWithGmp() { return IS_GMP_BUILD; }
+
+bool Configuration::isBuiltWithMpfr() { return IS_MPFR_BUILD; }
 
 bool Configuration::isBuiltWithCln() { return IS_CLN_BUILD; }
 
@@ -258,6 +267,19 @@ std::string Configuration::getCompiler()
 std::string Configuration::getCompiledDateTime()
 {
   return __DATE__ " " __TIME__;
+}
+
+std::string Configuration::getBuildType()
+{
+  stringstream ss;
+  if (Configuration::isStableBuild())
+    ss << "stable";
+  else if (Configuration::isSafeBuild())
+    ss << "safe";
+  else
+    ss << "unrestricted";
+  if (Configuration::isDebugBuild()) ss << " debug";
+  return ss.str();
 }
 
 }  // namespace cvc5::internal

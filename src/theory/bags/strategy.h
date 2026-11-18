@@ -15,78 +15,45 @@
 #ifndef CVC5__THEORY__BAGS__STRATEGY_H
 #define CVC5__THEORY__BAGS__STRATEGY_H
 
-#include <map>
-#include <vector>
-
-#include "theory/theory.h"
+#include "theory/strategy.h"
 
 namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-/** inference steps
- *
- * Corresponds to a step in the overall strategy of the bags solver. For
- * details on the individual steps, see documentation on the inference schemas
- * within Strategy.
- */
-enum InferStep
-{
-  // indicates that the strategy should break if lemmas or facts are added
-  BREAK,
-  // check initial
-  CHECK_INIT,
-  // check bag operator
-  CHECK_BAG_MAKE,
-  // check basic operations without quantifiers
-  CHECK_BASIC_OPERATIONS,
-  // check operations with quantifiers
-  CHECK_QUANTIFIED_OPERATIONS
-};
-std::ostream& operator<<(std::ostream& out, InferStep i);
+class BagSolver;
+class TheoryBags;
 
 /**
  * The strategy of theory of bags.
- *
- * This stores a sequence of the above enum that indicates the calls to
- * runInferStep to make on the theory of bags, given by parent.
  */
-class Strategy
+class Strategy : public StrategyBase
 {
  public:
-  Strategy();
+  Strategy(TheoryBags* parent = nullptr,
+           BagSolver* solver = nullptr,
+           TheoryState* state = nullptr,
+           InferenceManagerBuffered* im = nullptr);
+
   ~Strategy();
-  /** is this strategy initialized? */
-  bool isStrategyInit() const;
-  /** do we have a strategy for effort e? */
-  bool hasStrategyEffort(Theory::Effort e) const;
-  /** begin and end iterators for effort e */
-  std::vector<std::pair<InferStep, size_t> >::iterator stepBegin(
-      Theory::Effort e);
-  std::vector<std::pair<InferStep, size_t> >::iterator stepEnd(
-      Theory::Effort e);
   /** initialize the strategy
    *
-   * This initializes the above information based on the options. This makes
-   * a series of calls to addStrategyStep above.
+   * This makes a series of calls to addStrategyStep (inherited from
+   * StrategyBase) to build the bags strategy.
    */
-  void initializeStrategy();
+  void initializeStrategy() override;
+
+  /**
+   * Execute a single inference step by dispatching to the matching check
+   * method on the owning TheoryBags or on its bag solver.
+   */
+  void runStep(Step s, Theory::Effort e, Theory::Effort effort) override;
 
  private:
-  /** add strategy step
-   *
-   * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
-   * d_infer_step_effort. This indicates that a call to runInferStep should
-   * be run as the next step in the strategy. If addBreak is true, we add
-   * a BREAK to the strategy following this step.
-   */
-  void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
-  /** is strategy initialized */
-  bool d_strategy_init;
-  /** the strategy */
-  std::vector<std::pair<InferStep, size_t> > d_infer_steps;
-  /** the range (begin, end) of steps to run at given efforts */
-  std::map<Theory::Effort, std::pair<size_t, size_t> > d_strat_steps;
+  /** The theory of bags that owns this strategy. */
+  TheoryBags* d_theory;
+  /** The bag solver that implements most of the steps. */
+  BagSolver* d_bagSolver;
 }; /* class Strategy */
 
 }  // namespace bags

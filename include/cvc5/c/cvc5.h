@@ -232,6 +232,10 @@ CVC5_EXPORT Cvc5Result cvc5_result_copy(Cvc5Result result);
  * @note This step is optional and allows users to release resources in a more
  *       fine-grained manner. Further, any API function that returns a copy
  *       that is owned by the callee of the function and thus, can be released.
+ * @note A result is released together with the solver that created it. To use
+ *       a result after that solver has been deleted, keep a reference to it
+ *       via `cvc5_result_copy()` and release that reference when done. The
+ *       same applies to synthesis results, proofs and grammars.
  */
 CVC5_EXPORT void cvc5_result_release(Cvc5Result result);
 
@@ -400,6 +404,10 @@ CVC5_EXPORT Cvc5SynthResult cvc5_synth_result_copy(Cvc5SynthResult result);
 
 /**
  * Release copy of synthesis result, decrements reference counter of `result`.
+ *
+ * @note A synthesis result is released together with the solver that created
+ *       it. To use it after that solver has been deleted, keep a reference to
+ *       it via `cvc5_synth_result_copy()`.
  *
  * @param result The result to release.
  *
@@ -2581,6 +2589,23 @@ CVC5_EXPORT Cvc5TermManager* cvc5_term_manager_new();
 
 /**
  * Delete a cvc5 term manager instance.
+ *
+ * Objects created via the term manager (sorts, terms, operators, datatypes,
+ * grammars, ...), as well as the statistics of solver instances associated with
+ * the term manager, are managed by the term manager. They keep the term manager
+ * alive and thus remain valid after the term manager has been deleted, until
+ * they are released via the corresponding `cvc5_*_release()` function. The
+ * memory of the term manager (and of the objects it manages) is only freed once
+ * the term manager has been deleted and all of its managed objects have been
+ * released, either individually or all at once via
+ * `cvc5_term_manager_release()`.
+ *
+ * @note Consequently, if managed objects are still alive when this function is
+ *       called, it does not free the term manager: it only decrements its
+ *       reference count, and the term manager is freed later, when the last
+ *       of its managed objects is released. To free everything right away,
+ *       call `cvc5_term_manager_release()` before this function.
+ *
  * @param tm The term manager instance.
  */
 CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
@@ -2588,10 +2613,11 @@ CVC5_EXPORT void cvc5_term_manager_delete(Cvc5TermManager* tm);
 /**
  * Release all managed references.
  *
- * This will free all memory used by any managed objects allocated by the
- * term manager.
+ * This will free all memory used by any managed objects created via the term
+ * manager or via a solver instance associated with the term manager.
  *
- * @note This invalidates all managed objects created by the term manager.
+ * @note This invalidates all managed objects created via the term manager and
+ *       its associated solver instances.
  *
  * @param tm The term manager instance.
  */
@@ -3536,6 +3562,36 @@ cvc5_mk_dt_decl_with_params(Cvc5TermManager* tm,
 
 /** @} */
 
+/* .................................................................... */
+/* Create SyGuS grammars                                                */
+/* .................................................................... */
+
+/** \addtogroup c_grammar_creation
+ *  @{
+ */
+
+/**
+ * Create a Sygus grammar. The first non-terminal is treated as the starting
+ * non-terminal, so the order of non-terminals matters.
+ *
+ * The grammar is associated with the term manager and can be used with any
+ * solver instance associated with it.
+ *
+ * @param tm          The term manager instance.
+ * @param nbound_vars The number of bound variables.
+ * @param bound_vars  The parameters to corresponding synth-fun/synth-inv.
+ * @param nsymbols    The number of symbols.
+ * @param symbols     The pre-declaration of the non-terminal symbols.
+ * @return The grammar.
+ */
+CVC5_EXPORT Cvc5Grammar cvc5_mk_grammar(Cvc5TermManager* tm,
+                                        size_t nbound_vars,
+                                        const Cvc5Term bound_vars[],
+                                        size_t nsymbols,
+                                        const Cvc5Term symbols[]);
+
+/** @} */
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5OptionInfo                                                             */
 /* -------------------------------------------------------------------------- */
@@ -3743,9 +3799,11 @@ struct Cvc5Plugin
   /**
    * Call to check, return list of lemmas to add to the SAT solver.
    * This method is called periodically, roughly at every SAT decision.
-   * @param size  The size of the returned array of lemmas.
+   * @param size  The size of the returned array of lemmas, must always be
+   *              set.
    * @param state The state data for the function, may be NULL.
-   * @return The vector of lemmas to add to the SAT solver.
+   * @return The vector of lemmas to add to the SAT solver, may be NULL if
+   *         `size` is set to 0.
    * @note This function pointer may be NULL to use the default implementation.
    */
   const Cvc5Term* (*check)(size_t* size, void* state);
@@ -3806,6 +3864,18 @@ CVC5_EXPORT Cvc5ProofRule cvc5_proof_get_rule(Cvc5Proof proof);
 CVC5_EXPORT Cvc5ProofRewriteRule cvc5_proof_get_rewrite_rule(Cvc5Proof proof);
 
 /**
+ * Get the annotation identifier used by the root step of the proof.
+ *
+ * Requires that `cvc5_proof_get_rule()` returns #CVC5_PROOF_RULE_ANNOTATE.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @return The annotation identifier.
+ */
+CVC5_EXPORT Cvc5AnnotationId cvc5_proof_get_annotation_id(Cvc5Proof proof);
+
+/**
  * Get the conclusion of the root step of a given proof.
  * @param proof The proof.
  * @return The conclusion term.
@@ -3820,6 +3890,10 @@ CVC5_EXPORT Cvc5Term cvc5_proof_get_result(Cvc5Proof proof);
  * @return The premise proofs.
  * @note The returned Cvc5Proof array pointer is only valid until the next call
  *       to this function.
+ * @note The returned proofs are released together with the solver that
+ *       created `proof`, or, if that solver has already been deleted, together
+ *       with `proof`. To use them afterwards, keep a reference to them via
+ *       `cvc5_proof_copy()`.
  */
 CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
                                                      size_t* size);
@@ -3833,6 +3907,28 @@ CVC5_EXPORT const Cvc5Proof* cvc5_proof_get_children(Cvc5Proof proof,
  */
 CVC5_EXPORT const Cvc5Term* cvc5_proof_get_arguments(Cvc5Proof proof,
                                                      size_t* size);
+
+/**
+ * Get a string representation of an argument of the root step of a given
+ * proof.
+ *
+ * The string is computed by the internal proof printer, which takes into
+ * account how the argument is used by the proof rule. For example, an
+ * argument that encodes an identifier (e.g., of a theory or a rewrite rule)
+ * is converted to the name of that identifier. All other arguments are
+ * converted to the string representation of the corresponding term returned
+ * by `cvc5_proof_get_arguments()`.
+ *
+ * @warning This function is experimental and may change in future versions.
+ *
+ * @param proof The proof.
+ * @param i     The index of the argument.
+ * @return The string representation of the argument.
+ * @note The returned char* pointer is only valid until the next call to this
+ *       function.
+ */
+CVC5_EXPORT const char* cvc5_proof_get_argument_to_string(Cvc5Proof proof,
+                                                          size_t i);
 
 /**
  * Compare two proofs for referential equality.
@@ -3871,6 +3967,11 @@ CVC5_EXPORT Cvc5Proof cvc5_proof_copy(Cvc5Proof proof);
 
 /**
  * Release copy of proof, decrements reference counter of `proof`.
+ *
+ * @note A proof is released together with the solver that created it (or,
+ *       for a proof obtained via `cvc5_proof_get_children()` after that
+ *       solver has been deleted, together with its parent proof). To use it
+ *       afterwards, keep a reference to it via `cvc5_proof_copy()`.
  *
  * @param proof The proof to release.
  *
@@ -3977,6 +4078,28 @@ CVC5_EXPORT void cvc5_stat_get_histogram(Cvc5Stat stat,
  */
 CVC5_EXPORT const char* cvc5_stat_to_string(Cvc5Stat stat);
 
+/**
+ * Make copy of statistic, increases reference counter of `stat`.
+ *
+ * @param stat The statistic to copy.
+ * @return The same statistic with its reference count increased by one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Stat cvc5_stat_copy(Cvc5Stat stat);
+
+/**
+ * Release copy of statistic, decrements reference counter of `stat`.
+ *
+ * @param stat The statistic to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_stat_release(Cvc5Stat stat);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -4039,6 +4162,29 @@ CVC5_EXPORT Cvc5Stat cvc5_stats_get(Cvc5Statistics stat, const char* name);
  */
 CVC5_EXPORT const char* cvc5_stats_to_string(Cvc5Statistics stat);
 
+/**
+ * Make copy of statistics object, increases reference counter of `stat`.
+ *
+ * @param stat The statistics object to copy.
+ * @return The same statistics object with its reference count increased by
+ *         one.
+ *
+ * @note This step is optional and allows users to manage resources in a more
+ *       fine-grained manner.
+ */
+CVC5_EXPORT Cvc5Statistics cvc5_stats_copy(Cvc5Statistics stat);
+
+/**
+ * Release copy of statistics object, decrements reference counter of `stat`.
+ *
+ * @param stat The statistics object to release.
+ *
+ * @note This step is optional and allows users to release resources in a more
+ *       fine-grained manner. Further, any API function that returns a copy
+ *       that is owned by the callee of the function and thus, can be released.
+ */
+CVC5_EXPORT void cvc5_stats_release(Cvc5Statistics stat);
+
 /** @} */
 
 /* -------------------------------------------------------------------------- */
@@ -4058,12 +4204,43 @@ CVC5_EXPORT Cvc5* cvc5_new(Cvc5TermManager* tm);
 
 /**
  * Delete a cvc5 solver instance.
+ *
+ * Statistics created via the solver are managed by the associated term manager
+ * and remain valid after the solver instance has been deleted, until they are
+ * released, either individually via `cvc5_stats_release()` resp.
+ * `cvc5_stat_release()`, or all at once via `cvc5_term_manager_release()`
+ * (see `cvc5_term_manager_delete()`).
+ *
+ * Results (`Cvc5Result`), synthesis results (`Cvc5SynthResult`) and proofs
+ * (`Cvc5Proof`) are managed by the solver: deleting it drops one reference to
+ * each such object it created, which frees those the user did not keep a
+ * reference to. An object the user kept a
+ * reference to (via the corresponding `cvc5_*_copy()` function) outlives the
+ * solver, as in the C++ API, and is freed by its final release. Proofs
+ * additionally keep the term manager alive, since querying them creates new
+ * terms and proofs.
+ *
+ * Input parser instances (`Cvc5InputParser`) created via the solver keep it
+ * alive and thus remain usable after the solver has been deleted, until they
+ * are deleted themselves (see `cvc5_parser_delete()`). The memory of the
+ * solver is only freed once it has been deleted and all of its input parsers
+ * have been freed. Consequently, dropping the reference the solver holds on
+ * each of its results, synthesis results and proofs is deferred until then as
+ * well.
+ *
+ * @note A solver instance keeps its associated term manager alive. Solver and
+ *       term manager instances may thus be deleted in any order.
+ *
  * @param cvc5 The solver instance.
  */
 CVC5_EXPORT void cvc5_delete(Cvc5* cvc5);
 
 /**
  * Get the associated term manager of a cvc5 solver instance.
+ *
+ * @note The returned term manager is kept alive by the solver instance and can
+ *       be used as long as the solver instance has not been deleted.
+ *
  * @param cvc5 The solver instance.
  * @return The term manager.
  */
@@ -4537,9 +4714,12 @@ CVC5_EXPORT void cvc5_get_difficulty(Cvc5* cvc5,
  * formulas correspond to a subset of the current assertions that cause a
  * timeout in the specified time :ref:`timeout-core-timeout
  * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list of
- * formulas correspond to an unsat core for the current assertions. Otherwise,
- * the result is sat, indicating that the current assertions are satisfiable,
- * and the returned set of assertions is empty.
+ * formulas correspond to an unsat core for the current assertions. If the
+ * computation was terminated by the connected terminator, the result is
+ * unknown with explanation CVC5_UNKNOWN_EXPLANATION_INTERRUPTED, and the
+ * returned set of assertions is empty. Otherwise, the result is sat,
+ * indicating that the current assertions are satisfiable, and the returned set
+ * of assertions is empty.
  * \endverbatim
  *
  * @note This command  does not require being preceeded by a call to
@@ -4582,9 +4762,12 @@ CVC5_EXPORT const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
  * timeout when added to the current assertions in the specified time
  * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the result
  * is unsat, then the set of assumptions together with the current assertions
- * correspond to an unsat core for the current assertions. Otherwise, the
- * result is sat, indicating that the given assumptions plus the current
- * assertions are satisfiable, and the returned set of assumptions is empty.
+ * correspond to an unsat core for the current assertions. If the computation
+ * was terminated by the connected terminator, the result is unknown with
+ * explanation CVC5_UNKNOWN_EXPLANATION_INTERRUPTED, and the returned set of
+ * assumptions is empty. Otherwise, the result is sat, indicating that the
+ * given assumptions plus the current assertions are satisfiable, and the
+ * returned set of assumptions is empty.
  * \endverbatim
  *
  * @note This command does not require being preceeded by a call to
@@ -4784,6 +4967,12 @@ CVC5_EXPORT const char* cvc5_get_model(Cvc5* cvc5,
  *     (get-qe <q>)
  * \endverbatim
  *
+ * @note The formula @f$q@f$ must not contain free variables, i.e.,
+ *       variables constructed via cvc5_mk_var() that are not bound by a
+ *       quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
+ *       constants constructed via cvc5_mk_const(). An error is raised if
+ *       @f$q@f$ contains free variables.
+ *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
  *       LIA and BV.
  *
@@ -4800,7 +4989,7 @@ CVC5_EXPORT const char* cvc5_get_model(Cvc5* cvc5,
  *         @f$A@f$ asserted to this solver:
  *         - @f$(A \wedge q)@f$ and @f$(A \wedge \phi)@f$ are equivalent
  *         - @f$\phi@f$ is quantifier-free formula containing only free
- *           variables in @f$y_1...y_n@f$.
+ *           constants in @f$y_1...y_j@f$.
  */
 CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
 
@@ -4816,8 +5005,14 @@ CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *     (get-qe-disjunct <q>)
  * \endverbatim
  *
+ * @note The formula @f$q@f$ must not contain free variables, i.e.,
+ *       variables constructed via cvc5_mk_var() that are not bound by a
+ *       quantifier in @f$q@f$. The symbols @f$y_1...y_j@f$ should be free
+ *       constants constructed via cvc5_mk_const(). An error is raised if
+ *       @f$q@f$ contains free variables.
+ *
  * @note Quantifier Elimination is is only complete for logics such as LRA,
- * LIA and BV.
+ *       LIA and BV.
  *
  * @warning This function is experimental and may change in future versions.
  *
@@ -4834,7 +5029,7 @@ CVC5_EXPORT Cvc5Term cvc5_get_quantifier_elimination(Cvc5* cvc5, Cvc5Term q);
  *           @f$\forall@f$, and @f$(A \wedge \phi \implies A \wedge q)@f$ if
  *           @f$Q@f$ is @f$\exists@f$
  *         - @f$\phi@f$ is quantifier-free formula containing only free
- *           variables in @f$y_1...y_n@f$
+ *           constants in @f$y_1...y_j@f$
  *         - If @f$Q@f$ is @f$\exists@f$, let @f$(A \wedge Q_n)@f$ be the
  *           formula
  *           @f$(A \wedge \neg (\phi \wedge Q_1) \wedge ... \wedge
@@ -4963,6 +5158,38 @@ CVC5_EXPORT Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
  * @param plugin The plugin to add to this solver.
  */
 CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
+
+/**
+ * Set a terminator, which is called periodically during queries to determine
+ * whether the current query should be terminated.
+ *
+ * If the terminator returns true, the query is terminated as if a resource
+ * limit had been reached. For queries that return a result, the result is
+ * unknown with explanation #CVC5_UNKNOWN_EXPLANATION_INTERRUPTED.
+ *
+ * A termination request only applies to the query during which it was
+ * issued: after the terminator returned true, it is not called again during
+ * that query, and the solver can be used for further queries afterwards. The
+ * terminator is called at the beginning of each query, i.e., if it keeps
+ * returning true, subsequent queries are terminated immediately.
+ *
+ * The terminator is called frequently from the thread that executes the
+ * query, and must thus be cheap to evaluate. To terminate a query from
+ * another thread, the terminator can, e.g., check an atomic flag that is set
+ * by that thread.
+ *
+ * Only one terminator can be set at a time, setting a terminator replaces the
+ * previously set terminator.
+ *
+ * @warning This function is experimental and may change in future versions.
+ * @param cvc5      The solver instance.
+ * @param state     The state data passed to the terminator, may be NULL.
+ * @param terminate The terminator, or NULL to unset the currently set
+ *                  terminator.
+ */
+CVC5_EXPORT void cvc5_set_terminator(Cvc5* cvc5,
+                                     void* state,
+                                     bool (*terminate)(void*));
 
 /**
  * Get an interpolant.
@@ -5334,23 +5561,6 @@ CVC5_EXPORT void cvc5_set_option(Cvc5* cvc5,
 CVC5_EXPORT Cvc5Term cvc5_declare_sygus_var(Cvc5* cvc5,
                                             const char* symbol,
                                             Cvc5Sort sort);
-
-/**
- * Create a Sygus grammar. The first non-terminal is treated as the starting
- * non-terminal, so the order of non-terminals matters.
- *
- * @param cvc5        The solver instance.
- * @param nbound_vars The number of bound variabls.
- * @param bound_vars  The parameters to corresponding synth-fun/synth-inv.
- * @param nsymbols    The number of symbols.
- * @param symbols     The pre-declaration of the non-terminal symbols.
- * @return The grammar.
- */
-CVC5_EXPORT Cvc5Grammar cvc5_mk_grammar(Cvc5* cvc5,
-                                        size_t nbound_vars,
-                                        const Cvc5Term bound_vars[],
-                                        size_t nsymbols,
-                                        const Cvc5Term symbols[]);
 
 /**
  * Synthesize n-ary function.

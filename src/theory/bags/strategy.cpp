@@ -12,90 +12,68 @@
 
 #include "theory/bags/strategy.h"
 
+#include "theory/bags/bag_solver.h"
+#include "theory/bags/theory_bags.h"
+#include "theory/inference_manager_buffered.h"
+#include "theory/theory_state.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace bags {
 
-std::ostream& operator<<(std::ostream& out, InferStep s)
+Strategy::Strategy(TheoryBags* parent,
+                   BagSolver* solver,
+                   TheoryState* state,
+                   InferenceManagerBuffered* im)
+    : StrategyBase(TheoryId::THEORY_BAGS, state, im),
+      d_theory(parent),
+      d_bagSolver(solver)
 {
-  switch (s)
-  {
-    case BREAK: out << "break"; break;
-    case CHECK_INIT: out << "check_init"; break;
-    case CHECK_BAG_MAKE: out << "check_bag_make"; break;
-    case CHECK_BASIC_OPERATIONS: out << "CHECK_BASIC_OPERATIONS"; break;
-    default: out << "?"; break;
-  }
-  return out;
 }
-
-Strategy::Strategy() : d_strategy_init(false) {}
 
 Strategy::~Strategy() {}
-
-bool Strategy::isStrategyInit() const { return d_strategy_init; }
-
-bool Strategy::hasStrategyEffort(Theory::Effort e) const
-{
-  return d_strat_steps.find(e) != d_strat_steps.end();
-}
-
-std::vector<std::pair<InferStep, size_t> >::iterator Strategy::stepBegin(
-    Theory::Effort e)
-{
-  std::map<Theory::Effort, std::pair<size_t, size_t> >::const_iterator it =
-      d_strat_steps.find(e);
-  Assert(it != d_strat_steps.end());
-  return d_infer_steps.begin() + it->second.first;
-}
-
-std::vector<std::pair<InferStep, size_t> >::iterator Strategy::stepEnd(
-    Theory::Effort e)
-{
-  std::map<Theory::Effort, std::pair<size_t, size_t> >::const_iterator it =
-      d_strat_steps.find(e);
-  Assert(it != d_strat_steps.end());
-  return d_infer_steps.begin() + it->second.second;
-}
-
-void Strategy::addStrategyStep(InferStep s, int effort, bool addBreak)
-{
-  // must run check init first
-  Assert((s == CHECK_INIT) == d_infer_steps.empty());
-  d_infer_steps.push_back(std::pair<InferStep, int>(s, effort));
-  if (addBreak)
-  {
-    d_infer_steps.push_back(std::pair<InferStep, int>(BREAK, 0));
-  }
-}
 
 void Strategy::initializeStrategy()
 {
   // initialize the strategy if not already done so
-  if (!d_strategy_init)
+  if (isStrategyInit())
   {
-    std::map<Theory::Effort, unsigned> step_begin;
-    std::map<Theory::Effort, unsigned> step_end;
-    d_strategy_init = true;
-    // beginning indices
-    step_begin[Theory::EFFORT_FULL] = 0;
-    // add the inference steps
-    addStrategyStep(CHECK_INIT);
-    addStrategyStep(CHECK_BAG_MAKE);
-    addStrategyStep(CHECK_BASIC_OPERATIONS);
-    addStrategyStep(CHECK_QUANTIFIED_OPERATIONS);
-    step_end[Theory::EFFORT_FULL] = d_infer_steps.size() - 1;
-
-    // set the beginning/ending ranges
-    for (const std::pair<const Theory::Effort, unsigned>& it_begin : step_begin)
-    {
-      Theory::Effort e = it_begin.first;
-      std::map<Theory::Effort, unsigned>::iterator it_end = step_end.find(e);
-      Assert(it_end != step_end.end());
-      d_strat_steps[e] =
-          std::pair<unsigned, unsigned>(it_begin.second, it_end->second);
-    }
+    return;
   }
+  // the full-effort strategy
+  markStartEffort(Theory::EFFORT_FULL);
+  // add the inference steps
+  addStrategyStep(Step::BAGS_CHECK_INIT);
+  addStrategyStep(Step::BAGS_CHECK_BAG_MAKE);
+  addStrategyStep(Step::BAGS_CHECK_BASIC_OPERATIONS);
+  addStrategyStep(Step::BAGS_CHECK_QUANTIFIED_OPERATIONS);
+  markEndEffort(Theory::EFFORT_FULL);
+  // set the beginning/ending ranges and mark the strategy as initialized
+  finishInit();
+}
+
+void Strategy::runStep(Step s, Theory::Effort, Theory::Effort effort)
+{
+  Trace("bags-process") << "Run " << s << ", effort = " << effort << "..."
+                        << std::endl;
+  Assert(d_theory != nullptr && d_bagSolver != nullptr);
+  switch (s)
+  {
+    case Step::BAGS_CHECK_INIT: d_theory->initialize(); break;
+    case Step::BAGS_CHECK_BAG_MAKE: d_bagSolver->checkBagMake(); break;
+    case Step::BAGS_CHECK_BASIC_OPERATIONS:
+      d_bagSolver->checkBasicOperations();
+      break;
+    case Step::BAGS_CHECK_QUANTIFIED_OPERATIONS:
+      d_bagSolver->checkQuantifiedOperations();
+      break;
+    default: Unreachable(); break;
+  }
+  Trace("bags-process") << "Done " << s
+                        << ", addedFact = " << d_im->hasPendingFact()
+                        << ", addedLemma = " << d_im->hasPendingLemma()
+                        << ", conflict = " << d_state->isInConflict()
+                        << std::endl;
 }
 
 }  // namespace bags

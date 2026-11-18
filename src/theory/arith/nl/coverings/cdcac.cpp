@@ -13,6 +13,8 @@
 
 #include "theory/arith/nl/coverings/cdcac.h"
 
+#include <algorithm>
+
 #ifdef CVC5_POLY_IMP
 
 #include "options/arith_options.h"
@@ -84,11 +86,15 @@ std::vector<poly::detail::variable_printer> CDCAC::get_stream_variables(
   return result;
 }
 
-void CDCAC::computeVariableOrdering()
+void CDCAC::computeVariableOrdering(bool reverse)
 {
   // Actually compute the variable ordering
   d_variableOrdering = d_varOrder(d_constraints.getConstraints(),
                                   VariableOrderingStrategy::BROWN);
+  if (reverse)
+  {
+    std::reverse(d_variableOrdering.begin(), d_variableOrdering.end());
+  }
   Trace("cdcac") << "Variable ordering is now "
                  << get_stream_variables(d_variableOrdering) << std::endl;
 
@@ -221,21 +227,30 @@ namespace {
  * This method follows the projection operator as detailed in algorithm 6 of
  * 10.1016/j.jlamp.2020.100633, which mostly follows the projection operator due
  * to McCallum. It uses all coefficients until one is either constant or does
- * not vanish over the current assignment.
+ * not vanish over the current assignment. Sets nullified if all coefficients
+ * vanish over the current assignment.
  */
 PolyVector requiredCoefficientsOriginal(const poly::Polynomial& p,
-                                        const poly::Assignment& assignment)
+                                        const poly::Assignment& assignment,
+                                        bool& nullified)
 {
   PolyVector res;
+  nullified = true;
   for (long deg = degree(p); deg >= 0; --deg)
   {
     auto coeff = coefficient(p, deg);
     Assert(poly::is_constant(coeff)
            == lp_polynomial_is_constant(coeff.get_internal()));
-    if (poly::is_constant(coeff)) break;
+    if (poly::is_zero(coeff)) continue;
+    if (poly::is_constant(coeff))
+    {
+      nullified = false;
+      break;
+    }
     res.add(coeff);
     if (evaluate_constraint(coeff, assignment, poly::SignCondition::NE))
     {
+      nullified = false;
       break;
     }
   }
@@ -333,14 +348,17 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                               d_constraints.varMapper(),
                                               d_env.getRewriter())
         << std::endl;
+    bool nullified;
     Trace("cdcac::projection")
-        << "Original: " << requiredCoefficientsOriginal(p, d_assignment)
+        << "Original: "
+        << requiredCoefficientsOriginal(p, d_assignment, nullified)
         << std::endl;
   }
+  bool nullified;
   switch (options().arith.nlCovProjection)
   {
     case options::nlCovProjectionMode::MCCALLUM:
-      return requiredCoefficientsOriginal(p, d_assignment);
+      return requiredCoefficientsOriginal(p, d_assignment, nullified);
     case options::nlCovProjectionMode::LAZARD:
       return requiredCoefficientsLazard(p, d_assignment);
     case options::nlCovProjectionMode::LAZARDMOD:
@@ -351,7 +369,7 @@ PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p)
                                                 d_env.getRewriter());
     default:
       DebugUnhandled();
-      return requiredCoefficientsOriginal(p, d_assignment);
+      return requiredCoefficientsOriginal(p, d_assignment, nullified);
   }
 }
 
@@ -458,6 +476,24 @@ CACInterval CDCAC::intervalFromCharacterization(
   }
   // Push lower-dimensional polys to down
   m.pushDownPolys(d, d_variableOrdering[cur_variable]);
+
+  // McCallum's projection is not sound if a polynomial is nullified over the
+  // current assignment. Abort, getUnsatCover() retries with another ordering.
+  for (const auto& p : m)
+  {
+    requiredCoefficientsOriginal(p, d_assignment, d_nullified);
+    if (d_nullified)
+    {
+      Trace("cdcac") << p << " is nullified over " << d_assignment << std::endl;
+      return CACInterval{d_nextIntervalId++,
+                         poly::Interval(sample, false, sample, false),
+                         {},
+                         {},
+                         {},
+                         {},
+                         {}};
+    }
+  }
 
   // Collect -oo, all roots, oo
 
@@ -619,6 +655,10 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
     Trace("cdcac") << "Building interval..." << std::endl;
     auto newInterval =
         intervalFromCharacterization(characterization, curVariable, sample);
+    if (d_nullified)
+    {
+      return {};
+    }
     Trace("cdcac") << "New interval: " << newInterval.d_interval << std::endl;
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
@@ -669,14 +709,31 @@ std::vector<CACInterval> CDCAC::getUnsatCoverImpl(std::size_t curVariable,
 
 std::vector<CACInterval> CDCAC::getUnsatCover(bool returnFirstInterval)
 {
-  if (isProofEnabled())
+  std::vector<CACInterval> res;
+  for (size_t attempt = 0; attempt < 2; ++attempt)
   {
-    d_proof->startRecursive();
-  }
-  auto res = getUnsatCoverImpl(0, returnFirstInterval);
-  if (isProofEnabled())
-  {
-    d_proof->endRecursive(0);
+    if (attempt > 0)
+    {
+      // a polynomial was nullified, retry with the reversed variable ordering
+      d_assignment.clear();
+      d_initialAssignment.clear();
+      computeVariableOrdering(true);
+      startNewProof();
+    }
+    d_nullified = false;
+    if (isProofEnabled())
+    {
+      d_proof->startRecursive();
+    }
+    res = getUnsatCoverImpl(0, returnFirstInterval);
+    if (isProofEnabled())
+    {
+      d_proof->endRecursive(0);
+    }
+    if (!d_nullified)
+    {
+      break;
+    }
   }
   return res;
 }

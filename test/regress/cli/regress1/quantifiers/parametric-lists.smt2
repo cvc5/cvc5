@@ -1,3 +1,5 @@
+; Logos does not support parametric datatype declarations.
+; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)

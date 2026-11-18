@@ -5,21 +5,22 @@ set -e -o pipefail
 
 usage () {
 cat <<EOF
-Usage: $0 [<build type>] [<option> ...]
+Usage: $0 <build type> [<option> ...]
 
-Build types:
-  production
-    Optimized, assertions and tracing disabled
+Build types (exactly one must be specified):
+  unrestricted
+    Optimized, assertions and tracing disabled, all features enabled
+  stable
+    Like unrestricted, but features that are not robust are disabled
+  safe
+    Like unrestricted, but features that are not robust or that lack full
+    proof and model support are disabled
   debug
-    Unoptimized, debug symbols, assertions, and tracing enabled
+    Unrestricted, unoptimized, debug symbols, assertions, and tracing enabled
   testing
-    Optimized debug build
+    Unrestricted, optimized debug build
   competition
-    Maximally optimized, assertions and tracing disabled, muzzled
-  safe-mode
-    Like production except --safe-mode is set to safe
-  stable-mode
-    Like production except --safe-mode is set to stable
+    Unrestricted, maximally optimized, assertions and tracing disabled, muzzled
 
 
 General options;
@@ -33,6 +34,7 @@ General options;
   --win64                  cross-compile for Windows 64 bit
   --win64-native           natively compile for Windows 64 bit
   --ninja                  use Ninja build system
+  --ccache                 use ccache to speed up rebuilds
   --docs                   build Api documentation
   --docs-ga                build API documentation with Google Analytics
 
@@ -51,6 +53,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --muzzle                 complete silence (no non-result output)
   --clang-tidy             enable clang-tidy static analysis during build
   --coverage               support for gcov coverage testing
+  --api-coverage           support for gcov coverage testing of the API only
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
   --slow-tests             enable slow (exhaustive) unit tests
@@ -70,6 +73,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --glpk                   use GLPK simplex solver
   --cryptominisat          use the CryptoMiniSat SAT solver
   --kissat                 use the Kissat SAT solver
+  --mimalloc               use the mimalloc memory allocator in the cvc5 binary
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
   --editline               support the editline library
@@ -130,9 +134,11 @@ make_abs_path() {
 
 buildtype=default
 
+api_coverage=default
 asan=default
 assertions=default
 auto_download=default
+ccache=default
 cln=default
 clang_tidy=default
 coverage=default
@@ -144,6 +150,7 @@ docs_ga=default
 glpk=default
 gpl=default
 kissat=default
+mimalloc=default
 poly=ON
 cocoa=default
 normaliz=default
@@ -253,6 +260,9 @@ do
     --coverage) coverage=ON;;
     --no-coverage) coverage=OFF;;
 
+    --api-coverage) api_coverage=ON;;
+    --no-api-coverage) api_coverage=OFF;;
+
     --cryptominisat) cryptominisat=ON;;
     --no-cryptominisat) cryptominisat=OFF;;
 
@@ -268,6 +278,9 @@ do
     --kissat) kissat=ON;;
     --no-kissat) kissat=OFF;;
 
+    --mimalloc) mimalloc=ON;;
+    --no-mimalloc) mimalloc=OFF;;
+
     --win64) win64=ON;;
 
     --win64-native) win64_native=ON;;
@@ -275,6 +288,8 @@ do
     --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
+
+    --ccache) ccache=ON;;
 
     --docs) docs=ON;;
     --no-docs) docs=OFF;;
@@ -368,7 +383,7 @@ do
         case $wasm_web_config in
           no-modular-static-page)
             wasm=HTML
-            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\"]' -s ASSERTIONS=1 -s NO_DISABLE_EXCEPTION_CATCHING=1 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
+            wasm_flags="-s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\", \"callMain\", \"FS\"]' -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS=_main -s INVOKE_RUN=1 -s EXIT_RUNTIME=0 -s INCOMING_MODULE_JS_API='[\"arguments\",\"canvas\",\"monitorRunDependencies\",\"print\",\"setStatus\", \"locateFile\",\"printErr\", \"onRuntimeInitialized\", \"preRun\", \"onAbort\", \"stdin\", \"instantiateWasm\"]' -s ASSERTIONS=1 -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=2147483648"
             wasm_web=ON
             ;;
           *)
@@ -411,13 +426,22 @@ do
 
     -*) die "invalid option '$1' (try -h)";;
 
-    *) case $1 in
-         production)      buildtype=Production;;
+    *) [ $buildtype != default ] && die "more than one build type specified (try -h)"
+       case $1 in
+         unrestricted)    buildtype=Production;;
+         stable)          buildtype=Production; stable_mode=ON;;
+         safe)            buildtype=Production; safe_mode=ON;;
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
-         safe-mode)       buildtype=Production; safe_mode=ON;;
-         stable-mode)     buildtype=Production; stable_mode=ON;;
+         production)      die "build type 'production' is no longer available." \
+                              "Use 'unrestricted' to have the previous behavior." \
+                              "Alternatively, the build types 'safe' and 'stable'" \
+                              "are available (try -h)";;
+         safe-mode)       die "build type 'safe-mode' is no longer available." \
+                              "Use 'safe' instead";;
+         stable-mode)     die "build type 'stable-mode' is no longer available." \
+                              "Use 'stable' instead";;
          *)               die "invalid build type (try -h)";;
        esac
        ;;
@@ -427,14 +451,15 @@ done
 
 #--------------------------------------------------------------------------#
 
+[ $buildtype = default ] && die "no build type specified (try -h)"
+
 if [ $werror != default ]; then
   export CFLAGS=-Werror
   export CXXFLAGS=-Werror
   cmake_opts="$cmake_opts -DTREAT_WARNING_AS_ERROR=$werror"
 fi
 
-[ $buildtype != default ] \
-  && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
+cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
 
 [ $asan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
@@ -458,6 +483,8 @@ fi
   && cmake_opts="$cmake_opts -DENABLE_CLANG_TIDY=$clang_tidy"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
+[ $api_coverage != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_API_COVERAGE=$api_coverage"
 [ $debug_symbols != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols"
 [ $debug_context_mm != default ] \
@@ -472,6 +499,12 @@ fi
 [ $arm64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=$(make_abs_path 'cmake/Toolchain-aarch64.cmake')"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
+if [ $ccache != default ]; then
+  command -v ccache &> /dev/null \
+    || die "ccache not found (required by --ccache)"
+  cmake_opts="$cmake_opts -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+  cmake_opts="$cmake_opts -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+fi
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
 [ $build_shared != default ] \
@@ -510,6 +543,8 @@ fi
   && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk"
 [ $kissat != default ] \
   && cmake_opts="$cmake_opts -DUSE_KISSAT=$kissat"
+[ $mimalloc != default ] \
+  && cmake_opts="$cmake_opts -DUSE_MIMALLOC=$mimalloc"
 [ $poly != default ] \
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \

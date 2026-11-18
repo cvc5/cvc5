@@ -38,6 +38,7 @@
 
 #include <iterator>
 #include <queue>
+#include <unordered_set>
 
 #include "theory/rewriter.h"
 #include "util/hash.h"
@@ -559,6 +560,8 @@ void SymmetryBreaker::clear()
   d_terms.clear();
   d_template.reset();
   d_normalizationCache.clear();
+  d_phiOccurrences.clear();
+  d_phiNorm.clear();
   d_termEqs.clear();
   d_termEqsOnly.clear();
 }
@@ -585,6 +588,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses)
                              << "UFSYMM                to " << *i << endl;
       }
     }
+    computePhiOccurrences();
 
     for (const Permutation& p : d_permutations)
     {
@@ -690,6 +694,10 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses)
                   << "UFSYMM symmetry-breaking clause: " << d << endl;
             }
             newClauses.push_back(d);
+            Node nd = norm(d);
+            d_phi.push_back(nd);
+            d_phiSet.insert(nd);
+            addPhiOccurrences(d_phi.size() - 1);
           }
           else
           {
@@ -710,6 +718,81 @@ void SymmetryBreaker::guessPermutations()
 {
   // use d_phi, put into d_permutations
   Trace("ufsymm") << "UFSYMM guessPermutations()" << endl;
+}
+
+void SymmetryBreaker::computePhiOccurrences()
+{
+  d_phiOccurrences.clear();
+  d_phiNorm.assign(d_phi.size(), Node::null());
+  for (const Permutation& p : d_permutations)
+  {
+    for (TNode t : p)
+    {
+      d_phiOccurrences[t];
+    }
+  }
+  for (size_t i = 0, nphi = d_phi.size(); i < nphi; ++i)
+  {
+    addPhiOccurrences(i);
+  }
+}
+
+void SymmetryBreaker::addPhiOccurrences(size_t i)
+{
+  std::unordered_set<TNode> visited;
+  std::vector<TNode> visit;
+  visit.push_back(d_phi[i]);
+  do
+  {
+    TNode cur = visit.back();
+    visit.pop_back();
+    if (!visited.insert(cur).second)
+    {
+      continue;
+    }
+    auto it = d_phiOccurrences.find(cur);
+    if (it != d_phiOccurrences.end())
+    {
+      it->second.push_back(i);
+    }
+    // traverse everything that Node::substitute traverses
+    if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      visit.push_back(cur.getOperator());
+    }
+    visit.insert(visit.end(), cur.begin(), cur.end());
+  } while (!visit.empty());
+}
+
+std::vector<bool> SymmetryBreaker::getAffectedAssertions(
+    const std::vector<Node>& subs) const
+{
+  std::vector<bool> affected(d_phi.size(), false);
+  for (const Node& t : subs)
+  {
+    auto it = d_phiOccurrences.find(t);
+    Assert(it != d_phiOccurrences.end());
+    for (size_t i : it->second)
+    {
+      affected[i] = true;
+    }
+  }
+  return affected;
+}
+
+Node SymmetryBreaker::normUnchanged(size_t k)
+{
+  if (k >= d_phiNorm.size())
+  {
+    // the symmetry-breaking clauses that apply() adds to d_phi
+    d_phiNorm.resize(d_phi.size());
+  }
+  Node& n = d_phiNorm[k];
+  if (n.isNull())
+  {
+    n = norm(d_phi[k]);
+  }
+  return n;
 }
 
 bool SymmetryBreaker::invariantByPermutations(const Permutation& p)
@@ -743,11 +826,16 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p)
   subs.push_back(p1);
   repls.push_back(p1);
   repls.push_back(p0);
-  for (const Node& nn : d_phi)
+  // Substituting is the identity on assertions not containing a term of subs.
+  std::vector<bool> affected = getAffectedAssertions(subs);
+  for (size_t k = 0, nphi = d_phi.size(); k < nphi; ++k)
   {
-    Node s =
-        nn.substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
-    Node n = norm(s);
+    const Node& nn = d_phi[k];
+    Node s = affected[k]
+                 ? nn.substitute(
+                       subs.begin(), subs.end(), repls.begin(), repls.end())
+                 : nn;
+    Node n = affected[k] ? norm(s) : normUnchanged(k);
     if (nn != n && d_phiSet.find(n) == d_phiSet.end())
     {
       Trace("ufsymm")
@@ -793,11 +881,15 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p)
     }
     repls.push_back(*p.begin());
     Assert(subs.size() == repls.size());
-    for (const Node& nn : d_phi)
+    affected = getAffectedAssertions(subs);
+    for (size_t k = 0, nphi = d_phi.size(); k < nphi; ++k)
     {
-      Node s =
-          nn.substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
-      Node n = norm(s);
+      const Node& nn = d_phi[k];
+      Node s = affected[k]
+                   ? nn.substitute(
+                         subs.begin(), subs.end(), repls.begin(), repls.end())
+                   : nn;
+      Node n = affected[k] ? norm(s) : normUnchanged(k);
       if (nn != n && d_phiSet.find(n) == d_phiSet.end())
       {
         Trace("ufsymm")

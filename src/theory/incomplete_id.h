@@ -35,6 +35,9 @@ enum class IncompleteId
   ARITH_NL_DISABLED,
   // the non-linear arithmetic solver was incomplete
   ARITH_NL,
+  // the floating-point solver could not refine a conversion abstraction,
+  // e.g. because model values for its arguments were unavailable
+  FP_ABSTRACTION_REFINEMENT,
   // incomplete due to lack of a complete quantifiers strategy
   QUANTIFIERS,
   // (refutation unsound) we failed to verify the correctness of a candidate

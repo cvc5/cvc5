@@ -48,6 +48,15 @@ void SolverEngineState::notifyDeclaration()
   d_smtMode = SmtMode::ASSERT;
 }
 
+void SolverEngineState::notifyDefinition()
+{
+  if (d_smtMode == SmtMode::SAT || d_smtMode == SmtMode::SAT_UNKNOWN
+      || d_smtMode == SmtMode::UNSAT)
+  {
+    d_smtMode = SmtMode::ASSERT;
+  }
+}
+
 void SolverEngineState::notifyCheckSat()
 {
   // process the pending pops

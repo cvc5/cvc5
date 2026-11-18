@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-inference=try -q
 (set-logic LIA)
 (set-info :status sat)

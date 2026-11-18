@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; COMMAND-LINE: --sygus-inst -q
 ; EXPECT: sat
 (set-logic NIA)

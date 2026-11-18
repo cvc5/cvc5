@@ -18,7 +18,6 @@
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
 #include "theory/strings/inference_manager.h"
-#include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/theory.h"
@@ -71,112 +70,6 @@ TermRegistry::~TermRegistry() {}
 uint32_t TermRegistry::getAlphabetCardinality() const { return d_alphaCard; }
 
 void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
-
-Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t alphaCard)
-{
-  NodeManager* nm = t.getNodeManager();
-  Node lemma;
-  Kind tk = t.getKind();
-  if (tk == Kind::STRING_TO_CODE)
-  {
-    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-    Node len = nm->mkNode(Kind::STRING_LENGTH, t[0]);
-    Node code_len = len.eqNode(nm->mkConstInt(Rational(1)));
-    Node code_eq_neg1 = t.eqNode(nm->mkConstInt(Rational(-1)));
-    Node code_range = utils::mkCodeRange(t, alphaCard);
-    lemma = nm->mkNode(Kind::ITE, code_len, code_range, code_eq_neg1);
-  }
-  else if (tk == Kind::SEQ_NTH)
-  {
-    if (t[0].getType().isString())
-    {
-      Node s = t[0];
-      Node n = t[1];
-      // start point is greater than or equal zero
-      Node c1 = nm->mkNode(Kind::GEQ, n, nm->mkConstInt(0));
-      // start point is less than end of string
-      Node c2 = nm->mkNode(Kind::GT, nm->mkNode(Kind::STRING_LENGTH, s), n);
-      // check whether this application of seq.nth is defined.
-      Node cond = nm->mkNode(Kind::AND, c1, c2);
-      Node code_range = utils::mkCodeRange(t, alphaCard);
-      // the lemma for `seq.nth`
-      lemma = nm->mkNode(
-          Kind::ITE, cond, code_range, t.eqNode(nm->mkConstInt(Rational(-1))));
-      // IF: n >=0 AND n < len( s )
-      // THEN: 0 <= (seq.nth s n) < |A|
-      // ELSE: (seq.nth s n) = -1
-    }
-  }
-  else if (tk == Kind::STRING_INDEXOF || tk == Kind::STRING_INDEXOF_RE)
-  {
-    // (and
-    //   (or (= (f x y n) (- 1)) (>= (f x y n) n))
-    //   (<= (f x y n) (str.len x)))
-    //
-    // where f in { str.indexof, str.indexof_re }
-    Node l = nm->mkNode(Kind::STRING_LENGTH, t[0]);
-    lemma = nm->mkNode(Kind::AND,
-                       {nm->mkNode(Kind::OR,
-                                   {t.eqNode(nm->mkConstInt(Rational(-1))),
-                                    nm->mkNode(Kind::GEQ, t, t[2])}),
-                        nm->mkNode(Kind::LEQ, t, l)});
-  }
-  else if (tk == Kind::STRING_STOI)
-  {
-    // (>= (str.to_int x) (- 1))
-    lemma = nm->mkNode(Kind::GEQ, t, nm->mkConstInt(Rational(-1)));
-  }
-  else if (tk == Kind::STRING_CONTAINS)
-  {
-    // ite( (str.contains s r), (= s (str.++ sk1 r sk2)), (not (= s r)))
-    Node sk1 =
-        sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-    Node sk2 =
-        sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
-    lemma = t[0].eqNode(nm->mkNode(Kind::STRING_CONCAT, sk1, t[1], sk2));
-    lemma = nm->mkNode(Kind::ITE, t, lemma, t[0].eqNode(t[1]).notNode());
-  }
-  else if (tk == Kind::STRING_IN_REGEXP)
-  {
-    // for (str.in_re t R), if R has a fixed length L, then we infer the lemma:
-    // (str.in_re t R) => (= (str.len t) L).
-    Node len = RegExpEntail::getFixedLengthForRegexp(t[1]);
-    if (!len.isNull())
-    {
-      lemma = nm->mkNode(
-          Kind::IMPLIES, t, nm->mkNode(Kind::STRING_LENGTH, t[0]).eqNode(len));
-    }
-  }
-  else if (tk == Kind::STRING_FROM_CODE)
-  {
-    // str.from_code(t) ---> ite(0 <= t < |A|, t = str.to_code(k), k = "")
-    Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "kFromCode");
-    Node tc = t[0];
-    Node card = nm->mkConstInt(Rational(alphaCard));
-    Node cond = nm->mkNode(Kind::AND,
-                           {nm->mkNode(Kind::LEQ, nm->mkConstInt(0), tc),
-                            nm->mkNode(Kind::LT, tc, card)});
-    Node emp = Word::mkEmptyWord(t.getType());
-    lemma = nm->mkNode(
-        Kind::ITE,
-        {cond, tc.eqNode(nm->mkNode(Kind::STRING_TO_CODE, k)), k.eqNode(emp)});
-  }
-  return lemma;
-}
-
-Node TermRegistry::lengthPositive(Node t)
-{
-  NodeManager* nm = t.getNodeManager();
-  Node zero = nm->mkConstInt(Rational(0));
-  Node emp = Word::mkEmptyWord(t.getType());
-  Node tlen = nm->mkNode(Kind::STRING_LENGTH, t);
-  Node tlenEqZero = tlen.eqNode(zero);
-  Node tEqEmp = t.eqNode(emp);
-  Node caseEmpty = nm->mkNode(Kind::AND, tlenEqZero, tEqEmp);
-  Node caseNEmpty = nm->mkNode(Kind::GT, tlen, zero);
-  // (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
-  return nm->mkNode(Kind::OR, caseEmpty, caseNEmpty);
-}
 
 void TermRegistry::preRegisterTerm(TNode n)
 {
@@ -383,7 +276,7 @@ void TermRegistry::registerTermInternal(Node n)
 TrustNode TermRegistry::eagerReduceTrusted(const Node& n)
 {
   TrustNode regTermLem;
-  Node eagerRedLemma = eagerReduce(n, &d_skCache, d_alphaCard);
+  Node eagerRedLemma = utils::eagerReduce(n, &d_skCache, d_alphaCard);
   if (!eagerRedLemma.isNull())
   {
     if (d_epg != nullptr)
@@ -590,7 +483,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
   Assert(s == LENGTH_SPLIT);
 
   // get the positive length lemma
-  Node lenLemma = lengthPositive(n);
+  Node lenLemma = utils::lengthPositive(n);
   // split whether the string is empty
   Node n_len_eq_z = n_len.eqNode(d_zero);
   Node n_len_eq_z_2 = n.eqNode(emp);

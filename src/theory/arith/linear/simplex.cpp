@@ -53,7 +53,7 @@ SimplexDecisionProcedure::SimplexDecisionProcedure(
 {
   d_heuristicRule = options().arith.arithErrorSelectionRule;
   d_errorSet.setSelectionRule(d_heuristicRule);
-  d_conflictBuilder = new FarkasConflictBuilder(options().smt.produceProofs);
+  d_conflictBuilder = new FarkasConflictBuilder(d_env.isTheoryProofProducing());
 }
 
 SimplexDecisionProcedure::~SimplexDecisionProcedure()

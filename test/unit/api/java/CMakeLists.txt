@@ -25,8 +25,10 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/GrammarTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/InputParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/LifetimeTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/MemoryManagementTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/OpTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ParserLifetimeTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/PairTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ParserTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/SolverTest.java
@@ -35,6 +37,7 @@ set(java_test_src_files
   ${CMAKE_CURRENT_SOURCE_DIR}/SynthResultTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/TermManagerTest.java
+  ${CMAKE_CURRENT_SOURCE_DIR}/TripletTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/ProofTest.java
   ${CMAKE_CURRENT_SOURCE_DIR}/UtilsTest.java
 )
@@ -64,7 +67,6 @@ add_dependencies(build-units build-junit-tests)
 macro(cvc5_add_java_api_test name)
   add_test (NAME unit/api/java/${name}
     COMMAND
-      ${ENV_PATH_CMD}
       ${Java_JAVA_EXECUTABLE}
       -Djava.library.path=${CVC5_JNI_LIBDIR}
       -jar ${JUnit_JAR}
@@ -72,7 +74,9 @@ macro(cvc5_add_java_api_test name)
       -select-package tests
       -n tests.${name}
   )
-  set_tests_properties(unit/api/java/${name} PROPERTIES LABELS "unit java")
+  set_tests_properties(unit/api/java/${name} PROPERTIES
+    LABELS "unit java"
+    ENVIRONMENT "${CVC5_TEST_ENV}")
 endmacro()
 
 if(USE_COCOA)
@@ -83,8 +87,10 @@ cvc5_add_java_api_test(DatatypeTest)
 cvc5_add_java_api_test(GrammarTest)
 cvc5_add_java_api_test(InputParserTest)
 cvc5_add_java_api_test(LifetimeTest)
+cvc5_add_java_api_test(MemoryManagementTest)
 cvc5_add_java_api_test(ParserLifetimeTest)
 cvc5_add_java_api_test(OpTest)
+cvc5_add_java_api_test(PairTest)
 cvc5_add_java_api_test(ResultTest)
 cvc5_add_java_api_test(SolverTest)
 cvc5_add_java_api_test(SortTest)
@@ -92,6 +98,7 @@ cvc5_add_java_api_test(SymbolManagerTest)
 cvc5_add_java_api_test(SynthResultTest)
 cvc5_add_java_api_test(TermTest)
 cvc5_add_java_api_test(TermManagerTest)
+cvc5_add_java_api_test(TripletTest)
 cvc5_add_java_api_test(ProofTest)
 cvc5_add_java_api_test(UtilsTest)
 

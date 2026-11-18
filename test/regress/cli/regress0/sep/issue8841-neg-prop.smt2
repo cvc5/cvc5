@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; DISABLE-TESTER: model
 (set-logic QF_ALL)
 (set-info :status sat)

@@ -89,12 +89,6 @@ Term ParserState::getExpressionForNameAndType(const std::string& name, Sort t)
   return expr;
 }
 
-bool ParserState::getTesterName(CVC5_UNUSED Term cons,
-                                CVC5_UNUSED std::string& name)
-{
-  return false;
-}
-
 Kind ParserState::getKindForFunction(Term fun)
 {
   Sort t = fun.getSort();
@@ -570,8 +564,10 @@ Term ParserState::applyTypeAscription(Term t, Sort s)
     // check if its datatype is parametric.
     if (d.isParametric())
     {
-      // lookup by name
-      DatatypeConstructor dc = d.getConstructor(t.toString());
+      // lookup by name, using the raw symbol since toString() may print
+      // the name as a quoted symbol, e.g. |C,|
+      DatatypeConstructor dc =
+          d.getConstructor(t.hasSymbol() ? t.getSymbol() : t.toString());
       // ask the constructor for the specialized constructor term
       t = dc.getInstantiatedTerm(s);
     }
@@ -767,11 +763,17 @@ Term ParserState::mkCharConstant(const std::string& s)
   return d_tm.mkString(std::u32string(1, val));
 }
 
+bool isNumeral(const std::string& str)
+{
+  return !str.empty()
+         && str.find_first_not_of("0123456789") == std::string::npos;
+}
+
 bool stringToUnsigned(const std::string& str,
                       uint32_t& result,
                       std::ostream* os)
 {
-  if (str.empty() || str.find_first_not_of("0123456789") != std::string::npos)
+  if (!isNumeral(str))
   {
     if (os != nullptr)
     {

@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; EXPECT: sat
 ; COMMAND-LINE: --sygus-inference=try
 (set-logic QF_LRA)

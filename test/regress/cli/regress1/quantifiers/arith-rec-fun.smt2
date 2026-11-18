@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 (set-logic UFLIA)
 (set-info :status unsat)
 (define-fun-rec sumr ((x Int)) Int 

@@ -102,7 +102,10 @@ Result SubTheory::postCheck(Theory::Effort e)
   }
   catch (FfTimeoutException& exc)
   {
-    return {Result::UNKNOWN, UnknownExplanation::TIMEOUT, exc.getMessage()};
+    UnknownExplanation why = d_env.getResourceManager()->terminationRequested()
+                                 ? UnknownExplanation::INTERRUPTED
+                                 : UnknownExplanation::TIMEOUT;
+    return {Result::UNKNOWN, why, exc.getMessage()};
   }
 }
 

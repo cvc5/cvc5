@@ -1,3 +1,4 @@
+; REQUIRES: no-safe-mode
 (set-logic QF_ABV)
 (set-option :bv-solver bitblast-internal)
 (set-option :incremental true)

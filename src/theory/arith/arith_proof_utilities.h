@@ -85,9 +85,10 @@ std::shared_ptr<ProofNode> ensurePredTransform(ProofNodeManager* pnm,
 
 /**
  * Return a proof of (= a b) by ProofRule::ARITH_POLY_NORM_REL, extended by a
- * congruence step if a and b are negated. This is used for relating arithmetic
- * relations that are equivalent but are not equivalent under rewriting alone,
- * e.g. (= (+ x 1) 2) and (= x 1).
+ * congruence step if a and b are negated. This is used for relating relations
+ * that are not equivalent under rewriting alone, e.g. (= (+ x 1) 2) and
+ * (= x 1), which is possible since the rewriter does not normalize equalities,
+ * see rewriter::normalizeEquality.
  *
  * @param pnm Reference to the proof manager.
  * @param a The first relation, or its negation.

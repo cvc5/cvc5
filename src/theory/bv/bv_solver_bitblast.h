@@ -15,13 +15,12 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 #define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 
-#include <unordered_map>
-
 #include "context/cdqueue.h"
 #include "proof/eager_proof_generator.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "smt/env_obj.h"
+#include "theory/bv/abstract/abstraction_module.h"
 #include "theory/bv/bitblast/node_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"
@@ -31,6 +30,7 @@ namespace cvc5::internal {
 namespace theory {
 namespace bv {
 
+class TheoryBV;
 class NotifyResetAssertions;
 class BBRegistrar;
 
@@ -42,7 +42,8 @@ class BVSolverBitblast : public BVSolver
  public:
   BVSolverBitblast(Env& env,
                    TheoryState* state,
-                   TheoryInferenceManager& inferMgr);
+                   TheoryInferenceManager& inferMgr,
+                   TheoryBV* bv);
   ~BVSolverBitblast() = default;
 
   bool needsEqualityEngine(EeSetupInfo& esi) override;
@@ -74,6 +75,8 @@ class BVSolverBitblast : public BVSolver
    */
   Node getValue(TNode node, bool initialize) override;
 
+  bool isModelConsistent() const override { return d_isModelConsistent; }
+
  private:
   /** Initialize SAT solver and CNF stream.  */
   void initSatSolver();
@@ -85,6 +88,18 @@ class BVSolverBitblast : public BVSolver
    * assumed (false).
    */
   void handleEagerAtom(TNode fact, bool assertFact);
+
+  /**
+   * Run the CEGAR abstraction-refinement loop after an initial SAT result.
+   *
+   * Repeatedly checks the current model against the abstracted arithmetic terms
+   * and asserts violated refinement lemmas until the model is consistent (SAT)
+   * or the SAT solver reports unsat. Only called when --bv-abstraction is on.
+   *
+   * @param assumptions The assumption literals to solve under.
+   * @return The final SAT result after refinement.
+   */
+  prop::SatValue refine(const std::vector<prop::SatLiteral>& assumptions);
 
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<NodeBitblaster> d_bitblaster;
@@ -133,8 +148,20 @@ class BVSolverBitblast : public BVSolver
   /** Option to enable/disable bit-level propagation. */
   bool d_propagate;
 
+  /** The associated CEGAR abstraction module for bit-vector arithmetic. */
+  std::unique_ptr<abstract::AbstractionModule> d_am;
+
+  /** The enclosing theory, used to query model values (TheoryBV::getValue). */
+  TheoryBV* d_bv;
+
   /** Notifies when reset-assertion was called. */
   std::unique_ptr<NotifyResetAssertions> d_resetNotify;
+
+  /**
+   * Cache if current model is consistent. Can only ever be inconsistent in the
+   * case of abstraction.
+   */
+  bool d_isModelConsistent;
 };
 
 }  // namespace bv

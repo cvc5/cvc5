@@ -177,6 +177,12 @@ void ArithCongruenceManager::pushBack(TNode n, TNode r, TNode w)
   ++(d_statistics.d_propagations);
 }
 
+void ArithCongruenceManager::pushBackAlias(TNode n)
+{
+  Assert(d_propagatations.size() > 0);
+  d_explanationMap.insert(n, d_propagatations.size() - 1);
+}
+
 void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb,
                                                    ConstraintCP ub)
 {
@@ -268,7 +274,10 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c)
   {
     if (c->getType() == ConstraintType::Disequality)
     {
-      Assert(c->getLiteral() == d_watchedEqualities[s].negate());
+      // Note that the literal of c may differ from the negation of the watched
+      // equality, since multiple atoms may correspond to the same constraint,
+      // e.g. (= x 0) and (= (to_real x) 0.0). This is accounted for by the
+      // call below.
       // We have to prove equivalence to the watched disequality.
       pf = ensurePredTransform(d_pnm, pf, disEq);
     }
@@ -641,6 +650,15 @@ bool ArithCongruenceManager::propagate(TNode x)
     }
 
     c->setEqualityEngineProof();
+    // Note that c is explained in terms of its literal, which may be distinct
+    // from rewritten. This is the case when several atoms correspond to c, in
+    // which case the first one that was set up is its literal, see
+    // Constraint::setLiteral. We thus ensure that the literal of c can be
+    // explained by this class as well, since otherwise we would explain it
+    // (trivially) by itself, see Constraint::externalExplain. This is required
+    // both when c is propagated below and when c is used in the explanation
+    // of a conflict or propagation.
+    pushBackAlias(c->getLiteral());
     if (c->canBePropagated() && !c->assertedToTheTheory())
     {
       ++(d_statistics.d_propagateConstraints);
@@ -658,6 +676,8 @@ bool ArithCongruenceManager::propagate(TNode x)
       pushBack(x);
     }
     c->setEqualityEngineProof();
+    // As above, the literal of c may be distinct from x.
+    pushBackAlias(c->getLiteral());
   }
   else if (c->hasProof() && x != rewritten)
   {
@@ -715,9 +735,10 @@ TrustNode ArithCongruenceManager::explain(TNode external)
                                {assumptionPfs},
                                {internalp},
                                internalp);
-    // The internal and external forms may be equivalent arithmetic relations
-    // that nevertheless have distinct rewritten forms. We thus relate the two
-    // by polynomial normalization if necessary.
+    // The internal and external forms may differ by more than rewriting, e.g.
+    // when external is an equality that is not in normal form, since the
+    // rewriter does not normalize equalities, see rewriter::normalizeEquality.
+    // We thus relate the two by polynomial normalization if necessary.
     litPf = ensurePredTransform(d_pnm, litPf, external);
     auto extPf = d_pnm->mkScope(litPf, assumptions);
     return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);

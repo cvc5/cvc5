@@ -18,8 +18,7 @@ public class Exceptions
 {
   public static void main(String[] args)
   {
-    TermManager tm = new TermManager();
-    Solver solver = new Solver(tm);
+    try (TermManager tm = new TermManager(); Solver solver = new Solver(tm))
     {
       solver.setOption("produce-models", "true");
 
@@ -60,6 +59,5 @@ public class Exceptions
         System.out.println(e.toString());
       }
     }
-    Context.deletePointers();
   }
 }

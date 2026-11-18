@@ -24,17 +24,10 @@ import static io.github.cvc5.Kind.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.cvc5.*;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class LifetimeTest
 {
-  @AfterEach
-  void tearDown()
-  {
-    Context.deletePointers();
-  }
-
   @Test
   void sortOutlivesTermManager()
   {
@@ -178,7 +171,7 @@ class LifetimeTest
     solver.setOption("sygus", "true");
     Sort b = tm.getBooleanSort();
     Term start = tm.mkVar(b);
-    Grammar g = solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = tm.mkGrammar(new Term[] {}, new Term[] {start});
     g.addRule(start, tm.mkBoolean(false));
     solver.deletePointer();
     tm.deletePointer();

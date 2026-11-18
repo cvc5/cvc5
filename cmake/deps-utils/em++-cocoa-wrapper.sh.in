@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Wrapper around `em++`, used only as the `--with-cxx` compiler for CoCoALib's
+# `./configure` in Emscripten/wasm builds.
+#
+# CoCoALib's `./configure` assumes a native compiler: its helper scripts
+# compile small test programs and run them directly (`./program`) to probe
+# compiler and library properties. With Emscripten >= 6.0.8 (enforced in
+# CMakeLists.txt) the output is already runnable as-is: emcc writes a
+# `#!/usr/bin/env node` shebang and sets the executable bit on suffix-less
+# outputs. What still breaks the probes is that, without `-s EXIT_RUNTIME=1`,
+# the Emscripten runtime does not flush stdio on exit, so a probe's captured
+# output is empty even when it "passes" with exit code 0. This wrapper appends
+# that setting to link invocations only.
+#
+# Non-link invocations (-c, -E, -S, -M, -MM) are passed through untouched:
+# a link-only setting makes emcc warn on them, and CoCoALib's
+# dependency-generation rule (-MM) runs hundreds of times.
+
+REAL_EMXX="@CMAKE_CXX_COMPILER@"
+
+is_link=1
+for arg in "$@"; do
+  case "$arg" in
+    -c|-E|-S|-M|-MM) is_link=0; break ;;
+  esac
+done
+
+# exec so the real compiler's exit status is the wrapper's, unmodified.
+if [ "$is_link" -eq 1 ]; then
+  exec "$REAL_EMXX" "$@" -s EXIT_RUNTIME=1
+fi
+exec "$REAL_EMXX" "$@"
