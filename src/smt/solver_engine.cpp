@@ -1564,8 +1564,7 @@ std::vector<Node> SolverEngine::getAssertionsInternal() const
   d_smtSolver->getAssertions().refresh();
   // Return the input form of the assertions, which includes the definitions
   // that are treated as macros, if any.
-  const CDList<Node>& al =
-      d_smtSolver->getAssertions().getInputAssertionList();
+  const CDList<Node>& al = d_smtSolver->getAssertions().getInputAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
   {
@@ -1657,11 +1656,8 @@ void SolverEngine::printProof(std::ostream& out,
       anames.emplace(a, it->second);
     }
   }
-  d_pfManager->printProof(out,
-                          fp,
-                          mode,
-                          ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-                          anames);
+  d_pfManager->printProof(
+      out, fp, mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS, anames);
   out << ")" << std::endl;
 }
 

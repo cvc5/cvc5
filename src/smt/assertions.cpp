@@ -64,10 +64,9 @@ class CaptureAvoidingBetaReduceConverter : public BetaReduceNodeConverter
       // the variables of the lambda, then to avoid capturing the free
       // variables of the arguments.
       Node nes;
-      while (
-          !(nes = d_rr->rewriteViaRule(
-                ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID, n))
-               .isNull())
+      while (!(nes = d_rr->rewriteViaRule(
+                   ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID, n))
+                  .isNull())
       {
         n = nes;
       }
