@@ -4711,6 +4711,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CHOOSE_SINGLETON),
   /** Auto-generated from RARE rule sets-minus-self */
   EVALUE(SETS_MINUS_SELF),
+  /** Auto-generated from RARE rule sets-union-self */
+  EVALUE(SETS_UNION_SELF),
+  /** Auto-generated from RARE rule sets-inter-self */
+  EVALUE(SETS_INTER_SELF),
   /** Auto-generated from RARE rule sets-is-empty-elim */
   EVALUE(SETS_IS_EMPTY_ELIM),
   /** Auto-generated from RARE rule sets-is-singleton-elim */
