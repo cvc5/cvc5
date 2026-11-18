@@ -475,10 +475,10 @@ bool BasicRewriteRCons::ensureProofMacroArithIntRelation(CDProof* cdp,
   // arith-int-geq-tighten verbatim
   if (rk == Kind::GEQ)
   {
-    // use the correct type
-    Node cceil = nm->mkConstRealOrInt(p.first.getType(),
-                                      p.second.getConst<Rational>().ceiling());
-    tgt = nm->mkNode(rk, p.first, cceil);
+    // Use the integer term to match arith-int-geq-tighten and avoid
+    // reintroducing mixed arithmetic after subtype elimination.
+    Node cceil = nm->mkConstInt(p.second.getConst<Rational>().ceiling());
+    tgt = nm->mkNode(rk, iterm, cceil);
   }
   // the last step can be shown by the RARE rules
   // arith-int-eq-conflict or arith-int-geq-tighten

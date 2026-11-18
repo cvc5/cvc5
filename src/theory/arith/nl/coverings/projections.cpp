@@ -45,24 +45,31 @@ void PolyVector::reduce()
 
 void PolyVector::makeFinestSquareFreeBasis()
 {
-  for (std::size_t i = 0, n = size(); i < n; ++i)
+  bool changed = true;
+  while (changed)
   {
-    for (std::size_t j = i + 1; j < n; ++j)
+    changed = false;
+    for (std::size_t i = 0, n = size(); i < n; ++i)
     {
-      Polynomial g = gcd((*this)[i], (*this)[j]);
-      if (!is_constant(g))
+      for (std::size_t j = i + 1; j < n; ++j)
       {
-        (*this)[i] = div((*this)[i], g);
-        (*this)[j] = div((*this)[j], g);
-        add(g);
+        Polynomial g = gcd((*this)[i], (*this)[j]);
+        if (!is_constant(g))
+        {
+          (*this)[i] = div((*this)[i], g);
+          (*this)[j] = div((*this)[j], g);
+          add(g);
+          changed = true;
+        }
       }
     }
+    auto it = std::remove_if(
+        begin(), end(), [](const Polynomial& p) { return is_constant(p); });
+    erase(it, end());
+    reduce();
   }
-  auto it = std::remove_if(
-      begin(), end(), [](const Polynomial& p) { return is_constant(p); });
-  erase(it, end());
-  reduce();
 }
+
 void PolyVector::pushDownPolys(PolyVector& down, poly::Variable var)
 {
   auto it =

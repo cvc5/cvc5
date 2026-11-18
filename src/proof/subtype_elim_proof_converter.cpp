@@ -487,7 +487,16 @@ Node SubtypeElimConverterCallback::convert(Node res,
       std::shared_ptr<ProofNode> pfn = tcpg.getProofForRewriting(newRes);
       Node resr = pfn->getResult();
       Assert(resr.getKind() == Kind::EQUAL);
-      if (resr[1] == resc)
+      // A matching subterm may also occur at positions that do not change,
+      // e.g. (f (to_real 0) (to_real 0)) becomes (f (to_real 0) 0.0).
+      // The conversion rewrites all occurrences, so convert both sides and
+      // connect them through their common result.
+      std::shared_ptr<ProofNode> pfc;
+      if (resr[1] != resc)
+      {
+        pfc = tcpg.getProofForRewriting(resc);
+      }
+      if (pfc == nullptr || resr[1] == pfc->getResult()[1])
       {
         // if successful we have
         // P
@@ -499,8 +508,19 @@ Node SubtypeElimConverterCallback::convert(Node res,
         // Q is what is proven by the original rule and P, and R is the original
         // conclusion after subtype elimination.
         cdp->addProof(pfn);
+        if (pfc != nullptr)
+        {
+          cdp->addProof(pfc);
+          Node rescr = pfc->getResult();
+          Node rescrs = rescr[1].eqNode(resc);
+          cdp->addStep(rescrs, ProofRule::SYMM, {rescr}, {});
+          Node equiv = newRes.eqNode(resc);
+          cdp->addStep(equiv, ProofRule::TRANS, {resr, rescrs}, {});
+          resr = equiv;
+        }
         cdp->addStep(resc, ProofRule::EQ_RESOLVE, {newRes, resr}, {});
         cdp->addStep(newRes, id, children, cargs);
+        success = true;
       }
     }
     break;

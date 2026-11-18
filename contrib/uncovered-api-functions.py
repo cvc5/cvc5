@@ -34,6 +34,12 @@ def get_uncovered(data, file_patterns):
         if all([re.search(f, file) == None for f in file_patterns]):
             continue
         for function, funcdata in fdata['']['functions'].items():
+            # Skip deleting destructors (Itanium ABI: D0). They are only called
+            # by delete through a pointer to a polymorphic class, which is not
+            # how exceptions are destroyed, and only call the complete object
+            # destructor (which is checked) and free the memory.
+            if function.endswith('D0Ev'):
+                continue
             if funcdata['execution_count'] == 0:
                 notcovered.append({
                     'filename': file,
