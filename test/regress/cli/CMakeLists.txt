@@ -1948,6 +1948,7 @@ set(regress_0_tests
   regress0/quantifiers/issue12252-var-elim-shadow.smt2
   regress0/quantifiers/issue12252-var-elim-shadow-min.smt2
   regress0/quantifiers/issue13111-debug-check-models.smt2
+  regress0/quantifiers/issue13161-mbqi-seq-empty.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
