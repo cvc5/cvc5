@@ -207,6 +207,11 @@ class BasicRewriteRCons : protected EnvObj
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ.
    *
+   * The variable x is eliminated by introducing a guard (not (= x t)), where
+   * t is a term that falsifies all literals containing x, and then applying
+   * ProofRewriteRule::QUANT_VAR_ELIM_EQ. The proof does not introduce
+   * assumptions, since the quantified formula may contain free variables.
+   *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by
    * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ.
