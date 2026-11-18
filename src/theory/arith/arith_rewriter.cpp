@@ -863,9 +863,9 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
       {
         // As below, we normalize the arguments of division to be real, e.g.
         // (/ x 0) ---> (/ (to_real x) 0.0) for integer x.
-        Node ret = nm->mkNode(t.getKind(),
-                              rewriter::ensureReal(t[0]),
-                              rewriter::ensureReal(t[1]));
+        Node ret = nm->mkNode(
+            t.getKind(),
+            {rewriter::ensureReal(t[0]), rewriter::ensureReal(t[1])});
         if (ret != t)
         {
           // requires again full since ensureReal may have added a to_real
