@@ -385,44 +385,64 @@ Node OperatorElim::eliminateOperators(NodeManager* nm,
         Node pi = mkPi(nm);
 
         // range of the skolem
-        Node rlem;
+        //   arcsine:      -pi/2 <= var <= pi/2
+        //   arctangent:   -pi/2 <  var <  pi/2
+        //   arccosecant:  -pi/2 <= var <= pi/2, var != 0
+        //   arccosine:        0 <= var <= pi
+        //   arccotangent:     0 <  var <  pi
+        //   arcsecant:        0 <= var <= pi, var != pi/2
+        // Note the endpoints are included for arcsine, arccosine, arccosecant
+        // and arcsecant since e.g. arcsin(-1) = -pi/2 and arcsec(-1) = pi.
+        // The excluded points are those where the function whose inverse we
+        // are computing is undefined, e.g. tan(pi/2) or csc(0).
+        Node zero = nm->mkConstReal(Rational(0));
+        Node half = nm->mkConstReal(Rational(1) / Rational(2));
+        Node pi2 = nm->mkNode(Kind::MULT, half, pi);
+        Node lb;
+        Node ub;
+        Node excl;
         if (k == Kind::ARCSINE || k == Kind::ARCTANGENT
             || k == Kind::ARCCOSECANT)
         {
-          Node half = nm->mkConstReal(Rational(1) / Rational(2));
-          Node pi2 = nm->mkNode(Kind::MULT, half, pi);
-          Node npi2 =
-              nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi2);
-          // -pi/2 <= var <= pi/2 for arcsine, since arcsin(-1) = -pi/2,
-          // and -pi/2 < var <= pi/2 otherwise.
-          rlem = nm->mkNode(
-              Kind::AND,
-              {nm->mkNode(k == Kind::ARCSINE ? Kind::LEQ : Kind::LT, npi2, var),
-               nm->mkNode(Kind::LEQ, var, pi2)});
+          lb = nm->mkNode(Kind::MULT, nm->mkConstReal(Rational(-1)), pi2);
+          ub = pi2;
+          excl = zero;
         }
         else
         {
-          // 0 <= var <= pi for arccosine, since arccos(-1) = pi, and
-          // 0 <= var < pi otherwise.
-          rlem = nm->mkNode(
-              Kind::AND,
-              {nm->mkNode(Kind::LEQ, nm->mkConstReal(Rational(0)), var),
-               nm->mkNode(
-                   k == Kind::ARCCOSINE ? Kind::LEQ : Kind::LT, var, pi)});
+          lb = zero;
+          ub = pi;
+          excl = pi2;
         }
-        Node cond;
-        if (k == Kind::ARCSINE || k == Kind::ARCCOSINE || k == Kind::ARCSECANT
-            || k == Kind::ARCCOSECANT)
+        Kind bk = (k == Kind::ARCTANGENT || k == Kind::ARCCOTANGENT)
+                      ? Kind::LT
+                      : Kind::LEQ;
+        std::vector<Node> rconj;
+        rconj.push_back(nm->mkNode(bk, lb, var));
+        rconj.push_back(nm->mkNode(bk, var, ub));
+        if (k == Kind::ARCCOSECANT || k == Kind::ARCSECANT)
         {
-          // -1 <= x <= 1
-          cond = nm->mkNode(
-              Kind::AND,
-              {nm->mkNode(Kind::GEQ, node[0], nm->mkConstReal(Rational(-1))),
-               nm->mkNode(Kind::LEQ, node[0], nm->mkConstReal(Rational(1)))});
-          if (k == Kind::ARCSECANT || k == Kind::ARCCOSECANT)
-          {
-            cond = cond.notNode();
-          }
+          rconj.push_back(var.eqNode(excl).notNode());
+        }
+        Node rlem = nm->mkNode(Kind::AND, rconj);
+        // domain of the function
+        //   arcsine, arccosine:      -1 <= x <= 1
+        //   arcsecant, arccosecant:  x <= -1 or x >= 1
+        //   otherwise:               all reals
+        Node cond;
+        Node one = nm->mkConstReal(Rational(1));
+        Node negOne = nm->mkConstReal(Rational(-1));
+        if (k == Kind::ARCSINE || k == Kind::ARCCOSINE)
+        {
+          cond = nm->mkNode(Kind::AND,
+                            {nm->mkNode(Kind::GEQ, node[0], negOne),
+                             nm->mkNode(Kind::LEQ, node[0], one)});
+        }
+        else if (k == Kind::ARCSECANT || k == Kind::ARCCOSECANT)
+        {
+          cond = nm->mkNode(Kind::OR,
+                            {nm->mkNode(Kind::LEQ, node[0], negOne),
+                             nm->mkNode(Kind::GEQ, node[0], one)});
         }
 
         Kind rk;
