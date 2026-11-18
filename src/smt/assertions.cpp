@@ -26,6 +26,7 @@
 #include "proof/lazy_proof.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/env.h"
+#include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/trust_substitutions.h"
 #include "util/result.h"
@@ -36,12 +37,57 @@ using namespace cvc5::internal::kind;
 namespace cvc5::internal {
 namespace smt {
 
+namespace {
+
+/**
+ * Applies beta-reduction to all subterms, where bound variables in the body
+ * of a lambda are renamed beforehand if necessary to avoid shadowing and
+ * variable capture. For example, beta reducing
+ *   (_ (lambda y. exists x. (distinct x y)) x)
+ * with a plain substitution would capture x, whereas this converter first
+ * renames the bound variable x in the body of the lambda.
+ */
+class CaptureAvoidingBetaReduceConverter : public BetaReduceNodeConverter
+{
+ public:
+  CaptureAvoidingBetaReduceConverter(NodeManager* nm, Rewriter* rr)
+      : BetaReduceNodeConverter(nm), d_rr(rr)
+  {
+  }
+  Node postConvert(Node n) override
+  {
+    if (n.getKind() == Kind::APPLY_UF
+        && n.getOperator().getKind() == Kind::LAMBDA)
+    {
+      // Apply the same renaming as the rewriter does prior to beta reduction.
+      // This may apply more than once, e.g. first to eliminate shadowing of
+      // the variables of the lambda, then to avoid capturing the free
+      // variables of the arguments.
+      Node nes;
+      while (!(nes = d_rr->rewriteViaRule(
+                   ProofRewriteRule::MACRO_LAMBDA_CAPTURE_AVOID, n))
+                  .isNull())
+      {
+        n = nes;
+      }
+    }
+    return BetaReduceNodeConverter::postConvert(n);
+  }
+
+ private:
+  /** The rewriter, used for renaming bound variables */
+  Rewriter* d_rr;
+};
+
+}  // namespace
+
 Assertions::Assertions(Env& env)
     : EnvObj(env),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
       d_macroDefs(userContext()),
       d_inputForm(userContext()),
+      d_inputAssertionList(userContext()),
       d_globalDefineFunLemmasIndex(userContext(), 0)
 {
 }
@@ -108,6 +154,12 @@ Node Assertions::getInputForm(const Node& n) const
   return n;
 }
 
+const context::CDList<Node>& Assertions::getInputAssertionList() const
+{
+  return options().proof.proofDefineFunMacros ? d_inputAssertionList
+                                              : d_assertionList;
+}
+
 std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
 {
   std::unordered_set<Node> defSet;
@@ -139,6 +191,8 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
     // Expand the applications of the definitions we have processed so far.
     // Note this applies to the bodies of definitions as well.
     nn = applyDefinitions(n);
+    // Remember the input form of all assertions, including definitions.
+    d_inputAssertionList.push_back(n);
     if (isFunDef && addMacroDefinition(nn))
     {
       // The definition was processed as a macro, in which case it is not an
@@ -320,8 +374,10 @@ Node Assertions::applyDefinitions(TNode n)
   {
     // Eliminate beta redexes introduced by expanding applications of defined
     // functions. Note we do not rewrite here, since the expanded assertion
-    // should remain as close as possible to the input assertion.
-    BetaReduceNodeConverter brc(nodeManager());
+    // should remain as close as possible to the input assertion. Bound
+    // variables are only renamed when necessary to avoid shadowing or
+    // variable capture.
+    CaptureAvoidingBetaReduceConverter brc(nodeManager(), d_env.getRewriter());
     ns = brc.convert(ns);
   }
   return ns;

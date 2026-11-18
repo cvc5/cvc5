@@ -387,10 +387,14 @@ class CpcLogosTester(CpcTesterBase):
             # benchmark explicitly requests a granularity below dsl-rewrite.
             # Such coarse proofs may still be rejected by Logos. We cannot
             # pass --check-proofs-complete directly, as it is an expert option.
+            # Logos does not support lambda, hence we treat define-fun as
+            # macros, so that definitions are expanded instead of being printed
+            # as lambdas in the preamble of the proof.
             cvc5_args = [
                 "--dump-proofs",
                 "--proof-print-conclusion",
                 "--check-proofs",
+                "--proof-define-fun-macros",
             ] + benchmark_info.command_line_args
             proof, exit_code = self.gen_proof(benchmark_info, cvc5_args)
             if exit_code != EXIT_OK:
@@ -405,12 +409,6 @@ class CpcLogosTester(CpcTesterBase):
             # line means that a further block follows.
             if b"\n)\n" in b"\n" + proof:
                 print_info("Skipped: benchmark prints more than one block")
-                return EXIT_SKIP
-            # Logos does not support lambda, which cvc5 prints in the
-            # preamble of the proof for benchmarks that use define-fun. Note
-            # that plain definitions are printed as define, which is supported.
-            if b"(lambda " in proof:
-                print_info("Skipped: proof contains a lambda")
                 return EXIT_SKIP
             tmpf.write(proof)
             tmpf.flush()

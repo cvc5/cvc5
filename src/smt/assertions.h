@@ -114,9 +114,19 @@ class Assertions : protected EnvObj
    * Get the input form of assertion n, that is, the form of n prior to
    * expanding the definitions that are treated as macros. Returns n itself if
    * n was not modified. This is used e.g. for reporting unsat cores in terms
-   * of the input.
+   * of the input. Note that if several input assertions expand to n, then
+   * this returns the first one.
    */
   Node getInputForm(const Node& n) const;
+  /**
+   * Get the list of assertions in the form they were given in the input, in
+   * the order they were given, including the definitions. If the option
+   * proofDefineFunMacros is true, this differs from getAssertionList in that
+   * it contains the definitions treated as macros, and the assertions prior
+   * to expanding these definitions. Otherwise, it is the same as
+   * getAssertionList. This is used e.g. for supporting getAssertions().
+   */
+  const context::CDList<Node>& getInputAssertionList() const;
   /** Get the set corresponding to the above */
   std::unordered_set<Node> getCurrentAssertionListDefitions() const;
   /**
@@ -186,6 +196,11 @@ class Assertions : protected EnvObj
    * that were changed by expanding the definitions in d_macroDefs.
    */
   NodeNodeMap d_inputForm;
+  /**
+   * The assertions in their input form, see getInputAssertionList. This list
+   * is only used if proofDefineFunMacros is true.
+   */
+  AssertionList d_inputAssertionList;
   /**
    * List of lemmas generated for global (recursive) function definitions. We
    * assert this list of definitions in each check-sat call.

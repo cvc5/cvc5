@@ -447,6 +447,18 @@ void PfManager::translateDifficultyMap(std::map<Node, Node>& dmap,
   }
   // get the accumulated difficulty map from the callback
   dpc.getDifficultyMap(nodeManager(), dmap);
+  // The keys of the difficulty map are free assumptions of the proof, which
+  // are in expanded form if definitions are treated as macros. We map them
+  // back to their input form.
+  if (options().proof.proofDefineFunMacros)
+  {
+    std::map<Node, Node> dmapi;
+    for (const std::pair<const Node, Node>& d : dmap)
+    {
+      dmapi[as.getInputForm(d.first)] = d.second;
+    }
+    dmap = std::move(dmapi);
+  }
   Trace("difficulty-proc") << "Translate difficulty end" << std::endl;
 }
 

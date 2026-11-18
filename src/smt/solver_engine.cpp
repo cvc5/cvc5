@@ -1562,14 +1562,13 @@ std::vector<Node> SolverEngine::getAssertionsInternal() const
   Assert(d_state->isFullyInited());
   // ensure that global declarations are processed
   d_smtSolver->getAssertions().refresh();
-  const Assertions& as = d_smtSolver->getAssertions();
-  const CDList<Node>& al = as.getAssertionList();
+  // Return the input form of the assertions, which includes the definitions
+  // that are treated as macros, if any.
+  const CDList<Node>& al = d_smtSolver->getAssertions().getInputAssertionList();
   std::vector<Node> res;
   for (const Node& n : al)
   {
-    // return the input form of the assertion, which is n itself unless
-    // definitions were expanded in it
-    res.emplace_back(as.getInputForm(n));
+    res.emplace_back(n);
   }
   return res;
 }
@@ -1643,11 +1642,22 @@ void SolverEngine::printProof(std::ostream& out,
     case modes::ProofFormat::CPC: mode = options::ProofFormatMode::CPC; break;
   }
 
-  d_pfManager->printProof(out,
-                          fp,
-                          mode,
-                          ProofScopeMode::DEFINITIONS_AND_ASSERTIONS,
-                          assertionNames);
+  // The names of assertions are given for their input form. If definitions
+  // were expanded in an assertion, then the assumptions of the proof are its
+  // expanded form, which we map to the name of its input form.
+  std::map<Node, std::string> anames = assertionNames;
+  const Assertions& as = d_smtSolver->getAssertions();
+  for (const Node& a : as.getAssertionList())
+  {
+    std::map<Node, std::string>::const_iterator it =
+        assertionNames.find(as.getInputForm(a));
+    if (it != assertionNames.end())
+    {
+      anames.emplace(a, it->second);
+    }
+  }
+  d_pfManager->printProof(
+      out, fp, mode, ProofScopeMode::DEFINITIONS_AND_ASSERTIONS, anames);
   out << ")" << std::endl;
 }
 
