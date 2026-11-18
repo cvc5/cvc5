@@ -1,4 +1,4 @@
-; COMMAND-LINE: --proof-define-fun-macros --sat-solver=minisat
+; COMMAND-LINE: --sat-solver=minisat
 ; EXPECT: unsat
 ; Variant of issue9770-open-sat-proof.smt2 where define-fun are treated as
 ; macros in proofs, i.e. inv_main86 and inv_main92 are eagerly expanded in the
