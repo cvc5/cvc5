@@ -16,4 +16,9 @@ namespace cvc5::internal {
 const std::string OptionException::s_errPrefix = "Error in option parsing: ";
 const std::string FatalOptionException::s_errPrefix =
     "Fatal error in option parsing: ";
+
+// Defined here so that they are the key functions of the exceptions (see
+// ~CVC5ApiException() in the API).
+OptionException::~OptionException() = default;
+FatalOptionException::~FatalOptionException() = default;
 }  // namespace cvc5::internal

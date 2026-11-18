@@ -92,6 +92,23 @@
 namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
+/* Exceptions                                                                 */
+/* -------------------------------------------------------------------------- */
+
+// The destructors are defined here (and not in the header) so that they are
+// the key functions of the exception classes. The type info of the exceptions
+// is then emitted only in libcvc5, and programs that catch them refer to it
+// there. Otherwise, each program has its own copy, and with link-time
+// optimization, the copy in a program can be made local to it, so that
+// catching an exception thrown by libcvc5 fails on platforms that compare type
+// info by address (e.g., x86-64 macOS).
+
+CVC5ApiException::~CVC5ApiException() = default;
+CVC5ApiRecoverableException::~CVC5ApiRecoverableException() = default;
+CVC5ApiUnsupportedException::~CVC5ApiUnsupportedException() = default;
+CVC5ApiOptionException::~CVC5ApiOptionException() = default;
+
+/* -------------------------------------------------------------------------- */
 /* APIStatistics                                                              */
 /* -------------------------------------------------------------------------- */
 

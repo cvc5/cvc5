@@ -32,6 +32,7 @@ class CVC5_EXPORT OptionException : public cvc5::internal::Exception
       : cvc5::internal::Exception(s_errPrefix + s)
   {
   }
+  ~OptionException() override;
 
   /**
    * Get the error message without the prefix that is automatically added for
@@ -74,6 +75,7 @@ class CVC5_EXPORT FatalOptionException : public cvc5::internal::Exception
       : cvc5::internal::Exception(s_errPrefix + s)
   {
   }
+  ~FatalOptionException() override;
 
   /**
    * Get the error message without the prefix that is automatically added for
