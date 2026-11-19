@@ -861,7 +861,16 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
       }
       else
       {
-        Node ret = nm->mkNode(t.getKind(), left, right);
+        // As below, we normalize the arguments of division to be real, e.g.
+        // (/ x 0) ---> (/ (to_real x) 0.0) for integer x.
+        Node ret = nm->mkNode(
+            t.getKind(),
+            {rewriter::ensureReal(t[0]), rewriter::ensureReal(t[1])});
+        if (ret != t)
+        {
+          // requires again full since ensureReal may have added a to_real
+          return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+        }
         return RewriteResponse(REWRITE_DONE, ret);
       }
     }
@@ -917,13 +926,12 @@ RewriteResponse ArithRewriter::rewriteDiv(TNode t, bool pre)
     // requires again full since ensureReal may have added a to_real
     return RewriteResponse(REWRITE_AGAIN_FULL, mult);
   }
-  // We also convert integral rationals in the numerator to integers,
-  // e.g. (/ 1 x) ---> (/ 1.0 x).
-  if (left.getKind() == Kind::CONST_INTEGER)
-  {
-    left = nm->mkConstReal(left.getConst<Rational>());
-  }
-  // may have changed due to removing to_real
+  // Otherwise, we normalize the arguments of division to be real, e.g.
+  // (/ x y) ---> (/ (to_real x) (to_real y)) for integers x and y, and
+  // (/ 1 y) ---> (/ 1.0 (to_real y)).
+  left = rewriter::ensureReal(t[0]);
+  right = rewriter::ensureReal(t[1]);
+  // may have changed due to adding to_real
   if (left != t[0] || right != t[1])
   {
     Node ret = nm->mkNode(t.getKind(), left, right);

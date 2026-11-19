@@ -1389,8 +1389,10 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   }
   else
   {
-    exp = getLabel(n);
-    tt = exp[0];
+    Node lbl = getLabel(n);
+    tt = lbl[0];
+    // Tuples do not use testers, see ProofRewriteRule::DT_INST.
+    exp = tt.getType().isTuple() ? d_true : lbl;
   }
   TypeNode ttn = tt.getType();
   const DType& dt = ttn.getDType();

@@ -92,6 +92,23 @@
 namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
+/* Exceptions                                                                 */
+/* -------------------------------------------------------------------------- */
+
+// The destructors are defined here (and not in the header) so that they are
+// the key functions of the exception classes. The type info of the exceptions
+// is then emitted only in libcvc5, and programs that catch them refer to it
+// there. Otherwise, each program has its own copy, and with link-time
+// optimization, the copy in a program can be made local to it, so that
+// catching an exception thrown by libcvc5 fails on platforms that compare type
+// info by address (e.g., x86-64 macOS).
+
+CVC5ApiException::~CVC5ApiException() = default;
+CVC5ApiRecoverableException::~CVC5ApiRecoverableException() = default;
+CVC5ApiUnsupportedException::~CVC5ApiUnsupportedException() = default;
+CVC5ApiOptionException::~CVC5ApiOptionException() = default;
+
+/* -------------------------------------------------------------------------- */
 /* APIStatistics                                                              */
 /* -------------------------------------------------------------------------- */
 
@@ -6179,11 +6196,6 @@ Op TermManager::mkOp(Kind kind, const std::string& arg)
   CVC5_API_KIND_CHECK_EXPECTED((kind == Kind::DIVISIBLE), kind) << "DIVISIBLE";
   //////// all checks before this line
   Op res;
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
-      << "a string representing an integer, real or rational value.";
   res = mkOpHelper(kind, internal::Divisible(internal::Integer(arg)));
   return res;
   ////////
@@ -6259,11 +6271,6 @@ Term TermManager::mkInteger(int64_t val)
 Term TermManager::mkReal(const std::string& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC5_API_ARG_CHECK_EXPECTED(s != ".", s)
-      << "a string representing a real or rational value.";
   //////// all checks before this line
   return mkRealOrIntegerFromStrHelper(s, false);
   ////////

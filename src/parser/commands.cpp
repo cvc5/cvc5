@@ -905,6 +905,10 @@ DeclarationDefinitionCommand::DeclarationDefinitionCommand(
 {
 }
 
+// Defined here so that it is the key function of this abstract class, whose
+// type info is then emitted only in libcvc5parser (see ~CVC5ApiException()).
+DeclarationDefinitionCommand::~DeclarationDefinitionCommand() = default;
+
 std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 
 bool tryBindToTerm(SymManager* sm,
