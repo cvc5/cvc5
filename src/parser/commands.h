@@ -248,6 +248,7 @@ class CVC5_EXPORT DeclarationDefinitionCommand : public Cmd
 
  public:
   DeclarationDefinitionCommand(const std::string& id);
+  ~DeclarationDefinitionCommand() override;
 
   void invoke(cvc5::Solver* solver, parser::SymManager* sm) override = 0;
   std::string getSymbol() const;

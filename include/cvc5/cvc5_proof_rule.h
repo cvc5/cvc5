@@ -3390,6 +3390,15 @@ enum ENUM(ProofRewriteRule)
    * where :math:`C` is the :math:`n^{\mathit{th}}` constructor of the type of
    * :math:`t`, and :math:`\mathit{is}_C` is the discriminator (tester) for
    * :math:`C`.
+   *
+   * If :math:`t` is a tuple, this rule instead has the form
+   *
+   * .. math::
+   *
+   *    true = (t = \mathit{tuple}(\mathit{sel}_1(t),\dots,\mathit{sel}_n(t)))
+   *
+   * Since tuples have a single constructor, their tester is trivially true.
+   * cvc5 does not use tuple testers in terms or proofs.
    * \endverbatim
    */
   EVALUE(DT_INST),
@@ -3531,6 +3540,10 @@ enum ENUM(ProofRewriteRule)
    *   u_{c,i}(t, s) = ite(\mathit{is}_c(t), c(s_0(t), \ldots, s, \ldots s_n(t)), t)
    *
    * where :math:`s_i` is the :math:`i^{th}` selector for constructor :math:`c`.
+   *
+   * If :math:`t` is a tuple, the right hand side is instead
+   * :math:`c(s_0(t), \ldots, s, \ldots s_n(t))`, since cvc5 does not use
+   * tuple testers, see :cpp:enumerator:`DT_INST <cvc5::ProofRewriteRule::DT_INST>`.
    *
    * \endverbatim
    */
@@ -4711,6 +4724,10 @@ enum ENUM(ProofRewriteRule)
   EVALUE(SETS_CHOOSE_SINGLETON),
   /** Auto-generated from RARE rule sets-minus-self */
   EVALUE(SETS_MINUS_SELF),
+  /** Auto-generated from RARE rule sets-union-self */
+  EVALUE(SETS_UNION_SELF),
+  /** Auto-generated from RARE rule sets-inter-self */
+  EVALUE(SETS_INTER_SELF),
   /** Auto-generated from RARE rule sets-is-empty-elim */
   EVALUE(SETS_IS_EMPTY_ELIM),
   /** Auto-generated from RARE rule sets-is-singleton-elim */

@@ -926,6 +926,9 @@ set(regress_0_tests
   regress0/ff/bigff_is_zero_sound.smt2
   regress0/ff/bigff_is_zero_unsound.smt2
   regress0/ff/bitsum_eval.smt2
+  regress0/ff/bitsum_wrap_const_f2.smt2
+  regress0/ff/bitsum_wrap_const_f7.smt2
+  regress0/ff/bitsum_wrap_pair_f5.smt2
   regress0/ff/bitsum_overflow.smt2
   regress0/ff/bool_nary_or_sound.smt2
   regress0/ff/bool_nary_or_unsound.smt2
@@ -1066,6 +1069,8 @@ set(regress_0_tests
   regress0/fp/issue12370-from-real-refine.smt2
   regress0/fp/issue12780-from-real-refine.smt2
   regress0/fp/issue12867-min-max-zero.smt2
+  regress0/fp/issue13133-1.smt2
+  regress0/fp/issue13133-2.smt2
   regress0/fp/issuepr650.smt2
   regress0/fp/proj-issue228-fp-inf-53-11.smt2
   regress0/fp/proj-issue328-array-rm-getvalue.smt2
@@ -1547,6 +1552,8 @@ set(regress_0_tests
   regress0/parser/strings25.smt2
   regress0/parser/term-sort-overload.smt2
   regress0/parser/to_fp.smt2
+  regress0/parser/tuple-tester.smt2
+  regress0/parser/tuple-tester-unit.smt2
   regress0/parser/use-name-in-same-command.smt2
   regress0/parser/use-name-in-same-command-minimal.smt2
   regress0/parser/version2.7.smt2
@@ -1648,9 +1655,13 @@ set(regress_0_tests
   regress0/proofs/alpha-eq-bv-reorder-2.smt2
   regress0/proofs/annotate-theory-lemmas-pp-merge.smt2
   regress0/proofs/arith-dio-lemma-diseq-tighten.smt2
+  regress0/proofs/arith-div-const-to-real.smt2
   regress0/proofs/arith-div-int-to-real.smt2
   regress0/proofs/arith-div-total-int-to-real.smt2
   regress0/proofs/arith-div-total-over-mod.smt2
+  regress0/proofs/arith-int-eq-coeff-false.smt2
+  regress0/proofs/arith-int-geq-tighten-coeff.smt2
+  regress0/proofs/arith-int-geq-tighten-mixed.smt2
   regress0/proofs/arith-is-int-elim-to-real.smt2
   regress0/proofs/arith-poly-norm-rel-mixed.smt2
   regress0/proofs/arith-pp-assert-solved-eq.smt2
@@ -1696,8 +1707,10 @@ set(regress_0_tests
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
   regress0/proofs/dt-block-nested-ref.smt2
+  regress0/proofs/dt-collapse-updater.smt2
   regress0/proofs/dt-cons-eq-clash-qfdt.smt2
   regress0/proofs/dt-cons-eq-clash-ufdt.smt2
+  regress0/proofs/dt-inst-tuple-no-tester.smt2
   regress0/proofs/dt-label-exh-cyclic-eq.smt2
   regress0/proofs/equal-eval-rw_340.smt2
   regress0/proofs/eval-rhs.smt2
@@ -1742,6 +1755,7 @@ set(regress_0_tests
   regress0/proofs/issue9516-alethe-skolems-undef-in-proof.smt2
   regress0/proofs/issue9531-alethe-resolution.smt2
   regress0/proofs/issue9669-clause-level-opt-incremental.smt2
+  regress0/proofs/issue9770-inlined-open-sat-proof.smt2
   regress0/proofs/issue9770-open-sat-proof.smt2
   regress0/proofs/issue9927.smt2
   regress0/proofs/issue12240-cyclic-proof.smt2
@@ -1944,6 +1958,7 @@ set(regress_0_tests
   regress0/quantifiers/issue12252-var-elim-shadow.smt2
   regress0/quantifiers/issue12252-var-elim-shadow-min.smt2
   regress0/quantifiers/issue13111-debug-check-models.smt2
+  regress0/quantifiers/issue13161-mbqi-seq-empty.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -1977,6 +1992,7 @@ set(regress_0_tests
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
   regress0/quantifiers/matching-lia-1arg.smt2
+  regress0/quantifiers/mbqi-const-array.smt2
   regress0/quantifiers/mbqi-simple.smt2
   regress0/quantifiers/merge-shadow.smt2
   regress0/quantifiers/miniscope-ite.smt2
@@ -2287,6 +2303,7 @@ set(regress_0_tests
   regress0/sets/sets-equal.smt2
   regress0/sets/sets-extr.smt2
   regress0/sets/sets-inter.smt2
+  regress0/sets/sets-inter-self-rw.smt2
   regress0/sets/sets-ising-elim-pf.smt2
   regress0/sets/sets-new.smt2
   regress0/sets/sets-of-sets-subtypes.smt2
@@ -2298,6 +2315,7 @@ set(regress_0_tests
   regress0/sets/sets-testlemma-reals.smt2
   regress0/sets/sets-testlemma.smt2
   regress0/sets/sets-union.smt2
+  regress0/sets/sets-union-self-rw.smt2
   regress0/sets/sharing-simp.smt2
   regress0/sets/union-1a-flip.smt2
   regress0/sets/union-1a.smt2
@@ -2985,6 +3003,7 @@ set(regress_1_tests
   regress1/bags/choose2.smt2
   regress1/bags/choose3.smt2
   regress1/bags/choose4.smt2
+  regress1/bags/constant_function_evaluation.smt2
   regress1/bags/ctor_previous_sat.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
@@ -3019,6 +3038,7 @@ set(regress_1_tests
   regress1/bags/map2.smt2
   regress1/bags/map3.smt2
   regress1/bags/map4.smt2
+  regress1/bags/map_ground_ite_incremental.smt2
   regress1/bags/bag_map_congruence.smt2
   regress1/bags/map-lazy-lam.smt2
   regress1/bags/murxla1.smt2
@@ -3282,6 +3302,7 @@ set(regress_1_tests
   regress1/nl/combine.smt2
   regress1/nl/cos-bound.smt2
   regress1/nl/cos1-tc.smt2
+  regress1/nl/cov-coprime-basis.smt2
   regress1/nl/disj-eval.smt2
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
