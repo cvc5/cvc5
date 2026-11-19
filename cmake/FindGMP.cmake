@@ -137,7 +137,7 @@ if(NOT GMP_FOUND_SYSTEM)
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
+    URL https://raw.githubusercontent.com/cvc5/cvc5-deps/main/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
     BUILD_IN_SOURCE ON
     CONFIGURE_COMMAND
