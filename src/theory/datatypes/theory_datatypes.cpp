@@ -1391,10 +1391,7 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   {
     Node lbl = getLabel(n);
     tt = lbl[0];
-    // Tuples have a single constructor, hence their tester is trivially true.
-    // We use true as the explanation in this case, so that the tester does not
-    // appear in the proof of the inference below. Accordingly, the DT_INST
-    // proof rule that justifies it takes true as its premise for tuples.
+    // Tuples do not use testers, see ProofRewriteRule::DT_INST.
     exp = tt.getType().isTuple() ? d_true : lbl;
   }
   TypeNode ttn = tt.getType();

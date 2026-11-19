@@ -121,16 +121,8 @@ void InferProofCons::convert(InferenceId infer,
       Node tst;
       if (expv.empty())
       {
-        // Tuples have a single constructor, hence their tester is trivially
-        // true and is not used as the explanation of this rule, see
-        // TheoryDatatypes::instantiate. The premise of DT_INST is the constant
-        // true in this case:
-        //   ------------------------------ DT_INST
-        //   (= true (= x (tuple ...)))
-        //   ------------------------------ SYMM
-        //   (= (= x (tuple ...)) true)
-        //   ------------------------------ TRUE_ELIM
-        //   (= x (tuple ...))
+        // Tuples have no explanation (see TheoryDatatypes::instantiate). We
+        // use the tuple form of DT_INST, followed by SYMM and TRUE_ELIM.
         Node truen = nm->mkConst(true);
         Node concr = d_env.getRewriter()->rewriteViaRule(
             ProofRewriteRule::DT_INST, conc);
@@ -159,9 +151,8 @@ void InferProofCons::convert(InferenceId infer,
             success = true;
           }
         }
-        // Otherwise, this is the instantiation of a tuple that DT_INST does
-        // not apply to, which is the case when using shared selectors. We fall
-        // back to a trusted step below, as we do for the tester case.
+        // Otherwise (e.g. tuples with shared selectors), we use a trusted
+        // step below.
       }
       else if (expv.size() == 1)
       {

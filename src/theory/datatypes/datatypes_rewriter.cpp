@@ -68,14 +68,8 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
     {
       if (n.getKind() == Kind::EQUAL)
       {
-        // Tuples have a single constructor, hence their tester is trivially
-        // true. We do not use a tester for tuples, so that (is tuple t) does
-        // not appear in proofs. Instead, this rule proves that the
-        // instantiation of a tuple term holds, i.e. it rewrites to true. Note
-        // that this conclusion is used in its symmetric form
-        //   (= true (= t (tuple ...)))
-        // so that its left hand side is the (trivially true) premise of the
-        // rule, mirroring the tester in the case below.
+        // The tuple form of this rule, which concludes
+        // (= true (= t (tuple ...))), see ProofRewriteRule::DT_INST.
         TypeNode tn = n[0].getType();
         if (!tn.isTuple())
         {
@@ -97,7 +91,7 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Assert(tn.isDatatype());
       if (tn.isTuple())
       {
-        // As above, we never apply this rule to a tuple tester.
+        // Tuples use the form above.
         return Node::null();
       }
       const DType& dt = tn.getDType();
@@ -1187,11 +1181,7 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
     }
   }
   ret = b;
-  // Tuples have a single constructor, so the tester would be trivially true
-  // and the ITE would immediately rewrite away. We do not introduce it at all,
-  // so that (is tuple t) never appears in a term or a proof. The Eunoia rule
-  // dt-updater-elim expects the bare updated tuple as the right hand side in
-  // this case.
+  // Tuples do not use testers, see ProofRewriteRule::DT_UPDATER_ELIM.
   if (tn.isTuple())
   {
     return ret;
