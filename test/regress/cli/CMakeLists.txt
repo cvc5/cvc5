@@ -2525,6 +2525,7 @@ set(regress_0_tests
   regress0/strings/re-inclusion-am-pf.smt2
   regress0/strings/re-inter-all.smt2
   regress0/strings/re-inter-inclusion-flat.smt2
+  regress0/strings/re-inter-inclusion-range.smt2
   regress0/strings/re-inter-inclusion-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
@@ -2534,6 +2535,10 @@ set(regress_0_tests
   regress0/strings/re-range-non-singleton.smt2
   regress0/strings/re-str-inference-missing.smt2
   regress0/strings/re-syntax.smt2
+  regress0/strings/re-union-inclusion-allchar.smt2
+  regress0/strings/re-union-inclusion-range.smt2
+  regress0/strings/re-union-inclusion-range-suffix.smt2
+  regress0/strings/re-union-inclusion-subrange.smt2
   regress0/strings/re.all.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/regexp_inclusion.smt2
