@@ -97,11 +97,9 @@ void PrintBenchmark::printDeclarationsFrom(std::ostream& outDecl,
         datatypeBlock.push_back(ctn);
       }
     }
-    // Datatypes connected to st need not be mutually recursive, which is the
-    // case only if they are reachable from one another. We print each set of
-    // mutually recursive datatypes as its own block, where a datatype reaches
-    // strictly fewer types than the ones that depend on it, hence sorting by
-    // this number ensures that dependencies are printed first.
+    // Print each set of mutually recursive datatypes (those reachable from one
+    // another) as its own block. Sorting by the number of reachable types
+    // ensures dependencies are printed first.
     std::unordered_map<TypeNode, std::unordered_set<TypeNode>> reach;
     for (const TypeNode& dt : datatypeBlock)
     {
