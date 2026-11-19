@@ -107,7 +107,7 @@ if(NOT MPFR_FOUND_SYSTEM)
   ExternalProject_Add(
     MPFR-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/cvc5/cvc5-deps/blob/main/mpfr-${MPFR_VERSION}.tar.xz?raw=true
+    URL https://raw.githubusercontent.com/cvc5/cvc5-deps/main/mpfr-${MPFR_VERSION}.tar.xz
     URL_HASH SHA256=b67ba0383ef7e8a8563734e2e889ef5ec3c3b898a01d00fa0a6869ad81c6ce01
     BUILD_IN_SOURCE ON
     CONFIGURE_COMMAND
