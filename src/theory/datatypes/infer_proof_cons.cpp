@@ -121,19 +121,38 @@ void InferProofCons::convert(InferenceId infer,
       Node tst;
       if (expv.empty())
       {
-        // In rare cases, this rule is applied to a constructor without an
-        // explanation and introduces purification variables. In this case, it
-        // can be shown by MACRO_SR_PRED_INTRO. An example of this would be:
-        //   C(a) = C(s(@purify(C(a))))
-        // which requires converting to original form and rewriting.
-        ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
-        Node concc =
-            pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, {}, {conc}, conc);
-        if (concc == conc)
+        // Tuples have no explanation (see TheoryDatatypes::instantiate). We
+        // use the tuple form of DT_INST, followed by SYMM and TRUE_ELIM.
+        Node truen = nm->mkConst(true);
+        Node concr = d_env.getRewriter()->rewriteViaRule(
+            ProofRewriteRule::DT_INST, conc);
+        if (concr == truen)
         {
-          cdp->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {}, {conc});
+          Node eq = truen.eqNode(conc);
+          cdp->addTheoryRewriteStep(eq, ProofRewriteRule::DT_INST);
+          Node eqs = conc.eqNode(truen);
+          cdp->addStep(eqs, ProofRule::SYMM, {eq}, {});
+          cdp->addStep(conc, ProofRule::TRUE_ELIM, {eqs}, {});
           success = true;
         }
+        else if (conc[0].getKind() == Kind::APPLY_CONSTRUCTOR)
+        {
+          // In rare cases, this rule is applied to a constructor without an
+          // explanation and introduces purification variables. In this case, it
+          // can be shown by MACRO_SR_PRED_INTRO. An example of this would be:
+          //   C(a) = C(s(@purify(C(a))))
+          // which requires converting to original form and rewriting.
+          ProofChecker* pc = d_env.getProofNodeManager()->getChecker();
+          Node concc =
+              pc->checkDebug(ProofRule::MACRO_SR_PRED_INTRO, {}, {conc}, conc);
+          if (concc == conc)
+          {
+            cdp->addStep(conc, ProofRule::MACRO_SR_PRED_INTRO, {}, {conc});
+            success = true;
+          }
+        }
+        // Otherwise (e.g. tuples with shared selectors), we use a trusted
+        // step below.
       }
       else if (expv.size() == 1)
       {

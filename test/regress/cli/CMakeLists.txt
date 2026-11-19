@@ -1552,6 +1552,8 @@ set(regress_0_tests
   regress0/parser/strings25.smt2
   regress0/parser/term-sort-overload.smt2
   regress0/parser/to_fp.smt2
+  regress0/parser/tuple-tester.smt2
+  regress0/parser/tuple-tester-unit.smt2
   regress0/parser/use-name-in-same-command.smt2
   regress0/parser/use-name-in-same-command-minimal.smt2
   regress0/parser/version2.7.smt2
@@ -1704,8 +1706,10 @@ set(regress_0_tests
   regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2
   regress0/proofs/dsl-rule-comp-types.smt2
+  regress0/proofs/dt-collapse-updater.smt2
   regress0/proofs/dt-cons-eq-clash-qfdt.smt2
   regress0/proofs/dt-cons-eq-clash-ufdt.smt2
+  regress0/proofs/dt-inst-tuple-no-tester.smt2
   regress0/proofs/dt-label-exh-cyclic-eq.smt2
   regress0/proofs/equal-eval-rw_340.smt2
   regress0/proofs/eval-rhs.smt2
