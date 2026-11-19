@@ -1,0 +1,16 @@
+; REQUIRES: poly
+; EXPECT: sat
+(set-logic QF_NRA)
+(set-info :status sat)
+(declare-const x Real)
+(declare-const y Real)
+(declare-const z Real)
+(assert (< x 7))
+(assert (> (* (- z 1) (* (+ y 55) (+ y (* 0 x) -4) (+ y 21))) 0))
+(assert (> x 1))
+(assert (< (* x x x x x x) 100000000))
+(assert (> y (/ 5 2)))
+(assert (< y (/ 11 2)))
+(assert (> (* (- (* (- z 2) (- z 2)) 1) (* (+ y 55) (+ y (* -1 x) 0) (+ y 38))) 0))
+(assert (< (* (- z 3) (* (+ y 55) (+ y (* 0 x) -4) (+ y 32))) 0))
+(check-sat)

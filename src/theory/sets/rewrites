@@ -71,6 +71,12 @@
 (define-rule sets-minus-self ((x ?Set))
   (set.minus x x)
   (@set.empty_of_type (@type_of x)))
+(define-rule sets-union-self ((x ?Set))
+  (set.union x x)
+  x)
+(define-rule sets-inter-self ((x ?Set))
+  (set.inter x x)
+  x)
 
 (define-rule sets-is-empty-elim ((x ?Set))
   (set.is_empty x)
