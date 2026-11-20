@@ -16,6 +16,7 @@
 #include "expr/algorithm/flatten.h"
 #include "expr/node_algorithm.h"
 #include "options/proof_options.h"
+#include "options/strings_options.h"
 #include "proof/proof_node_algorithm.h"
 #include "rewriter/rewrite_db_term_process.h"
 #include "smt/env.h"
@@ -40,7 +41,7 @@ RewriteDbProofCons::RewriteDbProofCons(Env& env, RewriteDb* db)
       d_iofnc(nodeManager()),
       d_currFold(false),
       d_db(db),
-      d_eval(nullptr),
+      d_eval(nullptr, options().strings.stringsAlphaCard),
       d_currRecLimit(0),
       d_currStepLimit(0),
       d_currFailResource(false),

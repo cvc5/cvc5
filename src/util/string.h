@@ -15,6 +15,8 @@
 #ifndef CVC5__UTIL__STRING_H
 #define CVC5__UTIL__STRING_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -73,7 +75,8 @@ class String
    * where d_0 ... d_4 are hexadecimal digits, to the appropriate character.
    * As specified by SMT-LIB, an escape sequence is only valid if it denotes
    * a code point less than smtlibNumCodes(); otherwise its characters are
-   * taken verbatim.
+   * taken verbatim. See decodeEscapes for a variant of this that permits
+   * larger code points.
    *
    * If useEscSequences is false, then the characters of the constructed
    * cvc5::internal::String correspond one-to-one with the input string.
@@ -246,6 +249,23 @@ class String
    * Corresponds to the maximum size of d_str.
    */
   static size_t maxSize();
+  /**
+   * Convert the string s to a vector of code points, processing unicode escape
+   * sequences as in the constructor String(s, true), but where an escape
+   * sequence is valid if it denotes a code point at most maxCodePoint. If
+   * maxCodePoint has 6 hexadecimal digits, then escape sequences of the form
+   * \u{d_5 d_4 d_3 d_2 d_1 d_0} are additionally permitted.
+   *
+   * This is used by the parser for the option --strings-alpha-card, which may
+   * specify an alphabet larger than the one of SMT-LIB.
+   *
+   * @param s The string to convert.
+   * @param maxCodePoint The maximum code point, which must be at least
+   * smtlibNumCodes()-1 and less than num_codes().
+   * @return The vector of code points.
+   */
+  static std::u32string decodeEscapes(const std::string& s,
+                                      uint32_t maxCodePoint) CVC5_EXPORT;
 
  private:
   /**
@@ -257,10 +277,13 @@ class String
   /**
    * Convert the string s to the internal format (vector of code points).
    * The argument useEscSequences is whether to process unicode escape
-   * sequences.
+   * sequences, where escape sequences denoting code points larger than
+   * maxCodePoint are taken verbatim.
    */
-  static std::vector<unsigned> toInternal(const std::string& s,
-                                          bool useEscSequences);
+  static std::vector<unsigned> toInternal(
+      const std::string& s,
+      bool useEscSequences,
+      uint32_t maxCodePoint = smtlibNumCodes() - 1);
 
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

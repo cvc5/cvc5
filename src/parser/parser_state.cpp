@@ -14,8 +14,6 @@
 
 #include <cvc5/cvc5.h>
 
-#include <algorithm>
-#include <cctype>
 #include <clocale>
 #include <fstream>
 #include <iostream>
@@ -28,6 +26,7 @@
 #include "base/output.h"
 #include "expr/kind.h"
 #include "parser/commands.h"
+#include "util/string.h"
 
 using namespace std;
 
@@ -755,23 +754,14 @@ std::string ParserState::stripQuotes(const std::string& s)
 }
 
 /** The maximum code point of characters in SMT-LIB, which is 3*16^4-1. */
-static constexpr uint32_t s_smtlibMaxCodePoint = 0x2FFFF;
-
-/** The number of hexadecimal digits of n, which is at least 1. */
-static size_t numHexDigits(uint32_t n)
-{
-  size_t ndigits = 1;
-  for (n = n >> 4; n > 0; n = n >> 4)
-  {
-    ndigits++;
-  }
-  return ndigits;
-}
+static constexpr uint32_t s_smtlibMaxCodePoint =
+    internal::String::smtlibNumCodes() - 1;
 
 Term ParserState::mkCharConstant(const std::string& s)
 {
-  // the number of digits permitted
-  size_t maxDigits = std::max<size_t>(5, numHexDigits(getStringsMaxCodePoint()));
+  // the number of digits permitted, which is 6 only if the alphabet is larger
+  // than the one of SMT-LIB and requires it
+  size_t maxDigits = getStringsMaxCodePoint() > 0xFFFFF ? 6 : 5;
   if (!(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
         && s.size() <= maxDigits && s.size() > 0))
   {
@@ -805,86 +795,16 @@ Term ParserState::mkStringLiteral(const std::string& s)
   {
     return d_tm.mkString(s, true);
   }
-  // Otherwise, we process the escape sequences here. This mirrors the
-  // processing of escape sequences in the internal string class, while taking
-  // into account the larger maximum code point.
-  size_t maxDigits = std::max<size_t>(5, numHexDigits(maxCodePoint));
+  // Otherwise, we process the escape sequences with the larger maximum code
+  // point.
   std::u32string str;
-  size_t i = 0;
-  size_t ssize = s.size();
-  while (i < ssize)
+  try
   {
-    unsigned char si = static_cast<unsigned char>(s[i]);
-    if (si > 127 || si < 32)
-    {
-      std::stringstream serr;
-      serr << "Illegal string character: \"" << s[i]
-           << "\", must use escape sequence";
-      parseError(serr.str());
-    }
-    size_t start = i;
-    ++i;
-    if (si != '\\' || i >= ssize || s[i] != 'u')
-    {
-      str.push_back(si);
-      continue;
-    }
-    // process the 'u'
-    ++i;
-    bool hasBrace = (i < ssize && s[i] == '{');
-    if (hasBrace)
-    {
-      ++i;
-    }
-    std::string hexString;
-    bool isEscapeSequence = false;
-    while (i < ssize)
-    {
-      if (hasBrace && s[i] == '}')
-      {
-        // can only end if we read at least one digit
-        isEscapeSequence = !hexString.empty();
-        ++i;
-        break;
-      }
-      if (!std::isxdigit(static_cast<unsigned char>(s[i])))
-      {
-        break;
-      }
-      hexString.push_back(s[i]);
-      ++i;
-      if (!hasBrace && hexString.size() == 4)
-      {
-        // finished reading \ u d_3 d_2 d_1 d_0 with no braces
-        isEscapeSequence = true;
-        break;
-      }
-      else if (hasBrace && hexString.size() > maxDigits)
-      {
-        // too many digits enclosed in brace, not an escape sequence
-        break;
-      }
-    }
-    if (isEscapeSequence)
-    {
-      // guaranteed not to overflow since maxDigits is at most 6
-      uint32_t val = static_cast<uint32_t>(std::stoul(hexString, nullptr, 16));
-      if (val <= maxCodePoint)
-      {
-        str.push_back(static_cast<char32_t>(val));
-        continue;
-      }
-    }
-    // not an escape sequence, add back the characters we read verbatim
-    for (size_t j = start; j < i; j++)
-    {
-      unsigned char sj = static_cast<unsigned char>(s[j]);
-      if (sj > 127 || sj < 32)
-      {
-        parseError("Illegal string character, must use escape sequence");
-      }
-      str.push_back(sj);
-    }
+    str = internal::String::decodeEscapes(s, maxCodePoint);
+  }
+  catch (const internal::Exception& e)
+  {
+    parseError(e.getMessage());
   }
   return d_tm.mkString(str);
 }
