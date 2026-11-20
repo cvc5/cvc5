@@ -42,8 +42,9 @@ namespace utils {
 uint32_t getDefaultAlphabetCardinality()
 {
   // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
-  Assert(196608 <= String::num_codes());
-  return 196608;
+  static_assert(String::smtlibNumCodes() == 196608);
+  Assert(String::smtlibNumCodes() <= String::num_codes());
+  return String::smtlibNumCodes();
 }
 
 Node mkAnd(NodeManager* nm, const std::vector<Node>& a)

@@ -164,12 +164,12 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringsAlphaCard"
-  category   = "expert"
+  category   = "common"
   long       = "strings-alpha-card=N"
   type       = "uint64_t"
   default    = "196608"
-  maximum    = "196608"
-  help       = "the assumed cardinality of the alphabet of characters for strings, which is a prefix of the interval of unicode code points in the SMT-LIB standard"
+  maximum    = "1114112"
+  help       = "the assumed cardinality of the alphabet of characters for strings, which is a prefix of the interval of unicode code points. The default is the alphabet in the SMT-LIB standard (196608). If larger than the default, escape sequences in string literals may denote code points up to N-1 (at most 0x10FFFF)"
   
 [[option]]
   name       = "stringsDeqExt"

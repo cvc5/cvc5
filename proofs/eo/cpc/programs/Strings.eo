@@ -102,11 +102,18 @@
 ; define: $str_is_code_point
 ; args:
 ; - n Int: the integer to inspect.
-; return: true if n is a valid code point [0, 196607].
+; return: true if n is a valid code point [0, eo::max_code_point].
+; note: eo::max_code_point is 196607 by default as in SMT-LIB, and is expected
+;   to be set to N-1 via the Ethos option --max-code-point when the proof was
+;   generated with --strings-alpha-card=N.
 (define $str_is_code_point ((n Int))
   (eo::ite (eo::is_z n)
-    (eo::ite ($compare_geq 196608 n) (eo::not (eo::is_neg n)) false)
+    (eo::ite ($compare_geq eo::max_code_point n) (eo::not (eo::is_neg n)) false)
     false))
+
+; define: $str_alpha_card
+; return: the cardinality of the alphabet of strings, i.e. eo::max_code_point+1.
+(define $str_alpha_card () (eo::add eo::max_code_point 1))
 
 ; define: $str_self_if_empty
 ; args:
@@ -845,10 +852,10 @@
   (
   (($mk_str_eager_reduction (str.from_code n))
     (eo::define ((k (@purify (str.from_code n))))
-      (ite (and (<= 0 n) (< n 196608)) (= n (str.to_code k)) (= k ""))))
+      (ite (and (<= 0 n) (< n $str_alpha_card)) (= n (str.to_code k)) (= k ""))))
   (($mk_str_eager_reduction (str.to_code s))
     (eo::define ((t (str.to_code s)))
-      (ite (= (str.len s) 1) (and (>= t 0) (< t 196608)) (= t (eo::neg 1)))))
+      (ite (= (str.len s) 1) (and (>= t 0) (< t $str_alpha_card)) (= t (eo::neg 1)))))
   (($mk_str_eager_reduction (str.to_int s)) (>= (str.to_int s) -1))
   (($mk_str_eager_reduction (str.contains x y))
     (eo::define ((k1 (@purify ($str_first_ctn_pre x y))))

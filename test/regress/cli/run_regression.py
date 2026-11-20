@@ -310,6 +310,26 @@ class CpcTesterBase(Tester):
         return output, EXIT_OK
 
 
+def get_ethos_max_code_point_args(cvc5_args):
+    """Returns the options to pass to Ethos so that its maximum code point
+    corresponds to the alphabet given by --strings-alpha-card=N in the given
+    cvc5 options, if any. The CPC signature relies on eo::max_code_point being
+    N-1. Ethos requires the maximum code point to be at least 127; for smaller
+    alphabets, cvc5 does not print the proof steps that depend on it."""
+    card = None
+    for i, arg in enumerate(cvc5_args):
+        if arg.startswith("--strings-alpha-card="):
+            card = arg[len("--strings-alpha-card="):]
+        elif arg == "--strings-alpha-card" and i + 1 < len(cvc5_args):
+            card = cvc5_args[i + 1]
+    if card is None or not card.isdigit():
+        return []
+    card = int(card)
+    if card < 128 or card == 196608:
+        return []
+    return ["--max-code-point=" + str(card - 1)]
+
+
 class CpcTester(CpcTesterBase):
 
     def __init__(self):
@@ -336,6 +356,7 @@ class CpcTester(CpcTesterBase):
             output, error, exit_status = run_process(
                 [benchmark_info.ethos_binary] +
                 ["--require-proof-of-false"] +
+                get_ethos_max_code_point_args(cvc5_args) +
                 [tmpf.name],
                 benchmark_info.benchmark_dir,
                 timeout=benchmark_info.timeout,
