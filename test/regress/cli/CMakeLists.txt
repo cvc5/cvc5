@@ -3064,6 +3064,19 @@ set(regress_1_tests
   regress1/bags/proj-issue566.smt2
   regress1/bags/proj-issue584.smt2
   regress1/bags/proj-issue603.smt2
+  regress1/bags/rewriter/aggr_constant_columns.smt2
+  regress1/bags/rewriter/aggr_keyed.smt2
+  regress1/bags/rewriter/canonical_function_variable.smt2
+  regress1/bags/rewriter/canonical_variable.smt2
+  regress1/bags/rewriter/fold_tuple.smt2
+  regress1/bags/rewriter/learned_fact_is_kept.smt2
+  regress1/bags/rewriter/learned_key_out_of_order.smt2
+  regress1/bags/rewriter/learned_keyed_aggregate.smt2
+  regress1/bags/rewriter/learned_not_null.smt2
+  regress1/bags/rewriter/map_equal_columns.smt2
+  regress1/bags/rewriter/map_filter_nullable.smt2
+  regress1/bags/rewriter/map_identity.smt2
+  regress1/bags/rewriter/setof_map_datatype.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/table_aggregate1.smt2

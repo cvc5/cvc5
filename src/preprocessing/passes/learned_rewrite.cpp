@@ -15,7 +15,9 @@
 #include "expr/skolem_manager.h"
 #include "expr/term_context_stack.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "smt/env.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/bags/bags_rewriter.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
@@ -36,6 +38,7 @@ const char* toString(LearnedRewriteId i)
     case LearnedRewriteId::PRED_POS_LB: return "PRED_POS_LB";
     case LearnedRewriteId::PRED_ZERO_LB: return "PRED_ZERO_LB";
     case LearnedRewriteId::PRED_NEG_UB: return "PRED_NEG_UB";
+    case LearnedRewriteId::BAGS_TABLE_FACTS: return "BAGS_TABLE_FACTS";
     case LearnedRewriteId::NONE: return "NONE";
     default: return "?LearnedRewriteId?";
   }
@@ -54,6 +57,8 @@ LearnedRewrite::LearnedRewrite(PreprocessingPassContext* preprocContext)
 {
 }
 
+LearnedRewrite::~LearnedRewrite() {}
+
 PreprocessingPassResult LearnedRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
@@ -62,6 +67,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
   std::vector<Node> learnedLits = d_preprocContext->getLearnedLiterals();
   std::unordered_set<Node> llrw;
   std::unordered_map<TNode, Node> visited;
+  d_tableFacts.reset();
+  d_bagsRewriter.reset();
   if (learnedLits.empty())
   {
     Trace("learned-rewrite-ll") << "No learned literals" << std::endl;
@@ -114,6 +121,34 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
           Assert(originLit.find(origin) != originLit.end());
           llrw.insert(originLit[origin]);
         }
+      }
+    }
+    // A learned literal that states a key or a NOT NULL column of a table
+    // constant is critical too: the bags rules below rewrite by it, so it is
+    // kept as it is, and not rewritten by itself to true. For example
+    //   (= (bag.setof ((_ table.project 0) X)) ((_ table.project 0) X))
+    // states that column 0 is a key of X (see theory::bags::TableFacts).
+    if (logicInfo().isTheoryEnabled(THEORY_BAGS))
+    {
+      auto facts = std::make_unique<bags::TableFacts>();
+      bags::BagsRewriter reader(nm, d_env.getRewriter());
+      for (const Node& l : learnedLits)
+      {
+        if (reader.readTableFact(l, *facts))
+        {
+          Trace("learned-rewrite-ll") << "Table fact: " << l << std::endl;
+          llrw.insert(l);
+        }
+      }
+      if (!facts->empty())
+      {
+        d_tableFacts = std::move(facts);
+        d_bagsRewriter =
+            std::make_unique<bags::BagsRewriter>(nm,
+                                                 d_env.getRewriter(),
+                                                 nullptr,
+                                                 logicInfo().isHigherOrder(),
+                                                 d_tableFacts.get());
       }
     }
     // rewrite the non-critical learned literals, some may be redundant
@@ -173,6 +208,8 @@ PreprocessingPassResult LearnedRewrite::applyInternal(
     assertionsToPreprocess->push_back(
         llc, false, nullptr, TrustId::PREPROCESS_LEARNED_REWRITE_LEMMA);
   }
+  d_bagsRewriter.reset();
+  d_tableFacts.reset();
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -232,6 +269,10 @@ Node LearnedRewrite::rewriteLearnedRec(Node n,
       // rewrite here
       ret = rewrite(ret);
       ret = rewriteLearned(ret, binfer, learnedLits);
+      if (d_bagsRewriter != nullptr)
+      {
+        ret = rewriteLearnedBags(ret, binfer, learnedLits, lems);
+      }
       visited[cur] = ret;
     }
   } while (!visit.empty());
@@ -454,6 +495,36 @@ Node LearnedRewrite::rewriteLearned(Node nr,
       }
     }
   }
+  return nr;
+}
+
+Node LearnedRewrite::rewriteLearnedBags(Node n,
+                                        arith::BoundInference& binfer,
+                                        const std::vector<Node>& learnedLits,
+                                        std::unordered_set<Node>& lems)
+{
+  // A bound on the nesting of the calls below: each is a rule that read a
+  // fact, and a chain of them this long would be a loop between the rules.
+  const size_t maxDepth = 64;
+  if (n.getNumChildren() == 0 || d_env.theoryOf(n) != THEORY_BAGS
+      || d_bagsDepth >= maxDepth)
+  {
+    return n;
+  }
+  // n is in normal form for the rewriter of the theory, so only a rule that
+  // reads the table facts applies
+  Node nr = d_bagsRewriter->postRewrite(n).d_node;
+  if (nr == n)
+  {
+    return n;
+  }
+  nr = returnRewriteLearned(n, nr, LearnedRewriteId::BAGS_TABLE_FACTS);
+  // A cache of its own: its keys are TNodes, and the terms the rule built are
+  // kept alive only while this call runs.
+  std::unordered_map<TNode, Node> visited;
+  d_bagsDepth++;
+  nr = rewriteLearnedRec(nr, binfer, learnedLits, lems, visited);
+  d_bagsDepth--;
   return nr;
 }
 
