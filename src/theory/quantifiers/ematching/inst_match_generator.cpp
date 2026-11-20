@@ -693,6 +693,9 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
       InstMatchGenerator* curr = gens[counter];
       if (prev)
       {
+        // a generator should never be chained to itself, which would lead to
+        // non-termination
+        Assert(prev != curr);
         prev->d_next = curr;
       }
       curr->initialize(q, gens);
