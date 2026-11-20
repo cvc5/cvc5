@@ -150,7 +150,12 @@ void Smt2Printer::toStream(std::ostream& out,
     toStream(out, n, nullptr, toDepth);
     return;
   }
-  LetBinding lbind("_let_", dag + 1);
+  // If we print skolem definitions, we must traverse skolems, since terms
+  // within their definitions may be letified.
+  LetBinding lbind("_let_",
+                   dag + 1,
+                   false,
+                   options::ioutils::getPrintSkolemDefinitions(out));
 
   std::string cparen;
   std::vector<Node> letList;
