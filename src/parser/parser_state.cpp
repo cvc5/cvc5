@@ -759,16 +759,25 @@ static constexpr uint32_t s_smtlibMaxCodePoint =
 
 Term ParserState::mkCharConstant(const std::string& s)
 {
+  uint32_t maxCodePoint = getStringsMaxCodePoint();
   // the number of digits permitted, which is 6 only if the alphabet is larger
   // than the one of SMT-LIB and requires it
-  size_t maxDigits = getStringsMaxCodePoint() > 0xFFFFF ? 6 : 5;
+  size_t maxDigits = maxCodePoint > 0xFFFFF ? 6 : 5;
   if (!(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
         && s.size() <= maxDigits && s.size() > 0))
   {
     parseError("Unexpected string for hexadecimal character: `" + s + "'");
   }
-  char32_t val = static_cast<char32_t>(std::stoul(s, nullptr, 16));
-  return d_tm.mkString(std::u32string(1, val));
+  uint32_t val = static_cast<uint32_t>(std::stoul(s, nullptr, 16));
+  // as for escape sequences, the code point must be at most the maximum code
+  // point, which is the one of SMT-LIB unless --strings-alpha-card is larger
+  if (val > maxCodePoint)
+  {
+    parseError(
+        "Expected unicode string whose characters are less than code point "
+        + std::to_string(maxCodePoint + 1));
+  }
+  return d_tm.mkString(std::u32string(1, static_cast<char32_t>(val)));
 }
 
 uint32_t ParserState::getStringsMaxCodePoint()
