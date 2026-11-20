@@ -326,7 +326,7 @@ Term Smt2TermParser::parseTerm()
       {
         std::string s = d_lex.tokenStr();
         unescapeString(s);
-        ret = tm.mkString(s, true);
+        ret = d_state.mkStringLiteral(s);
       }
       break;
       default:

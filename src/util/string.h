@@ -44,10 +44,18 @@ class String
    *
    * This must be strictly less than std::numeric_limits<unsigned>::max().
    *
-   * As per the SMT-LIB standard for strings, we support the first 3 planes of
-   * Unicode characters, where 196608 = 3*16^4.
+   * We support the full range of Unicode code points, where 1114112 =
+   * 0x10FFFF+1. Note that the SMT-LIB standard for strings considers only the
+   * first 3 planes of Unicode characters, see smtlibNumCodes(). The latter is
+   * the default cardinality of the alphabet the string theory reasons about,
+   * which can be changed via the option --strings-alpha-card.
    */
-  static inline unsigned num_codes() { return 196608; }
+  static inline unsigned num_codes() { return 0x110000; }
+  /**
+   * The cardinality of the alphabet of strings in the SMT-LIB standard, which
+   * is the first 3 planes of Unicode characters, where 196608 = 3*16^4.
+   */
+  static constexpr unsigned smtlibNumCodes() { return 196608; }
   /** constructors for String
    *
    * Internally, a cvc5::internal::String is represented by a vector of unsigned
@@ -63,6 +71,9 @@ class String
    *  \u{d_3 d_2 d_1 d_0}
    *  \u{d_4 d_3 d_2 d_1 d_0}
    * where d_0 ... d_4 are hexadecimal digits, to the appropriate character.
+   * As specified by SMT-LIB, an escape sequence is only valid if it denotes
+   * a code point less than smtlibNumCodes(); otherwise its characters are
+   * taken verbatim.
    *
    * If useEscSequences is false, then the characters of the constructed
    * cvc5::internal::String correspond one-to-one with the input string.
