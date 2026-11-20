@@ -2097,16 +2097,6 @@ bool cvc5_term_is_string_value(Cvc5Term term)
   return res;
 }
 
-const wchar_t* cvc5_term_get_string_value(Cvc5Term term)
-{
-  static thread_local std::wstring res;
-  CVC5_CAPI_TRY_CATCH_BEGIN;
-  CVC5_CAPI_CHECK_TERM(term);
-  res = term->d_term.getStringValue();
-  CVC5_CAPI_TRY_CATCH_END;
-  return res.c_str();
-}
-
 const char32_t* cvc5_term_get_u32string_value(Cvc5Term term)
 {
   static thread_local std::u32string res;
@@ -3546,17 +3536,6 @@ Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq)
   CVC5_CAPI_CHECK_NOT_NULL(tm);
   CVC5_CAPI_CHECK_NOT_NULL(s);
   res = tm->export_term(tm->d_tm.mkString(s, use_esc_seq));
-  CVC5_CAPI_TRY_CATCH_END;
-  return res;
-}
-
-Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s)
-{
-  Cvc5Term res = nullptr;
-  CVC5_CAPI_TRY_CATCH_BEGIN;
-  CVC5_CAPI_CHECK_NOT_NULL(tm);
-  CVC5_CAPI_CHECK_NOT_NULL(s);
-  res = tm->export_term(tm->d_tm.mkString(s));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }

@@ -6,7 +6,7 @@ represents an operator, instantiated with the parameters it requires (if any).
 
 A :py:obj:`cvc5.Term` of operator kind that does not require additional
 parameters, e.g., :py:obj:`cvc5.Kind.ADD`, is usually constructed via
-:py:func:`cvc5.Solver.mkTerm(Kind kind, const std.vector\<Term>& children) <Term cvc5.Solver.mkTerm(Kind kind, const std.vector\<Term>& children) const>`.
+:py:meth:`cvc5.TermManager.mkTerm()`.
 Alternatively, any :py:obj:`cvc5.Term` can be constructed via first
 instantiating a corresponding :py:obj:`cvc5.Op`, even if the operator does
 not require additional parameters.

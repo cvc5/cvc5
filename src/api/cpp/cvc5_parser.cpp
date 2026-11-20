@@ -64,10 +64,6 @@ SymbolManager::SymbolManager(cvc5::TermManager& tm)
 {
   d_sm.reset(new SymManager(tm));
 }
-SymbolManager::SymbolManager(cvc5::Solver* slv)
-{
-  d_sm.reset(new SymManager(slv->getTermManager()));
-}
 
 SymbolManager::~SymbolManager() {}
 

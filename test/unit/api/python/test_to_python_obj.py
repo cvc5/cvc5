@@ -97,7 +97,7 @@ def testGetValueInt(tm, solver):
 def testGetValueReal(tm, solver):
     solver.setOption("produce-models", "true")
 
-    realsort = solver.getRealSort()
+    realsort = tm.getRealSort()
     x = tm.mkConst(realsort, "x")
     y = tm.mkConst(realsort, "y")
     solver.assertFormula(tm.mkTerm(Kind.EQUAL, x, tm.mkReal("6")))
