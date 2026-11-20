@@ -609,6 +609,10 @@ Term Smt2State::mkIndexedOp(Kind k,
       }
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
+      if (sf.isTuple())
+      {
+        parseError("Bad syntax for (_ is X), X cannot be a tuple constructor.");
+      }
       Datatype d = sf.getDatatype();
       // lookup by name, using the raw symbol since toString() may print
       // the name as a quoted symbol, e.g. |C,|

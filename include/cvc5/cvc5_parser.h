@@ -427,7 +427,8 @@ class CVC5_EXPORT ParserEndOfFileException : public ParserException
                            const std::string& filename,
                            unsigned long line,
                            unsigned long column);
-
+  /** Destructor. */
+  ~ParserEndOfFileException() override;
 }; /* class ParserEndOfFileException */
 
 }  // namespace parser

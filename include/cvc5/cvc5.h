@@ -114,6 +114,9 @@ class CVC5_EXPORT CVC5ApiException : public std::exception
    */
   virtual void toStream(std::ostream& os) const { os << d_msg; }
 
+  /** Destructor. */
+  ~CVC5ApiException() override;
+
  private:
   /** The stored error message. */
   std::string d_msg;
@@ -145,6 +148,8 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
       : CVC5ApiException(stream.str())
   {
   }
+  /** Destructor. */
+  ~CVC5ApiRecoverableException() override;
 };
 
 /**
@@ -171,6 +176,8 @@ class CVC5_EXPORT CVC5ApiUnsupportedException
       : CVC5ApiRecoverableException(stream.str())
   {
   }
+  /** Destructor. */
+  ~CVC5ApiUnsupportedException() override;
 };
 
 /**
@@ -196,6 +203,8 @@ class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
       : CVC5ApiRecoverableException(stream.str())
   {
   }
+  /** Destructor. */
+  ~CVC5ApiOptionException() override;
 };
 
 /* -------------------------------------------------------------------------- */

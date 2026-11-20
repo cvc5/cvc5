@@ -475,5 +475,8 @@ ParserEndOfFileException::ParserEndOfFileException(const std::string& msg,
 {
 }
 
+// Defined here so that it is the key function (see ~CVC5ApiException()).
+ParserEndOfFileException::~ParserEndOfFileException() = default;
+
 }  // namespace parser
 }  // namespace cvc5

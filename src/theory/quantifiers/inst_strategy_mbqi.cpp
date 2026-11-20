@@ -13,6 +13,7 @@
 #include "theory/quantifiers/inst_strategy_mbqi.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "options/arrays_options.h"
@@ -627,7 +628,8 @@ Node InstStrategyMbqi::convertFromModel(
       // must convert to concat of sequence units
       // must convert function array constant to lambda
       Node cconv;
-      if (ck == Kind::CONST_SEQUENCE)
+      // Note the empty sequence is not converted, since it converts to itself.
+      if (ck == Kind::CONST_SEQUENCE && !cur.getConst<Sequence>().empty())
       {
         cconv = strings::utils::mkConcatForConstSequence(cur);
       }

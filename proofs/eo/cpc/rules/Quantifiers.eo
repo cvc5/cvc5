@@ -83,7 +83,7 @@
 ; - xs @List: The first bound variable list.
 ; return: true if xs is variable list that is pairwise unique.
 (define $is_unique_var_list ((xs @List))
-  (eo::and ($is_var_list xs) (eo::eq (eo::list_setof @list xs) xs)))
+  (eo::and ($is_var_list xs) ($is_unique_list xs)))
 
 ; program: $is_renaming_rec
 ; args:
