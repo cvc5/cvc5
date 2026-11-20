@@ -24,7 +24,8 @@
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
  * not fully agree on what is (in)valid input, which requires extra checks for
- * consistent behavior (see TermManager::mkRealOrIntegerFromStrHelper for example).
+ * consistent behavior (see TermManager::mkRealOrIntegerFromStrHelper for
+ * example).
  */
 
 #include <cvc5/cvc5.h>
