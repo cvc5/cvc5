@@ -1147,6 +1147,9 @@ set(regress_0_tests
   regress0/ho/issue11923-2-finite-ho-deq.smt2
   regress0/ho/issue11923-finite-ho-deq.smt2
   regress0/ho/issue12256-fun-arg-ext.smt2
+  regress0/ho/issue12703-lambda-dup-binder-apply.smt2
+  regress0/ho/issue12703-lambda-dup-binder-eta.smt2
+  regress0/ho/issue12703-lambda-dup-binder.smt2
   regress0/ho/issue-ho-elim-fmf-bad-model.smt2
   regress0/ho/issue4434-const-preserve.smt2
   regress0/ho/issue4477.smt2
@@ -2525,6 +2528,7 @@ set(regress_0_tests
   regress0/strings/re-inclusion-am-pf.smt2
   regress0/strings/re-inter-all.smt2
   regress0/strings/re-inter-inclusion-flat.smt2
+  regress0/strings/re-inter-inclusion-range.smt2
   regress0/strings/re-inter-inclusion-union.smt2
   regress0/strings/re_diff.smt2
   regress0/strings/re-in-rewrite.smt2
@@ -2534,6 +2538,10 @@ set(regress_0_tests
   regress0/strings/re-range-non-singleton.smt2
   regress0/strings/re-str-inference-missing.smt2
   regress0/strings/re-syntax.smt2
+  regress0/strings/re-union-inclusion-allchar.smt2
+  regress0/strings/re-union-inclusion-range.smt2
+  regress0/strings/re-union-inclusion-range-suffix.smt2
+  regress0/strings/re-union-inclusion-subrange.smt2
   regress0/strings/re.all.smt2
   regress0/strings/regexp_inclusion_reduction.smt2
   regress0/strings/regexp_inclusion.smt2

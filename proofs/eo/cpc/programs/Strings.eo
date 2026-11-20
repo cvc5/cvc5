@@ -1692,6 +1692,45 @@
 (define $str_re_includes_base ((r1 RegLan) (r2 RegLan))
   (eo::ite (eo::eq r1 r2) true ($str_re_includes_base_rec r1 r2)))
 
+; program: $str_re_includes_concat
+; args:
+; - r1 RegLan: The first component of the first regular expression.
+; - r2 RegLan: The remaining components of the first regular expression.
+; - r3 RegLan: The first component of the second regular expression.
+; - r4 RegLan: The remaining components of the second regular expression.
+; return: >
+;   true if we can infer that all strings in (re.++ r3 r4) are also in
+;   (re.++ r1 r2), where both are assumed to be in flat form. We use three
+;   heuristics based on the components of the concatenations.
+(program $str_re_includes_concat
+  ((r1 RegLan) (r2 RegLan :list) (r3 RegLan) (r4 RegLan :list))
+  :signature (RegLan RegLan RegLan RegLan) Bool
+  (
+  (($str_re_includes_concat r1 r2 r3 r4)
+    ; can skip both if we have a base inclusion
+    (eo::ite (eo::ite
+        ($str_re_includes_base r1 r3)
+        ($str_re_includes r2 r4)
+        false)
+      true
+      ; can skip RHS if unbounded wildcard
+      (eo::ite (eo::ite
+          ($re_is_unbound_wildcard (re.++ r1 r2))
+          (eo::ite (eo::eq (re.++ r1 r2) r4)
+            true
+            ($str_re_includes (re.++ r1 r2) r4))
+          false)
+        true
+        ; can skip LHS if it is sigma star
+        (eo::ite (eo::ite
+            (eo::eq r1 (re.* (re.++ re.allchar)))
+            ($str_re_includes r2 (re.++ r3 r4))
+            false)
+          true
+          false))))
+  )
+)
+
 ; program: $str_re_includes_rec
 ; args:
 ; - r1 RegLan: The first regular expression, assumed to be in flat form.
@@ -1714,30 +1753,18 @@
   ; or the union / star / inter heuristics).
   (($str_re_includes_rec (re.++ r1) (re.++ r3)) ($str_re_includes_base r1 r3))
   (($str_re_includes_rec (re.++ r1) r3)         ($str_re_includes_base r1 r3))
+  ; If the LHS is a non-singleton concatenation and the RHS is a single
+  ; component, we first compare the whole LHS against that component, and
+  ; otherwise fall back to the component-wise reasoning, where the remainder of
+  ; the RHS is empty.
+  (($str_re_includes_rec (re.++ r1 r2) (re.++ r3))
+    (eo::ite ($str_re_includes_base (re.++ r1 r2) r3)
+      true
+      ($str_re_includes_concat r1 r2 r3 @re.empty)))
   (($str_re_includes_rec r1 (re.++ r3))         ($str_re_includes_base r1 r3))
   ; otherwise we recurse for three possible cases
   (($str_re_includes_rec (re.++ r1 r2) (re.++ r3 r4))
-    ; can skip both if we have a base inclusion
-    (eo::ite (eo::ite
-        ($str_re_includes_base r1 r3)
-        ($str_re_includes r2 r4)
-        false)
-      true
-      ; can skip RHS if unbounded wildcard
-      (eo::ite (eo::ite
-          ($re_is_unbound_wildcard (re.++ r1 r2))
-          (eo::ite (eo::eq (re.++ r1 r2) r4)
-            true
-            ($str_re_includes (re.++ r1 r2) r4))
-          false)
-        true
-        ; can skip LHS if it is sigma star
-        (eo::ite (eo::ite
-            (eo::eq r1 (re.* (re.++ re.allchar)))
-            ($str_re_includes r2 (re.++ r3 r4))
-            false)
-          true
-          false))))
+    ($str_re_includes_concat r1 r2 r3 r4))
   ; handles the case where there is a leftover (re.* re.allchar) on the LHS
   (($str_re_includes_rec (re.++ r1 r2) @re.empty)
     (eo::and (eo::eq r1 (re.* (re.++ re.allchar))) (eo::eq r2 @re.empty)))
