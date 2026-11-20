@@ -18,20 +18,6 @@
 #include <functional>
 #include <string>
 
-namespace std {
-
-#ifdef CVC5_NEED_HASH_UINT64_T
-// on some versions and architectures of GNU C++, we need a
-// specialization of hash for 64-bit values
-template <>
-struct hash<uint64_t>
-{
-  size_t operator()(uint64_t v) const { return v; }
-}; /* struct hash<uint64_t> */
-#endif /* CVC5_NEED_HASH_UINT64_T */
-
-}  // namespace std
-
 namespace cvc5::internal {
 
 namespace fnv1a {

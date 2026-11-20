@@ -20,6 +20,7 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace cvc5::internal {
 namespace preprocessing {
