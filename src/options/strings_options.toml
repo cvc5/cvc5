@@ -164,7 +164,7 @@ name   = "Strings Theory"
 
 [[option]]
   name       = "stringsAlphaCard"
-  category   = "expert"
+  category   = "common"
   long       = "strings-alpha-card=N"
   type       = "uint64_t"
   default    = "196608"
