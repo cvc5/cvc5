@@ -82,3 +82,11 @@ name   = "Printing"
   type       = "bool"
   default    = "false"
   help       = "print skolems based on their definitions e.g. @ARRAY_DIFF_N prints instead as (@array.diff A B)"
+
+[[option]]
+  name       = "modelPrintPartialFun"
+  category   = "expert"
+  long       = "model-print-partial-fun"
+  type       = "bool"
+  default    = "false"
+  help       = "print partial functions in the model"
