@@ -248,6 +248,16 @@ class BagsRewriter : public TheoryRewriter
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
   BagsRewriteResponse postRewritePartition(const TNode& n) const;
+  /**
+   *  rewrites for n include:
+   *  - ((_ table.aggr K) f t A), for A and t constants, to its value
+   *  - ((_ table.aggr K) f t A), for A a union of known elements, written out:
+   *      ((_ table.aggr K) f t (bag.union_disjoint (bag x 1) (bag y 1))) =
+   *        (bag.union_disjoint
+   *          (bag (ite (= K(x) K(y)) (f y (f x t)) (f x t)) 1)
+   *          (ite (= K(x) K(y)) (as bag.empty (Bag T)) (bag (f y t) 1)))
+   *  where K(x) is ((_ tuple.project K) x)
+   */
   BagsRewriteResponse postRewriteAggregate(const TNode& n) const;
   /**
    *  rewrites for n include:

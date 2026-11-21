@@ -23,6 +23,7 @@ const char* toString(Rewrite r)
   switch (r)
   {
     case Rewrite::NONE: return "NONE";
+    case Rewrite::AGGREGATE_BAG_MAKE: return "AGGREGATE_BAG_MAKE";
     case Rewrite::AGGREGATE_CONST: return "AGGREGATE_CONST";
     case Rewrite::BAG_MAKE_COUNT_NEGATIVE: return "BAG_MAKE_COUNT_NEGATIVE";
     case Rewrite::CARD_DISJOINT: return "CARD_DISJOINT";

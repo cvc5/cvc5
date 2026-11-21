@@ -14,6 +14,7 @@
 
 #include "expr/emptybag.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
@@ -707,6 +708,67 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
+namespace {
+
+/** An element of a bag: the bag has d_count copies of d_element if d_cond. */
+struct GuardedElement
+{
+  Node d_cond;
+  Node d_element;
+  uint32_t d_count;
+};
+
+/**
+ * Collects the elements of A, if A is built from bag.empty, ite,
+ * bag.union_disjoint and (bag x c) with c a constant. Each element comes with
+ * the condition under which A has it: cond and the conditions of the ite terms
+ * above it. For example,
+ *   (bag.union_disjoint (bag x 1) (ite c (bag y 2) (as bag.empty (Bag T))))
+ * has one x under true and two y under c. Returns false if A has another form.
+ */
+bool collectElements(NodeManager* nm,
+                     TNode A,
+                     Node cond,
+                     std::vector<GuardedElement>& elements)
+{
+  switch (A.getKind())
+  {
+    case Kind::BAG_EMPTY: return true;
+    case Kind::BAG_MAKE:
+    {
+      if (!A[1].isConst())
+      {
+        return false;
+      }
+      const Rational& c = A[1].getConst<Rational>();
+      if (c.sgn() <= 0)
+      {
+        // (bag x c) is empty for c <= 0
+        return true;
+      }
+      if (!c.isIntegral() || !c.getNumerator().fitsUnsignedInt())
+      {
+        return false;
+      }
+      elements.push_back({cond, A[0], c.getNumerator().toUnsignedInt()});
+      return true;
+    }
+    case Kind::BAG_UNION_DISJOINT:
+      return collectElements(nm, A[0], cond, elements)
+             && collectElements(nm, A[1], cond, elements);
+    case Kind::ITE:
+      return collectElements(
+                 nm, A[1], nm->mkNode(Kind::AND, cond, A[0]), elements)
+             && collectElements(nm,
+                                A[2],
+                                nm->mkNode(Kind::AND, cond, A[0].notNode()),
+                                elements);
+    default: return false;
+  }
+}
+
+}  // namespace
+
 BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
 {
   Assert(n.getKind() == Kind::TABLE_AGGREGATE);
@@ -719,7 +781,74 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
     }
   }
 
-  return BagsRewriteResponse(n, Rewrite::NONE);
+  // AGGREGATE_BAG_MAKE: if the table is a union of known elements x_1, ...,
+  // x_k, see collectElements, each in the table under a condition c_i, each
+  // group gives one element, the fold of the group, and is written out at its
+  // first element. The group of x_i is the x_j in the table with the key of
+  // x_i, K(x_j) = K(x_i). For two elements,
+  //   ((_ table.aggr K) f t (bag.union_disjoint (bag x 1) (bag y 1))) =
+  //     (bag.union_disjoint
+  //       (bag (ite (= K(x) K(y)) (f y (f x t)) (f x t)) 1)
+  //       (ite (= K(x) K(y)) (as bag.empty (Bag T)) (bag (f y t) 1)))
+  // In general, the element of x_i is (bag v_i 1) if x_i is in the table and
+  // no x_j, j < i, of its group is, and v_i folds f over x_i and the x_j,
+  // j > i, of its group, in their order in the table, as FOLD_UNION_DISJOINT
+  // folds the elements of a union in one order. An element with c copies is
+  // folded c times.
+  std::vector<GuardedElement> elements;
+  if (!collectElements(d_nm, n[2], d_nm->mkConst(true), elements))
+  {
+    return BagsRewriteResponse(n, Rewrite::NONE);
+  }
+  Node f = n[0];
+  Node empty = d_nm->mkConst(EmptyBag(n.getType()));
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  Node projectOp = d_nm->mkConst(Kind::TUPLE_PROJECT_OP, op);
+  std::vector<Node> keys;
+  for (const GuardedElement& e : elements)
+  {
+    keys.push_back(
+        op.getIndices().empty()
+            ? Node::null()
+            : d_nm->mkNode(Kind::TUPLE_PROJECT, projectOp, e.d_element));
+  }
+  // x_j is in the group of x_i; without keys, every element is in one group
+  auto inGroup = [&](size_t j, size_t i) {
+    if (op.getIndices().empty())
+    {
+      return elements[j].d_cond;
+    }
+    return d_nm->mkNode(Kind::AND, elements[j].d_cond, keys[j].eqNode(keys[i]));
+  };
+  // f folded over the copies of x_j, starting with value
+  auto fold = [&](size_t j, Node value) {
+    for (uint32_t c = 0; c < elements[j].d_count; ++c)
+    {
+      value = d_nm->mkNode(Kind::APPLY_UF, f, elements[j].d_element, value);
+    }
+    return value;
+  };
+  Node ret = empty;
+  for (size_t i = 0, size = elements.size(); i < size; ++i)
+  {
+    std::vector<Node> first{elements[i].d_cond};
+    for (size_t j = 0; j < i; ++j)
+    {
+      first.push_back(inGroup(j, i).notNode());
+    }
+    Node value = fold(i, n[1]);
+    for (size_t j = i + 1; j < size; ++j)
+    {
+      value = d_nm->mkNode(Kind::ITE, inGroup(j, i), fold(j, value), value);
+    }
+    Node element = d_nm->mkNode(Kind::ITE,
+                                d_nm->mkAnd(first),
+                                d_nm->mkNode(Kind::BAG_MAKE, value, d_one),
+                                empty);
+    ret =
+        i == 0 ? element : d_nm->mkNode(Kind::BAG_UNION_DISJOINT, ret, element);
+  }
+  return BagsRewriteResponse(ret, Rewrite::AGGREGATE_BAG_MAKE);
 }
 
 BagsRewriteResponse BagsRewriter::postRewriteProduct(const TNode& n) const
