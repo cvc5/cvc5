@@ -839,12 +839,13 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
     Node value = fold(i, n[1]);
     for (size_t j = i + 1; j < size; ++j)
     {
-      value = d_nm->mkNode(Kind::ITE, inGroup(j, i), fold(j, value), value);
+      Node in = inGroup(j, i);
+      Node folded = fold(j, value);
+      value = d_nm->mkNode(Kind::ITE, in, folded, value);
     }
-    Node element = d_nm->mkNode(Kind::ITE,
-                                d_nm->mkAnd(first),
-                                d_nm->mkNode(Kind::BAG_MAKE, value, d_one),
-                                empty);
+    Node isFirst = d_nm->mkAnd(first);
+    Node bag = d_nm->mkNode(Kind::BAG_MAKE, value, d_one);
+    Node element = d_nm->mkNode(Kind::ITE, isFirst, bag, empty);
     ret =
         i == 0 ? element : d_nm->mkNode(Kind::BAG_UNION_DISJOINT, ret, element);
   }
