@@ -65,15 +65,6 @@ class CVC5_EXPORT SymbolManager
    * @param tm The associated term manager instance.
    */
   SymbolManager(cvc5::TermManager& tm);
-  /**
-   * Constructor.
-   * @param slv The solver instance.
-   * @warning This constructor is deprecated and replaced by
-   *          `SymbolManager::SymbolManager(TermManager&)`. It will be removed
-   *          in a future release.
-   */
-  [[deprecated("Use SymbolManager::SymbolManager(TermManager&) instead")]]
-  SymbolManager(cvc5::Solver* slv);
 
   /**
    * Destructor.

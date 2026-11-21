@@ -38,21 +38,7 @@ public class SymbolManager extends AbstractPointer implements AutoCloseable
     super(tm.ctx, newSymbolManager(tm.getPointer()), SymbolManager::deletePointer);
   }
 
-  /**
-   * Create symbol manager instance.
-   * @param solver The associated solver.
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link Solver#Solver(TermManager)}.
-   * It will be removed in a future release.
-   */
-  @Deprecated
-  public SymbolManager(Solver solver)
-  {
-    this(solver.getTermManager());
-  }
-
-  private static native long newSymbolManager(long solverPointer);
+  private static native long newSymbolManager(long tmPointer);
 
   protected String toString(long pointer)
   {
