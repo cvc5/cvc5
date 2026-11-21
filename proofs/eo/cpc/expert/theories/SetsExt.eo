@@ -59,6 +59,11 @@
   (-> (Set T) (Set U) (Set ($tuple_type_join T U))))
 (declare-parameterized-const rel.group ((T Type :implicit))
   (-> @List (Set T) (Set (Set T))))
+; rel.acyclic takes a tuple of binary relations. Bind the head to a binary
+; relation (Set (Tuple T T)) and capture the rest of the tuple in tail param U,
+; using the RAW application (_ Tuple head tail).
+(declare-parameterized-const rel.acyclic ((T Type :implicit) (U Type :implicit))
+  (-> (_ Tuple (Set (Tuple T T)) U) Bool))
 
 ; Experimental relation operators.
 (declare-parameterized-const rel.iden ((T Type :implicit))

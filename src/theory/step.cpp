@@ -35,6 +35,7 @@ std::ostream& operator<<(std::ostream& out, Step s)
     case Step::SETS_CHECK_BASIC: out << "SETS_CHECK_BASIC"; break;
     case Step::SETS_CHECK_CARDINALITY: out << "SETS_CHECK_CARDINALITY"; break;
     case Step::SETS_CHECK_RELATIONS: out << "SETS_CHECK_RELATIONS"; break;
+    case Step::SETS_CHECK_ACYCLICITY: out << "SETS_CHECK_ACYCLICITY"; break;
     case Step::SETS_CHECK_TRANSITIVE_CLOSURE_DOWN:
       out << "SETS_CHECK_TRANSITIVE_CLOSURE_DOWN";
       break;
@@ -47,6 +48,15 @@ std::ostream& operator<<(std::ostream& out, Step s)
     case Step::SETS_CHECK_DISEQUALITY: out << "SETS_CHECK_DISEQUALITY"; break;
     case Step::SETS_CHECK_COMPREHENSION:
       out << "SETS_CHECK_COMPREHENSION";
+      break;
+    case Step::SETS_CHECK_ACYCLICITY_LAST_CALL:
+      out << "SETS_CHECK_ACYCLICITY_LAST_CALL";
+      break;
+    case Step::SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL:
+      out << "SETS_CHECK_TRANSITIVE_CLOSURE_LAST_CALL";
+      break;
+    case Step::SETS_CHECK_JOIN_LAST_CALL:
+      out << "SETS_CHECK_JOIN_LAST_CALL";
       break;
     case Step::UNKNOWN: out << "?"; break;
     default:

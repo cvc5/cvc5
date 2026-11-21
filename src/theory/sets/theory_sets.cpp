@@ -87,6 +87,7 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::RELATION_TABLE_JOIN);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TRANSPOSE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_ACYCLIC);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_IDEN);
   d_equalityEngine->addFunctionKind(Kind::RELATION_GROUP);
@@ -105,6 +106,13 @@ void TheorySets::finishInit()
 }
 
 void TheorySets::postCheck(Effort level) { d_internal->postCheck(level); }
+
+bool TheorySets::needsCheckLastEffort()
+{
+  return d_internal->hasOpenCycleObligation()
+         || d_internal->needsTCGroundingLastCall()
+         || d_internal->needsJoinGroundingLastCall();
+}
 
 void TheorySets::notifyFact(TNode atom,
                             bool polarity,
