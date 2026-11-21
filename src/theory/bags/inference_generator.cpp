@@ -53,9 +53,34 @@ void InferenceGenerator::registerCountTerm(Node n)
   Assert(n.getKind() == Kind::BAG_COUNT);
   Node element = d_state->getRepresentative(n[0]);
   Node bag = d_state->getRepresentative(n[1]);
-  Node count = d_nm->mkNode(Kind::BAG_COUNT, element, bag);
-  Node skolem = registerAndAssertSkolemLemma(count);
-  d_state->registerCountTerm(bag, element, skolem);
+  Node count = rewrite(d_nm->mkNode(Kind::BAG_COUNT, element, bag));
+  if (count.isConst())
+  {
+    // e.g. (bag.count x (bag x 2)) rewrites to 2
+    d_state->registerCountTerm(bag, element, count);
+    return;
+  }
+  // collectModelValues reads the multiplicity from the model, which only has
+  // values for count terms in the equality engine. A count term built by a
+  // rule, e.g. (bag.count (f x) k) where k purifies (bag.map f A), is not
+  // there yet, so we purify it.
+  eq::EqualityEngine* ee = d_state->getEqualityEngine();
+  Node multiplicity;
+  if (ee->hasTerm(count))
+  {
+    multiplicity = count;
+  }
+  else if (ee->hasTerm(n))
+  {
+    // e.g. n is (bag.count y B) and count is (bag.count x A), where x and A
+    // are the representatives of y and B
+    multiplicity = n;
+  }
+  else
+  {
+    multiplicity = assertSkolemDefinition(count);
+  }
+  d_state->registerCountTerm(bag, element, multiplicity);
 }
 
 void InferenceGenerator::registerCardinalityTerm(Node n)
@@ -63,7 +88,8 @@ void InferenceGenerator::registerCardinalityTerm(Node n)
   Assert(n.getKind() == Kind::BAG_CARD);
   Node bag = d_state->getRepresentative(n[0]);
   Node cardTerm = d_nm->mkNode(Kind::BAG_CARD, bag);
-  Node skolem = registerAndAssertSkolemLemma(cardTerm);
+  // SolverState::registerCardinalityTerm requires a variable, so always purify
+  Node skolem = assertSkolemDefinition(cardTerm);
   d_state->registerCardinalityTerm(cardTerm, skolem);
   Node premise = n[0].eqNode(bag);
   Node conclusion = skolem.eqNode(n);
@@ -155,14 +181,61 @@ InferInfo InferenceGenerator::bagDisequality(Node equality, Node witness)
   return inferInfo;
 }
 
-Node InferenceGenerator::registerAndAssertSkolemLemma(Node& n)
+bool InferenceGenerator::needsPurification(const Node& n) const
+{
+  Kind k = n.getKind();
+  // (1) Rewriting may eliminate (bag.count e n), e.g.
+  //   (bag.count e (as bag.empty (Bag Int)))  --->  0
+  //   (bag.count e (bag e 2))                 --->  2
+  // and the lemma would then say nothing about the terms equal to n.
+  if (n.isConst() || k == Kind::BAG_MAKE)
+  {
+    return true;
+  }
+  // (2) n is (bag.map f A) or (bag.filter p A). collectModelValues skips
+  // classes without a leaf, and the model builder cannot evaluate n while f or
+  // p is uninterpreted, since they only get values after the model is built.
+  // If n is an element of another bag, e.g. (bag (bag.map f A) 1), that bag
+  // never gets a value. Purifying n gives its class a leaf.
+  if (k == Kind::BAG_MAP || k == Kind::BAG_FILTER)
+  {
+    return true;
+  }
+  // (3) The theory does no congruence over the kind of n, e.g. (part x) in the
+  // rules for table.group.
+  if (!d_state->getEqualityEngine()->isFunctionKind(k))
+  {
+    return true;
+  }
+  // Otherwise use n itself, as in
+  //   (= (bag.count x (bag.union_disjoint A B))
+  //      (+ (bag.count x A) (bag.count x B)))
+  // which holds in all contexts. Congruence over bag.count carries it to the
+  // terms equal to n.
+  return false;
+}
+
+Node InferenceGenerator::assertSkolemDefinition(Node n)
 {
   Node skolem = d_sm->mkPurifySkolem(n);
-  Node lemma = n.eqNode(skolem);
-  d_im->addPendingLemma(lemma, InferenceId::BAGS_SKOLEM);
-  Trace("bags-skolems") << "bags-skolems:  " << skolem << " = " << n
-                        << std::endl;
+  // (= skolem n) holds in all contexts, so send it once per user context
+  if (d_state->registerSkolemDefinition(skolem))
+  {
+    Node lemma = n.eqNode(skolem);
+    d_im->addPendingLemma(lemma, InferenceId::BAGS_SKOLEM);
+    Trace("bags-skolems") << "bags-skolems:  " << skolem << " = " << n
+                          << std::endl;
+  }
   return skolem;
+}
+
+Node InferenceGenerator::registerAndAssertSkolemLemma(Node& n)
+{
+  if (!needsPurification(n))
+  {
+    return n;
+  }
+  return assertSkolemDefinition(n);
 }
 
 InferInfo InferenceGenerator::empty(Node n, Node e)

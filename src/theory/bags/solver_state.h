@@ -39,13 +39,21 @@ class SolverState : public TheoryState
   void registerBag(TNode n);
 
   /**
-   * register the pair <element, skolem> with the given bag
+   * register the pair <element, multiplicity> with the given bag
    * @param bag a representative of type (Bag E)
    * @param element a representative of type E
-   * @param skolem an integer variable
-   * @pre (= (bag.count element bag) skolem)
+   * @param multiplicity an integer term with a model value: a constant (2 for
+   * (bag.count x (bag x 2))), a count term in the equality engine, or a skolem
+   * @pre (= (bag.count element bag) multiplicity)
    */
-  void registerCountTerm(Node bag, Node element, Node skolem);
+  void registerCountTerm(Node bag, Node element, Node multiplicity);
+
+  /**
+   * @param k a purification skolem
+   * @return true if the lemma defining k has not been generated yet in the
+   * current user context. Marks it as generated.
+   */
+  bool registerSkolemDefinition(Node k);
 
   /** register a table.group term */
   void registerGroupTerm(Node n);
@@ -156,6 +164,9 @@ class SolverState : public TheoryState
    */
   context::CDHashMap<Node, std::shared_ptr<context::CDHashSet<Node>>>
       d_partElementSkolems;
+
+  /** Purification skolems whose defining lemma has been generated */
+  context::CDHashSet<Node> d_skolemDefinitions;
 
   /**
    * A cache for injective functions
