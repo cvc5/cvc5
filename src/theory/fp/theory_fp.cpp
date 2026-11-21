@@ -385,76 +385,87 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
       RoundingMode rm = rmValue.getConst<RoundingMode>();
       bool sent = false;
 
+      // Build the lemma stating that a literal about the abstraction holds iff
+      // x lies in the set of reals bounded below by b, resp. iff it lies in
+      // the complement of that set if negated is true.
+      //
+      // @param lit The literal about the abstraction.
+      // @param b The lower boundary of the set of reals.
+      // @param negated True if lit corresponds to the complement of the set.
+      // @return The lemma.
+      auto boundLemma = [&](const Node& lit,
+                            const utils::RoundingCellLowerBound& b,
+                            bool negated) {
+        if (b.d_kind != utils::RoundingCellLowerBound::Kind::BOUNDED)
+        {
+          // The set is all of the reals or empty, thus lit holds for every x
+          // or for none.
+          bool holds =
+              (b.d_kind == utils::RoundingCellLowerBound::Kind::ALL) != negated;
+          return holds ? lit : nm->mkNode(Kind::NOT, lit);
+        }
+        Kind kind = negated ? (b.d_strict ? Kind::LEQ : Kind::LT)
+                            : (b.d_strict ? Kind::GT : Kind::GEQ);
+        return nm->mkNode(
+            Kind::EQUAL,
+            {lit, nm->mkNode(kind, concrete[1], nm->mkConstReal(b.d_bound))});
+      };
+
       // For a float constant c and a fixed rounding mode, to_fp(rm, x) >=_fp c
-      // holds iff x is (strictly) above the exact real lower boundary of c's
-      // rounding cell, and dually to_fp(rm, x) <=_fp c holds iff x is
-      // (strictly) below the lower boundary of the cell of nextUp(c). These
-      // cell-boundary equivalences are sound and exclude the whole spurious
-      // rounding cell in one step, which is required for the refinement loop
-      // to converge (the model value of x could otherwise slide from cell to
-      // cell indefinitely).
+      // holds iff x is (strictly) above the exact real lower boundary of the
+      // reals that convert to at least c, i.e., the lower boundary of the
+      // rounding cell of c (see utils::roundingCellLowerBound). Dually,
+      // to_fp(rm, x) <=_fp c holds iff x is (strictly) below the boundary
+      // determined by nextUp(c), since F <=_fp c iff not (F >=_fp nextUp(c))
+      // for non-NaN F. These cell-boundary equivalences are sound and exclude
+      // the whole spurious rounding cell in one step, which is required for
+      // the refinement loop to converge (the model value of x could otherwise
+      // slide from cell to cell indefinitely).
       //
-      // Where the boundary is not available, i.e., if c is an infinity or if
-      // the cell of c is unbounded (c is the largest resp. smallest finite
-      // value of its format), fall back to the monotonicity implication
-      // anchored at a real v that converts to c:
-      //   x >= v  -->  to_fp(rm, x) >=_fp c
-      // and dually for <=. Note that only this direction is valid: rounding
-      // is monotone but not injective, thus to_fp(rm, x) >=_fp to_fp(rm, v)
-      // does not imply x >= v (x slightly below v may round to the same
-      // float). Asserting the equivalence excludes satisfiable regions around
-      // v and makes the solver refutation unsound (see issues #12370,
-      // #12780). Since v is in the cell of c, this implication is the weaker,
-      // model-anchored variant of the cell-boundary equivalence above.
+      // Note that anchoring at the model value instead, i.e., asserting
+      //   x >= v  <->  to_fp(rm, x) >=_fp to_fp(rm, v)
+      // for the model value v of x, is refutation unsound: rounding is
+      // monotone but not injective, thus the right-to-left direction does not
+      // hold (x slightly below v may round to the same float). Such a lemma
+      // excludes satisfiable regions around v (see issues #12370, #12780).
+      // Only its left-to-right direction is valid, and that is implied by the
+      // equivalences above for every real in the cell of c, so no additional
+      // lemmas anchored at the model values are required.
       //
-      // Note that the equivalences also imply the monotonicity implications
-      // for every real in the cell of c, thus no additional lemmas anchored
-      // at the model values are required.
+      // At the extremes of the format the set of reals that convert to at
+      // least c is all of the reals resp. empty, e.g., under a rounding mode
+      // that saturates at maxNormal no real converts to +oo. There the
+      // equivalence degenerates to the FP-side literal resp. its negation,
+      // which are the (sound) overflow and saturation lemmas, e.g.
+      //   rm = RNE  ->  (to_fp(rm, x) >=_fp +oo  <->  x >= 2^128 - 2^103)
+      // for Float32, and
+      //   rm = RTZ  ->  not (to_fp(rm, x) >=_fp +oo).
+      // Without these, the refinement loop cannot converge on any model whose
+      // abstraction value is an infinity: it would walk the cells of the
+      // finite floats one by one (see issue #12371).
       //
       // @param c The float to anchor the lemmas at, must not be NaN.
-      // @param v A real that converts to c, null if there is none.
-      auto sendCellLemmas = [&](const FloatingPoint& c, TNode v) {
+      auto sendCellLemmas = [&](const FloatingPoint& c) {
         Assert(!c.isNaN());
         Node cn = nm->mkConst(c);
-        Node geq = nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, cn);
-        Node leq = nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, cn);
         Node lower, upper;
-        // The cell of c has a finite lower boundary unless c is an infinity or
-        // the smallest finite value of its format.
-        if (!c.isInfinite() && !FloatingPoint::nextDown(c).isInfinite())
+        // Note that a lemma is only informative while c is not at the extreme
+        // of the FP order it is compared against: to_fp(rm, x) >=_fp -oo and
+        // to_fp(rm, x) <=_fp +oo hold for every non-NaN result. The latter is
+        // also where the identity used for the upper bound breaks down, since
+        // nextUp(+oo) is +oo.
+        if (!(c.isInfinite() && c.isNegative()))
         {
-          auto [lb, lstrict] = utils::roundingCellLowerBound(c, rm);
-          lower = nm->mkNode(Kind::EQUAL,
-                             {geq,
-                              nm->mkNode(lstrict ? Kind::GT : Kind::GEQ,
-                                         concrete[1],
-                                         nm->mkConstReal(lb))});
+          lower = boundLemma(nm->mkNode(Kind::FLOATINGPOINT_GEQ, abstract, cn),
+                             utils::roundingCellLowerBound(c, rm),
+                             false);
         }
-        else if (!v.isNull())
+        if (!(c.isInfinite() && c.isPositive()))
         {
-          lower = nm->mkNode(Kind::IMPLIES,
-                             {nm->mkNode(Kind::GEQ, concrete[1], v), geq});
-        }
-        // The cell of c has a finite upper boundary, the lower boundary of the
-        // cell of nextUp(c), unless c is an infinity or the largest finite
-        // value of its format. Note that F <=_fp c iff not (F >=_fp nextUp(c))
-        // for non-NaN F.
-        FloatingPoint s = FloatingPoint::nextUp(c);
-        if (!c.isInfinite() && !s.isInfinite())
-        {
-          // nextDown(s) is c (up to the sign of zero) and thus finite, hence
-          // s being finite is all the preconditions require here
-          auto [ub, sstrict] = utils::roundingCellLowerBound(s, rm);
-          upper = nm->mkNode(Kind::EQUAL,
-                             {leq,
-                              nm->mkNode(sstrict ? Kind::LEQ : Kind::LT,
-                                         concrete[1],
-                                         nm->mkConstReal(ub))});
-        }
-        else if (!v.isNull())
-        {
-          upper = nm->mkNode(Kind::IMPLIES,
-                             {nm->mkNode(Kind::LEQ, concrete[1], v), leq});
+          upper = boundLemma(
+              nm->mkNode(Kind::FLOATINGPOINT_LEQ, abstract, cn),
+              utils::roundingCellLowerBound(FloatingPoint::nextUp(c), rm),
+              true);
         }
         for (const Node& l : {lower, upper})
         {
@@ -470,31 +481,19 @@ bool TheoryFp::refineAbstraction(TheoryModel* m, TNode abstract, TNode concrete)
 
       // Anchor the lemmas at the correct rounding of the model value of x,
       // which the model value of the abstraction disagrees with, ...
-      sendCellLemmas(concreteValue.getConst<FloatingPoint>(), realValue);
-      // ... and at the model value of the abstraction, which converts to
-      // itself unless it is an infinity.
-      const FloatingPoint& av = abstractValue.getConst<FloatingPoint>();
-      Node realValueOfAbstract;
-      if (!av.isInfinite())
-      {
-        realValueOfAbstract =
-            rewrite(nm->mkNode(Kind::FLOATINGPOINT_TO_REAL_TOTAL,
-                               abstractValue,
-                               nm->mkConstReal(Rational(0U))));
-      }
-      sendCellLemmas(av, realValueOfAbstract);
+      sendCellLemmas(concreteValue.getConst<FloatingPoint>());
+      // ... and at the model value of the abstraction.
+      sendCellLemmas(abstractValue.getConst<FloatingPoint>());
 
       if (!sent)
       {
         // All refinement lemmas for these model values were already sent in a
         // previous round. Either the model is inconsistent with the current
         // assertions (cf. the NaN case above), or the lemmas are too weak to
-        // exclude it: unlike in the FLOATINGPOINT_TO_REAL_TOTAL case above,
-        // they are implications rather than equivalences, and they are
-        // formulated in terms of fp.leq/fp.geq and of the rationals the
-        // results denote, all of which identify -zero and +zero (which is why
-        // registerTerm() constrains the sign of the abstraction separately).
-        // Give up on this model rather than accept it.
+        // exclude it: they are formulated in terms of fp.leq/fp.geq and of the
+        // rationals the results denote, all of which identify -zero and +zero
+        // (which is why registerTerm() constrains the sign of the abstraction
+        // separately). Give up on this model rather than accept it.
         Assert(getValuation().isModelUnsound())
             << "model of " << abstract
             << " is not excluded by its refinement lemmas";
