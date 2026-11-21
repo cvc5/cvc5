@@ -13,14 +13,13 @@
 #include "theory/quantifiers/quantifiers_macros.h"
 
 #include "expr/node_algorithm.h"
-#include "expr/skolem_manager.h"
+#include "options/proof_options.h"
 #include "options/quantifiers_options.h"
+#include "proof/proof.h"
+#include "rewriter/basic_rewrite_rcons.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
-#include "theory/quantifiers/quantifiers_registry.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 
 using namespace cvc5::internal::kind;
 
@@ -28,28 +27,37 @@ namespace cvc5::internal {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersMacros::QuantifiersMacros(Env& env, QuantifiersRegistry& qr)
-    : EnvObj(env), d_qreg(qr)
+QuantifiersMacros::QuantifiersMacros(Env& env)
+    : EnvObj(env), d_ppsolves(userContext())
 {
 }
 
 Node QuantifiersMacros::solve(Node lit, bool reqGround)
 {
+  return getMacroDefinition(options(), lit, reqGround);
+}
+
+Node QuantifiersMacros::getMacroDefinition(const Options& opts,
+                                           Node lit,
+                                           bool reqGround)
+{
   Trace("macros-debug") << "QuantifiersMacros::solve " << lit << std::endl;
-  if (lit.getKind() != Kind::FORALL)
+  // Abstracting the arguments of a macro is only sound if they are bound by
+  // this formula. In particular, forall x. P(y) must not define P on all
+  // inputs.
+  if (lit.getKind() != Kind::FORALL || expr::hasFreeVar(lit))
   {
     return Node::null();
   }
   Node body = lit[1];
   bool pol = body.getKind() != Kind::NOT;
   Node n = pol ? body : body[0];
-  NodeManager* nm = nodeManager();
+  NodeManager* nm = lit.getNodeManager();
   if (n.getKind() == Kind::APPLY_UF)
   {
     // predicate case
     if (isBoundVarApplyUf(n))
     {
-      Node op = n.getOperator();
       Node n_def = nm->mkConst(pol);
       Node fdef = solveEq(n, n_def);
       Assert(!fdef.isNull());
@@ -87,9 +95,9 @@ Node QuantifiersMacros::solve(Node lit, bool reqGround)
         Trace("macros-debug")
             << "...does not contain bad (recursive) operator." << std::endl;
         // must be ground UF term if mode is GROUND_UF
-        if (options().quantifiers.macrosQuantMode
+        if (opts.quantifiers.macrosQuantMode
                 != options::MacrosQuantMode::GROUND_UF
-            || preservesTriggerVariables(lit, n_def))
+            || preservesTriggerVariables(opts, lit, n_def))
         {
           Trace("macros-debug")
               << "...respects ground-uf constraint." << std::endl;
@@ -138,18 +146,29 @@ bool QuantifiersMacros::containsBadOp(Node n, Node op, bool reqGround)
   return false;
 }
 
-bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
+bool QuantifiersMacros::preservesTriggerVariables(const Options& opts,
+                                                  Node q,
+                                                  Node n)
 {
   Assert(q.getKind() == Kind::FORALL)
       << "Expected quantified formula, got " << q;
-  Node icn = d_qreg.substituteBoundVariablesToInstConstants(n, q);
+  std::vector<Node> vars(q[0].begin(), q[0].end());
+  std::vector<Node> ics;
+  ics.reserve(vars.size());
+  InstConstantAttribute ica;
+  for (const Node& v : vars)
+  {
+    Node ic = NodeManager::mkInstConstant(v.getType());
+    ic.setAttribute(ica, q);
+    ics.push_back(ic);
+  }
+  Node icn = n.substitute(vars.begin(), vars.end(), ics.begin(), ics.end());
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector<Node> var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector<Node> trigger_var;
-  inst::PatternTermSelector::getTriggerVariables(
-      d_env.getOptions(), icn, q, trigger_var);
+  inst::PatternTermSelector::getTriggerVariables(opts, icn, q, trigger_var);
   Trace("macros-debug2") << "Done." << std::endl;
   // only if all variables are also trigger variables
   return trigger_var.size() >= var.size();
@@ -158,6 +177,11 @@ bool QuantifiersMacros::preservesTriggerVariables(Node q, Node n)
 bool QuantifiersMacros::isBoundVarApplyUf(Node n)
 {
   Assert(n.getKind() == Kind::APPLY_UF);
+  // The function being defined must not depend on the quantified variables.
+  if (expr::hasFreeVar(n.getOperator()))
+  {
+    return false;
+  }
   TypeNode tno = n.getOperator().getType();
   std::map<Node, bool> vars;
   // allow if a vector of unique variables of the same type as UF arguments
@@ -254,21 +278,12 @@ Node QuantifiersMacros::solveInEquality(Node n, Node lit)
 Node QuantifiersMacros::solveEq(Node n, Node ndef)
 {
   Assert(n.getKind() == Kind::APPLY_UF);
-  NodeManager* nm = nodeManager();
+  NodeManager* nm = n.getNodeManager();
   Trace("macros-debug") << "Add macro eq for " << n << std::endl;
   Trace("macros-debug") << "  def: " << ndef << std::endl;
-  std::vector<Node> vars;
-  std::vector<Node> fvars;
-  for (const Node& nc : n)
-  {
-    vars.push_back(nc);
-    Node v = NodeManager::mkBoundVar(nc.getType());
-    fvars.push_back(v);
-  }
+  std::vector<Node> vars(n.begin(), n.end());
   Node fdef =
-      ndef.substitute(vars.begin(), vars.end(), fvars.begin(), fvars.end());
-  fdef =
-      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, fvars), fdef);
+      nm->mkNode(Kind::LAMBDA, nm->mkNode(Kind::BOUND_VAR_LIST, vars), ndef);
   // If the definition has a free variable, it is malformed. This can happen
   // if the right hand side of a macro definition contains a variable not
   // contained in the left hand side
@@ -277,17 +292,58 @@ Node QuantifiersMacros::solveEq(Node n, Node ndef)
     return Node::null();
   }
   TNode op = n.getOperator();
-  TNode fdeft = fdef;
   AssertEqual(op.getType(), fdef.getType());
   return op.eqNode(fdef);
 }
 
-Node QuantifiersMacros::returnMacro(Node fdef, Node lit) const
+Node QuantifiersMacros::returnMacro(Node fdef, Node lit)
 {
   Trace("macros") << "* Inferred macro " << fdef << " from " << lit
                   << std::endl;
   return fdef;
 }
+
+void QuantifiersMacros::notifySolved(const Node& eq, TrustNode tn)
+{
+  d_ppsolves[eq] = tn;
+}
+
+std::shared_ptr<ProofNode> QuantifiersMacros::getProofFor(Node fact)
+{
+  Assert(fact.getKind() == Kind::EQUAL);
+  context::CDHashMap<Node, TrustNode>::iterator it = d_ppsolves.find(fact);
+  if (it == d_ppsolves.end())
+  {
+    DebugUnhandled() << "QuantifiersMacros::getProofFor: Failed to find source "
+                     << "for " << fact;
+    return nullptr;
+  }
+  TrustNode tin = it->second;
+  Node assump = tin.getProven();
+  Assert(assump.getKind() == Kind::FORALL);
+  CDProof cdp(d_env);
+  std::shared_ptr<ProofNode> pfa = tin.toProofNode();
+  cdp.addProof(pfa);
+  Node equiv = assump.eqNode(fact);
+  options::ProofGranularityMode pg = options().proof.proofGranularityMode;
+  if (pg == options::ProofGranularityMode::DSL_REWRITE
+      || pg == options::ProofGranularityMode::DSL_REWRITE_STRICT)
+  {
+    // Explicit THEORY_REWRITE steps are not revisited by DSL reconstruction.
+    // Expand it now so its subgoals can be processed in the final proof.
+    rewriter::BasicRewriteRCons rcons(d_env);
+    rcons.ensureProofForTheoryRewrite(
+        &cdp, ProofRewriteRule::MACRO_QUANT_MACRO_DEF, equiv);
+  }
+  else
+  {
+    cdp.addTheoryRewriteStep(equiv, ProofRewriteRule::MACRO_QUANT_MACRO_DEF);
+  }
+  cdp.addStep(fact, ProofRule::EQ_RESOLVE, {assump, equiv}, {});
+  return cdp.getProofFor(fact);
+}
+
+std::string QuantifiersMacros::identify() const { return "QuantifiersMacros"; }
 
 }  // namespace quantifiers
 }  // namespace theory

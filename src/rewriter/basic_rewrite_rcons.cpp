@@ -230,6 +230,9 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
     case ProofRewriteRule::MACRO_STR_IN_RE_INCLUSION:
       handledMacro = d_strRewElab.ensureProofFor(cdp, id, eq);
       break;
+    case ProofRewriteRule::MACRO_QUANT_MACRO_DEF:
+      handledMacro = ensureProofMacroQuantMacroDef(cdp, eq);
+      break;
     case ProofRewriteRule::MACRO_QUANT_MERGE_PRENEX:
       if (ensureProofMacroQuantMergePrenex(cdp, eq))
       {
@@ -630,6 +633,124 @@ bool BasicRewriteRCons::ensureProofMacroDtConsEq(CDProof* cdp, const Node& eq)
   Node eqa = rhs.eqNode(eq[1]);
   cdp->addStep(eqa, ProofRule::ACI_NORM, {}, {eqa});
   cdp->addStep(eq, ProofRule::TRANS, {res, eqa}, {});
+  return true;
+}
+
+bool BasicRewriteRCons::ensureProofMacroQuantMacroDef(CDProof* cdp,
+                                                      const Node& eq)
+{
+  Trace("brc-macro") << "Expand macro quant definition " << eq << std::endl;
+  NodeManager* nm = nodeManager();
+  Node q = eq[0];
+  Node def = eq[1];
+  Assert(q.getKind() == Kind::FORALL);
+  Assert(def.getKind() == Kind::EQUAL && def[1].getKind() == Kind::LAMBDA);
+  Node lam = def[1];
+  std::vector<Node> args{def[0]};
+  args.insert(args.end(), lam[0].begin(), lam[0].end());
+  Node app = nm->mkNode(Kind::APPLY_UF, args);
+  Node body = app.eqNode(lam[1]);
+
+  // First justify solving the body for the macro application. Arithmetic
+  // equalities may require polynomial normalization, rather than rewriting.
+  Node bodyEq = q[1].eqNode(body);
+  if (q[1] == body)
+  {
+    cdp->addStep(bodyEq, ProofRule::REFL, {}, {body});
+  }
+  else if (app.getType().isBoolean() && q[1].getKind() == Kind::EQUAL
+           && (q[1][0] == app.notNode() || q[1][1] == app.notNode()))
+  {
+    // Use the shared negated equality to relate (~P = Q) and (P = ~Q).
+    // Each half is a Boolean DSL rewrite, possibly with symmetry.
+    Node other = q[1][q[1][0] == app.notNode() ? 1 : 0];
+    Node negEq = app.eqNode(other).notNode();
+    Node eq1 = q[1].eqNode(negEq);
+    Node eq2 = negEq.eqNode(body);
+    cdp->addTrustedStep(
+        eq1, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    cdp->addTrustedStep(
+        eq2, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+    cdp->addStep(bodyEq, ProofRule::TRANS, {eq1, eq2}, {});
+  }
+  else if (!theory::arith::addArithPolyNormRel(*cdp, q[1], body))
+  {
+    cdp->addTrustedStep(
+        bodyEq, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
+  }
+  std::shared_ptr<ProofNode> bodyPf = cdp->getProofFor(bodyEq);
+
+  // Forward direction: instantiate with the original bound variables, then
+  // abstract precisely the arguments of the macro (in application order).
+  // Extra quantified variables need not occur in the macro definition.
+  CDProof forward(d_env);
+  forward.addProof(bodyPf);
+  std::vector<Node> vars(q[0].begin(), q[0].end());
+  forward.addStep(
+      q[1], ProofRule::INSTANTIATE, {q}, {nm->mkNode(Kind::SEXPR, vars)});
+  if (q[1] != body)
+  {
+    forward.addStep(body, ProofRule::EQ_RESOLVE, {q[1], bodyEq}, {});
+  }
+  Node appLam = nm->mkNode(Kind::LAMBDA, lam[0], app);
+  Node lamEq = appLam.eqNode(lam);
+  forward.addStep(lamEq, ProofRule::CONG, {body}, {appLam});
+  forward.addTheoryRewriteStep(appLam.eqNode(def[0]),
+                               ProofRewriteRule::LAMBDA_ELIM);
+  forward.addStep(def, ProofRule::TRANS, {def[0].eqNode(appLam), lamEq}, {});
+  Node impl = nm->mkNode(Kind::IMPLIES, q, def);
+  forward.addStep(impl, ProofRule::SCOPE, {def}, {q});
+  cdp->addProof(forward.getProofFor(impl));
+
+  // Reverse direction: substitute the function definition and beta-reduce to
+  // obtain the solved body. Lift body = true under the original quantifier.
+  CDProof reverse(d_env);
+  reverse.addProof(bodyPf);
+  std::vector<Node> appPremises{def};
+  for (const Node& v : lam[0])
+  {
+    Node refl = v.eqNode(v);
+    reverse.addStep(refl, ProofRule::REFL, {}, {v});
+    appPremises.push_back(refl);
+  }
+  args[0] = lam;
+  Node beta = nm->mkNode(Kind::APPLY_UF, args);
+  Node appEq = app.eqNode(beta);
+  reverse.addStep(appEq,
+                  ProofRule::HO_CONG,
+                  appPremises,
+                  {ProofRuleChecker::mkKindNode(nm, Kind::APPLY_UF)});
+  Node betaEq = beta.eqNode(lam[1]);
+  reverse.addTheoryRewriteStep(betaEq, ProofRewriteRule::BETA_REDUCE);
+  reverse.addStep(body, ProofRule::TRANS, {appEq, betaEq}, {});
+  if (q[1] != body)
+  {
+    reverse.addStep(q[1], ProofRule::EQ_RESOLVE, {body, body.eqNode(q[1])}, {});
+  }
+  Node trueNode = nm->mkConst(true);
+  Node bodyTrue = q[1].eqNode(trueNode);
+  reverse.addStep(bodyTrue, ProofRule::TRUE_INTRO, {q[1]}, {});
+  std::vector<Node> qchildren(q.begin(), q.end());
+  qchildren[1] = trueNode;
+  Node qtrue = nm->mkNode(Kind::FORALL, qchildren);
+  std::vector<Node> premises{bodyTrue};
+  if (q.getNumChildren() == 3)
+  {
+    Node patEq = q[2].eqNode(q[2]);
+    reverse.addStep(patEq, ProofRule::REFL, {}, {q[2]});
+    premises.push_back(patEq);
+  }
+  Node qEq = q.eqNode(qtrue);
+  reverse.addStep(qEq, ProofRule::CONG, premises, {q});
+  Node qtrueEq = qtrue.eqNode(trueNode);
+  reverse.addTheoryRewriteStep(qtrueEq, ProofRewriteRule::QUANT_UNUSED_VARS);
+  Node qTrue = q.eqNode(trueNode);
+  reverse.addStep(qTrue, ProofRule::TRANS, {qEq, qtrueEq}, {});
+  reverse.addStep(q, ProofRule::TRUE_ELIM, {qTrue}, {});
+  Node implRev = nm->mkNode(Kind::IMPLIES, def, q);
+  reverse.addStep(implRev, ProofRule::SCOPE, {q}, {def});
+  cdp->addProof(reverse.getProofFor(implRev));
+  proveDualImplication(cdp, impl, implRev);
   return true;
 }
 
