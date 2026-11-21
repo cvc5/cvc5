@@ -89,6 +89,7 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::RELATION_TCLOSURE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN_IMAGE);
   d_equalityEngine->addFunctionKind(Kind::RELATION_IDEN);
+  d_equalityEngine->addFunctionKind(Kind::RELATION_IS_FUNCTIONAL);
   d_equalityEngine->addFunctionKind(Kind::RELATION_GROUP);
   d_equalityEngine->addFunctionKind(Kind::APPLY_CONSTRUCTOR);
   // higher-order operators that are not eliminated during rewriting
