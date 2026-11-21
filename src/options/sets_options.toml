@@ -32,3 +32,21 @@ name   = "Sets Theory"
   type       = "bool"
   default    = "true"
   help       = "enable the cardinality extension of the theory of sets"
+
+[[option]]
+  name       = "setsToBags"
+  category   = "expert"
+  long       = "sets-to-bags=MODE"
+  type       = "SetsToBagsMode"
+  default    = "NONE"
+  help       = "convert set terms to bag terms during preprocessing"
+  help_mode  = "Modes for converting sets to bags."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not convert sets to bags."
+[[option.mode.SETOF]]
+  name = "setof"
+  help = "Convert each set term to a bag term wrapped in bag.setof, which preserves the semantics of sets."
+[[option.mode.RELAXED]]
+  name = "relaxed"
+  help = "Convert each set term to a bag term without bag.setof (except for set.union), which relaxes the semantics of sets to bags. The answers are for the resulting bag problem."

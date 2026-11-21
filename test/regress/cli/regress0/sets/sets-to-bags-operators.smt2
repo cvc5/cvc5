@@ -1,0 +1,17 @@
+; COMMAND-LINE: --sets-to-bags=setof
+; EXPECT: unsat
+(set-logic ALL)
+(declare-fun A () (Set (Set Int)))
+(declare-fun B () (Set Int))
+(declare-fun C () (Set Int))
+(declare-fun g () (Array Int (Set Int)))
+(define-fun D ((X (Set Int))) (Set Int) (set.inter X (set.insert 1 2 (set.singleton 3))))
+(assert (set.member B A))
+(assert (= (select g 0) B))
+(assert (set.is_singleton B))
+(assert (= (set.choose B) 3))
+(assert (set.subset (set.minus C B) (D C)))
+(assert (not (= (set.minus B C) (as set.empty (Set Int)))))
+(assert (forall ((S (Set Int))) (=> (set.subset S B) (or (set.is_empty S) (= S B)))))
+(assert (not (set.member 3 (set.union (select g 0) C))))
+(check-sat)
