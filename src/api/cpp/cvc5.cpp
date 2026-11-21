@@ -2216,7 +2216,6 @@ bool Op::isIndexed() const
 size_t Op::getNumIndices() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
   return getNumIndicesHelper();
   ////////
@@ -2586,7 +2585,6 @@ bool Term::operator>=(const Term& t) const
 size_t Term::getNumChildren() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
   //////// all checks before this line
 
   // special case for apply kinds
