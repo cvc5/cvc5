@@ -1963,6 +1963,8 @@ set(regress_0_tests
   regress0/quantifiers/issue13111-debug-check-models.smt2
   regress0/quantifiers/issue13161-mbqi-seq-empty.smt2
   regress0/quantifiers/issue13194-dup-tester-pattern.smt2
+  regress0/quantifiers/issue13194-relational-multi-trigger-1.smt2
+  regress0/quantifiers/issue13194-relational-multi-trigger-2.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
