@@ -15,6 +15,7 @@
 #ifdef CVC5_POLY_IMP
 
 #include "expr/node.h"
+#include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
 #include "util/poly_util.h"
 
@@ -88,6 +89,21 @@ cvc5::internal::Node as_cvc_upolynomial(const poly::UPolynomial& p,
   }
   Trace("poly::conversion") << "-> " << res << std::endl;
   return res;
+}
+
+Node as_cvc_coeff_list(const poly::UPolynomial& p, NodeManager* nm)
+{
+  auto coeffs = coefficients(p);
+  while (!coeffs.empty() && is_zero(coeffs.back()))
+  {
+    coeffs.pop_back();
+  }
+  std::vector<Node> res;
+  for (const poly::Integer& c : coeffs)
+  {
+    res.push_back(nm->mkConstReal(poly_utils::toRational(c)));
+  }
+  return nm->mkNode(Kind::SEXPR, res);
 }
 
 poly::UPolynomial as_poly_upolynomial_impl(cvc5::internal::Node n,
@@ -224,7 +240,10 @@ namespace {
  */
 struct CollectMonomialData
 {
-  CollectMonomialData(NodeManager* nm, VariableMapper& v) : d_vm(v), d_nm(nm) {}
+  CollectMonomialData(NodeManager* nm, VariableMapper& v, bool noPow)
+      : d_vm(v), d_nm(nm), d_noPow(noPow)
+  {
+  }
 
   /** Mapper from poly variables to cvc5 variables */
   VariableMapper& d_vm;
@@ -232,6 +251,8 @@ struct CollectMonomialData
   std::vector<Node> d_terms;
   /** Caches the current node manager */
   NodeManager* d_nm;
+  /** Whether x^d is expanded into d factors x instead of using POW */
+  bool d_noPow;
 };
 /**
  * Callback for lp_polynomial_traverse. Assumes data is actually a
@@ -249,7 +270,14 @@ void collect_monomials(CVC5_UNUSED const lp_polynomial_context_t* ctx,
   {
     // variable exponent pair
     Node var = d->d_vm(poly::Variable(m->p[i].x));
-    if (m->p[i].d > 1)
+    if (d->d_noPow)
+    {
+      for (std::size_t j = 0; j < m->p[i].d; ++j)
+      {
+        term = d->d_nm->mkNode(Kind::NONLINEAR_MULT, term, var);
+      }
+    }
+    else if (m->p[i].d > 1)
     {
       Node exp = d->d_nm->mkConstReal(m->p[i].d);
       term = d->d_nm->mkNode(
@@ -264,11 +292,13 @@ void collect_monomials(CVC5_UNUSED const lp_polynomial_context_t* ctx,
 }
 }  // namespace
 
-cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
-                                       const poly::Polynomial& p,
-                                       VariableMapper& vm)
+namespace {
+cvc5::internal::Node as_cvc_polynomial_impl(NodeManager* nm,
+                                            const poly::Polynomial& p,
+                                            VariableMapper& vm,
+                                            bool noPow)
 {
-  CollectMonomialData cmd(nm, vm);
+  CollectMonomialData cmd(nm, vm, noPow);
   // Do the actual conversion
   lp_polynomial_traverse(p.get_internal(), collect_monomials, &cmd);
 
@@ -281,6 +311,21 @@ cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
     return cmd.d_terms.front();
   }
   return cmd.d_nm->mkNode(Kind::ADD, cmd.d_terms);
+}
+}  // namespace
+
+cvc5::internal::Node as_cvc_polynomial(NodeManager* nm,
+                                       const poly::Polynomial& p,
+                                       VariableMapper& vm)
+{
+  return as_cvc_polynomial_impl(nm, p, vm, false);
+}
+
+cvc5::internal::Node as_cvc_polynomial_no_pow(NodeManager* nm,
+                                              const poly::Polynomial& p,
+                                              VariableMapper& vm)
+{
+  return as_cvc_polynomial_impl(nm, p, vm, true);
 }
 
 poly::SignCondition normalize_kind(cvc5::internal::Kind kind,
@@ -398,11 +443,17 @@ Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable)
 
 Node value_to_node(const poly::Value& v, const Node& ran_variable)
 {
-  Assert(!is_minus_infinity(v)) << "Can not convert minus infinity.";
   Assert(!is_none(v)) << "Can not convert none.";
-  Assert(!is_plus_infinity(v)) << "Can not convert plus infinity.";
 
   auto* nm = ran_variable.getNodeManager();
+  if (is_minus_infinity(v))
+  {
+    return mkMinusInfinity(nm);
+  }
+  if (is_plus_infinity(v))
+  {
+    return mkPlusInfinity(nm);
+  }
   if (is_algebraic_number(v))
   {
     auto ran = as_algebraic_number(v);
@@ -422,6 +473,62 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable)
   }
   DebugUnhandled() << "All cases should be covered.";
   return nm->mkConstReal(Rational(0));
+}
+
+std::vector<std::pair<poly::UPolynomial, poly::UPolynomial>> enhancedRemSeq(
+    const std::vector<poly::UPolynomial>& seq)
+{
+  std::vector<std::pair<poly::UPolynomial, poly::UPolynomial>> res;
+  for (std::size_t i = 0; i < seq.size(); ++i)
+  {
+    poly::UPolynomial q;
+    if (i >= 2 && poly::degree(seq[i - 2]) >= poly::degree(seq[i - 1]))
+    {
+      q = poly::div_rem_pseudo(seq[i - 2], seq[i - 1]).first;
+    }
+    res.emplace_back(q, seq[i]);
+  }
+  // the division that ends the sequence: its last element divides the one
+  // before it, so the remainder is zero
+  std::size_t n = seq.size();
+  if (n >= 2)
+  {
+    Assert(poly::degree(seq[n - 2]) >= poly::degree(seq[n - 1]));
+    auto [q, r] = poly::div_rem_pseudo(seq[n - 2], seq[n - 1]);
+    Assert(is_zero(r));
+    res.emplace_back(q, poly::UPolynomial());
+  }
+  return res;
+}
+
+Node as_cvc_remainder_sequence(const std::vector<poly::UPolynomial>& seq,
+                               const Node& var)
+{
+  NodeManager* nm = var.getNodeManager();
+  std::vector<Node> pairs;
+  for (const auto& [quot, rem] : enhancedRemSeq(seq))
+  {
+    pairs.push_back(
+        nm->mkNode(Kind::SEXPR,
+                   {as_cvc_coeff_list(quot, nm), as_cvc_coeff_list(rem, nm)}));
+  }
+  return nm->mkNode(Kind::SEXPR, pairs);
+}
+
+Node value_to_node_no_integer(const poly::Value& v, const Node& ran_variable)
+{
+  Node res = value_to_node(v, ran_variable);
+  if (res.getKind() == Kind::CONST_INTEGER)
+  {
+    res = ran_variable.getNodeManager()->mkConstReal(res.getConst<Rational>());
+  }
+  if (res.getKind() == Kind::REAL_ALGEBRAIC_NUMBER)
+  {
+    res = PolyConverter::ran_to_sturm_witness(
+        res.getOperator().getConst<RealAlgebraicNumber>(), ran_variable);
+    Assert(!res.isNull());
+  }
+  return res;
 }
 
 Node lower_bound_as_node(const Node& var,
@@ -836,6 +943,21 @@ Node PolyConverter::ran_to_defining_polynomial(const RealAlgebraicNumber& ran,
   return Node::null();
 }
 
+Node PolyConverter::ran_to_sturm_witness(const RealAlgebraicNumber& ran,
+                                         const Node& ran_variable)
+{
+  if (ran.d_isRational)
+  {
+    return Node::null();
+  }
+  NodeManager* nm = ran_variable.getNodeManager();
+  Node op = nm->mkConst(Kind::REAL_ALGEBRAIC_NUMBER_WITNESS_OP, ran);
+  Node sturm = theory::arith::nl::as_cvc_remainder_sequence(
+      poly::sturm_sequence(get_defining_polynomial(ran.getValue())),
+      ran_variable);
+  return nm->mkNode(Kind::REAL_ALGEBRAIC_NUMBER_WITNESS, op, sturm);
+}
+
 Node PolyConverter::ran_to_lower(NodeManager* nm,
                                  const RealAlgebraicNumber& ran)
 {
@@ -868,6 +990,13 @@ Node PolyConverter::ran_to_upper(NodeManager* nm,
   }
   Assert(witness.isConst());
   return witness;
+}
+
+Node PolyConverter::ran_to_coeffs(NodeManager* nm,
+                                  const RealAlgebraicNumber& ran)
+{
+  return theory::arith::nl::as_cvc_coeff_list(
+      get_defining_polynomial(ran.getValue()), nm);
 }
 
 RealAlgebraicNumber PolyConverter::node_to_ran(const Node& n,

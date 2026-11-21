@@ -288,6 +288,43 @@ inline Node mkPi(NodeManager* nm)
 {
   return nm->mkNullaryOperator(nm->realType(), Kind::PI);
 }
+
+/**
+ * The -infinity marker used as a bound argument of SGN_INV in univariate
+ * coverings proofs. Note that nullary operators must be built via
+ * mkNullaryOperator, which attaches the type; mkNode cannot construct them.
+ */
+inline Node mkMinusInfinity(NodeManager* nm)
+{
+  return nm->mkNullaryOperator(nm->realType(), Kind::MINUS_INFINITY);
+}
+
+/** The +infinity marker used as a bound argument of SGN_INV. */
+inline Node mkPlusInfinity(NodeManager* nm)
+{
+  return nm->mkNullaryOperator(nm->realType(), Kind::PLUS_INFINITY);
+}
+
+inline Node mkSgnInv(NodeManager* nm, Node p, Node lo, Node hi)
+{
+  return nm->mkNode(Kind::SGN_INV, p, lo, hi);
+}
+
+inline Node mkIsRoot(NodeManager* nm, Node p, Node r)
+{
+  return nm->mkNode(Kind::IS_ROOT, p, r);
+}
+
+/**
+ * The COVER disjunct of an open piece (l, r): the conjunction of x > l and
+ * x < r, omitting conjuncts that mention an infinite endpoint. Returns the
+ * null node for (-inf, +inf), whose disjunct would be trivially true.
+ */
+Node mkOpenPiece(NodeManager* nm,
+                 const Node& var,
+                 const Node& lower,
+                 const Node& upper);
+
 /** Join kinds, where k1 and k2 are arithmetic relations returns an
  * arithmetic relation ret such that
  * if (a <k1> b) and (a <k2> b), then (a <ret> b).

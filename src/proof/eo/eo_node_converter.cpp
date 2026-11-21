@@ -24,6 +24,7 @@
 #include "expr/sequence.h"
 #include "expr/sort_to_term.h"
 #include "printer/smt2/smt2_printer.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
@@ -252,6 +253,19 @@ Node EoNodeConverter::postConvert(Node n)
     newArgs.insert(newArgs.end(), n.begin(), n.end());
     return mkInternalApp("@indexed_root_predicate", newArgs, tn);
   }
+  else if (k == Kind::REAL_ALGEBRAIC_NUMBER_WITNESS)
+  {
+#ifdef CVC5_POLY_IMP
+    const RealAlgebraicNumber& ran =
+        n.getOperator().getConst<RealAlgebraicNumber>();
+    Node coeffs = PolyConverter::ran_to_coeffs(d_nm, ran);
+    std::vector<Node> cs(coeffs.begin(), coeffs.end());
+    Node poly = mkInternalApp("@list", cs, coeffs.getType());
+    Node lo = PolyConverter::ran_to_lower(d_nm, ran);
+    Node hi = PolyConverter::ran_to_upper(d_nm, ran);
+    return mkInternalApp("@ran", {poly, lo, hi, n[0]}, n.getType());
+#endif
+  }
   else if (k == Kind::FLOATINGPOINT_COMPONENT_NAN
            || k == Kind::FLOATINGPOINT_COMPONENT_INF
            || k == Kind::FLOATINGPOINT_COMPONENT_ZERO
@@ -269,6 +283,10 @@ Node EoNodeConverter::postConvert(Node n)
   else if (k == Kind::SEXPR || k == Kind::BOUND_VAR_LIST)
   {
     TypeNode tn = n.getType();
+    if (n.getNumChildren() == 0)
+    {
+      return mkInternalSymbol("@list.nil", tn);
+    }
     // use generic list
     std::vector<Node> args;
     args.insert(args.end(), n.begin(), n.end());

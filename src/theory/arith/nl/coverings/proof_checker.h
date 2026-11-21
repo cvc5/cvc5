@@ -17,6 +17,7 @@
 
 #include "expr/node.h"
 #include "proof/proof_checker.h"
+#include "proof/proof_node.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -44,6 +45,13 @@ class CoveringsProofRuleChecker : public ProofRuleChecker
   Node checkInternal(ProofRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
+
+ private:
+  Node checkSgnInvIntro(const std::vector<Node>& args);
+  Node checkIsRootIntro(const std::vector<Node>& args);
+  Node checkSgnInvElim(const std::vector<Node>& args);
+  Node checkRanEval(const std::vector<Node>& args);
+  Node checkCover(const std::vector<Node>& args);
 };
 
 }  // namespace coverings
