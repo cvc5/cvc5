@@ -259,6 +259,25 @@ class BagsRewriter : public TheoryRewriter
    *  where K(x) is ((_ tuple.project K) x)
    */
   BagsRewriteResponse postRewriteAggregate(const TNode& n) const;
+  /** An element of a bag: the bag has d_count copies of d_element if d_cond. */
+  struct GuardedElement
+  {
+    Node d_cond;
+    Node d_element;
+    uint32_t d_count;
+  };
+  /**
+   * Collects the elements of A, if A is built from bag.empty, ite,
+   * bag.union_disjoint and (bag x c) with c a constant. Each element comes with
+   * the condition under which A has it: cond and the conditions of the ite
+   * terms above it. For example,
+   *   (bag.union_disjoint (bag x 1) (ite c (bag y 2) (as bag.empty (Bag T))))
+   * has one x under true and two y under c. Returns false if A has another
+   * form.
+   */
+  bool collectElements(TNode A,
+                       Node cond,
+                       std::vector<GuardedElement>& elements) const;
   /**
    *  rewrites for n include:
    *  - (bag.product A (as bag.empty T2)) = (as bag.empty T)

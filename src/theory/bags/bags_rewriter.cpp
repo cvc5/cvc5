@@ -708,28 +708,9 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
-namespace {
-
-/** An element of a bag: the bag has d_count copies of d_element if d_cond. */
-struct GuardedElement
-{
-  Node d_cond;
-  Node d_element;
-  uint32_t d_count;
-};
-
-/**
- * Collects the elements of A, if A is built from bag.empty, ite,
- * bag.union_disjoint and (bag x c) with c a constant. Each element comes with
- * the condition under which A has it: cond and the conditions of the ite terms
- * above it. For example,
- *   (bag.union_disjoint (bag x 1) (ite c (bag y 2) (as bag.empty (Bag T))))
- * has one x under true and two y under c. Returns false if A has another form.
- */
-bool collectElements(NodeManager* nm,
-                     TNode A,
-                     Node cond,
-                     std::vector<GuardedElement>& elements)
+bool BagsRewriter::collectElements(TNode A,
+                                   Node cond,
+                                   std::vector<GuardedElement>& elements) const
 {
   switch (A.getKind())
   {
@@ -754,20 +735,16 @@ bool collectElements(NodeManager* nm,
       return true;
     }
     case Kind::BAG_UNION_DISJOINT:
-      return collectElements(nm, A[0], cond, elements)
-             && collectElements(nm, A[1], cond, elements);
+      return collectElements(A[0], cond, elements)
+             && collectElements(A[1], cond, elements);
     case Kind::ITE:
       return collectElements(
-                 nm, A[1], nm->mkNode(Kind::AND, cond, A[0]), elements)
-             && collectElements(nm,
-                                A[2],
-                                nm->mkNode(Kind::AND, cond, A[0].notNode()),
-                                elements);
+                 A[1], d_nm->mkNode(Kind::AND, cond, A[0]), elements)
+             && collectElements(
+                 A[2], d_nm->mkNode(Kind::AND, cond, A[0].notNode()), elements);
     default: return false;
   }
 }
-
-}  // namespace
 
 BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
 {
@@ -796,7 +773,7 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
   // folds the elements of a union in one order. An element with c copies is
   // folded c times.
   std::vector<GuardedElement> elements;
-  if (!collectElements(d_nm, n[2], d_nm->mkConst(true), elements))
+  if (!collectElements(n[2], d_nm->mkConst(true), elements))
   {
     return BagsRewriteResponse(n, Rewrite::NONE);
   }
