@@ -82,7 +82,7 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
   ElimShadowNodeConverter esnc(nm, q);
   // eliminate shadowing in all children
   std::vector<Node> children;
-  // drop duplicate variables
+  // rename duplicate variables
   std::vector<Node> vars;
   bool childChanged = false;
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
@@ -94,9 +94,9 @@ Node ElimShadowNodeConverter::eliminateShadow(const Node& q)
     }
     else
     {
-      // should not eliminate shadowing from lambda, since order of variables
-      // matters.
-      Assert(q.getKind() != Kind::LAMBDA);
+      // Rename rather than drop, which for lambdas preserves the arity and
+      // argument order. The first occurrence of a variable is the one that
+      // binds it in the body.
       Node vn = getElimShadowVar(q, q, i);
       vars.push_back(vn);
       childChanged = true;

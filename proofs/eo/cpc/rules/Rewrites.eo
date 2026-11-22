@@ -1959,6 +1959,16 @@
   :conclusion (= (set.minus x1 x1) (as set.empty (Set @T0)))
 )
 
+(declare-rule sets-union-self ((@T0 Type) (x1 (Set @T0)))
+  :args (x1)
+  :conclusion (= (set.union x1 x1) x1)
+)
+
+(declare-rule sets-inter-self ((@T0 Type) (x1 (Set @T0)))
+  :args (x1)
+  :conclusion (= (set.inter x1 x1) x1)
+)
+
 (declare-rule sets-is-empty-elim ((@T0 Type) (x1 (Set @T0)))
   :args (x1 (Set @T0))
   :conclusion (= (set.is_empty x1) (= x1 (as set.empty (Set @T0))))

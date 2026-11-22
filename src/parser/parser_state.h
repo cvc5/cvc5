@@ -595,6 +595,12 @@ class CVC5_EXPORT ParserState
 }; /* class Parser */
 
 /**
+ * @param str The string to check.
+ * @return true if str is a non-empty sequence of decimal digits.
+ */
+bool isNumeral(const std::string& str);
+
+/**
  * Parse a non-negative numeral that must fit in uint32_t.
  * @param str The string to parse.
  * @param result The result of parsing str to a uint32_t if successful.

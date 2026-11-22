@@ -21,11 +21,40 @@ cvc5 1.5.0 prerelease
   builds raise a logic exception.
 
 - **API**
+  * Removed all previously deprecated API functions.
+    **Note**: this is a breaking change.
+    - **C++**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars (`Solver::getBooleanSort()`,
+      `Solver::mkTerm()`, `Solver::mkConst()`, `Solver::mkGrammar()`, ...),
+      use the corresponding `TermManager` functions instead; constructor
+      `Solver::Solver()`, use `Solver::Solver(TermManager&)`; constructor
+      `parser::SymbolManager(Solver*)`, use
+      `parser::SymbolManager(TermManager&)`; `std::wstring
+      Term::getStringValue()` and `TermManager::mkString(const std::wstring&)`,
+      use `Term::getU32StringValue()` and
+      `TermManager::mkString(const std::u32string&)`; `kindToString()` and
+      `sortKindToString()`, use `std::to_string()`; fields
+      `OptionInfo::isExpert` and `OptionInfo::isRegular`, use
+      `OptionInfo::category`.
+    - **C**: `cvc5_term_get_string_value()`, use
+      `cvc5_term_get_u32string_value()`; `cvc5_mk_string_from_wchar()`, use
+      `cvc5_mk_string_from_char32()`; fields `Cvc5OptionInfo::is_expert` and
+      `Cvc5OptionInfo::is_regular`, use `Cvc5OptionInfo::category`.
+    - **Java**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars, use the corresponding `TermManager`
+      functions instead; constructor `Solver()`, use `Solver(TermManager)`;
+      constructor `SymbolManager(Solver)`, use `SymbolManager(TermManager)`.
+    - **Python**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars, use the corresponding `TermManager`
+      functions instead, including `Solver.mkSkolem()` and
+      `Solver.getNumIndicesForSkolemId()`; constructing a `SymbolManager` from
+      a `Solver`, use `SymbolManager(TermManager)`. A `Solver` must now be
+      constructed from a `TermManager` (`Solver(tm)`); `Solver()` no longer
+      implicitly creates a new term manager.
   * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
     (Java, Python) for creating SyGuS grammars. A grammar is associated with
     a term manager, not with a solver, and can be used with any solver
-    instance that uses this term manager. `Solver::mkGrammar()` is deprecated
-    and will be removed in a future release.
+    instance that uses this term manager.
   * **C API**: `cvc5_mk_grammar()` now takes a term manager
     (`Cvc5TermManager*`) instead of a solver instance (`Cvc5*`). Grammars are
     now managed by the term manager, like sorts and terms: they are no longer
@@ -91,6 +120,10 @@ cvc5 1.5.0 prerelease
   (`cmake/deps-utils/symfpu-*.patch`). A system-wide SymFPU is only used if
   it includes these patches.
 
+- **Coverings**: fix a bug on `makeFinestSquareFreeBasis`. In certain cases
+  this function was returning a set of polynomials that are not pairwise
+  coprime, which led to wrong answers by the coverings solver. We fix this
+  on PR #13184.
 
 cvc5 1.4.2
 ==========

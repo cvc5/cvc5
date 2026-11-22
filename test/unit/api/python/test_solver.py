@@ -32,7 +32,7 @@ def solver(tm):
 
 def test_recoverable_exception(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x).notTerm())
     with pytest.raises(RuntimeError):
         c = solver.getValue(x)
@@ -171,7 +171,7 @@ def test_define_fun(tm, solver):
 
 
 def test_define_fun_global(tm, solver):
-    bSort = solver.getBooleanSort()
+    bSort = tm.getBooleanSort()
 
     bTrue = tm.mkBoolean(True)
     # (define-fun f () Bool true)
@@ -509,43 +509,43 @@ def test_get_option_info(solver):
     assert info['modes'] == ['batch', 'none']
 
 
-def test_get_unsat_assumptions1(solver):
+def test_get_unsat_assumptions1(tm, solver):
     solver.setOption("incremental", "false")
-    solver.checkSatAssuming(solver.mkFalse())
+    solver.checkSatAssuming(tm.mkFalse())
     with pytest.raises(RuntimeError):
         solver.getUnsatAssumptions()
 
 
-def test_get_unsat_assumptions2(solver):
+def test_get_unsat_assumptions2(tm, solver):
     solver.setOption("incremental", "true")
     solver.setOption("produce-unsat-assumptions", "false")
-    solver.checkSatAssuming(solver.mkFalse())
+    solver.checkSatAssuming(tm.mkFalse())
     with pytest.raises(RuntimeError):
         solver.getUnsatAssumptions()
 
 
-def test_get_unsat_assumptions3(solver):
+def test_get_unsat_assumptions3(tm, solver):
     solver.setOption("incremental", "true")
     solver.setOption("produce-unsat-assumptions", "true")
-    solver.checkSatAssuming(solver.mkFalse())
+    solver.checkSatAssuming(tm.mkFalse())
     solver.getUnsatAssumptions()
-    solver.checkSatAssuming(solver.mkTrue())
+    solver.checkSatAssuming(tm.mkTrue())
     with pytest.raises(RuntimeError):
         solver.getUnsatAssumptions()
 
 
-def test_get_unsat_core1(solver):
+def test_get_unsat_core1(tm, solver):
     solver.setOption("incremental", "false")
-    solver.assertFormula(solver.mkFalse())
+    solver.assertFormula(tm.mkFalse())
     solver.checkSat()
     with pytest.raises(RuntimeError):
         solver.getUnsatCore()
 
 
-def test_get_unsat_core2(solver):
+def test_get_unsat_core2(tm, solver):
     solver.setOption("incremental", "false")
     solver.setOption("produce-unsat-cores", "false")
-    solver.assertFormula(solver.mkFalse())
+    solver.assertFormula(tm.mkFalse())
     solver.checkSat()
     with pytest.raises(RuntimeError):
         solver.getUnsatCore()
@@ -556,26 +556,26 @@ def test_get_unsat_core_and_proof(tm, solver):
     solver.setOption("produce-unsat-cores", "true")
     solver.setOption("produce-proofs", "true");
 
-    uSort = solver.mkUninterpretedSort("u")
+    uSort = tm.mkUninterpretedSort("u")
     intSort = tm.getIntegerSort()
-    boolSort = solver.getBooleanSort()
-    uToIntSort = solver.mkFunctionSort(uSort, intSort)
-    intPredSort = solver.mkFunctionSort(intSort, boolSort)
+    boolSort = tm.getBooleanSort()
+    uToIntSort = tm.mkFunctionSort(uSort, intSort)
+    intPredSort = tm.mkFunctionSort(intSort, boolSort)
 
-    x = solver.mkConst(uSort, "x")
-    y = solver.mkConst(uSort, "y")
-    f = solver.mkConst(uToIntSort, "f")
-    p = solver.mkConst(intPredSort, "p")
-    zero = solver.mkInteger(0)
-    one = solver.mkInteger(1)
-    f_x = solver.mkTerm(Kind.APPLY_UF, f, x)
-    f_y = solver.mkTerm(Kind.APPLY_UF, f, y)
-    summ = solver.mkTerm(Kind.ADD, f_x, f_y)
-    p_0 = solver.mkTerm(Kind.APPLY_UF, p, zero)
-    p_f_y = solver.mkTerm(Kind.APPLY_UF, p, f_y)
-    solver.assertFormula(solver.mkTerm(Kind.GT, zero, f_x))
-    solver.assertFormula(solver.mkTerm(Kind.GT, zero, f_y))
-    solver.assertFormula(solver.mkTerm(Kind.GT, summ, one))
+    x = tm.mkConst(uSort, "x")
+    y = tm.mkConst(uSort, "y")
+    f = tm.mkConst(uToIntSort, "f")
+    p = tm.mkConst(intPredSort, "p")
+    zero = tm.mkInteger(0)
+    one = tm.mkInteger(1)
+    f_x = tm.mkTerm(Kind.APPLY_UF, f, x)
+    f_y = tm.mkTerm(Kind.APPLY_UF, f, y)
+    summ = tm.mkTerm(Kind.ADD, f_x, f_y)
+    p_0 = tm.mkTerm(Kind.APPLY_UF, p, zero)
+    p_f_y = tm.mkTerm(Kind.APPLY_UF, p, f_y)
+    solver.assertFormula(tm.mkTerm(Kind.GT, zero, f_x))
+    solver.assertFormula(tm.mkTerm(Kind.GT, zero, f_y))
+    solver.assertFormula(tm.mkTerm(Kind.GT, summ, one))
     solver.assertFormula(p_0)
     solver.assertFormula(p_f_y.notTerm())
     assert solver.checkSat().isUnsat()
@@ -969,7 +969,7 @@ def test_pop3(solver):
         solver.pop(1)
 
 def test_block_model1(tm, solver):
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -977,21 +977,21 @@ def test_block_model1(tm, solver):
 
 def test_block_model2(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     with pytest.raises(RuntimeError):
         solver.blockModel(BlockModelsMode.LITERALS)
 
 def test_block_model3(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x");
+    x = tm.mkConst(tm.getBooleanSort(), "x");
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModel(BlockModelsMode.LITERALS)
 
 def test_block_model_values1(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x");
+    x = tm.mkConst(tm.getBooleanSort(), "x");
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -1007,13 +1007,13 @@ def test_block_model_values1(tm, solver):
 
 def test_block_model_values2(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModelValues([x])
 
 def test_block_model_values3(tm, solver):
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -1021,21 +1021,21 @@ def test_block_model_values3(tm, solver):
 
 def test_block_model_values4(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     with pytest.raises(RuntimeError):
         solver.blockModelValues([x])
 
 def test_block_model_values5(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModelValues([x])
 
 def test_get_instantiations(tm, solver):
     iSort = tm.getIntegerSort()
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     p = solver.declareFun("p", [iSort], boolSort)
     x = tm.mkVar(iSort, "x")
     bvl = tm.mkTerm(Kind.VARIABLE_LIST, x)
@@ -1252,7 +1252,7 @@ def test_check_sat_assuming2(tm, solver):
 
     uSort = tm.mkUninterpretedSort("u")
     intSort = tm.getIntegerSort()
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     uToIntSort = tm.mkFunctionSort(uSort, intSort)
     intPredSort = tm.mkFunctionSort(intSort, boolSort)
 
@@ -1355,38 +1355,6 @@ def test_declare_sygus_var(tm, solver):
         slv.declareSygusVar("", boolSort)
 
 
-def test_mk_sygus_grammar(tm, solver):
-    boolTerm = tm.mkBoolean(True)
-    boolVar = tm.mkVar(solver.getBooleanSort())
-    intVar = tm.mkVar(tm.getIntegerSort())
-
-    solver.mkGrammar([], [intVar])
-    solver.mkGrammar([boolVar], [intVar])
-    with pytest.raises(RuntimeError):
-        solver.mkGrammar([], [])
-    with pytest.raises(RuntimeError):
-        solver.mkGrammar([], [boolTerm])
-    with pytest.raises(RuntimeError):
-        solver.mkGrammar([boolTerm], [intVar])
-    slv = Solver(tm)
-    boolVar2 = tm.mkVar(tm.getBooleanSort())
-    intVar2 = tm.mkVar(tm.getIntegerSort())
-    slv.mkGrammar([boolVar2], [intVar2])
-    slv.mkGrammar([boolVar], [intVar2])
-    slv.mkGrammar([boolVar2], [intVar])
-
-    ttm = TermManager()
-    slv = Solver(ttm)
-    slv.setOption("sygus", "true")
-    boolVar2 = ttm.mkVar(ttm.getBooleanSort())
-    intVar2 = ttm.mkVar(ttm.getIntegerSort())
-    slv.mkGrammar([boolVar2], [intVar2])
-    with pytest.raises(RuntimeError):
-        slv.mkGrammar([boolVar], [intVar2])
-    with pytest.raises(RuntimeError):
-        slv.mkGrammar([boolVar2], [intVar])
-
-
 def test_add_sygus_constraint(tm, solver):
     solver.setOption("sygus", "true")
     boolTerm = tm.mkBoolean(True)
@@ -1447,8 +1415,8 @@ def test_get_sygus_assumptions(tm, solver):
 
 def test_add_sygus_inv_constraint(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
-    real = solver.getRealSort()
+    boolean = tm.getBooleanSort()
+    real = tm.getRealSort()
 
     intTerm = tm.mkInteger(1)
 
@@ -1533,7 +1501,7 @@ def test_get_synth_solution(tm, solver):
     solver.setOption("incremental", "false")
 
     x = tm.mkBoolean(False)
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     with pytest.raises(RuntimeError):
         solver.getSynthSolution(f)
@@ -1552,10 +1520,10 @@ def test_get_synth_solution(tm, solver):
         slv.getSynthSolution(f)
 
 
-def test_check_synth_next(solver):
+def test_check_synth_next(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     res = solver.checkSynth()
     assert res.hasSolution()
@@ -1566,34 +1534,34 @@ def test_check_synth_next(solver):
     solver.getSynthSolutions([f])
 
 
-def test_check_synth_next2(solver):
+def test_check_synth_next2(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     solver.checkSynth()
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
 
 
-def test_check_synth_next3(solver):
+def test_check_synth_next3(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
 
 
 def test_find_synth(tm, solver):
     solver.setOption("sygus", "true")
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     start = tm.mkVar(boolSort)
     g = tm.mkGrammar([], [start])
     truen = tm.mkBoolean(True)
     falsen = tm.mkBoolean(False)
     g.addRule(start, truen)
     g.addRule(start, falsen)
-    f = solver.synthFun("f", [], solver.getBooleanSort(), g)
+    f = solver.synthFun("f", [], tm.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
     t = solver.findSynth(FindSynthTarget.ENUM)
@@ -1603,7 +1571,7 @@ def test_find_synth(tm, solver):
 def test_find_synth2(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     start = tm.mkVar(boolSort)
     g = tm.mkGrammar([], [start])
     truen = tm.mkBoolean(True)
@@ -1633,7 +1601,7 @@ def test_get_abduct(tm, solver):
     output = solver.getAbduct(conj)
     assert not output.isNull() and output.getSort().isBoolean()
 
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
     truen = tm.mkBoolean(True)
     start = tm.mkVar(boolean)
     g = tm.mkGrammar([], [start])
@@ -1715,7 +1683,7 @@ def test_get_interpolant(tm, solver):
     output = solver.getInterpolant(conj)
     assert output.getSort().isBoolean()
 
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
     truen = tm.mkBoolean(True)
     start = tm.mkVar(boolean)
     g = tm.mkGrammar([], [start])
@@ -1847,7 +1815,7 @@ def test_get_synth_solutions(tm, solver):
     solver.setOption("incremental", "false")
 
     x = tm.mkBoolean(False)
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     with pytest.raises(RuntimeError):
         solver.getSynthSolutions([])
@@ -2041,7 +2009,7 @@ def test_issue5893(tm):
 def test_issue7000(tm, solver):
     s1 = tm.getIntegerSort()
     s2 = tm.mkFunctionSort(s1, s1)
-    s3 = solver.getRealSort()
+    s3 = tm.getRealSort()
     t4 = tm.mkPi()
     t7 = tm.mkConst(s3, "_x5")
     t37 = tm.mkConst(s2, "_x32")
@@ -2056,7 +2024,7 @@ def test_issue7000(tm, solver):
 
 def test_mk_sygus_var(tm, solver):
     solver.setOption("sygus", "true")
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     intSort = tm.getIntegerSort()
     funSort = tm.mkFunctionSort(intSort, boolSort)
 
@@ -2070,7 +2038,7 @@ def test_mk_sygus_var(tm, solver):
 
 def test_synth_fun(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
     integer = tm.getIntegerSort()
 
     x = tm.mkVar(boolean)
@@ -2183,7 +2151,7 @@ def test_get_unsat_core_lemmas2(tm, solver):
   solver.setOption("unsat-cores-mode", "sat-proof")
   uSort = tm.mkUninterpretedSort("u")
   intSort = tm.getIntegerSort()
-  boolSort = solver.getBooleanSort()
+  boolSort = tm.getBooleanSort()
   uToIntSort = tm.mkFunctionSort(uSort, intSort)
   intPredSort = tm.mkFunctionSort(intSort, boolSort)
 
@@ -2273,7 +2241,7 @@ def test_get_option_names(solver):
     assert "foobar" not in names
 
 def test_get_quantifier_elimination(tm, solver):
-    x = tm.mkVar(solver.getBooleanSort(), "x")
+    x = tm.mkVar(tm.getBooleanSort(), "x")
     forall = tm.mkTerm(
             Kind.FORALL,
             tm.mkTerm(Kind.VARIABLE_LIST, x),
@@ -2296,7 +2264,7 @@ def test_get_quantifier_elimination(tm, solver):
 
 
 def test_get_quantifier_elimination_disjunct(tm, solver):
-    x = tm.mkVar(solver.getBooleanSort(), "x")
+    x = tm.mkVar(tm.getBooleanSort(), "x")
     forall = tm.mkTerm(
             Kind.FORALL,
             tm.mkTerm(Kind.VARIABLE_LIST, x),

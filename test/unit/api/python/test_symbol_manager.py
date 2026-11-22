@@ -22,7 +22,8 @@ def solver(tm):
 
 def test_constructor(tm, solver):
     SymbolManager(tm)
-    SymbolManager(solver) # deprecated
+    with pytest.raises(TypeError):
+        SymbolManager(solver)
 
 def parse_command(solver, sm, cmd):
     parser = InputParser(solver, sm)

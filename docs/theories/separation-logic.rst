@@ -69,24 +69,25 @@ This command must be executed when the solver is in its Start mode (see page 52 
 
 The syntax for the operators of separation logic is summarized in the following
 table. For the C++ API examples in this table, we assume that we have created
-a :cpp:class:`cvc5::Solver` object.
+a :cpp:class:`TermManager <cvc5::TermManager>` object ``tm`` and a
+:cpp:class:`Solver <cvc5::Solver>` object ``solver`` constructed from it.
 
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                            |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 | Logic String         | ``(set-logic QF_ALL)``                       | ``solver.setLogic("QF_ALL");``                                     |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Empty Heap           | ``sep.emp``                                  | ``solver.mkSepEmp();``                                             |
+| Empty Heap           | ``sep.emp``                                  | ``tm.mkSepEmp();``                                                 |
 |                      |                                              |                                                                    |
 |                      |                                              | where ``x`` and ``y`` are of sort ``<Sort_1>`` and ``<Sort_2>``    |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Points-To            | ``(pto x y)``                                | ``solver.mkTerm(Kind::SEP_PTO, {x, y});``                          |
+| Points-To            | ``(pto x y)``                                | ``tm.mkTerm(Kind::SEP_PTO, {x, y});``                              |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Separation Star      | ``(sep c1 .. cn)``                           | ``solver.mkTerm(Kind::SEP_STAR, {c1, ..., cn});``                  |
+| Separation Star      | ``(sep c1 .. cn)``                           | ``tm.mkTerm(Kind::SEP_STAR, {c1, ..., cn});``                      |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Magic Wand           | ``(wand c1 c1)``                             | ``solver.mkTerm(Kind::SEP_WAND, {c1, c2});``                       |
+| Magic Wand           | ``(wand c1 c1)``                             | ``tm.mkTerm(Kind::SEP_WAND, {c1, c2});``                           |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Nil Element          | ``(as sep.nil <Sort>)``                      | ``solver.mkSepNil(cvc5::Sort sort);``                              |
+| Nil Element          | ``(as sep.nil <Sort>)``                      | ``tm.mkSepNil(cvc5::Sort sort);``                                  |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 
 

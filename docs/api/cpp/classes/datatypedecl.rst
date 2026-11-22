@@ -2,11 +2,11 @@ DatatypeDecl
 ============
 
 This class encapsulates a datatype declaration. A datatype declaration is
-constructed via :cpp:func:`cvc5::Solver::mkDatatypeDecl()`. This is not a
+constructed via :cpp:func:`cvc5::TermManager::mkDatatypeDecl()`. This is not a
 :doc:`datatype itself <datatype>`, but the representation of the
 specification for creating a datatype :cpp:class:`Sort <cvc5::Sort>` via
-:cpp:func:`cvc5::Solver::mkDatatypeSort()` and
-:cpp:func:`cvc5::Solver::mkDatatypeSorts()`.
+:cpp:func:`cvc5::TermManager::mkDatatypeSort()` and
+:cpp:func:`cvc5::TermManager::mkDatatypeSorts()`.
 
 
 ----

@@ -531,6 +531,10 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       parseError("Unexpected number of numerals for bit-vector constant.");
     }
     std::string bvStr = name.substr(2);
+    if (!isNumeral(bvStr))
+    {
+      parseError("Expected a numeral in bit-vector constant `" + name + "'");
+    }
     return d_tm.mkBitVector(numerals[0], bvStr, 10);
   }
 
@@ -605,6 +609,10 @@ Term Smt2State::mkIndexedOp(Kind k,
       }
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
+      if (sf.isTuple())
+      {
+        parseError("Bad syntax for (_ is X), X cannot be a tuple constructor.");
+      }
       Datatype d = sf.getDatatype();
       // lookup by name, using the raw symbol since toString() may print
       // the name as a quoted symbol, e.g. |C,|

@@ -384,7 +384,7 @@ void DioSolver::saveQueue()
 
 DioSolver::TrailIndex DioSolver::impliedGcdOfOne()
 {
-  Var var;
+  Var var = 0;
   if (!columnGcdIsOne(var))
   {
     return 0;

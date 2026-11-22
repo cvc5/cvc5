@@ -180,6 +180,13 @@
 (define $rename_simul ((S Type :implicit) (x S) (xs @List) (ys @List))
   ($substitute_simul_rec true x xs ys @list.nil))
 
+; define: $is_unique_list
+; args:
+; - xs @List: A list.
+; return: true if xs has no duplicate elements.
+(define $is_unique_list ((xs @List))
+  (eo::eq (eo::list_setof @list xs) xs))
+
 ; program: $beta_reduce_type
 ; args:
 ; - T Type: A type.
@@ -201,6 +208,8 @@
 ;   whose arguments have been partially accumulated into ss.
 ; - ss @List: The accumulated list of arguments to pass to the lambda.
 ; return: the result of beta reduction.
+; note: This method does not evaluate if the variables of the lambda are not
+; unique.
 (program $beta_reduce
   ((U Type) (T Type) (S Type) (u U) (f (-> T U)) (a T) (t S) (x T)
     (xs @List :list) (ss @List :list))
@@ -211,9 +220,14 @@
   ; handle higher-order case: if lambda is applied to one argument, it may be a
   ; partial application
   (($beta_reduce (_ (lambda (@list x xs) t) a) @list.nil)
-    (eo::define ((st ($substitute x a t)))
-      (eo::ite (eo::eq xs @list.nil) st (lambda xs st))))
-  (($beta_reduce (lambda xs t) ss)  ($substitute_simul t xs ss))
+    (eo::requires ($is_unique_list (@list x xs)) true
+      ; if there are remaining variables, we substitute into the remaining
+      ; lambda, so that $substitute checks for capture of a by xs.
+      (eo::ite (eo::eq xs @list.nil)
+        ($substitute x a t)
+        ($substitute x a (lambda xs t)))))
+  (($beta_reduce (lambda xs t) ss)
+    (eo::requires ($is_unique_list xs) true ($substitute_simul t xs ss)))
   (($beta_reduce (f a) ss)          ($beta_reduce f (@list a ss)))
   )
 )

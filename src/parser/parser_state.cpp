@@ -763,11 +763,17 @@ Term ParserState::mkCharConstant(const std::string& s)
   return d_tm.mkString(std::u32string(1, val));
 }
 
+bool isNumeral(const std::string& str)
+{
+  return !str.empty()
+         && str.find_first_not_of("0123456789") == std::string::npos;
+}
+
 bool stringToUnsigned(const std::string& str,
                       uint32_t& result,
                       std::ostream* os)
 {
-  if (str.empty() || str.find_first_not_of("0123456789") != std::string::npos)
+  if (!isNumeral(str))
   {
     if (os != nullptr)
     {
