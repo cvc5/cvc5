@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
@@ -22,8 +23,10 @@
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
+#include "proof/method_id.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/env.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/trust_substitutions.h"
 #include "util/result.h"
 
@@ -145,6 +148,15 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
         defRew = defRewBody.getNode();
         defRew = nm->mkNode(Kind::LAMBDA, n[1][0], defRew);
       }
+      // Eliminate shadowing in the definition, e.g. lambda x. forall x. P(x)
+      // becomes lambda x. forall y. P(y). This ensures that beta-reducing
+      // applications of the defined function does not require renaming bound
+      // variables.
+      Node defRewPre = defRew;
+      if (defRew.getKind() == Kind::LAMBDA)
+      {
+        defRew = ElimShadowNodeConverter::eliminateShadow(defRew);
+      }
       if (expr::hasSubterm(defRew, n[0]))
       {
         return;
@@ -160,12 +172,13 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
         // A define-fun is an assumption in the overall proof, thus
         // we justify the substitution with ASSUME here.
         d_defFunRewPf->addStep(n, ProofRule::ASSUME, {}, {n});
+        std::vector<Node> transPremises{n};
         // If changed, prove the rewrite
-        if (defRew != n[1])
+        if (defRewPre != n[1])
         {
           Node eqBody = defRewBody.getProven();
           d_defFunRewPf->addLazyStep(eqBody, defRewBody.getGenerator());
-          Node eqRew = n[1].eqNode(defRew);
+          Node eqRew = n[1].eqNode(defRewPre);
           Assert(n[1].getKind() == Kind::LAMBDA);
           // congruence over the binder
           std::vector<Node> cargs;
@@ -178,8 +191,28 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
           // n = lambda x. t            lambda x. t = lambda x. t'
           // ------------------------------------------------------ TRANS
           // n = lambda x. t'
+          transPremises.push_back(eqRew);
+        }
+        // If shadowing was eliminated, justify it by a theory rewrite step,
+        // which is the same step the rewriter uses for eliminating shadowing
+        // in lambdas. It is elaborated via congruence and alpha equivalence.
+        if (defRew != defRewPre)
+        {
+          Node eqShadow = defRewPre.eqNode(defRew);
+          Node tidn =
+              builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nm, THEORY_UF);
+          Node rid = mkMethodId(nm, MethodId::RW_REWRITE_THEORY_POST);
+          d_defFunRewPf->addStep(eqShadow,
+                                 ProofRule::TRUST_THEORY_REWRITE,
+                                 {},
+                                 {eqShadow, tidn, rid});
+          transPremises.push_back(eqShadow);
+        }
+        if (transPremises.size() > 1)
+        {
           Node eqFinal = n[0].eqNode(defRew);
-          d_defFunRewPf->addStep(eqFinal, ProofRule::TRANS, {n, eqRew}, {});
+          d_defFunRewPf->addStep(
+              eqFinal, ProofRule::TRANS, transPremises, {});
         }
       }
       Trace("smt-define-fun") << "...rewritten to " << defRew << std::endl;
