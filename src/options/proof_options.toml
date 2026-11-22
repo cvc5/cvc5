@@ -213,6 +213,14 @@ name   = "Proof"
   help       = "Check proof steps for satisfiability, for refutation soundness testing. Note this checks only steps for non-core proof rules"
 
 [[option]]
+  name       = "proofDefineFunQuant"
+  category   = "regular"
+  long       = "proof-define-fun-quant"
+  type       = "bool"
+  default    = "false"
+  help       = "In CPC proofs, print function definitions (define-fun) as quantified formulas forall x. (f x) = t instead of higher-order equalities, eliminating lambdas when possible"
+
+[[option]]
   name       = "proofPrintReference"
   category   = "common"
   long       = "proof-print-reference"

@@ -20,6 +20,7 @@
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
+#include "proof/eo/eo_define_fun_elim.h"
 #include "proof/eo/eo_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -341,6 +342,15 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::CPC)
   {
+    if (options().proof.proofDefineFunQuant)
+    {
+      proof::EoDefineFunElim dfe(d_env);
+      std::shared_ptr<ProofNode> fpc = dfe.process(fp, scopeMode);
+      if (fpc != nullptr)
+      {
+        fp = fpc;
+      }
+    }
     proof::EoNodeConverter atp(nodeManager());
     proof::EoPrinter eop(d_env, atp, d_rewriteDb.get());
     eop.print(out, fp, scopeMode);

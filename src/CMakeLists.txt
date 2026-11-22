@@ -149,6 +149,8 @@ libcvc5_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
+  proof/eo/eo_define_fun_elim.cpp
+  proof/eo/eo_define_fun_elim.h
   proof/eo/eo_dependent_type_converter.cpp
   proof/eo/eo_dependent_type_converter.h
   proof/eo/eo_list_node_converter.cpp
