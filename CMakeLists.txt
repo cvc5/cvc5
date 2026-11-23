@@ -378,6 +378,19 @@ if(ENABLE_IPO)
         list(APPEND CMAKE_${lang}_COMPILE_OPTIONS_IPO -ffat-lto-objects)
       endforeach()
     endif()
+    # CMake < 3.24 passes plain -flto to GCC, so lto-wrapper compiles the LTRANS
+    # partitions serially at link time ("using serial compilation of N LTRANS
+    # jobs"). Request parallel LTRANS compilation, as CMake >= 3.24 does. This
+    # can be removed once cmake_minimum_required is raised to 3.24 or later.
+    # Like CMake, skip GCC < 11 on Windows, which may not support -flto=auto.
+    if(CMAKE_VERSION VERSION_LESS 3.24
+       AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+       AND (NOT CMAKE_HOST_WIN32
+            OR NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0))
+      foreach(lang C CXX)
+        list(APPEND CMAKE_${lang}_LINK_OPTIONS_IPO -flto=auto)
+      endforeach()
+    endif()
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   endif()
 endif()
