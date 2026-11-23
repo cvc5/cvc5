@@ -97,11 +97,9 @@ class Assertions : protected EnvObj
   /** Get the set corresponding to the above */
   std::unordered_set<Node> getCurrentAssertionListDefitions() const;
   /**
-   * Get the quantified formula corresponding to the function definition def,
-   * which is an equality (= f (lambda x t)) in the assertion list. If it
-   * exists, this is (forall x (= (f x) t)), which is the assumption used in
-   * proofs for expanding applications of f, see addFormula. Returns null if
-   * def does not have a quantified formula.
+   * Get the quantified formula (forall x (= (f x) t)) that is used in proofs
+   * to justify the definition def of the form (= f (lambda x t)), or null if
+   * none exists.
    */
   Node getDefinitionQuant(const Node& def) const;
   /**
@@ -149,10 +147,10 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
-  /** Maps function definitions to their quantified formula */
-  context::CDHashMap<Node, Node> d_defQuant;
   /** Proof generator storing proofs of rewriting for defined functions */
   std::shared_ptr<LazyCDProof> d_defFunRewPf;
+  /** Maps definitions to their quantified formula, if they have one */
+  context::CDHashMap<Node, Node> d_defQuant;
 };
 
 }  // namespace smt

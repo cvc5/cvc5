@@ -15,20 +15,15 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
-#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
 #include "options/expr_options.h"
 #include "options/language.h"
 #include "options/smt_options.h"
-#include "proof/conv_proof_generator.h"
 #include "proof/lazy_proof.h"
-#include "proof/method_id.h"
 #include "proof/proof_node_algorithm.h"
-#include "proof/trust_id.h"
 #include "smt/env.h"
-#include "theory/builtin/proof_checker.h"
 #include "theory/trust_substitutions.h"
 #include "util/result.h"
 
@@ -96,12 +91,8 @@ const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
 
 Node Assertions::getDefinitionQuant(const Node& def) const
 {
-  context::CDHashMap<Node, Node>::const_iterator it = d_defQuant.find(def);
-  if (it != d_defQuant.end())
-  {
-    return it->second;
-  }
-  return Node::null();
+  auto it = d_defQuant.find(def);
+  return it != d_defQuant.end() ? it->second : Node::null();
 }
 
 std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
@@ -165,37 +156,6 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
       {
         return;
       }
-      // In proofs, we justify function definitions (= f (lambda x t)) by the
-      // quantified formula (forall x (= (f x) t)), whose instances are used
-      // for expanding applications of f. We do this only if the variables
-      // of the lambda are distinct, which is required for the instances to
-      // be equivalent to beta-reduction.
-      bool useQuant = isFunDef && d_env.isProofProducing()
-                      && options().proof.proofDefineFunQuant
-                      && n[1].getKind() == Kind::LAMBDA;
-      if (useQuant)
-      {
-        std::unordered_set<Node> vs(n[1][0].begin(), n[1][0].end());
-        useQuant = vs.size() == n[1][0].getNumChildren();
-      }
-      // The quantified formula, before and after rewriting
-      Node q, qRew;
-      Node defRewPre = defRew;
-      if (useQuant)
-      {
-        std::vector<Node> fxc{n[0]};
-        fxc.insert(fxc.end(), n[1][0].begin(), n[1][0].end());
-        Node fx = nm->mkNode(Kind::APPLY_UF, fxc);
-        q = nm->mkNode(Kind::FORALL, n[1][0], fx.eqNode(n[1][1]));
-        qRew = nm->mkNode(Kind::FORALL, n[1][0], fx.eqNode(defRew[1]));
-        // Eliminate shadowing in the definition, e.g. lambda x. forall x. P(x)
-        // becomes lambda x. forall y. P(y). This ensures that instances of
-        // its quantified formula do not require renaming bound variables.
-        // Note this coincides with how the rewriter eliminates shadowing in
-        // lambdas.
-        defRew = ElimShadowNodeConverter::eliminateShadow(defRew);
-        Assert(defRew[0] == n[1][0]);
-      }
       // if we need to track proofs
       if (d_env.isProofProducing())
       {
@@ -207,14 +167,12 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
         // A define-fun is an assumption in the overall proof, thus
         // we justify the substitution with ASSUME here.
         d_defFunRewPf->addStep(n, ProofRule::ASSUME, {}, {n});
-        std::vector<Node> transPremises{n};
-        Node eqBody;
         // If changed, prove the rewrite
-        if (defRewPre != n[1])
+        if (defRew != n[1])
         {
-          eqBody = defRewBody.getProven();
+          Node eqBody = defRewBody.getProven();
           d_defFunRewPf->addLazyStep(eqBody, defRewBody.getGenerator());
-          Node eqRew = n[1].eqNode(defRewPre);
+          Node eqRew = n[1].eqNode(defRew);
           Assert(n[1].getKind() == Kind::LAMBDA);
           // congruence over the binder
           std::vector<Node> cargs;
@@ -227,129 +185,74 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
           // n = lambda x. t            lambda x. t = lambda x. t'
           // ------------------------------------------------------ TRANS
           // n = lambda x. t'
-          transPremises.push_back(eqRew);
-        }
-        if (defRew != defRewPre)
-        {
-          // The shadowing that was eliminated above is justified by a theory
-          // rewrite step. Note this is only required in proofs if f occurs
-          // not fully applied.
-          Node eqShadow = defRewPre.eqNode(defRew);
-          Node tidn =
-              builtin::BuiltinProofRuleChecker::mkTheoryIdNode(nm, THEORY_UF);
-          Node rid = mkMethodId(nm, MethodId::RW_REWRITE_THEORY_POST);
-          d_defFunRewPf->addStep(eqShadow,
-                                 ProofRule::TRUST_THEORY_REWRITE,
-                                 {},
-                                 {eqShadow, tidn, rid});
-          transPremises.push_back(eqShadow);
-        }
-        if (transPremises.size() > 1)
-        {
           Node eqFinal = n[0].eqNode(defRew);
-          d_defFunRewPf->addStep(eqFinal, ProofRule::TRANS, transPremises, {});
-        }
-        if (useQuant)
-        {
-          // The quantified formula is an assumption, which we transform to
-          // the quantified formula for the rewritten definition:
-          //
-          //           ---------- REFL  ------ from tsm
-          //           (f x) = (f x)    t = t'
-          //           ----------------------- CONG
-          //           ((f x) = t) = ((f x) = t')
-          // ------ ASSUME  -------------------------------------- CONG
-          // q              q = (forall x. (f x) = t')
-          // ---------------------------------------------------- EQ_RESOLVE
-          // forall x. (f x) = t'
-          //
-          // followed by EQ_RESOLVE with a step eliminating shadowing, if
-          // necessary.
-          d_defFunRewPf->addStep(q, ProofRule::ASSUME, {}, {q});
-          Node fx = q[1][0];
-          if (q != qRew)
-          {
-            Assert(!eqBody.isNull());
-            Node fxeq = fx.eqNode(fx);
-            d_defFunRewPf->addStep(fxeq, ProofRule::REFL, {}, {fx});
-            std::vector<Node> cargs;
-            ProofRule cr = expr::getCongRule(q[1], cargs);
-            Node eqBodyEq = q[1].eqNode(qRew[1]);
-            d_defFunRewPf->addStep(eqBodyEq, cr, {fxeq, eqBody}, cargs);
-            cargs.clear();
-            cr = expr::getCongRule(q, cargs);
-            Node eqq = q.eqNode(qRew);
-            d_defFunRewPf->addStep(eqq, cr, {eqBodyEq}, cargs);
-            d_defFunRewPf->addStep(qRew, ProofRule::EQ_RESOLVE, {q, eqq}, {});
-          }
-          Node qFinal = nm->mkNode(Kind::FORALL, n[1][0], fx.eqNode(defRew[1]));
-          if (qFinal != qRew)
-          {
-            // The two formulas are equivalent up to renaming the bound
-            // variables of closures in the body. We prove this by congruence
-            // and alpha-equivalence of the renamed closures, similar to
-            // the reconstruction of MACRO_QUANT_ELIM_SHADOW.
-            Node eqShadow = qRew.eqNode(qFinal);
-            std::vector<Node> matchConds;
-            expr::getConversionConditions(qRew, qFinal, matchConds, true);
-            TConvProofGenerator tcpg(d_env,
-                                     nullptr,
-                                     TConvPolicy::ONCE,
-                                     TConvCachePolicy::NEVER,
-                                     "DefineFunElimShadow",
-                                     nullptr,
-                                     true);
-            for (const Node& mc : matchConds)
-            {
-              tcpg.addRewriteStep(mc[0],
-                                  mc[1],
-                                  nullptr,
-                                  true,
-                                  TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE);
-            }
-            std::shared_ptr<ProofNode> pfs = tcpg.getProofForRewriting(qRew);
-            if (pfs->getResult() == eqShadow)
-            {
-              d_defFunRewPf->addProof(pfs);
-            }
-            else
-            {
-              Assert(false) << "Failed to eliminate shadowing in " << qRew;
-              d_defFunRewPf->addTrustedStep(
-                  eqShadow, TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, {}, {});
-            }
-            d_defFunRewPf->addStep(
-                qFinal, ProofRule::EQ_RESOLVE, {qRew, eqShadow}, {});
-          }
-          d_defQuant[n] = q;
-          Trace("smt-define-fun") << "...quantified form " << q << std::endl;
-          d_assertionListDefs.push_back(n);
-          d_env.getTopLevelSubstitutions().addDefinition(
-              n[0], defRew, d_defFunRewPf.get(), qFinal, d_defFunRewPf.get());
-          return;
+          d_defFunRewPf->addStep(eqFinal, ProofRule::TRANS, {n, eqRew}, {});
         }
       }
-      // For definitions that are not lambdas (e.g. define-fun with no
-      // arguments), we expand the applications of defined functions in their
-      // body, so that applying their substitution in proofs does not
-      // introduce applications of defined functions.
+      // In proofs for logics that are not higher-order, we justify the
+      // definition of f by the formula q = forall x. (f x) = t, whose instances
+      // are used to expand applications of f, see addDefinition.
       if (isFunDef && d_env.isProofProducing()
-          && n[1].getKind() != Kind::LAMBDA)
+          && options().proof.proofDefineFunQuant
+          && !logicInfo().isHigherOrder())
       {
-        std::pair<Node, std::shared_ptr<ProofNode>> exp =
-            tsm.expandDefinitions(defRew, true);
-        if (exp.second != nullptr)
+        if (n[1].getKind() == Kind::LAMBDA)
         {
-          Assert(defRew == n[1]);
-          // -------- ASSUME  ------ expandDefinitions
-          // c = t            t = t'
-          // ----------------------- TRANS
-          // c = t'
-          Node eqExp = exp.second->getResult();
-          d_defFunRewPf->addProof(exp.second);
-          defRew = exp.first;
-          Node eqFinal = n[0].eqNode(defRew);
-          d_defFunRewPf->addStep(eqFinal, ProofRule::TRANS, {n, eqExp}, {});
+          std::vector<Node> fxc{n[0]};
+          fxc.insert(fxc.end(), n[1][0].begin(), n[1][0].end());
+          Node fx = nm->mkNode(Kind::APPLY_UF, fxc);
+          Node q = nm->mkNode(Kind::FORALL, n[1][0], fx.eqNode(n[1][1]));
+          // Rewrite q and expand the definitions in it. This also eliminates
+          // shadowing, so that instances of q do not capture variables.
+          TrustNode tq = tsm.applyTrusted(q, d_env.getRewriter());
+          Node qr = tq.isNull() ? q : tq.getNode();
+          // The rewriter may reorient or simplify the equality, we compute
+          // the rewritten body s of the definition.
+          Node s;
+          if (qr.getKind() == Kind::FORALL && qr[0] == q[0])
+          {
+            Node b = qr[1];
+            if (b.getKind() == Kind::EQUAL && (b[0] == fx || b[1] == fx))
+            {
+              s = b[b[0] == fx ? 1 : 0];
+            }
+            else if (b == fx || (b.getKind() == Kind::NOT && b[0] == fx))
+            {
+              s = nm->mkConst(b == fx);
+            }
+          }
+          if (!s.isNull())
+          {
+            Node qo = nm->mkNode(Kind::FORALL, q[0], fx.eqNode(s));
+            d_defFunRewPf->addStep(q, ProofRule::ASSUME, {}, {q});
+            if (qo != q)
+            {
+              // we construct this proof eagerly, since it must not expand f
+              d_defFunRewPf->addProof(tq.toProofNode());
+              d_defFunRewPf->addStep(
+                  qr, ProofRule::EQ_RESOLVE, {q, tq.getProven()}, {});
+              if (qo != qr)
+              {
+                d_defFunRewPf->addStep(
+                    qo, ProofRule::MACRO_SR_PRED_TRANSFORM, {qr}, {qo});
+              }
+            }
+            d_defQuant[n] = q;
+            tsm.addDefinition(n[0], qo, d_defFunRewPf.get());
+          }
+        }
+        else
+        {
+          // Expand the definitions in the body of definitions with no
+          // arguments, since otherwise they are introduced by its substitution.
+          auto [t, pf] = tsm.expandDefinitions(defRew, true);
+          if (pf != nullptr)
+          {
+            d_defFunRewPf->addProof(pf);
+            d_defFunRewPf->addStep(
+                n[0].eqNode(t), ProofRule::TRANS, {n, pf->getResult()}, {});
+            defRew = t;
+          }
         }
       }
       Trace("smt-define-fun") << "...rewritten to " << defRew << std::endl;

@@ -75,15 +75,12 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    */
   ProofGenerator* addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
-   * Add the definition x -> t, where t is a lambda (lambda xs s), justified
-   * by pg, and where q is the formula (forall xs (= (x xs) s)), justified by
-   * qpg. When proving the result of applying this substitution, fully
-   * applied occurrences (x ts) are expanded to s[ts/xs] based on instances of
-   * q. The equality (= x t) is used in proofs only for the remaining
-   * occurrences of x, e.g. partial applications in higher-order logic.
+   * Add the definition of x, where x is in the domain of this substitution and
+   * q is a formula (forall xs (= (x xs) s)) justified by pg. In proofs, fully
+   * applied occurrences (x ts) are expanded to s[ts/xs] via instances of q,
+   * so that the substitution for x is only used for the other occurrences.
    */
-  void addDefinition(
-      TNode x, TNode t, ProofGenerator* pg, TNode q, ProofGenerator* qpg);
+  void addDefinition(TNode x, TNode q, ProofGenerator* pg);
   /**
    * Add substitutions from trust substitution map t. This adds all
    * substitutions from the map t and carries over its information about proofs.
@@ -99,13 +96,12 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   /** Same as above, without proofs */
   Node apply(Node n, Rewriter* r = nullptr);
   /**
-   * Expand the fully applied occurrences of definitions (see addDefinition)
-   * in n, without rewriting. Returns the result of the expansion n', and if
-   * withProof is true, a proof of (= n n'), or nullptr if no expansion
-   * applies.
+   * Expand the fully applied occurrences of definitions in n (see
+   * addDefinition). Returns the result, and a proof of the equality between n
+   * and the result if withProof is true and n was changed.
    */
-  std::pair<Node, std::shared_ptr<ProofNode>> expandDefinitions(
-      const Node& n, bool withProof);
+  std::pair<Node, std::shared_ptr<ProofNode>> expandDefinitions(const Node& n,
+                                                                bool withProof);
 
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -116,10 +112,9 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   /** Are proofs enabled? */
   bool isProofEnabled() const;
   /**
-   * Get the substitution up to index, excluding the substitutions whose
-   * domain is in excl.
+   * Get the substitution up to index
    */
-  Node getSubstitution(size_t index, const std::unordered_set<Node>& excl = {});
+  Node getSubstitution(size_t index, const std::unordered_set<Node>& excl);
   /** The context used here */
   context::Context* d_ctx;
   /** The substitution map */
@@ -158,13 +153,10 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    * two substitutions but not the third when asked to prove this equality.
    */
   NodeUIntMap d_eqtIndex;
-  /**
-   * Maps defined symbols to the quantified formula that defines them, see
-   * addDefinition.
-   */
+  /** Maps defined symbols to their quantified formula, see addDefinition */
   context::CDHashMap<Node, Node> d_defs;
   /** The proof generator for the quantified formulas in d_defs */
-  std::unique_ptr<LazyCDProof> d_defPg;
+  context::CDHashMap<Node, ProofGenerator*> d_defPgs;
   /** Debugging, catches potential for infinite loops */
   std::unordered_set<Node> d_proving;
 };

@@ -245,8 +245,29 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     d_pfpp->setAssertions(assertions, false);
   }
   d_pfpp->process(pfn, d_pppg.get());
-  // only include the forms of definitions that are used
-  filterDefinitions(as, pfn, assertions);
+  // Definitions with a quantified formula (see
+  // Assertions::getDefinitionQuant) are included only if they are used.
+  std::unordered_set<Node> unused;
+  for (const Node& d : as.getAssertionListDefinitions())
+  {
+    Node q = as.getDefinitionQuant(d);
+    if (!q.isNull())
+    {
+      unused.insert(d);
+      unused.insert(q);
+    }
+  }
+  if (!unused.empty())
+  {
+    std::vector<Node> fassumps;
+    expr::getFreeAssumptions(pfn.get(), fassumps);
+    for (const Node& a : fassumps)
+    {
+      unused.erase(a);
+    }
+    erase_if(assertions,
+             [&unused](const Node& a) { return unused.count(a) > 0; });
+  }
 
   switch (scopeMode)
   {
@@ -481,45 +502,6 @@ void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
   }
 }
 
-void PfManager::filterDefinitions(Assertions& as,
-                                  const std::shared_ptr<ProofNode>& pfn,
-                                  std::vector<Node>& assertions)
-{
-  std::unordered_set<Node> exclude;
-  std::vector<Node> fassumps;
-  bool computedFa = false;
-  for (const Node& a : as.getAssertionListDefinitions())
-  {
-    Node q = as.getDefinitionQuant(a);
-    if (q.isNull())
-    {
-      continue;
-    }
-    if (!computedFa)
-    {
-      expr::getFreeAssumptions(pfn.get(), fassumps);
-      computedFa = true;
-    }
-    bool hasDef =
-        std::find(fassumps.begin(), fassumps.end(), a) != fassumps.end();
-    if (!hasDef)
-    {
-      exclude.insert(a);
-    }
-    else if (std::find(fassumps.begin(), fassumps.end(), q) == fassumps.end())
-    {
-      exclude.insert(q);
-    }
-  }
-  if (!exclude.empty())
-  {
-    std::function<bool(Node)> predicate = [&exclude](Node n) {
-      return exclude.find(n) != exclude.end();
-    };
-    erase_if(assertions, predicate);
-  }
-}
-
 void PfManager::getDefinitionsAndAssertions(Assertions& as,
                                             std::vector<Node>& definitions,
                                             std::vector<Node>& assertions)
@@ -542,13 +524,9 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
     {
       assertions.push_back(a);
     }
-    else
+    else if (!as.getDefinitionQuant(a).isNull())
     {
-      Node q = as.getDefinitionQuant(a);
-      if (!q.isNull())
-      {
-        assertions.push_back(q);
-      }
+      assertions.push_back(as.getDefinitionQuant(a));
     }
   }
 }

@@ -218,7 +218,7 @@ name   = "Proof"
   long       = "proof-define-fun-quant"
   type       = "bool"
   default    = "true"
-  help       = "In proofs, justify function definitions (define-fun) by the quantified formula forall x. (f x) = t, whose instances justify expanding applications of f. The higher-order equality f = (lambda x t) is only used for occurrences of f that are not fully applied"
+  help       = "In proofs for logics that are not higher-order, justify function definitions (define-fun) by the quantified formula forall x. (f x) = t, whose instances justify expanding applications of f"
 
 [[option]]
   name       = "proofPrintReference"

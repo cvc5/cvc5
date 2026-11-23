@@ -13,6 +13,8 @@
 #include "theory/trust_substitutions.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/node_converter.h"
+#include "proof/lazy_proof.h"
 #include "smt/env.h"
 #include "theory/rewriter.h"
 
@@ -36,7 +38,8 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
       d_trustId(trustId),
       d_ids(ids),
       d_eqtIndex(c),
-      d_defs(c)
+      d_defs(c),
+      d_defPgs(c)
 {
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm != nullptr)
@@ -47,8 +50,6 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
     d_applyPg.reset(
         new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::applyPg"));
     d_helperPf.reset(new CDProofSet<LazyCDProof>(env, d_ctx));
-    d_defPg.reset(
-        new LazyCDProof(env, nullptr, d_ctx, "TrustSubstitutionMap::defPg"));
   }
 }
 
@@ -128,20 +129,6 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
   return solvePg;
 }
 
-void TrustSubstitutionMap::addDefinition(
-    TNode x, TNode t, ProofGenerator* pg, TNode q, ProofGenerator* qpg)
-{
-  Assert(t.getKind() == Kind::LAMBDA);
-  Assert(q.getKind() == Kind::FORALL && q[1].getKind() == Kind::EQUAL
-         && q[1][0].getKind() == Kind::APPLY_UF && q[1][0].getOperator() == x);
-  addSubstitution(x, t, pg);
-  if (isProofEnabled())
-  {
-    d_defs[x] = q;
-    d_defPg->addLazyStep(q, qpg);
-  }
-}
-
 void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
 {
   if (!isProofEnabled())
@@ -158,23 +145,21 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
+void TrustSubstitutionMap::addDefinition(TNode x, TNode q, ProofGenerator* pg)
+{
+  Assert(q.getKind() == Kind::FORALL && q[1].getKind() == Kind::EQUAL
+         && q[1][0].getKind() == Kind::APPLY_UF && q[1][0].getOperator() == x);
+  d_defs[x] = q;
+  d_defPgs[x] = pg;
+}
+
 TrustNode TrustSubstitutionMap::applyTrusted(Node n, Rewriter* r)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
-  Node ns;
-  if (isProofEnabled() && !d_defs.empty())
-  {
-    // If we have definitions, we expand them before applying the
-    // substitution. This ensures the result coincides with the one we prove
-    // in getProofFor, since the rewriter may not compute the same result for
-    // a beta-redex and its beta-reduced form.
-    ns = d_subs.apply(expandDefinitions(n, false).first, r);
-  }
-  else
-  {
-    ns = d_subs.apply(n, r);
-  }
+  // We expand definitions first, which ensures that the result coincides
+  // with the one we prove in getProofFor.
+  Node ns = d_subs.apply(expandDefinitions(n, false).first, r);
   Trace("trust-subs") << "...subs " << ns << std::endl;
   if (n == ns)
   {
@@ -231,76 +216,55 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   Assert(it != d_eqtIndex.end());
   Trace("trust-subs-pf") << "TrustSubstitutionMap::getProofFor, # assumptions= "
                          << it->second << std::endl;
-  size_t index = it->second;
-  // First, expand the fully applied occurrences of definitions, based on
-  // instances of their quantified formulas. This ensures that we do not
-  // require their higher-order equalities (= f (lambda x t)) nor
-  // beta-reduction in proofs, unless f occurs not fully applied.
-  std::pair<Node, std::shared_ptr<ProofNode>> exp = expandDefinitions(n, true);
-  Node nexp = exp.first;
-  std::shared_ptr<ProofNode> pfExp = exp.second;
-  // Exclude the definitions whose symbols do not occur in the expanded term or
-  // in the range of the other substitutions we use, so that their equalities
-  // are not premises of the proof. Note we do not consider occurrences of
-  // defined symbols in the range of other definitions, since their bodies have
-  // already been expanded.
+  // Expand the fully applied occurrences of definitions based on instances of
+  // their quantified formula, and exclude the definitions that no longer occur
+  // from the premises.
+  auto [nexp, pfExp] = expandDefinitions(n, true);
   std::unordered_set<Node> excl;
-  if (pfExp != nullptr)
+  if (!d_defs.empty())
   {
     std::unordered_set<Node> syms;
     std::unordered_set<TNode> visited;
     expr::getSymbols(nexp, syms, visited);
-    for (size_t i = 0; i < index; i++)
+    for (const auto& d : d_defs)
     {
-      Node sx = d_tsubs[i].getProven();
-      if (d_defs.find(sx[0]) == d_defs.end())
+      if (syms.find(d.first) == syms.end())
       {
-        expr::getSymbols(sx[1], syms, visited);
+        excl.insert(d.first);
       }
-      else
-      {
-        excl.insert(sx[0]);
-      }
-    }
-    for (const Node& s : syms)
-    {
-      excl.erase(s);
     }
   }
+  Node cs = getSubstitution(it->second, excl);
+  Trace("trust-subs-pf") << "getProofFor substitution is " << cs << std::endl;
+  Assert(eq != cs);
   std::vector<Node> pfChildren;
-  if (nexp != ns)
+  if (!cs.isConst())
   {
-    Node cs = getSubstitution(index, excl);
-    Trace("trust-subs-pf") << "getProofFor substitution is " << cs << std::endl;
-    if (!cs.isConst())
-    {
-      // note that cs may be an AND node, in which case it specifies multiple
-      // substitutions
-      pfChildren.push_back(cs);
-      // connect substitution generator into apply generator
-      d_applyPg->addLazyStep(cs, d_subsPg.get());
-    }
-    Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
-    // We use fixpoint as the substitution-apply identifier. Notice that it
-    // suffices to use SBA_SEQUENTIAL here, but SBA_FIXPOINT is typically
-    // more efficient. This is because for substitution of size n, sequential
-    // substitution can either be implemented as n traversals of the term to
-    // apply the substitution to, or a single traversal of the term, but n^2/2
-    // traversals of the range of the substitution to prepare a simultaneous
-    // substitution. Both of these options are inefficient. Note that we
-    // expect this rule to succeed, so useExpected is set to true.
-    Node eqs = nexp.eqNode(ns);
-    if (!d_tspb->applyEqIntro(nexp,
-                              ns,
-                              pfChildren,
-                              d_ids,
-                              MethodId::SBA_FIXPOINT,
-                              MethodId::RW_REWRITE,
-                              true))
-    {
-      // if we fail for any reason, we must use a trusted step instead
-      d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, eqs);
-    }
+    // note that cs may be an AND node, in which case it specifies multiple
+    // substitutions
+    pfChildren.push_back(cs);
+    // connect substitution generator into apply generator
+    d_applyPg->addLazyStep(cs, d_subsPg.get());
+  }
+  Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
+  // We use fixpoint as the substitution-apply identifier. Notice that it
+  // suffices to use SBA_SEQUENTIAL here, but SBA_FIXPOINT is typically
+  // more efficient. This is because for substitution of size n, sequential
+  // substitution can either be implemented as n traversals of the term to
+  // apply the substitution to, or a single traversal of the term, but n^2/2
+  // traversals of the range of the substitution to prepare a simultaneous
+  // substitution. Both of these options are inefficient. Note that we
+  // expect this rule to succeed, so useExpected is set to true.
+  if (!d_tspb->applyEqIntro(nexp,
+                            ns,
+                            pfChildren,
+                            d_ids,
+                            MethodId::SBA_FIXPOINT,
+                            MethodId::RW_REWRITE,
+                            true))
+  {
+    // if we fail for any reason, we must use a trusted step instead
+    d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, nexp.eqNode(ns));
   }
   Trace("trust-subs-pf") << "...made steps" << std::endl;
   // -------        ------- from external proof generators
@@ -322,15 +286,11 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   d_tspb->clear();
   if (pfExp != nullptr)
   {
-    // ------------- expandDefinitions  ----------- MACRO_SR_EQ_INTRO
-    // n == nexp                        nexp == ns
-    // -------------------------------------------- TRANS
-    // n == ns
-    Node eqExp = pfExp->getResult();
     d_applyPg->addProof(pfExp);
     if (nexp != ns)
     {
-      d_applyPg->addStep(eq, ProofRule::TRANS, {eqExp, nexp.eqNode(ns)}, {});
+      d_applyPg->addStep(
+          eq, ProofRule::TRANS, {pfExp->getResult(), nexp.eqNode(ns)}, {});
     }
   }
   Trace("trust-subs-pf") << "...finish, make proof" << std::endl;
@@ -339,6 +299,53 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   return ret;
 }
 
+namespace {
+/** Expands applications of defined functions, see addDefinition. */
+class DefinitionExpander : public NodeConverter
+{
+ public:
+  DefinitionExpander(NodeManager* nm,
+                     const context::CDHashMap<Node, Node>& defs)
+      : NodeConverter(nm), d_defs(defs)
+  {
+  }
+  Node postConvert(Node n) override
+  {
+    if (n.getKind() != Kind::APPLY_UF)
+    {
+      return n;
+    }
+    auto it = d_defs.find(n.getOperator());
+    if (it == d_defs.end())
+    {
+      return n;
+    }
+    // do not expand if a variable in the arguments would be captured
+    Node q = it->second;
+    std::vector<Node> vars(q[0].begin(), q[0].end());
+    std::unordered_set<Node> fvs;
+    expr::getFreeVariables(n, fvs);
+    for (const Node& v : fvs)
+    {
+      if (std::find(vars.begin(), vars.end(), v) == vars.end()
+          && expr::hasSubterm(q[1][1], v))
+      {
+        return n;
+      }
+    }
+    std::vector<Node> ts(n.begin(), n.end());
+    Node inst = q[1].substitute(vars.begin(), vars.end(), ts.begin(), ts.end());
+    d_insts.push_back(inst);
+    return inst[1];
+  }
+  /** The instances (= (f ts) s[ts/xs]) used for expansion */
+  std::vector<Node> d_insts;
+
+ private:
+  const context::CDHashMap<Node, Node>& d_defs;
+};
+}  // namespace
+
 std::pair<Node, std::shared_ptr<ProofNode>>
 TrustSubstitutionMap::expandDefinitions(const Node& n, bool withProof)
 {
@@ -346,133 +353,38 @@ TrustSubstitutionMap::expandDefinitions(const Node& n, bool withProof)
   {
     return {n, nullptr};
   }
-  NodeManager* nm = nodeManager();
-  // proves the instances of the definitions
-  LazyCDProof lcp(d_env, nullptr, nullptr, "TrustSubstitutionMap::expandInst");
-  // Proves n = n' by congruence, where the expanded applications are
-  // post-rewrite steps. Note that the result of an expansion is not traversed
-  // again, which suffices since the bodies of definitions are expanded and
-  // the arguments are expanded before their application.
+  DefinitionExpander de(nodeManager(), d_defs);
+  Node nexp = de.convert(n);
+  if (!withProof || nexp == n)
+  {
+    return {nexp, nullptr};
+  }
+  // --------------------- from d_defPgs
+  // forall xs. (f xs) = s
+  // --------------------- INSTANTIATE
+  // (f ts) = s[ts/xs]
+  // which are used as rewrite steps for proving n = nexp by congruence.
+  LazyCDProof lcp(d_env);
   TConvProofGenerator tcg(d_env,
                           nullptr,
                           TConvPolicy::ONCE,
                           TConvCachePolicy::NEVER,
-                          "TrustSubstitutionMap::expandDefs",
+                          "TrustSubstitutionMap::expand",
                           nullptr,
                           true);
-  bool changed = false;
-  std::unordered_map<TNode, Node> visited;
-  std::vector<TNode> visit;
-  visit.push_back(n);
-  TNode cur;
-  do
+  for (const Node& inst : de.d_insts)
   {
-    cur = visit.back();
-    visit.pop_back();
-    std::unordered_map<TNode, Node>::iterator it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      visit.insert(visit.end(), cur.begin(), cur.end());
-      continue;
-    }
-    if (!it->second.isNull())
-    {
-      continue;
-    }
-    Node ret = cur;
-    if (cur.getNumChildren() > 0)
-    {
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end() && !it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-    }
-    if (ret.getKind() == Kind::APPLY_UF)
-    {
-      context::CDHashMap<Node, Node>::const_iterator itd =
-          d_defs.find(ret.getOperator());
-      if (itd != d_defs.end())
-      {
-        Node q = itd->second;
-        std::vector<Node> vars(q[0].begin(), q[0].end());
-        std::vector<Node> ts(ret.begin(), ret.end());
-        // We require that the instantiation does not capture variables,
-        // i.e. that no variable (bound in the context of n) occurring in the
-        // arguments is bound in the body of the definition.
-        bool capture = false;
-        for (const Node& t : ts)
-        {
-          std::unordered_set<Node> fvs;
-          expr::getFreeVariables(t, fvs);
-          for (const Node& v : fvs)
-          {
-            if (std::find(vars.begin(), vars.end(), v) == vars.end()
-                && expr::hasSubterm(q[1], v))
-            {
-              capture = true;
-              break;
-            }
-          }
-          if (capture)
-          {
-            break;
-          }
-        }
-        if (!capture && vars.size() == ts.size())
-        {
-          // --------------------- from d_defPg
-          // forall x. (f x) = t
-          // --------------------- INSTANTIATE
-          // (f ts) = t[ts/x]
-          Node inst =
-              q[1].substitute(vars.begin(), vars.end(), ts.begin(), ts.end());
-          Assert(inst[0] == ret);
-          if (withProof)
-          {
-            lcp.addLazyStep(q, d_defPg.get());
-            lcp.addStep(inst,
-                        ProofRule::INSTANTIATE,
-                        {q},
-                        {nm->mkNode(Kind::SEXPR, ts)});
-            tcg.addRewriteStep(ret, inst[1], &lcp, false);
-          }
-          Trace("trust-subs-pf")
-              << "...expand " << ret << " to " << inst[1] << std::endl;
-          ret = inst[1];
-          changed = true;
-        }
-      }
-    }
-    visited[cur] = ret;
-  } while (!visit.empty());
-  if (!changed)
-  {
-    return {n, nullptr};
+    Node f = inst[0].getOperator();
+    Node q = d_defs.find(f)->second;
+    lcp.addLazyStep(q, d_defPgs.find(f)->second);
+    std::vector<Node> ts(inst[0].begin(), inst[0].end());
+    lcp.addStep(inst,
+                ProofRule::INSTANTIATE,
+                {q},
+                {nodeManager()->mkNode(Kind::SEXPR, ts)});
+    tcg.addRewriteStep(inst[0], inst[1], &lcp, false);
   }
-  Node nexp = visited[n];
-  if (!withProof)
-  {
-    return {nexp, nullptr};
-  }
-  std::shared_ptr<ProofNode> pf = tcg.getProofForRewriting(n);
-  Assert(pf->getResult() == n.eqNode(nexp))
-      << "Failed to expand definitions in " << n;
-  return {nexp, pf};
+  return {nexp, tcg.getProofForRewriting(n)};
 }
 
 std::string TrustSubstitutionMap::identify() const { return d_name; }
@@ -491,10 +403,10 @@ Node TrustSubstitutionMap::getSubstitution(size_t index,
   std::vector<Node> csubsChildren;
   for (size_t i = 0; i < index; i++)
   {
-    Node sx = d_tsubs[i].getProven();
-    if (excl.find(sx[0]) == excl.end())
+    Node eq = d_tsubs[i].getProven();
+    if (excl.find(eq[0]) == excl.end())
     {
-      csubsChildren.push_back(sx);
+      csubsChildren.push_back(eq);
     }
   }
   std::reverse(csubsChildren.begin(), csubsChildren.end());
