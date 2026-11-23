@@ -214,7 +214,7 @@ name   = "Proof"
 
 [[option]]
   name       = "proofDefineFunQuant"
-  category   = "regular"
+  category   = "common"
   long       = "proof-define-fun-quant"
   type       = "bool"
   default    = "false"
