@@ -15,7 +15,6 @@
 #define CVC5__PREPROCESSING__PASSES__LEARNED_REWRITE_H
 
 #include <iosfwd>
-#include <memory>
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -23,12 +22,6 @@
 #include "util/statistics_stats.h"
 
 namespace cvc5::internal {
-namespace theory {
-namespace bags {
-class BagsRewriter;
-struct TableFacts;
-}  // namespace bags
-}  // namespace theory
 namespace preprocessing {
 namespace passes {
 
@@ -49,12 +42,6 @@ enum class LearnedRewriteId
   PRED_ZERO_LB,
   // e.g. (> c 0) => (>= p 0) ---> false where c is inferred const upper bound
   PRED_NEG_UB,
-  // A rule of the bags rewriter that reads a key or a NOT NULL column of a
-  // table constant, which learned literals state (see
-  // theory::bags::TableFacts), e.g. for column 0 a key of X, i.e.
-  // (= (bag.setof ((_ table.project 0) X)) ((_ table.project 0) X)) =>
-  // (bag.setof ((_ table.project 0 1) X)) ---> ((_ table.project 0 1) X)
-  BAGS_TABLE_FACTS,
 
   //-------------------------------------- NONE
   NONE
@@ -82,15 +69,12 @@ std::ostream& operator<<(std::ostream& out, LearnedRewriteId i);
  * This in particular does rewriting that goes beyond what is done in
  * non-clausal simplification, where equality substitutions + constant
  * propagations are performed. In particular, this pass applies rewriting
- * based on e.g. bound inference for arithmetic, and on the keys and NOT NULL
- * columns of tables (theory::bags::TableFacts), which the rewriter of the
- * bags theory does not know.
+ * based on e.g. bound inference for arithmetic.
  */
 class LearnedRewrite : public PreprocessingPass
 {
  public:
   LearnedRewrite(PreprocessingPassContext* preprocContext);
-  ~LearnedRewrite();
 
  protected:
   PreprocessingPassResult applyInternal(
@@ -109,28 +93,8 @@ class LearnedRewrite : public PreprocessingPass
   Node rewriteLearned(Node n,
                       theory::arith::BoundInference& binfer,
                       const std::vector<Node>& learnedLits);
-  /**
-   * Learned rewrite of a term of the bags theory by the keys and NOT NULL
-   * columns of tables (d_tableFacts). For column 0 a key of X,
-   *   (bag.setof ((_ table.project 0 1) X)) ---> ((_ table.project 0 1) X)
-   * The result is rewritten again, by rewriteLearnedRec, since the rules
-   * build terms that the facts or the rewriter may rewrite further.
-   */
-  Node rewriteLearnedBags(Node n,
-                          theory::arith::BoundInference& binfer,
-                          const std::vector<Node>& learnedLits,
-                          std::unordered_set<Node>& lems);
   /** Return learned rewrite */
   Node returnRewriteLearned(Node n, Node nr, LearnedRewriteId id);
-  /**
-   * The keys and NOT NULL columns of tables that the learned literals state,
-   * and a bags rewriter that reads them. Both are null unless the bags
-   * theory is enabled and some learned literal states one.
-   */
-  std::unique_ptr<theory::bags::TableFacts> d_tableFacts;
-  std::unique_ptr<theory::bags::BagsRewriter> d_bagsRewriter;
-  /** the nesting of rewriteLearnedBags */
-  size_t d_bagsDepth = 0;
   /** Counts number of applications of learned rewrites */
   HistogramStat<LearnedRewriteId> d_lrewCount;
 };

@@ -1,12 +1,7 @@
-; COMMAND-LINE: --learned-rewrite
 ; REQUIRES: unrestricted-mode
-; --learned-rewrite is not supported with proofs or unsat cores because
-; the preprocessing pass does not track its non-local reasoning.
-; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: proof
-; AGGREGATE_KEYED by a learned fact: the assertion that column 0 is a key of X
-; is a learned literal, so the learned-rewrite pass rewrites the aggregate by
-; column 0 to a map of X, which the rewriter of the theory cannot do
+; AGGREGATE_KEYED by a fact: the assertion F that column 0 is a key of X gives
+; the lemma F => (= A M), for A the aggregate by column 0 and M a map of X,
+; which the rewriter of the theory cannot give
 (set-logic HO_ALL)
 (set-info :status unsat)
 (declare-const X (Bag (Tuple Int Int)))

@@ -1,11 +1,6 @@
-; COMMAND-LINE: --learned-rewrite
 ; REQUIRES: unrestricted-mode
-; --learned-rewrite is not supported with proofs or unsat cores because
-; the preprocessing pass does not track its non-local reasoning.
-; DISABLE-TESTER: unsat-core
-; DISABLE-TESTER: proof
-; A key on columns 2 0 of X: the rewriter of the theory leaves the learned
-; literal as a map that puts the columns of a set back in order
+; A key on columns 2 0 of X: the rewriter of the theory leaves the assertion
+; as a map that puts the columns of a set back in order
 ; (SETOF_PROJECTION_SORT), which still states the key {0, 2}
 (set-logic HO_ALL)
 (set-info :status unsat)

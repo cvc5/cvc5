@@ -8,7 +8,7 @@
 id                 = "THEORY_BAGS"
 base_class         = "::cvc5::internal::theory::bags::TheoryBags"
 base_class_header  = "theory/bags/theory_bags.h"
-properties         = ["parametric", "check", "presolve"]
+properties         = ["parametric", "check", "ppStaticLearn", "presolve"]
 typechecker_header = "theory/bags/theory_bags_type_rules.h"
 
 [rewriter]

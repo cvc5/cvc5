@@ -45,11 +45,11 @@ struct BagsRewriteResponse
 /**
  * Keys and NOT NULL columns of table constants that the input asserts. The
  * rewriter of the theory has none, so what it returns depends only on the
- * node it rewrites. The learned-rewrite pass reads them off the learned
- * literals (BagsRewriter::readTableFact) and rewrites the assertions with a
- * BagsRewriter of its own that has them (see
- * preprocessing::passes::LearnedRewrite). For
- * X : (Bag (Tuple Int (Nullable Int) Int)), the learned literals
+ * node it rewrites. Static learning reads them off the top-level assertions
+ * (BagsRewriter::readTableFact) and, with a BagsRewriter of its own that has
+ * them, learns F => (= t t') for the terms t of the input (see
+ * TableFactsLearner). For X : (Bag (Tuple Int (Nullable Int) Int)), the
+ * assertions
  *
  *   (= (bag.setof ((_ table.project 0 2) X)) ((_ table.project 0 2) X))
  *   (= (bag.filter
@@ -110,8 +110,8 @@ class BagsRewriter : public TheoryRewriter
   /**
    * Adds to facts the key or the NOT NULL column that the literal lit states
    * of a table constant, and returns whether it states one (see TableFacts,
-   * readKey and readNotNull). The learned-rewrite pass calls it on each
-   * learned literal, which the rewriter of the theory has already rewritten.
+   * readKey and readNotNull). TableFactsLearner calls it on each top-level
+   * assertion, which the rewriter of the theory has already rewritten.
    */
   bool readTableFact(TNode lit, TableFacts& facts) const;
 
