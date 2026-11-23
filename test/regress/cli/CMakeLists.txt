@@ -3020,6 +3020,7 @@ set(regress_1_tests
   regress1/bags/map4.smt2
   regress1/bags/bag_map_congruence.smt2
   regress1/bags/map-lazy-lam.smt2
+  regress1/bags/map_of_groups_injectivity.smt2
   regress1/bags/murxla1.smt2
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
