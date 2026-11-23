@@ -14,6 +14,7 @@
 
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
+#include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/uf/equality_engine.h"
@@ -168,6 +169,33 @@ void SolverState::checkInjectivity(Node n)
   if (f.isVar())
   {
     // no need to solve. f can be assigned any non injective function
+    d_functions[f] = false;
+    return;
+  }
+
+  if (f.getKind() == Kind::LAMBDA
+      && expr::hasSubtermKinds({Kind::BAG_FOLD,
+                                Kind::BAG_MAP,
+                                Kind::BAG_FILTER,
+                                Kind::BAG_SETOF,
+                                Kind::BAG_COUNT,
+                                Kind::BAG_CARD,
+                                Kind::TABLE_GROUP,
+                                Kind::TABLE_AGGREGATE,
+                                Kind::TABLE_PRODUCT,
+                                Kind::TABLE_PROJECT},
+                               f[1]))
+  {
+    // The function reads a bag, as the function of a reduced aggregate reads
+    // a whole group through folds:
+    //
+    //   (lambda ((g (Bag (Tuple Int Int))))
+    //     (tuple (bag.fold (lambda ((t (Tuple Int Int)) (a Int)) (+ a 1))
+    //                      0
+    //                      g)))
+    //
+    // A subsolver would unroll the folds to decide this, and may not end. Not
+    // injective is the safe answer: the general map lemmas apply.
     d_functions[f] = false;
     return;
   }
