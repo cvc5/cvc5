@@ -23,7 +23,11 @@ namespace theory {
 namespace bags {
 
 TableFactsLearner::TableFactsLearner(Env& env)
-    : EnvObj(env), d_reader(nodeManager(), env.getRewriter())
+    : EnvObj(env),
+      d_reader(nodeManager(), env.getRewriter()),
+      d_terms(userContext()),
+      d_termSeen(userContext()),
+      d_learned(userContext())
 {
 }
 
@@ -34,7 +38,8 @@ void TableFactsLearner::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
   if (addFact(in))
   {
     // a new fact applies to every term seen so far
-    learnFor(d_terms, learned);
+    std::vector<Node> terms(d_terms.begin(), d_terms.end());
+    learnFor(terms, learned);
     return;
   }
   std::vector<Node> fresh;
@@ -48,7 +53,7 @@ void TableFactsLearner::ppStaticLearn(TNode in, std::vector<TrustNode>& learned)
     {
       continue;
     }
-    if (isCandidate(cur) && d_termSeen.insert(cur).second)
+    if (isCandidate(cur) && d_termSeen.insert(cur))
     {
       d_terms.push_back(cur);
       fresh.push_back(cur);
@@ -254,7 +259,7 @@ void TableFactsLearner::learnFor(const std::vector<Node>& terms,
     }
     Node eq = t.eqNode(tr);
     Node lem = nm->mkNode(Kind::IMPLIES, prem, eq);
-    if (d_learned.insert(lem).second)
+    if (d_learned.insert(lem))
     {
       Trace("bags-table-facts") << "learned: " << lem << std::endl;
       learned.push_back(TrustNode::mkTrustLemma(lem, nullptr));

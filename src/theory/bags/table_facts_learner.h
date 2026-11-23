@@ -22,6 +22,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "proof/trust_node.h"
 #include "smt/env_obj.h"
 #include "theory/bags/bags_rewriter.h"
@@ -47,6 +49,10 @@ namespace bags {
  * The rewriter of the theory knows no fact, so what it returns depends only on
  * the node it rewrites, and the fact is the premise of the lemma, which a
  * proof can name.
+ *
+ * The facts outlive a pop: a lemma has its fact as premise, so it holds in any
+ * scope. The terms and the lemmas are those of the current scope, since the
+ * lemmas of a popped scope are gone.
  */
 class TableFactsLearner : protected EnvObj
 {
@@ -94,11 +100,11 @@ class TableFactsLearner : protected EnvObj
    * fact it states.
    */
   std::unordered_set<Node> d_protected;
-  /** The candidate terms seen so far, in order */
-  std::vector<Node> d_terms;
-  std::unordered_set<Node> d_termSeen;
-  /** The lemmas learned so far */
-  std::unordered_set<Node> d_learned;
+  /** The candidate terms of the current scope, in order */
+  context::CDList<Node> d_terms;
+  context::CDHashSet<Node> d_termSeen;
+  /** The lemmas of the current scope */
+  context::CDHashSet<Node> d_learned;
 };
 
 }  // namespace bags
