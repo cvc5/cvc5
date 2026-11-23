@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -96,6 +97,14 @@ class Assertions : protected EnvObj
   /** Get the set corresponding to the above */
   std::unordered_set<Node> getCurrentAssertionListDefitions() const;
   /**
+   * Get the quantified formula corresponding to the function definition def,
+   * which is an equality (= f (lambda x t)) in the assertion list. If it
+   * exists, this is (forall x (= (f x) t)), which is the assumption used in
+   * proofs for expanding applications of f, see addFormula. Returns null if
+   * def does not have a quantified formula.
+   */
+  Node getDefinitionQuant(const Node& def) const;
+  /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.
    */
@@ -140,6 +149,8 @@ class Assertions : protected EnvObj
    * The list of assumptions from the previous call to checkSatisfiability.
    */
   std::vector<Node> d_assumptions;
+  /** Maps function definitions to their quantified formula */
+  context::CDHashMap<Node, Node> d_defQuant;
   /** Proof generator storing proofs of rewriting for defined functions */
   std::shared_ptr<LazyCDProof> d_defFunRewPf;
 };

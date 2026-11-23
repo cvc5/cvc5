@@ -15,7 +15,10 @@
 #ifndef CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 #define CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 
+#include <functional>
+
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "proof/conv_proof_generator.h"
@@ -75,6 +78,16 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    */
   ProofGenerator* addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
+   * Add the definition x -> t, where t is a lambda (lambda xs s), justified
+   * by pg, and where q is the formula (forall xs (= (x xs) s)), justified by
+   * qpg. When proving the result of applying this substitution, fully
+   * applied occurrences (x ts) are expanded to s[ts/xs] based on instances of
+   * q. The equality (= x t) is used in proofs only for the remaining
+   * occurrences of x, e.g. partial applications in higher-order logic.
+   */
+  void addDefinition(
+      TNode x, TNode t, ProofGenerator* pg, TNode q, ProofGenerator* qpg);
+  /**
    * Add substitutions from trust substitution map t. This adds all
    * substitutions from the map t and carries over its information about proofs.
    */
@@ -88,6 +101,13 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   TrustNode applyTrusted(Node n, Rewriter* r = nullptr);
   /** Same as above, without proofs */
   Node apply(Node n, Rewriter* r = nullptr);
+  /**
+   * Expand the fully applied occurrences of definitions (see addDefinition)
+   * in n, without rewriting. Returns a trust node proving n = n', where the
+   * proof generator is provided by this class, or the null trust node if no
+   * expansion applies or proofs are not enabled.
+   */
+  TrustNode expandDefinitionsTrusted(Node n);
 
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -98,9 +118,23 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   /** Are proofs enabled? */
   bool isProofEnabled() const;
   /**
-   * Get the substitution up to index
+   * Get the substitution up to index, excluding the substitutions whose
+   * domain is in excl.
    */
-  Node getSubstitution(size_t index);
+  Node getSubstitution(size_t index, const std::unordered_set<Node>& excl = {});
+  /** Get a function that maps defined symbols to their quantified formula */
+  std::function<Node(const Node&)> getDefinitionLookup();
+  /**
+   * Expand fully applied occurrences of definitions in n, where getDef maps
+   * defined symbols to their quantified formula (see addDefinition), or to
+   * null if they are not defined. Returns the result of the expansion n',
+   * and if withProof is true, a proof of (= n n'), or nullptr if no
+   * expansion applies.
+   */
+  std::pair<Node, std::shared_ptr<ProofNode>> expandDefinitions(
+      const Node& n,
+      const std::function<Node(const Node&)>& getDef,
+      bool withProof);
   /** The context used here */
   context::Context* d_ctx;
   /** The substitution map */
@@ -139,6 +173,15 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    * two substitutions but not the third when asked to prove this equality.
    */
   NodeUIntMap d_eqtIndex;
+  /**
+   * Maps defined symbols to the quantified formula that defines them, see
+   * addDefinition.
+   */
+  context::CDHashMap<Node, Node> d_defs;
+  /** The proof generator for the quantified formulas in d_defs */
+  std::unique_ptr<LazyCDProof> d_defPg;
+  /** The equalities returned by expandDefinitionsTrusted */
+  context::CDHashSet<Node> d_expandEqs;
   /** Debugging, catches potential for infinite loops */
   std::unordered_set<Node> d_proving;
 };

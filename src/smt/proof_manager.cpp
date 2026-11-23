@@ -20,7 +20,6 @@
 #include "proof/alethe/alethe_post_processor.h"
 #include "proof/alethe/alethe_printer.h"
 #include "proof/dot/dot_printer.h"
-#include "proof/eo/eo_define_fun_elim.h"
 #include "proof/eo/eo_printer.h"
 #include "proof/proof_checker.h"
 #include "proof/proof_node_algorithm.h"
@@ -246,6 +245,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     d_pfpp->setAssertions(assertions, false);
   }
   d_pfpp->process(pfn, d_pppg.get());
+  // only include the forms of definitions that are used
+  filterDefinitions(as, pfn, assertions);
 
   switch (scopeMode)
   {
@@ -269,10 +270,8 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
           << "SolverEngine::connectProofToAssertions(): make split scope...\n";
       // To support proof pruning for nested scopes, we need to:
       // 1. Minimize assertions of closed unified scope.
-      std::vector<Node> unifiedAssertions;
-      getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
-          pfn, unifiedAssertions, true, options().proof.proofPruneInput);
+          pfn, assertions, true, options().proof.proofPruneInput);
       // if this is violated, there is unsoundness since we have shown
       // false that does not depend on the input.
       AlwaysAssert(pf->getRule() == ProofRule::SCOPE);
@@ -342,15 +341,6 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (mode == options::ProofFormatMode::CPC)
   {
-    if (options().proof.proofDefineFunQuant)
-    {
-      proof::EoDefineFunElim dfe(d_env);
-      std::shared_ptr<ProofNode> fpc = dfe.process(fp, scopeMode);
-      if (fpc != nullptr)
-      {
-        fp = fpc;
-      }
-    }
     proof::EoNodeConverter atp(nodeManager());
     proof::EoPrinter eop(d_env, atp, d_rewriteDb.get());
     eop.print(out, fp, scopeMode);
@@ -483,6 +473,50 @@ void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
   for (const Node& a : al)
   {
     assertions.push_back(a);
+    Node q = as.getDefinitionQuant(a);
+    if (!q.isNull())
+    {
+      assertions.push_back(q);
+    }
+  }
+}
+
+void PfManager::filterDefinitions(Assertions& as,
+                                  const std::shared_ptr<ProofNode>& pfn,
+                                  std::vector<Node>& assertions)
+{
+  std::unordered_set<Node> exclude;
+  std::vector<Node> fassumps;
+  bool computedFa = false;
+  for (const Node& a : as.getAssertionListDefinitions())
+  {
+    Node q = as.getDefinitionQuant(a);
+    if (q.isNull())
+    {
+      continue;
+    }
+    if (!computedFa)
+    {
+      expr::getFreeAssumptions(pfn.get(), fassumps);
+      computedFa = true;
+    }
+    bool hasDef =
+        std::find(fassumps.begin(), fassumps.end(), a) != fassumps.end();
+    if (!hasDef)
+    {
+      exclude.insert(a);
+    }
+    else if (std::find(fassumps.begin(), fassumps.end(), q) == fassumps.end())
+    {
+      exclude.insert(q);
+    }
+  }
+  if (!exclude.empty())
+  {
+    std::function<bool(Node)> predicate = [&exclude](Node n) {
+      return exclude.find(n) != exclude.end();
+    };
+    erase_if(assertions, predicate);
   }
 }
 
@@ -507,6 +541,14 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
         == definitions.cend())
     {
       assertions.push_back(a);
+    }
+    else
+    {
+      Node q = as.getDefinitionQuant(a);
+      if (!q.isNull())
+      {
+        assertions.push_back(q);
+      }
     }
   }
 }

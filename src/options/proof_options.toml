@@ -214,11 +214,11 @@ name   = "Proof"
 
 [[option]]
   name       = "proofDefineFunQuant"
-  category   = "common"
+  category   = "expert"
   long       = "proof-define-fun-quant"
   type       = "bool"
-  default    = "false"
-  help       = "In CPC proofs, print function definitions (define-fun) as quantified formulas forall x. (f x) = t instead of higher-order equalities, eliminating lambdas when possible"
+  default    = "true"
+  help       = "In proofs, justify function definitions (define-fun) by the quantified formula forall x. (f x) = t, whose instances justify expanding applications of f. The higher-order equality f = (lambda x t) is only used for occurrences of f that are not fully applied"
 
 [[option]]
   name       = "proofPrintReference"

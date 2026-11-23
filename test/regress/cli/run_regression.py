@@ -387,13 +387,10 @@ class CpcLogosTester(CpcTesterBase):
             # benchmark explicitly requests a granularity below dsl-rewrite.
             # Such coarse proofs may still be rejected by Logos. We cannot
             # pass --check-proofs-complete directly, as it is an expert option.
-            # We print define-fun as quantified formulas, since Logos does not
-            # support the lambdas that would otherwise be printed.
             cvc5_args = [
                 "--dump-proofs",
                 "--proof-print-conclusion",
                 "--check-proofs",
-                "--proof-define-fun-quant",
             ] + benchmark_info.command_line_args
             proof, exit_code = self.gen_proof(benchmark_info, cvc5_args)
             if exit_code != EXIT_OK:

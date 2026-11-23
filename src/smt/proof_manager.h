@@ -169,15 +169,28 @@ class PfManager : protected EnvObj
   //--------------------------- end access to utilities
  private:
   /**
-   * Get assertions from the assertions
+   * Get assertions from the assertions. For function definitions that have a
+   * quantified formula (see Assertions::getDefinitionQuant), this includes
+   * both the definition and its quantified formula.
    */
   void getAssertions(Assertions& as, std::vector<Node>& assertions);
   /**
-   * Get definitions and assertions from the assertions
+   * Get definitions and assertions from the assertions. The quantified
+   * formulas of function definitions are included in assertions.
    */
   void getDefinitionsAndAssertions(Assertions& as,
                                    std::vector<Node>& definitions,
                                    std::vector<Node>& assertions);
+  /**
+   * Remove from assertions the forms of function definitions that are not
+   * used in pfn. In particular, for each function definition that has a
+   * quantified formula, we keep the definition only if it is a free
+   * assumption of pfn, and we keep the quantified formula if it is a free
+   * assumption of pfn or if the definition is not.
+   */
+  void filterDefinitions(Assertions& as,
+                         const std::shared_ptr<ProofNode>& pfn,
+                         std::vector<Node>& assertions);
   /** The false node */
   Node d_false;
   /** The rewrite proof database. */
