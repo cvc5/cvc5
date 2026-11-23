@@ -171,6 +171,7 @@ void vec<T>::growTo(int size, const T& pad)
 template <class T>
 void vec<T>::growTo(int size)
 {
+  Assert(sz >= 0);
   if (sz >= size) return;
   capacity(size);
   for (int i = sz; i < size; i++) new (&data[i]) T();
