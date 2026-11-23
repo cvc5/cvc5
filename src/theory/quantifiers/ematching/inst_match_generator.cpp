@@ -630,10 +630,9 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(Env& env,
                                                              Node q,
                                                              Node pat)
 {
-  std::vector<Node> pats;
-  pats.push_back(pat);
-  std::map<Node, InstMatchGenerator*> pat_map_init;
-  return mkInstMatchGenerator(env, tparent, q, pats, pat_map_init);
+  std::vector<InstMatchGenerator*> inits;
+  inits.push_back(getInstMatchGenerator(env, tparent, q, pat));
+  return mkInstMatchGenerator(q, inits);
 }
 
 InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti(
@@ -645,47 +644,22 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti(
   std::vector<InstMatchGenerator*> gens;
   imgm->initialize(q, gens);
   Assert(gens.size() == pats.size());
-  std::vector<Node> patsn;
-  std::map<Node, InstMatchGenerator*> pat_map_init;
-  for (InstMatchGenerator* g : gens)
-  {
-    Node pn = g->d_match_pattern;
-    patsn.push_back(pn);
-    pat_map_init[pn] = g;
-  }
-  imgm->d_next = mkInstMatchGenerator(env, tparent, q, patsn, pat_map_init);
+  // Chain the generators for each pattern in order. Note that we use the
+  // generators themselves, rather than their match patterns, since distinct
+  // generators may have the same (possibly null) match pattern, e.g.
+  // relational or term substitution generators.
+  imgm->d_next = mkInstMatchGenerator(q, gens);
   return imgm;
 }
 
 InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
-    Env& env,
-    Trigger* tparent,
-    Node q,
-    std::vector<Node>& pats,
-    std::map<Node, InstMatchGenerator*>& pat_map_init)
+    Node q, const std::vector<InstMatchGenerator*>& inits)
 {
-  size_t pCounter = 0;
   InstMatchGenerator* prev = nullptr;
-  InstMatchGenerator* oinit = nullptr;
-  while (pCounter < pats.size())
+  for (InstMatchGenerator* init : inits)
   {
     size_t counter = 0;
     std::vector<InstMatchGenerator*> gens;
-    InstMatchGenerator* init;
-    std::map<Node, InstMatchGenerator*>::iterator iti =
-        pat_map_init.find(pats[pCounter]);
-    if (iti == pat_map_init.end())
-    {
-      init = getInstMatchGenerator(env, tparent, q, pats[pCounter]);
-    }
-    else
-    {
-      init = iti->second;
-    }
-    if (pCounter == 0)
-    {
-      oinit = init;
-    }
     gens.push_back(init);
     // chain the resulting match generators together
     while (counter < gens.size())
@@ -693,15 +667,17 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
       InstMatchGenerator* curr = gens[counter];
       if (prev)
       {
+        // a generator should never be chained to itself, which would lead to
+        // non-termination
+        Assert(prev != curr);
         prev->d_next = curr;
       }
       curr->initialize(q, gens);
       prev = curr;
       counter++;
     }
-    pCounter++;
   }
-  return oinit;
+  return inits.empty() ? nullptr : inits[0];
 }
 
 InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Env& env,

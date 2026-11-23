@@ -16,11 +16,6 @@ import java.lang.ref.Cleaner;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
 
@@ -71,13 +66,6 @@ final class NativeContext
 {
   /** Frees the remaining native objects of contexts that became unreachable. */
   private static final Cleaner CLEANER = Cleaner.create();
-
-  /**
-   * Contexts that may still own native objects, for {@link Context#deletePointers()}.
-   * Weakly referenced, so that the registry does not keep contexts alive.
-   */
-  private static final Set<NativeContext> LIVE =
-      Collections.newSetFromMap(new WeakHashMap<NativeContext, Boolean>());
 
   /** Number of contexts reclaimed by the cleaner, see {@link #releasedContexts()}. */
   private static final AtomicLong RELEASED_CONTEXTS = new AtomicLong();
@@ -255,10 +243,6 @@ final class NativeContext
   NativeContext()
   {
     CLEANER.register(this, registry);
-    synchronized (LIVE)
-    {
-      LIVE.add(this);
-    }
   }
 
   /**
@@ -317,21 +301,5 @@ final class NativeContext
   static long releasedContexts()
   {
     return RELEASED_CONTEXTS.get();
-  }
-
-  /**
-   * Free every native object of every context, see {@link Context#deletePointers()}.
-   */
-  static void releaseAll()
-  {
-    List<NativeContext> contexts;
-    synchronized (LIVE)
-    {
-      contexts = new ArrayList<>(LIVE);
-    }
-    for (NativeContext context : contexts)
-    {
-      context.releaseAllObjects();
-    }
   }
 }
