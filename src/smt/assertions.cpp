@@ -334,20 +334,20 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
       // body, so that applying their substitution in proofs does not
       // introduce applications of defined functions.
       if (isFunDef && d_env.isProofProducing()
-          && options().proof.proofDefineFunQuant
           && n[1].getKind() != Kind::LAMBDA)
       {
-        TrustNode te = tsm.expandDefinitionsTrusted(defRew);
-        if (!te.isNull())
+        std::pair<Node, std::shared_ptr<ProofNode>> exp =
+            tsm.expandDefinitions(defRew, true);
+        if (exp.second != nullptr)
         {
           Assert(defRew == n[1]);
-          // ------------------ ASSUME  ------ from tsm
-          // c = t                      t = t'
-          // --------------------------------- TRANS
+          // -------- ASSUME  ------ expandDefinitions
+          // c = t            t = t'
+          // ----------------------- TRANS
           // c = t'
-          Node eqExp = te.getProven();
-          d_defFunRewPf->addLazyStep(eqExp, te.getGenerator());
-          defRew = te.getNode();
+          Node eqExp = exp.second->getResult();
+          d_defFunRewPf->addProof(exp.second);
+          defRew = exp.first;
           Node eqFinal = n[0].eqNode(defRew);
           d_defFunRewPf->addStep(eqFinal, ProofRule::TRANS, {n, eqExp}, {});
         }

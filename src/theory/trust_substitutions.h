@@ -15,10 +15,7 @@
 #ifndef CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 #define CVC5__THEORY__TRUST_SUBSTITUTIONS_H
 
-#include <functional>
-
 #include "context/cdhashmap.h"
-#include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "proof/conv_proof_generator.h"
@@ -103,11 +100,12 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   Node apply(Node n, Rewriter* r = nullptr);
   /**
    * Expand the fully applied occurrences of definitions (see addDefinition)
-   * in n, without rewriting. Returns a trust node proving n = n', where the
-   * proof generator is provided by this class, or the null trust node if no
-   * expansion applies or proofs are not enabled.
+   * in n, without rewriting. Returns the result of the expansion n', and if
+   * withProof is true, a proof of (= n n'), or nullptr if no expansion
+   * applies.
    */
-  TrustNode expandDefinitionsTrusted(Node n);
+  std::pair<Node, std::shared_ptr<ProofNode>> expandDefinitions(
+      const Node& n, bool withProof);
 
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -122,19 +120,6 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    * domain is in excl.
    */
   Node getSubstitution(size_t index, const std::unordered_set<Node>& excl = {});
-  /** Get a function that maps defined symbols to their quantified formula */
-  std::function<Node(const Node&)> getDefinitionLookup();
-  /**
-   * Expand fully applied occurrences of definitions in n, where getDef maps
-   * defined symbols to their quantified formula (see addDefinition), or to
-   * null if they are not defined. Returns the result of the expansion n',
-   * and if withProof is true, a proof of (= n n'), or nullptr if no
-   * expansion applies.
-   */
-  std::pair<Node, std::shared_ptr<ProofNode>> expandDefinitions(
-      const Node& n,
-      const std::function<Node(const Node&)>& getDef,
-      bool withProof);
   /** The context used here */
   context::Context* d_ctx;
   /** The substitution map */
@@ -180,8 +165,6 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   context::CDHashMap<Node, Node> d_defs;
   /** The proof generator for the quantified formulas in d_defs */
   std::unique_ptr<LazyCDProof> d_defPg;
-  /** The equalities returned by expandDefinitionsTrusted */
-  context::CDHashSet<Node> d_expandEqs;
   /** Debugging, catches potential for infinite loops */
   std::unordered_set<Node> d_proving;
 };

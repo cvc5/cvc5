@@ -36,8 +36,7 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
       d_trustId(trustId),
       d_ids(ids),
       d_eqtIndex(c),
-      d_defs(c),
-      d_expandEqs(c)
+      d_defs(c)
 {
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm != nullptr)
@@ -170,8 +169,7 @@ TrustNode TrustSubstitutionMap::applyTrusted(Node n, Rewriter* r)
     // substitution. This ensures the result coincides with the one we prove
     // in getProofFor, since the rewriter may not compute the same result for
     // a beta-redex and its beta-reduced form.
-    Node nexp = expandDefinitions(n, getDefinitionLookup(), false).first;
-    ns = d_subs.apply(nexp, r);
+    ns = d_subs.apply(expandDefinitions(n, false).first, r);
   }
   else
   {
@@ -204,30 +202,6 @@ Node TrustSubstitutionMap::apply(Node n, Rewriter* r)
   return d_subs.apply(n, r);
 }
 
-TrustNode TrustSubstitutionMap::expandDefinitionsTrusted(Node n)
-{
-  if (!isProofEnabled() || d_defs.empty())
-  {
-    return TrustNode::null();
-  }
-  Node nexp = expandDefinitions(n, getDefinitionLookup(), false).first;
-  if (nexp == n)
-  {
-    return TrustNode::null();
-  }
-  // we will prove this equality lazily in getProofFor
-  d_expandEqs.insert(n.eqNode(nexp));
-  return TrustNode::mkTrustRewrite(n, nexp, this);
-}
-
-std::function<Node(const Node&)> TrustSubstitutionMap::getDefinitionLookup()
-{
-  return [this](const Node& x) {
-    context::CDHashMap<Node, Node>::const_iterator itd = d_defs.find(x);
-    return itd != d_defs.end() ? itd->second : Node::null();
-  };
-}
-
 std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
 {
   Assert(eq.getKind() == Kind::EQUAL);
@@ -249,20 +223,6 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   {
     return d_subsPg->getProofFor(eq);
   }
-  if (d_expandEqs.find(eq) != d_expandEqs.end())
-  {
-    // an equality from expandDefinitionsTrusted
-    std::shared_ptr<ProofNode> pfe =
-        expandDefinitions(n, getDefinitionLookup(), true).second;
-    if (pfe != nullptr && pfe->getResult() == eq)
-    {
-      return pfe;
-    }
-    Assert(false) << "Failed to prove expansion of definitions " << eq;
-    CDProof cdp(d_env);
-    cdp.addTrustedStep(eq, TrustId::SUBS_MAP, {}, {});
-    return cdp.getProofFor(eq);
-  }
   Trace("trust-subs-pf") << "getProofFor " << eq << std::endl;
   AlwaysAssert(d_proving.find(eq) == d_proving.end())
       << "Repeat getProofFor in TrustSubstitutionMap " << eq;
@@ -276,90 +236,49 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   // instances of their quantified formulas. This ensures that we do not
   // require their higher-order equalities (= f (lambda x t)) nor
   // beta-reduction in proofs, unless f occurs not fully applied.
-  Node nexp = n;
-  std::shared_ptr<ProofNode> pfExp;
+  std::pair<Node, std::shared_ptr<ProofNode>> exp = expandDefinitions(n, true);
+  Node nexp = exp.first;
+  std::shared_ptr<ProofNode> pfExp = exp.second;
+  // Exclude the definitions whose symbols do not occur in the expanded term or
+  // in the range of the other substitutions we use, so that their equalities
+  // are not premises of the proof. Note we do not consider occurrences of
+  // defined symbols in the range of other definitions, since their bodies have
+  // already been expanded.
   std::unordered_set<Node> excl;
-  if (!d_defs.empty())
+  if (pfExp != nullptr)
   {
-    std::unordered_map<Node, Node> defs;
+    std::unordered_set<Node> syms;
+    std::unordered_set<TNode> visited;
+    expr::getSymbols(nexp, syms, visited);
     for (size_t i = 0; i < index; i++)
     {
-      Node x = d_tsubs[i].getProven()[0];
-      context::CDHashMap<Node, Node>::const_iterator itd = d_defs.find(x);
-      if (itd != d_defs.end())
+      Node sx = d_tsubs[i].getProven();
+      if (d_defs.find(sx[0]) == d_defs.end())
       {
-        defs[x] = itd->second;
+        expr::getSymbols(sx[1], syms, visited);
+      }
+      else
+      {
+        excl.insert(sx[0]);
       }
     }
-    if (!defs.empty())
+    for (const Node& s : syms)
     {
-      std::function<Node(const Node&)> getDef = [&defs](const Node& x) {
-        std::unordered_map<Node, Node>::const_iterator itd = defs.find(x);
-        return itd != defs.end() ? itd->second : Node::null();
-      };
-      std::pair<Node, std::shared_ptr<ProofNode>> exp =
-          expandDefinitions(n, getDef, true);
-      pfExp = exp.second;
-      if (pfExp != nullptr)
-      {
-        nexp = exp.first;
-        Trace("trust-subs-pf") << "...expand definitions " << nexp << std::endl;
-      }
-      // Exclude the definitions whose symbols do not occur in the expanded
-      // term or in the range of the substitutions we use, so that their
-      // equalities are not premises of the proof.
-      std::unordered_set<Node> syms;
-      std::unordered_set<TNode> visited;
-      expr::getSymbols(nexp, syms, visited);
-      for (size_t i = 0; i < index; i++)
-      {
-        Node sx = d_tsubs[i].getProven();
-        if (defs.find(sx[0]) == defs.end())
-        {
-          expr::getSymbols(sx[1], syms, visited);
-        }
-      }
-      // Note we do not consider occurrences of defined symbols in the range of
-      // other definitions, since their bodies have already been expanded.
-      for (const std::pair<const Node, Node>& d : defs)
-      {
-        if (syms.find(d.first) == syms.end())
-        {
-          excl.insert(d.first);
-        }
-      }
+      excl.erase(s);
     }
   }
-  // If we fail to prove nexp = ns, we retry without the expansion.
-  bool success = false;
   std::vector<Node> pfChildren;
-  for (size_t r = 0; r < 2 && !success; r++)
+  if (nexp != ns)
   {
-    if (r == 1)
-    {
-      if (pfExp == nullptr && excl.empty())
-      {
-        break;
-      }
-      Trace("trust-subs-pf")
-          << "...retry without definition expansion" << std::endl;
-      pfExp = nullptr;
-      nexp = n;
-      excl.clear();
-    }
-    if (nexp == ns)
-    {
-      success = true;
-      break;
-    }
     Node cs = getSubstitution(index, excl);
     Trace("trust-subs-pf") << "getProofFor substitution is " << cs << std::endl;
-    pfChildren.clear();
     if (!cs.isConst())
     {
       // note that cs may be an AND node, in which case it specifies multiple
       // substitutions
       pfChildren.push_back(cs);
+      // connect substitution generator into apply generator
+      d_applyPg->addLazyStep(cs, d_subsPg.get());
     }
     Trace("trust-subs-pf") << "...apply eq intro" << std::endl;
     // We use fixpoint as the substitution-apply identifier. Notice that it
@@ -369,27 +288,19 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
     // apply the substitution to, or a single traversal of the term, but n^2/2
     // traversals of the range of the substitution to prepare a simultaneous
     // substitution. Both of these options are inefficient. Note that we
-    // expect this rule to succeed, so useExpected is set to true, unless we
-    // expanded definitions, in which case we check the step since we may
-    // fall back on the substitution without expansion.
-    success = d_tspb->applyEqIntro(nexp,
-                                   ns,
-                                   pfChildren,
-                                   d_ids,
-                                   MethodId::SBA_FIXPOINT,
-                                   MethodId::RW_REWRITE,
-                                   pfExp == nullptr);
-  }
-  if (!pfChildren.empty())
-  {
-    // connect substitution generator into apply generator
-    d_applyPg->addLazyStep(pfChildren[0], d_subsPg.get());
-  }
-  if (!success)
-  {
-    // if we fail for any reason, we must use a trusted step instead
-    Assert(pfExp == nullptr);
-    d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, eq);
+    // expect this rule to succeed, so useExpected is set to true.
+    Node eqs = nexp.eqNode(ns);
+    if (!d_tspb->applyEqIntro(nexp,
+                              ns,
+                              pfChildren,
+                              d_ids,
+                              MethodId::SBA_FIXPOINT,
+                              MethodId::RW_REWRITE,
+                              true))
+    {
+      // if we fail for any reason, we must use a trusted step instead
+      d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, eqs);
+    }
   }
   Trace("trust-subs-pf") << "...made steps" << std::endl;
   // -------        ------- from external proof generators
@@ -429,11 +340,12 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
 }
 
 std::pair<Node, std::shared_ptr<ProofNode>>
-TrustSubstitutionMap::expandDefinitions(
-    const Node& n,
-    const std::function<Node(const Node&)>& getDef,
-    bool withProof)
+TrustSubstitutionMap::expandDefinitions(const Node& n, bool withProof)
 {
+  if (d_defs.empty())
+  {
+    return {n, nullptr};
+  }
   NodeManager* nm = nodeManager();
   // proves the instances of the definitions
   LazyCDProof lcp(d_env, nullptr, nullptr, "TrustSubstitutionMap::expandInst");
@@ -492,9 +404,11 @@ TrustSubstitutionMap::expandDefinitions(
     }
     if (ret.getKind() == Kind::APPLY_UF)
     {
-      Node q = getDef(ret.getOperator());
-      if (!q.isNull())
+      context::CDHashMap<Node, Node>::const_iterator itd =
+          d_defs.find(ret.getOperator());
+      if (itd != d_defs.end())
       {
+        Node q = itd->second;
         std::vector<Node> vars(q[0].begin(), q[0].end());
         std::vector<Node> ts(ret.begin(), ret.end());
         // We require that the instantiation does not capture variables,
@@ -556,12 +470,8 @@ TrustSubstitutionMap::expandDefinitions(
     return {nexp, nullptr};
   }
   std::shared_ptr<ProofNode> pf = tcg.getProofForRewriting(n);
-  if (pf->getResult() != n.eqNode(nexp))
-  {
-    Trace("trust-subs-pf") << "...failed to expand definitions, got "
-                           << pf->getResult() << std::endl;
-    return {n, nullptr};
-  }
+  Assert(pf->getResult() == n.eqNode(nexp))
+      << "Failed to expand definitions in " << n;
   return {nexp, pf};
 }
 
