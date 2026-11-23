@@ -1,3 +1,4 @@
+; REQUIRES: unrestricted-mode
 ; The aggregate reduces to a map over the groups of X whose function folds a
 ; group. Whether that function is injective is not asked of a subsolver,
 ; which would unroll the folds and not return.
