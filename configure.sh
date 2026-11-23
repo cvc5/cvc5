@@ -164,9 +164,7 @@ java_bindings=default
 editline=default
 mpfr=ON
 build_shared=ON
-safe_mode=default
 slow_tests=default
-stable_mode=default
 static_binary=default
 statistics=default
 tracing=default
@@ -428,9 +426,9 @@ do
 
     *) [ $buildtype != default ] && die "more than one build type specified (try -h)"
        case $1 in
-         unrestricted)    buildtype=Production;;
-         stable)          buildtype=Production; stable_mode=ON;;
-         safe)            buildtype=Production; safe_mode=ON;;
+         unrestricted)    buildtype=Unrestricted;;
+         stable)          buildtype=Stable;;
+         safe)            buildtype=Safe;;
          debug)           buildtype=Debug;;
          testing)         buildtype=Testing;;
          competition)     buildtype=Competition;;
@@ -475,10 +473,6 @@ cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
   && cmake_opts="$cmake_opts -DENABLE_IPO=$ipo"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
-[ $safe_mode != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_SAFE_MODE=$safe_mode"
-[ $stable_mode != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STABLE_MODE=$stable_mode"
 [ $clang_tidy != default ] \
   && cmake_opts="$cmake_opts -DENABLE_CLANG_TIDY=$clang_tidy"
 [ $coverage != default ] \

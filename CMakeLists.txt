@@ -239,18 +239,26 @@ endif()
 
 # Note: Module CodeCoverage requires the name of the debug build to conform
 #       to cmake standards (first letter uppercase).
-set(BUILD_TYPES Production Debug Testing Competition)
+set(BUILD_TYPES Unrestricted Stable Safe Debug Testing Competition)
 
 if(ENABLE_ASAN OR ENABLE_UBSAN OR ENABLE_TSAN)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-# Set the default build type to Production
+# Set the default build type to Unrestricted
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE
-      Production CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
+      Unrestricted CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
   # Provide drop down menu options in cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${BUILD_TYPES})
+endif()
+
+# Deprecated alias for build type Unrestricted.
+if(CMAKE_BUILD_TYPE STREQUAL "Production")
+  message(DEPRECATION
+    "Build type 'Production' is deprecated, use 'Unrestricted' instead.")
+  set(CMAKE_BUILD_TYPE
+      Unrestricted CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
 endif()
 
 # Check if specified build type is valid.
@@ -894,8 +902,6 @@ if (ENABLE_SAFE_MODE)
   print_config("Build profile             " "safe")
 elseif (ENABLE_STABLE_MODE)
   print_config("Build profile             " "stable")
-elseif (CVC5_BUILD_PROFILE_STRING STREQUAL "production")
-  print_config("Build profile             " "unrestricted")
 else()
   print_config("Build profile             " "${CVC5_BUILD_PROFILE_STRING}")
 endif()
