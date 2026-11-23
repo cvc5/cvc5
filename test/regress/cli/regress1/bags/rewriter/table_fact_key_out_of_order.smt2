@@ -1,4 +1,6 @@
 ; REQUIRES: unrestricted-mode
+; CPC checking fails because the signature does not define table.project.
+; DISABLE-TESTER: cpc
 ; A key on columns 2 0 of X: the rewriter of the theory leaves the assertion
 ; as a map that puts the columns of a set back in order
 ; (SETOF_PROJECTION_SORT), which still states the key {0, 2}

@@ -1,4 +1,6 @@
 ; REQUIRES: unrestricted-mode
+; CPC checking fails because the signature does not define table.project.
+; DISABLE-TESTER: cpc
 ; AGGREGATE_KEYED by a fact: the assertion F that column 0 is a key of X gives
 ; the lemma F => (= A M), for A the aggregate by column 0 and M a map of X,
 ; which the rewriter of the theory cannot give
