@@ -38,6 +38,7 @@
 #include "theory/partition_generator.h"
 #include "theory/plugin_module.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
@@ -111,6 +112,7 @@ std::string getTheoryString(theory::TheoryId id)
 void TheoryEngine::finishInit()
 {
   d_modules.clear();
+  d_factModules.clear();
   Trace("theory") << "Begin TheoryEngine::finishInit" << std::endl;
   // NOTE: This seems to be required since
   // theory::TheoryTraits<THEORY>::isParametric cannot be accessed without
@@ -142,7 +144,7 @@ void TheoryEngine::finishInit()
   if (options().theory.relevanceFilter || options().smt.produceDifficulty)
   {
     d_relManager.reset(new RelevanceManager(d_env, this));
-    d_modules.push_back(d_relManager.get());
+    addModule(d_relManager.get());
   }
 
   // initialize the quantifiers engine
@@ -195,7 +197,7 @@ void TheoryEngine::finishInit()
   {
     d_partitionGen =
         std::make_unique<PartitionGenerator>(d_env, this, getPropEngine());
-    d_modules.push_back(d_partitionGen.get());
+    addModule(d_partitionGen.get());
   }
 
   // add user-provided plugins
@@ -206,9 +208,18 @@ void TheoryEngine::finishInit()
   {
     d_userPlugins.push_back(
         std::unique_ptr<PluginModule>(new PluginModule(d_env, this, p)));
-    d_modules.push_back(d_userPlugins.back().get());
+    addModule(d_userPlugins.back().get());
   }
   Trace("theory") << "End TheoryEngine::finishInit" << std::endl;
+}
+
+void TheoryEngine::addModule(TheoryEngineModule* tem)
+{
+  d_modules.push_back(tem);
+  if (tem->needsFacts())
+  {
+    d_factModules.push_back(tem);
+  }
 }
 
 TheoryEngine::TheoryEngine(Env& env)
@@ -917,7 +928,7 @@ bool TheoryEngine::solve(TrustNode tliteral,
 
   TheoryId tid = d_env.theoryOf(atom);
   // Note that ppAssert is called before ppRewrite.
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid))
   {
     // don't throw an exception yet
     // Instead ppStaticRewrite will be called on atom, which may throw an
@@ -940,7 +951,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   // since there are corner cases where facts may involve terms that belong
   // to other theories, e.g. equalities between variables belong to UF when
   // theoryof-mode is `term`.
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid))
   {
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
@@ -982,7 +993,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
 TrustNode TheoryEngine::ppStaticRewrite(TNode term)
 {
   TheoryId tid = d_env.theoryOf(term);
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid))
   {
     // If the theory is not enabled, then we require eliminating the term
     // here.
@@ -1243,6 +1254,12 @@ void TheoryEngine::assertFact(TNode literal)
   bool polarity = literal.getKind() != Kind::NOT;
   TNode atom = polarity ? literal : literal[0];
 
+  // notify the modules that track every fact
+  for (TheoryEngineModule* tem : d_factModules)
+  {
+    tem->notifyFact(literal);
+  }
+
   if (logicInfo().isSharingEnabled())
   {
     // If any shared terms, it's time to do sharing work
@@ -1291,10 +1308,26 @@ void TheoryEngine::assertFact(TNode literal)
     else
     {
       // Not an equality, just assert to the appropriate theory
+      TheoryId tid = d_env.theoryOf(atom);
       assertToTheory(literal,
                      literal,
-                     /* to */ d_env.theoryOf(atom),
+                     /* to */ tid,
                      /* from */ THEORY_SAT_SOLVER);
+      // A theory that uses the central equality engine but explains its own
+      // propagations (see Theory::expUsingCentralEqualityEngine) may assert
+      // this literal (e.g., a Boolean select of arrays) to the central
+      // equality engine, which may then use it as an assumption when
+      // explaining a propagation of THEORY_BUILTIN. We record that
+      // THEORY_BUILTIN got this literal from the SAT solver, as we do for
+      // equalities by asserting them to THEORY_BUILTIN above. Otherwise,
+      // getExplanation() asks THEORY_BUILTIN to explain the literal, whose
+      // explanation is the literal itself.
+      if (options().theory.eeMode == options::EqEngineMode::CENTRAL
+          && EqEngineManagerCentral::usesCentralEqualityEngine(options(), tid)
+          && theoryExpPropagation(tid) != THEORY_BUILTIN)
+      {
+        markPropagation(literal, literal, THEORY_BUILTIN, THEORY_SAT_SOLVER);
+      }
     }
   }
   else
@@ -1656,7 +1689,7 @@ void TheoryEngine::lemma(TrustNode tlemma,
   }
 
   // assert the lemma
-  d_propEngine->assertLemma(id, tlemma, p);
+  d_propEngine->assertLemma(id, tlemma, p, from);
 
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in skAsserts as well,
@@ -2216,6 +2249,17 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure)
             && relevantAssertions.find(assertion) == relevantAssertions.end())
         {
           // not relevant, skip
+          continue;
+        }
+        TNode atom =
+            assertion.getKind() == Kind::NOT ? assertion[0] : assertion;
+        if (atom.getKind() == Kind::FORALL
+            && quantifiers::TermUtil::hasInstConstAttr(atom))
+        {
+          // Quantified formulas with instantiation constants are internal to
+          // counterexample-guided quantifier instantiation, and need not be
+          // satisfied by the model, e.g. if the counterexample lemma they
+          // occur in is disabled.
           continue;
         }
         Node val = d_tc->getModel()->getValue(assertion);

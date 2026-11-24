@@ -127,6 +127,16 @@ Node SetReduction::reduceProjectOperator(Node n)
   return setMap;
 }
 
+Node SetReduction::mkChooseMemberAxiom(const Node& n)
+{
+  Assert(n.getKind() == Kind::SET_CHOOSE);
+  NodeManager* nm = n.getNodeManager();
+  Node A = n[0];
+  Node isEmpty = A.eqNode(nm->mkConst(EmptySet(A.getType())));
+  Node member = nm->mkNode(Kind::SET_MEMBER, n, A);
+  return nm->mkNode(Kind::OR, isEmpty, member);
+}
+
 }  // namespace sets
 }  // namespace theory
 }  // namespace cvc5::internal

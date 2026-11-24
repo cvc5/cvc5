@@ -28,7 +28,7 @@
 (assert (forall ((?x1 Loc) (?x2 T)) (= ?x2 (s (o ?x1 ?x2) ?x1))))
 (assert (and 
 (not a) 
-(forall ((?a9 T)) (or (is-D ?a9) (sb (G A (d ?a9))))) 
+(forall ((?a9 T)) (or ((_ is D) ?a9) (sb (G A (d ?a9)))))
 (or 
 (not (=> a (forall (($a T)) (sb (G A (d $a)))))) 
 (and 

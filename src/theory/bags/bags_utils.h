@@ -258,6 +258,26 @@ class BagsUtils
    * @return a constant bag constructed from the images of elements in A.
    */
   static Node evaluateBagMap(TNode n);
+  /**
+   * @param n has the form (bag.all p A) where A is a constant bag
+   * @return (= (bag.filter p A) A), which rewriting evaluates. For
+   * p = (lambda ((x Int)) (> x 0)):
+   *   (bag.all p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+   *   = (= (bag.filter p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+   *        (bag.union_disjoint (bag 1 2) (bag 3 1)))
+   *   = true
+   */
+  static Node evaluateBagAll(TNode n);
+  /**
+   * @param n has the form (bag.some p A) where A is a constant bag
+   * @return (not (= (bag.filter p A) (as bag.empty (Bag T)))), which rewriting
+   * evaluates. For p = (lambda ((x Int)) (> x 2)):
+   *   (bag.some p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+   *   = (not (= (bag.filter p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+   *             (as bag.empty (Bag Int))))
+   *   = true
+   */
+  static Node evaluateBagSome(TNode n);
 };
 }  // namespace bags
 }  // namespace theory

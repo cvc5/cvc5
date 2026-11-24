@@ -76,8 +76,10 @@ if(NOT GMP_FOUND_SYSTEM)
   # Newer versions of gcc use C23 as default C standard but GMP (as of 6.3.0)
   # only supports C17. To also support older compiler versions, we fix the
   # standard for GMP to C99.
-  set(GMP_CFLAGS "-std=gnu99")
-  set(GMP_CXXFLAGS "")
+  # Setting CFLAGS/CXXFLAGS replaces configure's default flags, so we have to
+  # request optimization explicitly.
+  set(GMP_CFLAGS "-O2 -std=gnu99")
+  set(GMP_CXXFLAGS "-O2")
 
   if(BUILD_SHARED_LIBS)
     set(LINK_OPTS --enable-shared --disable-static)
@@ -135,7 +137,7 @@ if(NOT GMP_FOUND_SYSTEM)
   ExternalProject_Add(
     GMP-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/cvc5/cvc5-deps/blob/main/gmp-${GMP_VERSION}.tar.bz2?raw=true
+    URL https://raw.githubusercontent.com/cvc5/cvc5-deps/main/gmp-${GMP_VERSION}.tar.bz2
     URL_HASH SHA256=ac28211a7cfb609bae2e2c8d6058d66c8fe96434f740cf6fe2e47b000d1c20cb
     BUILD_IN_SOURCE ON
     CONFIGURE_COMMAND

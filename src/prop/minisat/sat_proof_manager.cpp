@@ -134,14 +134,14 @@ void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
   }
 }
 
-void SatProofManager::endResChain(Minisat::Lit lit)
+void SatProofManager::endResChain(Minisat::Lit lit, uint32_t clauseLevel)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Trace("sat-proof") << "SatProofManager::endResChain: curr user level: "
                      << userContext()->getLevel() << "\n";
   Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
                      << satLit;
-  endResChain(d_cnfStream->getNode(satLit), {satLit});
+  endResChain(d_cnfStream->getNode(satLit), {satLit}, clauseLevel);
 }
 
 void SatProofManager::endResChain(const Minisat::Clause& clause)
@@ -167,10 +167,27 @@ void SatProofManager::endResChain(Node conclusion,
 {
   Trace("sat-proof") << ", " << conclusion << "\n";
   LazyCDProof* cnfProof = d_ppm->getCnfProof();
-  if (cnfProof->hasStep(conclusion) || cnfProof->hasGenerator(conclusion))
+  // We do not justify clauses that are justified by the CNF proof, either
+  // because it has a step/generator for them or because they have been given
+  // to the SAT solver as input. For the latter it is moreover *necessary* to
+  // skip them to avoid cycles at the node level: a clause C given to the SAT
+  // solver may be node-equivalent to a literal l (i.e. C is a subformula
+  // occurring as a SAT literal), in which case a resolution chain concluding l
+  // may depend on premises whose own justification depends on C. Justifying C
+  // here, e.g. from the unit clause of l, would then close a cycle and lead to
+  // the proof of C being dropped, resulting in an open proof. See also the
+  // analogous checks in explainLit and finalizeProof.
+  //
+  // Note this check only applies to chains concluded after C has been given
+  // to the SAT solver. A chain for a node-equivalent clause learned *before*
+  // C was asserted is kept (see the d_resChains.hasGenerator check below). We
+  // have not observed such a chain leading to a cycle in practice.
+  if (cnfProof->hasStep(conclusion) || cnfProof->hasGenerator(conclusion)
+      || d_assumptions.contains(conclusion))
   {
     Trace("sat-proof") << "SatProofManager::endResChain: cnf proof has "
-                          "step/gen for it; skip\n";
+                          "step/gen for it, or it is an input assumption; "
+                          "skip\n";
     // clearing
     d_resLinks.clear();
     d_redundantLits.clear();
@@ -181,6 +198,13 @@ void SatProofManager::endResChain(Node conclusion,
     Trace("sat-proof")
         << "SatProofManager::endResChain: skip repeated proof of " << conclusion
         << "\n";
+    // The existing proof may have been added at the current user level, e.g.
+    // by explainLit during finalizeProof. If the conclusion holds at a lower
+    // level, we must still save its proof so that it is restored on pop.
+    if (clauseLevel < userContext()->getLevel())
+    {
+      d_optResLevels[conclusion] = clauseLevel;
+    }
     // clearing
     d_resLinks.clear();
     d_redundantLits.clear();

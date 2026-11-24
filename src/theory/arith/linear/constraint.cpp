@@ -1113,9 +1113,9 @@ ConstraintP ConstraintDatabase::getConstraint(ArithVar v,
   }
   else
   {
-    ConstraintP c = new Constraint(v, t, r, options().smt.produceProofs);
+    ConstraintP c = new Constraint(v, t, r, d_env.isTheoryProofProducing());
     ConstraintP negC =
-        Constraint::makeNegation(v, t, r, options().smt.produceProofs);
+        Constraint::makeNegation(v, t, r, d_env.isTheoryProofProducing());
 
     SortedConstraintMapIterator negPos;
     if (t == Equality || t == Disequality)
@@ -1349,7 +1349,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal, TNode nliteral)
   DeltaRational posDR = posCmp.normalizedDeltaRational();
 
   ConstraintP posC =
-      new Constraint(v, posType, posDR, options().smt.produceProofs);
+      new Constraint(v, posType, posDR, d_env.isTheoryProofProducing());
 
   Trace("arith::constraint")
       << "addliteral( literal ->" << literal << ")" << endl;
@@ -1385,7 +1385,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal, TNode nliteral)
     DeltaRational negDR = negCmp.normalizedDeltaRational();
 
     ConstraintP negC =
-        new Constraint(v, negType, negDR, options().smt.produceProofs);
+        new Constraint(v, negType, negDR, d_env.isTheoryProofProducing());
 
     SortedConstraintMapIterator negI;
 

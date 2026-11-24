@@ -78,3 +78,12 @@ Datatype Constructor Declaration Creation
 .. doxygengroup:: c_dt_cons_decl_creation
     :project: cvc5_c
     :content-only:
+
+-------------
+
+Grammar Creation
+----------------
+
+.. doxygengroup:: c_grammar_creation
+    :project: cvc5_c
+    :content-only:

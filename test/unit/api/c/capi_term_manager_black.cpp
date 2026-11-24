@@ -1037,7 +1037,7 @@ TEST_F(TestCApiBlackTermManager, mkReal)
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, ""), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "asdf"), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "1.2/3"), "cannot construct Real");
-  ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "."), "invalid argument '.'");
+  ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "."), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "/"), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "2/"), "cannot construct Real");
   ASSERT_CVC5_ERROR(cvc5_mk_real(d_tm, "/2"), "cannot construct Real");
@@ -1672,6 +1672,75 @@ TEST_F(TestCApiBlackTermManager, get_num_idxs_for_skolem_id)
   ASSERT_CVC5_ERROR(
       cvc5_get_num_idxs_for_skolem_id(nullptr, CVC5_SKOLEM_ID_BAGS_MAP_INDEX),
       "unexpected NULL argument");
+}
+
+TEST_F(TestCApiBlackTermManager, mk_grammar)
+{
+  Cvc5Term bt = cvc5_mk_true(d_tm);
+  Cvc5Term bv = cvc5_mk_var(d_tm, d_bool, "b");
+  Cvc5Term iv = cvc5_mk_var(d_tm, d_int, "i");
+
+  std::vector<Cvc5Term> bvars;
+  std::vector<Cvc5Term> symbols = {iv};
+  (void)cvc5_mk_grammar(
+      d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+  bvars = {bv};
+  (void)cvc5_mk_grammar(
+      d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data());
+
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          nullptr, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "unexpected NULL argument");
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_tm, bvars.size(), bvars.data(), symbols.size(), nullptr),
+      "unexpected NULL argument");
+
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_tm, bvars.size(), nullptr, symbols.size(), symbols.data()),
+      "unexpected NULL argument");
+
+  symbols = {nullptr};
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "invalid term at index 0");
+  bvars = {nullptr};
+  symbols = {iv};
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "invalid term at index 0");
+  bvars = {};
+  symbols = {bt};
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a bound variable");
+  bvars = {bt};
+  symbols = {iv};
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a bound variable");
+
+  Cvc5TermManager* tm = cvc5_term_manager_new();
+  bvars = {};
+  symbols = {iv};
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          tm, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a term associated with this term manager");
+  bvars = {bv};
+  symbols = {cvc5_mk_var(tm, cvc5_get_integer_sort(tm), "")};
+  ASSERT_CVC5_ERROR(
+      cvc5_mk_grammar(
+          d_tm, bvars.size(), bvars.data(), symbols.size(), symbols.data()),
+      "expected a term associated with this term manager");
+  cvc5_term_manager_release(tm);
+  cvc5_term_manager_delete(tm);
 }
 
 TEST_F(TestCApiBlackTermManager, get_statistics)

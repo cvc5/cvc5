@@ -1,5 +1,3 @@
-; Logos gets stuck on dt-collapse-tester-singleton for tuples.
-; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-const x (Tuple Int Bool))

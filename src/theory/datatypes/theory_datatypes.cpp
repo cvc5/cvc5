@@ -336,8 +336,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 {
   Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
-  // must ensure the type is well founded and has no nested recursion if
-  // the option dtNestedRec is not set to true.
+  // must ensure the type is well founded, is regular, and has no nested
+  // recursion if the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
   if (tn.isDatatype())
   {
@@ -350,6 +350,13 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
       throw LogicException(ss.str());
     }
     Trace("dt-expand") << "...well-founded ok" << std::endl;
+    if (!dt.isRegular())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle datatype " << dt.getName() << " that is not regular";
+      throw LogicException(ss.str());
+    }
+    Trace("dt-expand") << "...regular ok" << std::endl;
     if (!options().datatypes.dtNestedRec)
     {
       if (dt.hasNestedRecursion())
@@ -1382,8 +1389,10 @@ bool TheoryDatatypes::instantiate(EqcInfo* eqc, Node n)
   }
   else
   {
-    exp = getLabel(n);
-    tt = exp[0];
+    Node lbl = getLabel(n);
+    tt = lbl[0];
+    // Tuples do not use testers, see ProofRewriteRule::DT_INST.
+    exp = tt.getType().isTuple() ? d_true : lbl;
   }
   TypeNode ttn = tt.getType();
   const DType& dt = ttn.getDType();

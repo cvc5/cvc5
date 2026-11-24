@@ -88,8 +88,15 @@ if(BUILD_SHARED_LIBS)
 endif()
 
 set_target_properties(cvc5parser PROPERTIES OUTPUT_NAME cvc5parser)
+
+# See the corresponding comment in src/CMakeLists.txt.
+if(ENABLE_API_COVERAGE)
+  target_compile_options(cvc5parserapi-objs PRIVATE -O0 --coverage)
+  target_link_options(cvc5parser PUBLIC --coverage)
+endif()
 target_link_libraries(cvc5parser PRIVATE cvc5)
 
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
 install(TARGETS cvc5parser EXPORT cvc5-targets)
+strip_lto_static_library(cvc5parser)

@@ -37,6 +37,8 @@ class ParserTest
   void tearDown(TestInfo testInfo)
   {
     System.out.println("Tearing down test: " + testInfo.getDisplayName());
-    Context.deletePointers();
+    d_symman.close();
+    d_solver.close();
+    d_tm.close();
   }
 }

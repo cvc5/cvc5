@@ -53,7 +53,7 @@ enum ENUM(UnknownExplanation)
   EVALUE(RESOURCEOUT),
   /** Memory limit reached. */
   EVALUE(MEMOUT),
-  /** Solver was interrupted. */
+  /** Solver was interrupted (e.g., via a terminator). */
   EVALUE(INTERRUPTED),
   /** Unsupported feature encountered. */
   EVALUE(UNSUPPORTED),

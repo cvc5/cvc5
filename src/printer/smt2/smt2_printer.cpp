@@ -1218,6 +1218,7 @@ std::string Smt2Printer::smtKindString(Kind k)
     case Kind::TO_REAL: return "to_real";
     case Kind::POW: return "^";
     case Kind::DIVISIBLE: return "divisible";
+    case Kind::STAR_CONTAINS: return "int.star-contains";
 
     // arrays theory
     case Kind::SELECT: return "select";
@@ -2068,7 +2069,12 @@ void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
                                      const std::string& value) const
 {
-  out << "(set-info :" << flag << " " << value << ")";
+  out << "(set-info :" << flag;
+  if (!value.empty())
+  {
+    out << " " << value;
+  }
+  out << ")";
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
@@ -2081,16 +2087,16 @@ void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
                                        const std::string& flag,
                                        const std::string& value) const
 {
-  out << "(set-option :" << flag << ' ';
+  out << "(set-option :" << flag;
   // special cases: output channels require surrounding quotes in smt2 format
   if (flag == "diagnostic-output-channel" || flag == "regular-output-channel"
       || flag == "in")
   {
-    out << "\"" << value << "\"";
+    out << " \"" << value << "\"";
   }
-  else
+  else if (!value.empty())
   {
-    out << value;
+    out << ' ' << value;
   }
   out << ')';
 }

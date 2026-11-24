@@ -21,3 +21,25 @@
 
 ; used by --nl-cov
 (declare-const @indexed_root_predicate (-> Int Bool Real Bool))
+
+; program: $get_type_star_contains
+; args:
+; - F Type: The type of the predicate of int.star-contains.
+; return: >
+;   F, provided it has the form (-> Int ... Int Bool) with at least one Int,
+;   e.g. (-> Int Int Bool) for
+;   (int.star-contains (lambda ((x Int) (y Int)) (>= x y)) a b).
+(program $get_type_star_contains ((U Type))
+  :signature (Type) Type
+  (
+    (($get_type_star_contains (-> Int Bool)) (-> Int Bool))
+    (($get_type_star_contains (-> Int U))    (-> Int ($get_type_star_contains U)))
+  )
+)
+
+; The LIA* membership predicate: (int.star-contains p y_1 ... y_n) holds if
+; the vector (y_1, ..., y_n) is a sum of finitely many vectors that satisfy
+; p, e.g. (int.star-contains (lambda ((x Int)) (= x 2)) 6) holds.
+; disclaimer: This function is not in SMT-LIB.
+(declare-parameterized-const int.star-contains ((F Type :implicit))
+  (-> F ($get_type_star_contains F)))

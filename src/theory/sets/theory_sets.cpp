@@ -69,6 +69,9 @@ void TheorySets::finishInit()
   // Universe set is not evaluated. This is moreover important for ensuring that
   // we do not eliminate terms whose value involves the universe set.
   d_valuation.setUnevaluatedKind(Kind::SET_UNIVERSE);
+  // The value of set.choose is determined by congruence with the terms in the
+  // equality engine.
+  d_valuation.setSemiEvaluatedKind(Kind::SET_CHOOSE);
 
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(Kind::SET_SINGLETON);
@@ -77,6 +80,7 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(Kind::SET_MINUS);
   d_equalityEngine->addFunctionKind(Kind::SET_MEMBER);
   d_equalityEngine->addFunctionKind(Kind::SET_SUBSET);
+  d_equalityEngine->addFunctionKind(Kind::SET_CHOOSE);
   // relation operators
   d_equalityEngine->addFunctionKind(Kind::RELATION_PRODUCT);
   d_equalityEngine->addFunctionKind(Kind::RELATION_JOIN);
@@ -130,7 +134,8 @@ void TheorySets::preRegisterTerm(TNode node)
   d_internal->preRegisterTerm(node);
 }
 
-TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+TrustNode TheorySets::ppRewrite(TNode n,
+                                CVC5_UNUSED std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
   if (nk == Kind::SET_UNIVERSE || nk == Kind::SET_COMPLEMENT
@@ -186,7 +191,7 @@ TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
     Node ret = SetReduction::reduceProjectOperator(n);
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
-  return d_internal->ppRewrite(n, lems);
+  return TrustNode::null();
 }
 
 bool TheorySets::ppAssert(TrustNode tin, TrustSubstitutionMap& outSubstitutions)

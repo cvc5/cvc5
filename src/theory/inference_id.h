@@ -200,6 +200,14 @@ enum class InferenceId
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
+  // lia star reduction lemma
+  ARITH_LIA_STAR_EXISTS,
+  // lia star reduction lemma for a negated star-contains literal
+  ARITH_LIA_STAR_NOT_EXISTS,
+  // lia star nonnegative constraints
+  ARITH_LIA_STAR_NONNEGATIVE,
+  // lia star split lemma
+  ARITH_LIA_STAR_SPLIT,
   //-------------------- ff inference
   // ---------------------------------- end arith theory
 
@@ -246,7 +254,7 @@ enum class InferenceId
   TABLES_PRODUCT_UP,
   TABLES_PRODUCT_DOWN,
   TABLES_JOIN_DOWN,
-  TABLES_GROUP_NOT_EMPTY,
+  TABLES_GROUP_EMPTY,
   TABLES_GROUP_UP1,
   TABLES_GROUP_UP2,
   TABLES_GROUP_DOWN,
@@ -543,6 +551,8 @@ enum class InferenceId
   // split when computing care graph
   SETS_SKOLEM,
   SETS_CG_SPLIT,
+  // (or (= A (as set.empty (Set E))) (set.member (set.choose A) A))
+  SETS_CHOOSE_MEMBER,
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,
@@ -604,7 +614,7 @@ enum class InferenceId
   SETS_RELS_TRANSPOSE_EQ,
   SETS_RELS_TRANSPOSE_REV,
   SETS_RELS_TUPLE_REDUCTION,
-  SETS_RELS_GROUP_NOT_EMPTY,
+  SETS_RELS_GROUP_EMPTY,
   SETS_RELS_GROUP_UP1,
   SETS_RELS_GROUP_UP2,
   SETS_RELS_GROUP_DOWN,
@@ -984,20 +994,26 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
-  // equivalence of lambda functions
-  //   f = g => forall x. reduce(lambda(f)(x)) = reduce(lambda(g)(x))
-  // This is applied when lamda functions f and g are in the same eq class.
+  // equivalence of lambdas
+  //   l1 = l2 => forall x. reduce(l1(x)) = reduce(l2(x))
+  // This is applied when lambdas l1 and l2 are in the same eq class.
   UF_HO_LAMBDA_UNIV_EQ,
-  // equivalence of a lambda function and an ordinary function
-  //   f = h => h(t) = reduce(lambda(f)(t))
-  // This is applied when lamda function f and ordinary function h are in the
-  // same eq class.
+  // equivalence of a lambda and an ordinary function
+  //   h = l => h(t) = reduce(l(t))
+  // This is applied for each application h(t) in the equality engine, when
+  // lambda l and ordinary function h are in the same eq class, and l does not
+  // need lifting (see LambdaLift::needsLift).
   UF_HO_LAMBDA_APP_REDUCE,
   // Lazy lambda lifting
+  //   h = l => forall x. h(x) = l(x)
+  // This is applied when lambda l and ordinary function h are in the same eq
+  // class, and l needs lifting (see LambdaLift::needsLift).
   UF_HO_LAMBDA_LAZY_LIFT,
   //-------------------- end model-construction specific part
   //-------------------- end HO extension to UF
   //-------------------- UF arith/bv conversions solver
+  // range constraint for an unsigned bit-vector to integer conversion term
+  UF_ARITH_BV_CONV_RANGE,
   // reductions of an arithmetic/bit-vector conversion term
   UF_ARITH_BV_CONV_REDUCTION,
   // value-based refinement of an arithmetic/bit-vector conversion term

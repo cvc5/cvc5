@@ -28,19 +28,6 @@ namespace cvc5::internal {
 
 static_assert(UCHAR_MAX == 255, "Unsigned char is assumed to have 256 values.");
 
-String::String(const std::wstring& s)
-{
-  d_str.resize(s.size());
-  for (size_t i = 0, n = s.size(); i < n; ++i)
-  {
-    unsigned u = static_cast<unsigned>(s[i]);
-#ifdef CVC5_ASSERTIONS
-    Assert(u < num_codes());
-#endif
-    d_str[i] = u;
-  }
-}
-
 String::String(const std::u32string& s)
 {
   d_str.resize(s.size());
@@ -333,16 +320,6 @@ std::string String::toString(bool useEscSequences) const
     }
   }
   return str.str();
-}
-
-std::wstring String::toWString() const
-{
-  std::wstring res(size(), static_cast<wchar_t>(0));
-  for (std::size_t i = 0; i < size(); ++i)
-  {
-    res[i] = static_cast<wchar_t>(d_str[i]);
-  }
-  return res;
 }
 
 std::u32string String::toU32String() const

@@ -98,6 +98,8 @@ class CVC5_EXPORT Configuration final
 
   static bool isBuiltWithGmp();
 
+  static bool isBuiltWithMpfr();
+
   static bool isBuiltWithCln();
 
   static bool isBuiltWithGlpk();

@@ -83,6 +83,11 @@ if(NOT Normaliz_FOUND_SYSTEM)
 
   set(CONFIGURE_OPTS "")  
 
+  # Set the compiler flags explicitly, as otherwise autotools defaults to
+  # "-g -O2", and the debug info makes up most of the size of the library.
+  set(Normaliz_CFLAGS "-O2")
+  set(Normaliz_CXXFLAGS "-O2")
+
   if(CMAKE_CROSSCOMPILING OR CMAKE_CROSSCOMPILING_MACOS)
     set(CONFIGURE_OPTS
       --host=${TOOLCHAIN_PREFIX}
@@ -100,6 +105,7 @@ if(NOT Normaliz_FOUND_SYSTEM)
   else()
     set(CONFIGURE_OPTS --build=${BUILD_TRIPLET}) # Defined in Helpers
   endif()
+  set(CONFIGURE_ENV ${CONFIGURE_ENV} env "CXXFLAGS=${Normaliz_CXXFLAGS}" env "CFLAGS=${Normaliz_CFLAGS}")
 
   set(Normaliz_VERSION "3.11.1")
   set(Normaliz_CHECKSUM "9a00d590f0fdcad847e2189696d2842d97ed896ed36c22421874a364047f76e8")

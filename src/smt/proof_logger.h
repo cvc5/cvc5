@@ -131,6 +131,16 @@ class ProofLoggerCpc : public ProofLogger
   void logSatRefutationProof(std::shared_ptr<ProofNode>& pfn) override;
 
  private:
+  /**
+   * Add pfn to the list of theory lemma proofs, and print it if the
+   * preprocessing proof has already been printed.
+   */
+  void logLemmaProof(std::shared_ptr<ProofNode>& pfn);
+  /**
+   * Called when the preprocessing proof has been printed. Prints the theory
+   * lemma proofs that have not yet been printed.
+   */
+  void printPendingLemmas();
   /** Pointer to the proof manager, for connecting proofs to inputsw */
   smt::PfManager* d_pm;
   /** Pointer to the proof node manager */
@@ -150,6 +160,10 @@ class ProofLoggerCpc : public ProofLogger
    * created.
    */
   std::vector<std::shared_ptr<ProofNode>> d_lemmaPfs;
+  /** Whether the preprocessing proof has been printed */
+  bool d_ppLogged;
+  /** The number of proofs in d_lemmaPfs that have been printed */
+  size_t d_numLemmasPrinted;
 };
 
 }  // namespace cvc5::internal

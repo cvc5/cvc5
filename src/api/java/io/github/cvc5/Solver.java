@@ -19,13 +19,19 @@ import io.github.cvc5.modes.LearnedLitType;
 import io.github.cvc5.modes.ProofComponent;
 import io.github.cvc5.modes.ProofFormat;
 import java.io.IOException;
+import java.lang.ref.Reference;
 import java.util.*;
 
 /**
  * A cvc5 solver.
  */
-public class Solver extends AbstractPointer
+public class Solver extends AbstractPointer implements AutoCloseable
 {
+  /**
+   * The term manager of this solver: a wrapper of the solver's own copy of
+   * the term manager it was created with, created on first use. It remains
+   * valid after the term manager passed to the constructor has been released.
+   */
   private TermManager d_tm;
 
   static
@@ -33,45 +39,41 @@ public class Solver extends AbstractPointer
     Utils.loadLibraries();
   }
 
-  // store IOracle objects
-  List<IOracle> oracles = new ArrayList<>();
+  /**
+   * Objects that native code calls back into (plugins and oracle bridges).
+   * Native code references them only weakly, so they are kept alive here for
+   * the lifetime of this solver. A strong native reference would keep this
+   * solver's term manager reachable (plugins reference it) and thus prevent
+   * the solver from ever being reclaimed automatically.
+   */
+  private final List<Object> callbacks = new ArrayList<>();
+
+  /**
+   * The wrapper of the connected terminator, if any. Like the callbacks above,
+   * native code references it only weakly.
+   */
+  private TerminatorWrapper terminatorWrapper;
 
   /**
    * Create solver instance.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link Solver#Solver(TermManager)}.
-   * It will be removed in a future release.
+   * @param tm The associated term manager.
    */
-  @Deprecated
-  public Solver()
+  public Solver(TermManager tm)
   {
-    this(new TermManager());
-  }
-
-  /**
-   * Create solver instance.
-   * @param d_tm The associated term manager.
-   */
-  public Solver(TermManager d_tm)
-  {
-    super(Solver.newSolver(d_tm.getPointer()));
-    this.d_tm = d_tm;
+    super(tm.ctx, Solver.newSolver(tm.getPointer()), Solver::deletePointer);
   }
   private static native long newSolver(long tmPointer);
 
-  /**
-   * This is an internal constructor intended to be used only
-   * inside cvc5 package
-   * @param pointer the cpp pointer to Solver
-   */
-  Solver(long solverPointer)
-  {
-    super(solverPointer);
-  }
+  private static native void deletePointer(long pointer);
 
-  protected native void deletePointer(long pointer);
+  /**
+   * Free the native solver, see {@code deletePointer()}.
+   */
+  @Override
+  public void close()
+  {
+    deletePointer();
+  }
 
   protected String toString(long pointer)
   {
@@ -109,1878 +111,27 @@ public class Solver extends AbstractPointer
   @Override
   public int hashCode()
   {
-    return Long.hashCode(pointer);
+    return Long.hashCode(getPointer());
   }
 
   /**
-   * Get the associated term manager instance
+   * Get the associated term manager instance.
+   *
+   * <p>The returned object refers to the same term manager as the one this
+   * solver was created with: closing it releases that term manager and every
+   * object derived from it, including this solver, see
+   * {@link TermManager#close()}.</p>
    * @return The term manager.
    */
   public TermManager getTermManager()
   {
-    return new TermManager(getTermManager(pointer));
+    if (d_tm == null)
+    {
+      d_tm = new TermManager(ctx, getTermManager(getPointer()));
+    }
+    return d_tm;
   }
   private native long getTermManager(long pointer);
-
-  /* .................................................................... */
-  /* Sorts Handling                                                       */
-  /* .................................................................... */
-
-  /**
-   * Get the Boolean sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#getBooleanSort()}.
-   * It will be removed in a future release.
-   *
-   * @return Sort Boolean.
-   */
-  @Deprecated
-  public Sort getBooleanSort()
-  {
-    return d_tm.getBooleanSort();
-  }
-
-  /**
-   * Get the integer sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#getIntegerSort()}.
-   * It will be removed in a future release.
-   *
-   * @return Sort Integer.
-   */
-  @Deprecated
-  public Sort getIntegerSort()
-  {
-    return d_tm.getIntegerSort();
-  }
-
-  /**
-   * Get the real sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#getRealSort()}.
-   * It will be removed in a future release.
-   *
-   * @return Sort Real.
-   */
-  @Deprecated
-  public Sort getRealSort()
-  {
-    return d_tm.getRealSort();
-  }
-
-  /**
-   * Get the regular expression sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#getRegExpSort()}.
-   * It will be removed in a future release.
-   *
-   * @return Sort RegExp.
-   */
-  @Deprecated
-  public Sort getRegExpSort()
-  {
-    return d_tm.getRegExpSort();
-  }
-
-  /**
-   * Get the floating-point rounding mode sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#getRoundingModeSort()}.
-   * It will be removed in a future release.
-   *
-   * @return Sort RoundingMode.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort getRoundingModeSort() throws CVC5ApiException
-  {
-    return d_tm.getRoundingModeSort();
-  }
-
-  /**
-   * Get the string sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#getStringSort()}.
-   * It will be removed in a future release.
-   *
-   * @return Sort String.
-   */
-  @Deprecated
-  public Sort getStringSort()
-  {
-    return d_tm.getStringSort();
-  }
-
-  /**
-   * Create an array sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkArraySort(Sort, Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param indexSort The array index sort.
-   * @param elemSort The array element sort.
-   * @return The array sort.
-   */
-  @Deprecated
-  public Sort mkArraySort(Sort indexSort, Sort elemSort)
-  {
-    return d_tm.mkArraySort(indexSort, elemSort);
-  }
-
-  /**
-   * Create a bit-vector sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkBitVectorSort(int)}.
-   * It will be removed in a future release.
-   *
-   * @param size The bit-width of the bit-vector sort.
-   * @return The bit-vector sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkBitVectorSort(int size) throws CVC5ApiException
-  {
-    return d_tm.mkBitVectorSort(size);
-  }
-
-  /**
-   * Create a finite field sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFiniteFieldSort(String, int)}.
-   * It will be removed in a future release.
-   *
-   * @param size The size of the finite field sort.
-   * @param base The base of the string representation.
-   * @return The finite field sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkFiniteFieldSort(String size, int base) throws CVC5ApiException
-  {
-    return d_tm.mkFiniteFieldSort(size, base);
-  }
-
-  /**
-   * Create a floating-point sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPointSort(int, int)}.
-   * It will be removed in a future release.
-   *
-   * @param exp The bit-width of the exponent of the floating-point sort.
-   * @param sig The bit-width of the significand of the floating-point sort.
-   * @return The floating-point sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkFloatingPointSort(int exp, int sig) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPointSort(exp, sig);
-  }
-
-  /**
-   * Create a datatype sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkDatatypeSort(DatatypeDecl)}.
-   * It will be removed in a future release.
-   *
-   * @param dtypedecl The datatype declaration from which the sort is created.
-   * @return The datatype sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkDatatypeSort(DatatypeDecl dtypedecl) throws CVC5ApiException
-  {
-    return d_tm.mkDatatypeSort(dtypedecl);
-  }
-
-  /**
-   * Create a vector of datatype sorts.
-   *
-   * The names of the datatype declarations must be distinct.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkDatatypeSorts(DatatypeDecl[])}.
-   * It will be removed in a future release.
-   *
-   * @param dtypedecls The datatype declarations from which the sort is created.
-   * @return The datatype sorts.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort[] mkDatatypeSorts(DatatypeDecl[] dtypedecls) throws CVC5ApiException
-  {
-    return d_tm.mkDatatypeSorts(dtypedecls);
-  }
-
-  /**
-   * Create function sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFunctionSort(Sort, Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param domain The sort of the fuction argument.
-   * @param codomain The sort of the function return value.
-   * @return The function sort.
-   */
-  @Deprecated
-  public Sort mkFunctionSort(Sort domain, Sort codomain)
-  {
-    return d_tm.mkFunctionSort(domain, codomain);
-  }
-
-  /**
-   * Create function sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFunctionSort(Sort[], Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sorts The sort of the function arguments.
-   * @param codomain The sort of the function return value.
-   * @return The function sort.
-   */
-  @Deprecated
-  public Sort mkFunctionSort(Sort[] sorts, Sort codomain)
-  {
-    return d_tm.mkFunctionSort(sorts, codomain);
-  }
-
-  /**
-   * Create a sort parameter.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkParamSort(String)}.
-   * It will be removed in a future release.
-   *
-   * @param symbol The name of the sort.
-   * @return The sort parameter.
-   */
-  @Deprecated
-  public Sort mkParamSort(String symbol)
-  {
-    return d_tm.mkParamSort(symbol);
-  }
-
-  /**
-   * Create a sort parameter.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkParamSort()}.
-   * It will be removed in a future release.
-   *
-   * @return The sort parameter.
-   */
-  @Deprecated
-  public Sort mkParamSort()
-  {
-    return d_tm.mkParamSort();
-  }
-
-  /**
-   * Create a predicate sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkPredicateSort(Sort[])}.
-   * It will be removed in a future release.
-   *
-   * @param sorts The list of sorts of the predicate.
-   * @return The predicate sort.
-   */
-  @Deprecated
-  public Sort mkPredicateSort(Sort[] sorts)
-  {
-    return d_tm.mkPredicateSort(sorts);
-  }
-
-  /**
-   * Create a record sort
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkRecordSort(Pair[])}.
-   * It will be removed in a future release.
-   *
-   * @param fields The list of fields of the record.
-   * @return The record sort.
-   */
-  @Deprecated
-  public Sort mkRecordSort(Pair<String, Sort>[] fields)
-  {
-    return d_tm.mkRecordSort(fields);
-  }
-
-  /**
-   * Create a set sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkSetSort(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param elemSort The sort of the set elements.
-   * @return The set sort.
-   */
-  @Deprecated
-  public Sort mkSetSort(Sort elemSort)
-  {
-    return d_tm.mkSetSort(elemSort);
-  }
-
-  /**
-   * Create a bag sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkBagSort(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param elemSort The sort of the bag elements.
-   * @return The bag sort.
-   */
-  @Deprecated
-  public Sort mkBagSort(Sort elemSort)
-  {
-    return d_tm.mkBagSort(elemSort);
-  }
-
-  /**
-   * Create a sequence sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkSequenceSort(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param elemSort The sort of the sequence elements.
-   * @return The sequence sort.
-   */
-  @Deprecated
-  public Sort mkSequenceSort(Sort elemSort)
-  {
-    return d_tm.mkSequenceSort(elemSort);
-  }
-
-  /**
-   * Create an abstract sort. An abstract sort represents a sort for a given
-   * kind whose parameters and arguments are unspecified.
-   *
-   * The {@link SortKind} k must be the kind of a sort that can be abstracted,
-   * i.e., a sort that has indices or argument sorts. For example,
-   * {@link SortKind#ARRAY_SORT} and {@link SortKind#BITVECTOR_SORT} can be
-   * passed as the {@link SortKind} k to this method, while
-   * {@link SortKind#INTEGER_SORT} and  {@link SortKind#STRING_SORT} cannot.
-   *
-   * @api.note Providing the kind  {@link SortKind#ABSTRACT_SORT} as an
-   *           argument to this method returns the (fully) unspecified sort,
-   *           often denoted {@code ?}.
-   *
-   * @api.note Providing a kind {@code k} that has no indices and a fixed arity
-   *           of argument sorts will return the sort of {@link SortKind} k
-   *           whose arguments are the unspecified sort. For example,
-   *           {@code mkAbstractSort(ARRAY_SORT)} will return the sort
-   *           {@code (ARRAY_SORT ? ?)} instead of the abstract sort whose
-   *           abstract kind is {@link SortKind#ABSTRACT_SORT}.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkAbstractSort(SortKind)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the abstract sort
-   * @return The abstract sort.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   */
-  @Deprecated
-  public Sort mkAbstractSort(SortKind kind)
-  {
-    return d_tm.mkAbstractSort(kind);
-  }
-
-  /**
-   * Create an uninterpreted sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkUninterpretedSort(String)}.
-   * It will be removed in a future release.
-   *
-   * @param symbol The name of the sort.
-   * @return The uninterpreted sort.
-   */
-  @Deprecated
-  public Sort mkUninterpretedSort(String symbol)
-  {
-    return d_tm.mkUninterpretedSort(symbol);
-  }
-
-  /**
-   * Create an uninterpreted sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkUninterpretedSort()}.
-   * It will be removed in a future release.
-   *
-   * @return The uninterpreted sort.
-   */
-  @Deprecated
-  public Sort mkUninterpretedSort()
-  {
-    return d_tm.mkUninterpretedSort();
-  }
-
-  /**
-   * Create an unresolved datatype sort.
-   *
-   * This is for creating yet unresolved sort placeholders for mutually
-   * recursive parametric datatypes.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkUnresolvedDatatypeSort(String, int)}.
-   * It will be removed in a future release.
-   *
-   * @param symbol The symbol of the sort.
-   * @param arity The number of sort parameters of the sort.
-   * @return The unresolved sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkUnresolvedDatatypeSort(String symbol, int arity) throws CVC5ApiException
-  {
-    return d_tm.mkUnresolvedDatatypeSort(symbol, arity);
-  }
-
-  /**
-   * Create an unresolved datatype sort.
-   *
-   * This is for creating yet unresolved sort placeholders for mutually
-   * recursive datatypes without sort parameters.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkUnresolvedDatatypeSort(String)}.
-   * It will be removed in a future release.
-   *
-   * @param symbol The symbol of the sort.
-   * @return The unresolved sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkUnresolvedDatatypeSort(String symbol) throws CVC5ApiException
-  {
-    return mkUnresolvedDatatypeSort(symbol, 0);
-  }
-
-  /**
-   * Create a sort constructor sort.
-   *
-   * An uninterpreted sort constructor is an uninterpreted sort with
-   * arity &gt; 0.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkUninterpretedSortConstructorSort(int, String)}.
-   * It will be removed in a future release.
-   *
-   * @param arity The arity of the sort (must be &gt; 0)
-   * @param symbol The symbol of the sort.
-   * @return The sort constructor sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkUninterpretedSortConstructorSort(int arity, String symbol) throws CVC5ApiException
-  {
-    return d_tm.mkUninterpretedSortConstructorSort(arity, symbol);
-  }
-
-  /**
-   * Create a sort constructor sort.
-   *
-   * An uninterpreted sort constructor is an uninterpreted sort with
-   * arity &gt; 0.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkUninterpretedSortConstructorSort(int)}.
-   * It will be removed in a future release.
-   *
-   * @param arity The arity of the sort (must be &gt; 0)
-   * @return The sort constructor sort.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Sort mkUninterpretedSortConstructorSort(int arity) throws CVC5ApiException
-  {
-    return d_tm.mkUninterpretedSortConstructorSort(arity);
-  }
-
-  /**
-   * Create a tuple sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTupleSort(Sort[])}.
-   * It will be removed in a future release.
-   *
-   * @param sorts Of the elements of the tuple.
-   * @return The tuple sort.
-   */
-  @Deprecated
-  public Sort mkTupleSort(Sort[] sorts)
-  {
-    return d_tm.mkTupleSort(sorts);
-  }
-
-  /**
-   * Create a nullable sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkNullableSort(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the element of the nullable.
-   * @return The nullable sort.
-   */
-  @Deprecated
-  public Sort mkNullableSort(Sort sort)
-  {
-    return d_tm.mkNullableSort(sort);
-  }
-
-  /* .................................................................... */
-  /* Create Terms */
-  /* .................................................................... */
-
-  /**
-   * Create 0-ary term of given kind.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Kind)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Kind kind)
-  {
-    return d_tm.mkTerm(kind);
-  }
-
-  /**
-   * Create a unary term of given kind.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Kind, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the term.
-   * @param child The child of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Kind kind, Term child)
-  {
-    return d_tm.mkTerm(kind, child);
-  }
-
-  /**
-   * Create binary term of given kind.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Kind, Term, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the term.
-   * @param child1 The first child of the term.
-   * @param child2 The second child of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Kind kind, Term child1, Term child2)
-  {
-    return d_tm.mkTerm(kind, child1, child2);
-  }
-
-  /**
-   * Create ternary term of given kind.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Kind, Term, Term, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the term.
-   * @param child1 The first child of the term.
-   * @param child2 The second child of the term.
-   * @param child3 The third child of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Kind kind, Term child1, Term child2, Term child3)
-  {
-    return d_tm.mkTerm(kind, child1, child2, child3);
-  }
-
-  /**
-   * Create n-ary term of given kind.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Kind, Term[])}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the term.
-   * @param children The children of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Kind kind, Term[] children)
-  {
-    return d_tm.mkTerm(kind, children);
-  }
-
-  /**
-   * Create nullary term of given kind from a given operator.
-   * Create operators with mkOp().
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Op)}.
-   * It will be removed in a future release.
-   *
-   * @param op The operator.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Op op)
-  {
-    return d_tm.mkTerm(op);
-  }
-
-  /**
-   * Create unary term of given kind from a given operator.
-   * Create operators with mkOp().
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Op, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param op The operator.
-   * @param child The child of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Op op, Term child)
-  {
-    return d_tm.mkTerm(op, child);
-  }
-
-  /**
-   * Create binary term of given kind from a given operator.
-   * Create operators with mkOp().
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Op, Term, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param op The operator.
-   * @param child1 The first child of the term.
-   * @param child2 The second child of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Op op, Term child1, Term child2)
-  {
-    return d_tm.mkTerm(op, child1, child2);
-  }
-
-  /**
-   * Create ternary term of given kind from a given operator.
-   * Create operators with mkOp().
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Op, Term, Term, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param op The operator.
-   * @param child1 The first child of the term.
-   * @param child2 The second child of the term.
-   * @param child3 The third child of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Op op, Term child1, Term child2, Term child3)
-  {
-    return d_tm.mkTerm(op, child1, child2, child3);
-  }
-
-  /**
-   * Create n-ary term of given kind from a given operator.
-   * Create operators with mkOp().
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTerm(Op, Term[])}.
-   * It will be removed in a future release.
-   *
-   * @param op The operator.
-   * @param children The children of the term.
-   * @return The Term.
-   */
-  @Deprecated
-  public Term mkTerm(Op op, Term[] children)
-  {
-    return d_tm.mkTerm(op, children);
-  }
-
-  /**
-   * Create a tuple term. Terms are automatically converted if sorts are
-   * compatible.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTuple(Term[])}.
-   * It will be removed in a future release.
-   *
-   * @param terms The elements in the tuple.
-   * @return The tuple Term.
-   */
-  @Deprecated
-  public Term mkTuple(Term[] terms)
-  {
-    return d_tm.mkTuple(terms);
-  }
-
-  /**
-   * Create a nullable some term.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkNullableSome(Term)}.
-   * It will be removed in a future release.
-   *
-   * @param term The element value.
-   * @return the Element value wrapped in some constructor.
-   */
-  @Deprecated
-  public Term mkNullableSome(Term term)
-  {
-    return d_tm.mkNullableSome(term);
-  }
-
-  private native long mkNullableSome(long pointer, long termPointer);
-
-  /**
-   * Create a selector for nullable term.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkNullableVal(Term)}.
-   * It will be removed in a future release.
-   *
-   * @param term A nullable term.
-   * @return The element value of the nullable term.
-   */
-  @Deprecated
-  public Term mkNullableVal(Term term)
-  {
-    return d_tm.mkNullableVal(term);
-  }
-
-  /**
-   * Create a null tester for a nullable term.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkNullableIsNull(Term)}.
-   * It will be removed in a future release.
-   *
-   * @param term A nullable term.
-   * @return A tester whether term is null.
-   */
-  @Deprecated
-  public Term mkNullableIsNull(Term term)
-  {
-    return d_tm.mkNullableIsNull(term);
-  }
-
-  /**
-   * Create a some tester for a nullable term.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkNullableIsSome(Term)}.
-   * It will be removed in a future release.
-   *
-   * @param term A nullable term.
-   * @return A tester whether term is some.
-   */
-  @Deprecated
-  public Term mkNullableIsSome(Term term)
-  {
-    return d_tm.mkNullableIsSome(term);
-  }
-
-  /**
-   * Create a constant representing a null value of the given sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkNullableNull(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the Nullable element.
-   * @return The null constant.
-   */
-  @Deprecated
-  public Term mkNullableNull(Sort sort)
-  {
-    return d_tm.mkNullableNull(sort);
-  }
-
-  /**
-   * Create a term that lifts kind to nullable terms.
-   *
-   * Example:
-   * If we have the term ((_ nullable.lift +) x y),
-   * where x, y of type (Nullable Int), then
-   * kind would be ADD, and args would be [x, y].
-   * This function would return
-   * (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkNullableLift(Kind, Term[])}.
-   * It will be removed in a future release.
-   *
-   * @param kind The lifted operator.
-   * @param args The arguments of the lifted operator.
-   * @return A term of Kind NULLABLE_LIFT where the first child
-   * is a lambda expression, and the remaining children are
-   * the original arguments.
-   */
-  @Deprecated
-  public Term mkNullableLift(Kind kind, Term[] args)
-  {
-    return d_tm.mkNullableLift(kind, args);
-  }
-
-  /* .................................................................... */
-  /* Create Operators                                                     */
-  /* .................................................................... */
-
-  /**
-   * Create an operator for a builtin Kind
-   * The Kind may not be the Kind for an indexed operator
-   * (e.g., {@link Kind#BITVECTOR_EXTRACT}).
-   *
-   * @api.note In this case, the Op simply wraps the Kind. The Kind can be used
-   *          in mkTerm directly without creating an op first.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkOp(Kind)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind to wrap.
-   * @return The operator.
-   */
-  @Deprecated
-  public Op mkOp(Kind kind)
-  {
-    return d_tm.mkOp(kind);
-  }
-
-  /**
-   * Create operator of kind:
-   * <ul>
-   *   <li>
-   *     {@link Kind#DIVISIBLE} (to support arbitrary precision integers)
-   *   </li>
-   * </ul>
-   * See enum {@link Kind} for a description of the parameters.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkOp(Kind, String)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the operator.
-   * @param arg The string argument to this operator.
-   * @return The operator.
-   */
-  @Deprecated
-  public Op mkOp(Kind kind, String arg)
-  {
-    return d_tm.mkOp(kind, arg);
-  }
-
-  /**
-   * Create operator of kind:
-   * <ul>
-   *   <li>DIVISIBLE</li>
-   *   <li>BITVECTOR_REPEAT</li>
-   *   <li>BITVECTOR_ZERO_EXTEND</li>
-   *   <li>BITVECTOR_SIGN_EXTEND</li>
-   *   <li>BITVECTOR_ROTATE_LEFT</li>
-   *   <li>BITVECTOR_ROTATE_RIGHT</li>
-   *   <li>INT_TO_BITVECTOR</li>
-   *   <li>FLOATINGPOINT_TO_UBV</li>
-   *   <li>FLOATINGPOINT_TO_UBV_TOTAL</li>
-   *   <li>FLOATINGPOINT_TO_SBV</li>
-   *   <li>FLOATINGPOINT_TO_SBV_TOTAL</li>
-   *   <li>TUPLE_UPDATE</li>
-   * </ul>
-   * See enum {@link Kind} for a description of the parameters.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkOp(Kind, int)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the operator.
-   * @param arg The unsigned int argument to this operator.
-   * @return The operator.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Op mkOp(Kind kind, int arg) throws CVC5ApiException
-  {
-    return d_tm.mkOp(kind, arg);
-  }
-
-  /**
-   * Create operator of Kind:
-   * <ul>
-   *   <li>BITVECTOR_EXTRACT</li>
-   *   <li>FLOATINGPOINT_TO_FP_FROM_IEEE_BV</li>
-   *   <li>FLOATINGPOINT_TO_FP_FROM_FP</li>
-   *   <li>FLOATINGPOINT_TO_FP_FROM_REAL</li>
-   *   <li>FLOATINGPOINT_TO_FP_FROM_SBV</li>
-   *   <li>FLOATINGPOINT_TO_FP_FROM_UBV</li>
-   * </ul>
-   * See enum {@link Kind} for a description of the parameters.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkOp(Kind, int, int)}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the operator.
-   * @param arg1 The first unsigned int argument to this operator.
-   * @param arg2 The second unsigned int argument to this operator.
-   * @return The operator.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Op mkOp(Kind kind, int arg1, int arg2) throws CVC5ApiException
-  {
-    return d_tm.mkOp(kind, arg1, arg2);
-  }
-
-  /**
-   * Create operator of Kind:
-   * <ul>
-   *   <li>TUPLE_PROJECT</li>
-   * </ul>
-   * See enum {@link Kind} for a description of the parameters.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkOp(Kind, int[])}.
-   * It will be removed in a future release.
-   *
-   * @param kind The kind of the operator.
-   * @param args The arguments (indices) of the operator.
-   * @return The operator.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Op mkOp(Kind kind, int[] args) throws CVC5ApiException
-  {
-    return d_tm.mkOp(kind, args);
-  }
-
-  /* .................................................................... */
-  /* Create Constants                                                     */
-  /* .................................................................... */
-
-  /**
-   * Create a Boolean {@code true} constant.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkTrue()}.
-   * It will be removed in a future release.
-   *
-   * @return The true constant.
-   */
-  @Deprecated
-  public Term mkTrue()
-  {
-    return d_tm.mkTrue();
-  }
-
-  /**
-   * Create a Boolean {@code false} constant.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFalse()}.
-   * It will be removed in a future release.
-   *
-   * @return The false constant.
-   */
-  @Deprecated
-  public Term mkFalse()
-  {
-    return d_tm.mkFalse();
-  }
-
-  /**
-   * Create a Boolean constant.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkBoolean(boolean)}.
-   * It will be removed in a future release.
-   *
-   * @param val The value of the constant.
-   * @return The Boolean constant.
-   */
-  @Deprecated
-  public Term mkBoolean(boolean val)
-  {
-    return d_tm.mkBoolean(val);
-  }
-
-  /**
-   * Create a constant representing the number Pi.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkPi()}.
-   * It will be removed in a future release.
-   *
-   * @return A constant representing Pi.
-   */
-  @Deprecated
-  public Term mkPi()
-  {
-    return d_tm.mkPi();
-  }
-
-  /**
-   * Create an integer constant from a string.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkInteger(String)}.
-   * It will be removed in a future release.
-   *
-   * @param s The string representation of the constant, may represent an.
-   *          integer (e.g., "123").
-   * @return A constant of sort Integer assuming {@code s} represents an
-   *         integer).
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkInteger(String s) throws CVC5ApiException
-  {
-    return d_tm.mkInteger(s);
-  }
-
-  /**
-   * Create an integer constant from a C++ {@code int}.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkInteger(long)}.
-   * It will be removed in a future release.
-   *
-   * @param val The value of the constant.
-   * @return A constant of sort Integer.
-   */
-  @Deprecated
-  public Term mkInteger(long val)
-  {
-    return d_tm.mkInteger(val);
-  }
-
-  /**
-   * Create a real constant from a string.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkReal(String)}.
-   * It will be removed in a future release.
-   *
-   * @param s The string representation of the constant, may represent an.
-   *          integer (e.g., "123") or real constant (e.g., "12.34" or
-   * "12/34").
-   * @return A constant of sort Real.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkReal(String s) throws CVC5ApiException
-  {
-    return d_tm.mkReal(s);
-  }
-
-  /**
-   * Create a real constant from an integer.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkReal(long)}.
-   * It will be removed in a future release.
-   *
-   * @param val The value of the constant.
-   * @return A constant of sort Integer.
-   */
-  @Deprecated
-  public Term mkReal(long val)
-  {
-    return d_tm.mkReal(val);
-  }
-
-  /**
-   * Create a real constant from a rational.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkReal(long, long)}.
-   * It will be removed in a future release.
-   *
-   * @param num The value of the numerator.
-   * @param den The value of the denominator.
-   * @return A constant of sort Real.
-   */
-  @Deprecated
-  public Term mkReal(long num, long den)
-  {
-    return d_tm.mkReal(num, den);
-  }
-
-  /**
-   * Create a regular expression none ({@code re.none}) term.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkRegexpNone()}.
-   * It will be removed in a future release.
-   *
-   * @return The none term.
-   */
-  @Deprecated
-  public Term mkRegexpNone()
-  {
-    return d_tm.mkRegexpNone();
-  }
-
-  /**
-   * Create a regular expression all ({@code re.all}) term.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkRegexpAll()}.
-   * It will be removed in a future release.
-   *
-   * @return The all term.
-   */
-  @Deprecated
-  public Term mkRegexpAll()
-  {
-    return d_tm.mkRegexpAll();
-  }
-
-  /**
-   * Create a regular expression allchar ({@code re.allchar}) term.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkRegexpAllchar()}.
-   * It will be removed in a future release.
-   *
-   * @return The allchar term.
-   */
-  @Deprecated
-  public Term mkRegexpAllchar()
-  {
-    return d_tm.mkRegexpAllchar();
-  }
-
-  /**
-   * Create a constant representing an empty set of the given sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkEmptySet(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the set elements.
-   * @return The empty set constant.
-   */
-  @Deprecated
-  public Term mkEmptySet(Sort sort)
-  {
-    return d_tm.mkEmptySet(sort);
-  }
-
-  /**
-   * Create a constant representing an empty bag of the given sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkEmptyBag(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the bag elements.
-   * @return The empty bag constant.
-   */
-  @Deprecated
-  public Term mkEmptyBag(Sort sort)
-  {
-    return d_tm.mkEmptyBag(sort);
-  }
-
-  /**
-   * Create a separation logic empty term.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkSepEmp()}.
-   * It will be removed in a future release.
-   *
-   * @return The separation logic empty term.
-   */
-  @Deprecated
-  public Term mkSepEmp()
-  {
-    return d_tm.mkSepEmp();
-  }
-
-  /**
-   * Create a separation logic nil term.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkSepNil(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the nil term.
-   * @return The separation logic nil term.
-   */
-  @Deprecated
-  public Term mkSepNil(Sort sort)
-  {
-    return d_tm.mkSepNil(sort);
-  }
-
-  /**
-   * Create a String constant.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkString(String)}.
-   * It will be removed in a future release.
-   *
-   * @param s The string this constant represents.
-   * @return The String constant.
-   */
-  @Deprecated
-  public Term mkString(String s)
-  {
-    return d_tm.mkString(s);
-  }
-
-  /**
-   * Create a String constant.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkString(String, boolean)}.
-   * It will be removed in a future release.
-   *
-   * @param s The string this constant represents.
-   * @param useEscSequences Determines whether escape sequences in {@code s}
-   *                        should be converted to the corresponding unicode
-   *                        character.
-   * @return The String constant.
-   */
-  @Deprecated
-  public Term mkString(String s, boolean useEscSequences)
-  {
-    // TODO: review unicode https://github.com/cvc5/cvc5-wishues/issues/150
-    return d_tm.mkString(s, useEscSequences);
-  }
-
-  /**
-   * Create a String constant.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkString(int[])}.
-   * It will be removed in a future release.
-   *
-   * @param s A list of unsigned (unicode) values this constant represents
-   *          as string.
-   * @return The String constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkString(int[] s) throws CVC5ApiException
-  {
-    return d_tm.mkString(s);
-  }
-
-  /**
-   * Create an empty sequence of the given element sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkEmptySequence(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The element sort of the sequence.
-   * @return The empty sequence with given element sort.
-   */
-  @Deprecated
-  public Term mkEmptySequence(Sort sort)
-  {
-    return d_tm.mkEmptySequence(sort);
-  }
-
-  /**
-   * Create a universe set of the given sort.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkUniverseSet(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the set elements.
-   * @return The universe set constant.
-   */
-  @Deprecated
-  public Term mkUniverseSet(Sort sort)
-  {
-    return d_tm.mkUniverseSet(sort);
-  }
-
-  /**
-   * Create a bit-vector constant of given size and value = 0.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkBitVector(int)}.
-   * It will be removed in a future release.
-   *
-   * @param size The bit-width of the bit-vector sort.
-   * @return The bit-vector constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkBitVector(int size) throws CVC5ApiException
-  {
-    return d_tm.mkBitVector(size);
-  }
-
-  /**
-   * Create a bit-vector constant of given size and value.
-   *
-   * @api.note The given value must fit into a bit-vector of the given size.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkBitVector(int, long)}.
-   * It will be removed in a future release.
-   *
-   * @param size The bit-width of the bit-vector sort.
-   * @param val The value of the constant.
-   * @return The bit-vector constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkBitVector(int size, long val) throws CVC5ApiException
-  {
-    return d_tm.mkBitVector(size, val);
-  }
-
-  /**
-   * Create a bit-vector constant of a given bit-width from a given string of
-   * base 2, 10 or 16.
-   *
-   * @api.note The given value must fit into a bit-vector of the given size.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkBitVector(int, String, int)}.
-   * It will be removed in a future release.
-   *
-   * @param size The bit-width of the constant.
-   * @param s The string representation of the constant.
-   * @param base The base of the string representation (2, 10, or 16)
-   * @return The bit-vector constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkBitVector(int size, String s, int base) throws CVC5ApiException
-  {
-    return d_tm.mkBitVector(size, s, base);
-  }
-
-  /**
-   * Create a finite field constant in a given field and for a given value.
-   *
-   * @api.note The given value must fit into a the given finite field.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFiniteFieldElem(String, Sort, int)}.
-   * It will be removed in a future release.
-   *
-   * @param val The value of the constant.
-   * @param sort The sort of the finite field.
-   * @param base The base of the string representation.
-   * @return The finite field constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFiniteFieldElem(String val, Sort sort, int base) throws CVC5ApiException
-  {
-    return d_tm.mkFiniteFieldElem(val, sort, base);
-  }
-
-  /**
-   * Create a constant array with the provided constant value stored at
-   * every index
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkConstArray(Sort, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the constant array (must be an array sort)
-   * @param val The constant value to store (must match the sort's element
-   *            sort).
-   * @return The constant array term.
-   */
-  @Deprecated
-  public Term mkConstArray(Sort sort, Term val)
-  {
-    return d_tm.mkConstArray(sort, val);
-  }
-
-  /**
-   * Create a positive infinity floating-point constant (SMT-LIB: {@code +oo}).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPointPosInf(int, int)}.
-   * It will be removed in a future release.
-   *
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFloatingPointPosInf(int exp, int sig) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPointPosInf(exp, sig);
-  }
-
-  /**
-   * Create a negative infinity floating-point constant (SMT-LIB: {@code -oo}).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPointNegInf(int, int)}.
-   * It will be removed in a future release.
-   *
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFloatingPointNegInf(int exp, int sig) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPointNegInf(exp, sig);
-  }
-
-  /**
-   * Create a not-a-number floating-point constant (SMT-LIB: {@code NaN}).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPointNaN(int, int)}.
-   * It will be removed in a future release.
-   *
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFloatingPointNaN(int exp, int sig) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPointNaN(exp, sig);
-  }
-
-  /**
-   * Create a positive zero floating-point constant (SMT-LIB: {@code +zero}).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPointPosZero(int, int)}.
-   * It will be removed in a future release.
-   *
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFloatingPointPosZero(int exp, int sig) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPointPosZero(exp, sig);
-  }
-
-  /**
-   * Create a negative zero floating-point constant (SMT-LIB: {@code -zero}).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPointNegZero(int, int)}.
-   * It will be removed in a future release.
-   *
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFloatingPointNegZero(int exp, int sig) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPointNegZero(exp, sig);
-  }
-
-  /**
-   * Create a rounding mode constant.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkRoundingMode(RoundingMode)}.
-   * It will be removed in a future release.
-   *
-   * @param rm The floating point rounding mode this constant represents.
-   * @return The rounding mode.
-   */
-  @Deprecated
-  public Term mkRoundingMode(RoundingMode rm)
-  {
-    return d_tm.mkRoundingMode(rm);
-  }
-
-  /**
-   * Create a floating-point value from a bit-vector given in IEEE-754
-   * format.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPoint(int, int, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param exp Size of the exponent.
-   * @param sig Size of the significand.
-   * @param val Value of the floating-point constant as a bit-vector term.
-   * @return The floating-point value.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFloatingPoint(int exp, int sig, Term val) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPoint(exp, sig, val);
-  }
-
-  /**
-   * Create a floating-point value from its three IEEE-754 bit-vector value
-   * components (sign bit, exponent, significand).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkFloatingPoint(Term, Term, Term)}.
-   * It will be removed in a future release.
-   *
-   * @param sign The sign bit.
-   * @param exp  The bit-vector representing the exponent.
-   * @param sig The bit-vector representing the significand.
-   * @return The floating-point value.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkFloatingPoint(Term sign, Term exp, Term sig) throws CVC5ApiException
-  {
-    return d_tm.mkFloatingPoint(sign, exp, sig);
-  }
-
-  /**
-   * Create a cardinality constraint for an uninterpreted sort.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkCardinalityConstraint(Sort, int)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort the cardinality constraint is for.
-   * @param upperBound The upper bound on the cardinality of the sort.
-   * @return The cardinality constraint.
-   * @throws CVC5ApiException on error
-   */
-  @Deprecated
-  public Term mkCardinalityConstraint(Sort sort, int upperBound) throws CVC5ApiException
-  {
-    return d_tm.mkCardinalityConstraint(sort, upperBound);
-  }
-
-  /* .................................................................... */
-  /* Create Variables                                                     */
-  /* .................................................................... */
-
-  /**
-   * Create a free constant.
-   *
-   * SMT-LIB:
-   * {@code
-   *   ( declare-const <symbol> <sort> )
-   *   ( declare-fun <symbol> ( ) <sort> )
-   * }
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkConst(Sort, String)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the constant.
-   * @param symbol The name of the constant.
-   * @return The first-order constant.
-   */
-  @Deprecated
-  public Term mkConst(Sort sort, String symbol)
-  {
-    return d_tm.mkConst(sort, symbol);
-  }
-
-  /**
-   * Create a free constant with a default symbol name.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkConst(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the constant.
-   * @return The first-order constant.
-   */
-  @Deprecated
-  public Term mkConst(Sort sort)
-  {
-    return d_tm.mkConst(sort);
-  }
-
-  /**
-   * Create a bound variable to be used in a binder (i.e., a quantifier, a
-   * lambda, or a witness binder).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkVar(Sort)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the variable.
-   * @return The variable.
-   */
-  @Deprecated
-  public Term mkVar(Sort sort)
-  {
-    return d_tm.mkVar(sort);
-  }
-
-  /**
-   * Create a bound variable to be used in a binder (i.e., a quantifier, a
-   * lambda, or a witness binder).
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkVar(Sort, String)}.
-   * It will be removed in a future release.
-   *
-   * @param sort The sort of the variable.
-   * @param symbol The name of the variable.
-   * @return The variable.
-   */
-  @Deprecated
-  public Term mkVar(Sort sort, String symbol)
-  {
-    return d_tm.mkVar(sort, symbol);
-  }
-
-  /* .................................................................... */
-  /* Create datatype constructor declarations                             */
-  /* .................................................................... */
-
-  /**
-   * Create a datatype constructor declaration.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkDatatypeConstructorDecl(String)}.
-   * It will be removed in a future release.
-   *
-   * @param name The name of the datatype constructor.
-   * @return The DatatypeConstructorDecl.
-   */
-  @Deprecated
-  public DatatypeConstructorDecl mkDatatypeConstructorDecl(String name)
-  {
-    return d_tm.mkDatatypeConstructorDecl(name);
-  }
-
-  /* .................................................................... */
-  /* Create datatype declarations                                         */
-  /* .................................................................... */
-
-  /**
-   * Create a datatype declaration.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkDatatypeDecl(String)}.
-   * It will be removed in a future release.
-   *
-   * @param name The name of the datatype.
-   * @return The DatatypeDecl.
-   */
-  @Deprecated
-  public DatatypeDecl mkDatatypeDecl(String name)
-  {
-    return d_tm.mkDatatypeDecl(name);
-  }
-
-  /**
-   * Create a datatype declaration.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkDatatypeDecl(String, boolean)}.
-   * It will be removed in a future release.
-   *
-   * @param name The name of the datatype.
-   * @param isCoDatatype True if a codatatype is to be constructed.
-   * @return The DatatypeDecl.
-   */
-  @Deprecated
-  public DatatypeDecl mkDatatypeDecl(String name, boolean isCoDatatype)
-  {
-    return d_tm.mkDatatypeDecl(name, isCoDatatype);
-  }
-
-  /**
-   * Create a datatype declaration.
-   *
-   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
-   *
-   * @api.note This method is experimental and may change in future versions.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkDatatypeDecl(String, Sort[])}.
-   * It will be removed in a future release.
-   *
-   * @param name The name of the datatype.
-   * @param params A list of sort parameters.
-   * @return The DatatypeDecl.
-   */
-  @Deprecated
-  public DatatypeDecl mkDatatypeDecl(String name, Sort[] params)
-  {
-    return d_tm.mkDatatypeDecl(name, params);
-  }
-
-  /**
-   * Create a datatype declaration.
-   *
-   * Create sorts parameter with {@link TermManager#mkParamSort(String)}.
-   *
-   * @deprecated
-   * This function is deprecated and replaced by
-   * {@link TermManager#mkDatatypeDecl(String, Sort[])}.
-   * It will be removed in a future release.
-   *
-   * @param name The name of the datatype.
-   * @param params A list of sort parameters.
-   * @param isCoDatatype True if a codatatype is to be constructed.
-   * @return The DatatypeDecl.
-   */
-  @Deprecated
-  public DatatypeDecl mkDatatypeDecl(String name, Sort[] params, boolean isCoDatatype)
-  {
-    return d_tm.mkDatatypeDecl(name, params, isCoDatatype);
-  }
 
   /* .................................................................... */
   /* Formula Handling                                                     */
@@ -1996,8 +147,15 @@ public class Solver extends AbstractPointer
    */
   public Term simplify(Term t)
   {
-    long termPointer = simplify(pointer, t.getPointer());
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = simplify(getPointer(), t.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long simplify(long pointer, long termPointer);
@@ -2017,8 +175,15 @@ public class Solver extends AbstractPointer
    */
   public Term simplify(Term t, boolean applySubs)
   {
-    long termPointer = simplify(pointer, t.getPointer(), applySubs);
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = simplify(getPointer(), t.getPointer(), applySubs);
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long simplify(long pointer, long termPointer, boolean applySubs);
@@ -2032,7 +197,7 @@ public class Solver extends AbstractPointer
    */
   public void assertFormula(Term term)
   {
-    assertFormula(pointer, term.getPointer());
+    assertFormula(getPointer(), term.getPointer());
   }
 
   private native void assertFormula(long pointer, long termPointer);
@@ -2049,8 +214,15 @@ public class Solver extends AbstractPointer
    */
   public Result checkSat()
   {
-    long resultPointer = checkSat(pointer);
-    return new Result(resultPointer);
+    try
+    {
+      long resultPointer = checkSat(getPointer());
+      return new Result(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSat(long pointer);
@@ -2067,8 +239,18 @@ public class Solver extends AbstractPointer
    */
   public Result checkSatAssuming(Term assumption)
   {
-    long resultPointer = checkSatAssuming(pointer, assumption.getPointer());
-    return new Result(resultPointer);
+    try
+    {
+      long resultPointer = checkSatAssuming(getPointer(), assumption.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(assumption);
+      return new Result(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSatAssuming(long pointer, long assumptionPointer);
@@ -2086,9 +268,19 @@ public class Solver extends AbstractPointer
    */
   public Result checkSatAssuming(Term[] assumptions)
   {
-    long[] pointers = Utils.getPointers(assumptions);
-    long resultPointer = checkSatAssuming(pointer, pointers);
-    return new Result(resultPointer);
+    try
+    {
+      long[] pointers = Utils.getPointers(assumptions);
+      long resultPointer = checkSatAssuming(getPointer(), pointers);
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(assumptions);
+      return new Result(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSatAssuming(long pointer, long[] assumptionPointers);
@@ -2108,8 +300,8 @@ public class Solver extends AbstractPointer
   public Sort declareDatatype(String symbol, DatatypeConstructorDecl[] ctors)
   {
     long[] pointers = Utils.getPointers(ctors);
-    long sortPointer = declareDatatype(pointer, symbol, pointers);
-    return new Sort(sortPointer);
+    long sortPointer = declareDatatype(getPointer(), symbol, pointers);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareDatatype(long pointer, String symbol, long[] declPointers);
@@ -2130,8 +322,8 @@ public class Solver extends AbstractPointer
   public Term declareFun(String symbol, Sort[] sorts, Sort sort)
   {
     long[] sortPointers = Utils.getPointers(sorts);
-    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer());
-    return new Term(termPointer);
+    long termPointer = declareFun(getPointer(), symbol, sortPointers, sort.getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long declareFun(
@@ -2156,8 +348,8 @@ public class Solver extends AbstractPointer
   public Term declareFun(String symbol, Sort[] sorts, Sort sort, boolean fresh)
   {
     long[] sortPointers = Utils.getPointers(sorts);
-    long termPointer = declareFun(pointer, symbol, sortPointers, sort.getPointer(), fresh);
-    return new Term(termPointer);
+    long termPointer = declareFun(getPointer(), symbol, sortPointers, sort.getPointer(), fresh);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareFun(
@@ -2170,8 +362,10 @@ public class Solver extends AbstractPointer
    *   ( declare-sort <symbol> <numeral> )
    * }
    *
-   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
-   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   * @api.note This corresponds to {@link TermManager#mkUninterpretedSort} if
+   *           arity = 0, and to
+   *           {@link TermManager#mkUninterpretedSortConstructorSort} if
+   *           arity &gt; 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
@@ -2181,8 +375,8 @@ public class Solver extends AbstractPointer
   public Sort declareSort(String symbol, int arity) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = declareSort(pointer, symbol, arity);
-    return new Sort(sortPointer);
+    long sortPointer = declareSort(getPointer(), symbol, arity);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity);
@@ -2195,8 +389,10 @@ public class Solver extends AbstractPointer
    *   ( declare-sort <symbol> <numeral> )
    * }
    *
-   * @api.note This corresponds to mkUninterpretedSort() const if arity = 0, and
-   *           to mkUninterpretedSortConstructorSort() const if arity &gt; 0.
+   * @api.note This corresponds to {@link TermManager#mkUninterpretedSort} if
+   *           arity = 0, and to
+   *           {@link TermManager#mkUninterpretedSortConstructorSort} if
+   *           arity &gt; 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
@@ -2209,8 +405,8 @@ public class Solver extends AbstractPointer
   public Sort declareSort(String symbol, int arity, boolean fresh) throws CVC5ApiException
   {
     Utils.validateUnsigned(arity, "arity");
-    long sortPointer = declareSort(pointer, symbol, arity, fresh);
-    return new Sort(sortPointer);
+    long sortPointer = declareSort(getPointer(), symbol, arity, fresh);
+    return new Sort(ctx, sortPointer);
   }
 
   private native long declareSort(long pointer, String symbol, int arity, boolean fresh);
@@ -2253,9 +449,9 @@ public class Solver extends AbstractPointer
   public Term defineFun(String symbol, Term[] boundVars, Sort sort, Term term, boolean global)
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer =
-        defineFun(pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(termPointer);
+    long termPointer = defineFun(
+        getPointer(), symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFun(long pointer,
@@ -2304,8 +500,8 @@ public class Solver extends AbstractPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer = defineFunRec(
-        pointer, symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
-    return new Term(termPointer);
+        getPointer(), symbol, boundVarPointers, sort.getPointer(), term.getPointer(), global);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFunRec(long pointer,
@@ -2357,8 +553,8 @@ public class Solver extends AbstractPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
-        defineFunRec(pointer, fun.getPointer(), boundVarPointers, term.getPointer(), global);
-    return new Term(termPointer);
+        defineFunRec(getPointer(), fun.getPointer(), boundVarPointers, term.getPointer(), global);
+    return new Term(ctx, termPointer);
   }
 
   private native long defineFunRec(
@@ -2405,7 +601,7 @@ public class Solver extends AbstractPointer
     long[] funPointers = Utils.getPointers(funs);
     long[][] boundVarPointers = Utils.getPointers(boundVars);
     long[] termPointers = Utils.getPointers(terms);
-    defineFunsRec(pointer, funPointers, boundVarPointers, termPointers, global);
+    defineFunsRec(getPointer(), funPointers, boundVarPointers, termPointers, global);
   }
 
   private native void defineFunsRec(long pointer,
@@ -2429,8 +625,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getLearnedLiterals()
   {
-    long[] retPointers = getLearnedLiterals(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getLearnedLiterals(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer);
@@ -2450,8 +646,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getLearnedLiterals(LearnedLitType type)
   {
-    long[] retPointers = getLearnedLiterals(pointer, type.getValue());
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getLearnedLiterals(getPointer(), type.getValue());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getLearnedLiterals(long pointer, int type);
@@ -2468,8 +664,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getAssertions()
   {
-    long[] retPointers = getAssertions(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getAssertions(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getAssertions(long pointer);
@@ -2482,7 +678,7 @@ public class Solver extends AbstractPointer
    */
   public String getInfo(String flag)
   {
-    return getInfo(pointer, flag);
+    return getInfo(getPointer(), flag);
   }
 
   private native String getInfo(long pointer, String flag);
@@ -2498,7 +694,7 @@ public class Solver extends AbstractPointer
    */
   public String getOption(String option)
   {
-    return getOption(pointer, option);
+    return getOption(getPointer(), option);
   }
 
   private native String getOption(long pointer, String option);
@@ -2512,7 +708,7 @@ public class Solver extends AbstractPointer
    */
   public String[] getOptionNames()
   {
-    return getOptionNames(pointer);
+    return getOptionNames(getPointer());
   }
 
   private native String[] getOptionNames(long pointer);
@@ -2528,8 +724,8 @@ public class Solver extends AbstractPointer
    */
   public OptionInfo getOptionInfo(String option)
   {
-    long optionPointer = getOptionInfo(pointer, option);
-    return new OptionInfo(optionPointer);
+    long optionPointer = getOptionInfo(getPointer(), option);
+    return new OptionInfo(ctx, optionPointer);
   }
 
   private native long getOptionInfo(long pointer, String option);
@@ -2548,8 +744,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getUnsatAssumptions()
   {
-    long[] retPointers = getUnsatAssumptions(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getUnsatAssumptions(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatAssumptions(long pointer);
@@ -2572,8 +768,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getUnsatCore()
   {
-    long[] retPointers = getUnsatCore(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getUnsatCore(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatCore(long pointer);
@@ -2593,8 +789,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getUnsatCoreLemmas()
   {
-    long[] retPointers = getUnsatCoreLemmas(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getUnsatCoreLemmas(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getUnsatCoreLemmas(long pointer);
@@ -2611,12 +807,12 @@ public class Solver extends AbstractPointer
    */
   public Map<Term, Term> getDifficulty()
   {
-    Map<Long, Long> map = getDifficulty(pointer);
+    Map<Long, Long> map = getDifficulty(getPointer());
     Map<Term, Term> ret = new HashMap<>();
     for (Map.Entry<Long, Long> entry : map.entrySet())
     {
-      Term key = new Term(entry.getKey());
-      Term value = new Term(entry.getValue());
+      Term key = new Term(ctx, entry.getKey());
+      Term value = new Term(ctx, entry.getValue());
       ret.put(key, value);
     }
     return ret;
@@ -2642,20 +838,29 @@ public class Solver extends AbstractPointer
    * subset of the current assertions that cause a timeout in the specified
    * time {@code timeout-core-timeout}.
    * If the result is unsat, then the list of formulas correspond to an
-   * unsat core for the current assertions. Otherwise, the result is sat,
-   * indicating that the current assertions are satisfiable, and
-   * the list of formulas is empty.
+   * unsat core for the current assertions. If the computation was terminated
+   * by the connected terminator, the result is unknown with explanation
+   * {@link UnknownExplanation#INTERRUPTED}, and the list of formulas is empty.
+   * Otherwise, the result is sat, indicating that the current assertions are
+   * satisfiable, and the list of formulas is empty.
    *
    * This method may make multiple checks for satisfiability internally, each
    * limited by the timeout value given by {@code timeout-core-timeout}.
    */
   public Pair<Result, Term[]> getTimeoutCore()
   {
-    Pair<Long, long[]> pair = getTimeoutCore(pointer);
-    Result result = new Result(pair.first);
-    Term[] terms = Utils.getTerms(pair.second);
-    Pair<Result, Term[]> ret = new Pair<>(result, terms);
-    return ret;
+    try
+    {
+      Pair<Long, long[]> pair = getTimeoutCore(getPointer());
+      Result result = new Result(ctx, pair.first);
+      Term[] terms = Utils.getTerms(ctx, pair.second);
+      Pair<Result, Term[]> ret = new Pair<>(result, terms);
+      return ret;
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native Pair<Long, long[]> getTimeoutCore(long pointer);
@@ -2680,20 +885,33 @@ public class Solver extends AbstractPointer
    * assertions in the specified time {@code timeout-core-timeout}.
    * If the result is unsat, then the list of formulas plus the current
    * assertions correspond to an unsat core for the current assertions.
-   * Otherwise, the result is sat, indicating that the given assumptions plus
-   * the current assertions are satisfiable, and the list of formulas is empty.
+   * If the computation was terminated by the connected terminator, the result
+   * is unknown with explanation {@link UnknownExplanation#INTERRUPTED}, and the
+   * list of formulas is empty. Otherwise, the result is sat, indicating that
+   * the given assumptions plus the current assertions are satisfiable, and the
+   * list of formulas is empty.
    *
    * This method may make multiple checks for satisfiability internally, each
    * limited by the timeout value given by {@code timeout-core-timeout}.
    */
   public Pair<Result, Term[]> getTimeoutCoreAssuming(Term[] assumptions)
   {
-    long[] pointers = Utils.getPointers(assumptions);
-    Pair<Long, long[]> pair = getTimeoutCoreAssuming(pointer, pointers);
-    Result result = new Result(pair.first);
-    Term[] terms = Utils.getTerms(pair.second);
-    Pair<Result, Term[]> ret = new Pair<>(result, terms);
-    return ret;
+    try
+    {
+      long[] pointers = Utils.getPointers(assumptions);
+      Pair<Long, long[]> pair = getTimeoutCoreAssuming(getPointer(), pointers);
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(assumptions);
+      Result result = new Result(ctx, pair.first);
+      Term[] terms = Utils.getTerms(ctx, pair.second);
+      Pair<Result, Term[]> ret = new Pair<>(result, terms);
+      return ret;
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native Pair<Long, long[]> getTimeoutCoreAssuming(long pointer, long[] assumptionPointers);
@@ -2715,7 +933,7 @@ public class Solver extends AbstractPointer
    */
   public Proof[] getProof()
   {
-    return Utils.getProofs(getProof(pointer));
+    return Utils.getProofs(ctx, getProof(getPointer()));
   }
 
   private native long[] getProof(long pointer);
@@ -2737,7 +955,7 @@ public class Solver extends AbstractPointer
    */
   public Proof[] getProof(ProofComponent c)
   {
-    return Utils.getProofs(getProof(pointer, c.getValue()));
+    return Utils.getProofs(ctx, getProof(getPointer(), c.getValue()));
   }
 
   private native long[] getProof(long pointer, int c);
@@ -2753,7 +971,7 @@ public class Solver extends AbstractPointer
    */
   public String proofToString(Proof proof)
   {
-    return proofToString(pointer, proof.getPointer());
+    return proofToString(getPointer(), proof.getPointer());
   }
 
   private native String proofToString(long pointer, long proofs);
@@ -2772,7 +990,7 @@ public class Solver extends AbstractPointer
    */
   public String proofToString(Proof proof, ProofFormat format)
   {
-    return proofToString(pointer, proof.getPointer(), format.getValue());
+    return proofToString(getPointer(), proof.getPointer(), format.getValue());
   }
 
   private native String proofToString(long pointer, long proofs, int format);
@@ -2793,7 +1011,7 @@ public class Solver extends AbstractPointer
    */
   public String proofToString(Proof proof, ProofFormat format, Map assertionNames)
   {
-    return proofToString(pointer, proof.getPointer(), format.getValue(), assertionNames);
+    return proofToString(getPointer(), proof.getPointer(), format.getValue(), assertionNames);
   }
 
   private native String proofToString(long pointer, long proofs, int format, Map assertionNames);
@@ -2811,8 +1029,15 @@ public class Solver extends AbstractPointer
    */
   public Term getValue(Term term)
   {
-    long termPointer = getValue(pointer, term.getPointer());
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = getValue(getPointer(), term.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getValue(long pointer, long termPointer);
@@ -2830,9 +1055,16 @@ public class Solver extends AbstractPointer
    */
   public Term[] getValue(Term[] terms)
   {
-    long[] pointers = Utils.getPointers(terms);
-    long[] retPointers = getValue(pointer, pointers);
-    return Utils.getTerms(retPointers);
+    try
+    {
+      long[] pointers = Utils.getPointers(terms);
+      long[] retPointers = getValue(getPointer(), pointers);
+      return Utils.getTerms(ctx, retPointers);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long[] getValue(long pointer, long[] termPointers);
@@ -2848,8 +1080,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getModelDomainElements(Sort s)
   {
-    long[] pointers = getModelDomainElements(pointer, s.getPointer());
-    return Utils.getTerms(pointers);
+    long[] pointers = getModelDomainElements(getPointer(), s.getPointer());
+    return Utils.getTerms(ctx, pointers);
   }
 
   private native long[] getModelDomainElements(long pointer, long sortPointer);
@@ -2868,7 +1100,7 @@ public class Solver extends AbstractPointer
    */
   public boolean isModelCoreSymbol(Term v)
   {
-    return isModelCoreSymbol(pointer, v.getPointer());
+    return isModelCoreSymbol(getPointer(), v.getPointer());
   }
 
   private native boolean isModelCoreSymbol(long pointer, long termPointer);
@@ -2896,7 +1128,7 @@ public class Solver extends AbstractPointer
   {
     long[] sortPointers = Utils.getPointers(sorts);
     long[] varPointers = Utils.getPointers(vars);
-    return getModel(pointer, sortPointers, varPointers);
+    return getModel(getPointer(), sortPointers, varPointers);
   }
 
   private native String getModel(long pointer, long[] sortPointers, long[] varPointers);
@@ -2909,8 +1141,14 @@ public class Solver extends AbstractPointer
    * ( get-qe <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
+   *
+   * The formula {@code q} must not contain free variables, i.e., variables
+   * constructed via {@link TermManager#mkVar(Sort)} that are not bound by a
+   * quantifier in {@code q}. The symbols {@code y1...yn} should be free
+   * constants constructed via {@link TermManager#mkConst(Sort)}. An exception
+   * is thrown if {@code q} contains free variables.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2921,12 +1159,19 @@ public class Solver extends AbstractPointer
    *         {@code A} asserted to this solver:
    *         - {@code ( A && q )} and {@code ( A && ret )} are equivalent
    *         - {@code ret} is quantifier-free formula containing only free
-   *           variables in {@code y1...yn}.
+   *           constants in {@code y1...yn}.
    */
   public Term getQuantifierElimination(Term q)
   {
-    long termPointer = getQuantifierElimination(pointer, q.getPointer());
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = getQuantifierElimination(getPointer(), q.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getQuantifierElimination(long pointer, long qPointer);
@@ -2940,8 +1185,14 @@ public class Solver extends AbstractPointer
    * ( get-qe-disjunct <q> )
    * }
    *
-   * Quantifier Elimination is is only complete for logics such as LRA,
+   * Quantifier Elimination is only complete for logics such as LRA,
    * LIA and BV.
+   *
+   * The formula {@code q} must not contain free variables, i.e., variables
+   * constructed via {@link TermManager#mkVar(Sort)} that are not bound by a
+   * quantifier in {@code q}. The symbols {@code y1...yn} should be free
+   * constants constructed via {@link TermManager#mkConst(Sort)}. An exception
+   * is thrown if {@code q} contains free variables.
    *
    * @api.note This method is experimental and may change in future versions.
    *
@@ -2952,7 +1203,7 @@ public class Solver extends AbstractPointer
    *         asserted to this solver:
    *           - {@code (A ^ q) => (A ^ ret)} if {@code Q} is forall or
    *             {@code (A ^ ret) => (A ^ q)} if {@code Q} is exists,
-   *           - ret is quantifier-free formula containing only free variables
+   *           - ret is quantifier-free formula containing only free constants
    *             in {@code y1...yn},
    *           - If Q is exists, let {@code A && Q_n} be the formula
    *               {@code A && ~(ret && Q_1) && ... && ~(ret && Q_n)}
@@ -2969,8 +1220,15 @@ public class Solver extends AbstractPointer
    */
   public Term getQuantifierEliminationDisjunct(Term q)
   {
-    long termPointer = getQuantifierEliminationDisjunct(pointer, q.getPointer());
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = getQuantifierEliminationDisjunct(getPointer(), q.getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getQuantifierEliminationDisjunct(long pointer, long qPointer);
@@ -2987,7 +1245,7 @@ public class Solver extends AbstractPointer
    */
   public void declareSepHeap(Sort locSort, Sort dataSort)
   {
-    declareSepHeap(pointer, locSort.getPointer(), dataSort.getPointer());
+    declareSepHeap(getPointer(), locSort.getPointer(), dataSort.getPointer());
   }
 
   private native void declareSepHeap(long pointer, long locSortPointer, long dataSortPointer);
@@ -3001,8 +1259,8 @@ public class Solver extends AbstractPointer
    */
   public Term getValueSepHeap()
   {
-    long termPointer = getValueSepHeap(pointer);
-    return new Term(termPointer);
+    long termPointer = getValueSepHeap(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getValueSepHeap(long pointer);
@@ -3016,8 +1274,8 @@ public class Solver extends AbstractPointer
    */
   public Term getValueSepNil()
   {
-    long termPointer = getValueSepNil(pointer);
-    return new Term(termPointer);
+    long termPointer = getValueSepNil(getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getValueSepNil(long pointer);
@@ -3040,8 +1298,8 @@ public class Solver extends AbstractPointer
   public Term declarePool(String symbol, Sort sort, Term[] initValue)
   {
     long[] termPointers = Utils.getPointers(initValue);
-    long termPointer = declarePool(pointer, symbol, sort.getPointer(), termPointers);
-    return new Term(termPointer);
+    long termPointer = declarePool(getPointer(), symbol, sort.getPointer(), termPointers);
+    return new Term(ctx, termPointer);
   }
 
   private native long declarePool(
@@ -3074,14 +1332,48 @@ public class Solver extends AbstractPointer
    */
   public Term declareOracleFun(String symbol, Sort[] sorts, Sort sort, IOracle oracle)
   {
-    oracles.add(oracle);
     long[] sortPointers = Utils.getPointers(sorts);
-    long termPointer = declareOracleFun(pointer, symbol, sortPointers, sort.getPointer(), oracle);
-    return new Term(termPointer);
+    OracleBridge bridge = new OracleBridge(ctx, oracle);
+    callbacks.add(bridge);
+    long termPointer =
+        declareOracleFun(getPointer(), symbol, sortPointers, sort.getPointer(), bridge);
+    return new Term(ctx, termPointer);
   }
 
   private native long declareOracleFun(
-      long pointer, String symbol, long[] sortPointers, long sortPointer, IOracle oracle);
+      long pointer, String symbol, long[] sortPointers, long sortPointer, OracleBridge oracle);
+
+  /**
+   * Bridges native oracle calls to an {@link IOracle}.
+   *
+   * <p>Native code exchanges raw pointers with this class, so that the
+   * {@link Term} wrappers are created here, in the context of the solver's
+   * term manager.</p>
+   */
+  private static final class OracleBridge
+  {
+    private final NativeContext ctx;
+    private final IOracle oracle;
+
+    OracleBridge(NativeContext ctx, IOracle oracle)
+    {
+      this.ctx = ctx;
+      this.oracle = oracle;
+    }
+
+    /**
+     * Called from native code.
+     *
+     * @param pointers The native pointers of the arguments; ownership is
+     *                 transferred to the created wrappers.
+     * @return The native pointer of the result, which native code copies
+     *         before any further Java code can run on this thread.
+     */
+    long apply(long[] pointers) throws CVC5ApiException
+    {
+      return oracle.apply(Utils.getTerms(ctx, pointers)).getPointer();
+    }
+  }
 
   /**
    * Add plugin to this solver. Its callbacks will be called throughout the
@@ -3091,10 +1383,95 @@ public class Solver extends AbstractPointer
    */
   public void addPlugin(AbstractPlugin p)
   {
-    addPlugin(pointer, p.getTermManager().getPointer(), p);
+    callbacks.add(p);
+    addPlugin(getPointer(), p.getTermManager().getPointer(), p);
   }
 
   private native void addPlugin(long pointer, long termManagerPointer, AbstractPlugin p);
+
+  /**
+   * Connect a terminator to this solver, which is called periodically during
+   * queries to determine whether the current query should be terminated.
+   * See {@link ITerminator} for details.
+   * <p>
+   * Only one terminator can be connected at a time, connecting a terminator
+   * disconnects the previously connected terminator.
+   *
+   * @api.note This method is experimental and may change in future versions.
+   *
+   * @param terminator The terminator to connect, or null to disconnect the
+   *                   currently connected terminator.
+   */
+  public void setTerminator(ITerminator terminator)
+  {
+    TerminatorWrapper wrapper = terminator == null ? null : new TerminatorWrapper(terminator);
+    setTerminator(getPointer(), wrapper);
+    terminatorWrapper = wrapper;
+  }
+
+  private native void setTerminator(long pointer, TerminatorWrapper wrapper);
+
+  /**
+   * Wrapper of the connected terminator, which is called from the native code.
+   * Exceptions thrown by the terminator are remembered, and rethrown by the
+   * method that executed the query.
+   */
+  private static class TerminatorWrapper
+  {
+    TerminatorWrapper(ITerminator terminator)
+    {
+      this.terminator = terminator;
+    }
+
+    /**
+     * Called from the native code to determine whether the current query
+     * should be terminated.
+     *
+     * @return True to terminate the current query.
+     */
+    boolean terminate()
+    {
+      try
+      {
+        return terminator.terminate();
+      }
+      catch (Throwable t)
+      {
+        exception = t;
+        return true;
+      }
+    }
+
+    /** The wrapped terminator. */
+    private final ITerminator terminator;
+    /** The exception thrown by the terminator, if any. */
+    private Throwable exception;
+  }
+
+  /**
+   * Rethrow the exception thrown by the connected terminator during the last
+   * query, if any. Must be called by all methods that execute queries when the
+   * query returns, also if it threw an exception (i.e., in a finally block).
+   * The exception of the terminator then replaces the exception of the query.
+   */
+  void checkTerminator()
+  {
+    TerminatorWrapper wrapper = terminatorWrapper;
+    if (wrapper != null && wrapper.exception != null)
+    {
+      Throwable t = wrapper.exception;
+      wrapper.exception = null;
+      if (t instanceof RuntimeException)
+      {
+        throw (RuntimeException) t;
+      }
+      if (t instanceof Error)
+      {
+        throw (Error) t;
+      }
+      throw new RuntimeException(t);
+    }
+  }
 
   /**
    * Pop a level from the assertion stack.
@@ -3125,7 +1502,7 @@ public class Solver extends AbstractPointer
   public void pop(int nscopes) throws CVC5ApiException
   {
     Utils.validateUnsigned(nscopes, "nscopes");
-    pop(pointer, nscopes);
+    pop(getPointer(), nscopes);
   }
 
   private native void pop(long pointer, int nscopes);
@@ -3160,8 +1537,18 @@ public class Solver extends AbstractPointer
    */
   public Term getInterpolant(Term conj)
   {
-    long interpolPtr = getInterpolant(pointer, conj.getPointer());
-    return new Term(interpolPtr);
+    try
+    {
+      long interpolPtr = getInterpolant(getPointer(), conj.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      return new Term(ctx, interpolPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getInterpolant(long pointer, long conjPointer);
@@ -3198,8 +1585,19 @@ public class Solver extends AbstractPointer
    */
   public Term getInterpolant(Term conj, Grammar grammar)
   {
-    long interpolPtr = getInterpolant(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(interpolPtr);
+    try
+    {
+      long interpolPtr = getInterpolant(getPointer(), conj.getPointer(), grammar.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      Reference.reachabilityFence(grammar);
+      return new Term(ctx, interpolPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getInterpolant(long pointer, long conjPointer, long grammarPointer);
@@ -3230,8 +1628,15 @@ public class Solver extends AbstractPointer
    */
   public Term getInterpolantNext()
   {
-    long interpolPtr = getInterpolantNext(pointer);
-    return new Term(interpolPtr);
+    try
+    {
+      long interpolPtr = getInterpolantNext(getPointer());
+      return new Term(ctx, interpolPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getInterpolantNext(long pointer);
@@ -3255,8 +1660,18 @@ public class Solver extends AbstractPointer
    */
   public Term getAbduct(Term conj)
   {
-    long abdPtr = getAbduct(pointer, conj.getPointer());
-    return new Term(abdPtr);
+    try
+    {
+      long abdPtr = getAbduct(getPointer(), conj.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      return new Term(ctx, abdPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getAbduct(long pointer, long conjPointer);
@@ -3281,8 +1696,19 @@ public class Solver extends AbstractPointer
    */
   public Term getAbduct(Term conj, Grammar grammar)
   {
-    long abdPtr = getAbduct(pointer, conj.getPointer(), grammar.getPointer());
-    return new Term(abdPtr);
+    try
+    {
+      long abdPtr = getAbduct(getPointer(), conj.getPointer(), grammar.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(conj);
+      Reference.reachabilityFence(grammar);
+      return new Term(ctx, abdPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getAbduct(long pointer, long conjPointer, long grammarPointer);
@@ -3306,8 +1732,15 @@ public class Solver extends AbstractPointer
    */
   public Term getAbductNext()
   {
-    long abdPtr = getAbductNext(pointer);
-    return new Term(abdPtr);
+    try
+    {
+      long abdPtr = getAbductNext(getPointer());
+      return new Term(ctx, abdPtr);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long getAbductNext(long pointer);
@@ -3330,7 +1763,7 @@ public class Solver extends AbstractPointer
    */
   public void blockModel(BlockModelsMode mode)
   {
-    blockModel(pointer, mode.getValue());
+    blockModel(getPointer(), mode.getValue());
   }
 
   private native void blockModel(long pointer, int modeValue);
@@ -3354,7 +1787,7 @@ public class Solver extends AbstractPointer
   public void blockModelValues(Term[] terms)
   {
     long[] pointers = Utils.getPointers(terms);
-    blockModelValues(pointer, pointers);
+    blockModelValues(getPointer(), pointers);
   }
 
   private native void blockModelValues(long pointer, long[] termPointers);
@@ -3369,7 +1802,7 @@ public class Solver extends AbstractPointer
    */
   public String getInstantiations()
   {
-    return getInstantiations(pointer);
+    return getInstantiations(getPointer());
   }
 
   private native String getInstantiations(long pointer);
@@ -3403,7 +1836,7 @@ public class Solver extends AbstractPointer
   public void push(int nscopes) throws CVC5ApiException
   {
     Utils.validateUnsigned(nscopes, "nscopes");
-    push(pointer, nscopes);
+    push(getPointer(), nscopes);
   }
 
   private native void push(long pointer, int nscopes);
@@ -3418,7 +1851,7 @@ public class Solver extends AbstractPointer
    */
   public void resetAssertions()
   {
-    resetAssertions(pointer);
+    resetAssertions(getPointer());
   }
 
   private native void resetAssertions(long pointer);
@@ -3437,7 +1870,7 @@ public class Solver extends AbstractPointer
    */
   public void setInfo(String keyword, String value) throws CVC5ApiException
   {
-    setInfo(pointer, keyword, value);
+    setInfo(getPointer(), keyword, value);
   }
 
   private native void setInfo(long pointer, String keyword, String value) throws CVC5ApiException;
@@ -3455,7 +1888,7 @@ public class Solver extends AbstractPointer
    */
   public void setLogic(String logic) throws CVC5ApiException
   {
-    setLogic(pointer, logic);
+    setLogic(getPointer(), logic);
   }
 
   private native void setLogic(long pointer, String logic) throws CVC5ApiException;
@@ -3467,7 +1900,7 @@ public class Solver extends AbstractPointer
    */
   public boolean isLogicSet()
   {
-    return isLogicSet(pointer);
+    return isLogicSet(getPointer());
   }
 
   private native boolean isLogicSet(long pointer);
@@ -3482,7 +1915,7 @@ public class Solver extends AbstractPointer
    */
   public String getLogic() throws CVC5ApiException
   {
-    return getLogic(pointer);
+    return getLogic(getPointer());
   }
 
   private native String getLogic(long pointer) throws CVC5ApiException;
@@ -3500,7 +1933,7 @@ public class Solver extends AbstractPointer
    */
   public void setOption(String option, String value)
   {
-    setOption(pointer, option, value);
+    setOption(getPointer(), option, value);
   }
 
   private native void setOption(long pointer, String option, String value);
@@ -3519,31 +1952,11 @@ public class Solver extends AbstractPointer
    */
   public Term declareSygusVar(String symbol, Sort sort)
   {
-    long termPointer = declareSygusVar(pointer, symbol, sort.getPointer());
-    return new Term(termPointer);
+    long termPointer = declareSygusVar(getPointer(), symbol, sort.getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long declareSygusVar(long pointer, String symbol, long sortPointer);
-
-  /**
-   * Create a Sygus grammar.
-   *
-   * The first non-terminal is treated as the starting non-terminal, so the
-   * order of non-terminals matters.
-   *
-   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
-   * @param ntSymbols The pre-declaration of the non-terminal symbols.
-   * @return The grammar.
-   */
-  public Grammar mkGrammar(Term[] boundVars, Term[] ntSymbols)
-  {
-    long[] boundVarPointers = Utils.getPointers(boundVars);
-    long[] ntSymbolPointers = Utils.getPointers(ntSymbols);
-    long grammarPointer = mkGrammar(pointer, boundVarPointers, ntSymbolPointers);
-    return new Grammar(grammarPointer);
-  }
-
-  private native long mkGrammar(long pointer, long[] boundVarPointers, long[] ntSymbolPointers);
 
   /**
    * Synthesize n-ary function.
@@ -3561,8 +1974,8 @@ public class Solver extends AbstractPointer
   public Term synthFun(String symbol, Term[] boundVars, Sort sort)
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
-    long termPointer = synthFun(pointer, symbol, boundVarPointers, sort.getPointer());
-    return new Term(termPointer);
+    long termPointer = synthFun(getPointer(), symbol, boundVarPointers, sort.getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long synthFun(
@@ -3586,8 +1999,8 @@ public class Solver extends AbstractPointer
   {
     long[] boundVarPointers = Utils.getPointers(boundVars);
     long termPointer =
-        synthFun(pointer, symbol, boundVarPointers, sort.getPointer(), grammar.getPointer());
-    return new Term(termPointer);
+        synthFun(getPointer(), symbol, boundVarPointers, sort.getPointer(), grammar.getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long synthFun(
@@ -3605,7 +2018,7 @@ public class Solver extends AbstractPointer
    */
   public void addSygusConstraint(Term term)
   {
-    addSygusConstraint(pointer, term.getPointer());
+    addSygusConstraint(getPointer(), term.getPointer());
   }
 
   private native void addSygusConstraint(long pointer, long termPointer);
@@ -3617,8 +2030,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getSygusConstraints()
   {
-    long[] retPointers = getSygusConstraints(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getSygusConstraints(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSygusConstraints(long pointer);
@@ -3635,7 +2048,7 @@ public class Solver extends AbstractPointer
    */
   public void addSygusAssume(Term term)
   {
-    addSygusAssume(pointer, term.getPointer());
+    addSygusAssume(getPointer(), term.getPointer());
   }
 
   private native void addSygusAssume(long pointer, long termPointer);
@@ -3647,8 +2060,8 @@ public class Solver extends AbstractPointer
    */
   public Term[] getSygusAssumptions()
   {
-    long[] retPointers = getSygusAssumptions(pointer);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getSygusAssumptions(getPointer());
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSygusAssumptions(long pointer);
@@ -3670,7 +2083,7 @@ public class Solver extends AbstractPointer
   public void addSygusInvConstraint(Term inv, Term pre, Term trans, Term post)
   {
     addSygusInvConstraint(
-        pointer, inv.getPointer(), pre.getPointer(), trans.getPointer(), post.getPointer());
+        getPointer(), inv.getPointer(), pre.getPointer(), trans.getPointer(), post.getPointer());
   }
 
   private native void addSygusInvConstraint(
@@ -3693,8 +2106,15 @@ public class Solver extends AbstractPointer
    */
   public SynthResult checkSynth()
   {
-    long resultPointer = checkSynth(pointer);
-    return new SynthResult(resultPointer);
+    try
+    {
+      long resultPointer = checkSynth(getPointer());
+      return new SynthResult(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSynth(long pointer);
@@ -3719,8 +2139,15 @@ public class Solver extends AbstractPointer
    */
   public SynthResult checkSynthNext()
   {
-    long resultPointer = checkSynthNext(pointer);
-    return new SynthResult(resultPointer);
+    try
+    {
+      long resultPointer = checkSynthNext(getPointer());
+      return new SynthResult(ctx, resultPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long checkSynthNext(long pointer);
@@ -3736,8 +2163,8 @@ public class Solver extends AbstractPointer
    */
   public Term getSynthSolution(Term term)
   {
-    long termPointer = getSynthSolution(pointer, term.getPointer());
-    return new Term(termPointer);
+    long termPointer = getSynthSolution(getPointer(), term.getPointer());
+    return new Term(ctx, termPointer);
   }
 
   private native long getSynthSolution(long pointer, long termPointer);
@@ -3754,8 +2181,8 @@ public class Solver extends AbstractPointer
   public Term[] getSynthSolutions(Term[] terms)
   {
     long[] termPointers = Utils.getPointers(terms);
-    long[] retPointers = getSynthSolutions(pointer, termPointers);
-    return Utils.getTerms(retPointers);
+    long[] retPointers = getSynthSolutions(getPointer(), termPointers);
+    return Utils.getTerms(ctx, retPointers);
   }
 
   private native long[] getSynthSolutions(long pointer, long[] termPointers);
@@ -3780,8 +2207,15 @@ public class Solver extends AbstractPointer
    */
   public Term findSynth(FindSynthTarget fst)
   {
-    long termPointer = findSynth(pointer, fst.getValue());
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = findSynth(getPointer(), fst.getValue());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
   private native long findSynth(long pointer, int fst);
 
@@ -3802,8 +2236,18 @@ public class Solver extends AbstractPointer
    */
   public Term findSynth(FindSynthTarget fst, Grammar grammar)
   {
-    long termPointer = findSynth(pointer, fst.getValue(), grammar.getPointer());
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = findSynth(getPointer(), fst.getValue(), grammar.getPointer());
+      // The native call may re-enter Java code (plugins, oracles), which may
+      // release native objects whose wrappers are unreachable.
+      Reference.reachabilityFence(grammar);
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
   private native long findSynth(long pointer, int fst, long grammarPointer);
 
@@ -3823,22 +2267,30 @@ public class Solver extends AbstractPointer
    */
   public Term findSynthNext()
   {
-    long termPointer = findSynthNext(pointer);
-    return new Term(termPointer);
+    try
+    {
+      long termPointer = findSynthNext(getPointer());
+      return new Term(ctx, termPointer);
+    }
+    finally
+    {
+      checkTerminator();
+    }
   }
 
   private native long findSynthNext(long pointer);
 
   /**
    * Get a snapshot of the current state of the statistic values of this
-   * solver. The returned object is completely decoupled from the solver and
-   * will not change when the solver is used again.
+   * solver. The returned object will not change when the solver is used
+   * again. Like every object derived from a term manager, it is released
+   * when that term manager is closed, see {@link TermManager#close()}.
    * @return A snapshot of the current state of the statistic values.
    */
   public Statistics getStatistics()
   {
-    long statisticsPointer = getStatistics(pointer);
-    return new Statistics(statisticsPointer);
+    long statisticsPointer = getStatistics(getPointer());
+    return new Statistics(ctx, statisticsPointer);
   }
 
   private native long getStatistics(long pointer);
@@ -3849,7 +2301,7 @@ public class Solver extends AbstractPointer
    */
   public String getVersion()
   {
-    return getVersion(pointer);
+    return getVersion(getPointer());
   }
 
   private native String getVersion(long pointer);

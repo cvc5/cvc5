@@ -162,6 +162,15 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     Trace("nl-ext-assert-debug")
         << "Loaded " << assertion.d_assertion << " from theory" << std::endl;
     Node lit = assertion.d_assertion;
+    Node atom = lit.getKind() == Kind::NOT ? lit[0] : lit;
+    if (atom.getKind() == Kind::STAR_CONTAINS)
+    {
+      // Literals of int.star-contains are facts of arithmetic but not
+      // arithmetic constraints: the liastar extension handles them before this
+      // one at full effort. They have no arithmetic model value, so neither the
+      // strategy nor the model check may see them.
+      continue;
+    }
     if (useRelevance && !v.isRelevant(lit))
     {
       // not relevant, skip

@@ -130,6 +130,12 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ARITH_NL_ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION:
       return "ARITH_NL_ICP_PROPAGATION";
+    case InferenceId::ARITH_LIA_STAR_EXISTS: return "ARITH_LIA_STAR_EXISTS";
+    case InferenceId::ARITH_LIA_STAR_NOT_EXISTS:
+      return "ARITH_LIA_STAR_NOT_EXISTS";
+    case InferenceId::ARITH_LIA_STAR_NONNEGATIVE:
+      return "ARITH_LIA_STAR_NONNEGATIVE";
+    case InferenceId::ARITH_LIA_STAR_SPLIT: return "ARITH_LIA_STAR_SPLIT";
     case InferenceId::FF_LEMMA: return "FF_LEMMA";
 
     case InferenceId::ARRAYS_EXT: return "ARRAYS_EXT";
@@ -169,7 +175,7 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_PRODUCT_UP: return "TABLES_PRODUCT_UP";
     case InferenceId::TABLES_PRODUCT_DOWN: return "TABLES_PRODUCT_DOWN";
     case InferenceId::TABLES_JOIN_DOWN: return "TABLES_JOIN_DOWN";
-    case InferenceId::TABLES_GROUP_NOT_EMPTY: return "TABLES_GROUP_NOT_EMPTY";
+    case InferenceId::TABLES_GROUP_EMPTY: return "TABLES_GROUP_EMPTY";
     case InferenceId::TABLES_GROUP_UP1: return "TABLES_GROUP_UP1";
     case InferenceId::TABLES_GROUP_UP2: return "TABLES_GROUP_UP2";
     case InferenceId::TABLES_GROUP_DOWN: return "TABLES_GROUP_DOWN";
@@ -381,6 +387,7 @@ const char* toString(InferenceId i)
 
     case InferenceId::SETS_SKOLEM: return "SETS_SKOLEM";
     case InferenceId::SETS_CG_SPLIT: return "SETS_CG_SPLIT";
+    case InferenceId::SETS_CHOOSE_MEMBER: return "SETS_CHOOSE_MEMBER";
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
     case InferenceId::SETS_DOWN_CLOSURE: return "SETS_DOWN_CLOSURE";
@@ -439,8 +446,7 @@ const char* toString(InferenceId i)
     case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
     case InferenceId::SETS_RELS_TUPLE_REDUCTION:
       return "SETS_RELS_TUPLE_REDUCTION";
-    case InferenceId::SETS_RELS_GROUP_NOT_EMPTY:
-      return "SETS_RELS_GROUP_NOT_EMPTY";
+    case InferenceId::SETS_RELS_GROUP_EMPTY: return "SETS_RELS_GROUP_EMPTY";
     case InferenceId::SETS_RELS_GROUP_UP1: return "SETS_RELS_GROUP_UP1";
     case InferenceId::SETS_RELS_GROUP_UP2: return "SETS_RELS_GROUP_UP2";
     case InferenceId::SETS_RELS_GROUP_DOWN: return "SETS_RELS_GROUP_DOWN";
@@ -580,6 +586,7 @@ const char* toString(InferenceId i)
     case InferenceId::UF_HO_LAMBDA_UNIV_EQ: return "HO_LAMBDA_UNIV_EQ";
     case InferenceId::UF_HO_LAMBDA_APP_REDUCE: return "HO_LAMBDA_APP_REDUCE";
     case InferenceId::UF_HO_LAMBDA_LAZY_LIFT: return "UF_HO_LAMBDA_LAZY_LIFT";
+    case InferenceId::UF_ARITH_BV_CONV_RANGE: return "UF_ARITH_BV_CONV_RANGE";
     case InferenceId::UF_ARITH_BV_CONV_REDUCTION:
       return "UF_ARITH_BV_CONV_REDUCTION";
     case InferenceId::UF_ARITH_BV_CONV_VALUE_REFINE:

@@ -15,18 +15,22 @@
 # > regression tests of levels 0 and 1
 # > api tests
 
-set(ENV_PATH_CMD )
+# Environment variables for running tests, to be used as the value of the
+# ENVIRONMENT test property. On Windows, the DLL library paths are added to
+# PATH. Setting the environment through the test property (instead of
+# wrapping the test command with `cmake -E env`) avoids starting an extra
+# process for every test, which is expensive on Windows.
+set(CVC5_TEST_ENV )
 if(WIN32)
-  # Set up a command to add DLL library paths to PATH
   set(ENV_PATH )
   list(APPEND ENV_PATH ${PROJECT_BINARY_DIR}\\src)
   list(APPEND ENV_PATH ${PROJECT_BINARY_DIR}\\src\\parser)
   list(APPEND ENV_PATH ${DEPS_BASE}\\bin)
   list(APPEND ENV_PATH $ENV{PATH})
-  # Escape semicolons and backslashes
-  string(REPLACE "\\" "\\\\" ENV_PATH "${ENV_PATH}")
-  list(JOIN ENV_PATH "\;" ENV_PATH)
-  set(ENV_PATH_CMD ${CMAKE_COMMAND} -E env "PATH=${ENV_PATH}")
+  # Escape the semicolons separating the paths so that PATH is a single
+  # element of the ENVIRONMENT property
+  string(REPLACE ";" "\\;" ENV_PATH "${ENV_PATH}")
+  set(CVC5_TEST_ENV "PATH=${ENV_PATH}")
 endif()
 
 add_custom_target(build-tests)

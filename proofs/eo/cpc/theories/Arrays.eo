@@ -4,9 +4,10 @@
 
 ; Core operators.
 (declare-parameterized-const select ((U Type :implicit) (T Type :implicit))
-   (-> (Array U T) U T))
+  (-> (Array U T) U T))
+
 (declare-parameterized-const store ((U Type :implicit) (T Type :implicit))
-   (-> (Array U T) U T (Array U T)))
+  (-> (Array U T) U T (Array U T)))
 
 ; The array diff skolem. (@array_deq_diff A B) denotes an index where A and B
 ; differ if A and B are not equal.
