@@ -411,8 +411,11 @@ size_t EoNodeConverter::getNumChildrenToProcessForClosure(Kind k) const
 
 Node EoNodeConverter::mkList(const std::vector<Node>& args)
 {
-  Assert(!args.empty());
   TypeNode tn = d_nm->booleanType();
+  if (args.empty())
+  {
+    return mkInternalSymbol("@list.nil", tn);
+  }
   // singleton lists are handled due to (@list x) ---> (@list x eo::nil)
   return mkInternalApp("@list", args, tn);
 }
