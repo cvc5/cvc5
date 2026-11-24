@@ -27,7 +27,7 @@ EO_DIR="$BASE_DIR/ethos-checker"
 mkdir -p $EO_DIR
 
 # download and unpack ethos
-ETHOS_VERSION="cba2eacebd1d0da1b57ea72c1d68ab069c83f56b"
+ETHOS_VERSION="c75bebde221718c1b36f9315e2a63cca842b0331"
 download "https://github.com/cvc5/ethos/archive/$ETHOS_VERSION.tar.gz" $BASE_DIR/tmp/ethos.tgz
 tar --strip 1 -xzf $BASE_DIR/tmp/ethos.tgz -C $EO_DIR
 
