@@ -20,6 +20,7 @@
 #include "proof/proof_node_algorithm.h"
 #include "proof/proof_rule_checker.h"
 #include "theory/quantifiers/bv_inverter.h"
+#include "util/rational.h"
 #include "util/string.h"
 
 namespace cvc5::internal {

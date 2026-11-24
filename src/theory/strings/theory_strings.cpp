@@ -29,6 +29,7 @@
 #include "theory/strings/word.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::context;

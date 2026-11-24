@@ -16,6 +16,7 @@
 #include "rewriter/rewrite_db.h"
 #include "rewriter/rewrites.h"
 #include "theory/builtin/generic_op.h"
+#include "util/rational.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;

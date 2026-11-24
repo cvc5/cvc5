@@ -21,9 +21,9 @@
 #include <string>
 #include <vector>
 
-#include "util/rational.h"
-
 namespace cvc5::internal {
+
+class Rational;
 
 namespace strings {
 struct StringHashFunction;

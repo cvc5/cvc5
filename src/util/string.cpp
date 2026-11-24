@@ -21,6 +21,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "util/hash.h"
+#include "util/rational.h"
 
 using namespace std;
 
