@@ -1219,6 +1219,85 @@ TEST_F(TestApiBlackTerm, getRealAlgebraicNumber)
   }
 }
 
+TEST_F(TestApiBlackTerm, getRealAlgebraicNumberWitness)
+{
+  d_solver->setOption("produce-proofs", "true");
+  d_solver->setOption("nl-cov", "true");
+  d_solver->setOption("nl-ext", "none");
+  d_solver->setLogic("QF_NRA");
+  Sort realsort = d_tm.getRealSort();
+  Term x = d_tm.mkConst(realsort, "x");
+  Term x2 = d_tm.mkTerm(Kind::MULT, {x, x});
+  Term x3 = d_tm.mkTerm(Kind::MULT, {x, x, x});
+  // not a witness
+  ASSERT_FALSE(x.isRealAlgebraicNumberWitness());
+  ASSERT_THROW(x.getRealAlgebraicNumberWitnessNumber(), CVC5ApiException);
+  ASSERT_THROW(x.getRealAlgebraicNumberWitnessSturmSequence(),
+               CVC5ApiException);
+  ASSERT_THROW(Term().isRealAlgebraicNumberWitness(), CVC5ApiException);
+  d_solver->assertFormula(d_tm.mkTerm(Kind::LT, {x2, d_tm.mkReal(2)}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {x3, d_tm.mkReal(3)}));
+  // Note that check-sat should only return "unsat" if libpoly is enabled.
+  // Otherwise, we do not test the following functionality.
+  if (!d_solver->checkSat().isUnsat())
+  {
+    return;
+  }
+  // The covering endpoints sqrt(2) and cbrt(3) appear in the proof as real
+  // algebraic number witnesses.
+  std::vector<Term> witnesses;
+  std::vector<Term> terms;
+  std::vector<Proof> proofs = d_solver->getProof();
+  while (!proofs.empty())
+  {
+    Proof p = proofs.back();
+    proofs.pop_back();
+    for (const Proof& c : p.getChildren())
+    {
+      proofs.push_back(c);
+    }
+    for (const Term& a : p.getArguments())
+    {
+      terms.push_back(a);
+    }
+  }
+  while (!terms.empty())
+  {
+    Term t = terms.back();
+    terms.pop_back();
+    if (t.isRealAlgebraicNumberWitness())
+    {
+      witnesses.push_back(t);
+      continue;
+    }
+    for (const Term& c : t)
+    {
+      terms.push_back(c);
+    }
+  }
+  ASSERT_FALSE(witnesses.empty());
+  for (const Term& w : witnesses)
+  {
+    ASSERT_EQ(w.getKind(), Kind::REAL_ALGEBRAIC_NUMBER_WITNESS);
+    Term ran = w.getRealAlgebraicNumberWitnessNumber();
+    ASSERT_TRUE(ran.isRealAlgebraicNumber());
+    ASSERT_FALSE(ran.getRealAlgebraicNumberValue().empty());
+    std::vector<Term> sturm = w.getRealAlgebraicNumberWitnessSturmSequence();
+    // the defining polynomial and its derivative at least
+    ASSERT_GE(sturm.size(), 2);
+    for (const Term& s : sturm)
+    {
+      // pairs (quotient, polynomial)
+      ASSERT_EQ(s.getKind(), Kind::SEXPR);
+      ASSERT_EQ(s.getNumChildren(), 2);
+      for (const Term& c : s)
+      {
+        ASSERT_TRUE(c.getSort().isReal() || c.getSort().isInteger());
+      }
+    }
+  }
+}
+
 TEST_F(TestApiBlackTerm, getSkolem)
 {
   // ordinary variables are not skolems

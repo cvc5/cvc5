@@ -224,6 +224,16 @@ enum class AletheRule : uint32_t
   // Tautology of linear arithmetic that can be checked without sophisticated
   // reasoning.
   LA_TAUTOLOGY,
+  // ======== univariate coverings
+  // These rules are not in the Alethe standard, they are defined by their
+  // respective cvc5 counterpart (SGN_INV_INTRO, IS_ROOT_INTRO, COVER,
+  // SGN_INV_ELIM and RAN_EVAL), with the same premises
+  // and arguments.
+  SGN_INV_INTRO,
+  IS_ROOT_INTRO,
+  COVER,
+  SGN_INV_ELIM,
+  RAN_EVAL,
   // ======== forall_inst
   // > i. (or (not (forall (x1 ... xn) P)) P[t1/x1]...[tn/xn])
   // args = ((:= x_k1 tk1) ... (:= xkn tkn))

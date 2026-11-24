@@ -409,6 +409,129 @@ TypeNode StarContainsTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->booleanType();
 }
 
+TypeNode SgnInvTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode SgnInvTypeRule::computeType(NodeManager* nm,
+                                     TNode n,
+                                     bool check,
+                                     std::ostream* errOut)
+{
+  if (check)
+  {
+    if (!n[0].getTypeOrNull().isRealOrInt())
+    {
+      if (errOut)
+      {
+        (*errOut) << n.getKind()
+                  << " expects a polynomial as the first argument.";
+      }
+      return TypeNode::null();
+    }
+    // The infinity markers are Real-sorted (RealNullaryOperatorTypeRule), so
+    // the sort check alone accepts them in either position; the marker on
+    // the wrong side must be rejected explicitly by kind.
+    if (n[1].getKind() == Kind::PLUS_INFINITY
+        || !n[1].getTypeOrNull().isRealOrInt())
+    {
+      if (errOut)
+      {
+        (*errOut) << n.getKind()
+                  << " expects a real or MINUS_INFINITY as the second "
+                     "argument.";
+      }
+      return TypeNode::null();
+    }
+    if (n[2].getKind() == Kind::MINUS_INFINITY
+        || !n[2].getTypeOrNull().isRealOrInt())
+    {
+      if (errOut)
+      {
+        (*errOut) << n.getKind()
+                  << " expects a real or PLUS_INFINITY as the third "
+                     "argument.";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nm->booleanType();
+}
+
+TypeNode IsRootTypeRule::preComputeType(NodeManager* nm, CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode IsRootTypeRule::computeType(NodeManager* nm,
+                                     TNode n,
+                                     bool check,
+                                     std::ostream* errOut)
+{
+  if (check)
+  {
+    if (!n[0].getTypeOrNull().isRealOrInt())
+    {
+      if (errOut)
+      {
+        (*errOut) << "IsRoot expects a polynomial as the second argument.";
+      }
+      return TypeNode::null();
+    }
+    if (!n[1].getTypeOrNull().isRealOrInt()
+        || n[1].getKind() == Kind::PLUS_INFINITY
+        || n[1].getKind() == Kind::MINUS_INFINITY)
+    {
+      if (errOut)
+      {
+        (*errOut) << "IsRoot expects a finite real as first argument.\n";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nm->booleanType();
+}
+
+TypeNode RealAlgebraicNumberWitnessTypeRule::preComputeType(NodeManager* nm,
+                                                            CVC5_UNUSED TNode n)
+{
+  return nm->realType();
+}
+
+TypeNode RealAlgebraicNumberWitnessTypeRule::computeType(NodeManager* nm,
+                                                         TNode n,
+                                                         bool check,
+                                                         std::ostream* errOut)
+{
+  if (check)
+  {
+    if (n[0].getKind() != Kind::SEXPR)
+    {
+      if (errOut)
+      {
+        (*errOut) << n.getKind() << " expects the Sturm sequence as an SEXPR.";
+      }
+      return TypeNode::null();
+    }
+    for (const Node& p : n[0])
+    {
+      if (p.getKind() != Kind::SEXPR || p.getNumChildren() != 2
+          || !p[0].getTypeOrNull().isRealOrInt()
+          || !p[1].getTypeOrNull().isRealOrInt())
+      {
+        if (errOut)
+        {
+          (*errOut) << n.getKind()
+                    << " expects pairs of polynomials as the Sturm sequence.";
+        }
+        return TypeNode::null();
+      }
+    }
+  }
+  return nm->realType();
+}
+
 }  // namespace arith
 }  // namespace theory
 }  // namespace cvc5::internal

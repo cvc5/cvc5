@@ -28,7 +28,7 @@ jobs:
         with:
           # When using GITHUB_TOKEN, no further workflows are triggered
           # See https://github.com/cvc5/cvc5/pull/8512
-          github-token-release: ${{ secrets.ACTION_USER_TOKEN }}
+          github-token-release: ${{ secrets.ACTION_USER_TOKEN | github.token }}
 
   check-format:
     name: Check code formatting

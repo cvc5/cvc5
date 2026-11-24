@@ -49,6 +49,26 @@ if(Poly_INCLUDE_DIR
   string(REGEX MATCH "[0-9.]+" Poly_VERSION "${Poly_VERSION}")
 
   check_system_version("Poly")
+
+  # The version above is read from the headers only. Check that the libraries
+  # match it, since headers and libraries may come from different
+  # installations.
+  if(Poly_FOUND_SYSTEM)
+    # re-run the check on every configure, the libraries may have changed
+    unset(Poly_USABLE CACHE)
+    try_compile(Poly_USABLE "${DEPS_BASE}/try_compile/Poly-EP"
+      "${CMAKE_CURRENT_LIST_DIR}/deps-utils/poly-test.cpp"
+      CMAKE_FLAGS
+        "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}"
+      LINK_LIBRARIES ${PolyXX_LIBRARIES} ${Poly_LIBRARIES} ${GMP_LIBRARIES}
+    )
+    if(NOT Poly_USABLE)
+      message(STATUS "System version for Poly has headers of version \
+${Poly_VERSION} in ${Poly_INCLUDE_DIR}, but the libraries ${Poly_LIBRARIES} \
+and ${PolyXX_LIBRARIES} do not match them")
+      set(Poly_FOUND_SYSTEM FALSE)
+    endif()
+  endif()
 endif()
 
 if(NOT Poly_FOUND_SYSTEM)
@@ -59,7 +79,8 @@ if(NOT Poly_FOUND_SYSTEM)
 
   include(ExternalProject)
 
-  set(Poly_VERSION "0.2.1")
+  set(Poly_VERSION "0.2.3")
+  set(Poly_ARCHIVE_TAG "v0.2.3_roots")
 
   set(POLY_PATCH_KWD PATCH_COMMAND)
   if (NO_GLOBAL_POLY_CTX)
@@ -204,8 +225,8 @@ if(NOT Poly_FOUND_SYSTEM)
   ExternalProject_Add(
     Poly-EP
     ${COMMON_EP_CONFIG}
-    URL https://github.com/SRI-CSL/libpoly/archive/refs/tags/v${Poly_VERSION}.tar.gz
-    URL_HASH SHA256=f9920afc876f998633348b9cbfcf180757ada48cc872040256c60ad0707b5a0f
+    URL https://github.com/ufmg-smite/libpoly/archive/refs/tags/${Poly_ARCHIVE_TAG}.tar.gz
+    URL_HASH SHA256=4376666df2f892fd39496185ce138e7c5784f677d1ff8a93753ce50dcdab442e
     ${POLY_PATCH_CMD}
     CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
                -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>

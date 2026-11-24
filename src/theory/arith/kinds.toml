@@ -306,6 +306,24 @@ comment  = "a real algebraic number constant; payload is an instance of the cvc5
 typerule = "::cvc5::internal::theory::arith::ArithRealAlgebraicNumberTypeRule"
 
 [[kinds]]
+type      = "constant"
+name      = "REAL_ALGEBRAIC_NUMBER_WITNESS_OP"
+class_key = "class"
+cpp_type  = "RealAlgebraicNumber+"
+hasher    = "::cvc5::internal::RealAlgebraicNumberHashFunction"
+header    = "util/real_algebraic_number.h"
+comment   = "operator for REAL_ALGEBRAIC_NUMBER_WITNESS; payload is an instance of the cvc5::internal::RealAlgebraicNumber class"
+typerule  = "::cvc5::internal::theory::arith::ArithRealAlgebraicNumberOpTypeRule"
+
+[[kinds]]
+type     = "parameterized"
+K1       = "REAL_ALGEBRAIC_NUMBER_WITNESS"
+K2       = "REAL_ALGEBRAIC_NUMBER_WITNESS_OP"
+children = 1
+comment  = "a real algebraic number together with a Sturm sequence witnessing that it is well defined; the operator carries the number, the child is an SEXPR with the Sturm sequence of the defining polynomial of the number"
+typerule = "::cvc5::internal::theory::arith::RealAlgebraicNumberWitnessTypeRule"
+
+[[kinds]]
 type = "operator"
 name     = "LT"
 children = 2
@@ -351,6 +369,28 @@ K2       = "INDEXED_ROOT_PREDICATE_OP"
 children = 2
 comment  = "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
 typerule = "::cvc5::internal::theory::arith::IndexedRootPredicateTypeRule"
+
+[[kinds]]
+type =  "operator"
+name = "SGN_INV"
+children = 3
+typerule = "::cvc5::internal::theory::arith::SgnInvTypeRule"
+
+[[kinds]]
+type =  "operator"
+name = "IS_ROOT"
+children = 2
+typerule = "::cvc5::internal::theory::arith::IsRootTypeRule"
+
+[[kinds]]
+type = "nullaryoperator"
+name = "PLUS_INFINITY"
+typerule = "::cvc5::internal::theory::arith::RealNullaryOperatorTypeRule"
+
+[[kinds]]
+type = "nullaryoperator"
+name = "MINUS_INFINITY"
+typerule = "::cvc5::internal::theory::arith::RealNullaryOperatorTypeRule"
 
 [[kinds]]
 type     = "operator"
