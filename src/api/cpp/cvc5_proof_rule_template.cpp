@@ -373,6 +373,12 @@ const char* toString(cvc5::ProofRewriteRule rule)
     case ProofRewriteRule::STR_IN_RE_SIGMA_STAR: return "str-in-re-sigma-star";
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
       return "macro-substr-strip-sym-length";
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH:
+      return "macro-str-indexof-strip-sym-length";
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX:
+      return "macro-str-indexof-strip-const-prefix";
+    case ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT:
+      return "macro-str-ctn-const-split";
     case ProofRewriteRule::SETS_EVAL_OP:
       return "sets-eval-op";
       //================================================= RARE rules

@@ -4208,6 +4208,52 @@ enum ENUM(ProofRewriteRule)
   EVALUE(MACRO_SUBSTR_STRIP_SYM_LENGTH),
   /**
    * \verbatim embed:rst:leading-asterisk
+   * **Strings -- strings indexof strip symbolic length**
+   *
+   * .. math::
+   *
+   *   str.indexof(s, t, n) = str.len(s_1) + str.indexof(s_2, t, n - str.len(s_1))
+   *
+   * where :math:`s` is equivalent to :math:`s_1 \cdot s_2`, the length of
+   * :math:`s_1` is at most :math:`n`, :math:`n` is at most the length of
+   * :math:`s`, and :math:`t` is contained in the suffix of :math:`s` starting
+   * at :math:`n`.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_INDEXOF_STRIP_SYM_LENGTH),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- strings indexof strip constant prefix**
+   *
+   * .. math::
+   *
+   *   str.indexof(c \cdot s, t, 0) = str.len(c_1) + str.indexof(c_2 \cdot s, t, 0)
+   *
+   * where :math:`c` is a constant that is equivalent to :math:`c_1 \cdot c_2`,
+   * :math:`c \cdot s` contains :math:`t`, and :math:`t` does not occur
+   * in :math:`c \cdot s` starting at any of the first :math:`|c_1|`
+   * positions.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_INDEXOF_STRIP_CONST_PREFIX),
+  /**
+   * \verbatim embed:rst:leading-asterisk
+   * **Strings -- strings contains split constant**
+   *
+   * .. math::
+   *
+   *   str.contains(c, t) = (t = \epsilon \vee t = c_1 \vee \ldots \vee t = c_n)
+   *
+   * where :math:`c` is a constant consisting of the characters
+   * :math:`c_1, \ldots, c_n`, and the length of :math:`t` is at most one.
+   *
+   * \endverbatim
+   */
+  EVALUE(MACRO_STR_CTN_CONST_SPLIT),
+  /**
+   * \verbatim embed:rst:leading-asterisk
    * **Sets -- sets evaluate operator**
    *
    * .. math::
@@ -4834,6 +4880,12 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_LEQ_LEN_EQ),
   /** Auto-generated from RARE rule str-contains-emp */
   EVALUE(STR_CONTAINS_EMP),
+  /** Auto-generated from RARE rule str-contains-cnst-split-leq-one */
+  EVALUE(STR_CONTAINS_CNST_SPLIT_LEQ_ONE),
+  /** Auto-generated from RARE rule str-contains-strip-from-int-pre */
+  EVALUE(STR_CONTAINS_STRIP_FROM_INT_PRE),
+  /** Auto-generated from RARE rule str-contains-strip-from-int-post */
+  EVALUE(STR_CONTAINS_STRIP_FROM_INT_POST),
   /** Auto-generated from RARE rule str-contains-char */
   EVALUE(STR_CONTAINS_CHAR),
   /** Auto-generated from RARE rule str-at-elim */
@@ -4888,6 +4940,14 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_INDEXOF_OOB),
   /** Auto-generated from RARE rule str-indexof-oob2 */
   EVALUE(STR_INDEXOF_OOB2),
+  /** Auto-generated from RARE rule str-indexof-len */
+  EVALUE(STR_INDEXOF_LEN),
+  /** Auto-generated from RARE rule str-indexof-strip-char-pre */
+  EVALUE(STR_INDEXOF_STRIP_CHAR_PRE),
+  /** Auto-generated from RARE rule str-indexof-strip-prefix-len */
+  EVALUE(STR_INDEXOF_STRIP_PREFIX_LEN),
+  /** Auto-generated from RARE rule str-indexof-strip-sym-len */
+  EVALUE(STR_INDEXOF_STRIP_SYM_LEN),
   /** Auto-generated from RARE rule str-indexof-contains-pre */
   EVALUE(STR_INDEXOF_CONTAINS_PRE),
   /** Auto-generated from RARE rule str-indexof-contains-concat-pre */
@@ -4934,6 +4994,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_LEQ_EMPTY),
   /** Auto-generated from RARE rule str-leq-empty-eq */
   EVALUE(STR_LEQ_EMPTY_EQ),
+  /** Auto-generated from RARE rule str-leq-id */
+  EVALUE(STR_LEQ_ID),
   /** Auto-generated from RARE rule str-leq-concat-false */
   EVALUE(STR_LEQ_CONCAT_FALSE),
   /** Auto-generated from RARE rule str-leq-concat-true */
@@ -4964,6 +5026,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_CONTAINS_REPL_CHAR),
   /** Auto-generated from RARE rule str-contains-repl-self-tgt-char */
   EVALUE(STR_CONTAINS_REPL_SELF_TGT_CHAR),
+  /** Auto-generated from RARE rule str-contains-repl-self-tgt-leq-one */
+  EVALUE(STR_CONTAINS_REPL_SELF_TGT_LEQ_ONE),
   /** Auto-generated from RARE rule str-contains-repl-self */
   EVALUE(STR_CONTAINS_REPL_SELF),
   /** Auto-generated from RARE rule str-contains-repl-tgt */
@@ -5016,6 +5080,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_UNION_ALL),
   /** Auto-generated from RARE rule re-union-const-elim */
   EVALUE(RE_UNION_CONST_ELIM),
+  /** Auto-generated from RARE rule re-inter-const-elim */
+  EVALUE(RE_INTER_CONST_ELIM),
   /** Auto-generated from RARE rule re-inter-all */
   EVALUE(RE_INTER_ALL),
   /** Auto-generated from RARE rule re-star-none */
@@ -5044,6 +5110,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(RE_INTER_CSTRING),
   /** Auto-generated from RARE rule re-inter-cstring-neg */
   EVALUE(RE_INTER_CSTRING_NEG),
+  /** Auto-generated from RARE rule re-inter-const-const-conflict */
+  EVALUE(RE_INTER_CONST_CONST_CONFLICT),
   /** Auto-generated from RARE rule str-substr-len-include */
   EVALUE(STR_SUBSTR_LEN_INCLUDE),
   /** Auto-generated from RARE rule str-substr-len-include-pre */
@@ -5102,6 +5170,8 @@ enum ENUM(ProofRewriteRule)
   EVALUE(STR_IN_RE_FROM_INT_NEMP_DIG_RANGE),
   /** Auto-generated from RARE rule str-in-re-from-int-dig-range */
   EVALUE(STR_IN_RE_FROM_INT_DIG_RANGE),
+  /** Auto-generated from RARE rule re-char-in-str-star */
+  EVALUE(RE_CHAR_IN_STR_STAR),
   /** Auto-generated from RARE rule eq-refl */
   EVALUE(EQ_REFL),
   /** Auto-generated from RARE rule eq-symm */

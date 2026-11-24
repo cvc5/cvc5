@@ -221,6 +221,9 @@ void BasicRewriteRCons::ensureProofForTheoryRewrite(CDProof* cdp,
     case ProofRewriteRule::MACRO_RE_INTER_UNION_INCLUSION:
     case ProofRewriteRule::MACRO_RE_INTER_UNION_CONST_ELIM:
     case ProofRewriteRule::MACRO_SUBSTR_STRIP_SYM_LENGTH:
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_SYM_LENGTH:
+    case ProofRewriteRule::MACRO_STR_INDEXOF_STRIP_CONST_PREFIX:
+    case ProofRewriteRule::MACRO_STR_CTN_CONST_SPLIT:
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY_PREFIX:
     case ProofRewriteRule::MACRO_STR_EQ_LEN_UNIFY:
     case ProofRewriteRule::MACRO_STR_STRIP_ENDPOINTS:

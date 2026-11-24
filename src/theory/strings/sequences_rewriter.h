@@ -63,6 +63,48 @@ class SequencesRewriter : public TheoryRewriter
    * in another child).
    */
   Node rewriteViaMacroReInterUnionConstElim(const Node& n, Node& conflict);
+  /**
+   * Rewrite based on MACRO_STR_INDEXOF_STRIP_SYM_LENGTH, e.g.
+   *   str.indexof(str.++(x1, x2), y, z) --->
+   *   str.len(x1) + str.indexof(x2, y, z')
+   * if z >= str.len(x1), str.len(str.++(x1, x2)) >= z, and
+   * str.contains(str.substr(str.++(x1, x2), z, str.len(str.++(x1, x2))), y),
+   * where z' is equivalent to z - str.len(x1).
+   * Returns null if this does not apply.
+   *
+   * @param n The indexof term to rewrite.
+   * @param ch1 The components of the stripped prefix (x1 above).
+   * @param ch2 The components of the remainder (x2 above).
+   * @param checkCtn Whether we should check the containment condition. This is
+   * false if the caller has already checked it.
+   * @return The result of the rewrite.
+   */
+  Node rewriteViaMacroStrIndexofStripSymLength(const Node& n,
+                                               std::vector<Node>& ch1,
+                                               std::vector<Node>& ch2,
+                                               bool checkCtn = true);
+  /**
+   * Rewrite based on MACRO_STR_INDEXOF_STRIP_CONST_PREFIX, e.g.
+   *   str.indexof(str.++("AB", x, "C"), "C", 0) --->
+   *   str.len("AB") + str.indexof(str.++(x, "C"), "C", 0)
+   * where the first argument contains the second, the first component of the
+   * first argument is a constant, and "AB" is the prefix of that constant
+   * that is stripped by StringsEntail::stripConstantEndpoints. Returns null
+   * if this does not apply.
+   *
+   * @param n The indexof term to rewrite.
+   * @param checkCtn Whether we should check that the first argument of n
+   * contains the second. This is false if the caller has already checked it.
+   * @return The result of the rewrite.
+   */
+  Node rewriteViaMacroStrIndexofStripConstPrefix(const Node& n,
+                                                 bool checkCtn = true);
+  /**
+   * Rewrite based on MACRO_STR_CTN_CONST_SPLIT, e.g.
+   *   str.contains("ABC", t) ---> t = "" v t = "A" v t = "B" v t = "C"
+   * if the length of t is at most one. Returns null if this does not apply.
+   */
+  Node rewriteViaMacroStrCtnConstSplit(const Node& n);
 
  protected:
   /** rewrite regular expression all
@@ -218,6 +260,20 @@ class SequencesRewriter : public TheoryRewriter
    * necessarily one of { s = t, t = s, true, false }.
    */
   Node rewriteEqualityExt(Node node) override;
+  /**
+   * Normalize the prefix of the first argument of str.indexof that is before
+   * the start index, e.g.
+   *   str.indexof(str.++("ABCD", x), y, 3) ---> str.indexof(str.++("AAAD", x),
+   * y, 3) Returns node if this does not apply. This is not applied by the
+   * standard rewriter, since the introduced characters ("A") do not have a
+   * proof, and is instead applied by the extended rewriter.
+   */
+  Node rewriteIndexofNormPrefix(const Node& node);
+  /**
+   * @return The suffix of t starting at index n, i.e.
+   * str.substr(t, n, str.len(t)), or t itself if n is 0.
+   */
+  Node mkSuffixFrom(const Node& t, const Node& n);
   /** rewrite string length
    * This is the entry point for post-rewriting terms node of the form
    *   str.len( t )
