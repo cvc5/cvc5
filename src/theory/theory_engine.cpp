@@ -928,7 +928,7 @@ bool TheoryEngine::solve(TrustNode tliteral,
 
   TheoryId tid = d_env.theoryOf(atom);
   // Note that ppAssert is called before ppRewrite.
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid))
   {
     // don't throw an exception yet
     // Instead ppStaticRewrite will be called on atom, which may throw an
@@ -951,7 +951,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
   // since there are corner cases where facts may involve terms that belong
   // to other theories, e.g. equalities between variables belong to UF when
   // theoryof-mode is `term`.
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid))
   {
     stringstream ss;
     ss << "The logic was specified as " << logicInfo().getLogicString()
@@ -993,7 +993,7 @@ TrustNode TheoryEngine::ppRewrite(TNode term,
 TrustNode TheoryEngine::ppStaticRewrite(TNode term)
 {
   TheoryId tid = d_env.theoryOf(term);
-  if (!isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
+  if (!isTheoryEnabled(tid))
   {
     // If the theory is not enabled, then we require eliminating the term
     // here.

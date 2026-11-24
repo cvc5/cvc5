@@ -43,7 +43,10 @@ cvc5 1.5.0 prerelease
     - **Java**: the `Solver` functions for creating sorts, terms, operators,
       datatype declarations and grammars, use the corresponding `TermManager`
       functions instead; constructor `Solver()`, use `Solver(TermManager)`;
-      constructor `SymbolManager(Solver)`, use `SymbolManager(TermManager)`.
+      constructor `SymbolManager(Solver)`, use `SymbolManager(TermManager)`;
+      class `Context` (`Context.deletePointers()`), native memory is now
+      released automatically (see below) and can be released
+      deterministically via `deletePointer()` or `TermManager.close()`.
     - **Python**: the `Solver` functions for creating sorts, terms, operators,
       datatype declarations and grammars, use the corresponding `TermManager`
       functions instead, including `Solver.mkSkolem()` and
@@ -77,14 +80,13 @@ cvc5 1.5.0 prerelease
     without contention or unbounded memory growth. Memory can still be
     released deterministically via `deletePointer()`; `TermManager`, `Solver`,
     `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
-    `Context.deletePointers()` is deprecated. `TermManager.close()` frees the
-    native objects of a term manager and of all objects derived from it at
-    once, without waiting for the garbage collector, while
-    `TermManager.deletePointer()` frees only the term manager itself and
-    keeps the objects derived from it usable.
+    `TermManager.close()` frees the native objects of a term manager and of
+    all objects derived from it at once, without waiting for the garbage
+    collector, while `TermManager.deletePointer()` frees only the term
+    manager itself and keeps the objects derived from it usable.
   * Using an object after its native memory has been released, via
-    `deletePointer()`, `close()` or `Context.deletePointers()`, now raises an
-    `IllegalStateException` instead of crashing the JVM.
+    `deletePointer()` or `close()`, now raises an `IllegalStateException`
+    instead of crashing the JVM.
   * `Solver.getTermManager()` now returns the same `TermManager` object on
     every call, which is equal to the term manager the solver was created
     with, and `InputParser.getSolver()` and `InputParser.getSymbolManager()`

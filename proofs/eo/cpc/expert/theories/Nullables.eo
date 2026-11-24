@@ -2,7 +2,7 @@
 ; disclaimer: >
 ;   This sort is not in the SMT-LIB standard. All further function
 ;   symbols over this sort are also not part of the SMT-LIB standard.
-(declare-datatypes ((Nullable 1)) ((par (T) ((nullable.some (nullable.val T)) (nullable.null)))))
+(declare-datatypes ((Nullable 1)) ((par (T) ((nullable.null) (nullable.some (nullable.val T))))))
 
 ; program: $get_type_nullable_lift
 ; args:
