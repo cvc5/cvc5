@@ -4,7 +4,10 @@
 ; EXPECT: unsat
 ; EXPECT: unsat
 ; EXPECT: unsat
-; table.aggr of a table of known rows, written out by AGGREGATE_BAG_MAKE:
+; EXPECT: unsat
+; table.aggr of a table of known rows, reduced by AGGREGATE_BAG_MAKE to
+; bag.map, table.group and bag.fold, which GROUP_BAG_MAKE, MAP_ITE and FOLD_ITE
+; write out:
 ;   SELECT k, COUNT(*) FROM A GROUP BY k
 (set-logic HO_ALL)
 (declare-const x (Tuple Int Int))
@@ -44,5 +47,16 @@
 ; a row with two copies is folded twice
 (push 1)
 (assert (not (= (count (bag x 2)) (bag (tuple kx 2) 1))))
+(check-sat)
+(pop 1)
+
+; the rows of a filter of an ite: x is in the table if b, y is filtered out
+(push 1)
+(declare-const b Bool)
+(define-fun nonNegative ((t (Tuple Int Int))) Bool (>= ((_ tuple.select 1) t) 0))
+(assert (nonNegative x))
+(assert (not (nonNegative y)))
+(assert (not (= (count (bag.filter nonNegative (ite b A (bag y 1))))
+                (ite b (bag (tuple kx 1) 1) (as bag.empty (Table Int Int))))))
 (check-sat)
 (pop 1)
