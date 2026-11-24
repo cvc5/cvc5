@@ -37,7 +37,8 @@ Syntax
 ^^^^^^
 
 For the C++ API examples in the table below, we assume that we have created
-a :cpp:class:`Solver <cvc5::Solver>` object ``solver``.
+a :cpp:class:`TermManager <cvc5::TermManager>` object ``tm`` and a
+:cpp:class:`Solver <cvc5::Solver>` object ``solver`` constructed from it.
 
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 |                      | SMT-LIB language                             | C++ API                                                            |
@@ -46,21 +47,21 @@ a :cpp:class:`Solver <cvc5::Solver>` object ``solver``.
 |                      |                                              |                                                                    |
 |                      | ``(set-logic QF_FF)``                        | ``solver.setLogic("QF_FF");``                                      |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sort                 | ``(_ FiniteField <Prime Order>)``            | ``solver.mkFiniteFieldSort(<Prime Order As String>);``             |
+| Sort                 | ``(_ FiniteField <Prime Order>)``            | ``tm.mkFiniteFieldSort(<Prime Order As String>);``                 |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Constants            | ``(declare-const X (_ FiniteField 7))``      | ``Sort s = solver.mkFiniteFieldSort("7");``                        |
+| Constants            | ``(declare-const X (_ FiniteField 7))``      | ``Sort s = tm.mkFiniteFieldSort("7");``                            |
 |                      |                                              |                                                                    |
-|                      |                                              | ``Term X = solver.mkConst(s, "X");``                               |
+|                      |                                              | ``Term X = tm.mkConst(s, "X");``                                   |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Finite Field Value   | ``(as ff3 (_ FiniteField 7))``               | ``Sort ffSort = solver.mkFiniteFieldSort("7");``                   |
+| Finite Field Value   | ``(as ff3 (_ FiniteField 7))``               | ``Sort ffSort = tm.mkFiniteFieldSort("7");``                       |
 |                      |                                              |                                                                    |
-|                      |                                              | ``Term t = solver.mkFiniteFieldElem("3", ffSort);``                |
+|                      |                                              | ``Term t = tm.mkFiniteFieldElem("3", ffSort);``                    |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Addition             | ``(ff.add x y)``                             | ``Term t = solver.mkTerm(Kind::FINITE_FIELD_ADD, {x, y});``        |
+| Addition             | ``(ff.add x y)``                             | ``Term t = tm.mkTerm(Kind::FINITE_FIELD_ADD, {x, y});``            |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Multiplication       | ``(ff.mul x y)``                             | ``Term t = solver.mkTerm(Kind::FINITE_FIELD_MULT, {x, y});``       |
+| Multiplication       | ``(ff.mul x y)``                             | ``Term t = tm.mkTerm(Kind::FINITE_FIELD_MULT, {x, y});``           |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Equality             | ``(= x y)``                                  | ``Term t = solver.mkTerm(Kind::EQUAL, {x, y});``                   |
+| Equality             | ``(= x y)``                                  | ``Term t = tm.mkTerm(Kind::EQUAL, {x, y});``                       |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 
 

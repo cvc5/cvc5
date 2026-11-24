@@ -493,10 +493,11 @@ void ProofEqEngine::explainWithProof(Node lit,
                                      std::vector<TNode>& assumps,
                                      LazyCDProof* curr)
 {
-  if (std::find(assumps.begin(), assumps.end(), lit) != assumps.end())
-  {
-    return;
-  }
+  // Note that we explain lit even if it already occurs in assumps, e.g. as the
+  // reason of a literal we explained previously. Its proof (and hence the
+  // assumptions it depends on) must be added here, since lit may be an
+  // internal fact that the lazy proof curr expands via a proof generator,
+  // in which case it would not remain an assumption of the final proof.
   std::shared_ptr<eq::EqProof> pf = std::make_shared<eq::EqProof>();
   Trace("pfee-proof") << "pfee::explainWithProof: " << lit << std::endl;
   bool polarity = lit.getKind() != Kind::NOT;
@@ -527,11 +528,7 @@ void ProofEqEngine::explainWithProof(Node lit,
   // avoid duplicates
   for (TNode a : tassumps)
   {
-    if (a == lit)
-    {
-      assumps.push_back(a);
-    }
-    else if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
+    if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
     {
       assumps.push_back(a);
     }

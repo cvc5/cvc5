@@ -197,9 +197,21 @@ TrustNode LambdaLift::ppRewrite(Node node, std::vector<SkolemLemma>& lems)
     for (const Node& t : pgnc.d_pterms)
     {
       Node k = SkolemManager::mkPurifySkolem(t);
-      TrustNode trnk = TrustNode::mkTrustLemma(k.eqNode(t));
-      Trace("uf-lazy-ll-purify")
-          << "- purify lemma: " << k.eqNode(t) << std::endl;
+      Node lem;
+      if (t.getKind() == Kind::ITE && !t.getType().isBoolean())
+      {
+        // Term formula removal would replace t by k in (= k t), which would
+        // make this lemma true. We use the definition it would give k
+        // instead.
+        lem = nodeManager()->mkNode(Kind::ITE,
+                                    {t[0], k.eqNode(t[1]), k.eqNode(t[2])});
+      }
+      else
+      {
+        lem = k.eqNode(t);
+      }
+      TrustNode trnk = TrustNode::mkTrustLemma(lem);
+      Trace("uf-lazy-ll-purify") << "- purify lemma: " << lem << std::endl;
       lems.push_back(SkolemLemma(trnk, k));
     }
     // We return the purified lambda itself, not a skolem for it. The

@@ -2097,16 +2097,6 @@ bool cvc5_term_is_string_value(Cvc5Term term)
   return res;
 }
 
-const wchar_t* cvc5_term_get_string_value(Cvc5Term term)
-{
-  static thread_local std::wstring res;
-  CVC5_CAPI_TRY_CATCH_BEGIN;
-  CVC5_CAPI_CHECK_TERM(term);
-  res = term->d_term.getStringValue();
-  CVC5_CAPI_TRY_CATCH_END;
-  return res.c_str();
-}
-
 const char32_t* cvc5_term_get_u32string_value(Cvc5Term term)
 {
   static thread_local std::u32string res;
@@ -3546,17 +3536,6 @@ Cvc5Term cvc5_mk_string(Cvc5TermManager* tm, const char* s, bool use_esc_seq)
   CVC5_CAPI_CHECK_NOT_NULL(tm);
   CVC5_CAPI_CHECK_NOT_NULL(s);
   res = tm->export_term(tm->d_tm.mkString(s, use_esc_seq));
-  CVC5_CAPI_TRY_CATCH_END;
-  return res;
-}
-
-Cvc5Term cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s)
-{
-  Cvc5Term res = nullptr;
-  CVC5_CAPI_TRY_CATCH_BEGIN;
-  CVC5_CAPI_CHECK_NOT_NULL(tm);
-  CVC5_CAPI_CHECK_NOT_NULL(s);
-  res = tm->export_term(tm->d_tm.mkString(s));
   CVC5_CAPI_TRY_CATCH_END;
   return res;
 }
@@ -5571,6 +5550,21 @@ void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin)
   cvc5->d_plugins.push_back(
       std::make_unique<Cvc5::PluginCpp>(cvc5->d_tm->d_tm, cvc5, plugin));
   cvc5->d_solver.addPlugin(*cvc5->d_plugins.back());
+  CVC5_CAPI_TRY_CATCH_END;
+}
+
+void cvc5_set_terminator(Cvc5* cvc5, void* state, bool (*terminate)(void*))
+{
+  CVC5_CAPI_TRY_CATCH_BEGIN;
+  CVC5_CAPI_CHECK_NOT_NULL(cvc5);
+  std::unique_ptr<Cvc5::TerminatorCpp> terminator;
+  if (terminate != nullptr)
+  {
+    terminator.reset(new Cvc5::TerminatorCpp(state, terminate));
+  }
+  cvc5->d_solver.setTerminator(terminator.get());
+  // destroy the previously set terminator after it has been replaced
+  cvc5->d_terminator = std::move(terminator);
   CVC5_CAPI_TRY_CATCH_END;
 }
 

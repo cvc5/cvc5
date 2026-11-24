@@ -115,6 +115,10 @@ void QuantifiersEngine::finishInit(TheoryEngine* te)
   d_qmodules.reset(new QuantifiersModules());
   d_qmodules->initialize(
       d_env, d_qstate, d_qim, d_qreg, d_treg, d_builder.get(), d_modules);
+  for (QuantifiersModule*& mdl : d_modules)
+  {
+    mdl->finishInit(te);
+  }
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -786,6 +790,10 @@ void QuantifiersEngine::eqNotifyNewClass(TNode t)
 void QuantifiersEngine::eqNotifyMerge(TNode t1, TNode t2)
 {
   d_treg.eqNotifyMerge(t1, t2);
+  for (QuantifiersModule*& mdl : d_modules)
+  {
+    mdl->notifyMasterMerge(t1, t2);
+  }
 }
 
 void QuantifiersEngine::markRelevant(Node q) { d_model->markRelevant(q); }

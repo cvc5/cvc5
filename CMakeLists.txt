@@ -133,6 +133,7 @@ option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 option(USE_EDITLINE      "Use Editline for better interactive support")
 option(USE_GLPK          "Use GLPK simplex solver")
 option(USE_KISSAT        "Use Kissat SAT solver")
+option(USE_MIMALLOC      "Use the mimalloc memory allocator in the cvc5 binary")
 option(USE_MPFR          "Use MPFR for FP constant folding instead of SymFPU")
 option(USE_POLY          "Use LibPoly for polynomial arithmetic")
 option(USE_NORMALIZ      "Use Normaliz for liastar solver extension")
@@ -350,14 +351,34 @@ endif()
 
 #-----------------------------------------------------------------------------#
 # Use interprocedural optimization if requested
+#
+# In static builds, the static libraries are built with fat LTO objects, which
+# contain regular object code in addition to the LTO bytecode. The LTO
+# bytecode is used to link the cvc5 binary, and removed from the installed
+# libraries (see strip_lto_static_library). Otherwise, every program linked
+# against libcvc5.a would perform an LTO link of all of cvc5 (which takes
+# minutes and requires the same GCC version). The tests are linked with
+# -fno-lto for the same reason. Only GCC supports this reliably, so IPO is
+# disabled for static builds with other compilers.
 
 if(ENABLE_IPO)
   check_ipo_supported(RESULT have_ipo_support)
-  if(have_ipo_support)
-    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-  else()
+  if(NOT have_ipo_support)
     message(STATUS "Interprocedural optimization not supported.")
     set(ENABLE_IPO OFF)
+  elseif(NOT BUILD_SHARED_LIBS AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS
+      "Interprocedural optimization in static builds requires GCC, disabled.")
+    set(ENABLE_IPO OFF)
+  else()
+    if(NOT BUILD_SHARED_LIBS)
+      # Appended (and not substituted for CMake's -fno-fat-lto-objects) so that
+      # it takes effect whatever CMake's defaults are: the last flag wins.
+      foreach(lang C CXX)
+        list(APPEND CMAKE_${lang}_COMPILE_OPTIONS_IPO -ffat-lto-objects)
+      endforeach()
+    endif()
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
   endif()
 endif()
 
@@ -631,6 +652,19 @@ if(USE_KISSAT)
   add_definitions(-DCVC5_USE_KISSAT)
 endif()
 
+if(USE_MIMALLOC)
+  # mimalloc replaces malloc and friends by linking its object file into the
+  # cvc5 binary (never into libcvc5). This is not supported on Windows and for
+  # WebAssembly, and it conflicts with the sanitizers' own allocators.
+  if(WIN32 OR NOT (WASM STREQUAL "OFF"))
+    message(FATAL_ERROR "mimalloc is not supported on this platform.")
+  endif()
+  if(ENABLE_ASAN OR ENABLE_TSAN)
+    message(FATAL_ERROR "mimalloc cannot be used together with ASan or TSan.")
+  endif()
+  find_package(MiMalloc REQUIRED)
+endif()
+
 # disable libraries that cannot be used in safe mode
 if(ENABLE_SAFE_MODE)
   if(USE_POLY)
@@ -747,6 +781,12 @@ if(BUILD_DOCS)
   add_subdirectory(docs)
 endif()
 
+# In static builds, link the tests against the regular object code in the
+# fat LTO objects (see "Use interprocedural optimization" above).
+if(ENABLE_IPO AND NOT BUILD_SHARED_LIBS)
+  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
+  add_link_options(-fno-lto)
+endif()
 add_subdirectory(test)
 
 include(target-graphs)
@@ -900,6 +940,7 @@ else()
   print_config("FP literal backend        " "symfpu" FOUND_SYSTEM ${SymFPU_FOUND_SYSTEM})
 endif()
 print_config("Editline                  " ${USE_EDITLINE})
+print_config("mimalloc                  " ${USE_MIMALLOC})
 message("")
 print_config("Api docs                  " ${BUILD_DOCS})
 message("")

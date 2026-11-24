@@ -109,6 +109,7 @@ const char* toString(ProofRule rule)
     case ProofRule::FALSE_ELIM: return "FALSE_ELIM";
     case ProofRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case ProofRule::HO_CONG: return "HO_CONG";
+    case ProofRule::UBV_TO_INT_RANGE: return "UBV_TO_INT_RANGE";
     //================================================= Array rules
     case ProofRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case ProofRule::ARRAYS_READ_OVER_WRITE_CONTRA:

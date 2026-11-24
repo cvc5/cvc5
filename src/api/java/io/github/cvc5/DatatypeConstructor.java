@@ -115,7 +115,7 @@ public class DatatypeConstructor extends AbstractPointer implements Iterable<Dat
    *
    * @api.note The returned constructor term {@code t} is used to construct the
    *           above (nullary) application of {@code nil} with
-   *           {@code Solver.mkTerm(APPLY_CONSTRUCTOR, new Term[] {t})}.
+   *           {@code TermManager.mkTerm(APPLY_CONSTRUCTOR, new Term[] {t})}.
    *
    * @api.note This method is experimental and may change in future versions.
    *

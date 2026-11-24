@@ -122,11 +122,6 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   // for each pattern in the list
   for (const Node& p : pat)
   {
-    if (std::find(nodes.begin(), nodes.end(), p) != nodes.end())
-    {
-      // skip duplicate pattern term
-      continue;
-    }
     // check if usable
     Node pat_use = pts.getIsUsableTrigger(p, q);
     if (pat_use.isNull())
@@ -135,6 +130,14 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
                             << " because of " << p << std::endl;
       // this may be part of a multi-pattern, where we terminate now
       return;
+    }
+    // Skip duplicate pattern terms. Note that we must check this for the
+    // usable form of the term, since e.g. applications of testers are
+    // modified by getIsUsableTrigger, and multi-triggers cannot contain the
+    // same term twice.
+    if (std::find(nodes.begin(), nodes.end(), pat_use) != nodes.end())
+    {
+      continue;
     }
     nodes.push_back(pat_use);
   }

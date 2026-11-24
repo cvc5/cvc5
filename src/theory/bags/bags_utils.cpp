@@ -138,7 +138,11 @@ Node BagsUtils::evaluate(Rewriter* rewriter, TNode n)
     case Kind::BAG_CARD: return evaluateCard(n);
     case Kind::BAG_MAP: return evaluateBagMap(n);
     case Kind::BAG_FILTER: return evaluateBagFilter(n);
+    case Kind::BAG_ALL: return evaluateBagAll(n);
+    case Kind::BAG_SOME: return evaluateBagSome(n);
     case Kind::BAG_FOLD: return evaluateBagFold(n);
+    case Kind::BAG_PARTITION: return evaluateBagPartition(rewriter, n);
+    case Kind::TABLE_AGGREGATE: return evaluateTableAggregate(n);
     case Kind::TABLE_PRODUCT: return evaluateProduct(n);
     case Kind::TABLE_JOIN: return evaluateJoin(rewriter, n);
     case Kind::TABLE_GROUP: return evaluateGroup(n);
@@ -692,6 +696,29 @@ Node BagsUtils::evaluateBagFilter(TNode n)
   return ret;
 }
 
+Node BagsUtils::evaluateBagAll(TNode n)
+{
+  Assert(n.getKind() == Kind::BAG_ALL);
+  // (bag.all p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+  // = (= (bag.filter p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+  //      (bag.union_disjoint (bag 1 2) (bag 3 1)))
+  NodeManager* nm = n.getNodeManager();
+  Node filter = nm->mkNode(Kind::BAG_FILTER, n[0], n[1]);
+  return filter.eqNode(n[1]);
+}
+
+Node BagsUtils::evaluateBagSome(TNode n)
+{
+  Assert(n.getKind() == Kind::BAG_SOME);
+  // (bag.some p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+  // = (not (= (bag.filter p (bag.union_disjoint (bag 1 2) (bag 3 1)))
+  //           (as bag.empty (Bag Int))))
+  NodeManager* nm = n.getNodeManager();
+  Node filter = nm->mkNode(Kind::BAG_FILTER, n[0], n[1]);
+  Node empty = nm->mkConst(EmptyBag(n[1].getType()));
+  return filter.eqNode(empty).notNode();
+}
+
 Node BagsUtils::evaluateBagFold(TNode n)
 {
   Assert(n.getKind() == Kind::BAG_FOLD);
@@ -981,12 +1008,7 @@ Node BagsUtils::evaluateGroup(TNode n)
     // each part in the partitions has multiplicity one
     parts[part] = Rational(1);
   }
-  if (parts.empty())
-  {
-    // add an empty part
-    Node emptyPart = nm->mkConst(EmptyBag(bagType));
-    parts[emptyPart] = Rational(1);
-  }
+  // an empty table has no parts
   Node ret = constructConstantBagFromElements(partitionType, parts);
   Trace("bags-group") << "ret: " << ret << std::endl;
   return ret;

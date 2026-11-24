@@ -42,6 +42,10 @@ void TheoryEngineModule::notifyLemma(
 {
 }
 
+bool TheoryEngineModule::needsFacts() { return false; }
+
+void TheoryEngineModule::notifyFact(CVC5_UNUSED TNode literal) {}
+
 bool TheoryEngineModule::needsCandidateModel() { return false; }
 
 void TheoryEngineModule::notifyCandidateModel(CVC5_UNUSED TheoryModel* m) {}

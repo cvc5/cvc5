@@ -13,6 +13,7 @@
 #include "theory/quantifiers/inst_strategy_mbqi.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/sequence.h"
 #include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "options/arrays_options.h"
@@ -379,6 +380,14 @@ bool InstStrategyMbqi::tryInstantiation(
                     << ", from " << v
                     << ", use arbitrary term for instantiation" << std::endl;
       vc = NodeManager::mkGroundTerm(v.getType());
+      // the arbitrary term may itself contain non-closed kinds, e.g. a
+      // constant array when arraysExp is disabled
+      if (expr::hasSubtermKinds(d_nonClosedKinds, vc))
+      {
+        Trace("mbqi") << "...failed to construct arbitrary term " << vc
+                      << std::endl;
+        return false;
+      }
     }
     terms.push_back(vc);
   }
@@ -401,6 +410,12 @@ bool InstStrategyMbqi::tryInstantiation(
       Trace("mbqi") << "warning: failed to get term from value " << ov
                     << ", use arbitrary term in query" << std::endl;
       mvt = NodeManager::mkGroundTerm(ov.getType());
+      if (expr::hasSubtermKinds(d_nonClosedKinds, mvt))
+      {
+        Trace("mbqi") << "...failed to construct arbitrary term " << mvt
+                      << std::endl;
+        return false;
+      }
     }
     AssertEqual(v.getType(), mvt.getType());
     fvToInst.add(v, mvt);
@@ -613,7 +628,8 @@ Node InstStrategyMbqi::convertFromModel(
       // must convert to concat of sequence units
       // must convert function array constant to lambda
       Node cconv;
-      if (ck == Kind::CONST_SEQUENCE)
+      // Note the empty sequence is not converted, since it converts to itself.
+      if (ck == Kind::CONST_SEQUENCE && !cur.getConst<Sequence>().empty())
       {
         cconv = strings::utils::mkConcatForConstSequence(cur);
       }

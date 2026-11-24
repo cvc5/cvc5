@@ -1342,17 +1342,6 @@ libcvc5_add_sources(
   theory/valuation.h
 )
 
-# suppress deprecated warnings to not error in CI
-set_source_files_properties(api/cpp/cvc5.cpp
-  PROPERTIES COMPILE_OPTIONS
-  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
-set_source_files_properties(api/c/cvc5.cpp
-  PROPERTIES COMPILE_OPTIONS
-  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
-set_source_files_properties(api/cpp/cvc5_parser.cpp
-  PROPERTIES COMPILE_OPTIONS
-  "-Wno-deprecated-declarations;-Wno-error=deprecated-declarations")
-
 #-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
 
@@ -1560,6 +1549,7 @@ target_include_directories(cvc5
 # On Windows, CMake's default install action places
 # DLLs into the runtime path (by default "bin")
 install(TARGETS cvc5 EXPORT cvc5-targets)
+strip_lto_static_library(cvc5)
 
 if(NOT SKIP_SET_RPATH AND BUILD_SHARED_LIBS AND APPLE)
   update_rpath_macos(libcvc5.dylib)

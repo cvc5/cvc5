@@ -1421,24 +1421,6 @@ CVC5_EXPORT const char* cvc5_term_get_integer_value(Cvc5Term term);
  */
 CVC5_EXPORT bool cvc5_term_is_string_value(Cvc5Term term);
 /**
- * Get the native string representation of a string value.
- * @note Requires that the term is a string value (see
- *       cvc5_term_is_string_value()).
- * @note This is not to be confused with cvc5_term_to_string(), which returns
- *       some string representation of the term, whatever data it may hold.
- * @param term The term.
- * @return The string term as a native string value.
- *
- * @warning This function is deprecated and replaced by
- *          cvc5_term_get_u32string_value(). It will be removed in a future
- *          release.
- */
-CVC5_EXPORT
-__attribute__((deprecated("Use cvc5_term_get_u32string_value instead")))
-const wchar_t*
-cvc5_term_get_string_value(Cvc5Term term);
-
-/**
  * Get the native UTF-32 string representation of a string value.
  * @note Requires that the term is a string value (see
  *       cvc5_term_is_string_value()).
@@ -3253,22 +3235,6 @@ CVC5_EXPORT Cvc5Term cvc5_mk_string(Cvc5TermManager* tm,
                                     bool use_esc_seq);
 
 /**
- * Create a String constant from a wide character string.
- * This function does not support escape sequences as wide character already
- * supports unicode characters.
- * @param tm The term manager instance.
- * @param s The string this constant represents.
- * @return The String constant.
- *
- * @warning This function is deprecated and replaced by
- *          cvc5_mk_string_from_char32(). It will be removed in a future
- *          release.
- */
-CVC5_EXPORT __attribute__((
-    deprecated("Use cvc5_mk_string_from_char32 instead"))) Cvc5Term
-cvc5_mk_string_from_wchar(Cvc5TermManager* tm, const wchar_t* s);
-
-/**
  * Create a String constant from a UTF-32 string.
  * This function does not support escape sequences as wide character already
  * supports unicode characters.
@@ -3665,22 +3631,6 @@ struct Cvc5OptionInfo
   const char** no_supports;
   /** True if the option was explicitly set by the user */
   bool is_set_by_user;
-  /**
-   * True if the option is an expert option
-   * @warning This field is deprecated and replaced by `category`. It will be
-   *          removed in a future release.
-   */
-  bool is_expert
-      __attribute__((deprecated("Query Cvc5OptionCategory category for "
-                                "CVC5_OPTION_CATEGORY_EXPERT instead")));
-  /**
-   * True if the option is a regular option
-   * @warning This field is deprecated and replaced by `category`. It will be
-   *          removed in a future release.
-   */
-  bool is_regular
-      __attribute__((deprecated("Query Cvc5OptionCategory category for "
-                                "CVC5_OPTION_CATEGORY_REGULAR instead")));
   /** The category of this option. */
   Cvc5OptionCategory category;
 
@@ -4714,9 +4664,12 @@ CVC5_EXPORT void cvc5_get_difficulty(Cvc5* cvc5,
  * formulas correspond to a subset of the current assertions that cause a
  * timeout in the specified time :ref:`timeout-core-timeout
  * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list of
- * formulas correspond to an unsat core for the current assertions. Otherwise,
- * the result is sat, indicating that the current assertions are satisfiable,
- * and the returned set of assertions is empty.
+ * formulas correspond to an unsat core for the current assertions. If the
+ * computation was terminated by the connected terminator, the result is
+ * unknown with explanation CVC5_UNKNOWN_EXPLANATION_INTERRUPTED, and the
+ * returned set of assertions is empty. Otherwise, the result is sat,
+ * indicating that the current assertions are satisfiable, and the returned set
+ * of assertions is empty.
  * \endverbatim
  *
  * @note This command  does not require being preceeded by a call to
@@ -4759,9 +4712,12 @@ CVC5_EXPORT const Cvc5Term* cvc5_get_timeout_core(Cvc5* cvc5,
  * timeout when added to the current assertions in the specified time
  * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the result
  * is unsat, then the set of assumptions together with the current assertions
- * correspond to an unsat core for the current assertions. Otherwise, the
- * result is sat, indicating that the given assumptions plus the current
- * assertions are satisfiable, and the returned set of assumptions is empty.
+ * correspond to an unsat core for the current assertions. If the computation
+ * was terminated by the connected terminator, the result is unknown with
+ * explanation CVC5_UNKNOWN_EXPLANATION_INTERRUPTED, and the returned set of
+ * assumptions is empty. Otherwise, the result is sat, indicating that the
+ * given assumptions plus the current assertions are satisfiable, and the
+ * returned set of assumptions is empty.
  * \endverbatim
  *
  * @note This command does not require being preceeded by a call to
@@ -5152,6 +5108,38 @@ CVC5_EXPORT Cvc5Term cvc5_declare_oracle_fun(Cvc5* cvc5,
  * @param plugin The plugin to add to this solver.
  */
 CVC5_EXPORT void cvc5_add_plugin(Cvc5* cvc5, Cvc5Plugin* plugin);
+
+/**
+ * Set a terminator, which is called periodically during queries to determine
+ * whether the current query should be terminated.
+ *
+ * If the terminator returns true, the query is terminated as if a resource
+ * limit had been reached. For queries that return a result, the result is
+ * unknown with explanation #CVC5_UNKNOWN_EXPLANATION_INTERRUPTED.
+ *
+ * A termination request only applies to the query during which it was
+ * issued: after the terminator returned true, it is not called again during
+ * that query, and the solver can be used for further queries afterwards. The
+ * terminator is called at the beginning of each query, i.e., if it keeps
+ * returning true, subsequent queries are terminated immediately.
+ *
+ * The terminator is called frequently from the thread that executes the
+ * query, and must thus be cheap to evaluate. To terminate a query from
+ * another thread, the terminator can, e.g., check an atomic flag that is set
+ * by that thread.
+ *
+ * Only one terminator can be set at a time, setting a terminator replaces the
+ * previously set terminator.
+ *
+ * @warning This function is experimental and may change in future versions.
+ * @param cvc5      The solver instance.
+ * @param state     The state data passed to the terminator, may be NULL.
+ * @param terminate The terminator, or NULL to unset the currently set
+ *                  terminator.
+ */
+CVC5_EXPORT void cvc5_set_terminator(Cvc5* cvc5,
+                                     void* state,
+                                     bool (*terminate)(void*));
 
 /**
  * Get an interpolant.

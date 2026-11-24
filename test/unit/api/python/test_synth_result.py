@@ -49,7 +49,7 @@ def test_equal(tm, solver):
 
 def test_has_solution(tm, solver):
     solver.setOption("sygus", "true")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
     boolTerm = tm.mkBoolean(True)
     solver.addSygusConstraint(boolTerm)
     res = solver.checkSynth()
@@ -67,7 +67,7 @@ def test_has_no_solution(solver):
 
 def test_has_is_unknown(tm, solver):
     solver.setOption("sygus", "true")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
     boolTerm = tm.mkBoolean(False)
     solver.addSygusConstraint(boolTerm)
     res = solver.checkSynth()

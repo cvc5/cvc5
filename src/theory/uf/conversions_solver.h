@@ -14,6 +14,7 @@
 #define CVC5__THEORY__UF__CONVERSIONS_SOLVER_H
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -22,6 +23,9 @@
 #include "smt/env_obj.h"
 
 namespace cvc5::internal {
+
+class EagerProofGenerator;
+
 namespace theory {
 
 class TheoryState;
@@ -51,7 +55,8 @@ class ConversionsSolver : protected EnvObj
   void preRegisterTerm(TNode term);
   /**
    * Check. Run at last call effort. Adds lemms to theory inference manager
-   * corresponding to reduction equalities for conversion terms.
+   * corresponding to range constraints and reduction equalities for conversion
+   * terms.
    */
   void check();
 
@@ -64,6 +69,15 @@ class ConversionsSolver : protected EnvObj
   NodeList d_preRegistered;
   /** Conversion terms that have been given reduction lemmas */
   NodeSet d_reduced;
+  /** Conversion terms that have been given range lemmas */
+  NodeSet d_rangeLemma;
+  /** Proof generator for range lemmas, if proofs are enabled */
+  std::unique_ptr<EagerProofGenerator> d_epg;
+  /**
+   * Send the range lemma for the ubv_to_int term n, if it has not already been
+   * sent. Returns true if a lemma was sent.
+   */
+  bool checkRange(Node n);
   /** Check whether the BV conversion term n should be reduced */
   void checkReduction(Node n);
 };

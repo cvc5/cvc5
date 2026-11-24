@@ -114,10 +114,11 @@ macro(cvc5_add_unit_test is_white name output_dir)
     else()
       set(test_name unit/${output_dir}/${name})
     endif()
-    add_test(${test_name} ${ENV_PATH_CMD} ${test_bin_dir}/${name})
+    add_test(${test_name} ${test_bin_dir}/${name})
     set_tests_properties(${test_name} PROPERTIES
       LABELS "unit"
-      TIMEOUT ${unit_test_timeout})
+      TIMEOUT ${unit_test_timeout}
+      ENVIRONMENT "${CVC5_TEST_ENV}")
     # set_tests_properties(${test_name} PROPERTIES FIXTURES_REQUIRED build_units_fixture)
   endif()
 endmacro()

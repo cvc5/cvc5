@@ -193,17 +193,34 @@ void addToSumNoMixed(Sum& sum, TNode n, bool negate)
   {
     for (const auto& child : n)
     {
-      addToSum(
-          sum, child.getKind() == Kind::TO_REAL ? child[0] : child, negate);
+      addToSumNoMixed(sum, child, negate);
     }
     return;
   }
   else if (k == Kind::TO_REAL)
   {
-    addToSum(sum, n[0], negate);
+    addToSumNoMixed(sum, n[0], negate);
     return;
   }
-  addToSum(sum, n, negate);
+  std::vector<Node> monomial;
+  RealAlgebraicNumber multiplicity(Integer(negate ? -1 : 1));
+  addToProduct(monomial, multiplicity, n);
+  // remove TO_REAL from the factors of the monomial, e.g. the monomial of
+  // (* 1/3 (to_real x)) is x.
+  std::vector<Node> factors;
+  for (const Node& f : monomial)
+  {
+    Node fr = removeToReal(f);
+    if (fr.isConst())
+    {
+      multiplicity *= fr.getConst<Rational>();
+    }
+    else
+    {
+      factors.push_back(fr);
+    }
+  }
+  addToSum(sum, mkNonlinearMult(n.getNodeManager(), factors), multiplicity);
 }
 
 void addMonomialToSum(Sum& sum,
