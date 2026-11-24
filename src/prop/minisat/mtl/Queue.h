@@ -89,8 +89,16 @@ class Queue
       //**/printf("queue alloc: %d elems (%.1f MB)\n", tmp.size(), tmp.size() *
       // sizeof(T) / 1000000.0);
       int i = 0;
-      for (int j = first; j < buf.size(); j++) tmp[i++] = buf[j];
-      for (int j = 0; j < end; j++) tmp[i++] = buf[j];
+      for (int j = first; j < buf.size(); j++)
+      {
+        Assert(i < tmp.size());
+        tmp[i++] = buf[j];
+      }
+      for (int j = 0; j < end; j++)
+      {
+        Assert(i < tmp.size());
+        tmp[i++] = buf[j];
+      }
       first = 0;
       end = buf.size();
       tmp.moveTo(buf);
