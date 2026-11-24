@@ -158,6 +158,13 @@ void Pow2Solver::checkFullRefine()
       continue;
     }
 
+    if (!valXConcrete.isConst())
+    {
+      // the exponent could not be evaluated, e.g. it contains a pow2 term
+      // whose exponent is too large
+      continue;
+    }
+
     Integer x = valXConcrete.getConst<Rational>().getNumerator();
     Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
     // add monotinicity lemmas
@@ -166,6 +173,10 @@ void Pow2Solver::checkFullRefine()
       Node m = d_pow2s[j];
       Node valPow2yAbstract = d_model.computeAbstractModelValue(m);
       Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
+      if (!valYConcrete.isConst())
+      {
+        continue;
+      }
 
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
