@@ -12,6 +12,7 @@
 
 #include "theory/trust_substitutions.h"
 
+#include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 #include "expr/node_converter.h"
 #include "proof/lazy_proof.h"
@@ -216,25 +217,10 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   Assert(it != d_eqtIndex.end());
   Trace("trust-subs-pf") << "TrustSubstitutionMap::getProofFor, # assumptions= "
                          << it->second << std::endl;
-  // Expand the fully applied occurrences of definitions based on instances of
-  // their quantified formula, and exclude the definitions that no longer occur
-  // from the premises.
+  // Expand applications of definitions based on instances of their quantified
+  // formula, which do not contribute to the substitution below.
   auto [nexp, pfExp] = expandDefinitions(n, true);
-  std::unordered_set<Node> excl;
-  if (!d_defs.empty())
-  {
-    std::unordered_set<Node> syms;
-    std::unordered_set<TNode> visited;
-    expr::getSymbols(nexp, syms, visited);
-    for (const auto& d : d_defs)
-    {
-      if (syms.find(d.first) == syms.end())
-      {
-        excl.insert(d.first);
-      }
-    }
-  }
-  Node cs = getSubstitution(it->second, excl);
+  Node cs = getSubstitution(it->second);
   Trace("trust-subs-pf") << "getProofFor substitution is " << cs << std::endl;
   Assert(eq != cs);
   std::vector<Node> pfChildren;
@@ -320,26 +306,55 @@ class DefinitionExpander : public NodeConverter
     {
       return n;
     }
-    // do not expand if a variable in the arguments would be captured
     Node q = it->second;
     std::vector<Node> vars(q[0].begin(), q[0].end());
     std::unordered_set<Node> fvs;
     expr::getFreeVariables(n, fvs);
+    std::vector<Node> rvars, rnew, alphaArgs;
+    NodeManager* nm = n.getNodeManager();
+    BoundVarManager* bvm = nm->getBoundVarManager();
     for (const Node& v : fvs)
     {
       if (std::find(vars.begin(), vars.end(), v) == vars.end()
           && expr::hasSubterm(q[1][1], v))
       {
-        return n;
+        // v would be captured by a binder in q, rename the binder. Note this
+        // is deterministic, so that applying and proving agree.
+        Node vn;
+        size_t i = 0;
+        do
+        {
+          vn = bvm->mkBoundVar(BoundVarId::ELIM_SHADOW,
+                               BoundVarManager::getCacheValue(q, v, i++),
+                               v.getType());
+        } while (fvs.find(vn) != fvs.end());
+        rvars.push_back(v);
+        rnew.push_back(vn);
       }
+    }
+    if (!rvars.empty())
+    {
+      // (forall xs. (f xs) = s) = (forall xs. (f xs) = s') by renaming
+      alphaArgs = {
+          q, nm->mkNode(Kind::SEXPR, rvars), nm->mkNode(Kind::SEXPR, rnew)};
+      q = q.substitute(rvars.begin(), rvars.end(), rnew.begin(), rnew.end());
     }
     std::vector<Node> ts(n.begin(), n.end());
     Node inst = q[1].substitute(vars.begin(), vars.end(), ts.begin(), ts.end());
-    d_insts.push_back(inst);
+    d_insts.push_back({q, inst, alphaArgs});
     return inst[1];
   }
-  /** The instances (= (f ts) s[ts/xs]) used for expansion */
-  std::vector<Node> d_insts;
+  /** An instance (= (f ts) s[ts/xs]) used for expansion */
+  struct Instance
+  {
+    /** The instantiated formula, the definition of f up to renaming */
+    Node d_q;
+    /** The instance */
+    Node d_inst;
+    /** If d_q was renamed, the arguments to ALPHA_EQUIV justifying this */
+    std::vector<Node> d_alphaArgs;
+  };
+  std::vector<Instance> d_insts;
 
  private:
   const context::CDHashMap<Node, Node>& d_defs;
@@ -361,8 +376,8 @@ TrustSubstitutionMap::expandDefinitions(const Node& n, bool withProof)
   }
   // --------------------- from d_defPgs
   // forall xs. (f xs) = s
-  // --------------------- INSTANTIATE
-  // (f ts) = s[ts/xs]
+  // --------------------- INSTANTIATE (after EQ_RESOLVE with ALPHA_EQUIV if
+  // (f ts) = s[ts/xs]     bound variables in s must be renamed)
   // which are used as rewrite steps for proving n = nexp by congruence.
   LazyCDProof lcp(d_env);
   TConvProofGenerator tcg(d_env,
@@ -372,11 +387,17 @@ TrustSubstitutionMap::expandDefinitions(const Node& n, bool withProof)
                           "TrustSubstitutionMap::expand",
                           nullptr,
                           true);
-  for (const Node& inst : de.d_insts)
+  for (const auto& [q, inst, alphaArgs] : de.d_insts)
   {
     Node f = inst[0].getOperator();
-    Node q = d_defs.find(f)->second;
-    lcp.addLazyStep(q, d_defPgs.find(f)->second);
+    Node qf = d_defs.find(f)->second;
+    lcp.addLazyStep(qf, d_defPgs.find(f)->second);
+    if (!alphaArgs.empty())
+    {
+      Node eq = qf.eqNode(q);
+      lcp.addStep(eq, ProofRule::ALPHA_EQUIV, {}, alphaArgs);
+      lcp.addStep(q, ProofRule::EQ_RESOLVE, {qf, eq}, {});
+    }
     std::vector<Node> ts(inst[0].begin(), inst[0].end());
     lcp.addStep(inst,
                 ProofRule::INSTANTIATE,
@@ -396,15 +417,14 @@ bool TrustSubstitutionMap::isProofEnabled() const
   return d_subsPg != nullptr;
 }
 
-Node TrustSubstitutionMap::getSubstitution(size_t index,
-                                           const std::unordered_set<Node>& excl)
+Node TrustSubstitutionMap::getSubstitution(size_t index)
 {
   Assert(index <= d_tsubs.size());
   std::vector<Node> csubsChildren;
   for (size_t i = 0; i < index; i++)
   {
     Node eq = d_tsubs[i].getProven();
-    if (excl.find(eq[0]) == excl.end())
+    if (d_defs.find(eq[0]) == d_defs.end())
     {
       csubsChildren.push_back(eq);
     }

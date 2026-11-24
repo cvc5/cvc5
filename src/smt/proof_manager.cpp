@@ -245,29 +245,6 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
     d_pfpp->setAssertions(assertions, false);
   }
   d_pfpp->process(pfn, d_pppg.get());
-  // Definitions with a quantified formula (see
-  // Assertions::getDefinitionQuant) are included only if they are used.
-  std::unordered_set<Node> unused;
-  for (const Node& d : as.getAssertionListDefinitions())
-  {
-    Node q = as.getDefinitionQuant(d);
-    if (!q.isNull())
-    {
-      unused.insert(d);
-      unused.insert(q);
-    }
-  }
-  if (!unused.empty())
-  {
-    std::vector<Node> fassumps;
-    expr::getFreeAssumptions(pfn.get(), fassumps);
-    for (const Node& a : fassumps)
-    {
-      unused.erase(a);
-    }
-    erase_if(assertions,
-             [&unused](const Node& a) { return unused.count(a) > 0; });
-  }
 
   switch (scopeMode)
   {
@@ -291,8 +268,10 @@ std::shared_ptr<ProofNode> PfManager::connectProofToAssertions(
           << "SolverEngine::connectProofToAssertions(): make split scope...\n";
       // To support proof pruning for nested scopes, we need to:
       // 1. Minimize assertions of closed unified scope.
+      std::vector<Node> unifiedAssertions;
+      getAssertions(as, unifiedAssertions);
       Pf pf = d_pnm->mkScope(
-          pfn, assertions, true, options().proof.proofPruneInput);
+          pfn, unifiedAssertions, true, options().proof.proofPruneInput);
       // if this is violated, there is unsoundness since we have shown
       // false that does not depend on the input.
       AlwaysAssert(pf->getRule() == ProofRule::SCOPE);
@@ -493,12 +472,9 @@ void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
   const context::CDList<Node>& al = as.getAssertionList();
   for (const Node& a : al)
   {
-    assertions.push_back(a);
+    // use the quantified formula of the definition, if applicable
     Node q = as.getDefinitionQuant(a);
-    if (!q.isNull())
-    {
-      assertions.push_back(q);
-    }
+    assertions.push_back(q.isNull() ? a : q);
   }
 }
 
@@ -511,7 +487,7 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
   {
     // Keep treating (mutually) recursive functions as declarations +
     // assertions.
-    if (d.getKind() == Kind::EQUAL)
+    if (d.getKind() == Kind::EQUAL && as.getDefinitionQuant(d).isNull())
     {
       definitions.push_back(d);
     }
@@ -522,11 +498,8 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
     if (std::find(definitions.cbegin(), definitions.cend(), a)
         == definitions.cend())
     {
-      assertions.push_back(a);
-    }
-    else if (!as.getDefinitionQuant(a).isNull())
-    {
-      assertions.push_back(as.getDefinitionQuant(a));
+      Node q = as.getDefinitionQuant(a);
+      assertions.push_back(q.isNull() ? a : q);
     }
   }
 }

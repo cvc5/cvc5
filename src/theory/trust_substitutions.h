@@ -76,9 +76,9 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   ProofGenerator* addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
    * Add the definition of x, where x is in the domain of this substitution and
-   * q is a formula (forall xs (= (x xs) s)) justified by pg. In proofs, fully
-   * applied occurrences (x ts) are expanded to s[ts/xs] via instances of q,
-   * so that the substitution for x is only used for the other occurrences.
+   * q is a formula (forall xs (= (x xs) s)) justified by pg. In proofs,
+   * applications (x ts) are expanded to s[ts/xs] via instances of q, and the
+   * substitution for x is not used. It is required that x is always applied.
    */
   void addDefinition(TNode x, TNode q, ProofGenerator* pg);
   /**
@@ -112,9 +112,10 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   /** Are proofs enabled? */
   bool isProofEnabled() const;
   /**
-   * Get the substitution up to index
+   * Get the substitution up to index, excluding definitions (see
+   * addDefinition)
    */
-  Node getSubstitution(size_t index, const std::unordered_set<Node>& excl);
+  Node getSubstitution(size_t index);
   /** The context used here */
   context::Context* d_ctx;
   /** The substitution map */
