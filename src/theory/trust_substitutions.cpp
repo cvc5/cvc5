@@ -324,9 +324,8 @@ class DefinitionExpander : public NodeConverter
         size_t i = 0;
         do
         {
-          vn = bvm->mkBoundVar(BoundVarId::ELIM_SHADOW,
-                               BoundVarManager::getCacheValue(q, v, i++),
-                               v.getType());
+          Node cacheVal = BoundVarManager::getCacheValue(q, v, i++);
+          vn = bvm->mkBoundVar(BoundVarId::ELIM_SHADOW, cacheVal, v.getType());
         } while (fvs.find(vn) != fvs.end());
         rvars.push_back(v);
         rnew.push_back(vn);
