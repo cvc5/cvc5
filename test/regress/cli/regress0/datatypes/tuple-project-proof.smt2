@@ -1,7 +1,7 @@
 ; REQUIRES: unrestricted-mode
 ; The proof prints ((_ tuple.project 2 0) t) as (tuple.project (@list 2 0) t),
 ; and the empty projection (tuple.project t) as (tuple.project @list.nil t).
-; Safe mode is excluded since the rewrite eliminating tuple.project is trusted.
+; Safe mode is excluded since tuple.project is in the expert signature.
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun t () (Tuple Int String Bool))

@@ -46,34 +46,3 @@
 (declare-parameterized-const tuple.update
   ((T Type :implicit) (U Type :implicit) (i Int :opaque))
   (-> T U (eo::requires U (eo::list_nth Tuple T i) T)))
-
-; program: $tuple_project_type
-; args:
-; - L @List: A list of indices, e.g. (@list 2 0).
-; - T Type: A tuple type, e.g. (Tuple Int Bool String).
-; return: >
-;   The tuple type whose components are the components of T at the indices
-;   in L, in order, e.g. (Tuple String Int) for the two examples above.
-; note: >
-;   The pattern (@list i is) binds i to the first index of L and is to the
-;   rest of L.
-;   This program does not evaluate if an index of L is out of range for T.
-(program $tuple_project_type ((i Int) (is @List :list) (T Type))
-  :signature (@List Type) Type
-  (
-  (($tuple_project_type (@list i is) T)
-    (_ Tuple (eo::list_nth Tuple T i) ($tuple_project_type is T)))
-  (($tuple_project_type @list.nil T) UnitTuple)
-  )
-)
-
-; disclaimer: This function is not in the SMT-LIB standard.
-; note: >
-;   The indices are given as a list: ((_ tuple.project 0 2) t) is written
-;   (tuple.project (@list 0 2) t). T is :implicit, i.e. it is not written but
-;   is the type of t. The list is :opaque, i.e. it is part of the operator:
-;   (tuple.project (@list 0 2)) is one symbol applied to t, as
-;   (_ tuple.project 0 2) is in SMT-LIB.
-(declare-parameterized-const tuple.project
-  ((T Type :implicit) (is @List :opaque))
-  (-> T ($tuple_project_type is T)))
