@@ -66,11 +66,8 @@ class Pow2Solver : protected EnvObj
   void checkInitialRefine();
   /** check full refine
    *
-   * This check returns at least one lemma to rule out the current model,
-   * with one exception: it is incomplete for pow2 terms whose argument has a
-   * model value too large for (pow2 M(x)) to be evaluated to a constant. In
-   * this case, no value-based refinement lemma is added for that term, and
-   * the model may not be ruled out.
+   * This returns at least one lemma to rule out the current model, unless
+   * the model value of an exponent is too large to evaluate pow2.
    */
   void checkFullRefine();
 
