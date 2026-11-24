@@ -864,6 +864,7 @@ set(regress_0_tests
   regress0/datatypes/tree-get-value.cvc.smt2
   regress0/datatypes/tuple-model.cvc.smt2
   regress0/datatypes/tuple-no-clash.cvc.smt2
+  regress0/datatypes/tuple-project-proof.smt2
   regress0/datatypes/tuple-record-bug.cvc.smt2
   regress0/datatypes/tuple-update-elim.smt2
   regress0/datatypes/tuple.cvc.smt2

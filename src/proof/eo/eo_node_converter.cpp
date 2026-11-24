@@ -27,6 +27,7 @@
 #include "theory/builtin/generic_op.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "theory/uf/function_const.h"
@@ -297,6 +298,23 @@ Node EoNodeConverter::postConvert(Node n)
   else if (k == Kind::SORT_TO_TERM)
   {
     return typeAsNode(n.getConst<SortToTerm>().getType());
+  }
+  else if (k == Kind::TUPLE_PROJECT)
+  {
+    // ((_ tuple.project i1 ... in) t) is printed as
+    // (tuple.project (@list i1 ... in) t), and the empty projection
+    // (tuple.project t) as (tuple.project @list.nil t)
+    const std::vector<uint32_t>& indices =
+        n.getOperator().getConst<ProjectOp>().getIndices();
+    std::vector<Node> args;
+    for (uint32_t i : indices)
+    {
+      args.push_back(d_nm->mkConstInt(Rational(i)));
+    }
+    std::vector<Node> children;
+    children.push_back(mkList(args));
+    children.push_back(n[0]);
+    return mkInternalApp("tuple.project", children, n.getType());
   }
   else if (GenericOp::isIndexedOperatorKind(k))
   {

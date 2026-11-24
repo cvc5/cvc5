@@ -46,3 +46,27 @@
 (declare-parameterized-const tuple.update
   ((T Type :implicit) (U Type :implicit) (i Int :opaque))
   (-> T U (eo::requires U (eo::list_nth Tuple T i) T)))
+
+; program: $tuple_project_type
+; args:
+; - is @List: A list of indices.
+; - T Type: A tuple type.
+; return: >
+;   The tuple type whose components are the components of T at the indices
+;   is, in order. For example, the projection of (Tuple Int Bool String) on
+;   (@list 2 0) has type (Tuple String Int).
+(program $tuple_project_type ((T Type) (i Int) (is @List :list))
+  :signature (@List Type) Type
+  (
+  (($tuple_project_type (@list i is) T)
+    (_ Tuple (eo::list_nth Tuple T i) ($tuple_project_type is T)))
+  (($tuple_project_type @list.nil T) UnitTuple)
+  )
+)
+
+; disclaimer: This function is not in the SMT-LIB standard.
+; note: The indices are given as a list, e.g. ((_ tuple.project 0 2) t) is
+; written (tuple.project (@list 0 2) t).
+(declare-parameterized-const tuple.project
+  ((T Type :implicit) (is @List :opaque))
+  (-> T ($tuple_project_type is T)))
