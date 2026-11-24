@@ -1123,6 +1123,7 @@ set(regress_0_tests
   regress0/ho/dd.syo372-finite-ho-ext.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
+  regress0/ho/define-fun-unapplied-non-ho.smt2
   regress0/ho/ext-finite-unsat.smt2
   regress0/ho/ext-ho-nested-lambda-model.smt2
   regress0/ho/ext-ho.smt2
@@ -1706,6 +1707,8 @@ set(regress_0_tests
   regress0/proofs/dd_pf_739.smt2
   regress0/proofs/dd_spark_nnf_pf.smt2
   regress0/proofs/dd_textbook-sumeven-arith-rcons.smt2
+  regress0/proofs/define-fun-capture.smt2
+  regress0/proofs/define-fun-inst.smt2
   regress0/proofs/define-fun-shadow.smt2
   regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2

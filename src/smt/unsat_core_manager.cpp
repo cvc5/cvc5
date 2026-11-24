@@ -95,7 +95,12 @@ void UnsatCoreManager::getUnsatCoreInternal(std::shared_ptr<ProofNode> pfn,
   for (const Node& a : al)
   {
     Trace("unsat-core") << "is assertion " << a << " there?\n";
-    if (std::find(fassumps.begin(), fassumps.end(), a) != fassumps.end())
+    // function definitions may be used via their quantified formula
+    Node q = as.getDefinitionQuant(a);
+    if (std::find(fassumps.begin(), fassumps.end(), a) != fassumps.end()
+        || (!q.isNull()
+            && std::find(fassumps.begin(), fassumps.end(), q)
+                   != fassumps.end()))
     {
       Trace("unsat-core") << "\tyes\n";
       coreSet.insert(a);

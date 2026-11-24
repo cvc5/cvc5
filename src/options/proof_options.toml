@@ -213,6 +213,14 @@ name   = "Proof"
   help       = "Check proof steps for satisfiability, for refutation soundness testing. Note this checks only steps for non-core proof rules"
 
 [[option]]
+  name       = "proofDefineFunQuant"
+  category   = "expert"
+  long       = "proof-define-fun-quant"
+  type       = "bool"
+  default    = "true"
+  help       = "In proofs for logics that are not higher-order, justify function definitions (define-fun) by the quantified formula forall x. (f x) = t, whose instances justify expanding applications of f"
+
+[[option]]
   name       = "proofPrintReference"
   category   = "common"
   long       = "proof-print-reference"

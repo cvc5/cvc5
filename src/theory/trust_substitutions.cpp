@@ -12,6 +12,10 @@
 
 #include "theory/trust_substitutions.h"
 
+#include "expr/bound_var_manager.h"
+#include "expr/node_algorithm.h"
+#include "expr/node_converter.h"
+#include "proof/lazy_proof.h"
 #include "smt/env.h"
 #include "theory/rewriter.h"
 
@@ -34,7 +38,9 @@ TrustSubstitutionMap::TrustSubstitutionMap(Env& env,
       d_name(name),
       d_trustId(trustId),
       d_ids(ids),
-      d_eqtIndex(c)
+      d_eqtIndex(c),
+      d_defs(c),
+      d_defPgs(c)
 {
   ProofNodeManager* pnm = d_env.getProofNodeManager();
   if (pnm != nullptr)
@@ -140,11 +146,21 @@ void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
   }
 }
 
+void TrustSubstitutionMap::addDefinition(TNode x, TNode q, ProofGenerator* pg)
+{
+  Assert(q.getKind() == Kind::FORALL && q[1].getKind() == Kind::EQUAL
+         && q[1][0].getKind() == Kind::APPLY_UF && q[1][0].getOperator() == x);
+  d_defs[x] = q;
+  d_defPgs[x] = pg;
+}
+
 TrustNode TrustSubstitutionMap::applyTrusted(Node n, Rewriter* r)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
-  Node ns = d_subs.apply(n, r);
+  // We expand definitions first, which ensures that the result coincides
+  // with the one we prove in getProofFor.
+  Node ns = d_subs.apply(expandDefinitions(n, false).first, r);
   Trace("trust-subs") << "...subs " << ns << std::endl;
   if (n == ns)
   {
@@ -201,6 +217,9 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   Assert(it != d_eqtIndex.end());
   Trace("trust-subs-pf") << "TrustSubstitutionMap::getProofFor, # assumptions= "
                          << it->second << std::endl;
+  // Expand applications of definitions based on instances of their quantified
+  // formula, which do not contribute to the substitution below.
+  auto [nexp, pfExp] = expandDefinitions(n, true);
   Node cs = getSubstitution(it->second);
   Trace("trust-subs-pf") << "getProofFor substitution is " << cs << std::endl;
   Assert(eq != cs);
@@ -222,7 +241,7 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   // traversals of the range of the substitution to prepare a simultaneous
   // substitution. Both of these options are inefficient. Note that we
   // expect this rule to succeed, so useExpected is set to true.
-  if (!d_tspb->applyEqIntro(n,
+  if (!d_tspb->applyEqIntro(nexp,
                             ns,
                             pfChildren,
                             d_ids,
@@ -231,7 +250,7 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
                             true))
   {
     // if we fail for any reason, we must use a trusted step instead
-    d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, eq);
+    d_tspb->addTrustedStep(TrustId::SUBS_MAP, pfChildren, {}, nexp.eqNode(ns));
   }
   Trace("trust-subs-pf") << "...made steps" << std::endl;
   // -------        ------- from external proof generators
@@ -251,10 +270,141 @@ std::shared_ptr<ProofNode> TrustSubstitutionMap::getProofFor(Node eq)
   // notice this proof is reused.
   d_applyPg->addSteps(*d_tspb.get());
   d_tspb->clear();
+  if (pfExp != nullptr)
+  {
+    d_applyPg->addProof(pfExp);
+    if (nexp != ns)
+    {
+      d_applyPg->addStep(
+          eq, ProofRule::TRANS, {pfExp->getResult(), nexp.eqNode(ns)}, {});
+    }
+  }
   Trace("trust-subs-pf") << "...finish, make proof" << std::endl;
   std::shared_ptr<ProofNode> ret = d_applyPg->getProofFor(eq);
   d_proving.erase(eq);
   return ret;
+}
+
+namespace {
+/** Expands applications of defined functions, see addDefinition. */
+class DefinitionExpander : public NodeConverter
+{
+ public:
+  DefinitionExpander(NodeManager* nm,
+                     const context::CDHashMap<Node, Node>& defs)
+      : NodeConverter(nm), d_defs(defs)
+  {
+  }
+  Node postConvert(Node n) override
+  {
+    if (n.getKind() != Kind::APPLY_UF)
+    {
+      return n;
+    }
+    auto it = d_defs.find(n.getOperator());
+    if (it == d_defs.end())
+    {
+      return n;
+    }
+    Node q = it->second;
+    std::vector<Node> vars(q[0].begin(), q[0].end());
+    std::unordered_set<Node> fvs;
+    expr::getFreeVariables(n, fvs);
+    std::vector<Node> rvars, rnew, alphaArgs;
+    NodeManager* nm = n.getNodeManager();
+    BoundVarManager* bvm = nm->getBoundVarManager();
+    for (const Node& v : fvs)
+    {
+      if (std::find(vars.begin(), vars.end(), v) == vars.end()
+          && expr::hasSubterm(q[1][1], v))
+      {
+        // v would be captured by a binder in q, rename the binder. Note this
+        // is deterministic, so that applying and proving agree.
+        Node vn;
+        size_t i = 0;
+        do
+        {
+          Node cacheVal = BoundVarManager::getCacheValue(q, v, i++);
+          vn = bvm->mkBoundVar(BoundVarId::ELIM_SHADOW, cacheVal, v.getType());
+        } while (fvs.find(vn) != fvs.end());
+        rvars.push_back(v);
+        rnew.push_back(vn);
+      }
+    }
+    if (!rvars.empty())
+    {
+      // (forall xs. (f xs) = s) = (forall xs. (f xs) = s') by renaming
+      alphaArgs = {
+          q, nm->mkNode(Kind::SEXPR, rvars), nm->mkNode(Kind::SEXPR, rnew)};
+      q = q.substitute(rvars.begin(), rvars.end(), rnew.begin(), rnew.end());
+    }
+    std::vector<Node> ts(n.begin(), n.end());
+    Node inst = q[1].substitute(vars.begin(), vars.end(), ts.begin(), ts.end());
+    d_insts.push_back({q, inst, alphaArgs});
+    return inst[1];
+  }
+  /** An instance (= (f ts) s[ts/xs]) used for expansion */
+  struct Instance
+  {
+    /** The instantiated formula, the definition of f up to renaming */
+    Node d_q;
+    /** The instance */
+    Node d_inst;
+    /** If d_q was renamed, the arguments to ALPHA_EQUIV justifying this */
+    std::vector<Node> d_alphaArgs;
+  };
+  std::vector<Instance> d_insts;
+
+ private:
+  const context::CDHashMap<Node, Node>& d_defs;
+};
+}  // namespace
+
+std::pair<Node, std::shared_ptr<ProofNode>>
+TrustSubstitutionMap::expandDefinitions(const Node& n, bool withProof)
+{
+  if (d_defs.empty())
+  {
+    return {n, nullptr};
+  }
+  DefinitionExpander de(nodeManager(), d_defs);
+  Node nexp = de.convert(n);
+  if (!withProof || nexp == n)
+  {
+    return {nexp, nullptr};
+  }
+  // --------------------- from d_defPgs
+  // forall xs. (f xs) = s
+  // --------------------- INSTANTIATE (after EQ_RESOLVE with ALPHA_EQUIV if
+  // (f ts) = s[ts/xs]     bound variables in s must be renamed)
+  // which are used as rewrite steps for proving n = nexp by congruence.
+  LazyCDProof lcp(d_env);
+  TConvProofGenerator tcg(d_env,
+                          nullptr,
+                          TConvPolicy::ONCE,
+                          TConvCachePolicy::NEVER,
+                          "TrustSubstitutionMap::expand",
+                          nullptr,
+                          true);
+  for (const auto& [q, inst, alphaArgs] : de.d_insts)
+  {
+    Node f = inst[0].getOperator();
+    Node qf = d_defs.find(f)->second;
+    lcp.addLazyStep(qf, d_defPgs.find(f)->second);
+    if (!alphaArgs.empty())
+    {
+      Node eq = qf.eqNode(q);
+      lcp.addStep(eq, ProofRule::ALPHA_EQUIV, {}, alphaArgs);
+      lcp.addStep(q, ProofRule::EQ_RESOLVE, {qf, eq}, {});
+    }
+    std::vector<Node> ts(inst[0].begin(), inst[0].end());
+    lcp.addStep(inst,
+                ProofRule::INSTANTIATE,
+                {q},
+                {nodeManager()->mkNode(Kind::SEXPR, ts)});
+    tcg.addRewriteStep(inst[0], inst[1], &lcp, false);
+  }
+  return {nexp, tcg.getProofForRewriting(n)};
 }
 
 std::string TrustSubstitutionMap::identify() const { return d_name; }
@@ -272,7 +422,11 @@ Node TrustSubstitutionMap::getSubstitution(size_t index)
   std::vector<Node> csubsChildren;
   for (size_t i = 0; i < index; i++)
   {
-    csubsChildren.push_back(d_tsubs[i].getProven());
+    Node eq = d_tsubs[i].getProven();
+    if (d_defs.find(eq[0]) == d_defs.end())
+    {
+      csubsChildren.push_back(eq);
+    }
   }
   std::reverse(csubsChildren.begin(), csubsChildren.end());
   Node cs = nodeManager()->mkAnd(csubsChildren);

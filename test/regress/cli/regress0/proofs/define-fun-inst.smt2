@@ -1,0 +1,12 @@
+; EXPECT: unsat
+(set-logic ALL)
+(declare-fun P (Int) Bool)
+(declare-const a Int)
+(declare-const b Int)
+(define-fun in_range ((x Int)) Bool (and (<= 1 x) (<= x 100)))
+(define-fun dp ((low Int) (high Int)) Bool (and (in_range low) (=> (<= low high) (in_range high))))
+(define-fun sh ((x Int)) Bool (and (P x) (forall ((x Int)) (P x))))
+(define-fun goal () Bool (and (dp a b) (sh a)))
+(assert goal)
+(assert (or (> a 200) (not (P 5))))
+(check-sat)

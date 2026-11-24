@@ -43,6 +43,8 @@ class IllegalChecker : protected EnvObj
  private:
   /** The assertions we have visited (user-context dependent) */
   context::CDHashSet<Node> d_visited;
+  /** The terms visited by checkFunctionTerms (user-context dependent) */
+  context::CDHashSet<Node> d_visitedFun;
   /** The illegal kinds that cannot appear in assertions */
   std::unordered_set<Kind, kind::KindHashFunction> d_illegalKinds;
   /**
@@ -57,6 +59,16 @@ class IllegalChecker : protected EnvObj
    * terms.
    */
   Kind checkInternal(TNode n);
+  /**
+   * Check that defined functions (and functions in general, up to the
+   * internal uses for synthesis noted in the implementation) occur only as
+   * operators of applications in n, and throw a logic exception otherwise. This
+   * is called in logics that are not higher-order. Note it does not suffice to
+   * rely on the theory solvers for this, since function terms may be eliminated
+   * by rewriting beforehand, e.g. (set.map f (set.singleton t)) where f is a
+   * defined function.
+   */
+  void checkFunctionTerms(TNode n);
 };
 
 }  // namespace smt

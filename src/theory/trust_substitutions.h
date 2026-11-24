@@ -75,6 +75,14 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    */
   ProofGenerator* addSubstitutionSolved(TNode x, TNode t, TrustNode tn);
   /**
+   * Add the definition of x, where x is in the domain of this substitution and
+   * q is a formula (forall xs (= (x xs) s)) justified by pg. In proofs,
+   * applications (x ts) are expanded to s[ts/xs] via instances of q, and the
+   * substitution for x is not used. It is required that x is always applied,
+   * which is ensured in logics that are not higher-order by IllegalChecker.
+   */
+  void addDefinition(TNode x, TNode q, ProofGenerator* pg);
+  /**
    * Add substitutions from trust substitution map t. This adds all
    * substitutions from the map t and carries over its information about proofs.
    */
@@ -88,6 +96,13 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   TrustNode applyTrusted(Node n, Rewriter* r = nullptr);
   /** Same as above, without proofs */
   Node apply(Node n, Rewriter* r = nullptr);
+  /**
+   * Expand the fully applied occurrences of definitions in n (see
+   * addDefinition). Returns the result, and a proof of the equality between n
+   * and the result if withProof is true and n was changed.
+   */
+  std::pair<Node, std::shared_ptr<ProofNode>> expandDefinitions(const Node& n,
+                                                                bool withProof);
 
   /** Get the proof for formula f */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -98,7 +113,8 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
   /** Are proofs enabled? */
   bool isProofEnabled() const;
   /**
-   * Get the substitution up to index
+   * Get the substitution up to index, excluding definitions (see
+   * addDefinition)
    */
   Node getSubstitution(size_t index);
   /** The context used here */
@@ -139,6 +155,10 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    * two substitutions but not the third when asked to prove this equality.
    */
   NodeUIntMap d_eqtIndex;
+  /** Maps defined symbols to their quantified formula, see addDefinition */
+  context::CDHashMap<Node, Node> d_defs;
+  /** The proof generator for the quantified formulas in d_defs */
+  context::CDHashMap<Node, ProofGenerator*> d_defPgs;
   /** Debugging, catches potential for infinite loops */
   std::unordered_set<Node> d_proving;
 };

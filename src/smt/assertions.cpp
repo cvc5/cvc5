@@ -15,6 +15,7 @@
 #include <sstream>
 
 #include "base/modal_exception.h"
+#include "expr/elim_shadow_converter.h"
 #include "expr/node_algorithm.h"
 #include "expr/subtype_elim_node_converter.h"
 #include "options/base_options.h"
@@ -22,8 +23,10 @@
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "proof/lazy_proof.h"
+#include "proof/method_id.h"
 #include "proof/proof_node_algorithm.h"
 #include "smt/env.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/trust_substitutions.h"
 #include "util/result.h"
 
@@ -37,7 +40,8 @@ Assertions::Assertions(Env& env)
     : EnvObj(env),
       d_assertionList(userContext()),
       d_assertionListDefs(userContext()),
-      d_globalDefineFunLemmasIndex(userContext(), 0)
+      d_globalDefineFunLemmasIndex(userContext(), 0),
+      d_defQuant(userContext())
 {
 }
 
@@ -86,6 +90,12 @@ const context::CDList<Node>& Assertions::getAssertionList() const
 const context::CDList<Node>& Assertions::getAssertionListDefinitions() const
 {
   return d_assertionListDefs;
+}
+
+Node Assertions::getDefinitionQuant(const Node& def) const
+{
+  auto it = d_defQuant.find(def);
+  return it != d_defQuant.end() ? it->second : Node::null();
 }
 
 std::unordered_set<Node> Assertions::getCurrentAssertionListDefitions() const
@@ -160,8 +170,68 @@ void Assertions::addFormula(TNode n, bool isFunDef, bool maybeHasFv)
         // A define-fun is an assumption in the overall proof, thus
         // we justify the substitution with ASSUME here.
         d_defFunRewPf->addStep(n, ProofRule::ASSUME, {}, {n});
-        // If changed, prove the rewrite
-        if (defRew != n[1])
+        // In logics that are not higher-order, we instead justify the
+        // definition of f by q = forall x. (f x) = t, whose instances are used
+        // to expand applications of f, see addDefinition.
+        bool defQuant = isFunDef && options().proof.proofDefineFunQuant
+                        && !logicInfo().isHigherOrder();
+        if (defQuant && n[1].getKind() == Kind::LAMBDA)
+        {
+          std::vector<Node> fxc{n[0]};
+          fxc.insert(fxc.end(), n[1][0].begin(), n[1][0].end());
+          Node fx = nm->mkNode(Kind::APPLY_UF, fxc);
+          Node q = nm->mkNode(Kind::FORALL, n[1][0], fx.eqNode(n[1][1]));
+          d_defFunRewPf->addStep(q, ProofRule::ASSUME, {}, {q});
+          d_defQuant[n] = q;
+          Node qr = q;
+          if (defRew != n[1])
+          {
+            // rewrite the body of the definition
+            Node eqBody = defRewBody.getProven();
+            d_defFunRewPf->addLazyStep(eqBody, defRewBody.getGenerator());
+            Node eqFx = fx.eqNode(fx);
+            d_defFunRewPf->addStep(eqFx, ProofRule::REFL, {}, {fx});
+            Node fxr = fx.eqNode(defRew[1]);
+            std::vector<Node> cargs;
+            ProofRule cr = expr::getCongRule(q[1], cargs);
+            Node eqEq = q[1].eqNode(fxr);
+            d_defFunRewPf->addStep(eqEq, cr, {eqFx, eqBody}, cargs);
+            qr = nm->mkNode(Kind::FORALL, q[0], fxr);
+            cargs.clear();
+            cr = expr::getCongRule(q, cargs);
+            Node eqQ = q.eqNode(qr);
+            d_defFunRewPf->addStep(eqQ, cr, {eqEq}, cargs);
+            d_defFunRewPf->addStep(qr, ProofRule::EQ_RESOLVE, {q, eqQ}, {});
+          }
+          // eliminate shadowing, so that qr can be instantiated
+          Node qs = ElimShadowNodeConverter::eliminateShadow(qr);
+          if (qs != qr)
+          {
+            Node eqS = qr.eqNode(qs);
+            // the step the rewriter uses, which is elaborated to ALPHA_EQUIV
+            Node tid = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(
+                nm, THEORY_QUANTIFIERS);
+            Node mid = mkMethodId(nm, MethodId::RW_REWRITE_THEORY_POST);
+            d_defFunRewPf->addStep(
+                eqS, ProofRule::TRUST_THEORY_REWRITE, {}, {eqS, tid, mid});
+            d_defFunRewPf->addStep(qs, ProofRule::EQ_RESOLVE, {qr, eqS}, {});
+          }
+          tsm.addDefinition(n[0], qs, d_defFunRewPf.get());
+        }
+        else if (defQuant)
+        {
+          // Expand the definitions in the body of definitions with no
+          // arguments, since otherwise they are introduced by its substitution.
+          auto [t, pf] = tsm.expandDefinitions(defRew, true);
+          if (pf != nullptr)
+          {
+            d_defFunRewPf->addProof(pf);
+            d_defFunRewPf->addStep(
+                n[0].eqNode(t), ProofRule::TRANS, {n, pf->getResult()}, {});
+            defRew = t;
+          }
+        }
+        else if (defRew != n[1])  // If changed, prove the rewrite
         {
           Node eqBody = defRewBody.getProven();
           d_defFunRewPf->addLazyStep(eqBody, defRewBody.getGenerator());

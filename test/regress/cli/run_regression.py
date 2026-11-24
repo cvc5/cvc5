@@ -406,12 +406,6 @@ class CpcLogosTester(CpcTesterBase):
             if b"\n)\n" in b"\n" + proof:
                 print_info("Skipped: benchmark prints more than one block")
                 return EXIT_SKIP
-            # Logos does not support lambda, which cvc5 prints in the
-            # preamble of the proof for benchmarks that use define-fun. Note
-            # that plain definitions are printed as define, which is supported.
-            if b"(lambda " in proof:
-                print_info("Skipped: proof contains a lambda")
-                return EXIT_SKIP
             tmpf.write(proof)
             tmpf.flush()
             output, error, exit_status = run_process(

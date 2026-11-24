@@ -472,7 +472,9 @@ void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
   const context::CDList<Node>& al = as.getAssertionList();
   for (const Node& a : al)
   {
-    assertions.push_back(a);
+    // use the quantified formula of the definition, if applicable
+    Node q = as.getDefinitionQuant(a);
+    assertions.push_back(q.isNull() ? a : q);
   }
 }
 
@@ -485,7 +487,7 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
   {
     // Keep treating (mutually) recursive functions as declarations +
     // assertions.
-    if (d.getKind() == Kind::EQUAL)
+    if (d.getKind() == Kind::EQUAL && as.getDefinitionQuant(d).isNull())
     {
       definitions.push_back(d);
     }
@@ -496,7 +498,8 @@ void PfManager::getDefinitionsAndAssertions(Assertions& as,
     if (std::find(definitions.cbegin(), definitions.cend(), a)
         == definitions.cend())
     {
-      assertions.push_back(a);
+      Node q = as.getDefinitionQuant(a);
+      assertions.push_back(q.isNull() ? a : q);
     }
   }
 }
