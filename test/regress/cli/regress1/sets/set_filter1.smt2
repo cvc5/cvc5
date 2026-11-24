@@ -1,5 +1,5 @@
 ; REQUIRES: unrestricted-mode
-(set-logic ALL)
+(set-logic HO_ALL)
 (set-info :status sat)
 (declare-fun A () (Set Int))
 (declare-fun B () (Set Int))

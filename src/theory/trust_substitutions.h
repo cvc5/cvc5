@@ -78,7 +78,8 @@ class TrustSubstitutionMap : protected EnvObj, public ProofGenerator
    * Add the definition of x, where x is in the domain of this substitution and
    * q is a formula (forall xs (= (x xs) s)) justified by pg. In proofs,
    * applications (x ts) are expanded to s[ts/xs] via instances of q, and the
-   * substitution for x is not used. It is required that x is always applied.
+   * substitution for x is not used. It is required that x is always applied,
+   * which is ensured in logics that are not higher-order by IllegalChecker.
    */
   void addDefinition(TNode x, TNode q, ProofGenerator* pg);
   /**

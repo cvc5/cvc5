@@ -1122,6 +1122,7 @@ set(regress_0_tests
   regress0/ho/dd.syo372-finite-ho-ext.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
+  regress0/ho/define-fun-unapplied-non-ho.smt2
   regress0/ho/ext-finite-unsat.smt2
   regress0/ho/ext-ho-nested-lambda-model.smt2
   regress0/ho/ext-ho.smt2

@@ -31,12 +31,16 @@
 #include "options/uf_options.h"
 #include "smt/env.h"
 #include "smt/logic_exception.h"
+#include "theory/trust_substitutions.h"
 
 namespace cvc5::internal {
 namespace smt {
 
 IllegalChecker::IllegalChecker(Env& e)
-    : EnvObj(e), d_visited(userContext()), d_assertionIndex(userContext(), 0)
+    : EnvObj(e),
+      d_visited(userContext()),
+      d_visitedFun(userContext()),
+      d_assertionIndex(userContext(), 0)
 {
   // Determine any illegal kinds that are dependent on options that need to be
   // guarded here. Note that nearly all illegal kinds should be properly guarded
@@ -164,7 +168,9 @@ IllegalChecker::IllegalChecker(Env& e)
 
 void IllegalChecker::checkAssertions(Assertions& as)
 {
-  if (d_illegalKinds.empty() && d_illegalTypes.empty())
+  // if not higher-order, we also check for function terms
+  bool isHol = logicInfo().isHigherOrder();
+  if (isHol && d_illegalKinds.empty() && d_illegalTypes.empty())
   {
     // nothing to check
     return;
@@ -172,11 +178,14 @@ void IllegalChecker::checkAssertions(Assertions& as)
   // check illegal kinds here
   const context::CDList<Node>& assertions = as.getAssertionList();
   size_t asize = assertions.size();
+  bool checkKinds = !d_illegalKinds.empty() || !d_illegalTypes.empty();
+  // the function definitions, computed lazily
+  std::unordered_set<Node> defs;
   for (size_t i = d_assertionIndex.get(); i < asize; ++i)
   {
     Node n = assertions[i];
     Trace("illegal-check") << "Check assertion " << n << std::endl;
-    Kind k = checkInternal(n);
+    Kind k = checkKinds ? checkInternal(n) : Kind::UNDEFINED_KIND;
     if (k != Kind::UNDEFINED_KIND)
     {
       std::stringstream ss;
@@ -204,13 +213,68 @@ void IllegalChecker::checkAssertions(Assertions& as)
 #endif
       throw SafeLogicException(ss.str());
     }
+    if (isHol)
+    {
+      continue;
+    }
+    // Function definitions are equalities (= f (lambda x t)), where only t is
+    // required to not have function terms.
+    if (n.getKind() == Kind::EQUAL && n[1].getKind() == Kind::LAMBDA)
+    {
+      if (defs.empty())
+      {
+        defs = as.getCurrentAssertionListDefitions();
+      }
+      if (defs.find(n) != defs.end())
+      {
+        n = n[1][1];
+      }
+    }
+    checkFunctionTerms(n);
   }
   d_assertionIndex = asize;
 }
 
+void IllegalChecker::checkFunctionTerms(TNode n)
+{
+  theory::TrustSubstitutionMap& tsm = d_env.getTopLevelSubstitutions();
+  std::vector<TNode> visit{n};
+  do
+  {
+    TNode cur = visit.back();
+    visit.pop_back();
+    if (d_visitedFun.find(cur) != d_visitedFun.end())
+    {
+      continue;
+    }
+    d_visitedFun.insert(cur);
+    // the operator of an application may be a function, but not its arguments
+    if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      TNode op = cur.getOperator();
+      visit.insert(visit.end(), op.begin(), op.end());
+    }
+    for (TNode cc : cur)
+    {
+      // Bound variables are skipped, since synthesis conjectures may quantify
+      // over functions and pass them as arguments, e.g. for abduction.
+      // Equalities between functions are used when checking synthesis
+      // solutions, and are permitted if they do not involve defined functions.
+      if (cc.getKind() != Kind::BOUND_VARIABLE && cc.getType().isFunction()
+          && (cur.getKind() != Kind::EQUAL
+              || (cc.isVar() && tsm.get().hasSubstitution(cc))))
+      {
+        throw LogicException(
+            "Function terms are only supported with higher-order logic. Try "
+            "adding the logic prefix HO_.");
+      }
+      visit.push_back(cc);
+    }
+  } while (!visit.empty());
+}
+
 Kind IllegalChecker::checkInternal(TNode n)
 {
-  Assert(!d_illegalKinds.empty());
   std::vector<TNode> visit;
   std::unordered_set<TypeNode> allTypes;
   TNode cur;
