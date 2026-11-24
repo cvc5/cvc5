@@ -171,6 +171,13 @@ void Cmd::resetSolver(cvc5::Solver* solver)
   solver->resetInternal();
 }
 
+cvc5::Term Cmd::mkStringTerm(cvc5::TermManager& tm, const std::u32string& s)
+{
+  // get the internal node manager via an arbitrary term of tm
+  cvc5::Term t = tm.mkTrue();
+  return cvc5::Term(t.d_nm, t.d_nm->mkConstString(s));
+}
+
 internal::Node Cmd::termToNode(const cvc5::Term& term)
 {
   return term.getNode();

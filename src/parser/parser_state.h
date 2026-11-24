@@ -552,6 +552,7 @@ class CVC5_EXPORT ParserState
    * --strings-alpha-card.
    */
   uint32_t getStringsMaxCodePoint();
+
   /**
    * Strip quotes off a string, or return a parse error otherwise.
    */

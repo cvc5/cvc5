@@ -792,6 +792,10 @@ TEST_F(TestApiBlackTermManager, mkString)
             "\"asdf\\u{5c}nasdf\"");
   std::u32string s;
   ASSERT_EQ(d_tm.mkString(s).getU32StringValue(), s);
+  // only characters from the SMT-LIB alphabet are permitted
+  ASSERT_NO_THROW(d_tm.mkString(std::u32string(1, 0x2FFFF)));
+  ASSERT_THROW(d_tm.mkString(std::u32string(1, 0x30000)), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkString(std::u32string(1, 0x10FFFF)), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, mkTerm)

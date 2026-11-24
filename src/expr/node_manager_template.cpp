@@ -34,6 +34,7 @@
 #include "util/poly_util.h"
 #include "util/rational.h"
 #include "util/resource_manager.h"
+#include "util/string.h"
 #include "util/uninterpreted_sort_value.h"
 
 // clang-format off
@@ -1460,6 +1461,11 @@ Kind NodeManager::getKindForFunction(TNode fun)
     return Kind::APPLY_UPDATER;
   }
   return Kind::UNDEFINED_KIND;
+}
+
+Node NodeManager::mkConstString(const std::u32string& s)
+{
+  return mkConst(String(s));
 }
 
 Node NodeManager::mkConstReal(const Rational& r)

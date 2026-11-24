@@ -2361,6 +2361,9 @@ set(regress_0_tests
   regress0/smtlib/set-info-status.smt2
   regress0/solver/issue8854-get-model-after-unknown.smt2
   regress0/strings/652-substr-len-norm.smt2
+  regress0/strings/alpha-card-256-unsat-set-option.smt2
+  regress0/strings/alpha-card-256-unsat.smt2
+  regress0/strings/alpha-card-large.smt2
   regress0/strings/alpha-card-model.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2

@@ -777,7 +777,7 @@ Term ParserState::mkCharConstant(const std::string& s)
         "Expected unicode string whose characters are less than code point "
         + std::to_string(maxCodePoint + 1));
   }
-  return d_tm.mkString(std::u32string(1, static_cast<char32_t>(val)));
+  return Cmd::mkStringTerm(d_tm, std::u32string(1, static_cast<char32_t>(val)));
 }
 
 uint32_t ParserState::getStringsMaxCodePoint()
@@ -815,7 +815,7 @@ Term ParserState::mkStringLiteral(const std::string& s)
   {
     parseError(e.getMessage());
   }
-  return d_tm.mkString(str);
+  return Cmd::mkStringTerm(d_tm, str);
 }
 
 bool isNumeral(const std::string& str)
