@@ -79,7 +79,7 @@ namespace cvc5 {
  * (2) :cpp:enumerator:`SCOPE <cvc5::ProofRule::SCOPE>`, which encloses a scope
  * (a subproof) with a set of scoped assumptions.
  * The core rules additionally correspond to generic operations that are done
- * internally on nodes, e.g., calling `Rewriter::rewrite()`.
+ * internally on nodes, e.g., calling ``Rewriter::rewrite()``.
  *
  * Rules with prefix ``MACRO_`` are those that can be defined in terms of other
  * rules. These exist for convenience and can be replaced by their definition
@@ -140,8 +140,8 @@ enum ENUM(ProofRule)
    * where :math:`\sigma_{ids}(F_i)` are substitutions. The optional MethodId
    * identifier :math:`ids` determines how to convert the formulas
    * :math:`F_1 \dots F_n` into substitutions. It defaults to ``SB_DEFAULT``,
-   * where the premises are equalities of the form `(= x y)` and converted into
-   * substitutions :math:`x\mapsto y`.
+   * where the premises are equalities of the form ``(= x y)`` and converted
+   * into substitutions :math:`x\mapsto y`.
    *
    * The optional MethodId identifier :math:`ida` determines how
    * :math:`\texttt{apply}_{ida}` applies these substitutions to :math:`t`.
@@ -211,7 +211,7 @@ enum ENUM(ProofRule)
   EVALUE(DISTINCT_VALUES),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Builtin theory -- associative/commutative/idempotency/identity \
+   * **Builtin theory -- associative/commutative/idempotency/identity
    * normalization**
    *
    * .. math::
@@ -382,9 +382,9 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{F_1 \dots F_n \mid id t_1 \dots t_n}{F}
    *
-   * where `id` is a :cpp:enum:`ProofRewriteRule` whose definition in the
-   * RARE DSL is
-   * :math:`\forall x_1 \dots x_n. (G_1 \wedge \cdots \wedge G_n) \Rightarrow G`
+   * where :math:`id` is a :cpp:enum:`ProofRewriteRule` whose definition in
+   * the RARE DSL is
+   * :math:`\forall x_1 \dots x_n.\> (G_1 \wedge \cdots \wedge G_n) \Rightarrow G`
    * where for :math:`i=1, \dots n`, we have that :math:`F_i = \sigma(G_i)`
    * and :math:`F = \sigma(G)` where :math:`\sigma` is the substitution
    * :math:`\{x_1\mapsto t_1,\dots,x_n\mapsto t_n\}`.
@@ -407,8 +407,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{- \mid id, t = t'}{t = t'}
    *
-   * where `id` is the :cpp:enum:`ProofRewriteRule` of the theory rewrite
-   * rule which transforms :math:`t` to :math:`t'`.
+   * where :math:`id` is the :cpp:enum:`ProofRewriteRule` of the theory
+   * rewrite rule which transforms :math:`t` to :math:`t'`.
    *
    * In contrast to :cpp:enumerator:`DSL_REWRITE`, theory rewrite rules used by
    * this proof rule are not necessarily expressible in RARE. Each rule that can
@@ -435,7 +435,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{F_1 \dots F_n \mid tid, F, ...}{F}
+   *   \inferrule{F_1 \dots F_n \mid tid, F, \dots}{F}
    *
    * where :math:`tid` is an identifier and :math:`F` is a formula. This rule
    * is used when a formal justification of an inference step cannot be provided.
@@ -503,8 +503,8 @@ enum ENUM(ProofRule)
    *   \inferrule{F_1 \dots F_n \mid D, P}{\bot}
    *
    * where :math:`F_1 \dots F_n` correspond to the clauses in the
-   * DIMACS file given by filename `D` and `P` is a filename of a file storing
-   * a DRAT proof.
+   * DIMACS file given by filename :math:`D` and :math:`P` is a filename of a
+   * file storing a DRAT proof.
    * \endverbatim
    */
   EVALUE(DRAT_REFUTATION),
@@ -517,7 +517,7 @@ enum ENUM(ProofRule)
    *   \inferrule{F_1 \dots F_n \mid D}{\bot}
    *
    * where :math:`F_1 \dots F_n` correspond to the input clauses in the
-   * DIMACS file `D`.
+   * DIMACS file :math:`D`.
    * \endverbatim
    */
   EVALUE(SAT_EXTERNAL_PROVE),
@@ -1292,7 +1292,8 @@ enum ENUM(ProofRule)
    *
    *   \inferrule{-\mid t}{t=t'}
    *
-   * where `t'` is the higher-order application that is equivalent to `t`,
+   * where :math:`t'` is the higher-order application that is equivalent to
+   * :math:`t`,
    * as implemented by ``uf::TheoryUfRewriter::getHoApplyForApplyUf``.
    * For details see :cvc5src:`theory/uf/theory_uf_rewriter.h`
    *
@@ -1327,8 +1328,8 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{-\mid \texttt{ubv_to_int}(x)}{0 \leq
-   *   \texttt{ubv_to_int}(x) \wedge \texttt{ubv_to_int}(x) < 2^n}
+   *   \inferrule{-\mid \mathtt{ubv\_to\_int}(x)}{0 \leq
+   *   \mathtt{ubv\_to\_int}(x) \wedge \mathtt{ubv\_to\_int}(x) < 2^n}
    *
    * where :math:`n` is the bitwidth of :math:`x`.
    * \endverbatim
@@ -1379,7 +1380,8 @@ enum ENUM(ProofRule)
    *   \inferrule{a \neq b\mid -}
    *   {\mathit{select}(a,k)\neq\mathit{select}(b,k)}
    *
-   * where :math:`k` is the :math:`\texttt{ARRAY_DEQ_DIFF}` skolem for `(a, b)`.
+   * where :math:`k` is the :math:`\mathtt{ARRAY\_DEQ\_DIFF}` skolem for
+   * :math:`(a, b)`.
    * \endverbatim
    */
   EVALUE(ARRAYS_EXT),
@@ -1452,8 +1454,8 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
-   *            {(x_1 = x_2) = (y_1 = y_2)}
+   *   \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
+   *   {(x_1 = x_2) = (y_1 = y_2)}
    *
    * :math:`c_x` and :math:`c_y` are scaling factors, required to be odd.
    * \endverbatim
@@ -1587,7 +1589,8 @@ enum ENUM(ProofRule)
    *   \inferrule{a \neq b\mid -}
    *   {\mathit{set.member}(k,a)\neq\mathit{set.member}(k,b)}
    *
-   * where :math:`k` is the :math:`\texttt{SETS_DEQ_DIFF}` skolem for `(a, b)`.
+   * where :math:`k` is the :math:`\mathtt{SETS\_DEQ\_DIFF}` skolem for
+   * :math:`(a, b)`.
    * \endverbatim
    */
   EVALUE(SETS_EXT),
@@ -1673,7 +1676,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferruleSC{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
+   *   \inferrule{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
    *   \mathit{len}(t_1) \neq \mathit{len}(s_1)\mid \bot}{((t_1 = s_1\cdot r)
    *   \vee (s_1 = t_1\cdot r)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}
    *
@@ -1686,7 +1689,7 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferruleSC{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
+   *   \inferrule{(t_1 \cdot \ldots \cdot t_n) = (s_1 \cdot \ldots \cdot s_m),\,
    *   \mathit{len}(t_n) \neq \mathit{len}(s_m)\mid \top}{((t_n = r \cdot s_m)
    *   \vee (s_m = r \cdot t_n)) \wedge r \neq \epsilon \wedge \mathit{len}(r)>0}
    *
@@ -1916,16 +1919,16 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ \epsilon \ \wedge \forall L. L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
+   *   \inferrule{t \not \in \mathit{re}.\text{*}(R) \mid -}{t \neq \ \epsilon \ \wedge \forall L.\> L \leq 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{*}(R)}
    *
    * Or alternatively for regular expression concatenation:
    *
    * .. math::
    *
-   *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L. L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
+   *   \inferrule{t \not \in \mathit{re}.\text{++}(R_1, \ldots, R_n)\mid -}{\forall L.\> L < 0 \vee \mathit{str.len}(t) < L \vee \mathit{pre}(t, L) \not \in R_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(R_2, \ldots, R_n)}
    *
    * Note that in either case the variable :math:`L` has type :math:`Int` and
-   * name `"@var.str_index"`.
+   * name ``"@var.str_index"``.
    *
    * \endverbatim
    */
@@ -1937,7 +1940,7 @@ enum ENUM(ProofRule)
    * .. math::
    *
    *   \inferrule{t\not\in \mathit{re}.\text{++}(r_1, \ldots, r_n) \mid \bot}{
-   *  \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(r_2, \ldots, r_n)}
+   *   \mathit{pre}(t, L) \not \in r_1 \vee \mathit{suf}(t, L) \not \in \mathit{re}.\text{++}(r_2, \ldots, r_n)}
    *
    * where :math:`r_1` has fixed length :math:`L`.
    *
@@ -1989,7 +1992,7 @@ enum ENUM(ProofRule)
    *   {\mathit{seq.len}(s) \neq \mathit{seq.len}(t) \vee (\mathit{seq.nth}(s,k)\neq\mathit{seq.nth}(t,k) \wedge 0 \leq k \wedge k < \mathit{seq.len}(s))}
    *
    * where :math:`s,t` are string-like terms, :math:`k` is the
-   * :math:`\texttt{STRINGS_DEQ_DIFF}` skolem for :math:`s,t`. If :math:`s,t`
+   * :math:`\mathtt{STRINGS\_DEQ\_DIFF}` skolem for :math:`s,t`. If :math:`s,t`
    * are terms of string type, we use :math:`\mathit{str.substr}(s,k,1)`
    * instead of :math:`\mathit{seq.nth}(s,k)` and similarly for :math:`t`.
    *
@@ -2150,8 +2153,8 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *  \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 \diamond x_2) = (y_1 \diamond y_2)}
-   *            {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
+   *   \inferrule{c_x \cdot (x_1 - x_2) = c_y \cdot (y_1 - y_2) \mid (x_1 \diamond x_2) = (y_1 \diamond y_2)}
+   *   {(x_1 \diamond x_2) = (y_1 \diamond y_2)}
    *
    * where :math:`\diamond \in \{<, \leq, =, \geq, >\}`. :math:`c_x` and
    * :math:`c_y` are non-zero scaling factors. For :math:`<, \leq, \geq, >`, the scaling
@@ -2159,7 +2162,7 @@ enum ENUM(ProofRule)
    *
    * If :math:`c_x` has type :math:`Real` and :math:`x_1, x_2` are of type
    * :math:`Int`, then :math:`(x_1 - x_2)` is wrapped in an application of
-   * `to_real`, similarly for :math:`(y_1 - y_2)`.
+   * ``to_real``, similarly for :math:`(y_1 - y_2)`.
    * \endverbatim
    */
   EVALUE(ARITH_POLY_NORM_REL),
@@ -2339,7 +2342,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_EXP_ZERO),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Transcendentals -- Exp is approximated from above for \
+   * **Arithmetic -- Transcendentals -- Exp is approximated from above for
    * negative values**
    *
    * .. math::
@@ -2366,7 +2369,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_EXP_APPROX_ABOVE_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Transcendentals -- Exp is approximated from above for \
+   * **Arithmetic -- Transcendentals -- Exp is approximated from above for
    * positive values**
    *
    * .. math::
@@ -2458,7 +2461,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_SINE_SHIFT),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Transcendentals -- Sine is symmetric with respect to \
+   * **Arithmetic -- Transcendentals -- Sine is symmetric with respect to
    * negation of the argument**
    *
    * .. math::
@@ -2494,7 +2497,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_SINE_TANGENT_PI),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Transcendentals -- Sine is approximated from above for\
+   * **Arithmetic -- Transcendentals -- Sine is approximated from above for
    * negative values**
    *
    * .. math::
@@ -2523,7 +2526,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_SINE_APPROX_ABOVE_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Transcendentals -- Sine is approximated from above for \
+   * **Arithmetic -- Transcendentals -- Sine is approximated from above for
    * positive values**
    *
    * .. math::
@@ -2544,7 +2547,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_SINE_APPROX_ABOVE_POS),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Transcendentals -- Sine is approximated from below for \
+   * **Arithmetic -- Transcendentals -- Sine is approximated from below for
    * negative values**
    *
    * .. math::
@@ -2565,7 +2568,7 @@ enum ENUM(ProofRule)
   EVALUE(ARITH_TRANS_SINE_APPROX_BELOW_NEG),
   /**
    * \verbatim embed:rst:leading-asterisk
-   * **Arithmetic -- Transcendentals -- Sine is approximated from below for \
+   * **Arithmetic -- Transcendentals -- Sine is approximated from below for
    * positive values**
    *
    * .. math::
@@ -2611,8 +2614,8 @@ enum ENUM(ProofRule)
    *
    * .. math::
    *
-   *  \inferrule{c_x \cdot (x_1 + -x_2) = c_y \cdot (y_1 + -y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
-   *            {(x_1 = x_2) = (y_1 = y_2)}
+   *   \inferrule{c_x \cdot (x_1 + -x_2) = c_y \cdot (y_1 + -y_2) \mid (x_1 = x_2) = (y_1 = y_2)}
+   *   {(x_1 = x_2) = (y_1 = y_2)}
    *
    * where :math:`c_x` and :math:`c_y` are scaling factors.
    * \endverbatim
@@ -2702,7 +2705,7 @@ enum ENUM(ProofRule)
    *   \inferrule{- \mid l, r, k}
    *   {l \neq r = ((l + -r) * k + -1 = 0)}
    *
-   * where :math:`k` is the :math:`\texttt{FF_DISEQ_WITNESS}` skolem for
+   * where :math:`k` is the :math:`\mathtt{FF\_DISEQ\_WITNESS}` skolem for
    * :math:`(l, r)`, representing the multiplicative inverse :math:`(l - r)^{-1}`
    * that witnesses the disequality :math:`l \neq r`.
    * \endverbatim
@@ -2823,7 +2826,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   \texttt{ubv_to_int}(t) = t_1 + \ldots + t_n
+   *   \mathtt{ubv\_to\_int}(t) = t_1 + \ldots + t_n
    *
    * where for :math:`i=1, \ldots, n`, :math:`t_i` is
    * :math:`\texttt{ite}(x[i-1, i-1] = 1, 2^i, 0)`.
@@ -3039,8 +3042,8 @@ enum ENUM(ProofRewriteRule)
    *   ((\lambda x_1 \ldots x_n.\> t) \ t_1) = (\lambda x_2 \ldots x_n.\> t)\{x_1 \mapsto t_1\}
    *
    * In the former case, the left hand side may either be a term of kind
-   * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`. The latter case is used
-   * only if the term has kind `cvc5::Kind::HO_APPLY`.
+   * ``cvc5::Kind::APPLY_UF`` or ``cvc5::Kind::HO_APPLY``. The latter case is
+   * used only if the term has kind ``cvc5::Kind::HO_APPLY``.
    *
    * In either case, the right hand side of the equality in the conclusion is
    * computed using standard substitution via ``Node::substitute``.
@@ -3067,8 +3070,8 @@ enum ENUM(ProofRewriteRule)
    *
    *   ((\lambda x_1 \ldots x_n.\> t) \ t_1 \ldots t_n) = ((\lambda y_1 \ldots y_n.\> t') \ t_1 \ldots t_n)
    *
-   * The terms may either be of kind
-   * `cvc5::Kind::APPLY_UF` or `cvc5::Kind::HO_APPLY`.
+   * The terms may either be of kind ``cvc5::Kind::APPLY_UF`` or
+   * ``cvc5::Kind::HO_APPLY``.
    * This rule ensures that the free variables of :math:`y_1, \ldots, y_n, t_1 \ldots t_n`
    * do not occur in binders within :math:`t'`, and
    * :math:`(\lambda x_1 \ldots x_n.\> t)` is alpha-equivalent to
@@ -3277,7 +3280,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   (\forall x Y.\> F) = (\forall X_1 Y. F_1) \vee \cdots \vee (\forall X_n Y. F_n)
+   *   (\forall x Y.\> F) = (\forall X_1 Y.\> F_1) \vee \cdots \vee (\forall X_n Y.\> F_n)
    *
    * where :math:`x` is of a datatype type with constructors
    * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
@@ -3292,7 +3295,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *   (\forall Y x Z.\> F) = (\forall Y X_1 Z. F_1) \vee \cdots \vee (\forall Y X_n Z. F_n)
+   *   (\forall Y x Z.\> F) = (\forall Y X_1 Z.\> F_1) \vee \cdots \vee (\forall Y X_n Z.\> F_n)
    *
    * where :math:`x` is of a datatype type with constructors
    * :math:`C_1, \ldots, C_n`, where for each :math:`i = 1, \ldots, n`,
@@ -3338,13 +3341,13 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *  (\forall x.\> x \neq t \vee F) = F \{ x \mapsto t \}
+   *   (\forall x.\> x \neq t \vee F) = F \{ x \mapsto t \}
    *
    * or alternatively
    *
    * .. math::
    *
-   *  (\forall x.\> x \neq t) = \bot
+   *   (\forall x.\> x \neq t) = \bot
    *
    * \endverbatim
    */
@@ -3735,10 +3738,10 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) ... bvand(a[i_n:j_n],\ c_n))
+   *    bvand(a,\ c) = concat(bvand(a[i_0:j_0],\ c_0) \ldots bvand(a[i_n:j_n],\ c_n))
    *
-   * where c0,..., cn are maximally continuous substrings of 0 or 1 in the
-   * constant c
+   * where :math:`c_0, \dots, c_n` are maximally continuous substrings of 0 or 1
+   * in the constant :math:`c`.
    * \endverbatim
    */
   EVALUE(BV_BITWISE_SLICING),
@@ -3748,7 +3751,7 @@ enum ENUM(ProofRewriteRule)
    *
    * .. math::
    *
-   *    repeat(n,\ t) = concat(t ... t)
+   *    repeat(n,\ t) = concat(t \ldots t)
    *
    * where :math:`t` is repeated :math:`n` times.
    * \endverbatim
@@ -4077,9 +4080,9 @@ enum ENUM(ProofRewriteRule)
    *
    *   \mathit{re.inter}(R) = \mathit{re.inter}(\mathit{re.none}, R_0)
    *
-   * where :math:`R` is a list of regular expressions containing `r_1`,
-   * `re.comp(r_2)` and the list :math:`R_0` where `r_2` is a superset of
-   * `r_1`.
+   * where :math:`R` is a list of regular expressions containing :math:`r_1`,
+   * :math:`\mathit{re.comp}(r_2)` and the list :math:`R_0` where :math:`r_2` is
+   * a superset of :math:`r_1`.
    *
    * or alternatively:
    *
@@ -4087,9 +4090,9 @@ enum ENUM(ProofRewriteRule)
    *
    *   \mathit{re.union}(R) = \mathit{re.union}(\mathit{re}.\text{*}(\mathit{re.allchar}),\ R_0)
    *
-   * where :math:`R` is a list of regular expressions containing `r_1`,
-   * `re.comp(r_2)` and the list :math:`R_0`, where `r_1` is a superset of
-   * `r_2`.
+   * where :math:`R` is a list of regular expressions containing :math:`r_1`,
+   * :math:`\mathit{re.comp}(r_2)` and the list :math:`R_0`, where :math:`r_1`
+   * is a superset of :math:`r_2`.
    *
    * \endverbatim
    */

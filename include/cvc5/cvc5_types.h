@@ -677,7 +677,7 @@ namespace cvc5::modes {
 #endif
 
 /**
- * The different reasons for returning an "unknown" result.
+ * The input languages supported by the parser.
  */
 enum ENUM(InputLanguage)
 {
