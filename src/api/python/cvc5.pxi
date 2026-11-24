@@ -47,6 +47,8 @@ from cvc5 cimport TermManager as c_TermManager
 from cvc5 cimport Solver as c_Solver
 from cvc5 cimport Plugin as c_Plugin
 from cvc5 cimport PyPlugin as c_PyPlugin
+from cvc5 cimport Terminator as c_Terminator
+from cvc5 cimport PyTerminator as c_PyTerminator
 from cvc5 cimport Statistics as c_Statistics
 from cvc5 cimport Stat as c_Stat
 from cvc5 cimport Grammar as c_Grammar
@@ -194,25 +196,15 @@ cdef class SymbolManager:
     cdef c_SymbolManager* csm
     cdef TermManager tm
 
-    def __cinit__(self, tm):
+    def __cinit__(self, TermManager tm not None):
         """
             Constructor.
-            Initialize with associated Solver or TermManager instance.
+            Initialize with associated TermManager instance.
 
-            .. warning::
-
-                Initializing with associated solver instance is deprecated and
-                will be removed in a future release.
+            :param tm: The associated term manager.
         """
-        if isinstance(tm, TermManager):
-            self.csm = new c_SymbolManager(dereference((<TermManager?>tm).ctm))
-            self.tm = tm
-        # backwards compatibility, deprecated
-        elif isinstance(tm, Solver):
-            self.csm = new c_SymbolManager(dereference((<Solver?>tm).tm.ctm))
-            self.tm = (<Solver?>tm).tm
-        else:
-          raise ValueError("Expecting a TermManager or Solver argument")
+        self.csm = new c_SymbolManager(dereference(tm.ctm))
+        self.tm = tm
 
     def __dealloc__(self):
         del self.csm
@@ -306,7 +298,10 @@ cdef class Command:
             :return: A string representation of the result.
         """
         cdef stringstream ss
-        self.cc.invoke(solver.csolver, sm.csm, ss)
+        try:
+            self.cc.invoke(solver.csolver, sm.csm, ss)
+        finally:
+            solver._checkTerminator()
         return ss.str().decode()
 
     def getCommandName(self):
@@ -804,8 +799,8 @@ cdef class DatatypeDecl:
         Datatype sorts can be constructed from :py:class:`DatatypeDecl` using
         the methods:
 
-            - :py:meth:`Solver.mkDatatypeSort()`
-            - :py:meth:`Solver.mkDatatypeSorts()`
+            - :py:meth:`TermManager.mkDatatypeSort()`
+            - :py:meth:`TermManager.mkDatatypeSorts()`
 
         Wrapper class for :cpp:class:`cvc5::DatatypeDecl`.
     """
@@ -2173,6 +2168,27 @@ cdef class TermManager:
         raise ValueError("Can't create DatatypeDecl with {}".format(
                     [type(a) for a in [name, sorts_or_bool, isCoDatatype]]))
 
+    def mkGrammar(self, boundVars, ntSymbols):
+        """
+            Create a SyGuS grammar. The first non-terminal is treated as the
+            starting non-terminal, so the order of non-terminals matters.
+
+            :param boundVars: The parameters to corresponding
+                              synth-fun/synth-inv.
+            :param ntSymbols: The pre-declaration of the non-terminal symbols.
+            :return: The grammar.
+        """
+        cdef vector[c_Term] bvc
+        cdef vector[c_Term] ntc
+        for bv in boundVars:
+            bvc.push_back((<Term?> bv).cterm)
+        for nt in ntSymbols:
+            ntc.push_back((<Term?> nt).cterm)
+        return _grammar(
+            self,
+            self.ctm.mkGrammar(
+              <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
+
 # ----------------------------------------------------------------------------
 # Plugin
 # ----------------------------------------------------------------------------
@@ -2240,6 +2256,74 @@ cdef class Plugin:
 
 
 # ----------------------------------------------------------------------------
+# Terminator
+# ----------------------------------------------------------------------------
+
+cdef class Terminator:
+    """
+        A cvc5 terminator, which allows to terminate queries of a solver.
+
+        Wrapper class for :cpp:class:`cvc5::Terminator`.
+
+        A terminator is connected to a solver via
+        :py:meth:`Solver.setTerminator()`. While the solver executes a query
+        (e.g., :py:meth:`Solver.checkSat()`), it periodically calls
+        :py:meth:`terminate()` to determine whether the query should be
+        terminated. If :py:meth:`terminate()` returns ``True``, the query is
+        terminated as if a resource limit had been reached. For queries that
+        return a :py:class:`Result`, the result is unknown with explanation
+        :py:obj:`UnknownExplanation.INTERRUPTED`.
+
+        A termination request only applies to the query during which it was
+        issued, and the solver can be used for further queries afterwards.
+
+        If :py:meth:`terminate()` raises an exception, the query is terminated
+        and the exception is re-raised by the method that executed the query.
+        For example, pressing ``Ctrl-C`` while a query is executed raises a
+        :py:class:`KeyboardInterrupt` in :py:meth:`terminate()`, which thus
+        terminates the query.
+
+        Method :py:meth:`terminate()` is called from the thread that executes
+        the query. Queries do not release the GIL, but other Python threads
+        get to run while :py:meth:`terminate()` is executed. This allows to
+        terminate a query from another thread, e.g., by setting a
+        :py:class:`threading.Event` that is checked in :py:meth:`terminate()`.
+
+        .. warning::
+
+            This class is experimental and may change in future versions.
+    """
+    def terminate(self):
+        """
+            Determine whether the current query of the solver this terminator
+            is connected to should be terminated.
+
+            :return: True to terminate the current query.
+        """
+        raise NotImplementedError
+
+
+cdef class _TerminatorConnection:
+    """
+        The connection of a terminator to a solver, created by
+        :py:meth:`Solver.setTerminator()`. Stores the exception raised by the
+        terminator during a query of that solver until the query returns.
+    """
+    cdef c_PyTerminator* cterminator
+    cdef Terminator terminator
+    # The exception raised by terminate(), if any.
+    cdef object exception
+
+    def __cinit__(self, Terminator terminator not None):
+        self.cterminator = new c_PyTerminator(<cpy_ref.PyObject*>self)
+        self.terminator = terminator
+        self.exception = None
+
+    def __dealloc__(self):
+        del self.cterminator
+
+
+# ----------------------------------------------------------------------------
 # Solver
 # ----------------------------------------------------------------------------
 
@@ -2251,12 +2335,16 @@ cdef class Solver:
     """
     cdef c_Solver* csolver
     cdef TermManager tm
+    # The connection of the connected terminator, kept alive while connected.
+    cdef _TerminatorConnection terminator
 
-    def __cinit__(self, TermManager tm = None):
-        if not tm:
-          self.tm = TermManager()
-        else:
-          self.tm = tm
+    def __cinit__(self, TermManager tm not None):
+        """
+            Constructor.
+
+            :param tm: The associated term manager.
+        """
+        self.tm = tm
         self.csolver = new c_Solver(dereference(self.tm.ctm))
 
     def __dealloc__(self):
@@ -2268,1068 +2356,6 @@ cdef class Solver:
             :return: The term manager instance.
         """
         return self.tm
-
-    def getBooleanSort(self):
-        """
-            Get the Boolean sort.
-            :return: Sort Boolean.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.getBooleanSort()
-
-    def getIntegerSort(self):
-        """
-            Get the integer sort.
-            :return: Sort Integer.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.getIntegerSort()
-
-    def getRealSort(self):
-        """
-            Get the real sort.
-            :return: Sort Real.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.getRealSort()
-
-    def getRegExpSort(self):
-        """
-            Get the regular expression sort.
-            :return: The sort of regular expressions.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.getRegExpSort()
-
-    def getRoundingModeSort(self):
-        """
-            Get the rounding mode sort.
-            :return: Sort RoundingMode.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.getRoundingModeSort()
-
-    def getStringSort(self):
-        """
-            :return: Sort String.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.getStringSort()
-
-    def mkArraySort(self, Sort indexSort, Sort elemSort):
-        """
-            Create an array sort.
-
-            :param indexSort: The array index sort.
-            :param elemSort: The array element sort.
-            :return: The array sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkArraySort(indexSort, elemSort)
-
-    def mkBitVectorSort(self, uint32_t size):
-        """
-            Create a bit-vector sort.
-
-            :param size: The bit-width of the bit-vector sort
-            :return: The bit-vector sort
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkBitVectorSort(size)
-
-    def mkFloatingPointSort(self, uint32_t exp, uint32_t sig):
-        """
-            Create a floating-point sort.
-
-            :param exp: The bit-width of the exponent of the floating-point
-                        sort.
-            :param sig: The bit-width of the significand of the floating-point
-                        sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFloatingPointSort(exp, sig)
-
-    def mkFiniteFieldSort(self, size, int base=10):
-        """
-            Create a finite field sort.
-
-            Supports the following arguments:
-
-            - ``Sort mkFiniteFieldSort(int size)``
-            - ``Sort mkFiniteFieldSort(string size)``
-            - ``Sort mkFiniteFieldSort(string size, int base)``
-
-            :param size: The size of the field. Must be a prime-power.
-                         An integer or string of base 10 if the base is not
-                         explicitly given, and else a string in the given base.
-            :param base: The base of the string representation of ``size``.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFiniteFieldSort(size, base)
-
-    def mkDatatypeSort(self, DatatypeDecl dtypedecl):
-        """
-            Create a datatype sort.
-
-            :param dtypedecl: The datatype declaration from which the sort is
-                              created.
-            :return: The datatype sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkDatatypeSort(dtypedecl)
-
-    def mkDatatypeSorts(self, list dtypedecls):
-        """
-            Create a vector of datatype sorts using unresolved sorts. The names
-            of the datatype declarations in dtypedecls must be distinct.
-
-            When constructing datatypes, unresolved sorts are replaced by the
-            datatype sort constructed for the datatype declaration it is
-            associated with.
-
-            :param dtypedecls: The datatype declarations from which the sort is
-                               created.
-            :return: The datatype sorts.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkDatatypeSorts(dtypedecls)
-
-    def mkFunctionSort(self, sorts, Sort codomain):
-        """
-            Create function sort.
-
-            :param sorts: The sort of the function arguments.
-            :param codomain: The sort of the function return value.
-            :return: The function sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFunctionSort(sorts, codomain)
-
-    def mkParamSort(self, str symbolname = None):
-        """
-            Create a sort parameter.
-
-            :param symbol: The name of the sort.
-            :return: The sort parameter.
-
-            .. warning::
-
-                This function is experimental and may change in future versions.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkParamSort(symbolname)
-
-    def mkSkolem(self, id, *indices):
-        """
-            Create a skolem.
-
-            :param id: The skolem id.
-            :param indices: The indices for the skolem.
-            :return: The skolem with the given id and indices.
-        """
-        return self.tm.mkSkolem(id, indices)
-
-    def getNumIndicesForSkolemId(self, id):
-        """
-            Get the number of indices for a skolem id.
-
-            :param id: The skolem id.
-            :return: The number of indice for a skolem with the given id.
-        """
-        return self.tm.getNumIndicesForSkolemId(id)
-
-    def mkPredicateSort(self, *sorts):
-        """
-            Create a predicate sort.
-
-            :param sorts: The list of sorts of the predicate.
-            :return: The predicate sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkPredicateSort(sorts)
-
-    def mkRecordSort(self, *fields):
-        """
-            Create a record sort
-
-            :param fields: The list of fields of the record.
-            :return: The record sort.
-            :note: This function is deprecated and will be removed in a future
-                   release.
-
-            .. warning::
-
-                This function is experimental and may change in future versions.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkRecordSort(fields)
-
-    def mkSetSort(self, Sort elemSort):
-        """
-            Create a set sort.
-
-            :param elemSort: The sort of the set elements.
-            :return: The set sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkSetSort(elemSort)
-
-    def mkBagSort(self, Sort elemSort):
-        """
-            Create a bag sort.
-
-            :param elemSort: The sort of the bag elements.
-            :return: The bag sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkBagSort(elemSort)
-
-    def mkSequenceSort(self, Sort elemSort):
-        """
-            Create a sequence sort.
-
-            :param elemSort: The sort of the sequence elements
-            :return: The sequence sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkSequenceSort(elemSort)
-
-    def mkAbstractSort(self, kind):
-        """
-            Create an abstract sort. An abstract sort represents a sort for a
-            given kind whose parameters and arguments are unspecified.
-
-            Parameter ``kind`` must be the kind of a sort that can be
-            abstracted, i.e., a sort that has indices or argument sorts. For
-            example, :py:obj:`ARRAY_SORT<Kind.ARRAY_SORT>` and
-            :py:obj:`BITVECTOR_SORT <Kind.BITVECTOR_SORT>` can be passed as the
-            to this function, while
-            :py:obj:`INTEGER_SORT <Kind.INTEGER_SORT>` and
-            :py:obj:`STRING_SORT <Kind.STRING_SORT>` cannot.
-
-            .. note::
-                Providing the kind :py:obj:`ABSTRACT_SORT <Kind.ABSTRACT_SORT>`
-                as an argument to this method returns the (fully) unspecified
-                sort, denoted ``?``.
-
-            .. note::
-                Providing a kind of sort that has no indices and a fixed arity
-                of argument sorts will return the sort of ``kind`` whose
-                arguments are the unspecified sort. For example,
-                ``mkAbstractSort(ARRAY_SORT)`` will return the sort
-                ``(ARRAY_SORT ? ?)`` instead of the abstract sort whose
-                abstract kind is py:obj:`ARRAY_SORT <Kind.ARRAY_SORT>`.
-
-            :param k: The kind of the abstract sort
-            :return: The abstract sort.
-
-            .. warning::
-
-                This function is experimental and may change in future versions.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkAbstractSort(kind)
-
-    def mkUninterpretedSort(self, str name = None):
-        """
-            Create an uninterpreted sort.
-
-            :param symbol: The name of the sort.
-            :return: The uninterpreted sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkUninterpretedSort(name)
-
-    def mkUnresolvedDatatypeSort(self, str name, size_t arity = 0):
-        """
-            Create an unresolved datatype sort.
-
-            This is for creating yet unresolved sort placeholders for mutually
-            recursive datatypes.
-
-            :param symbol: The name of the sort.
-            :param arity: The number of sort parameters of the sort.
-            :return: The unresolved sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkUnresolvedDatatypeSort(name, arity)
-
-    def mkUninterpretedSortConstructorSort(self, size_t arity, str symbol = None):
-        """
-            Create a sort constructor sort.
-
-            An uninterpreted sort constructor is an uninterpreted sort with
-            arity > 0.
-
-            :param symbol: The symbol of the sort.
-            :param arity: The arity of the sort (must be > 0).
-            :return: The sort constructor sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkUninterpretedSortConstructorSort(arity, symbol)
-
-    def mkTupleSort(self, *sorts):
-        """
-            Create a tuple sort.
-
-            :param sorts: Of the elements of the tuple.
-            :return: The tuple sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkTupleSort(sorts)
-
-    def mkNullableSort(self, Sort elemSort):
-        """
-            Create a nullable sort.
-
-            :param elemSort: The sort of the element of the nullable.
-            :return: The nullable sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkNullableSort(elemSort)
-
-    def mkTerm(self, kind_or_op, *args):
-        """
-            Create a term.
-
-            Supports the following arguments:
-
-            - ``Term mkTerm(Kind kind)``
-            - ``Term mkTerm(Op op)``
-            - ``Term mkTerm(Kind kind, *args)``
-            - ``Term mkTerm(Op op, *args)``
-
-            where ``*args`` is a comma-separated list of terms.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkTerm(kind_or_op, *args)
-
-    def mkTuple(self, terms):
-        """
-            Create a tuple term. Terms are automatically converted if sorts are
-            compatible.
-
-            :param terms: The elements in the tuple.
-            :return: The tuple Term.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkTuple(terms)
-
-    def mkNullableSome(self, Term term):
-        """
-            Create a nullable some term.
-
-            :param term: The elements value.
-            :return: The element value wrapped in some constructor.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkNullableSome(term)
-
-    def mkNullableVal(self, Term term):
-        """
-            Create a selector for nullable term.
-
-            :param term: A nullable term.
-            :return: The element value of the nullable term.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkNullableVal(term)
-
-    def mkNullableIsNull(self, Term term):
-        """
-            Create a null tester for a nullable term.
-
-            :param term: A nullable term.
-            :return: A tester whether term is null.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkNullableIsNull(term)
-
-    def mkNullableIsSome(self, Term term):
-        """
-            Create a some tester for a nullable term.
-
-            :param term: A nullable term.
-            :return: A tester whether term is some.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkNullableIsSome(term)
-
-    def mkNullableNull(self, Sort sort):
-        """
-            Create a constant representing an null of the given sort.
-
-            :param term: The sort of the Nullable element.
-            :return: The null constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkNullableNull(sort)
-
-    def mkNullableLift(self, kind, *args):
-        """
-            Create a term that lifts kind to nullable terms.
-            Example:
-            If we have the term ((_ nullable.lift +) x y),
-            where x, y of type (Nullable Int), then
-            kind would be ADD, and args would be [x, y].
-            This function would return
-            (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
-
-            :param kind: The lifted operator.
-            :param args: The arguments of the lifted operator.
-            :return: A term of Kind NULLABLE_LIFT where the first child
-                     is a lambda expression, and the remaining children are
-                     the original arguments.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkNullableLift(kind, *args)
-
-    def mkOp(self, k, *args):
-        """
-            Create operator.
-
-            Supports the following arguments:
-
-            - ``Op mkOp(Kind kind)``
-            - ``Op mkOp(Kind kind, const string& arg)``
-            - ``Op mkOp(Kind kind, uint32_t arg0, ...)``
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkOp(k, *args)
-
-    def mkTrue(self):
-        """
-            Create a Boolean true constant.
-
-            :return: The true constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkTrue()
-
-    def mkFalse(self):
-        """
-            Create a Boolean false constant.
-
-            :return: The false constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFalse()
-
-    def mkBoolean(self, bint val):
-        """
-            Create a Boolean constant.
-
-            :param val: The value of the constant.
-            :return: The Boolean constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkBoolean(val)
-
-    def mkPi(self):
-        """
-            Create a constant representing the number Pi.
-
-            :return: A constant representing :py:obj:`PI <Kind.PI>`.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkPi()
-
-    def mkInteger(self, val):
-        """
-            Create an integer constant.
-
-            :param val: Representation of the constant: either a string or
-                        integer.
-            :return: A constant of sort Integer.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkInteger(val)
-
-    def mkReal(self, numerator, denominator=None):
-        """
-            Create a real constant from a numerator and an optional denominator.
-
-            First converts the arguments to a temporary string, either
-            ``"<numerator>"`` or ``"<numerator>/<denominator>"``. This temporary
-            string is forwarded to :cpp:func:`cvc5::TermManager::mkReal()` and should
-            thus represent an integer, a decimal number or a fraction.
-
-            :param numerator: The numerator.
-            :param denominator: The denominator, or ``None``.
-            :return: A real term with literal value.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkReal(numerator, denominator)
-
-    def mkRegexpAll(self):
-        """
-            Create a regular expression all (``re.all``) term.
-
-            :return: The all term.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkRegexpAll()
-
-    def mkRegexpAllchar(self):
-        """
-            Create a regular expression allchar (``re.allchar``) term.
-
-            :return: The allchar term.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkRegexpAllchar()
-
-    def mkRegexpNone(self):
-        """
-            Create a regular expression none (``re.none``) term.
-
-            :return: The none term.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkRegexpNone()
-
-    def mkEmptySet(self, Sort s):
-        """
-            Create a constant representing an empty set of the given sort.
-
-            :param sort: The sort of the set elements.
-            :return: The empty set constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkEmptySet(s)
-
-    def mkEmptyBag(self, Sort s):
-        """
-            Create a constant representing an empty bag of the given sort.
-
-            :param sort: The sort of the bag elements.
-            :return: The empty bag constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkEmptyBag(s)
-
-    def mkSepEmp(self):
-        """
-            Create a separation logic empty term.
-
-            :return: The separation logic empty term.
-
-            .. warning::
-
-                This function is experimental and may change in future versions.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkSepEmp()
-
-    def mkSepNil(self, Sort sort):
-        """
-            Create a separation logic nil term.
-
-            :param sort: The sort of the nil term.
-            :return: The separation logic nil term.
-
-            .. warning::
-
-                This function is experimental and may change in future versions.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkSepNil(sort)
-
-    def mkString(self, str s, useEscSequences = None):
-        """
-            Create a String constant from a ``str`` which may contain SMT-LIB
-            compatible escape sequences like ``\\u1234`` to encode unicode
-            characters.
-
-            :param s: The string this constant represents.
-            :param useEscSequences: Determines whether escape sequences in `s`
-                                    should be converted to the corresponding
-                                    unicode character
-            :return: The String constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkString(s, useEscSequences)
-
-    def mkEmptySequence(self, Sort sort):
-        """
-            Create an empty sequence of the given element sort.
-
-            :param sort: The element sort of the sequence.
-            :return: The empty sequence with given element sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkEmptySequence(sort)
-
-    def mkUniverseSet(self, Sort sort):
-        """
-            Create a universe set of the given sort.
-
-            :param sort: The sort of the set elements
-            :return: The universe set constant
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkUniverseSet(sort)
-
-    def mkBitVector(self, int size, *args):
-        """
-            Create bit-vector value.
-
-            Supports the following arguments:
-
-            - ``Term mkBitVector(int size, int val=0)``
-            - ``Term mkBitVector(int size, string val, int base)``
-
-            :param size: The bit-width.
-            :param val: An integer representating the value, in the first form.
-                        In the second form, a string representing the value.
-            :param base: The base of the string representation (second form
-                         only).
-            :return: A Term representing a bit-vector value.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkBitVector(size, *args)
-
-    def mkFiniteFieldElem(self, value, Sort sort, int base=10):
-        """
-            Create finite field value.
-
-            Supports the following arguments:
-
-            - ``Term mkFiniteFieldElem(int value, Sort sort)``
-            - ``Term mkFiniteFieldElem(string value, Sort sort)``
-            - ``Term mkFiniteFieldElem(string value, Sort sort, int base)``
-
-            :param value: The value of the element's integer representation.
-                          An integer or string of base 10 if the base is not
-                          explicitly given, and else a string in the given base.
-            :param sort: The field to create the element in.
-            :param base: The base of the string representation of ``value``.
-            :return: A Term representing a finite field value.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFiniteFieldElem(value, sort, base)
-
-    def mkConstArray(self, Sort sort, Term val):
-        """
-            Create a constant array with the provided constant value stored at
-            every index
-
-            :param sort: The sort of the constant array (must be an array sort).
-            :param val: The constant value to store (must match the sort's
-                        element sort).
-            :return: The constant array term.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkConstArray(sort, val)
-
-    def mkFloatingPointPosInf(self, int exp, int sig):
-        """
-            Create a positive infinity floating-point constant.
-
-            :param exp: Number of bits in the exponent.
-            :param sig: Number of bits in the significand.
-            :return: The floating-point constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFloatingPointPosInf(exp, sig)
-
-    def mkFloatingPointNegInf(self, int exp, int sig):
-        """
-            Create a negative infinity floating-point constant.
-
-            :param exp: Number of bits in the exponent.
-            :param sig: Number of bits in the significand.
-            :return: The floating-point constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFloatingPointNegInf(exp, sig)
-
-    def mkFloatingPointNaN(self, int exp, int sig):
-        """
-            Create a not-a-number (NaN) floating-point constant.
-
-            :param exp: Number of bits in the exponent.
-            :param sig: Number of bits in the significand.
-            :return: The floating-point constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFloatingPointNaN(exp, sig)
-
-    def mkFloatingPointPosZero(self, int exp, int sig):
-        """
-            Create a positive zero (+0.0) floating-point constant.
-
-            :param exp: Number of bits in the exponent.
-            :param sig: Number of bits in the significand.
-            :return: The floating-point constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFloatingPointPosZero(exp, sig)
-
-    def mkFloatingPointNegZero(self, int exp, int sig):
-        """
-            Create a negative zero (+0.0) floating-point constant.
-
-            :param exp: Number of bits in the exponent.
-            :param sig: Number of bits in the significand.
-            :return: The floating-point constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFloatingPointNegZero(exp, sig)
-
-    def mkRoundingMode(self, rm):
-        """
-            Create a roundingmode constant.
-
-            :param rm: The floating point rounding mode this constant
-                       represents.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkRoundingMode(rm)
-
-    def mkFloatingPoint(self, arg0, arg1, Term arg2):
-        """
-            Create a floating-point value from a bit-vector given in IEEE-754
-            format, or from its three IEEE-754 bit-vector value components
-            (sign bit, exponent, significand). Arguments must be either given
-            as (int, int, Term) or (Term, Term, Term).
-
-            :param arg0: The size of the exponent or the sign bit.
-            :param arg1: The size of the signifcand or the bit-vector
-                         representing the exponent.
-            :param arg2: The value of the floating-point constant as a
-                         bit-vector term or the bit-vector representing the
-                         significand.
-            :return: The floating-point value.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkFloatingPoint(arg0, arg1, arg2)
-
-    def mkCardinalityConstraint(self, Sort sort, int index):
-        """
-            Create cardinality constraint.
-
-            .. warning::
-
-                This function is experimental and may change in future versions.
-
-            :param sort: Sort of the constraint.
-            :param index: The upper bound for the cardinality of the sort.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkCardinalityConstraint(sort, index)
-
-    def mkConst(self, Sort sort, symbol=None):
-        """
-            Create (first-order) constant (0-arity function symbol).
-
-            SMT-LIB:
-
-            .. code-block:: smtlib
-
-                ( declare-const <symbol> <sort> )
-                ( declare-fun <symbol> ( ) <sort> )
-
-            :param sort: The sort of the constant.
-            :param symbol: The name of the constant. If None, a default symbol
-                           is used.
-            :return: The first-order constant.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkConst(sort, symbol)
-
-    def mkVar(self, Sort sort, symbol=None):
-        """
-            Create a bound variable to be used in a binder (i.e. a quantifier,
-            a lambda, or a witness binder).
-
-            :param sort: The sort of the variable.
-            :param symbol: The name of the variable.
-            :return: The variable.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkVar(sort, symbol)
-
-    def mkDatatypeConstructorDecl(self, str name):
-        """
-            Create datatype constructor declaration.
-
-            :param name: The name of the constructor.
-            :return: The datatype constructor declaration.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkDatatypeConstructorDecl(name)
-
-    def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
-        """
-            Create a datatype declaration.
-
-            :param name: The name of the datatype.
-            :param isCoDatatype: True if a codatatype is to be constructed.
-            :return: The datatype declaration.
-
-            .. warning::
-
-                This function is deprecated and will be removed in a future
-                release.
-        """
-        return self.tm.mkDatatypeDecl(name, sorts_or_bool, isCoDatatype)
 
     def simplify(self, Term t not None, applySubs=False):
         """
@@ -3348,7 +2374,11 @@ cdef class Solver:
                               variables.
             :return: The simplified term.
         """
-        return _term(self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
+        try:
+            return _term(
+                self.tm, self.csolver.simplify(t.cterm, <bint> applySubs))
+        finally:
+            self._checkTerminator()
 
     def assertFormula(self, Term term not None):
         """
@@ -3377,29 +2407,11 @@ cdef class Solver:
             :return: The result of the satisfiability check.
         """
         cdef Result r = Result()
-        r.cr = self.csolver.checkSat()
+        try:
+            r.cr = self.csolver.checkSat()
+        finally:
+            self._checkTerminator()
         return r
-
-    def mkGrammar(self, boundVars, ntSymbols):
-        """
-            Create a SyGuS grammar. The first non-terminal is treated as the
-            starting non-terminal, so the order of non-terminals matters.
-
-            :param boundVars: The parameters to corresponding
-                              synth-fun/synth-inv.
-            :param ntSymbols: The pre-declaration of the non-terminal symbols.
-            :return: The grammar.
-        """
-        cdef vector[c_Term] bvc
-        cdef vector[c_Term] ntc
-        for bv in boundVars:
-            bvc.push_back((<Term?> bv).cterm)
-        for nt in ntSymbols:
-            ntc.push_back((<Term?> nt).cterm)
-        return _grammar(
-            self.tm,
-            self.csolver.mkGrammar(
-              <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
 
     def declareSygusVar(self, str symbol, Sort sort not None):
         """
@@ -3536,7 +2548,10 @@ cdef class Solver:
                      there is no solution, or "unknown" otherwise.
         """
         cdef SynthResult r = SynthResult()
-        r.cr = self.csolver.checkSynth()
+        try:
+            r.cr = self.csolver.checkSynth()
+        finally:
+            self._checkTerminator()
         return r
 
     def checkSynthNext(self):
@@ -3559,7 +2574,10 @@ cdef class Solver:
                      there is no solution, or "unknown" otherwise.
         """
         cdef SynthResult r = SynthResult()
-        r.cr = self.csolver.checkSynthNext()
+        try:
+            r.cr = self.csolver.checkSynthNext()
+        finally:
+            self._checkTerminator()
         return r
 
     def getSynthSolution(self, Term term not None):
@@ -3608,12 +2626,19 @@ cdef class Solver:
                      call failed.
         """
         if grammar is None:
+            try:
+                return _term(
+                    self.tm,
+                    self.csolver.findSynth(<c_FindSynthTarget> fst.value))
+            finally:
+                self._checkTerminator()
+        try:
             return _term(
-                self.tm, self.csolver.findSynth(<c_FindSynthTarget> fst.value))
-        return _term(
-            self.tm,
-            self.csolver.findSynth(
-              <c_FindSynthTarget> fst.value, grammar.cgrammar))
+                self.tm,
+                self.csolver.findSynth(
+                  <c_FindSynthTarget> fst.value, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
     def findSynthNext(self):
         """
@@ -3632,7 +2657,10 @@ cdef class Solver:
             :return: The result of the find, which is the null term if this
                      call failed.
         """
-        return _term(self.tm, self.csolver.findSynthNext())
+        try:
+            return _term(self.tm, self.csolver.findSynthNext())
+        finally:
+            self._checkTerminator()
 
     def checkSatAssuming(self, *assumptions):
         """
@@ -3652,7 +2680,10 @@ cdef class Solver:
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        try:
+            r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        finally:
+            self._checkTerminator()
         return r
 
     def declareDatatype(self, str symbol, *ctors):
@@ -3777,7 +2808,8 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
+            Create elements of parameter ``funs`` with
+            :py:meth:`TermManager.mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -3815,7 +2847,8 @@ cdef class Solver:
 
                 ( define-funs-rec ( <function_decl>^n ) ( <term>^n ) )
 
-            Create elements of parameter ``funs`` with :py:meth:`mkConst()`.
+            Create elements of parameter ``funs`` with
+            :py:meth:`TermManager.mkConst()`.
 
             :param funs: The sorted functions.
             :param bound_vars: The list of parameters to the functions.
@@ -4177,12 +3210,18 @@ cdef class Solver:
                      specified time
                      :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
                      If the result is unsat, then the list of formulas correspond to an
-                     unsat core for the current assertions. Otherwise, the result is sat,
-                     indicating that the current assertions are satisfiable, and
-                     the list of formulas is empty.
+                     unsat core for the current assertions. If the computation was
+                     terminated by the connected terminator, the result is unknown with
+                     explanation :py:obj:`UnknownExplanation.INTERRUPTED`, and the list
+                     of formulas is empty. Otherwise, the result is sat, indicating that
+                     the current assertions are satisfiable, and the list of formulas
+                     is empty.
         """
         cdef pair[c_Result, vector[c_Term]] res
-        res = self.csolver.getTimeoutCore()
+        try:
+            res = self.csolver.getTimeoutCore()
+        finally:
+            self._checkTerminator()
         core = []
         for a in res.second:
             core.append(_term(self.tm, a))
@@ -4217,14 +3256,21 @@ cdef class Solver:
                      :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`.
                      If the result is unsat, then the list of formulas plus the current
                      assertions correspond to an unsat core for the current assertions.
-                     Otherwise, the result is sat, indicating that the given assumptions plus
-                     the current assertions are satisfiable, and the list of formulas is empty.
+                     If the computation was terminated by the connected terminator, the
+                     result is unknown with explanation
+                     :py:obj:`UnknownExplanation.INTERRUPTED`, and the list of formulas
+                     is empty. Otherwise, the result is sat, indicating that the given
+                     assumptions plus the current assertions are satisfiable, and the
+                     list of formulas is empty.
         """
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
         cdef pair[c_Result, vector[c_Term]] res
-        res = self.csolver.getTimeoutCoreAssuming(v)
+        try:
+            res = self.csolver.getTimeoutCoreAssuming(v)
+        finally:
+            self._checkTerminator()
         core = []
         for ac in res.second:
             core.append(_term(self.tm, ac))
@@ -4250,7 +3296,11 @@ cdef class Solver:
         """
         if isinstance(term_or_list, list):
             return [self.getValue(t) for t in term_or_list]
-        return _term(self.tm, self.csolver.getValue((<Term> term_or_list).cterm))
+        try:
+            return _term(
+                self.tm, self.csolver.getValue((<Term> term_or_list).cterm))
+        finally:
+            self._checkTerminator()
 
     def getModelDomainElements(self, Sort s not None):
         """
@@ -4323,7 +3373,11 @@ cdef class Solver:
                      - :math:`\\phi` is quantifier-free formula containing only
                        free constants in :math:`y_1...y_j`.
         """
-        return _term(self.tm, self.csolver.getQuantifierElimination(term.cterm))
+        try:
+            return _term(
+                self.tm, self.csolver.getQuantifierElimination(term.cterm))
+        finally:
+            self._checkTerminator()
 
     def getQuantifierEliminationDisjunct(self, Term term not None):
         """
@@ -4381,9 +3435,12 @@ cdef class Solver:
                    In either case, we have that :math:`(\\phi \\wedge Q_j)`
                    will eventually be true or false, for some finite :math:`j`.
         """
-        return _term(
-            self.tm,
-            self.csolver.getQuantifierEliminationDisjunct(term.cterm))
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getQuantifierEliminationDisjunct(term.cterm))
+        finally:
+            self._checkTerminator()
 
     def getModel(self, sorts, consts):
         """
@@ -4493,6 +3550,46 @@ cdef class Solver:
         """
         cdef c_Plugin* ptr = <c_Plugin*> p.cplugin
         self.csolver.addPlugin(dereference(ptr))
+
+    def setTerminator(self, Terminator t):
+        """
+            Connect a terminator to this solver, which is called periodically
+            during queries to determine whether the current query should be
+            terminated. See :py:class:`Terminator` for details.
+
+            Only one terminator can be connected at a time, connecting a
+            terminator disconnects the previously connected terminator.
+
+            .. warning::
+
+                This function is experimental and may change in future
+                versions.
+
+            :param t: The terminator to connect, or None to disconnect the
+                      currently connected terminator.
+        """
+        cdef _TerminatorConnection c = None
+        if t is None:
+            self.csolver.setTerminator(NULL)
+        else:
+            c = _TerminatorConnection(t)
+            self.csolver.setTerminator(<c_Terminator*> c.cterminator)
+        # releases the previous connection, after it was disconnected
+        self.terminator = c
+
+    cdef _checkTerminator(self):
+        """
+            Re-raise the exception raised by the connected terminator during
+            the last query, if any. Must be called by all methods that execute
+            queries when the query returns, also if it raised an exception
+            (i.e., in a ``finally`` block). The exception of the terminator
+            then replaces the exception of the query.
+        """
+        cdef _TerminatorConnection c = self.terminator
+        if c is not None and c.exception is not None:
+            e = c.exception
+            c.exception = None
+            raise e
 
     def pop(self, nscopes=1):
         """
@@ -4636,10 +3733,16 @@ cdef class Solver:
             :return: The interpolant, if such a term exists.
         """
         if grammar is None:
-            return _term(self.tm, self.csolver.getInterpolant(conj.cterm))
-        return _term(
-            self.tm,
-            self.csolver.getInterpolant(conj.cterm, grammar.cgrammar))
+            try:
+                return _term(self.tm, self.csolver.getInterpolant(conj.cterm))
+            finally:
+                self._checkTerminator()
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getInterpolant(conj.cterm, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
 
     def getInterpolantNext(self):
@@ -4669,7 +3772,10 @@ cdef class Solver:
             :param output: The term where the result will be stored.
             :return: True iff an interpolant was found.
         """
-        return _term(self.tm, self.csolver.getInterpolantNext())
+        try:
+            return _term(self.tm, self.csolver.getInterpolantNext())
+        finally:
+            self._checkTerminator()
 
 
     def getAbduct(self, Term conj not None, Grammar grammar=None):
@@ -4696,10 +3802,16 @@ cdef class Solver:
                      See :cpp:func:`cvc5::Solver::getAbduct` for details.
         """
         if grammar is None:
-            return _term(self.tm, self.csolver.getAbduct(conj.cterm))
-        return _term(
-            self.tm,
-            self.csolver.getAbduct(conj.cterm, grammar.cgrammar))
+            try:
+                return _term(self.tm, self.csolver.getAbduct(conj.cterm))
+            finally:
+                self._checkTerminator()
+        try:
+            return _term(
+                self.tm,
+                self.csolver.getAbduct(conj.cterm, grammar.cgrammar))
+        finally:
+            self._checkTerminator()
 
     def getAbductNext(self):
         """
@@ -4727,7 +3839,10 @@ cdef class Solver:
             :param output: The term where the result will be stored.
             :return: True iff an abduct was found.
         """
-        return _term(self.tm, self.csolver.getAbductNext())
+        try:
+            return _term(self.tm, self.csolver.getAbductNext())
+        finally:
+            self._checkTerminator()
 
     def blockModel(self, mode):
         """
@@ -6256,6 +5371,15 @@ cdef class Proof:
 
 
 cdef public api:
+    bint cy_call_terminate(object self) noexcept:
+        cdef _TerminatorConnection c = <_TerminatorConnection> self
+        try:
+            return bool(c.terminator.terminate())
+        except BaseException as e:
+            # terminate the query, the exception is re-raised by the solver
+            c.exception = e
+            return True
+
     string cy_call_string_func(object self, string method, string *error):
         try:
             func = getattr(self, method.decode())

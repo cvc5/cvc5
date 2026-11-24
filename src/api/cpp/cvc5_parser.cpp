@@ -64,10 +64,6 @@ SymbolManager::SymbolManager(cvc5::TermManager& tm)
 {
   d_sm.reset(new SymManager(tm));
 }
-SymbolManager::SymbolManager(cvc5::Solver* slv)
-{
-  d_sm.reset(new SymManager(slv->getTermManager()));
-}
 
 SymbolManager::~SymbolManager() {}
 
@@ -478,6 +474,9 @@ ParserEndOfFileException::ParserEndOfFileException(const std::string& msg,
     : ParserException(msg, filename, line, column)
 {
 }
+
+// Defined here so that it is the key function (see ~CVC5ApiException()).
+ParserEndOfFileException::~ParserEndOfFileException() = default;
 
 }  // namespace parser
 }  // namespace cvc5

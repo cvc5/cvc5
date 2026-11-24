@@ -31,11 +31,15 @@
 ; return: >
 ;   The type of a lambda having the list of variables L and
 ;   body type B.
-(program $get_lambda_type ((x @List) (xs @List :list) (B Type))
+; note: >
+;   L must be a list of variables (constructed by eo::var). Otherwise, this
+;   program does not evaluate.
+(program $get_lambda_type
+  ((T Type) (U Type) (s U) (xs @List :list) (B Type))
   :signature (@List Type) Type
   (
-  (($get_lambda_type (@list x xs) B)
-    (-> (eo::typeof x) ($get_lambda_type xs B)))
+  (($get_lambda_type (@list (eo::var s T) xs) B)
+    (-> T ($get_lambda_type xs B)))
   (($get_lambda_type @list.nil B) B)
   )
 )

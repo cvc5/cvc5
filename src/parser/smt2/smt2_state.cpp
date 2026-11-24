@@ -531,6 +531,10 @@ Term Smt2State::mkIndexedConstant(const std::string& name,
       parseError("Unexpected number of numerals for bit-vector constant.");
     }
     std::string bvStr = name.substr(2);
+    if (!isNumeral(bvStr))
+    {
+      parseError("Expected a numeral in bit-vector constant `" + name + "'");
+    }
     return d_tm.mkBitVector(numerals[0], bvStr, 10);
   }
 
@@ -605,6 +609,10 @@ Term Smt2State::mkIndexedOp(Kind k,
       }
       // get the datatype that f belongs to
       Sort sf = f.getSort().getDatatypeConstructorCodomainSort();
+      if (sf.isTuple())
+      {
+        parseError("Bad syntax for (_ is X), X cannot be a tuple constructor.");
+      }
       Datatype d = sf.getDatatype();
       // lookup by name, using the raw symbol since toString() may print
       // the name as a quoted symbol, e.g. |C,|
@@ -746,7 +754,6 @@ std::unique_ptr<Cmd> Smt2State::invConstraint(
 
 void Smt2State::setLogic(std::string name)
 {
-  bool smLogicAlreadySet = getSymbolManager()->isLogicSet();
   // if logic is already set, this is an error
   if (d_logicSet)
   {
@@ -1019,23 +1026,21 @@ void Smt2State::setLogic(std::string name)
   }
 
   // Builtin symbols of the logic are declared at context level zero, hence
-  // we push the outermost scope in the symbol manager here.
-  // We only do this if the logic has not already been set, in which case we
-  // have already pushed the outermost context (and this method redeclares the
-  // symbols which does not impact the symbol manager).
+  // we push the outermost scope in the symbol manager here, if it was not
+  // already pushed (in which case this method redeclares the symbols which
+  // does not impact the symbol manager). Note we cannot check whether the
+  // logic of the symbol manager is set instead, since a forced logic is set
+  // in the symbol manager before this method is called.
   // TODO (cvc5-projects #693): refactor this so that this method is moved to
   // the symbol manager and only called once per symbol manager.
-  if (!smLogicAlreadySet)
-  {
-    pushScope(true);
-  }
+  getSymbolManager()->pushOutermostScope();
 }
 
 Grammar* Smt2State::mkGrammar(const std::vector<Term>& boundVars,
                               const std::vector<Term>& ntSymbols)
 {
   d_allocGrammars.emplace_back(
-      new Grammar(d_solver->mkGrammar(boundVars, ntSymbols)));
+      new Grammar(d_tm.mkGrammar(boundVars, ntSymbols)));
   return d_allocGrammars.back().get();
 }
 

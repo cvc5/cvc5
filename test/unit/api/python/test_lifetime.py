@@ -158,7 +158,7 @@ def test_grammar_outlives_solver_and_term_manager():
     solver.setOption("sygus", "true")
     b = tm.getBooleanSort()
     start = tm.mkVar(b)
-    g = solver.mkGrammar([], [start])
+    g = tm.mkGrammar([], [start])
     g.addRule(start, tm.mkBoolean(False))
     del solver
     del tm

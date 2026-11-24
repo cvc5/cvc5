@@ -63,8 +63,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(ProofRule::TRUST_THEORY_REWRITE, this, 4);
   // trusted rules
   pc->registerTrustedChecker(ProofRule::TRUST, this, 1);
-  // external proof rules
-  pc->registerChecker(ProofRule::ALETHE_RULE, this);
 
   d_rdb = pc->getRewriteDatabase();
 }
@@ -471,12 +469,6 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
-  else if (id == ProofRule::ALETHE_RULE)
-  {
-    Assert(args.size() > 1);
-    Assert(args[0].getType().isInteger());
-    return args[1];
-  }
   else if (id == ProofRule::ENCODE_EQ_INTRO)
   {
     Assert(children.empty());
@@ -534,8 +526,18 @@ Node BuiltinProofRuleChecker::checkInternal(ProofRule id,
     {
       return Node::null();
     }
-    Node rhs = d_rewriter->rewriteViaRule(di, args[1][0]);
-    if (rhs.isNull() || rhs != args[1][1])
+    // Some rules conclude an equality whose left hand side is the (trivially
+    // true) premise of the rule, e.g. DT_INST for tuples, which concludes
+    //   (= true (= t (tuple ...))).
+    // The constant true does not determine the right hand side, hence we check
+    // such conclusions in their symmetric form, i.e. we check that the right
+    // hand side rewrites to true.
+    bool isPrem = args[1][0].isConst() && args[1][0].getType().isBoolean()
+                  && args[1][0].getConst<bool>();
+    Node lhs = isPrem ? args[1][1] : args[1][0];
+    Node rhs = isPrem ? args[1][0] : args[1][1];
+    Node rr = d_rewriter->rewriteViaRule(di, lhs);
+    if (rr.isNull() || rr != rhs)
     {
       return Node::null();
     }

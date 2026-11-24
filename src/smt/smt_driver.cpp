@@ -32,6 +32,7 @@ SmtDriver::SmtDriver(Env& env, SmtSolver& smt, ContextManager* ctx)
       d_ctx(ctx),
       d_ap(env),
       d_illegalChecker(env),
+      d_hasAssumptions(false),
       d_modelVerifier(env),
       d_satFromModelVerify(false)
 {
@@ -53,6 +54,7 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
   {
     d_ctx->notifyCheckSat(hasAssumptions);
   }
+  d_hasAssumptions = hasAssumptions;
   Assertions& as = d_smt.getAssertions();
   Result result;
   try
@@ -69,12 +71,19 @@ Result SmtDriver::checkSat(const std::vector<Node>& assumptions)
     Trace("smt") << "SmtSolver::check()" << std::endl;
 
     ResourceManager* rm = d_env.getResourceManager();
-    // if we are already out of (cumulative) resources
+    // if we are already out of (cumulative) resources, or termination has
+    // been requested
     if (rm->out())
     {
-      UnknownExplanation why = rm->outOfResources()
-                                   ? UnknownExplanation::RESOURCEOUT
-                                   : UnknownExplanation::TIMEOUT;
+      UnknownExplanation why = UnknownExplanation::INTERRUPTED;
+      if (rm->outOfResources())
+      {
+        why = UnknownExplanation::RESOURCEOUT;
+      }
+      else if (rm->outOfTime())
+      {
+        why = UnknownExplanation::TIMEOUT;
+      }
       result = Result(Result::UNKNOWN, why);
     }
     else
@@ -236,7 +245,7 @@ Result SmtDriverSingleCall::checkSatNext(preprocessing::AssertionPipeline& ap)
   }
 
   // assert to internal
-  d_smt.assertToInternal(ap);
+  d_smt.assertToInternal(ap, d_hasAssumptions);
   // get result
   Result result = d_smt.checkSatInternal();
   // handle preprocessing-specific modifications to result

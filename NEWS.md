@@ -1,12 +1,69 @@
 This file contains a summary of important user-visible changes.
 
-cvc5 1.4.3 prerelease
+cvc5 1.5.0 prerelease
 =====================
 
+- Added a **terminator** to the C++, C, Python and Java APIs (class
+  `Terminator` and `Solver::setTerminator()`, `cvc5_set_terminator()` in C,
+  interface `ITerminator` in Java), which allows to terminate running queries,
+  e.g., from another thread. Terminated queries return `unknown` with
+  explanation `UnknownExplanation::INTERRUPTED`. In Python, this also allows to
+  interrupt queries via `Ctrl-C` while a terminator is connected.
     
 - Fixes a bug where function definitions did not invalidate previous
   satisfiability query results, allowing access to stale models and other
   query-dependent information. (#13077)
+
+- **Arithmetic**: Added a new extension of the arithmetic solver for solving
+  liastar (LIA*) constraints. The new predicate `int.star-contains` denotes
+  membership in a star set. The extension depends on Normaliz, which is
+  available in builds configured with `--normaliz` (requires `--gpl`); other
+  builds raise a logic exception.
+
+- **API**
+  * Removed all previously deprecated API functions.
+    **Note**: this is a breaking change.
+    - **C++**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars (`Solver::getBooleanSort()`,
+      `Solver::mkTerm()`, `Solver::mkConst()`, `Solver::mkGrammar()`, ...),
+      use the corresponding `TermManager` functions instead; constructor
+      `Solver::Solver()`, use `Solver::Solver(TermManager&)`; constructor
+      `parser::SymbolManager(Solver*)`, use
+      `parser::SymbolManager(TermManager&)`; `std::wstring
+      Term::getStringValue()` and `TermManager::mkString(const std::wstring&)`,
+      use `Term::getU32StringValue()` and
+      `TermManager::mkString(const std::u32string&)`; `kindToString()` and
+      `sortKindToString()`, use `std::to_string()`; fields
+      `OptionInfo::isExpert` and `OptionInfo::isRegular`, use
+      `OptionInfo::category`.
+    - **C**: `cvc5_term_get_string_value()`, use
+      `cvc5_term_get_u32string_value()`; `cvc5_mk_string_from_wchar()`, use
+      `cvc5_mk_string_from_char32()`; fields `Cvc5OptionInfo::is_expert` and
+      `Cvc5OptionInfo::is_regular`, use `Cvc5OptionInfo::category`.
+    - **Java**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars, use the corresponding `TermManager`
+      functions instead; constructor `Solver()`, use `Solver(TermManager)`;
+      constructor `SymbolManager(Solver)`, use `SymbolManager(TermManager)`;
+      class `Context` (`Context.deletePointers()`), native memory is now
+      released automatically (see below) and can be released
+      deterministically via `deletePointer()` or `TermManager.close()`.
+    - **Python**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars, use the corresponding `TermManager`
+      functions instead, including `Solver.mkSkolem()` and
+      `Solver.getNumIndicesForSkolemId()`; constructing a `SymbolManager` from
+      a `Solver`, use `SymbolManager(TermManager)`. A `Solver` must now be
+      constructed from a `TermManager` (`Solver(tm)`); `Solver()` no longer
+      implicitly creates a new term manager.
+  * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
+    (Java, Python) for creating SyGuS grammars. A grammar is associated with
+    a term manager, not with a solver, and can be used with any solver
+    instance that uses this term manager.
+  * **C API**: `cvc5_mk_grammar()` now takes a term manager
+    (`Cvc5TermManager*`) instead of a solver instance (`Cvc5*`). Grammars are
+    now managed by the term manager, like sorts and terms: they are no longer
+    released when the solver is deleted, but via `cvc5_grammar_release()` or
+    `cvc5_term_manager_release()`.
+    **Note**: this is a breaking change.
   
 - **C++ API**
   * `Statistics::begin()` now skips internal and defaulted statistics by
@@ -23,10 +80,13 @@ cvc5 1.4.3 prerelease
     without contention or unbounded memory growth. Memory can still be
     released deterministically via `deletePointer()`; `TermManager`, `Solver`,
     `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
-    `Context.deletePointers()` is deprecated.
+    `TermManager.close()` frees the native objects of a term manager and of
+    all objects derived from it at once, without waiting for the garbage
+    collector, while `TermManager.deletePointer()` frees only the term
+    manager itself and keeps the objects derived from it usable.
   * Using an object after its native memory has been released, via
-    `deletePointer()`, `close()` or `Context.deletePointers()`, now raises an
-    `IllegalStateException` instead of crashing the JVM.
+    `deletePointer()` or `close()`, now raises an `IllegalStateException`
+    instead of crashing the JVM.
   * `Solver.getTermManager()` now returns the same `TermManager` object on
     every call, which is equal to the term manager the solver was created
     with, and `InputParser.getSolver()` and `InputParser.getSymbolManager()`
@@ -45,6 +105,27 @@ cvc5 1.4.3 prerelease
   manager is now thread-safe. Previously, the losing thread crashed the
   process with an uncaught `CoCoA::ErrorInfo` exception.
 
+- Fixed incorrect encodings in SymFPU for some **experimental floating-point
+  formats** (`--fp-exp`), which could cause wrong answers, invalid models,
+  errors ("resulting bit-vector size is too large") or assertion failures.
+  If cvc5 is configured without MPFR,
+  this also affected constant folding. Formats Float16, Float32, Float64 and
+  Float128 are not affected. Affected were:
+  * `fp.roundToIntegral` and `to_fp` conversions from floating-point and
+    signed/unsigned bit-vector terms, e.g., in `(_ FloatingPoint 3 4)` and
+    `(_ FloatingPoint 3 5)`.
+  * Formats with significand size <= 3, e.g., `(_ FloatingPoint 2 3)`
+    (#13072), and formats with exponent size 2 and a significand size that is
+    a power of two, e.g., `(_ FloatingPoint 2 4)`.
+
+  The SymFPU version built by cvc5 is now patched to fix these issues
+  (`cmake/deps-utils/symfpu-*.patch`). A system-wide SymFPU is only used if
+  it includes these patches.
+
+- **Coverings**: fix a bug on `makeFinestSquareFreeBasis`. In certain cases
+  this function was returning a set of polynomials that are not pairwise
+  coprime, which led to wrong answers by the coverings solver. We fix this
+  on PR #13184.
 
 cvc5 1.4.2
 ==========

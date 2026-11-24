@@ -66,6 +66,22 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
   {
     case ProofRewriteRule::DT_INST:
     {
+      if (n.getKind() == Kind::EQUAL)
+      {
+        // The tuple form of this rule, which concludes
+        // (= true (= t (tuple ...))), see ProofRewriteRule::DT_INST.
+        TypeNode tn = n[0].getType();
+        if (!tn.isTuple())
+        {
+          return Node::null();
+        }
+        // Note that we set shared selectors to false, as in the case below.
+        if (n[1] != utils::getInstCons(n[0], tn.getDType(), 0, false))
+        {
+          return Node::null();
+        }
+        return nodeManager()->mkConst(true);
+      }
       if (n.getKind() != Kind::APPLY_TESTER)
       {
         return Node::null();
@@ -73,6 +89,11 @@ Node DatatypesRewriter::rewriteViaRule(ProofRewriteRule id, const Node& n)
       Node t = n[0];
       TypeNode tn = t.getType();
       Assert(tn.isDatatype());
+      if (tn.isTuple())
+      {
+        // Tuples use the form above.
+        return Node::null();
+      }
       const DType& dt = tn.getDType();
       size_t i = utils::indexOf(n.getOperator());
       // Note that we set shared selectors to false. This proof rule will
@@ -1160,6 +1181,11 @@ Node DatatypesRewriter::expandUpdater(const Node& n)
     }
   }
   ret = b;
+  // Tuples do not use testers, see ProofRewriteRule::DT_UPDATER_ELIM.
+  if (tn.isTuple())
+  {
+    return ret;
+  }
   // note it may be that this dt has one constructor, in which case this
   // tester will rewrite to true.
   // must be the right constructor to update

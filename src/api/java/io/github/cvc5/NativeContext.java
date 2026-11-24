@@ -13,13 +13,9 @@
 package io.github.cvc5;
 
 import java.lang.ref.Cleaner;
+import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
 
@@ -51,7 +47,11 @@ import java.util.function.LongConsumer;
  *     {@link Cleaner} then frees whatever native objects are left, including
  *     the term manager itself.</li>
  * <li>{@link AbstractPointer#deletePointer()} frees a native object
- *     immediately on the calling thread.</li>
+ *     immediately on the calling thread, and {@link #releaseAllObjects()}
+ *     frees every native object of the context immediately on the calling
+ *     thread. Both keep the context strongly reachable until they return, so
+ *     that the {@link Cleaner} cannot free native objects of the same node
+ *     manager concurrently on its own thread.</li>
  * </ul>
  *
  * <p>Native functions that borrow a pointer for longer than a single call
@@ -66,13 +66,6 @@ final class NativeContext
 {
   /** Frees the remaining native objects of contexts that became unreachable. */
   private static final Cleaner CLEANER = Cleaner.create();
-
-  /**
-   * Contexts that may still own native objects, for {@link Context#deletePointers()}.
-   * Weakly referenced, so that the registry does not keep contexts alive.
-   */
-  private static final Set<NativeContext> LIVE =
-      Collections.newSetFromMap(new WeakHashMap<NativeContext, Boolean>());
 
   /** Number of contexts reclaimed by the cleaner, see {@link #releasedContexts()}. */
   private static final AtomicLong RELEASED_CONTEXTS = new AtomicLong();
@@ -107,6 +100,19 @@ final class NativeContext
      */
     boolean release()
     {
+      return release(true);
+    }
+
+    /**
+     * Free the native object, if not already freed.
+     *
+     * @param unlink Whether to remove this ref from the registry's list. May
+     *               only be false if this ref has already been detached from
+     *               the list, see {@link Registry#releaseAll()}.
+     * @return true if the native object was freed by this call.
+     */
+    private boolean release(boolean unlink)
+    {
       long p;
       synchronized (this)
       {
@@ -117,7 +123,10 @@ final class NativeContext
       {
         return false;
       }
-      registry.unlink(this);
+      if (unlink)
+      {
+        registry.unlink(this);
+      }
       deleter.accept(p);
       registry.freed++;
       return true;
@@ -192,22 +201,30 @@ final class NativeContext
      */
     void releaseAll()
     {
-      List<Ref> refs = new ArrayList<>();
+      // Detach the whole list at once. Clearing the prev links turns a later
+      // unlink() of a detached ref (e.g., by reap()) into a no-op, so the
+      // chain of next links stays intact while it is walked below.
+      Ref first;
       synchronized (this)
       {
-        for (Ref ref = head; ref != null; ref = ref.next)
+        first = head;
+        head = null;
+        for (Ref ref = first; ref != null; ref = ref.next)
         {
-          refs.add(ref);
+          ref.prev = null;
         }
       }
-      for (Ref ref : refs)
+      Ref next;
+      for (Ref ref = first; ref != null; ref = next)
       {
+        next = ref.next;
+        ref.next = null;
         AbstractPointer wrapper = ref.get();
         if (wrapper != null)
         {
           wrapper.pointer = 0;
         }
-        ref.release();
+        ref.release(false);
       }
     }
 
@@ -226,10 +243,6 @@ final class NativeContext
   NativeContext()
   {
     CLEANER.register(this, registry);
-    synchronized (LIVE)
-    {
-      LIVE.add(this);
-    }
   }
 
   /**
@@ -249,6 +262,30 @@ final class NativeContext
   }
 
   /**
+   * Free every native object of this context, in reverse order of
+   * registration, see {@link TermManager#close()}. Wrappers that are
+   * still reachable are left with a null pointer.
+   *
+   * <p>Must be called on the thread that is using this context's term manager,
+   * or once no thread uses it anymore.</p>
+   */
+  void releaseAllObjects()
+  {
+    try
+    {
+      registry.releaseAll();
+    }
+    finally
+    {
+      // Without this fence, the context may become unreachable while its
+      // objects are being freed (e.g., when this is the last use of the term
+      // manager), and the cleaner would then free the same node manager's
+      // objects concurrently on its own thread.
+      Reference.reachabilityFence(this);
+    }
+  }
+
+  /**
    * The number of native objects freed so far in the context of the given
    * object. For tests.
    */
@@ -264,21 +301,5 @@ final class NativeContext
   static long releasedContexts()
   {
     return RELEASED_CONTEXTS.get();
-  }
-
-  /**
-   * Free every native object of every context, see {@link Context#deletePointers()}.
-   */
-  static void releaseAll()
-  {
-    List<NativeContext> contexts;
-    synchronized (LIVE)
-    {
-      contexts = new ArrayList<>(LIVE);
-    }
-    for (NativeContext context : contexts)
-    {
-      context.registry.releaseAll();
-    }
   }
 }

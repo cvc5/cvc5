@@ -26,8 +26,10 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
  public:
   CadicalPropagator(prop::TheoryProxy* proxy,
                     context::Context* context,
+                    NodeManager* nm,
                     CaDiCaL::Solver& solver,
-                    StatisticsRegistry& stats);
+                    StatisticsRegistry& stats,
+                    bool proofs);
 
   /**
    * Notification from the SAT solver on assignment of a new literal.
@@ -221,6 +223,11 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
    * A learned clause is guarded by the activation literal of this level (see
    * cb_add_reason_clause_lit()), so that it survives popping user levels above
    * it and only gets disabled once the level it actually depends on is popped.
+   *
+   * Note that when we are producing proofs the proof of such a clause must be
+   * made to survive the same levels, which is what notify_clause_level() is
+   * for. Any change to how clauses are attached to levels has to keep the two
+   * in sync.
    */
   uint32_t clause_user_level(const SatClause& clause) const;
 
@@ -253,6 +260,20 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
   void theory_propagate();
 
   /**
+   * Notify the proof manager that a clause derived during search was attached
+   * below the current user level, so that the proof of the clause is kept for
+   * as long as the SAT solver keeps the clause.
+   *
+   * This is a no-op if we are not producing SAT proofs, or if the clause is
+   * attached at the current user level, in which case the clause and its proof
+   * have the same lifetime already.
+   *
+   * @param clause The clause, without its activation literal.
+   * @param user_level The user level the clause was attached at.
+   */
+  void notify_clause_level(const SatClause& clause, uint32_t user_level);
+
+  /**
    * Get next propagation.
    *
    * @return Return next propagation queued in d_propagations.
@@ -264,7 +285,12 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator,
 
   /** The SAT context. */
   context::Context& d_context;
+  /** Used to build the node representation of clauses. */
+  NodeManager* d_nm;
   CaDiCaL::Solver& d_solver;
+
+  /** True if we are producing SAT proofs. */
+  bool d_proofs;
 
   /** Struct to store information on variables. */
   struct VarInfo

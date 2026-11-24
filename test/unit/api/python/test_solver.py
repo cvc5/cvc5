@@ -11,9 +11,12 @@
 import pytest
 import cvc5
 import sys
+import threading
+import time
 from math import isnan
 
 from cvc5 import Kind, OptionCategory, SortKind, TermManager, Solver, Plugin
+from cvc5 import Terminator, UnknownExplanation
 from cvc5 import RoundingMode
 from cvc5 import BlockModelsMode, LearnedLitType, FindSynthTarget
 from cvc5 import ProofComponent, ProofFormat
@@ -29,7 +32,7 @@ def solver(tm):
 
 def test_recoverable_exception(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x).notTerm())
     with pytest.raises(RuntimeError):
         c = solver.getValue(x)
@@ -168,7 +171,7 @@ def test_define_fun(tm, solver):
 
 
 def test_define_fun_global(tm, solver):
-    bSort = solver.getBooleanSort()
+    bSort = tm.getBooleanSort()
 
     bTrue = tm.mkBoolean(True)
     # (define-fun f () Bool true)
@@ -506,43 +509,43 @@ def test_get_option_info(solver):
     assert info['modes'] == ['batch', 'none']
 
 
-def test_get_unsat_assumptions1(solver):
+def test_get_unsat_assumptions1(tm, solver):
     solver.setOption("incremental", "false")
-    solver.checkSatAssuming(solver.mkFalse())
+    solver.checkSatAssuming(tm.mkFalse())
     with pytest.raises(RuntimeError):
         solver.getUnsatAssumptions()
 
 
-def test_get_unsat_assumptions2(solver):
+def test_get_unsat_assumptions2(tm, solver):
     solver.setOption("incremental", "true")
     solver.setOption("produce-unsat-assumptions", "false")
-    solver.checkSatAssuming(solver.mkFalse())
+    solver.checkSatAssuming(tm.mkFalse())
     with pytest.raises(RuntimeError):
         solver.getUnsatAssumptions()
 
 
-def test_get_unsat_assumptions3(solver):
+def test_get_unsat_assumptions3(tm, solver):
     solver.setOption("incremental", "true")
     solver.setOption("produce-unsat-assumptions", "true")
-    solver.checkSatAssuming(solver.mkFalse())
+    solver.checkSatAssuming(tm.mkFalse())
     solver.getUnsatAssumptions()
-    solver.checkSatAssuming(solver.mkTrue())
+    solver.checkSatAssuming(tm.mkTrue())
     with pytest.raises(RuntimeError):
         solver.getUnsatAssumptions()
 
 
-def test_get_unsat_core1(solver):
+def test_get_unsat_core1(tm, solver):
     solver.setOption("incremental", "false")
-    solver.assertFormula(solver.mkFalse())
+    solver.assertFormula(tm.mkFalse())
     solver.checkSat()
     with pytest.raises(RuntimeError):
         solver.getUnsatCore()
 
 
-def test_get_unsat_core2(solver):
+def test_get_unsat_core2(tm, solver):
     solver.setOption("incremental", "false")
     solver.setOption("produce-unsat-cores", "false")
-    solver.assertFormula(solver.mkFalse())
+    solver.assertFormula(tm.mkFalse())
     solver.checkSat()
     with pytest.raises(RuntimeError):
         solver.getUnsatCore()
@@ -553,26 +556,26 @@ def test_get_unsat_core_and_proof(tm, solver):
     solver.setOption("produce-unsat-cores", "true")
     solver.setOption("produce-proofs", "true");
 
-    uSort = solver.mkUninterpretedSort("u")
+    uSort = tm.mkUninterpretedSort("u")
     intSort = tm.getIntegerSort()
-    boolSort = solver.getBooleanSort()
-    uToIntSort = solver.mkFunctionSort(uSort, intSort)
-    intPredSort = solver.mkFunctionSort(intSort, boolSort)
+    boolSort = tm.getBooleanSort()
+    uToIntSort = tm.mkFunctionSort(uSort, intSort)
+    intPredSort = tm.mkFunctionSort(intSort, boolSort)
 
-    x = solver.mkConst(uSort, "x")
-    y = solver.mkConst(uSort, "y")
-    f = solver.mkConst(uToIntSort, "f")
-    p = solver.mkConst(intPredSort, "p")
-    zero = solver.mkInteger(0)
-    one = solver.mkInteger(1)
-    f_x = solver.mkTerm(Kind.APPLY_UF, f, x)
-    f_y = solver.mkTerm(Kind.APPLY_UF, f, y)
-    summ = solver.mkTerm(Kind.ADD, f_x, f_y)
-    p_0 = solver.mkTerm(Kind.APPLY_UF, p, zero)
-    p_f_y = solver.mkTerm(Kind.APPLY_UF, p, f_y)
-    solver.assertFormula(solver.mkTerm(Kind.GT, zero, f_x))
-    solver.assertFormula(solver.mkTerm(Kind.GT, zero, f_y))
-    solver.assertFormula(solver.mkTerm(Kind.GT, summ, one))
+    x = tm.mkConst(uSort, "x")
+    y = tm.mkConst(uSort, "y")
+    f = tm.mkConst(uToIntSort, "f")
+    p = tm.mkConst(intPredSort, "p")
+    zero = tm.mkInteger(0)
+    one = tm.mkInteger(1)
+    f_x = tm.mkTerm(Kind.APPLY_UF, f, x)
+    f_y = tm.mkTerm(Kind.APPLY_UF, f, y)
+    summ = tm.mkTerm(Kind.ADD, f_x, f_y)
+    p_0 = tm.mkTerm(Kind.APPLY_UF, p, zero)
+    p_f_y = tm.mkTerm(Kind.APPLY_UF, p, f_y)
+    solver.assertFormula(tm.mkTerm(Kind.GT, zero, f_x))
+    solver.assertFormula(tm.mkTerm(Kind.GT, zero, f_y))
+    solver.assertFormula(tm.mkTerm(Kind.GT, summ, one))
     solver.assertFormula(p_0)
     solver.assertFormula(p_f_y.notTerm())
     assert solver.checkSat().isUnsat()
@@ -966,7 +969,7 @@ def test_pop3(solver):
         solver.pop(1)
 
 def test_block_model1(tm, solver):
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -974,21 +977,21 @@ def test_block_model1(tm, solver):
 
 def test_block_model2(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     with pytest.raises(RuntimeError):
         solver.blockModel(BlockModelsMode.LITERALS)
 
 def test_block_model3(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x");
+    x = tm.mkConst(tm.getBooleanSort(), "x");
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModel(BlockModelsMode.LITERALS)
 
 def test_block_model_values1(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x");
+    x = tm.mkConst(tm.getBooleanSort(), "x");
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -1004,13 +1007,13 @@ def test_block_model_values1(tm, solver):
 
 def test_block_model_values2(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModelValues([x])
 
 def test_block_model_values3(tm, solver):
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     with pytest.raises(RuntimeError):
@@ -1018,21 +1021,21 @@ def test_block_model_values3(tm, solver):
 
 def test_block_model_values4(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     with pytest.raises(RuntimeError):
         solver.blockModelValues([x])
 
 def test_block_model_values5(tm, solver):
     solver.setOption("produce-models", "true")
-    x = tm.mkConst(solver.getBooleanSort(), "x")
+    x = tm.mkConst(tm.getBooleanSort(), "x")
     solver.assertFormula(x.eqTerm(x))
     solver.checkSat()
     solver.blockModelValues([x])
 
 def test_get_instantiations(tm, solver):
     iSort = tm.getIntegerSort()
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     p = solver.declareFun("p", [iSort], boolSort)
     x = tm.mkVar(iSort, "x")
     bvl = tm.mkTerm(Kind.VARIABLE_LIST, x)
@@ -1249,7 +1252,7 @@ def test_check_sat_assuming2(tm, solver):
 
     uSort = tm.mkUninterpretedSort("u")
     intSort = tm.getIntegerSort()
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     uToIntSort = tm.mkFunctionSort(uSort, intSort)
     intPredSort = tm.mkFunctionSort(intSort, boolSort)
 
@@ -1352,38 +1355,6 @@ def test_declare_sygus_var(tm, solver):
         slv.declareSygusVar("", boolSort)
 
 
-def test_mk_sygus_grammar(tm, solver):
-    boolTerm = tm.mkBoolean(True)
-    boolVar = tm.mkVar(solver.getBooleanSort())
-    intVar = tm.mkVar(tm.getIntegerSort())
-
-    solver.mkGrammar([], [intVar])
-    solver.mkGrammar([boolVar], [intVar])
-    with pytest.raises(RuntimeError):
-        solver.mkGrammar([], [])
-    with pytest.raises(RuntimeError):
-        solver.mkGrammar([], [boolTerm])
-    with pytest.raises(RuntimeError):
-        solver.mkGrammar([boolTerm], [intVar])
-    slv = Solver(tm)
-    boolVar2 = tm.mkVar(tm.getBooleanSort())
-    intVar2 = tm.mkVar(tm.getIntegerSort())
-    slv.mkGrammar([boolVar2], [intVar2])
-    slv.mkGrammar([boolVar], [intVar2])
-    slv.mkGrammar([boolVar2], [intVar])
-
-    ttm = TermManager()
-    slv = Solver(ttm)
-    slv.setOption("sygus", "true")
-    boolVar2 = ttm.mkVar(ttm.getBooleanSort())
-    intVar2 = ttm.mkVar(ttm.getIntegerSort())
-    slv.mkGrammar([boolVar2], [intVar2])
-    with pytest.raises(RuntimeError):
-        slv.mkGrammar([boolVar], [intVar2])
-    with pytest.raises(RuntimeError):
-        slv.mkGrammar([boolVar2], [intVar])
-
-
 def test_add_sygus_constraint(tm, solver):
     solver.setOption("sygus", "true")
     boolTerm = tm.mkBoolean(True)
@@ -1444,8 +1415,8 @@ def test_get_sygus_assumptions(tm, solver):
 
 def test_add_sygus_inv_constraint(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
-    real = solver.getRealSort()
+    boolean = tm.getBooleanSort()
+    real = tm.getRealSort()
 
     intTerm = tm.mkInteger(1)
 
@@ -1530,7 +1501,7 @@ def test_get_synth_solution(tm, solver):
     solver.setOption("incremental", "false")
 
     x = tm.mkBoolean(False)
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     with pytest.raises(RuntimeError):
         solver.getSynthSolution(f)
@@ -1549,10 +1520,10 @@ def test_get_synth_solution(tm, solver):
         slv.getSynthSolution(f)
 
 
-def test_check_synth_next(solver):
+def test_check_synth_next(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     res = solver.checkSynth()
     assert res.hasSolution()
@@ -1563,34 +1534,34 @@ def test_check_synth_next(solver):
     solver.getSynthSolutions([f])
 
 
-def test_check_synth_next2(solver):
+def test_check_synth_next2(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "false")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     solver.checkSynth()
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
 
 
-def test_check_synth_next3(solver):
+def test_check_synth_next3(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
     with pytest.raises(RuntimeError):
         solver.checkSynthNext()
 
 
 def test_find_synth(tm, solver):
     solver.setOption("sygus", "true")
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     start = tm.mkVar(boolSort)
-    g = solver.mkGrammar([], [start])
+    g = tm.mkGrammar([], [start])
     truen = tm.mkBoolean(True)
     falsen = tm.mkBoolean(False)
     g.addRule(start, truen)
     g.addRule(start, falsen)
-    f = solver.synthFun("f", [], solver.getBooleanSort(), g)
+    f = solver.synthFun("f", [], tm.getBooleanSort(), g)
 
     # should enumerate based on the grammar of the function to synthesize above
     t = solver.findSynth(FindSynthTarget.ENUM)
@@ -1600,9 +1571,9 @@ def test_find_synth(tm, solver):
 def test_find_synth2(tm, solver):
     solver.setOption("sygus", "true")
     solver.setOption("incremental", "true")
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     start = tm.mkVar(boolSort)
-    g = solver.mkGrammar([], [start])
+    g = tm.mkGrammar([], [start])
     truen = tm.mkBoolean(True)
     falsen = tm.mkBoolean(False)
     g.addRule(start, truen)
@@ -1630,10 +1601,10 @@ def test_get_abduct(tm, solver):
     output = solver.getAbduct(conj)
     assert not output.isNull() and output.getSort().isBoolean()
 
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
     truen = tm.mkBoolean(True)
     start = tm.mkVar(boolean)
-    g = solver.mkGrammar([], [start])
+    g = tm.mkGrammar([], [start])
     conj2 = tm.mkTerm(Kind.GT, x, zero)
     g.addRule(start, truen)
     output2 = solver.getAbduct(conj2, g)
@@ -1649,7 +1620,7 @@ def test_get_abduct(tm, solver):
     sstart = ttm.mkVar(ttm.getBooleanSort())
     slv.assertFormula(
         ttm.mkTerm(Kind.GT, ttm.mkTerm(Kind.ADD, xx, yy), zzero))
-    gg = slv.mkGrammar([], [sstart])
+    gg = ttm.mkGrammar([], [sstart])
     gg.addRule(sstart, ttm.mkTrue())
     cconj2 = ttm.mkTerm(Kind.EQUAL, zzero, zzero)
     slv.getAbduct(cconj2, gg)
@@ -1712,10 +1683,10 @@ def test_get_interpolant(tm, solver):
     output = solver.getInterpolant(conj)
     assert output.getSort().isBoolean()
 
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
     truen = tm.mkBoolean(True)
     start = tm.mkVar(boolean)
-    g = solver.mkGrammar([], [start])
+    g = tm.mkGrammar([], [start])
     conj2 = tm.mkTerm(Kind.EQUAL, zero, zero)
     g.addRule(start, truen)
     output2 = solver.getInterpolant(conj2, g)
@@ -1731,7 +1702,7 @@ def test_get_interpolant(tm, solver):
     sstart = ttm.mkVar(ttm.getBooleanSort())
     slv.assertFormula(
         ttm.mkTerm(Kind.GT, ttm.mkTerm(Kind.ADD, xx, yy), zzero))
-    gg = slv.mkGrammar([], [sstart])
+    gg = ttm.mkGrammar([], [sstart])
     gg.addRule(sstart, ttm.mkTrue())
     cconj2 = ttm.mkTerm(Kind.EQUAL, zzero, zzero)
     slv.getInterpolant(cconj2, gg)
@@ -1844,7 +1815,7 @@ def test_get_synth_solutions(tm, solver):
     solver.setOption("incremental", "false")
 
     x = tm.mkBoolean(False)
-    f = solver.synthFun("f", [], solver.getBooleanSort())
+    f = solver.synthFun("f", [], tm.getBooleanSort())
 
     with pytest.raises(RuntimeError):
         solver.getSynthSolutions([])
@@ -2038,7 +2009,7 @@ def test_issue5893(tm):
 def test_issue7000(tm, solver):
     s1 = tm.getIntegerSort()
     s2 = tm.mkFunctionSort(s1, s1)
-    s3 = solver.getRealSort()
+    s3 = tm.getRealSort()
     t4 = tm.mkPi()
     t7 = tm.mkConst(s3, "_x5")
     t37 = tm.mkConst(s2, "_x32")
@@ -2053,7 +2024,7 @@ def test_issue7000(tm, solver):
 
 def test_mk_sygus_var(tm, solver):
     solver.setOption("sygus", "true")
-    boolSort = solver.getBooleanSort()
+    boolSort = tm.getBooleanSort()
     intSort = tm.getIntegerSort()
     funSort = tm.mkFunctionSort(intSort, boolSort)
 
@@ -2067,7 +2038,7 @@ def test_mk_sygus_var(tm, solver):
 
 def test_synth_fun(tm, solver):
     solver.setOption("sygus", "true")
-    boolean = solver.getBooleanSort()
+    boolean = tm.getBooleanSort()
     integer = tm.getIntegerSort()
 
     x = tm.mkVar(boolean)
@@ -2075,10 +2046,10 @@ def test_synth_fun(tm, solver):
     start1 = tm.mkVar(boolean)
     start2 = tm.mkVar(integer)
 
-    g1 = solver.mkGrammar(x, [start1])
+    g1 = tm.mkGrammar(x, [start1])
     g1.addRule(start1, tm.mkBoolean(False))
 
-    g2 = solver.mkGrammar(x, [start2])
+    g2 = tm.mkGrammar(x, [start2])
     g2.addRule(start2, tm.mkInteger(0))
 
     solver.synthFun("", [], boolean)
@@ -2180,7 +2151,7 @@ def test_get_unsat_core_lemmas2(tm, solver):
   solver.setOption("unsat-cores-mode", "sat-proof")
   uSort = tm.mkUninterpretedSort("u")
   intSort = tm.getIntegerSort()
-  boolSort = solver.getBooleanSort()
+  boolSort = tm.getBooleanSort()
   uToIntSort = tm.mkFunctionSort(uSort, intSort)
   intPredSort = tm.mkFunctionSort(intSort, boolSort)
 
@@ -2270,7 +2241,7 @@ def test_get_option_names(solver):
     assert "foobar" not in names
 
 def test_get_quantifier_elimination(tm, solver):
-    x = tm.mkVar(solver.getBooleanSort(), "x")
+    x = tm.mkVar(tm.getBooleanSort(), "x")
     forall = tm.mkTerm(
             Kind.FORALL,
             tm.mkTerm(Kind.VARIABLE_LIST, x),
@@ -2293,7 +2264,7 @@ def test_get_quantifier_elimination(tm, solver):
 
 
 def test_get_quantifier_elimination_disjunct(tm, solver):
-    x = tm.mkVar(solver.getBooleanSort(), "x")
+    x = tm.mkVar(tm.getBooleanSort(), "x")
     forall = tm.mkTerm(
             Kind.FORALL,
             tm.mkTerm(Kind.VARIABLE_LIST, x),
@@ -2380,3 +2351,191 @@ def test_plugin_listen(tm, solver):
     # above input formulas should induce a theory lemma and SAT clause learning
     assert pl.hasSeenTheoryLemma()
     assert pl.hasSeenSatClause()
+
+
+class TerminatorFlag(Terminator):
+    """Terminator that requests termination if flag is set."""
+
+    def __init__(self, flag=False):
+        self.flag = flag
+        self.calls = 0
+
+    def terminate(self):
+        self.calls += 1
+        return self.flag
+
+
+class TerminatorRaise(Terminator):
+    """Terminator that raises the given exception."""
+
+    def __init__(self, exception):
+        self.exception = exception
+
+    def terminate(self):
+        raise self.exception
+
+
+def add_pigeon_hole(tm, solver, n):
+    """Assert that n + 1 pigeons can be placed into n holes (unsat)."""
+    one = tm.mkInteger(1)
+    nholes = tm.mkInteger(n)
+    pigeons = [tm.mkConst(tm.getIntegerSort()) for _ in range(n + 1)]
+    for p in pigeons:
+        solver.assertFormula(tm.mkTerm(Kind.LEQ, one, p))
+        solver.assertFormula(tm.mkTerm(Kind.LEQ, p, nholes))
+    solver.assertFormula(tm.mkTerm(Kind.DISTINCT, *pigeons))
+
+
+def is_interrupted(r):
+    return (r.isUnknown()
+            and r.getUnknownExplanation() == UnknownExplanation.INTERRUPTED)
+
+
+def test_terminator_immediate(tm, solver):
+    t = TerminatorFlag(True)
+    solver.setTerminator(t)
+    x = tm.mkConst(tm.getBooleanSort(), "x")
+    solver.assertFormula(x)
+    assert is_interrupted(solver.checkSat())
+    assert t.calls == 1
+    assert is_interrupted(solver.checkSatAssuming(x.notTerm()))
+    assert t.calls == 2
+
+
+def test_terminator_never(tm, solver):
+    t = TerminatorFlag()
+    solver.setTerminator(t)
+    add_pigeon_hole(tm, solver, 4)
+    assert solver.checkSat().isUnsat()
+    assert t.calls > 0
+
+
+def test_terminator_reuse(tm, solver):
+    t = TerminatorFlag(True)
+    solver.setTerminator(t)
+    add_pigeon_hole(tm, solver, 4)
+    assert is_interrupted(solver.checkSat())
+    t.flag = False
+    assert solver.checkSat().isUnsat()
+    t.flag = True
+    assert is_interrupted(solver.checkSat())
+    solver.setTerminator(None)
+    assert solver.checkSat().isUnsat()
+
+
+def test_terminator_lifetime(tm, solver):
+    # the solver keeps the terminator alive while connected
+    solver.setTerminator(TerminatorFlag(True))
+    assert is_interrupted(solver.checkSat())
+
+
+def test_terminator_not_implemented(tm, solver):
+    solver.setTerminator(Terminator())
+    with pytest.raises(NotImplementedError):
+        solver.checkSat()
+
+
+def test_terminator_exception(tm, solver):
+    solver.setOption("produce-unsat-cores", "true")
+    solver.setTerminator(TerminatorRaise(ValueError("terminate")))
+    add_pigeon_hole(tm, solver, 4)
+    with pytest.raises(ValueError, match="terminate"):
+        solver.checkSat()
+    with pytest.raises(ValueError, match="terminate"):
+        solver.getTimeoutCore()
+    # the solver can be used after the exception was raised
+    solver.setTerminator(None)
+    assert solver.checkSat().isUnsat()
+
+
+def test_terminator_keyboard_interrupt(tm, solver):
+    solver.setTerminator(TerminatorRaise(KeyboardInterrupt()))
+    add_pigeon_hole(tm, solver, 4)
+    with pytest.raises(KeyboardInterrupt):
+        solver.checkSat()
+
+
+def test_terminator_exception_command(tm, solver):
+    solver.setTerminator(TerminatorRaise(ValueError("terminate")))
+    sm = cvc5.SymbolManager(tm)
+    parser = cvc5.InputParser(solver, sm)
+    parser.setIncrementalStringInput(
+        cvc5.InputLanguage.SMT_LIB_2_6, "test_terminator_exception_command")
+    parser.appendIncrementalStringInput(
+        "(set-logic QF_UF) (declare-const x Bool) (assert x) (check-sat)")
+    for _ in range(3):
+        parser.nextCommand().invoke(solver, sm)
+    # the exception is re-raised by the command that executed the query
+    cmd = parser.nextCommand()
+    with pytest.raises(ValueError, match="terminate"):
+        cmd.invoke(solver, sm)
+    # the exception does not affect subsequent queries
+    t = TerminatorFlag()
+    solver.setTerminator(t)
+    assert solver.checkSat().isSat()
+    assert t.calls > 0
+
+
+def test_terminator_query_exception(tm, solver):
+    # exceptions of queries are raised as usual while a terminator is connected
+    t = TerminatorFlag()
+    solver.setTerminator(t)
+    with pytest.raises(RuntimeError):
+        solver.findSynthNext()
+    assert solver.checkSat().isSat()
+    assert t.calls > 0
+
+
+def test_terminator_shared(tm, solver):
+    # a terminator can be connected to several solvers, its exceptions are
+    # re-raised by the query that called it
+    t = TerminatorRaise(ValueError("terminate"))
+    solver2 = cvc5.Solver(tm)
+    solver.setTerminator(t)
+    solver2.setTerminator(t)
+    with pytest.raises(ValueError, match="terminate"):
+        solver.checkSat()
+    with pytest.raises(ValueError, match="terminate"):
+        solver2.checkSat()
+    # the exceptions do not affect subsequent queries
+    solver.setTerminator(None)
+    assert solver.checkSat().isSat()
+    t2 = TerminatorFlag()
+    solver2.setTerminator(t2)
+    assert solver2.checkSat().isSat()
+    assert t2.calls > 0
+
+
+def test_terminator_thread(tm, solver):
+    class TerminatorEvent(Terminator):
+        def __init__(self):
+            self.event = threading.Event()
+            # fallback to not run forever if the event is never observed
+            self.deadline = time.monotonic() + 60
+
+        def terminate(self):
+            return self.event.is_set() or time.monotonic() > self.deadline
+
+    t = TerminatorEvent()
+    solver.setTerminator(t)
+    # hard enough to not be solved before termination is requested
+    add_pigeon_hole(tm, solver, 12)
+    thread = threading.Thread(target=lambda: (time.sleep(0.1), t.event.set()))
+    thread.start()
+    r = solver.checkSat()
+    thread.join()
+    assert is_interrupted(r)
+    assert time.monotonic() < t.deadline
+
+
+def test_terminator_subsolver(tm, solver):
+    solver.setLogic("QF_LIA")
+    solver.setOption("produce-abducts", "true")
+    solver.setOption("incremental", "false")
+    zero = tm.mkInteger(0)
+    x = tm.mkConst(tm.getIntegerSort(), "x")
+    y = tm.mkConst(tm.getIntegerSort(), "y")
+    solver.assertFormula(tm.mkTerm(Kind.GT, x, zero))
+    # abduction is performed by a subsolver, which is terminated
+    solver.setTerminator(TerminatorFlag(True))
+    assert solver.getAbduct(tm.mkTerm(Kind.GT, y, zero)).isNull()

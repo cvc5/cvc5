@@ -229,7 +229,11 @@ of SMT-LIB/IEEE-754 floating-point operations in terms of bit-vector operations.
 It is required for supporting the theory of floating-point numbers and can be
 downloaded and built automatically. Note that SymFPU does not expose its
 version, cvc5 therefore determines whether a system installation is recent
-enough by probing for an API change introduced in SymFPU 1.2.0.
+enough by probing for an API change introduced in SymFPU 1.2.0. cvc5 further
+applies the patches in ``cmake/deps-utils/symfpu-*.patch`` to SymFPU, which
+fix incorrect encodings for some experimental floating-point formats
+(``--fp-exp``). A system installation is only used if it includes these
+patches, otherwise SymFPU is downloaded and built automatically.
 
 
 Optional Dependencies
@@ -334,6 +338,18 @@ a package named `libedit-dev`, `libedit-devel`, or similar.  Configure cvc5 with
 ``configure.sh --editline`` to build with this dependency.  Additionally,
 to run tests related to interactive mode with this dependency, you will need
 the Python module `pexpect <https://pexpect.readthedocs.io/en/stable/>`_.
+
+mimalloc (Optional memory allocator)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`mimalloc <https://github.com/microsoft/mimalloc>`_ is a general-purpose memory
+allocator that is considerably faster than the default allocators on Linux and
+macOS for the many small, short-lived allocations cvc5 makes. Configure cvc5
+with ``configure.sh --mimalloc --auto-download`` to download and build it and
+link it into the ``cvc5`` binary, where it replaces ``malloc``, ``free`` and
+related functions. The cvc5 library is not affected, so programs using the API
+keep their allocator. This option is not available on Windows, for WebAssembly,
+or together with the address or thread sanitizers.
 
 Normaliz (Optional rational cones library)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

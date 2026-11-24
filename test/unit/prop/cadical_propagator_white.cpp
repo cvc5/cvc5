@@ -35,8 +35,11 @@ class TestPropWhiteCadicalPropagator : public TestInternal
     d_stats.reset(new StatisticsRegistry());
     d_context.reset(new context::Context());
     d_solver.reset(new CaDiCaL::Solver());
-    d_prop.reset(
-        new CadicalPropagator(nullptr, d_context.get(), *d_solver, *d_stats));
+    // Note the propagator is built without a theory proxy and without a node
+    // manager: both are only used when producing SAT proofs, which the last
+    // argument disables.
+    d_prop.reset(new CadicalPropagator(
+        nullptr, d_context.get(), nullptr, *d_solver, *d_stats, false));
     // Observed variables require a connected external propagator.
     d_solver->connect_external_propagator(d_prop.get());
 

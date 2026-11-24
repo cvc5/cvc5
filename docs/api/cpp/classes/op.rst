@@ -6,7 +6,7 @@ represents an operator, instantiated with the parameters it requires (if any).
 
 A :cpp:class:`cvc5::Term` of operator kind that does not require additional
 parameters, e.g., :cpp:enumerator:`cvc5::Kind::ADD`, is usually constructed via
-:cpp:func:`cvc5::Solver::mkTerm(Kind kind, const std::vector\<Term>& children) <Term cvc5::Solver::mkTerm(Kind kind, const std::vector\<Term>& children) const>`.
+:cpp:func:`cvc5::TermManager::mkTerm(Kind kind, const std::vector\<Term>& children) <Term cvc5::TermManager::mkTerm(Kind kind, const std::vector\<Term>& children)>`.
 Alternatively, any :cpp:class:`cvc5::Term` can be constructed via first
 instantiating a corresponding :cpp:class:`cvc5::Op`, even if the operator does
 not require additional parameters.

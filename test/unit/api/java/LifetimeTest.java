@@ -171,7 +171,7 @@ class LifetimeTest
     solver.setOption("sygus", "true");
     Sort b = tm.getBooleanSort();
     Term start = tm.mkVar(b);
-    Grammar g = solver.mkGrammar(new Term[] {}, new Term[] {start});
+    Grammar g = tm.mkGrammar(new Term[] {}, new Term[] {start});
     g.addRule(start, tm.mkBoolean(false));
     solver.deletePointer();
     tm.deletePointer();

@@ -81,6 +81,11 @@ cdef extern from "py_plugin.h" namespace "cvc5":
         string getName() except +
 
 
+cdef extern from "py_terminator.h" namespace "cvc5":
+    cdef cppclass PyTerminator:
+        PyTerminator(cpy_ref.PyObject *obj) except +
+
+
 cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
     cdef cppclass Datatype:
         Datatype() except +
@@ -325,6 +330,8 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
         # default value for symbol defined in cpp/cvc5.h
         Term mkVar(Sort sort) except +
+        # Sygus related functions
+        Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
 
     cdef cppclass Plugin:
         Plugin(TermManager& tm) except +
@@ -333,53 +340,13 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         void notifyTheoryLemma(const Term& lem) except +
         string getName() except +
 
+    cdef cppclass Terminator:
+        pass
+
     cdef cppclass Solver:
         Solver(TermManager& tm) except +
         TermManager getTermManager() except +
-        Sort getBooleanSort() except +
-        Sort getIntegerSort() except +
-        Sort getRealSort() except +
-        Sort getRegExpSort() except +
-        Sort getRoundingModeSort() except +
-        Sort getStringSort() except +
-        Sort mkArraySort(Sort indexSort, Sort elemSort) except +
-        Sort mkBitVectorSort(uint32_t size) except +
-        Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
-        Sort mkFiniteFieldSort(const string& size, uint32_t base) except +
-        Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
-        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls) except +
-        Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
-        Sort mkParamSort() except +
-        Sort mkParamSort(const string& symbol) except +
-        Term mkSkolem(SkolemId id, const vector[Term]& indices) except +
-        size_t getNumIndicesForSkolemId(SkolemId id) except +
-        Sort mkPredicateSort(const vector[Sort]& sorts) except +
-        Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
-        Sort mkSetSort(Sort elemSort) except +
-        Sort mkBagSort(Sort elemSort) except +
-        Sort mkSequenceSort(Sort elemSort) except +
-        Sort mkAbstractSort(SortKind kind) except +
-        Sort mkUninterpretedSort() except +
-        Sort mkUninterpretedSort(const string& symbol) except +
-        Sort mkUnresolvedDatatypeSort(const string& symbol, size_t arity) except +
-        Sort mkUninterpretedSortConstructorSort(size_t arity) except +
-        Sort mkUninterpretedSortConstructorSort(size_t arity, const string& symbol) except +
-        Sort mkTupleSort(const vector[Sort]& sorts) except +
-        Sort mkNullableSort(Sort elemSort) except +
-        Term mkTerm(Op op) except +
-        Term mkTerm(Op op, const vector[Term]& children) except +
-        Term mkTuple(const vector[Term]& terms) except +
-        Term mkNullableSome(const Term& term) except +
-        Term mkNullableVal(const Term& term) except +
-        Term mkNullableIsNull(const Term& term) except +
-        Term mkNullableIsSome(const Term& term) except +
-        Term mkNullableNull(const Sort& sort) except +
-        Term mkNullableLift(Kind kind, const vector[Term]& args) except +
-        Op mkOp(Kind kind) except +
-        Op mkOp(Kind kind, const string& arg) except +
-        Op mkOp(Kind kind, const vector[uint32_t]& args) except +
         # Sygus related functions
-        Grammar mkGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term declareSygusVar(const string& symbol, Sort sort) except +
         void addSygusConstraint(Term term) except +
         vector[Term] getSygusConstraints() except +
@@ -396,53 +363,6 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term findSynth(FindSynthTarget fst, Grammar grammar) except +
         Term findSynthNext() except +
         # End of sygus related functions
-
-        Term mkTrue() except +
-        Term mkFalse() except +
-        Term mkBoolean(bint val) except +
-        Term mkPi() except +
-        Term mkInteger(const uint64_t i) except +
-        Term mkInteger(const string& s) except +
-        Term mkReal(const string& s) except +
-        Term mkRegexpAll() except +
-        Term mkRegexpAllchar() except +
-        Term mkRegexpNone() except +
-        Term mkEmptySet(Sort s) except +
-        Term mkEmptyBag(Sort s) except +
-        Term mkSepEmp() except +
-        Term mkSepNil(Sort sort) except +
-        Term mkString(const string& s) except +
-        Term mkString(const u32string& s) except +
-        Term mkString(const string& s, bint useEscSequences) except +
-        Term mkEmptySequence(Sort sort) except +
-        Term mkUniverseSet(Sort sort) except +
-        Term mkBitVector(uint32_t size) except +
-        Term mkBitVector(uint32_t size, uint64_t val) except +
-        Term mkBitVector(const string& s) except +
-        Term mkBitVector(const string& s, uint32_t base) except +
-        Term mkBitVector(uint32_t size, string& s, uint32_t base) except +
-        Term mkFiniteFieldElem(const string& s, Sort sort, uint32_t base) except +
-        Term mkConstArray(Sort sort, Term val) except +
-        Term mkFloatingPointPosInf(uint32_t exp, uint32_t sig) except +
-        Term mkFloatingPointNegInf(uint32_t exp, uint32_t sig) except +
-        Term mkFloatingPointNaN(uint32_t exp, uint32_t sig) except +
-        Term mkFloatingPointPosZero(uint32_t exp, uint32_t sig) except +
-        Term mkFloatingPointNegZero(uint32_t exp, uint32_t sig) except +
-        Term mkRoundingMode(RoundingMode rm) except +
-        Term mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) except +
-        Term mkFloatingPoint(const Term& arg0, const Term& arg1, const Term& arg2) except +
-        Term mkCardinalityConstraint(Sort sort, int32_t index) except +
-        Term mkConst(Sort sort, const string& symbol) except +
-        # default value for symbol defined in cpp/cvc5.h
-        Term mkConst(Sort sort) except +
-        Term mkVar(Sort sort, const string& symbol) except +
-        DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
-        DatatypeDecl mkDatatypeDecl(const string& name) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params) except +
-        DatatypeDecl mkDatatypeDecl(const string& name, vector[Sort]& params, bint isCoDatatype) except +
-        # default value for symbol defined in cpp/cvc5.h
-        Term mkVar(Sort sort) except +
         Term simplify(const Term& t, bint applySubs) except +
         void assertFormula(Term term) except +
         Result checkSat() except +
@@ -485,6 +405,7 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
         Term getValueSepNil() except +
         Term declarePool(const string& name, Sort sort, vector[Term]& initValue) except +
         void addPlugin(Plugin& p) except +
+        void setTerminator(Terminator* terminator) except +
         void pop(uint32_t nscopes) except +
         void push(uint32_t nscopes) except +
         void reset() except +
@@ -509,7 +430,6 @@ cdef extern from "<cvc5/cvc5.h>" namespace "cvc5":
 
     cdef cppclass Grammar:
         Grammar() except +
-        Grammar(Solver* solver, vector[Term] boundVars, vector[Term] ntSymbols) except +
         bint isNull() except +
         void addRule(Term ntSymbol, Term rule) except +
         void addAnyConstant(Term ntSymbol) except +

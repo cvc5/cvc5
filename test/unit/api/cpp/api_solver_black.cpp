@@ -14,7 +14,10 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
+#include <limits>
+#include <thread>
 
 #include "base/output.h"
 #include "test_api.h"
@@ -1029,7 +1032,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   // try with a grammar, a simple grammar admitting true
   Term truen = d_tm.mkBoolean(true);
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::GT, {x, zero});
   ASSERT_THROW(d_solver->getAbduct(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
@@ -1053,7 +1056,7 @@ TEST_F(TestApiBlackSolver, getAbduct)
   Term sstart = tm.mkVar(tm.getBooleanSort());
   slv.assertFormula(
       tm.mkTerm(Kind::GT, {tm.mkTerm(Kind::ADD, {xx, yy}), zzero}));
-  Grammar gg = slv.mkGrammar({}, {sstart});
+  Grammar gg = tm.mkGrammar({}, {sstart});
   gg.addRule(sstart, tm.mkTrue());
   Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
   ASSERT_NO_THROW(slv.getAbduct(cconj2, gg));
@@ -1127,7 +1130,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   // try with a grammar, a simple grammar admitting true
   Term truen = d_tm.mkBoolean(true);
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   Term conj2 = d_tm.mkTerm(Kind::EQUAL, {zero, zero});
   ASSERT_THROW(d_solver->getInterpolant(conj2, g), CVC5ApiException);
   ASSERT_NO_THROW(g.addRule(start, truen));
@@ -1146,7 +1149,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   slv.setOption("produce-interpolants", "true");
   Term zzero = tm.mkInteger(0);
   Term sstart = tm.mkVar(tm.getBooleanSort());
-  Grammar gg = slv.mkGrammar({}, {sstart});
+  Grammar gg = tm.mkGrammar({}, {sstart});
   gg.addRule(sstart, tm.mkTrue());
   Term cconj2 = tm.mkTerm(Kind::EQUAL, {zzero, zzero});
   ASSERT_NO_THROW(slv.getInterpolant(cconj2, gg));
@@ -2085,29 +2088,6 @@ TEST_F(TestApiBlackSolver, declareSygusVar)
   ASSERT_THROW(slv.declareSygusVar("", d_bool), CVC5ApiException);
 }
 
-TEST_F(TestApiBlackSolver, mkGrammar)
-{
-  Term nullTerm;
-  Term boolTerm = d_tm.mkBoolean(true);
-  Term boolVar = d_tm.mkVar(d_bool);
-  Term intVar = d_tm.mkVar(d_int);
-
-  ASSERT_NO_THROW(d_solver->mkGrammar({}, {intVar}));
-  ASSERT_NO_THROW(d_solver->mkGrammar({boolVar}, {intVar}));
-  ASSERT_THROW(d_solver->mkGrammar({}, {}), CVC5ApiException);
-  ASSERT_THROW(d_solver->mkGrammar({}, {nullTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver->mkGrammar({}, {boolTerm}), CVC5ApiException);
-  ASSERT_THROW(d_solver->mkGrammar({boolTerm}, {intVar}), CVC5ApiException);
-
-  TermManager tm;
-  Solver slv(tm);
-  Term boolVar2 = tm.mkVar(tm.getBooleanSort());
-  Term intVar2 = tm.mkVar(tm.getIntegerSort());
-  ASSERT_NO_THROW(slv.mkGrammar({boolVar2}, {intVar2}));
-  ASSERT_THROW(slv.mkGrammar({boolVar}, {intVar2}), CVC5ApiException);
-  ASSERT_THROW(slv.mkGrammar({boolVar2}, {intVar}), CVC5ApiException);
-}
-
 TEST_F(TestApiBlackSolver, synthFun)
 {
   d_solver->setOption("sygus", "true");
@@ -2119,13 +2099,13 @@ TEST_F(TestApiBlackSolver, synthFun)
   Term start1 = d_tm.mkVar(d_bool);
   Term start2 = d_tm.mkVar(d_int);
 
-  Grammar g1 = d_solver->mkGrammar({x}, {start1});
+  Grammar g1 = d_tm.mkGrammar({x}, {start1});
   ASSERT_NO_THROW(d_solver->synthFun("", {}, d_bool));
   ASSERT_NO_THROW(d_solver->synthFun("f1", {x}, d_bool));
   ASSERT_THROW(d_solver->synthFun("f2", {x}, d_bool, g1), CVC5ApiException);
   g1.addRule(start1, d_tm.mkBoolean(false));
 
-  Grammar g2 = d_solver->mkGrammar({x}, {start2});
+  Grammar g2 = d_tm.mkGrammar({x}, {start2});
   g2.addRule(start2, d_tm.mkInteger(0));
 
   ASSERT_NO_THROW(d_solver->synthFun("", {}, d_bool));
@@ -2364,7 +2344,7 @@ TEST_F(TestApiBlackSolver, findSynth)
 {
   d_solver->setOption("sygus", "true");
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   ASSERT_THROW(d_solver->synthFun("f", {}, d_bool, g), CVC5ApiException);
 
   Term truen = d_tm.mkBoolean(true);
@@ -2383,7 +2363,7 @@ TEST_F(TestApiBlackSolver, findSynth2)
   d_solver->setOption("sygus", "true");
   d_solver->setOption("incremental", "true");
   Term start = d_tm.mkVar(d_bool);
-  Grammar g = d_solver->mkGrammar({}, {start});
+  Grammar g = d_tm.mkGrammar({}, {start});
   Term truen = d_tm.mkBoolean(true);
   Term falsen = d_tm.mkBoolean(false);
   g.addRule(start, truen);
@@ -2710,6 +2690,307 @@ TEST_F(TestApiBlackSolver, pluginListenCadical)
   // above input formulas should induce a theory lemma and SAT clause learning
   ASSERT_TRUE(pl.hasSeenTheoryLemma());
   ASSERT_TRUE(pl.hasSeenSatClause());
+}
+
+/** Terminator that requests termination from its n-th call on. */
+class TerminatorAt : public Terminator
+{
+ public:
+  /**
+   * @param n    The call on which termination is requested first.
+   * @param once If true, termination is only requested on the n-th call.
+   */
+  TerminatorAt(uint64_t n, bool once = false) : d_n(n), d_once(once) {}
+  bool terminate() noexcept override
+  {
+    ++d_calls;
+    return d_once ? d_calls == d_n : d_calls >= d_n;
+  }
+  /** The number of calls to terminate(). */
+  uint64_t d_calls = 0;
+
+ private:
+  uint64_t d_n;
+  bool d_once;
+};
+
+/** Terminator that requests termination once a flag is set. */
+class TerminatorFlag : public Terminator
+{
+ public:
+  bool terminate() noexcept override
+  {
+    d_polled.store(true);
+    return d_terminate.load();
+  }
+  /** True if terminate() has been called. */
+  std::atomic<bool> d_polled{false};
+  /** True if termination is requested. */
+  std::atomic<bool> d_terminate{false};
+};
+
+/** Assert that n + 1 pigeons can be placed into n holes (unsat). */
+static void assertPigeonHole(TermManager& tm, cvc5::Solver& solver, uint32_t n)
+{
+  Term one = tm.mkInteger(1);
+  Term nholes = tm.mkInteger(n);
+  std::vector<Term> pigeons;
+  for (uint32_t i = 0; i <= n; ++i)
+  {
+    Term p = tm.mkConst(tm.getIntegerSort());
+    solver.assertFormula(tm.mkTerm(Kind::LEQ, {one, p}));
+    solver.assertFormula(tm.mkTerm(Kind::LEQ, {p, nholes}));
+    pigeons.push_back(p);
+  }
+  solver.assertFormula(tm.mkTerm(Kind::DISTINCT, pigeons));
+}
+
+TEST_F(TestApiBlackSolver, terminatorImmediate)
+{
+  TerminatorAt t(1);
+  d_solver->setTerminator(&t);
+  Term x = d_tm.mkConst(d_bool, "x");
+  d_solver->assertFormula(x);
+  cvc5::Result r = d_solver->checkSat();
+  ASSERT_TRUE(r.isUnknown());
+  ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+  // not called again after termination was requested
+  ASSERT_EQ(t.d_calls, 1);
+  r = d_solver->checkSatAssuming(x.notTerm());
+  ASSERT_TRUE(r.isUnknown());
+  ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+  ASSERT_EQ(t.d_calls, 2);
+}
+
+TEST_F(TestApiBlackSolver, terminatorNever)
+{
+  TerminatorAt t(std::numeric_limits<uint64_t>::max());
+  d_solver->setTerminator(&t);
+  assertPigeonHole(d_tm, *d_solver, 4);
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  ASSERT_GT(t.d_calls, 0);
+}
+
+TEST_F(TestApiBlackSolver, terminatorReplace)
+{
+  TerminatorAt t1(1);
+  TerminatorAt t2(std::numeric_limits<uint64_t>::max());
+  d_solver->setTerminator(&t1);
+  d_solver->setTerminator(&t2);
+  assertPigeonHole(d_tm, *d_solver, 4);
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  ASSERT_EQ(t1.d_calls, 0);
+  ASSERT_GT(t2.d_calls, 0);
+}
+
+TEST_F(TestApiBlackSolver, terminatorReuse)
+{
+  for (const std::string sat : {"cadical", "minisat"})
+  {
+    cvc5::Solver solver(d_tm);
+    solver.setOption("sat-solver", sat);
+    TerminatorAt t(10);
+    solver.setTerminator(&t);
+    assertPigeonHole(d_tm, solver, 5);
+    cvc5::Result r = solver.checkSat();
+    ASSERT_TRUE(r.isUnknown());
+    ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+    ASSERT_EQ(t.d_calls, 10);
+    // the terminator still requests termination, the next query is
+    // terminated immediately
+    r = solver.checkSat();
+    ASSERT_TRUE(r.isUnknown());
+    ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+    ASSERT_EQ(t.d_calls, 11);
+    // disconnected, the query is solved
+    solver.setTerminator(nullptr);
+    ASSERT_TRUE(solver.checkSat().isUnsat());
+    ASSERT_EQ(t.d_calls, 11);
+    // further queries on the same solver
+    Term x = d_tm.mkConst(d_bool, "x");
+    solver.push();
+    solver.assertFormula(x);
+    ASSERT_TRUE(solver.checkSat().isUnsat());
+    solver.pop();
+    solver.resetAssertions();
+    solver.assertFormula(x);
+    ASSERT_TRUE(solver.checkSat().isSat());
+  }
+}
+
+TEST_F(TestApiBlackSolver, terminatorOnce)
+{
+  // termination is requested only once, but must not be forgotten afterwards
+  for (uint64_t n : {1, 10, 100, 1000, 10000})
+  {
+    cvc5::Solver solver(d_tm);
+    TerminatorAt t(n, true);
+    solver.setTerminator(&t);
+    assertPigeonHole(d_tm, solver, 5);
+    cvc5::Result r = solver.checkSat();
+    if (t.d_calls >= n)
+    {
+      ASSERT_TRUE(r.isUnknown());
+      ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+    }
+    else
+    {
+      ASSERT_TRUE(r.isUnsat());
+    }
+  }
+}
+
+TEST_F(TestApiBlackSolver, terminatorThread)
+{
+  TerminatorFlag t;
+  d_solver->setTerminator(&t);
+  // hard enough to not be solved before termination is requested
+  assertPigeonHole(d_tm, *d_solver, 12);
+  std::thread thread([&t]() {
+    while (!t.d_polled.load())
+    {
+      std::this_thread::yield();
+    }
+    t.d_terminate.store(true);
+  });
+  cvc5::Result r = d_solver->checkSat();
+  thread.join();
+  ASSERT_TRUE(r.isUnknown());
+  ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+}
+
+TEST_F(TestApiBlackSolver, terminatorSubsolver)
+{
+  d_solver->setLogic("QF_LIA");
+  d_solver->setOption("produce-abducts", "true");
+  d_solver->setOption("incremental", "false");
+  Term zero = d_tm.mkInteger(0);
+  Term x = d_tm.mkConst(d_int, "x");
+  Term y = d_tm.mkConst(d_int, "y");
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {x, zero}));
+  // abduction is performed by a subsolver, which is terminated
+  TerminatorAt t(1);
+  d_solver->setTerminator(&t);
+  ASSERT_TRUE(d_solver->getAbduct(d_tm.mkTerm(Kind::GT, {y, zero})).isNull());
+}
+
+TEST_F(TestApiBlackSolver, terminatorTimeoutCore)
+{
+  d_solver->setOption("produce-unsat-cores", "true");
+  Term zero = d_tm.mkInteger(0);
+  Term x = d_tm.mkConst(d_int, "x");
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {x, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::LT, {x, zero}));
+  // timeout cores are computed by repeated subsolver calls, which are
+  // terminated
+  TerminatorAt t(1);
+  d_solver->setTerminator(&t);
+  std::pair<cvc5::Result, std::vector<Term>> res = d_solver->getTimeoutCore();
+  ASSERT_TRUE(res.first.isUnknown());
+  ASSERT_EQ(res.first.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+  ASSERT_TRUE(res.second.empty());
+}
+
+TEST_F(TestApiBlackSolver, terminatorTimeoutCoreLater)
+{
+  // terminate in later subsolver calls, after the first assertions have been
+  // included in the timeout core, which are then discarded
+  bool interrupted = false;
+  for (uint64_t n = 2; n <= 10; ++n)
+  {
+    cvc5::Solver solver(d_tm);
+    solver.setOption("produce-unsat-cores", "true");
+    assertPigeonHole(d_tm, solver, 4);
+    TerminatorAt t(n);
+    solver.setTerminator(&t);
+    std::pair<cvc5::Result, std::vector<Term>> res = solver.getTimeoutCore();
+    if (res.first.isUnknown())
+    {
+      ASSERT_EQ(res.first.getUnknownExplanation(),
+                UnknownExplanation::INTERRUPTED);
+      ASSERT_TRUE(res.second.empty());
+      interrupted = true;
+    }
+  }
+  ASSERT_TRUE(interrupted);
+}
+
+TEST_F(TestApiBlackSolver, terminatorOutsideQuery)
+{
+  d_solver->setOption("produce-unsat-cores", "true");
+  d_solver->setOption("minimal-unsat-cores", "true");
+  Term zero = d_tm.mkInteger(0);
+  Term x = d_tm.mkConst(d_int, "x");
+  Term y = d_tm.mkConst(d_int, "y");
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {y, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {x, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::LT, {x, zero}));
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  // the terminator is only called during queries, i.e., not while minimizing
+  // the unsat core with subsolvers
+  TerminatorAt t(1);
+  d_solver->setTerminator(&t);
+  ASSERT_EQ(d_solver->getUnsatCore().size(), 2);
+  ASSERT_EQ(t.d_calls, 0);
+  // the terminator is called during the next query
+  cvc5::Result r = d_solver->checkSat();
+  ASSERT_TRUE(r.isUnknown());
+  ASSERT_EQ(r.getUnknownExplanation(), UnknownExplanation::INTERRUPTED);
+  ASSERT_EQ(t.d_calls, 1);
+}
+
+TEST_F(TestApiBlackSolver, terminatorCheckSynth)
+{
+  d_solver->setOption("sygus", "true");
+  d_solver->setOption("incremental", "true");
+  d_solver->addSygusConstraint(d_solver->synthFun("f", {}, d_bool));
+  // termination is only requested once, which only applies to the first call
+  TerminatorAt t(1, true);
+  d_solver->setTerminator(&t);
+  ASSERT_FALSE(d_solver->checkSynth().hasSolution());
+  ASSERT_EQ(t.d_calls, 1);
+  ASSERT_TRUE(d_solver->checkSynth().hasSolution());
+  ASSERT_GT(t.d_calls, 1);
+}
+
+TEST_F(TestApiBlackSolver, terminatorFindSynth)
+{
+  d_solver->setOption("sygus", "true");
+  d_solver->setOption("incremental", "true");
+  Term start = d_tm.mkVar(d_bool);
+  Grammar g = d_tm.mkGrammar({}, {start});
+  g.addRule(start, d_tm.mkBoolean(true));
+  g.addRule(start, d_tm.mkBoolean(false));
+  TerminatorFlag t;
+  d_solver->setTerminator(&t);
+  ASSERT_FALSE(d_solver->findSynth(modes::FindSynthTarget::ENUM, g).isNull());
+  t.d_terminate.store(true);
+  ASSERT_TRUE(d_solver->findSynthNext().isNull());
+  // the termination request does not apply to subsequent calls
+  t.d_terminate.store(false);
+  ASSERT_FALSE(d_solver->findSynth(modes::FindSynthTarget::ENUM, g).isNull());
+}
+
+TEST_F(TestApiBlackSolver, terminatorCallException)
+{
+  d_solver->setOption("produce-unsat-cores", "true");
+  d_solver->setOption("minimal-unsat-cores", "true");
+  Term zero = d_tm.mkInteger(0);
+  Term x = d_tm.mkConst(d_int, "x");
+  Term y = d_tm.mkConst(d_int, "y");
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {y, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::GT, {x, zero}));
+  d_solver->assertFormula(d_tm.mkTerm(Kind::LT, {x, zero}));
+  ASSERT_TRUE(d_solver->checkSat().isUnsat());
+  TerminatorAt t(1);
+  d_solver->setTerminator(&t);
+  // the call is ended even if it is left via an exception
+  ASSERT_THROW(d_solver->findSynthNext(), CVC5ApiException);
+  ASSERT_EQ(t.d_calls, 0);
+  // the terminator is thus not called outside of queries, i.e., not while
+  // minimizing the unsat core with subsolvers
+  ASSERT_EQ(d_solver->getUnsatCore().size(), 2);
+  ASSERT_EQ(t.d_calls, 0);
 }
 
 TEST_F(TestApiBlackSolver, verticalBars)

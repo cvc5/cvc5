@@ -126,7 +126,10 @@ class JustificationStrategy : public DecisionEngine
    * Gets the next decision based on the current assertion to satisfy. This
    * returns undefSatLiteral if there are no more assertions. In this case,
    * all relevant input assertions are already propositionally satisfied by
-   * the current assignment.
+   * the current assignment. It also returns undefSatLiteral, without setting
+   * stopSearch, if the current assertion is propositionally false in the
+   * current assignment although the SAT solver is not in conflict, in which
+   * case we leave the decision to the SAT solver.
    *
    * @param stopSearch Set to true if we can stop the search
    * @return The next SAT literal to decide on.

@@ -68,8 +68,6 @@ else:
     extra_compile_args = [
         "-std=c++17",
         "-fno-var-tracking",
-        # Suppress deprecation warnings for deprecated members of OptionInfo
-        "-Wno-deprecated-declarations"
     ]
 
     if sys.platform == 'win32':
@@ -91,7 +89,7 @@ else:
     }
 
     mod_name = "cvc5.cvc5_python_base"
-    mod_src_files = ["cvc5_python_base.pyx", "py_plugin.cpp"]
+    mod_src_files = ["cvc5_python_base.pyx", "py_plugin.cpp", "py_terminator.cpp"]
 
     ext_module = Extension(mod_name, mod_src_files, **ext_options)
     ext_module.cython_directives = {"embedsignature": True}

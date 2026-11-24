@@ -114,6 +114,9 @@ class CVC5_EXPORT CVC5ApiException : public std::exception
    */
   virtual void toStream(std::ostream& os) const { os << d_msg; }
 
+  /** Destructor. */
+  ~CVC5ApiException() override;
+
  private:
   /** The stored error message. */
   std::string d_msg;
@@ -145,6 +148,8 @@ class CVC5_EXPORT CVC5ApiRecoverableException : public CVC5ApiException
       : CVC5ApiException(stream.str())
   {
   }
+  /** Destructor. */
+  ~CVC5ApiRecoverableException() override;
 };
 
 /**
@@ -171,6 +176,8 @@ class CVC5_EXPORT CVC5ApiUnsupportedException
       : CVC5ApiRecoverableException(stream.str())
   {
   }
+  /** Destructor. */
+  ~CVC5ApiUnsupportedException() override;
 };
 
 /**
@@ -196,6 +203,8 @@ class CVC5_EXPORT CVC5ApiOptionException : public CVC5ApiRecoverableException
       : CVC5ApiRecoverableException(stream.str())
   {
   }
+  /** Destructor. */
+  ~CVC5ApiOptionException() override;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -1589,18 +1598,6 @@ class CVC5_EXPORT Term
    */
   bool isStringValue() const;
   /**
-   * Get the native string representation of a string value.
-   * @note Requires that this term is a string value (see isStringValue()).
-   * @note This is not to be confused with toString(), which returns
-   *       some string representation of the term, whatever data it may hold.
-   * @return The string term as a native string value.
-   * @warning This function is deprecated and replaced by
-   *          Term::getU32StringValue(). It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use Term::getU32StringValue() instead")]] std::wstring
-  getStringValue() const;
-  /**
    * Get the native UTF-32 string representation of a string value.
    * @note Requires that this term is a string value (see isStringValue()).
    * @note This is not to be confused with toString(), which returns
@@ -2184,8 +2181,8 @@ class Solver;
  * `declare-datatypes` command.
  *
  * Datatype sorts can be constructed from a DatatypeDecl using:
- *   - Solver::mkDatatypeSort()
- *   - Solver::mkDatatypeSorts()
+ *   - TermManager::mkDatatypeSort()
+ *   - TermManager::mkDatatypeSorts()
  */
 class CVC5_EXPORT DatatypeDecl
 {
@@ -3093,6 +3090,7 @@ class CVC5_EXPORT Grammar
 {
   friend class parser::Cmd;
   friend class Solver;
+  friend class TermManager;
   friend struct std::hash<Grammar>;
 
  public:
@@ -3174,11 +3172,7 @@ class CVC5_EXPORT Grammar
    */
   Sort resolve();
 
-  /**
-   * The associated node manager.
-   * @note This is only needed temporarily until deprecated term/sort handling
-   * functions are removed.
-   */
+  /** The associated node manager. */
   NodeManagerSharedPtr d_nm;
   /** The internal representation of this grammar. */
   std::shared_ptr<internal::SygusGrammar> d_grammar;
@@ -3320,11 +3314,6 @@ struct CVC5_EXPORT OptionInfo
     std::vector<std::string> modes;
   };
 
-  /** Move assignment operator. */
-  // Note: this is only required to surpress deprecation warnings for deprecated
-  //       members of this struct. Can be removed after the deprecated members
-  //       have been removed.
-  OptionInfo& operator=(OptionInfo&& info);
   /** The option name */
   std::string name;
   /** The option name aliases */
@@ -3333,22 +3322,6 @@ struct CVC5_EXPORT OptionInfo
   std::vector<std::string> noSupports;
   /** Whether the option was explicitly set by the user */
   bool setByUser;
-  /**
-   * True if the option is an expert option
-   * @warning This field is deprecated and replaced by `category`. It will be
-   *          removed in a future release.
-   */
-  [[deprecated(
-      "Query cvc5::modes::OptionCategory category for EXPERT instead")]] bool
-      isExpert;
-  /**
-   * True if the option is a regular option
-   * @warning This field is deprecated and replaced by `category`. It will be
-   *          removed in a future release.
-   */
-  [[deprecated(
-      "Query cvc5::modes::OptionCategory category for REGULAR instead")]] bool
-      isRegular;
   /** The category of this option. */
   modes::OptionCategory category;
   /** Possible types for ``valueInfo``. */
@@ -3652,6 +3625,47 @@ class CVC5_EXPORT Plugin
  private:
   /** Converter to external */
   std::shared_ptr<cvc5::PluginInternal> d_pExtToInt;
+};
+
+/* -------------------------------------------------------------------------- */
+/* Terminator                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A terminator, which allows to terminate queries of a solver.
+ *
+ * A terminator is connected to a solver via Solver::setTerminator(). While
+ * the solver executes a query (e.g., Solver::checkSat()), it periodically
+ * calls terminate() to determine whether the query should be terminated. If
+ * terminate() returns true, the query is terminated as if a resource limit
+ * had been reached. For queries that return a Result, the result is unknown
+ * with explanation UnknownExplanation::INTERRUPTED.
+ *
+ * A termination request only applies to the query during which it was
+ * issued: after terminate() returned true, it is not called again during
+ * that query, and the solver can be used for further queries afterwards.
+ * Function terminate() is called at the beginning of each query, i.e., if it
+ * keeps returning true, subsequent queries are terminated immediately.
+ *
+ * Function terminate() is called frequently from the thread that executes the
+ * query, and must thus be cheap to evaluate. It is declared `noexcept`, since
+ * it is called from code that is not exception-safe (e.g., the SAT solvers):
+ * an exception that escapes it terminates the program. To terminate
+ * a query from another thread, terminate() can, e.g., check a flag of type
+ * `std::atomic<bool>` that is set by that thread.
+ *
+ * @warning This class is experimental and may change in future versions.
+ */
+class CVC5_EXPORT Terminator
+{
+ public:
+  virtual ~Terminator() = default;
+  /**
+   * Determine whether the current query of the solver this terminator is
+   * connected to should be terminated.
+   * @return True to terminate the current query.
+   */
+  virtual bool terminate() noexcept = 0;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -4202,22 +4216,6 @@ class CVC5_EXPORT TermManager
    */
   Term mkString(const std::string& s, bool useEscSequences = false);
   /**
-   * Create a String constant from a `std::wstring`.
-   *
-   * This function does not support escape sequences as `std::wstring` already
-   * supports unicode characters.
-   *
-   * @param s The string this constant represents.
-   * @return The String constant.
-   * @warning This function is deprecated and replaced by
-   *          \ref TermManager::mkString(const std::u32string& s)
-   * "TermManager::mkString(const std::u32string& s)". It will be removed in a
-   * future release.
-   */
-  [[deprecated(
-      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
-  mkString(const std::wstring& s);
-  /**
    * Create a String constant from a `std::u32string`.
    *
    * This function does not support escape sequences as `std::u32string` already
@@ -4482,16 +4480,20 @@ class CVC5_EXPORT TermManager
                               const std::vector<Sort>& params,
                               bool isCoDatatype = false);
 
- private:
-  /**
-   * Get the current, thread_local term manager.
-   * @warning This is a workaround to provide deprecated functionality,
-   *          specifically, constructor Solver::Solver(). When this constructor
-   *          is removed, a solver instance MUST be constructed from a given
-   *          TermManager instance, and this workaround will be removed.
-   */
-  static TermManager* currentTM();
+  /* SyGuS Grammar ------------------------------------------------------ */
 
+  /**
+   * Create a Sygus grammar. The first non-terminal is treated as the starting
+   * non-terminal, so the order of non-terminals matters.
+   *
+   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
+   * @param ntSymbols The pre-declaration of the non-terminal symbols.
+   * @return The grammar.
+   */
+  Grammar mkGrammar(const std::vector<Term>& boundVars,
+                    const std::vector<Term>& ntSymbols);
+
+ private:
   /** Reset the API statistics. */
   void resetStatistics();
   /** Increment the term stats counter. */
@@ -4654,13 +4656,6 @@ class CVC5_EXPORT Solver
 
   /**
    * Constructor.
-   * @warning This constructor is deprecated and replaced by
-   *          `Solver::Solver(TermManager&)`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use Solver::Solver(TermManager&) instead")]] Solver();
-  /**
-   * Constructor.
    *
    * Constructs solver instance from a given term manager instance.
    * @param tm The associated term manager.
@@ -4677,986 +4672,6 @@ class CVC5_EXPORT Solver
    */
   Solver(const Solver&) = delete;
   Solver& operator=(const Solver&) = delete;
-
-  /* .................................................................... */
-  /* Sorts Handling                                                       */
-  /* .................................................................... */
-
-  /**
-   * Get the Boolean sort.
-   * @return Sort Boolean.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::getBooleanSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::getBooleanSort() instead")]] Sort
-  getBooleanSort() const;
-
-  /**
-   * Get the Integer sort.
-   * @return Sort Integer.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::getIntegerSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::getInteger() instead")]] Sort getIntegerSort()
-      const;
-
-  /**
-   * Get the Real sort.
-   * @return Sort Real.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::getRealSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::getRealSort() instead")]] Sort getRealSort()
-      const;
-
-  /**
-   * Get the regular expression sort.
-   * @return Sort RegExp.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::getRegExpSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::getRegExpSort() instead")]] Sort
-  getRegExpSort() const;
-
-  /**
-   * Get the rounding mode sort.
-   * @return Sort RoundingMode.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::getRoundingModeSort()`. It will be removed in a
-   * future release.
-   */
-  [[deprecated("Use TermManager::getRoundingModeSort() instead")]] Sort
-  getRoundingModeSort() const;
-
-  /**
-   * Get the string sort.
-   * @return Sort String.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::getStringSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::getStringSort() instead")]] Sort
-  getStringSort() const;
-
-  /**
-   * Create an array sort.
-   * @param indexSort The array index sort.
-   * @param elemSort The array element sort.
-   * @return The array sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkArraySort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkArraySort() instead")]] Sort mkArraySort(
-      const Sort& indexSort, const Sort& elemSort) const;
-
-  /**
-   * Create a bit-vector sort.
-   * @param size The bit-width of the bit-vector sort.
-   * @return The bit-vector sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkBitVectorSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkBitVectorSort() instead")]] Sort
-  mkBitVectorSort(uint32_t size) const;
-
-  /**
-   * Create a floating-point sort.
-   * @param exp The bit-width of the exponent of the floating-point sort.
-   * @param sig The bit-width of the significand of the floating-point sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPointSort()`. It will be removed in a
-   * future release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPointSort() instead")]] Sort
-  mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
-
-  /**
-   * Create a finite-field sort from a given string of
-   * base n.
-   *
-   * @param size The modulus of the field. Must be prime.
-   * @param base The base of the string representation of `size`.
-   * @return The finite-field sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFiniteFieldSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkFiniteFieldSort() instead")]] Sort
-  mkFiniteFieldSort(const std::string& size, uint32_t base = 10) const;
-
-  /**
-   * Create a datatype sort.
-   * @param dtypedecl The datatype declaration from which the sort is created.
-   * @return The datatype sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkDatatypeSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkDatatypeSort() instead")]] Sort
-  mkDatatypeSort(const DatatypeDecl& dtypedecl) const;
-
-  /**
-   * Create a vector of datatype sorts.
-   * @note The names of the datatype declarations must be distinct.
-   * @param dtypedecls The datatype declarations from which the sort is created.
-   * @return The datatype sorts.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkDatatypeSorts()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkDatatypeSorts() instead")]] std::vector<Sort>
-  mkDatatypeSorts(const std::vector<DatatypeDecl>& dtypedecls) const;
-
-  /**
-   * Create function sort.
-   * @param sorts The sort of the function arguments.
-   * @param codomain The sort of the function return value.
-   * @return The function sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFunctionSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkFunctionSort() instead")]] Sort
-  mkFunctionSort(const std::vector<Sort>& sorts, const Sort& codomain) const;
-
-  /**
-   * Create a sort parameter.
-   *
-   * @warning This function is experimental and may change in future versions.
-   *
-   * @param symbol The name of the sort.
-   * @return The sort parameter.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkParamSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkParamSort() instead")]] Sort mkParamSort(
-      const std::optional<std::string>& symbol = std::nullopt) const;
-
-  /**
-   * Create a predicate sort.
-   *
-   * This is equivalent to calling mkFunctionSort() with the Boolean sort as the
-   * codomain.
-   * @param sorts The list of sorts of the predicate.
-   * @return The predicate sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkPredicateSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkParamSort() instead")]] Sort mkPredicateSort(
-      const std::vector<Sort>& sorts) const;
-
-  /**
-   * Create a record sort
-   *
-   * @warning This function is experimental and may change in future versions.
-   *
-   * @param fields The list of fields of the record.
-   * @return The record sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkRecordSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkRecordSort() instead")]] Sort mkRecordSort(
-      const std::vector<std::pair<std::string, Sort>>& fields) const;
-
-  /**
-   * Create a set sort.
-   * @param elemSort The sort of the set elements.
-   * @return The set sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkSetSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkSetSort() instead")]] Sort mkSetSort(
-      const Sort& elemSort) const;
-
-  /**
-   * Create a bag sort.
-   * @param elemSort The sort of the bag elements.
-   * @return The bag sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkBagSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkBagSort() instead")]] Sort mkBagSort(
-      const Sort& elemSort) const;
-
-  /**
-   * Create a sequence sort.
-   * @param elemSort The sort of the sequence elements.
-   * @return The sequence sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkSequenceSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkSequenceSort() instead")]] Sort
-  mkSequenceSort(const Sort& elemSort) const;
-
-  /**
-   * Create an abstract sort. An abstract sort represents a sort for a given
-   * kind whose parameters and arguments are unspecified.
-   *
-   * The kind `k` must be the kind of a sort that can be abstracted, i.e., a
-   * sort that has indices or argument sorts. For example, #ARRAY_SORT and
-   * #BITVECTOR_SORT can be passed as the kind `k` to this function, while
-   * #INTEGER_SORT and #STRING_SORT cannot.
-   *
-   * @note Providing the kind #ABSTRACT_SORT as an argument to this function
-   * returns the (fully) unspecified sort, denoted `?`.
-   *
-   * @note Providing a kind `k` that has no indices and a fixed arity
-   * of argument sorts will return the sort of kind `k` whose arguments are the
-   * unspecified sort. For example, `mkAbstractSort(SortKind::ARRAY_SORT)` will
-   * return the sort `(ARRAY_SORT ? ?)` instead of the abstract sort whose
-   * abstract kind is #ARRAY_SORT.
-   *
-   * @param k The kind of the abstract sort
-   * @return The abstract sort.
-   *
-   * @warning This function is experimental and may change in future versions.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkAbstractSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkAbstractSort() instead")]] Sort
-  mkAbstractSort(SortKind k) const;
-
-  /**
-   * Create an uninterpreted sort.
-   * @param symbol The name of the sort.
-   * @return The uninterpreted sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkUninterpretedSort()`. It will be removed in a
-   *          future release.
-   */
-  [[deprecated("Use TermManager::mkUninterpretedSort() instead")]] Sort
-  mkUninterpretedSort(
-      const std::optional<std::string>& symbol = std::nullopt) const;
-
-  /**
-   * Create an unresolved datatype sort.
-   *
-   * This is for creating yet unresolved sort placeholders for mutually
-   * recursive parametric datatypes.
-   *
-   * @param symbol The symbol of the sort.
-   * @param arity The number of sort parameters of the sort.
-   * @return The unresolved sort.
-   *
-   * @warning This function is experimental and may change in future versions.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkUnresolvedDatatypeSort()`. It will be removed in
-   *          a future release.
-   */
-  [[deprecated("Use TermManager::mkUnresolvedDatatypeSort() instead")]] Sort
-  mkUnresolvedDatatypeSort(const std::string& symbol, size_t arity = 0) const;
-
-  /**
-   * Create an uninterpreted sort constructor sort.
-   *
-   * An uninterpreted sort constructor is an uninterpreted sort with arity > 0.
-   *
-   * @param symbol The symbol of the sort.
-   * @param arity The arity of the sort (must be > 0)
-   * @return The uninterpreted sort constructor sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkUninterpretedSortConstructorerSort()`. It will be
-   *          removed in a future release.
-   */
-  [[deprecated(
-      "Use TermManager::mkUninterpretedConstructorSort() instead")]] Sort
-  mkUninterpretedSortConstructorSort(
-      size_t arity,
-      const std::optional<std::string>& symbol = std::nullopt) const;
-
-  /**
-   * Create a tuple sort.
-   * @param sorts The sorts of the elements of the tuple.
-   * @return The tuple sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkTupleSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkTupleSort() instead")]] Sort mkTupleSort(
-      const std::vector<Sort>& sorts) const;
-
-  /**
-   * Create a nullable sort.
-   * @param sort The sort of the element of the nullable.
-   * @return The nullable sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkNullableSort()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkNullableSort() instead")]] Sort
-  mkNullableSort(const Sort& sort) const;
-
-  /* .................................................................... */
-  /* Create Terms                                                         */
-  /* .................................................................... */
-
-  /**
-   * Create n-ary term of given kind.
-   * @param kind The kind of the term.
-   * @param children The children of the term.
-   * @return The Term
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkTerm()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkTerm() instead")]] Term mkTerm(
-      Kind kind, const std::vector<Term>& children = {}) const;
-
-  /**
-   * Create n-ary term of given kind from a given operator.
-   * Create operators with mkOp().
-   * @param op The operator.
-   * @param children The children of the term.
-   * @return The Term.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkTerm()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkTerm() instead")]] Term mkTerm(
-      const Op& op, const std::vector<Term>& children = {}) const;
-
-  /**
-   * Create a tuple term.
-   * @param terms The elements in the tuple.
-   * @return The tuple Term.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkTuple()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkTuple() instead")]] Term mkTuple(
-      const std::vector<Term>& terms) const;
-  /**
-   * Create a nullable some term.
-   * @param term The element value.
-   * @return the Element value wrapped in some constructor.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkNullableSome()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkNullableSome() instead")]] Term
-  mkNullableSome(const Term& term) const;
-  /**
-   * Create a selector for nullable term.
-   * @param term A nullable term.
-   * @return The element value of the nullable term.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkNullableVal()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkNullableVal() instead")]] Term mkNullableVal(
-      const Term& term) const;
-  /**
-   * Create a null tester for a nullable term.
-   * @param term A nullable term.
-   * @return A tester whether term is null.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkNullableisNull()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkNullableisNull() instead")]] Term
-  mkNullableIsNull(const Term& term) const;
-  /**
-   * Create a some tester for a nullable term.
-   * @param term A nullable term.
-   * @return A tester whether term is some.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkNullableisSome()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkNullableisSome() instead")]] Term
-  mkNullableIsSome(const Term& term) const;
-
-  /**
-   * Create a constant representing an null of the given sort.
-   * @param sort The sort of the Nullable element.
-   * @return The null constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkNullableNull()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkNullableNull() instead")]] Term
-  mkNullableNull(const Sort& sort) const;
-  /**
-   * Create a term that lifts kind to nullable terms.
-   * Example:
-   * If we have the term ((_ nullable.lift +) x y),
-   * where x, y of type (Nullable Int), then
-   * kind would be ADD, and args would be [x, y].
-   * This function would return
-   * (nullable.lift (lambda ((a Int) (b Int)) (+ a b)) x y)
-   * @param kind The lifted operator.
-   * @param args The arguments of the lifted operator.
-   * @return A term of Kind NULLABLE_LIFT where the first child
-   * is a lambda expression, and the remaining children are
-   * the original arguments.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkNullableLift()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkNullableLift() instead")]] Term
-  mkNullableLift(Kind kind, const std::vector<Term>& args) const;
-
-  /* .................................................................... */
-  /* Create Operators                                                     */
-  /* .................................................................... */
-
-  /**
-   * Create operator of Kind:
-   *   - #BITVECTOR_EXTRACT
-   *   - #BITVECTOR_REPEAT
-   *   - #BITVECTOR_ROTATE_LEFT
-   *   - #BITVECTOR_ROTATE_RIGHT
-   *   - #BITVECTOR_SIGN_EXTEND
-   *   - #BITVECTOR_ZERO_EXTEND
-   *   - #DIVISIBLE
-   *   - #FLOATINGPOINT_TO_FP_FROM_FP
-   *   - #FLOATINGPOINT_TO_FP_FROM_IEEE_BV
-   *   - #FLOATINGPOINT_TO_FP_FROM_REAL
-   *   - #FLOATINGPOINT_TO_FP_FROM_SBV
-   *   - #FLOATINGPOINT_TO_FP_FROM_UBV
-   *   - #FLOATINGPOINT_TO_SBV
-   *   - #FLOATINGPOINT_TO_UBV
-   *   - #INT_TO_BITVECTOR
-   *   - #TUPLE_PROJECT
-   *
-   * See cvc5::Kind for a description of the parameters.
-   * @param kind The kind of the operator.
-   * @param args The arguments (indices) of the operator.
-   *
-   * @note If ``args`` is empty, the Op simply wraps the cvc5::Kind.  The
-   * Kind can be used in TermManager::mkTerm directly without creating an Op
-   * first.
-   * @warning This function is deprecated and replaced by `TermManager::mkOp()`.
-   *          It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkOp() instead")]] Op mkOp(
-      Kind kind, const std::vector<uint32_t>& args = {}) const;
-
-#ifndef DOXYGEN_SKIP
-  // Overload is only used to disambiguate the std::vector and std::string
-  // overloads.
-  [[deprecated("Use TermManager::mkOp() instead")]] Op mkOp(
-      Kind kind, const std::initializer_list<uint32_t>& args) const;
-#endif
-
-  /**
-   * Create operator of kind:
-   *   - #DIVISIBLE (to support arbitrary precision integers)
-   * See cvc5::Kind for a description of the parameters.
-   * @param kind The kind of the operator.
-   * @param arg The string argument to this operator.
-   * @warning This function is deprecated and replaced by `TermManager::mkOp()`.
-   *          It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkOp() instead")]] Op mkOp(
-      Kind kind, const std::string& arg) const;
-
-  /* .................................................................... */
-  /* Create Constants                                                     */
-  /* .................................................................... */
-
-  /**
-   * Create a Boolean true constant.
-   * @return The true constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkTrue()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkTrue() instead")]] Term mkTrue() const;
-
-  /**
-   * Create a Boolean false constant.
-   * @return The false constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFalse()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkFalse() instead")]] Term mkFalse() const;
-
-  /**
-   * Create a Boolean constant.
-   * @return The Boolean constant.
-   * @param val The value of the constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkBoolean()`. It will be removed in a future
-   * release.
-   */
-  [[deprecated("Use TermManager::mkBoolean() instead")]] Term mkBoolean(
-      bool val) const;
-
-  /**
-   * Create a constant representing the number Pi.
-   * @return A constant representing Pi.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkPi()`. It will be removed in a future release.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkPi()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkPi() instead")]] Term mkPi() const;
-  /**
-   * Create an integer constant from a string.
-   * @param s The string representation of the constant, may represent an
-   *          integer (e.g., "123").
-   * @return A constant of sort Integer assuming `s` represents an integer)
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkInteger()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkInteger() instead")]] Term mkInteger(
-      const std::string& s) const;
-
-  /**
-   * Create an integer constant from a c++ int.
-   * @param val The value of the constant.
-   * @return A constant of sort Integer.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkInteger()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkInteger() instead")]] Term mkInteger(
-      int64_t val) const;
-
-  /**
-   * Create a real constant from a string.
-   * @param s The string representation of the constant, may represent an
-   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return A constant of sort Real.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkReal()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkReal() instead")]] Term mkReal(
-      const std::string& s) const;
-
-  /**
-   * Create a real constant from an integer.
-   * @param val The value of the constant.
-   * @return A constant of sort Real.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkReal()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkReal() instead")]] Term mkReal(
-      int64_t val) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num The value of the numerator.
-   * @param den The value of the denominator.
-   * @return A constant of sort Real.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkReal()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkReal() instead")]] Term mkReal(
-      int64_t num, int64_t den) const;
-
-  /**
-   * Create a regular expression all (re.all) term.
-   * @return The all term.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkRegExpAll()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkRegExpAll() instead")]] Term mkRegexpAll()
-      const;
-
-  /**
-   * Create a regular expression allchar (re.allchar) term.
-   * @return The allchar term.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkRegExpAllChar()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkRegExpAllChar() instead")]] Term
-  mkRegexpAllchar() const;
-
-  /**
-   * Create a regular expression none (re.none) term.
-   * @return The none term.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkRegExpNone()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkRegExpNone() instead")]] Term mkRegexpNone()
-      const;
-
-  /**
-   * Create a constant representing an empty set of the given sort.
-   * @param sort The sort of the set elements.
-   * @return The empty set constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkEmptySet()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkEmptySet() instead")]] Term mkEmptySet(
-      const Sort& sort) const;
-
-  /**
-   * Create a constant representing an empty bag of the given sort.
-   * @param sort The sort of the bag elements.
-   * @return The empty bag constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkEmptyBag()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkEmptyBag() instead")]] Term mkEmptyBag(
-      const Sort& sort) const;
-
-  /**
-   * Create a separation logic empty term.
-   * @return The separation logic empty term.
-   * @warning This function is experimental and may change in future versions.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkSepEmp()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkSepEmp() instead")]] Term mkSepEmp() const;
-
-  /**
-   * Create a separation logic nil term.
-   * @param sort The sort of the nil term.
-   * @return The separation logic nil term.
-   * @warning This function is experimental and may change in future versions.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkSepNil()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkSepNil() instead")]] Term mkSepNil(
-      const Sort& sort) const;
-
-  /**
-   * Create a String constant from a `std::string` which may contain SMT-LIB
-   * compatible escape sequences like `\u1234` to encode unicode characters.
-   * @param s The string this constant represents.
-   * @param useEscSequences Determines whether escape sequences in `s` should.
-   * be converted to the corresponding unicode character
-   * @return The String constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkString()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkString() instead")]] Term mkString(
-      const std::string& s, bool useEscSequences = false) const;
-
-  /**
-   * Create a String constant from a `std::wstring`.
-   * This function does not support escape sequences as `std::wstring` already
-   * supports unicode characters.
-   * @param s The string this constant represents.
-   * @return The String constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkString(const std::u32string& s)`. It will be
-   * removed in a future release.
-   */
-  [[deprecated(
-      "Use TermManager::mkString(const std::u32string& s) instead")]] Term
-  mkString(const std::wstring& s) const;
-
-  /**
-   * Create an empty sequence of the given element sort.
-   * @param sort The element sort of the sequence.
-   * @return The empty sequence with given element sort.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkEmptySequence()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkEmptySequence() instead")]] Term
-  mkEmptySequence(const Sort& sort) const;
-
-  /**
-   * Create a universe set of the given sort.
-   * @param sort The sort of the set elements.
-   * @return The universe set constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkUniverseSet()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkUniverseSet() instead")]] Term mkUniverseSet(
-      const Sort& sort) const;
-
-  /**
-   * Create a bit-vector constant of given size and value.
-   *
-   * @note The given value must fit into a bit-vector of the given size.
-   *
-   * @param size The bit-width of the bit-vector sort.
-   * @param val The value of the constant.
-   * @return The bit-vector constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkBitVector()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkBitVector() instead")]] Term mkBitVector(
-      uint32_t size, uint64_t val = 0) const;
-
-  /**
-   * Create a bit-vector constant of a given bit-width from a given string of
-   * base 2, 10 or 16.
-   *
-   * @note The given value must fit into a bit-vector of the given size.
-   *
-   * @param size The bit-width of the constant.
-   * @param s The string representation of the constant.
-   * @param base The base of the string representation (`2` for binary, `10`
-   * for decimal, and `16` for hexadecimal).
-   * @return The bit-vector constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkBitVector()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkBitVector() instead")]] Term mkBitVector(
-      uint32_t size, const std::string& s, uint32_t base) const;
-
-  /**
-   * Create a finite field constant in a given field from a given string
-   * of base n.
-   *
-   * @param value The string representation of the constant.
-   * @param sort  The field sort.
-   * @param base  The base of the string representation of `value`.
-   *
-   * If `size` is the field size, the constant needs not be in the range
-   * [0,size). If it is outside this range, it will be reduced modulo size
-   * before being constructed.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFiniteFieldElem()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkFiniteFieldElem() instead")]] Term
-  mkFiniteFieldElem(const std::string& value,
-                    const Sort& sort,
-                    uint32_t base = 10) const;
-
-  /**
-   * Create a constant array with the provided constant value stored at every
-   * index.
-   * @param sort The sort of the constant array (must be an array sort).
-   * @param val The constant value to store (must match the sort's element
-   *            sort).
-   * @return The constant array term.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkConstArray()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkConstArray() instead")]] Term mkConstArray(
-      const Sort& sort, const Term& val) const;
-
-  /**
-   * Create a positive infinity floating-point constant (SMT-LIB: `+oo`).
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPointPosInf()`. It will be removed in a
-   *          future release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPointPosInf() instead")]] Term
-  mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const;
-
-  /**
-   * Create a negative infinity floating-point constant (SMT-LIB: `-oo`).
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPointNegInf()`. It will be removed in a
-   *          future release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPointNegInf() instead")]] Term
-  mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const;
-
-  /**
-   * Create a not-a-number floating-point constant (SMT-LIB: `NaN`).
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPointNaN()`. It will be removed in a
-   *          future release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPointNaN() instead")]] Term
-  mkFloatingPointNaN(uint32_t exp, uint32_t sig) const;
-
-  /**
-   * Create a positive zero floating-point constant (SMT-LIB: +zero).
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPointPosZero()`. It will be removed in a
-   *          future release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPointPosZero() instead")]] Term
-  mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const;
-
-  /**
-   * Create a negative zero floating-point constant (SMT-LIB: -zero).
-   * @param exp Number of bits in the exponent.
-   * @param sig Number of bits in the significand.
-   * @return The floating-point constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPointNegZero()`. It will be removed in a
-   *          future release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPointNegZero() instead")]] Term
-  mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const;
-
-  /**
-   * Create a rounding mode value.
-   * @param rm The floating point rounding mode this constant represents.
-   * @return The rounding mode value.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkRoundingMode()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkRoundingMode() instead")]] Term
-  mkRoundingMode(RoundingMode rm) const;
-
-  /**
-   * Create a floating-point value from a bit-vector given in IEEE-754
-   * format.
-   * @param exp Size of the exponent.
-   * @param sig Size of the significand.
-   * @param val Value of the floating-point constant as a bit-vector term.
-   * @return The floating-point value.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPoint()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPoint() instead")]] Term
-  mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) const;
-  /**
-   * Create a floating-point value from its three IEEE-754 bit-vector
-   * value components (sign bit, exponent, significand).
-   * @param sign The sign bit.
-   * @param exp  The bit-vector representing the exponent.
-   * @param sig The bit-vector representing the significand.
-   * @return The floating-point value.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkFloatingPoint()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkFloatingPoint() instead")]] Term
-  mkFloatingPoint(const Term& sign, const Term& exp, const Term& sig) const;
-
-  /**
-   * Create a cardinality constraint for an uninterpreted sort.
-   *
-   * @warning This function is experimental and may change in future versions.
-   *
-   * @param sort The sort the cardinality constraint is for.
-   * @param upperBound The upper bound on the cardinality of the sort.
-   * @return The cardinality constraint.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkCardinalityConstraint()`. It will be removed in a
-   * future release.
-   */
-  [[deprecated("Use TermManager::mkCardinalityConstraint() instead")]] Term
-  mkCardinalityConstraint(const Sort& sort, uint32_t upperBound) const;
-
-  /* .................................................................... */
-  /* Create Variables                                                     */
-  /* .................................................................... */
-
-  /**
-   * Create a free constant.
-   *
-   * Note that the returned term is always fresh, even if the same arguments
-   * were provided on a previous call to mkConst().
-   *
-   * SMT-LIB:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (declare-const <symbol> <sort>)
-   *     (declare-fun <symbol> () <sort>)
-   * \endverbatim
-   *
-   * @param sort The sort of the constant.
-   * @param symbol The name of the constant (optional).
-   * @return The constant.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkConst()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkConst() instead")]] Term mkConst(
-      const Sort& sort,
-      const std::optional<std::string>& symbol = std::nullopt) const;
-
-  /**
-   * Create a bound variable to be used in a binder (i.e., a quantifier, a
-   * lambda, or a witness binder).
-   *
-   * Note that the returned term is always fresh, even if the same arguments
-   * were provided on a previous call to mkConst.
-   *
-   * @param sort The sort of the variable.
-   * @param symbol The name of the variable (optional).
-   * @return The variable.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkVar()`. It will be removed in a future release.
-   */
-  [[deprecated("Use TermManager::mkVar() instead")]] Term mkVar(
-      const Sort& sort,
-      const std::optional<std::string>& symbol = std::nullopt) const;
-
-  /* .................................................................... */
-  /* Create datatype constructor declarations                             */
-  /* .................................................................... */
-
-  /**
-   * Create a datatype constructor declaration.
-   * @param name The name of the datatype constructor.
-   * @return The DatatypeConstructorDecl.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkDatatypeConstructorDecl()`. It will be removed in
-   *          a future release.
-   */
-  [[deprecated(
-      "Use TermManager::mkDatatypeConstructorDecl() "
-      "instead")]] DatatypeConstructorDecl
-  mkDatatypeConstructorDecl(const std::string& name);
-
-  /* .................................................................... */
-  /* Create datatype declarations                                         */
-  /* .................................................................... */
-
-  /**
-   * Create a datatype declaration.
-   * @param name The name of the datatype.
-   * @param isCoDatatype True if a codatatype is to be constructed.
-   * @return The DatatypeDecl.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkDatatypeDecl()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkDatatypeDecl() instead")]] DatatypeDecl
-  mkDatatypeDecl(const std::string& name, bool isCoDatatype = false);
-
-  /**
-   * Create a datatype declaration.
-   * Create sorts parameter with TermManager::mkParamSort().
-   *
-   * @warning This function is experimental and may change in future versions.
-   *
-   * @param name The name of the datatype.
-   * @param params A list of sort parameters.
-   * @param isCoDatatype True if a codatatype is to be constructed.
-   * @return The DatatypeDecl.
-   * @warning This function is deprecated and replaced by
-   *          `TermManager::mkDatatypeDecl()`. It will be removed in a future
-   *          release.
-   */
-  [[deprecated("Use TermManager::mkDatatypeDecl() instead")]] DatatypeDecl
-  mkDatatypeDecl(const std::string& name,
-                 const std::vector<Sort>& params,
-                 bool isCoDatatype = false);
 
   /* .................................................................... */
   /* Formula Handling                                                     */
@@ -5793,10 +4808,10 @@ class CVC5_EXPORT Solver
    * \endverbatim
    *
    * @note This corresponds to
-   *       mkUninterpretedSort(const std::optional<std::string>&)
+   *       TermManager::mkUninterpretedSort(const std::optional<std::string>&)
    *       if arity = 0, and to
-   *       mkUninterpretedSortConstructorSort(size_t arity, const
-   * std::optional<std::string>&) if arity > 0.
+   *       TermManager::mkUninterpretedSortConstructorSort(size_t arity, const
+   *       std::optional<std::string>&) if arity > 0.
    *
    * @param symbol The name of the sort.
    * @param arity The arity of the sort.
@@ -6071,7 +5086,10 @@ class CVC5_EXPORT Solver
    * of assertions corresponds to a subset of the current assertions that cause
    * a timeout in the specified time :ref:`timeout-core-timeout
    * <lbl-option-timeout-core-timeout>`. If the result is unsat, then the list
-   * of formulas correspond to an unsat core for the current assertions.
+   * of formulas correspond to an unsat core for the current assertions. If the
+   * computation was terminated by the connected terminator, the result is
+   * unknown with explanation UnknownExplanation::INTERRUPTED, and the
+   * returned set of assertions is empty.
    * Otherwise, the result is sat, indicating that the current assertions are
    * satisfiable, and the returned set of assertions is empty.
    * \endverbatim
@@ -6104,7 +5122,10 @@ class CVC5_EXPORT Solver
    * timeout when added to the current assertions in the specified time
    * :ref:`timeout-core-timeout <lbl-option-timeout-core-timeout>`. If the
    * result is unsat, then the set of assumptions together with the current
-   * assertions correspond to an unsat core for the current assertions.
+   * assertions correspond to an unsat core for the current assertions. If the
+   * computation was terminated by the connected terminator, the result is
+   * unknown with explanation UnknownExplanation::INTERRUPTED, and the
+   * returned set of assumptions is empty.
    * Otherwise, the result is sat, indicating that the given assumptions plus
    * the current assertions are satisfiable, and the returned set of
    * assumptions is empty.
@@ -6452,6 +5473,23 @@ class CVC5_EXPORT Solver
    */
   void addPlugin(Plugin& p);
   /**
+   * Connect a terminator to this solver, which is called periodically during
+   * queries to determine whether the current query should be terminated.
+   * See Terminator for details.
+   *
+   * Only one terminator can be connected at a time, connecting a terminator
+   * disconnects the previously connected terminator. The terminator stays
+   * connected when the solver is reset via the SMT-LIB command `(reset)`. The
+   * solver does not take ownership of the terminator, which must stay alive
+   * while connected.
+   *
+   * @warning This function is experimental and may change in future versions.
+   *
+   * @param terminator The terminator to connect, or nullptr to disconnect the
+   *                   currently connected terminator.
+   */
+  void setTerminator(Terminator* terminator);
+  /**
    * Pop (a) level(s) from the assertion stack.
    *
    * SMT-LIB:
@@ -6792,17 +5830,6 @@ class CVC5_EXPORT Solver
    * @return The universal variable.
    */
   Term declareSygusVar(const std::string& symbol, const Sort& sort) const;
-
-  /**
-   * Create a Sygus grammar. The first non-terminal is treated as the starting
-   * non-terminal, so the order of non-terminals matters.
-   *
-   * @param boundVars The parameters to corresponding synth-fun/synth-inv.
-   * @param ntSymbols The pre-declaration of the non-terminal symbols.
-   * @return The grammar.
-   */
-  Grammar mkGrammar(const std::vector<Term>& boundVars,
-                    const std::vector<Term>& ntSymbols) const;
 
   /**
    * Synthesize n-ary function.
@@ -7149,6 +6176,8 @@ class CVC5_EXPORT Solver
   std::unique_ptr<internal::SolverEngine> d_slv;
   /** The random number generator of this solver. */
   std::unique_ptr<internal::Random> d_rng;
+  /** The connected terminator, if any, which stays connected on reset. */
+  Terminator* d_terminator = nullptr;
 };
 
 }  // namespace cvc5

@@ -19,9 +19,7 @@ include(CheckLibraryExists)
 # can have problems with ambiguous function calls when auto-converting
 # int64_t to long, and others will complain if you overload a function
 # that takes an int64_t with one that takes a long (giving a redefinition
-# error).  So we have to keep both happy.  Probably the same underlying
-# issue as the hash specialization below, but let's check separately
-# for flexibility.
+# error).  So we have to keep both happy.
 check_cxx_source_compiles(
   "
   #include <stdint.h>
@@ -33,22 +31,6 @@ check_cxx_source_compiles(
 )
 if(NOT CVC5_NEED_INT64_T_OVERLOADS)
   set(CVC5_NEED_INT64_T_OVERLOADS 0)
-endif()
-
-# Check to see if this version/architecture of GNU C++ explicitly
-# instantiates std::hash<uint64_t> or not.  Some do, some don't.
-# See src/util/hash.h.
-check_cxx_source_compiles(
-  "
-  #include <cstdint>
-  #include <functional>
-  namespace std { template<> struct hash<uint64_t> {}; }
-  int main() { return 0; }
-  "
-  CVC5_NEED_HASH_UINT64_T_OVERLOAD
-)
-if(CVC5_NEED_HASH_UINT64_T_OVERLOAD)
-  add_definitions(-DCVC5_NEED_HASH_UINT64_T)
 endif()
 
 check_include_file(unistd.h HAVE_UNISTD_H)

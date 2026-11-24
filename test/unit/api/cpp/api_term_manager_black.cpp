@@ -658,6 +658,17 @@ TEST_F(TestApiBlackTermManager, mkOp)
   // mkOp(Kind kind, const std::string& arg)
   ASSERT_NO_THROW(d_tm.mkOp(Kind::DIVISIBLE, "2147483648"));
   ASSERT_THROW(d_tm.mkOp(Kind::BITVECTOR_EXTRACT, "asdf"), CVC5ApiException);
+  // DIVISIBLE builds its argument with internal::Integer directly, so the
+  // strings the two arithmetic backends disagreed about reached Divisible,
+  // whose argument must be positive. A CLN build read "", "-" and "." as 0 and
+  // so built a divisible-by-zero operator, and a GMP build ignored whitespace
+  // and so built DIVISIBLE 12 for the malformed argument "1 2".
+  ASSERT_THROW(d_tm.mkOp(Kind::DIVISIBLE, ""), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkOp(Kind::DIVISIBLE, "-"), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkOp(Kind::DIVISIBLE, "."), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkOp(Kind::DIVISIBLE, "1 2"), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkOp(Kind::DIVISIBLE, " 12"), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkOp(Kind::DIVISIBLE, "+12"), CVC5ApiException);
 
   // mkOp(Kind kind, std::vector<uint32_t> args)
   ASSERT_NO_THROW(d_tm.mkOp(Kind::DIVISIBLE, {1}));
@@ -708,6 +719,14 @@ TEST_F(TestApiBlackTermManager, mkReal)
   ASSERT_THROW(d_tm.mkReal("/"), CVC5ApiException);
   ASSERT_THROW(d_tm.mkReal("2/"), CVC5ApiException);
   ASSERT_THROW(d_tm.mkReal("/2"), CVC5ApiException);
+  // A decimal string is split around the '.' and the digits are parsed as an
+  // Integer, and GMP used to ignore whitespace when doing so. In a GMP build
+  // mkReal("1 2.5") therefore returned 12.5 rather than reporting an error,
+  // while a CLN build rejected it. Whitespace is now rejected by both.
+  ASSERT_THROW(d_tm.mkReal("1 2.5"), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal(" 1.5"), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal("1.5 "), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkReal("1.\t5"), CVC5ApiException);
 
   int32_t val1 = 1;
   int64_t val2 = -1;
@@ -1136,6 +1155,28 @@ TEST_F(TestApiBlackTermManager, getNumIndicesForSkolemId)
       d_tm.getNumIndicesForSkolemId(SkolemId::STRINGS_REPLACE_RE_ALL_RESULT),
       3);
   ASSERT_EQ(d_tm.getNumIndicesForSkolemId(SkolemId::BAGS_MAP_INDEX), 5);
+}
+
+TEST_F(TestApiBlackTermManager, mkGrammar)
+{
+  Term nullTerm;
+  Term boolTerm = d_tm.mkBoolean(true);
+  Term boolVar = d_tm.mkVar(d_bool);
+  Term intVar = d_tm.mkVar(d_int);
+
+  ASSERT_NO_THROW(d_tm.mkGrammar({}, {intVar}));
+  ASSERT_NO_THROW(d_tm.mkGrammar({boolVar}, {intVar}));
+  ASSERT_THROW(d_tm.mkGrammar({}, {}), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkGrammar({}, {nullTerm}), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkGrammar({}, {boolTerm}), CVC5ApiException);
+  ASSERT_THROW(d_tm.mkGrammar({boolTerm}, {intVar}), CVC5ApiException);
+
+  TermManager tm;
+  Term boolVar2 = tm.mkVar(tm.getBooleanSort());
+  Term intVar2 = tm.mkVar(tm.getIntegerSort());
+  ASSERT_NO_THROW(tm.mkGrammar({boolVar2}, {intVar2}));
+  ASSERT_THROW(tm.mkGrammar({boolVar}, {intVar2}), CVC5ApiException);
+  ASSERT_THROW(tm.mkGrammar({boolVar2}, {intVar}), CVC5ApiException);
 }
 
 TEST_F(TestApiBlackTermManager, uFIteration)

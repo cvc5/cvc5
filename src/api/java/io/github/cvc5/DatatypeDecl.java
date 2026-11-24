@@ -21,8 +21,8 @@ package io.github.cvc5;
  * {@code declare-datatypes} command.
  *
  * Datatype sorts can be constructed from DatatypeDecl using the methods:
- *   - {@link Solver#mkDatatypeSort(DatatypeDecl)}
- *   - {@link Solver#mkDatatypeSorts(DatatypeDecl[])}
+ *   - {@link TermManager#mkDatatypeSort(DatatypeDecl)}
+ *   - {@link TermManager#mkDatatypeSorts(DatatypeDecl[])}
  */
 public class DatatypeDecl extends AbstractPointer
 {

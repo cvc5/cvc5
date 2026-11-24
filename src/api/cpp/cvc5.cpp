@@ -24,7 +24,8 @@
  * Our Integer implementation, e.g., is such a special case since we support
  * two different back end implementations (GMP, CLN). Be aware that they do
  * not fully agree on what is (in)valid input, which requires extra checks for
- * consistent behavior (see Solver::mkRealOrIntegerFromStrHelper for example).
+ * consistent behavior (see TermManager::mkRealOrIntegerFromStrHelper for
+ * example).
  */
 
 #include <cvc5/cvc5.h>
@@ -90,6 +91,23 @@
 #include "util/utility.h"
 
 namespace cvc5 {
+
+/* -------------------------------------------------------------------------- */
+/* Exceptions                                                                 */
+/* -------------------------------------------------------------------------- */
+
+// The destructors are defined here (and not in the header) so that they are
+// the key functions of the exception classes. The type info of the exceptions
+// is then emitted only in libcvc5, and programs that catch them refer to it
+// there. Otherwise, each program has its own copy, and with link-time
+// optimization, the copy in a program can be made local to it, so that
+// catching an exception thrown by libcvc5 fails on platforms that compare type
+// info by address (e.g., x86-64 macOS).
+
+CVC5ApiException::~CVC5ApiException() = default;
+CVC5ApiRecoverableException::~CVC5ApiRecoverableException() = default;
+CVC5ApiUnsupportedException::~CVC5ApiUnsupportedException() = default;
+CVC5ApiOptionException::~CVC5ApiOptionException() = default;
 
 /* -------------------------------------------------------------------------- */
 /* APIStatistics                                                              */
@@ -1135,29 +1153,9 @@ class PluginInternal : public internal::Plugin
   cvc5::Plugin& d_external;
 };
 
-std::string kindToString(Kind k)
-{
-  auto it = s_kinds.find(k);
-  if (it == s_kinds.end())
-  {
-    return "Kind::UNDEFINED_KIND";
-  }
-  return it->second.second;
-}
-
 std::ostream& operator<<(std::ostream& out, Kind k)
 {
   return out << std::to_string(k);
-}
-
-std::string sortKindToString(SortKind k)
-{
-  auto it = s_sort_kinds.find(k);
-  if (it == s_sort_kinds.end())
-  {
-    return "Kind::UNDEFINED_SORT_KIND";
-  }
-  return it->second.second;
 }
 
 std::ostream& operator<<(std::ostream& out, SortKind k)
@@ -3141,19 +3139,6 @@ bool Term::isStringValue() const
   CVC5_API_TRY_CATCH_END;
 }
 
-std::wstring Term::getStringValue() const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_CHECK_NOT_NULL;
-  CVC5_API_ARG_CHECK_EXPECTED(d_node->getKind() == internal::Kind::CONST_STRING,
-                              *d_node)
-      << "Term to be a string value when calling getStringValue()";
-  //////// all checks before this line
-  return d_node->getConst<internal::String>().toWString();
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
 std::u32string Term::getU32StringValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -4006,11 +3991,11 @@ bool DatatypeDecl::isResolved() const
     return true;
   }
   // We are resolved if a constructor is resolved. Note that since
-  // internal::DType objects are copied in Solver::mkDatatypeSorts, the
+  // internal::DType objects are copied in TermManager::mkDatatypeSorts, the
   // constructors of d_dtype are passed to NodeManager but not d_type itself.
   // Thus, we must check whether our constructors are resolved.
   // This is a workaround; a clearer implementation would avoid the
-  // copying of DType in Solver::mkDatatypeSorts.
+  // copying of DType in TermManager::mkDatatypeSorts.
   const std::vector<std::shared_ptr<internal::DTypeConstructor>>& cons =
       d_dtype->getConstructors();
   for (const std::shared_ptr<internal::DTypeConstructor>& c : cons)
@@ -5363,12 +5348,6 @@ void TermManager::resetStatistics()
   });
 }
 
-TermManager* TermManager::currentTM()
-{
-  thread_local static TermManager tm;
-  return &tm;
-}
-
 void TermManager::checkMkTerm(Kind kind, uint32_t nchildren) const
 {
   CVC5_API_KIND_CHECK(kind);
@@ -5788,6 +5767,8 @@ Sort TermManager::mkDatatypeSort(const DatatypeDecl& dtypedecl)
   const Datatype& dt = res.getDatatype();
   CVC5_API_CHECK(dt.d_dtype->isCodatatype() || dt.d_dtype->isWellFounded())
       << "Datatype sort " << dt.d_dtype->getName() + " is not well-founded";
+  CVC5_API_CHECK(dt.d_dtype->isRegular())
+      << "Datatype sort " << dt.d_dtype->getName() + " is not regular";
   return res;
   ////////
   CVC5_API_TRY_CATCH_END;
@@ -5812,6 +5793,8 @@ std::vector<Sort> TermManager::mkDatatypeSorts(
     const Datatype& dt = res[i].getDatatype();
     CVC5_API_CHECK(dt.d_dtype->isCodatatype() || dt.d_dtype->isWellFounded())
         << "Datatype sort " << dt.d_dtype->getName() + " is not well-founded";
+    CVC5_API_CHECK(dt.d_dtype->isRegular())
+        << "Datatype sort " << dt.d_dtype->getName() + " is not regular";
   }
   return res;
   ////////
@@ -6175,11 +6158,6 @@ Op TermManager::mkOp(Kind kind, const std::string& arg)
   CVC5_API_KIND_CHECK_EXPECTED((kind == Kind::DIVISIBLE), kind) << "DIVISIBLE";
   //////// all checks before this line
   Op res;
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC5_API_ARG_CHECK_EXPECTED(arg != ".", arg)
-      << "a string representing an integer, real or rational value.";
   res = mkOpHelper(kind, internal::Divisible(internal::Integer(arg)));
   return res;
   ////////
@@ -6255,11 +6233,6 @@ Term TermManager::mkInteger(int64_t val)
 Term TermManager::mkReal(const std::string& s)
 {
   CVC5_API_TRY_CATCH_BEGIN;
-  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-   * throws an std::invalid_argument exception. For consistency, we treat it
-   * as invalid. */
-  CVC5_API_ARG_CHECK_EXPECTED(s != ".", s)
-      << "a string representing a real or rational value.";
   //////// all checks before this line
   return mkRealOrIntegerFromStrHelper(s, false);
   ////////
@@ -6374,21 +6347,6 @@ Term TermManager::mkString(const std::string& s, bool useEscSequences)
   CVC5_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return mkValHelper(d_nm, internal::String(s, useEscSequences));
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Term TermManager::mkString(const std::wstring& s)
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  for (size_t i = 0, n = s.size(); i < n; ++i)
-  {
-    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
-        << "Expected unicode string whose characters are less than code point "
-        << internal::String::num_codes();
-  }
-  //////// all checks before this line
-  return mkValHelper(d_nm, internal::String(s));
   ////////
   CVC5_API_TRY_CATCH_END;
 }
@@ -6844,6 +6802,22 @@ DatatypeDecl TermManager::mkDatatypeDecl(const std::string& name,
   CVC5_API_TRY_CATCH_END;
 }
 
+/* SyGuS Grammar ------------------------------------------------------ */
+
+Grammar TermManager::mkGrammar(const std::vector<Term>& boundVars,
+                               const std::vector<Term>& ntSymbols)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  CVC5_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
+      << "a non-empty vector";
+  CVC5_API_TM_CHECK_BOUND_VARS(boundVars);
+  CVC5_API_TM_CHECK_BOUND_VARS(ntSymbols);
+  //////// all checks before this line
+  return Grammar(d_nm, boundVars, ntSymbols);
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -6864,15 +6838,15 @@ void Solver::resetInternal()
       new internal::SolverEngine(d_tm.d_nm.get(), d_originalOptions.get()));
   d_slv->setSolver(this);
   d_rng.reset(new internal::Random(d_slv->getOptions().driver.seed));
+  // connect the terminator to the new engine
+  if (d_terminator != nullptr)
+  {
+    setTerminator(d_terminator);
+  }
 }
 
 Solver::Solver(TermManager& tm)
     : Solver(tm, std::make_unique<internal::Options>())
-{
-}
-
-Solver::Solver()
-    : Solver(*TermManager::currentTM(), std::make_unique<internal::Options>())
 {
 }
 
@@ -6961,341 +6935,6 @@ void Solver::printStatisticsSafe(int fd) const
   d_slv->printStatisticsSafe(fd);
 }
 
-/* Deprecated Functions                                                       */
-/* -------------------------------------------------------------------------- */
-
-Sort Solver::getBooleanSort(void) const { return d_tm.getBooleanSort(); }
-
-Sort Solver::getIntegerSort(void) const { return d_tm.getIntegerSort(); }
-
-Sort Solver::getRealSort(void) const { return d_tm.getRealSort(); }
-
-Sort Solver::getRegExpSort(void) const { return d_tm.getRegExpSort(); }
-
-Sort Solver::getStringSort(void) const { return d_tm.getStringSort(); }
-
-Sort Solver::getRoundingModeSort(void) const
-{
-  return d_tm.getRoundingModeSort();
-}
-
-Sort Solver::mkArraySort(const Sort& indexSort, const Sort& elemSort) const
-{
-  return d_tm.mkArraySort(indexSort, elemSort);
-}
-
-Sort Solver::mkBitVectorSort(uint32_t size) const
-{
-  return d_tm.mkBitVectorSort(size);
-}
-
-Sort Solver::mkFiniteFieldSort(const std::string& modulus, uint32_t base) const
-{
-  return d_tm.mkFiniteFieldSort(modulus, base);
-}
-
-Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
-{
-  return d_tm.mkFloatingPointSort(exp, sig);
-}
-
-Sort Solver::mkDatatypeSort(const DatatypeDecl& dtypedecl) const
-{
-  return d_tm.mkDatatypeSort(dtypedecl);
-}
-
-std::vector<Sort> Solver::mkDatatypeSorts(
-    const std::vector<DatatypeDecl>& dtypedecls) const
-{
-  return d_tm.mkDatatypeSorts(dtypedecls);
-}
-
-Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
-                            const Sort& codomain) const
-{
-  return d_tm.mkFunctionSort(sorts, codomain);
-}
-
-Sort Solver::mkParamSort(const std::optional<std::string>& symbol) const
-{
-  return d_tm.mkParamSort(symbol);
-}
-
-Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
-{
-  return d_tm.mkPredicateSort(sorts);
-}
-
-Sort Solver::mkRecordSort(
-    const std::vector<std::pair<std::string, Sort>>& fields) const
-{
-  return d_tm.mkRecordSort(fields);
-}
-
-Sort Solver::mkSetSort(const Sort& elemSort) const
-{
-  return d_tm.mkSetSort(elemSort);
-}
-
-Sort Solver::mkBagSort(const Sort& elemSort) const
-{
-  return d_tm.mkBagSort(elemSort);
-}
-
-Sort Solver::mkSequenceSort(const Sort& elemSort) const
-{
-  return d_tm.mkSequenceSort(elemSort);
-}
-
-Sort Solver::mkAbstractSort(SortKind k) const { return d_tm.mkAbstractSort(k); }
-
-Sort Solver::mkUninterpretedSort(const std::optional<std::string>& symbol) const
-{
-  return d_tm.mkUninterpretedSort(symbol);
-}
-
-Sort Solver::mkUnresolvedDatatypeSort(const std::string& symbol,
-                                      size_t arity) const
-{
-  return d_tm.mkUnresolvedDatatypeSort(symbol, arity);
-}
-
-Sort Solver::mkUninterpretedSortConstructorSort(
-    size_t arity, const std::optional<std::string>& symbol) const
-{
-  return d_tm.mkUninterpretedSortConstructorSort(arity, symbol);
-}
-
-Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
-{
-  return d_tm.mkTupleSort(sorts);
-}
-
-Sort Solver::mkNullableSort(const Sort& sort) const
-{
-  return d_tm.mkNullableSort(sort);
-}
-
-Term Solver::mkTrue(void) const { return d_tm.mkTrue(); }
-
-Term Solver::mkFalse(void) const { return d_tm.mkFalse(); }
-
-Term Solver::mkBoolean(bool val) const { return d_tm.mkBoolean(val); }
-
-Term Solver::mkPi() const { return d_tm.mkPi(); }
-
-Term Solver::mkInteger(const std::string& s) const { return d_tm.mkInteger(s); }
-
-Term Solver::mkInteger(int64_t val) const { return d_tm.mkInteger(val); }
-
-Term Solver::mkReal(const std::string& s) const { return d_tm.mkReal(s); }
-
-Term Solver::mkReal(int64_t val) const { return d_tm.mkReal(val); }
-
-Term Solver::mkReal(int64_t num, int64_t den) const
-{
-  return d_tm.mkReal(num, den);
-}
-
-Term Solver::mkRegexpAll() const { return d_tm.mkRegexpAll(); }
-
-Term Solver::mkRegexpNone() const { return d_tm.mkRegexpNone(); }
-
-Term Solver::mkRegexpAllchar() const { return d_tm.mkRegexpAllchar(); }
-
-Term Solver::mkEmptySet(const Sort& sort) const
-{
-  return d_tm.mkEmptySet(sort);
-}
-
-Term Solver::mkEmptyBag(const Sort& sort) const
-{
-  return d_tm.mkEmptyBag(sort);
-}
-
-Term Solver::mkSepEmp() const { return d_tm.mkSepEmp(); }
-
-Term Solver::mkSepNil(const Sort& sort) const { return d_tm.mkSepNil(sort); }
-
-Term Solver::mkString(const std::string& s, bool useEscSequences) const
-{
-  return d_tm.mkString(s, useEscSequences);
-}
-
-Term Solver::mkString(const std::wstring& s) const { return d_tm.mkString(s); }
-
-Term Solver::mkEmptySequence(const Sort& sort) const
-{
-  return d_tm.mkEmptySequence(sort);
-}
-
-Term Solver::mkUniverseSet(const Sort& sort) const
-{
-  return d_tm.mkUniverseSet(sort);
-}
-
-Term Solver::mkBitVector(uint32_t size, uint64_t val) const
-{
-  return d_tm.mkBitVector(size, val);
-}
-
-Term Solver::mkBitVector(uint32_t size,
-                         const std::string& s,
-                         uint32_t base) const
-{
-  return d_tm.mkBitVector(size, s, base);
-}
-
-Term Solver::mkFiniteFieldElem(const std::string& value,
-                               const Sort& sort,
-                               uint32_t base) const
-{
-  return d_tm.mkFiniteFieldElem(value, sort, base);
-}
-
-Term Solver::mkConstArray(const Sort& sort, const Term& val) const
-{
-  return d_tm.mkConstArray(sort, val);
-}
-
-Term Solver::mkFloatingPointPosInf(uint32_t exp, uint32_t sig) const
-{
-  return d_tm.mkFloatingPointPosInf(exp, sig);
-}
-
-Term Solver::mkFloatingPointNegInf(uint32_t exp, uint32_t sig) const
-{
-  return d_tm.mkFloatingPointNegInf(exp, sig);
-}
-
-Term Solver::mkFloatingPointNaN(uint32_t exp, uint32_t sig) const
-{
-  return d_tm.mkFloatingPointNaN(exp, sig);
-}
-
-Term Solver::mkFloatingPointPosZero(uint32_t exp, uint32_t sig) const
-{
-  return d_tm.mkFloatingPointPosZero(exp, sig);
-}
-
-Term Solver::mkFloatingPointNegZero(uint32_t exp, uint32_t sig) const
-{
-  return d_tm.mkFloatingPointNegZero(exp, sig);
-}
-
-Term Solver::mkRoundingMode(RoundingMode rm) const
-{
-  return d_tm.mkRoundingMode(rm);
-}
-
-Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, const Term& val) const
-{
-  return d_tm.mkFloatingPoint(exp, sig, val);
-}
-
-Term Solver::mkFloatingPoint(const Term& sign,
-                             const Term& exp,
-                             const Term& sig) const
-{
-  return d_tm.mkFloatingPoint(sign, exp, sig);
-}
-
-Term Solver::mkCardinalityConstraint(const Sort& sort,
-                                     uint32_t upperBound) const
-{
-  return d_tm.mkCardinalityConstraint(sort, upperBound);
-}
-
-Term Solver::mkNullableLift(Kind kind, const std::vector<Term>& args) const
-{
-  return d_tm.mkNullableLift(kind, args);
-}
-
-Term Solver::mkConst(const Sort& sort,
-                     const std::optional<std::string>& symbol) const
-{
-  return d_tm.mkConst(sort, symbol);
-}
-
-Term Solver::mkVar(const Sort& sort,
-                   const std::optional<std::string>& symbol) const
-{
-  return d_tm.mkVar(sort, symbol);
-}
-
-DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
-    const std::string& name)
-{
-  return d_tm.mkDatatypeConstructorDecl(name);
-}
-
-DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
-{
-  return d_tm.mkDatatypeDecl(name, isCoDatatype);
-}
-
-DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
-                                    const std::vector<Sort>& params,
-                                    bool isCoDatatype)
-{
-  return d_tm.mkDatatypeDecl(name, params, isCoDatatype);
-}
-
-Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
-{
-  return d_tm.mkTerm(kind, children);
-}
-
-Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
-{
-  return d_tm.mkTerm(op, children);
-}
-
-Term Solver::mkTuple(const std::vector<Term>& terms) const
-{
-  return d_tm.mkTuple(terms);
-}
-
-Term Solver::mkNullableSome(const Term& term) const
-{
-  return d_tm.mkNullableSome(term);
-}
-
-Term Solver::mkNullableNull(const Sort& sort) const
-{
-  return d_tm.mkNullableNull(sort);
-}
-
-Term Solver::mkNullableVal(const Term& term) const
-{
-  return d_tm.mkNullableVal(term);
-}
-
-Term Solver::mkNullableIsNull(const Term& term) const
-{
-  return d_tm.mkNullableIsNull(term);
-}
-
-Term Solver::mkNullableIsSome(const Term& term) const
-{
-  return d_tm.mkNullableIsSome(term);
-}
-
-Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
-{
-  return d_tm.mkOp(kind, args);
-}
-
-Op Solver::mkOp(Kind kind, const std::initializer_list<uint32_t>& args) const
-{
-  return d_tm.mkOp(kind, args);
-}
-
-Op Solver::mkOp(Kind kind, const std::string& arg) const
-{
-  return d_tm.mkOp(kind, arg);
-}
-
 /* Non-SMT-LIB commands                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -7318,7 +6957,7 @@ void Solver::assertFormula(const Term& term) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
   CVC5_API_SOLVER_CHECK_TERM(term);
-  CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, getBooleanSort());
+  CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(term, d_tm.getBooleanSort());
   ensureWellFormedTerm(term);
   //////// all checks before this line
   d_slv->assertFormula(*term.d_node);
@@ -7348,7 +6987,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
       << "cannot make multiple queries unless incremental solving is enabled "
          "(try --"
       << internal::options::base::longName::incrementalSolving << ")";
-  CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, getBooleanSort());
+  CVC5_API_SOLVER_CHECK_TERM_WITH_SORT(assumption, d_tm.getBooleanSort());
   ensureWellFormedTerm(assumption);
   //////// all checks before this line
   return d_slv->checkSat(*assumption.d_node);
@@ -7364,7 +7003,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
       << "cannot make multiple queries unless incremental solving is enabled "
          "(try --"
       << internal::options::base::longName::incrementalSolving << ")";
-  CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, getBooleanSort());
+  CVC5_API_SOLVER_CHECK_TERMS_WITH_SORT(assumptions, d_tm.getBooleanSort());
   ensureWellFormedTerms(assumptions);
   //////// all checks before this line
   for (const Term& term : assumptions)
@@ -7673,17 +7312,6 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-OptionInfo& OptionInfo::operator=(OptionInfo&& info)
-{
-  name = std::move(info.name);
-  aliases = std::move(info.aliases);
-  noSupports = std::move(info.noSupports);
-  setByUser = std::move(info.setByUser);
-  category = std::move(info.category);
-  valueInfo = std::move(info.valueInfo);
-  return *this;
-}
-
 bool OptionInfo::boolValue() const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -7846,90 +7474,69 @@ OptionInfo Solver::getOptionInfo(const std::string& option) const
   return std::visit(
       overloaded{
           [&info](const internal::options::OptionInfo::VoidInfo&) {
-            auto cat = convertOptionCategory(info.category);
             return OptionInfo{info.name,
                               info.aliases,
                               info.noSupports,
                               info.setByUser,
-                              cat == modes::OptionCategory::EXPERT,
-                              cat == modes::OptionCategory::REGULAR,
                               convertOptionCategory(info.category),
                               OptionInfo::VoidInfo{}};
           },
           [&info](const internal::options::OptionInfo::ValueInfo<bool>& vi) {
-            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                cat == modes::OptionCategory::EXPERT,
-                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::ValueInfo<bool>{vi.defaultValue, vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::ValueInfo<std::string>& vi) {
-            auto cat = convertOptionCategory(info.category);
             return OptionInfo{info.name,
                               info.aliases,
                               info.noSupports,
                               info.setByUser,
-                              cat == modes::OptionCategory::EXPERT,
-                              cat == modes::OptionCategory::REGULAR,
                               convertOptionCategory(info.category),
                               OptionInfo::ValueInfo<std::string>{
                                   vi.defaultValue, vi.currentValue}};
           },
           [&info](
               const internal::options::OptionInfo::NumberInfo<int64_t>& vi) {
-            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                cat == modes::OptionCategory::EXPERT,
-                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<int64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](
               const internal::options::OptionInfo::NumberInfo<uint64_t>& vi) {
-            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                cat == modes::OptionCategory::EXPERT,
-                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<uint64_t>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::NumberInfo<double>& vi) {
-            auto cat = convertOptionCategory(info.category);
             return OptionInfo{
                 info.name,
                 info.aliases,
                 info.noSupports,
                 info.setByUser,
-                cat == modes::OptionCategory::EXPERT,
-                cat == modes::OptionCategory::REGULAR,
                 convertOptionCategory(info.category),
                 OptionInfo::NumberInfo<double>{
                     vi.defaultValue, vi.currentValue, vi.minimum, vi.maximum}};
           },
           [&info](const internal::options::OptionInfo::ModeInfo& vi) {
-            auto cat = convertOptionCategory(info.category);
             return OptionInfo{info.name,
                               info.aliases,
                               info.noSupports,
                               info.setByUser,
-                              cat == modes::OptionCategory::EXPERT,
-                              cat == modes::OptionCategory::REGULAR,
                               convertOptionCategory(info.category),
                               OptionInfo::ModeInfo{
                                   vi.defaultValue, vi.currentValue, vi.modes}};
@@ -8421,6 +8028,23 @@ void Solver::addPlugin(Plugin& p)
   CVC5_API_TRY_CATCH_END;
 }
 
+void Solver::setTerminator(Terminator* terminator)
+{
+  CVC5_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  d_terminator = terminator;
+  if (terminator == nullptr)
+  {
+    d_slv->setTerminator(nullptr);
+  }
+  else
+  {
+    d_slv->setTerminator([terminator]() { return terminator->terminate(); });
+  }
+  ////////
+  CVC5_API_TRY_CATCH_END;
+}
+
 void Solver::pop(uint32_t nscopes) const
 {
   CVC5_API_TRY_CATCH_BEGIN;
@@ -8738,20 +8362,6 @@ Term Solver::declareSygusVar(const std::string& symbol, const Sort& sort) const
   internal::Node res = d_tm.mkVarHelper(*sort.d_type, symbol);
   d_slv->declareSygusVar(res);
   return Term(d_tm.d_nm, res);
-  ////////
-  CVC5_API_TRY_CATCH_END;
-}
-
-Grammar Solver::mkGrammar(const std::vector<Term>& boundVars,
-                          const std::vector<Term>& ntSymbols) const
-{
-  CVC5_API_TRY_CATCH_BEGIN;
-  CVC5_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
-      << "a non-empty vector";
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(boundVars);
-  CVC5_API_SOLVER_CHECK_BOUND_VARS(ntSymbols);
-  //////// all checks before this line
-  return Grammar(d_tm.d_nm, boundVars, ntSymbols);
   ////////
   CVC5_API_TRY_CATCH_END;
 }

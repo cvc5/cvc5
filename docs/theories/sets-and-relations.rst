@@ -8,7 +8,8 @@ cvc5 supports the theory of finite sets using the following sorts, constants,
 functions and predicates.  More details can be found in :cite:`BansalBRT17`.
 
 For the C++ API examples in the table below, we assume that we have created
-a `cvc5::Solver solver` object.
+a :cpp:class:`TermManager <cvc5::TermManager>` object ``tm`` and a
+:cpp:class:`Solver <cvc5::Solver>` object ``solver`` constructed from it.
 
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                                   |
@@ -17,49 +18,49 @@ a `cvc5::Solver solver` object.
 |                      |                                              |                                                                           |
 |                      | ``(set-logic QF_UFLIAFS)``                   | ``solver.setLogic("QF_UFLIAFS");``                                        |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Sort                 | ``(Set <Sort>)``                             | ``solver.mkSetSort(cvc5::Sort elementSort);``                             |
+| Sort                 | ``(Set <Sort>)``                             | ``tm.mkSetSort(cvc5::Sort elementSort);``                                 |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Constants            | ``(declare-const X (Set Int))``              | ``Sort s = solver.mkSetSort(solver.getIntegerSort());``                   |
+| Constants            | ``(declare-const X (Set Int))``              | ``Sort s = tm.mkSetSort(tm.getIntegerSort());``                           |
 |                      |                                              |                                                                           |
-|                      |                                              | ``Term X = solver.mkConst(s, "X");``                                      |
+|                      |                                              | ``Term X = tm.mkConst(s, "X");``                                          |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Union                | ``(set.union X Y)``                          | ``Term Y = solver.mkConst(s, "Y");``                                      |
+| Union                | ``(set.union X Y)``                          | ``Term Y = tm.mkConst(s, "Y");``                                          |
 |                      |                                              |                                                                           |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_UNION, {X, Y});``                      |
+|                      |                                              | ``Term t = tm.mkTerm(Kind::SET_UNION, {X, Y});``                          |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Intersection         | ``(set.inter X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_INTER, {X, Y});``                      |
+| Intersection         | ``(set.inter X Y)``                          | ``Term t = tm.mkTerm(Kind::SET_INTER, {X, Y});``                          |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Minus                | ``(set.minus X Y)``                          | ``Term t = solver.mkTerm(Kind::SET_MINUS, {X, Y});``                      |
+| Minus                | ``(set.minus X Y)``                          | ``Term t = tm.mkTerm(Kind::SET_MINUS, {X, Y});``                          |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Membership           | ``(set.member x X)``                         | ``Term x = solver.mkConst(solver.getIntegerSort(), "x");``                |
+| Membership           | ``(set.member x X)``                         | ``Term x = tm.mkConst(tm.getIntegerSort(), "x");``                        |
 |                      |                                              |                                                                           |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_MEMBER, {x, X});``                     |
+|                      |                                              | ``Term t = tm.mkTerm(Kind::SET_MEMBER, {x, X});``                         |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Subset               | ``(set.subset X Y)``                         | ``Term t = solver.mkTerm(Kind::SET_SUBSET, {X, Y});``                     |
+| Subset               | ``(set.subset X Y)``                         | ``Term t = tm.mkTerm(Kind::SET_SUBSET, {X, Y});``                         |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Emptyset             | ``(as set.empty (Set Int))``                 | ``Term t = solver.mkEmptySet(s);``                                        |
+| Emptyset             | ``(as set.empty (Set Int))``                 | ``Term t = tm.mkEmptySet(s);``                                            |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Singleton Set        | ``(set.singleton 1)``                        | ``Term t = solver.mkTerm(Kind::SET_SINGLETON, {solver.mkInteger(1)});``   |
+| Singleton Set        | ``(set.singleton 1)``                        | ``Term t = tm.mkTerm(Kind::SET_SINGLETON, {tm.mkInteger(1)});``           |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Emptyset tester      | ``(set.is_empty X)``                         | ``Term t = solver.mkTerm(Kind::SET_IS_EMPTY, {X});``                      |
+| Emptyset tester      | ``(set.is_empty X)``                         | ``Term t = tm.mkTerm(Kind::SET_IS_EMPTY, {X});``                          |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Singleton tester     | ``(set.is_singleton X)``                     | ``Term t = solver.mkTerm(Kind::SET_IS_SINGLETON, {X});``                  |
+| Singleton tester     | ``(set.is_singleton X)``                     | ``Term t = tm.mkTerm(Kind::SET_IS_SINGLETON, {X});``                      |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Cardinality          | ``(set.card X)``                             | ``Term t = solver.mkTerm(Kind::SET_CARD, {X});``                          |
+| Cardinality          | ``(set.card X)``                             | ``Term t = tm.mkTerm(Kind::SET_CARD, {X});``                              |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Insert / Finite Sets | ``(set.insert 1 2 3 (set.singleton 4))``     | ``Term one = solver.mkInteger(1);``                                       |
+| Insert / Finite Sets | ``(set.insert 1 2 3 (set.singleton 4))``     | ``Term one = tm.mkInteger(1);``                                           |
 |                      |                                              |                                                                           |
-|                      |                                              | ``Term two = solver.mkInteger(2);``                                       |
+|                      |                                              | ``Term two = tm.mkInteger(2);``                                           |
 |                      |                                              |                                                                           |
-|                      |                                              | ``Term three = solver.mkInteger(3);``                                     |
+|                      |                                              | ``Term three = tm.mkInteger(3);``                                         |
 |                      |                                              |                                                                           |
-|                      |                                              | ``Term sgl = solver.mkTerm(Kind::SET_SINGLETON, {solver.mkInteger(4)});`` |
+|                      |                                              | ``Term sgl = tm.mkTerm(Kind::SET_SINGLETON, {tm.mkInteger(4)});``         |
 |                      |                                              |                                                                           |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::SET_INSERT, {one, two, three, sgl});``     |
+|                      |                                              | ``Term t = tm.mkTerm(Kind::SET_INSERT, {one, two, three, sgl});``         |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Complement           | ``(set.complement X)``                       | ``Term t = solver.mkTerm(Kind::SET_COMPLEMENT, {X});``                    |
+| Complement           | ``(set.complement X)``                       | ``Term t = tm.mkTerm(Kind::SET_COMPLEMENT, {X});``                        |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
-| Universe Set         | ``(as set.universe (Set Int))``              | ``Term t = solver.mkUniverseSet(s);``                                     |
+| Universe Set         | ``(as set.universe (Set Int))``              | ``Term t = tm.mkUniverseSet(s);``                                         |
 +----------------------+----------------------------------------------+---------------------------------------------------------------------------+
 
 
@@ -157,45 +158,45 @@ More details can be found in :cite:`MengRTB17`.
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 | Tuple Sort           | ``(Tuple <Sort_1>, ..., <Sort_n>)``          | ``std::vector<cvc5::Sort> sorts = { ... };``                                       |
 |                      |                                              |                                                                                    |
-|                      |                                              | ``Sort s = solver.mkTupleSort(sorts);``                                            |
+|                      |                                              | ``Sort s = tm.mkTupleSort(sorts);``                                                |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-|                      | ``(declare-const t (Tuple Int Int))``        | ``Sort s_int = solver.getIntegerSort();``                                          |
+|                      | ``(declare-const t (Tuple Int Int))``        | ``Sort s_int = tm.getIntegerSort();``                                              |
 |                      |                                              |                                                                                    |
-|                      |                                              | ``Sort s = solver.mkTupleSort({s_int, s_int});``                                   |
+|                      |                                              | ``Sort s = tm.mkTupleSort({s_int, s_int});``                                       |
 |                      |                                              |                                                                                    |
-|                      |                                              | ``Term t = solver.mkConst(s, "t");``                                               |
+|                      |                                              | ``Term t = tm.mkConst(s, "t");``                                                   |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = solver.mkTuple({Term_1>, ..., <Term_n>});``                             |
+| Tuple Constructor    | ``(tuple <Term_1>, ..., <Term_n>)``          | ``Term t = tm.mkTuple({Term_1>, ..., <Term_n>});``                                 |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Unit Tuple Sort      | ``UnitTuple``                                | ``Sort s = solver.mkTupleSort({});``                                               |
+| Unit Tuple Sort      | ``UnitTuple``                                | ``Sort s = tm.mkTupleSort({});``                                                   |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Unit Tuple           | ``tuple.unit``                               | ``Term t = solver.mkTuple({});``                                                   |
+| Unit Tuple           | ``tuple.unit``                               | ``Term t = tm.mkTuple({});``                                                       |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Tuple Selector       | ``((_ tuple.select i) t)``                   | ``Sort s = solver.mkTupleSort(sorts);``                                            |
+| Tuple Selector       | ``((_ tuple.select i) t)``                   | ``Sort s = tm.mkTupleSort(sorts);``                                                |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Datatype dt = s.getDatatype();``                                                 |
 |                      |                                              |                                                                                    |
 |                      |                                              | ``Term c = dt[0].getSelector();``                                                  |
 |                      |                                              |                                                                                    |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                          |
+|                      |                                              | ``Term t = tm.mkTerm(Kind::APPLY_SELECTOR, {s, t});``                              |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Relation Sort        | ``(Relation <Sort_1>, ..., <Sort_n>)``       | ``Sort s = solver.mkSetSort(cvc5::Sort tupleSort);``                               |
+| Relation Sort        | ``(Relation <Sort_1>, ..., <Sort_n>)``       | ``Sort s = tm.mkSetSort(cvc5::Sort tupleSort);``                                   |
 |                      |                                              |                                                                                    |
 |                      | which is a syntax sugar for                  |                                                                                    |
 |                      |                                              |                                                                                    |
 |                      | ``(Set (Tuple <Sort_1>, ..., <Sort_n>))``    |                                                                                    |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Constants            | ``(declare-const X (Set (Tuple Int Int)``    | ``Sort s = solver.mkSetSort(solver.mkTupleSort({s_int, s_int});``                  |
+| Constants            | ``(declare-const X (Set (Tuple Int Int)``    | ``Sort s = tm.mkSetSort(tm.mkTupleSort({s_int, s_int});``                          |
 |                      |                                              |                                                                                    |
-|                      |                                              | ``Term X = solver.mkConst(s, "X");``                                               |
+|                      |                                              | ``Term X = tm.mkConst(s, "X");``                                                   |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Transpose            | ``(rel.transpose X)``                        | ``Term t = solver.mkTerm(Kind::RELATION_TRANSPOSE, X);``                           |
+| Transpose            | ``(rel.transpose X)``                        | ``Term t = tm.mkTerm(Kind::RELATION_TRANSPOSE, X);``                               |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Transitive Closure   | ``(rel.tclosure X)``                         | ``Term t = solver.mkTerm(Kind::RELATION_TCLOSURE, X);``                            |
+| Transitive Closure   | ``(rel.tclosure X)``                         | ``Term t = tm.mkTerm(Kind::RELATION_TCLOSURE, X);``                                |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Join                 | ``(rel.join X Y)``                           | ``Term t = solver.mkTerm(Kind::RELATION_JOIN, X, Y);``                             |
+| Join                 | ``(rel.join X Y)``                           | ``Term t = tm.mkTerm(Kind::RELATION_JOIN, X, Y);``                                 |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
-| Product              | ``(rel.product X Y)``                        | ``Term t = solver.mkTerm(Kind::RELATION_PRODUCT, X, Y);``                          |
+| Product              | ``(rel.product X Y)``                        | ``Term t = tm.mkTerm(Kind::RELATION_PRODUCT, X, Y);``                              |
 +----------------------+----------------------------------------------+------------------------------------------------------------------------------------+
 
 Example:

@@ -12,6 +12,7 @@
 
 package io.github.cvc5;
 
+import java.lang.ref.Reference;
 import java.util.function.LongConsumer;
 
 /**
@@ -95,6 +96,10 @@ abstract class AbstractPointer implements IPointer
     {
       pointer = 0;
       ref.release();
+      // Keep the context reachable while the native object is being freed, so
+      // that the cleaner does not free other objects of the same node manager
+      // concurrently.
+      Reference.reachabilityFence(ctx);
     }
   }
 
