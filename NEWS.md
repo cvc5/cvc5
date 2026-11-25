@@ -21,11 +21,43 @@ cvc5 1.5.0 prerelease
   builds raise a logic exception.
 
 - **API**
+  * Removed all previously deprecated API functions.
+    **Note**: this is a breaking change.
+    - **C++**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars (`Solver::getBooleanSort()`,
+      `Solver::mkTerm()`, `Solver::mkConst()`, `Solver::mkGrammar()`, ...),
+      use the corresponding `TermManager` functions instead; constructor
+      `Solver::Solver()`, use `Solver::Solver(TermManager&)`; constructor
+      `parser::SymbolManager(Solver*)`, use
+      `parser::SymbolManager(TermManager&)`; `std::wstring
+      Term::getStringValue()` and `TermManager::mkString(const std::wstring&)`,
+      use `Term::getU32StringValue()` and
+      `TermManager::mkString(const std::u32string&)`; `kindToString()` and
+      `sortKindToString()`, use `std::to_string()`; fields
+      `OptionInfo::isExpert` and `OptionInfo::isRegular`, use
+      `OptionInfo::category`.
+    - **C**: `cvc5_term_get_string_value()`, use
+      `cvc5_term_get_u32string_value()`; `cvc5_mk_string_from_wchar()`, use
+      `cvc5_mk_string_from_char32()`; fields `Cvc5OptionInfo::is_expert` and
+      `Cvc5OptionInfo::is_regular`, use `Cvc5OptionInfo::category`.
+    - **Java**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars, use the corresponding `TermManager`
+      functions instead; constructor `Solver()`, use `Solver(TermManager)`;
+      constructor `SymbolManager(Solver)`, use `SymbolManager(TermManager)`;
+      class `Context` (`Context.deletePointers()`), native memory is now
+      released automatically (see below) and can be released
+      deterministically via `deletePointer()` or `TermManager.close()`.
+    - **Python**: the `Solver` functions for creating sorts, terms, operators,
+      datatype declarations and grammars, use the corresponding `TermManager`
+      functions instead, including `Solver.mkSkolem()` and
+      `Solver.getNumIndicesForSkolemId()`; constructing a `SymbolManager` from
+      a `Solver`, use `SymbolManager(TermManager)`. A `Solver` must now be
+      constructed from a `TermManager` (`Solver(tm)`); `Solver()` no longer
+      implicitly creates a new term manager.
   * New function `TermManager::mkGrammar()` (C++), `TermManager.mkGrammar()`
     (Java, Python) for creating SyGuS grammars. A grammar is associated with
     a term manager, not with a solver, and can be used with any solver
-    instance that uses this term manager. `Solver::mkGrammar()` is deprecated
-    and will be removed in a future release.
+    instance that uses this term manager.
   * **C API**: `cvc5_mk_grammar()` now takes a term manager
     (`Cvc5TermManager*`) instead of a solver instance (`Cvc5*`). Grammars are
     now managed by the term manager, like sorts and terms: they are no longer
@@ -48,14 +80,13 @@ cvc5 1.5.0 prerelease
     without contention or unbounded memory growth. Memory can still be
     released deterministically via `deletePointer()`; `TermManager`, `Solver`,
     `SymbolManager` and `InputParser` additionally implement `AutoCloseable`.
-    `Context.deletePointers()` is deprecated. `TermManager.close()` frees the
-    native objects of a term manager and of all objects derived from it at
-    once, without waiting for the garbage collector, while
-    `TermManager.deletePointer()` frees only the term manager itself and
-    keeps the objects derived from it usable.
+    `TermManager.close()` frees the native objects of a term manager and of
+    all objects derived from it at once, without waiting for the garbage
+    collector, while `TermManager.deletePointer()` frees only the term
+    manager itself and keeps the objects derived from it usable.
   * Using an object after its native memory has been released, via
-    `deletePointer()`, `close()` or `Context.deletePointers()`, now raises an
-    `IllegalStateException` instead of crashing the JVM.
+    `deletePointer()` or `close()`, now raises an `IllegalStateException`
+    instead of crashing the JVM.
   * `Solver.getTermManager()` now returns the same `TermManager` object on
     every call, which is equal to the term manager the solver was created
     with, and `InputParser.getSolver()` and `InputParser.getSymbolManager()`
@@ -95,6 +126,16 @@ cvc5 1.5.0 prerelease
   this function was returning a set of polynomials that are not pairwise
   coprime, which led to wrong answers by the coverings solver. We fix this
   on PR #13184.
+
+- **Proofs**
+  * CPC proofs in logics that are not higher-order now treat a `define-fun`
+    with arguments as a universally quantified formula that defines the
+    function on all inputs, instead of as an equality between the function and
+    a lambda. Expanding a definition is justified by instantiating this
+    formula.
+  * The **Logos** proof checker now supports CPC proofs for inputs with
+    `define-fun`. With this, Logos covers all proofs generated by safe
+    builds of cvc5.
 
 cvc5 1.4.2
 ==========

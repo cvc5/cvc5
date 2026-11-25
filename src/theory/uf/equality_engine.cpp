@@ -1549,6 +1549,21 @@ Node EqualityEngine::mkExplainLit(TNode lit) const
   return ret;
 }
 
+namespace {
+/**
+ * Adds a new, empty child to the proof `parent` and returns it, or returns
+ * nullptr if `parent` is nullptr (i.e., proofs are not being built).
+ */
+EqProof* mkChildProof(EqProof* parent)
+{
+  if (parent == nullptr)
+  {
+    return nullptr;
+  }
+  return parent->d_children.emplace_back(std::make_shared<EqProof>()).get();
+}
+}  // namespace
+
 void EqualityEngine::getExplanation(
     EqualityNodeId t1Id,
     EqualityNodeId t2Id,
@@ -1752,18 +1767,20 @@ void EqualityEngine::getExplanation(
                 Trace("equality") << push;
                 Trace("equality")
                     << "Explaining left hand side equalities" << std::endl;
-                std::shared_ptr<EqProof> eqpc1 =
-                    eqpc ? std::make_shared<EqProof>() : nullptr;
-                getExplanation(f1.d_a, f2.d_a, equalities, cache, eqpc1.get());
+                getExplanation(f1.d_a,
+                               f2.d_a,
+                               equalities,
+                               cache,
+                               mkChildProof(eqpc.get()));
                 Trace("equality")
                     << "Explaining right hand side equalities" << std::endl;
-                std::shared_ptr<EqProof> eqpc2 =
-                    eqpc ? std::make_shared<EqProof>() : nullptr;
-                getExplanation(f1.d_b, f2.d_b, equalities, cache, eqpc2.get());
+                getExplanation(f1.d_b,
+                               f2.d_b,
+                               equalities,
+                               cache,
+                               mkChildProof(eqpc.get()));
                 if (eqpc)
                 {
-                  eqpc->d_children.push_back(eqpc1);
-                  eqpc->d_children.push_back(eqpc2);
                   // build conclusion if ids correspond to non-internal nodes or
                   // if non-internal nodes can be retrieved from them (in the
                   // case of n-ary applications), otherwise leave conclusion as
@@ -1799,13 +1816,11 @@ void EqualityEngine::getExplanation(
 
                 // Explain why a = b constant
                 Trace("equality") << push;
-                std::shared_ptr<EqProof> eqpc1 =
-                    eqpc ? std::make_shared<EqProof>() : nullptr;
-                getExplanation(eq.d_a, eq.d_b, equalities, cache, eqpc1.get());
-                if (eqpc)
-                {
-                  eqpc->d_children.push_back(eqpc1);
-                }
+                getExplanation(eq.d_a,
+                               eq.d_b,
+                               equalities,
+                               cache,
+                               mkChildProof(eqpc.get()));
                 Trace("equality") << pop;
 
                 break;
@@ -1850,16 +1865,13 @@ void EqualityEngine::getExplanation(
                 {
                   EqualityNodeId childId = getNodeId(interpreted[i]);
                   Assert(isConstant(childId));
-                  std::shared_ptr<EqProof> eqpcc =
-                      eqpc ? std::make_shared<EqProof>() : nullptr;
                   getExplanation(childId,
                                  getEqualityNode(childId).getFind(),
                                  equalities,
                                  cache,
-                                 eqpcc.get());
+                                 mkChildProof(eqpc.get()));
                   if (eqpc)
                   {
-                    eqpc->d_children.push_back(eqpcc);
                     if (TraceIsOn("pf::ee"))
                     {
                       Trace("pf::ee")

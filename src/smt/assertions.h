@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
@@ -96,6 +97,12 @@ class Assertions : protected EnvObj
   /** Get the set corresponding to the above */
   std::unordered_set<Node> getCurrentAssertionListDefitions() const;
   /**
+   * Get the quantified formula (forall x (= (f x) t)) that is used in proofs
+   * to justify the definition def of the form (= f (lambda x t)), or null if
+   * none exists.
+   */
+  Node getDefinitionQuant(const Node& def) const;
+  /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.
    */
@@ -142,6 +149,8 @@ class Assertions : protected EnvObj
   std::vector<Node> d_assumptions;
   /** Proof generator storing proofs of rewriting for defined functions */
   std::shared_ptr<LazyCDProof> d_defFunRewPf;
+  /** Maps definitions to their quantified formula, if they have one */
+  context::CDHashMap<Node, Node> d_defQuant;
 };
 
 }  // namespace smt

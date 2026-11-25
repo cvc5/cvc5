@@ -8,43 +8,44 @@ cvc5 supports the theory of finite bags using the following sorts, constants,
 functions and predicates.
 
 For the C++ API examples in the table below, we assume that we have created
-a `cvc5::Solver solver` object.
+a :cpp:class:`TermManager <cvc5::TermManager>` object ``tm`` and a
+:cpp:class:`Solver <cvc5::Solver>` object ``solver`` constructed from it.
 
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 |                      | SMTLIB language                              | C++ API                                                                 |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 | Logic String         | ``(set-logic ALL)``                          | ``solver.setLogic("ALL");``                                             |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Sort                 | ``(Bag <Sort>)``                             | ``solver.mkBagSort(cvc5::Sort elementSort);``                           |
+| Sort                 | ``(Bag <Sort>)``                             | ``tm.mkBagSort(cvc5::Sort elementSort);``                               |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Constants            | ``(declare-const X (Bag String))``           | ``Sort s = solver.mkBagSort(solver.getStringSort());``                  |
+| Constants            | ``(declare-const X (Bag String))``           | ``Sort s = tm.mkBagSort(tm.getStringSort());``                          |
 |                      |                                              |                                                                         |
-|                      |                                              | ``Term X = solver.mkConst(s, "X");``                                    |
+|                      |                                              | ``Term X = tm.mkConst(s, "X");``                                        |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Union disjoint       | ``(bag.union_disjoint X Y)``                 | ``Term Y = solver.mkConst(s, "Y");``                                    |
+| Union disjoint       | ``(bag.union_disjoint X Y)``                 | ``Term Y = tm.mkConst(s, "Y");``                                        |
 |                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_UNION_DISJOINT, {X, Y});``           |
+|                      |                                              | ``Term t = tm.mkTerm(Kind::BAG_UNION_DISJOINT, {X, Y});``               |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Union max            | ``(bag.union_max X Y)``                      | ``Term Y = solver.mkConst(s, "Y");``                                    |
+| Union max            | ``(bag.union_max X Y)``                      | ``Term Y = tm.mkConst(s, "Y");``                                        |
 |                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_UNION_MAX, {X, Y});``                |
+|                      |                                              | ``Term t = tm.mkTerm(Kind::BAG_UNION_MAX, {X, Y});``                    |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Intersection min     | ``(bag.inter_min X Y)``                      | ``Term t = solver.mkTerm(Kind::BAG_INTER_MIN, {X, Y});``                |
+| Intersection min     | ``(bag.inter_min X Y)``                      | ``Term t = tm.mkTerm(Kind::BAG_INTER_MIN, {X, Y});``                    |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Difference subtract  | ``(bag.difference_subtract X Y)``            | ``Term t = solver.mkTerm(Kind::BAG_DIFFERENCE_SUBTRACT, {X, Y});``      |
+| Difference subtract  | ``(bag.difference_subtract X Y)``            | ``Term t = tm.mkTerm(Kind::BAG_DIFFERENCE_SUBTRACT, {X, Y});``          |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Duplicate elimination| ``(bag.setof X)``                            | ``Term t = solver.mkTerm(Kind::BAG_SETOF, {X});``                       |
+| Duplicate elimination| ``(bag.setof X)``                            | ``Term t = tm.mkTerm(Kind::BAG_SETOF, {X});``                           |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Membership           | ``(bag.member x X)``                         | ``Term x = solver.mkConst(solver.getStringSort(), "x");``               |
+| Membership           | ``(bag.member x X)``                         | ``Term x = tm.mkConst(tm.getStringSort(), "x");``                       |
 |                      |                                              |                                                                         |
-|                      |                                              | ``Term t = solver.mkTerm(Kind::BAG_MEMBER, {x, X});``                   |
+|                      |                                              | ``Term t = tm.mkTerm(Kind::BAG_MEMBER, {x, X});``                       |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Subbag               | ``(bag.subbag X Y)``                         | ``Term t = solver.mkTerm(Kind::BAG_SUBBAG, {X, Y});``                   |
+| Subbag               | ``(bag.subbag X Y)``                         | ``Term t = tm.mkTerm(Kind::BAG_SUBBAG, {X, Y});``                       |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Emptybag             | ``(as bag.empty (Bag Int))``                  | ``Term t = solver.mkEmptyBag(s);``                                     |
+| Emptybag             | ``(as bag.empty (Bag Int))``                  | ``Term t = tm.mkEmptyBag(s);``                                         |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
-| Make bag             | ``(bag "a" 3)``                              | ``Term t = solver.mkTerm(Kind::BAG_MAKE,``                              |
-|                      |                                              |            ``{solver.mkString("a"), solver.mkInteger(1)});``            |
+| Make bag             | ``(bag "a" 3)``                              | ``Term t = tm.mkTerm(Kind::BAG_MAKE,``                                  |
+|                      |                                              |            ``{tm.mkString("a"), tm.mkInteger(1)});``                    |
 +----------------------+----------------------------------------------+-------------------------------------------------------------------------+
 
 

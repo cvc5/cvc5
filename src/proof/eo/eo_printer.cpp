@@ -974,10 +974,17 @@ void EoPrinter::print(EoPrintChannelOut& aout,
       {
         continue;
       }
-      // define-fun are HO equalities that can be proven by refl
       size_t id = allocateAssumeId(n, wasAlloc);
       Node f = d_tproc.convert(n[0]);
       Node lam = d_tproc.convert(n[1]);
+      if (options().proof.proofPrintReference)
+      {
+        // The definitions are not printed above. In the reference file, they
+        // are assertions over declared symbols.
+        ao->printAssume(f.eqNode(lam), id, false);
+        continue;
+      }
+      // define-fun are HO equalities that can be proven by refl
       ao->printStep("refl", f.eqNode(lam), id, {}, {lam});
     }
     // [5] print proof body

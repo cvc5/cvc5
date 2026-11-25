@@ -97,7 +97,8 @@ Syntax
 ^^^^^^
 
 For the C++ API examples in the table below, we assume that we have created
-a :cpp:class:`Solver <cvc5::Solver>` object ``solver``.
+a :cpp:class:`TermManager <cvc5::TermManager>` object ``tm`` and a
+:cpp:class:`Solver <cvc5::Solver>` object ``solver`` constructed from it.
 
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 |                      | SMT-LIB language                             | C++ API                                                            |
@@ -106,45 +107,45 @@ a :cpp:class:`Solver <cvc5::Solver>` object ``solver``.
 |                      |                                              |                                                                    |
 |                      | ``(set-logic QF_SLIA)``                      | ``solver.setLogic("QF_SLIA");``                                    |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sort                 | ``(Seq <Sort>)``                             | ``solver.mkSequenceSort(<Sort>);``                                 |
+| Sort                 | ``(Seq <Sort>)``                             | ``tm.mkSequenceSort(<Sort>);``                                     |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Constants            | ``(declare-const X (Seq Int))``              | ``Sort s = solver.mkSequenceSort(solver.getIntegerSort());``       |
+| Constants            | ``(declare-const X (Seq Int))``              | ``Sort s = tm.mkSequenceSort(tm.getIntegerSort());``               |
 |                      |                                              |                                                                    |
-|                      |                                              | ``Term X = solver.mkConst(s, "X");``                               |
+|                      |                                              | ``Term X = tm.mkConst(s, "X");``                                   |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Empty sequence       | ``(as seq.empty (Seq Int))``                 | ``Sort intSort = solver.getIntegerSort();``                        |
+| Empty sequence       | ``(as seq.empty (Seq Int))``                 | ``Sort intSort = tm.getIntegerSort();``                            |
 |                      |                                              |                                                                    |
-|                      |                                              | ``Term t = solver.mkEmptySequence(intSort);``                      |
+|                      |                                              | ``Term t = tm.mkEmptySequence(intSort);``                          |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Unit sequence        | ``(seq.unit 1)``                             | ``Term t = solver.mkTerm(Kind::SEQ_UNIT, {solver.mkInteger(1)});`` |
+| Unit sequence        | ``(seq.unit 1)``                             | ``Term t = tm.mkTerm(Kind::SEQ_UNIT, {tm.mkInteger(1)});``         |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence length      | ``(seq.len X)``                              | ``Term t = solver.mkTerm(Kind::SEQ_LENGTH, {X});``                 |
+| Sequence length      | ``(seq.len X)``                              | ``Term t = tm.mkTerm(Kind::SEQ_LENGTH, {X});``                     |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Element access       | ``(seq.nth X i)``                            | ``Term t = solver.mkTerm(Kind::SEQ_NTH, {X, i});``                 |
+| Element access       | ``(seq.nth X i)``                            | ``Term t = tm.mkTerm(Kind::SEQ_NTH, {X, i});``                     |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Element update       | ``(seq.update X i Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_UPDATE, {X, i, Y});``           |
+| Element update       | ``(seq.update X i Y)``                       | ``Term t = tm.mkTerm(Kind::SEQ_UPDATE, {X, i, Y});``               |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Extraction           | ``(seq.extract X i j)``                      | ``Term t = solver.mkTerm(Kind::SEQ_EXTRACT, {X, i, j});``          |
+| Extraction           | ``(seq.extract X i j)``                      | ``Term t = tm.mkTerm(Kind::SEQ_EXTRACT, {X, i, j});``              |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Concatenation        | ``(seq.++ X Y)``                             | ``Term t = solver.mkTerm(Kind::SEQ_CONCAT, {X, Y});``              |
+| Concatenation        | ``(seq.++ X Y)``                             | ``Term t = tm.mkTerm(Kind::SEQ_CONCAT, {X, Y});``                  |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sub-sequence with    | ``(seq.at X i)``                             | ``Term t = solver.mkTerm(Kind::SEQ_AT, {X, i});``                  |
+| Sub-sequence with    | ``(seq.at X i)``                             | ``Term t = tm.mkTerm(Kind::SEQ_AT, {X, i});``                      |
 | single element       |                                              |                                                                    |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence containment | ``(seq.contains X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_CONTAINS, {X, Y});``            |
+| Sequence containment | ``(seq.contains X Y)``                       | ``Term t = tm.mkTerm(Kind::SEQ_CONTAINS, {X, Y});``                |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence indexof     | ``(seq.indexof X Y i)``                      | ``Term t = solver.mkTerm(Kind::SEQ_INDEXOF, {X, Y, i});``          |
+| Sequence indexof     | ``(seq.indexof X Y i)``                      | ``Term t = tm.mkTerm(Kind::SEQ_INDEXOF, {X, Y, i});``              |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sub-sequence replace | ``(seq.replace X Y Z)``                      | ``Term t = solver.mkTerm(Kind::SEQ_REPLACE, {X, Y, Z});``          |
+| Sub-sequence replace | ``(seq.replace X Y Z)``                      | ``Term t = tm.mkTerm(Kind::SEQ_REPLACE, {X, Y, Z});``              |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sub-sequence         | ``(seq.replace_all X Y Z)``                  | ``Term t = solver.mkTerm(Kind::SEQ_REPLACE_ALL, {X, Y, Z});``      |
+| Sub-sequence         | ``(seq.replace_all X Y Z)``                  | ``Term t = tm.mkTerm(Kind::SEQ_REPLACE_ALL, {X, Y, Z});``          |
 | replace all          |                                              |                                                                    |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence reverse     | ``(seq.rev X)``                              | ``Term t = solver.mkTerm(Kind::SEQ_REV, {X});``                    |
+| Sequence reverse     | ``(seq.rev X)``                              | ``Term t = tm.mkTerm(Kind::SEQ_REV, {X});``                        |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence prefix of   | ``(seq.prefixof X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_PREFIX, {X, Y});``              |
+| Sequence prefix of   | ``(seq.prefixof X Y)``                       | ``Term t = tm.mkTerm(Kind::SEQ_PREFIX, {X, Y});``                  |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
-| Sequence suffix of   | ``(seq.suffixof X Y)``                       | ``Term t = solver.mkTerm(Kind::SEQ_SUFFIX, {X, Y});``              |
+| Sequence suffix of   | ``(seq.suffixof X Y)``                       | ``Term t = tm.mkTerm(Kind::SEQ_SUFFIX, {X, Y});``                  |
 +----------------------+----------------------------------------------+--------------------------------------------------------------------+
 
 Examples

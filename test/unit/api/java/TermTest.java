@@ -1095,7 +1095,7 @@ class TermTest
   void getSkolem() throws CVC5ApiException
   {
     // ordinary variables are not skolems
-    Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
+    Term x = d_tm.mkConst(d_tm.getIntegerSort(), "x");
     assertFalse(x.isSkolem());
     assertThrows(CVC5ApiException.class, () -> x.getSkolemId());
     assertThrows(CVC5ApiException.class, () -> x.getSkolemIndices());
@@ -1104,11 +1104,11 @@ class TermTest
   @Test
   void testMkSkolem() throws CVC5ApiException
   {
-    Sort integer = d_solver.getIntegerSort();
-    Sort arraySort = d_solver.mkArraySort(integer, integer);
+    Sort integer = d_tm.getIntegerSort();
+    Sort arraySort = d_tm.mkArraySort(integer, integer);
 
-    Term a = d_solver.mkConst(arraySort, "a");
-    Term b = d_solver.mkConst(arraySort, "b");
+    Term a = d_tm.mkConst(arraySort, "a");
+    Term b = d_tm.mkConst(arraySort, "b");
 
     Term sk = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {a, b});
     Term sk2 = d_tm.mkSkolem(SkolemId.ARRAY_DEQ_DIFF, new Term[] {b, a});

@@ -838,6 +838,7 @@ set(regress_0_tests
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutual-rec-param-dt.smt2
   regress0/datatypes/mutually-recursive.cvc.smt2
+  regress0/datatypes/nullable-dt-split.smt2
   regress0/datatypes/nullable_checks.smt2
   regress0/datatypes/pair-bool-bool.cvc.smt2
   regress0/datatypes/pair-real-bool.smt2
@@ -1122,6 +1123,7 @@ set(regress_0_tests
   regress0/ho/dd.syo372-finite-ho-ext.smt2
   regress0/ho/declare-fun-variants.smt2
   regress0/ho/def-fun-flatten.smt2
+  regress0/ho/define-fun-unapplied-non-ho.smt2
   regress0/ho/ext-finite-unsat.smt2
   regress0/ho/ext-ho-nested-lambda-model.smt2
   regress0/ho/ext-ho.smt2
@@ -1705,6 +1707,8 @@ set(regress_0_tests
   regress0/proofs/dd_pf_739.smt2
   regress0/proofs/dd_spark_nnf_pf.smt2
   regress0/proofs/dd_textbook-sumeven-arith-rcons.smt2
+  regress0/proofs/define-fun-capture.smt2
+  regress0/proofs/define-fun-inst.smt2
   regress0/proofs/define-fun-shadow.smt2
   regress0/proofs/dsl-cong-eval-cr.smt2
   regress0/proofs/dsl-no-eval.smt2
@@ -1962,6 +1966,9 @@ set(regress_0_tests
   regress0/quantifiers/issue12252-var-elim-shadow-min.smt2
   regress0/quantifiers/issue13111-debug-check-models.smt2
   regress0/quantifiers/issue13161-mbqi-seq-empty.smt2
+  regress0/quantifiers/issue13194-dup-tester-pattern.smt2
+  regress0/quantifiers/issue13194-relational-multi-trigger-1.smt2
+  regress0/quantifiers/issue13194-relational-multi-trigger-2.smt2
   regress0/quantifiers/issue2031-bv-var-elim.smt2
   regress0/quantifiers/issue2033-macro-arith.smt2
   regress0/quantifiers/issue2035.smt2
@@ -2056,6 +2063,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/ufnia-fv-delta.smt2
   regress0/quantifiers/var-elim-bv-partial.smt2
+  regress0/quantifiers/var-elim-ineq-real.smt2
   regress0/quantifiers/var-elim-ineq-simple.smt2
   regress0/quantifiers/veqt-delta.smt2
   regress0/quoted-symbols.smt2
@@ -3062,6 +3070,7 @@ set(regress_1_tests
   regress1/bags/product1.smt2
   regress1/bags/product2.smt2
   regress1/bags/product3.smt2
+  regress1/bags/product4.smt2
   regress1/bags/proj-issue497.smt2
   regress1/bags/proj-issue507.smt2
   regress1/bags/proj-issue547.smt2

@@ -1,5 +1,3 @@
-; Logos needs an update for the fix to dt-collapse-updater.
-; DISABLE-TESTER: cpc-logos
 ; EXPECT: unsat
 (set-logic ALL)
 (declare-datatypes ((Lst 0)) (((nil) (cons (head Int) (tail Lst)))))

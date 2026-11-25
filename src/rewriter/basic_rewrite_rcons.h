@@ -207,6 +207,123 @@ class BasicRewriteRCons : protected EnvObj
    * Elaborate a rewrite eq that was proven by
    * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ.
    *
+   * The variable x is eliminated by introducing a guard (not (= x t)), where
+   * t is a term that falsifies all literals containing x, and then applying
+   * ProofRewriteRule::QUANT_VAR_ELIM_EQ. The proof does not introduce
+   * assumptions, since the quantified formula may contain free variables.
+   *
+   * Below, RCONS denotes a trusted step with id
+   * TrustId::MACRO_THEORY_REWRITE_RCONS_SIMPLE, which is later justified by
+   * RARE reconstruction, and QUANT_MINISCOPE_AND, QUANT_MINISCOPE_OR,
+   * QUANT_VAR_ELIM_EQ and QUANT_MERGE_PRENEX denote ProofRule::THEORY_REWRITE
+   * steps for the corresponding ProofRewriteRule.
+   *
+   * Single variable case. Here eq is (= Q0 false), where Q0 is
+   * (forall ((x T)) (or L1 ... Lk)), whose body is just L1 if k = 1. If k > 1,
+   * a proof P_norm of (= Q0 Q) is first built by congruence over RCONS steps,
+   * where Q is (forall ((x T)) F), F is (=> (and N1 ... Nk) false), and each
+   * Ni is (not Li) normalized to a bound or disequality on x. If k = 1, Q is
+   * Q0 and F is L1. With g := (= x t), I := F{x->t}, and
+   *
+   *   C  := (and (not g) g)        D1 := (or (not g) F)    D2 := (or g F)
+   *   Q1 := (forall ((x T)) D1)    Q2 := (forall ((x T)) D2)
+   *   Q' := (forall ((x T)) (and D1 D2))
+   *   A  := (and Q1 Q2)            A' := (and false Q2)
+   *
+   * the proof of (= Q false) is
+   *
+   *     P1        P2        P3         P4
+   *  --------  --------  --------  ------------
+   *  (= Q Q')  (= Q' A)  (= A A')  (= A' false)
+   *  -------------------------------------------- TRANS
+   *                  (= Q false)
+   *
+   * which, if k > 1, is combined with P_norm via TRANS to conclude eq. The
+   * subproofs are
+   *
+   *  P1:
+   *  ----------- RCONS  ------- REFL
+   *  (= C false)        (= F F)
+   *  -------------------------- NARY_CONG  ------------------ ACI_NORM
+   *  (= (or C F) (or false F))             (= (or false F) F)
+   *  -------------------------------------------------------- TRANS
+   *               (= (or C F) F)
+   *             ---------------- SYMM  ------------------------ RCONS
+   *              (= F (or C F))        (= (or C F) (and D1 D2))
+   *             ----------------------------------------------- TRANS
+   *                            (= F (and D1 D2))
+   *                           ------------------- CONG
+   *                                (= Q Q')
+   *
+   *  P2: -------- QUANT_MINISCOPE_AND      P4: ------------ ABSORB
+   *      (= Q' A)                              (= A' false)
+   *
+   *  P3:                           P_false
+   *  -------- QUANT_VAR_ELIM_EQ  -----------
+   *  (= Q1 I)                    (= I false)
+   *  --------------------------------------- TRANS  --------- REFL
+   *                (= Q1 false)                     (= Q2 Q2)
+   *  -------------------------------------------------------- NARY_CONG
+   *                          (= A A')
+   *
+   * where P_false is a single RCONS step if k = 1. Otherwise I is (=> N false)
+   * with N := (and N1{x->t} ... Nk{x->t}), and P_false is
+   *
+   *   P_N1 ... P_Nk
+   *  --------------- AND_INTRO
+   *         N
+   *  --------------- TRUE_INTRO  --------------- REFL
+   *    (= N true)                (= false false)
+   *  ------------------------------------------- CONG  ------------- EVALUATE
+   *                (= I IMP)                           (= IMP false)
+   *  ----------------------------------------------------------------- TRANS
+   *                             (= I false)
+   *
+   * where IMP := (=> true false), and each P_Ni proves Ni{x->t} from RCONS
+   * steps on the ite structure of t, combined via proveTransIneq and
+   * proveIneqWeaken.
+   *
+   * Multiple variable case. Here eq is (= L R) with L := (forall Z G) and
+   * R := (forall Y K), where x is the first variable of Z not in Y, K is the
+   * disjunction of the literals of G kept in R (false if none), and E is the
+   * disjunction of the remaining literals of G. With H := (forall ((x T)) G),
+   * the proof of (= H K) is
+   *
+   *     M1        M2         M3         M4
+   *  --------  ---------  ---------  --------
+   *  (= H H1)  (= H1 EK)  (= EK FK)  (= FK K)
+   *  ---------------------------------------- TRANS
+   *                  (= H K)
+   *
+   * where H1 := (forall ((x T)) (or E K)), HE := (forall ((x T)) E),
+   * EK := (or HE K), FK := (or false K), and
+   *
+   *  M1: -------------- ACI_NORM     M3:   P_base
+   *      (= G (or E K))                 ------------  ------- REFL
+   *      -------------- CONG            (= HE false)  (= K K)
+   *         (= H H1)                    --------------------- NARY_CONG
+   *                                           (= EK FK)
+   *
+   *  M2: --------- QUANT_MINISCOPE_OR  M4: -------- RCONS
+   *      (= H1 EK)                         (= FK K)
+   *
+   * Here P_base is the proof of (= HE false) given by the single variable
+   * case. The variables Y are free in HE, hence that proof must not introduce
+   * assumptions. M1 is omitted if G is (or E K). If no literal of G is kept,
+   * then K is false, E is G and HE is H, so P_base already proves (= H K) and
+   * the TRANS step above is not recorded, since CDProof does not overwrite an
+   * existing proof. Finally, with HY := (forall Y H) and H' the result of
+   * merging the quantifier prefixes of HY, eq is concluded by
+   *
+   *                                 --------- QUANT_MERGE_PRENEX
+   *                                 (= HY H')       (= H K)
+   *  -------- QUANT_VAR_REORDERING  --------- SYMM  --------- CONG
+   *  (= L H')                       (= H' HY)       (= HY R)
+   *  -------------------------------------------------------- TRANS
+   *                          (= L R)
+   *
+   * where the QUANT_VAR_REORDERING step is omitted if L is H'.
+   *
    * @param cdp The proof to add to.
    * @param eq The rewrite proven by
    * ProofRewriteRule::MACRO_QUANT_VAR_ELIM_INEQ.

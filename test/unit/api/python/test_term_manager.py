@@ -132,9 +132,6 @@ def test_mk_datatype_sort(tm):
 
     with pytest.raises(RuntimeError):
         tm.mkDatatypeSort(dtypeSpec)
-    slv = Solver(tm)
-    with pytest.raises(RuntimeError):
-        slv.mkDatatypeSort(dtypeSpec)
 
     throwsDtypeSpec = tm.mkDatatypeDecl("list")
     with pytest.raises(RuntimeError):

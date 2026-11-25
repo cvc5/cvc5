@@ -303,6 +303,14 @@ void SetDefaults::setDefaultsPre(Options& opts)
             options::ProofGranularityMode::THEORY_REWRITE,
             "Alethe requires granularity at least theory-rewrite");
       }
+      // Alethe proofs refer to function definitions directly
+      if (opts.proof.proofDefineFunQuant)
+      {
+        SET_AND_NOTIFY(proof,
+                       proofDefineFunQuant,
+                       false,
+                       "Alethe proofs use function definitions");
+      }
     }
   }
   if (!opts.smt.produceProofs)
