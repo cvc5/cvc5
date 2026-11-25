@@ -158,6 +158,13 @@ void Pow2Solver::checkFullRefine()
       continue;
     }
 
+    if (!valXConcrete.isConst())
+    {
+      // the exponent could not be evaluated, e.g. it contains a pow2 term
+      // whose exponent is too large
+      continue;
+    }
+
     Integer x = valXConcrete.getConst<Rational>().getNumerator();
     Integer pow2x = valPow2xAbstract.getConst<Rational>().getNumerator();
     // add monotinicity lemmas
@@ -166,6 +173,10 @@ void Pow2Solver::checkFullRefine()
       Node m = d_pow2s[j];
       Node valPow2yAbstract = d_model.computeAbstractModelValue(m);
       Node valYConcrete = d_model.computeConcreteModelValue(m[0]);
+      if (!valYConcrete.isConst())
+      {
+        continue;
+      }
 
       Integer y = valYConcrete.getConst<Rational>().getNumerator();
       Integer pow2y = valPow2yAbstract.getConst<Rational>().getNumerator();
@@ -252,6 +263,12 @@ void Pow2Solver::checkFullRefine()
 
     // this is the most naive model-based schema based on model values
     Node lem = valueBasedLemma(n);
+    if (lem.isNull())
+    {
+      // the value of pow2 could not be computed, e.g. the exponent is too
+      // large for the rewriter to evaluate
+      continue;
+    }
     Trace("pow2-lemma") << "Pow2Solver::Lemma: " << lem << " ; VALUE_REFINE"
                         << std::endl;
     // send the value lemma
@@ -270,6 +287,12 @@ Node Pow2Solver::valueBasedLemma(Node i)
   NodeManager* nm = nodeManager();
   Node valC = nm->mkNode(Kind::POW2, valX);
   valC = rewrite(valC);
+  if (!valC.isConst())
+  {
+    // we do not introduce pow2 terms with constant arguments that cannot be
+    // evaluated, which are not supported by the arithmetic solver
+    return Node::null();
+  }
 
   return nm->mkNode(Kind::IMPLIES, {x.eqNode(valX), i.eqNode(valC)});
 }
