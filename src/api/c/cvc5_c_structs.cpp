@@ -182,7 +182,7 @@ cvc5_term_t* Cvc5TermManager::copy(cvc5_term_t* term)
 {
   if (term)
   {
-    term->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(term->d_refs);
   }
   return term;
 }
@@ -205,7 +205,7 @@ cvc5_op_t* Cvc5TermManager::copy(cvc5_op_t* op)
 {
   if (op)
   {
-    op->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(op->d_refs);
   }
   return op;
 }
@@ -228,7 +228,7 @@ cvc5_sort_t* Cvc5TermManager::copy(cvc5_sort_t* sort)
 {
   if (sort)
   {
-    sort->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(sort->d_refs);
   }
   return sort;
 }
@@ -251,7 +251,7 @@ cvc5_dt_t* Cvc5TermManager::copy(cvc5_dt_t* dt)
 {
   if (dt)
   {
-    dt->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(dt->d_refs);
   }
   return dt;
 }
@@ -274,7 +274,7 @@ cvc5_dt_cons_t* Cvc5TermManager::copy(cvc5_dt_cons_t* cons)
 {
   if (cons)
   {
-    cons->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(cons->d_refs);
   }
   return cons;
 }
@@ -297,7 +297,7 @@ cvc5_dt_sel_t* Cvc5TermManager::copy(cvc5_dt_sel_t* sel)
 {
   if (sel)
   {
-    sel->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(sel->d_refs);
   }
   return sel;
 }
@@ -320,7 +320,7 @@ cvc5_dt_decl_t* Cvc5TermManager::copy(cvc5_dt_decl_t* decl)
 {
   if (decl)
   {
-    decl->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(decl->d_refs);
   }
   return decl;
 }
@@ -344,7 +344,7 @@ cvc5_dt_cons_decl_t* Cvc5TermManager::copy(cvc5_dt_cons_decl_t* decl)
 {
   if (decl)
   {
-    decl->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(decl->d_refs);
   }
   return decl;
 }
@@ -367,7 +367,7 @@ cvc5_stat_t* Cvc5TermManager::copy(cvc5_stat_t* stat)
 {
   if (stat)
   {
-    stat->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(stat->d_refs);
   }
   return stat;
 }
@@ -390,7 +390,7 @@ cvc5_stats_t* Cvc5TermManager::copy(cvc5_stats_t* stat)
 {
   if (stat)
   {
-    stat->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(stat->d_refs);
   }
   return stat;
 }
@@ -413,7 +413,7 @@ cvc5_grammar_t* Cvc5TermManager::copy(cvc5_grammar_t* grammar)
 {
   if (grammar)
   {
-    grammar->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(grammar->d_refs);
   }
   return grammar;
 }
@@ -545,7 +545,7 @@ void Cvc5::deregister(cvc5_result_t* result)
 
 cvc5_result_t* cvc5_result_t::copy()
 {
-  d_refs += 1;
+  cvc5::cvc5_capi_inc_refs(d_refs);
   return this;
 }
 
@@ -580,7 +580,7 @@ void Cvc5::deregister(cvc5_synth_result_t* result)
 
 cvc5_synth_result_t* cvc5_synth_result_t::copy()
 {
-  d_refs += 1;
+  cvc5::cvc5_capi_inc_refs(d_refs);
   return this;
 }
 
@@ -622,7 +622,7 @@ cvc5_proof_t::~cvc5_proof_t()
 
 cvc5_proof_t* cvc5_proof_t::copy()
 {
-  d_refs += 1;
+  cvc5::cvc5_capi_inc_refs(d_refs);
   return this;
 }
 
