@@ -23,6 +23,7 @@
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 #include "theory/bags/strategy.h"
+#include "theory/bags/table_facts_learner.h"
 #include "theory/bags/term_registry.h"
 #include "theory/care_pair_argument_callback.h"
 #include "theory/theory.h"
@@ -54,6 +55,11 @@ class TheoryBags : public Theory
   void finishInit() override;
   /** preprocess rewrite */
   TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
+  /**
+   * The lemmas of the keys and NOT NULL columns of tables that the top-level
+   * assertion in states (see TableFactsLearner).
+   */
+  void ppStaticLearn(TNode in, std::vector<TrustNode>& learned) override;
   //--------------------------------- end initialization
 
   /**
@@ -123,6 +129,8 @@ class TheoryBags : public Theory
   TermRegistry d_termReg;
   /** the main solver for bags */
   BagSolver d_solver;
+  /** The lemmas of the keys and NOT NULL columns of tables */
+  TableFactsLearner d_factsLearner;
 
   /** The care pair argument callback, used for theory combination */
   CarePairArgumentCallback d_cpacb;
