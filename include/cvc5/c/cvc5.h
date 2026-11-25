@@ -5158,11 +5158,11 @@ CVC5_EXPORT void cvc5_set_terminator(Cvc5* cvc5,
  *
  *     (get-interpolant <symbol> <conj>)
  *
- * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+ * .. note:: In SMT-LIB, ``<symbol>`` assigns a symbol to the interpolant.
  *
  * .. note:: Requires option
  *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
- *          be set to a mode different from `none`.
+ *          be set to a mode different from ``none``.
  * \endverbatim
  *
  * @warning This function is experimental and may change in future versions.
@@ -5191,11 +5191,11 @@ CVC5_EXPORT Cvc5Term cvc5_get_interpolant(Cvc5* cvc5, Cvc5Term conj);
  *
  *     (get-interpolant <symbol> <conj> <grammar>)
  *
- * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+ * .. note:: In SMT-LIB, ``<symbol>`` assigns a symbol to the interpolant.
  *
  * .. note:: Requires option
  *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
- *          be set to a mode different from `none`.
+ *          be set to a mode different from ``none``.
  * \endverbatim
  *
  * @warning This function is experimental and may change in future versions.
@@ -5224,7 +5224,7 @@ CVC5_EXPORT Cvc5Term cvc5_get_interpolant_with_grammar(Cvc5* cvc5,
  *
  * Requires to enable incremental mode, and option
  * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
- * a mode different from `none`. \endverbatim
+ * a mode different from ``none``. \endverbatim
  *
  * @warning This function is experimental and may change in future versions.
  *
@@ -5466,7 +5466,7 @@ CVC5_EXPORT bool cvc5_is_logic_set(Cvc5* cvc5);
 
 /**
  * Get the logic set the solver.
- * @note Asserts `cvc5_is_logic_set()1.
+ * @note Asserts `cvc5_is_logic_set()`.
  * @return The logic used by the solver.
  * @note The returned char* pointer is only valid until the next call to this
  *       function.

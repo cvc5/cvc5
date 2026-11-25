@@ -5520,11 +5520,11 @@ class CVC5_EXPORT Solver
    *
    *     (get-interpolant <symbol> <conj>)
    *
-   * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+   * .. note:: In SMT-LIB, ``<symbol>`` assigns a symbol to the interpolant.
    *
    * .. note:: Requires option
    *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
-   *          be set to a mode different from `none`.
+   *          be set to a mode different from ``none``.
    * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
@@ -5554,11 +5554,11 @@ class CVC5_EXPORT Solver
    *
    *     (get-interpolant <symbol> <conj> <grammar>)
    *
-   * .. note:: In SMT-LIB, `<symbol>` assigns a symbol to the interpolant.
+   * .. note:: In SMT-LIB, ``<symbol>`` assigns a symbol to the interpolant.
    *
    * .. note:: Requires option
    *          :ref:`produce-interpolants <lbl-option-produce-interpolants>` to
-   *          be set to a mode different from `none`.
+   *          be set to a mode different from ``none``.
    * \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
@@ -5584,7 +5584,7 @@ class CVC5_EXPORT Solver
    *
    * Requires to enable incremental mode, and option
    * :ref:`produce-interpolants <lbl-option-produce-interpolants>` to be set to
-   * a mode different from `none`. \endverbatim
+   * a mode different from ``none``. \endverbatim
    *
    * @warning This function is experimental and may change in future versions.
    *

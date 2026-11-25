@@ -2149,7 +2149,8 @@ enum ENUM(Kind)
    *
    * \rst
    * .. note::  This kind is deprecated and replaced by
-   *            `BITVECTOR_UBV_TO_INT`. It will be removed in a future
+   *            :cpp:enumerator:`BITVECTOR_UBV_TO_INT`.
+   *            It will be removed in a future
    *            release.
    * \endrst
    */
@@ -3566,18 +3567,19 @@ enum ENUM(Kind)
    * Set comprehension
    *
    * \rst
-   * A set comprehension is specified by a variable list :math:`x_1 ... x_n`,
-   * a predicate :math:`P[x_1...x_n]`, and a term :math:`t[x_1...x_n]`. A
+   * A set comprehension is specified by a variable list
+   * :math:`x_1 \dots x_n`, a predicate :math:`P[x_1 \dots x_n]`, and a term
+   * :math:`t[x_1 \dots x_n]`. A
    * comprehension :math:`C` with the above form has members given by the
    * following semantics:
    *
    * .. math::
    *
-   *  \forall y. ( \exists x_1...x_n. P[x_1...x_n] \wedge t[x_1...x_n] = y )
-   *  \Leftrightarrow (set.member \; y \; C)
+   *   \forall y.\> ( \exists x_1 \dots x_n.\> P[x_1 \dots x_n] \wedge t[x_1 \dots x_n] = y )
+   *   \Leftrightarrow (set.member \; y \; C)
    *
    * where :math:`y` ranges over the element Sort of the (set) Sort of the
-   * comprehension. If :math:`t[x_1..x_n]` is not provided, it is equivalent
+   * comprehension. If :math:`t[x_1 \dots x_n]` is not provided, it is equivalent
    * to :math:`y` in the above formula.
    *
    * - Arity: ``3``
@@ -4024,19 +4026,19 @@ enum ENUM(Kind)
    * \rst
    *
    * Relation aggregate operator has the form
-   * :math:`((\_ \; rel.aggr \; n_1 ... n_k) \; f \; i \; A)`
-   * where :math:`n_1, ..., n_k` are natural numbers,
+   * :math:`((\_ \; rel.aggr \; n_1 \dots n_k) \; f \; i \; A)`
+   * where :math:`n_1, \dots, n_k` are natural numbers,
    * :math:`f` is a function of type
-   * :math:`(\rightarrow (Tuple \;  T_1 \; ... \; T_j)\; T \; T)`,
+   * :math:`(\rightarrow (Tuple \;  T_1 \; \dots \; T_j)\; T \; T)`,
    * :math:`i` has the type :math:`T`,
-   * and :math:`A` has type :math:`(Relation \;  T_1 \; ... \; T_j)`.
+   * and :math:`A` has type :math:`(Relation \;  T_1 \; \dots \; T_j)`.
    * The returned type is :math:`(Set \; T)`.
    *
    * This operator aggregates elements in A that have the same tuple projection
    * with indices n_1, ..., n_k using the combining function :math:`f`,
    * and initial value :math:`i`.
    *
-   * Each part of :math:`((\_ \; rel.group \; n_1 ... n_k) \; A)` gives one
+   * Each part of :math:`((\_ \; rel.group \; n_1 \dots n_k) \; A)` gives one
    * element, so an empty relation gives the empty set, as SQL's ``GROUP BY``
    * gives no rows for an empty table:
    *
@@ -4050,9 +4052,9 @@ enum ENUM(Kind)
    *
    * - Arity: ``3``
    *
-   *   - ``1:`` Term of sort :math:`(\rightarrow (Tuple \;  T_1 \; ... \; T_j)\; T \; T)`
+   *   - ``1:`` Term of sort :math:`(\rightarrow (Tuple \;  T_1 \; \dots \; T_j)\; T \; T)`
    *   - ``2:`` Term of Sort :math:`T`
-   *   - ``3:`` Term of relation sort :math:`Relation T_1 ... T_j`
+   *   - ``3:`` Term of relation sort :math:`Relation T_1 \dots T_j`
    *
    * - Indices: ``n``
    *   - ``1..n:`` Indices of the projection
@@ -4568,19 +4570,19 @@ enum ENUM(Kind)
    * \rst
    *
    * Table aggregate operator has the form
-   * :math:`((\_ \; table.aggr \; n_1 ... n_k) \; f \; i \; A)`
-   * where :math:`n_1, ..., n_k` are natural numbers,
+   * :math:`((\_ \; table.aggr \; n_1 \dots n_k) \; f \; i \; A)`
+   * where :math:`n_1, \dots, n_k` are natural numbers,
    * :math:`f` is a function of type
-   * :math:`(\rightarrow (Tuple \;  T_1 \; ... \; T_j)\; T \; T)`,
+   * :math:`(\rightarrow (Tuple \;  T_1 \; \dots \; T_j)\; T \; T)`,
    * :math:`i` has the type :math:`T`,
-   * and :math:`A` has type :math:`(Table \;  T_1 \; ... \; T_j)`.
+   * and :math:`A` has type :math:`(Table \;  T_1 \; \dots \; T_j)`.
    * The returned type is :math:`(Bag \; T)`.
    *
    * This operator aggregates elements in A that have the same tuple projection
    * with indices n_1, ..., n_k using the combining function :math:`f`,
    * and initial value :math:`i`.
    *
-   * Each part of :math:`((\_ \; table.group \; n_1 ... n_k) \; A)` gives one
+   * Each part of :math:`((\_ \; table.group \; n_1 \dots n_k) \; A)` gives one
    * element, the fold of the part, so an empty table gives the empty bag, as
    * SQL's ``GROUP BY`` gives no rows for an empty table:
    *
@@ -4594,9 +4596,9 @@ enum ENUM(Kind)
    *
    * - Arity: ``3``
    *
-   *   - ``1:`` Term of sort :math:`(\rightarrow (Tuple \;  T_1 \; ... \; T_j)\; T \; T)`
+   *   - ``1:`` Term of sort :math:`(\rightarrow (Tuple \;  T_1 \; \dots \; T_j)\; T \; T)`
    *   - ``2:`` Term of Sort :math:`T`
-   *   - ``3:`` Term of table sort :math:`Table T_1 ... T_j`
+   *   - ``3:`` Term of table sort :math:`Table T_1 \dots T_j`
    *
    * - Indices: ``n``
    *   - ``1..n:`` Indices of the projection
@@ -5771,7 +5773,7 @@ enum ENUM(Kind)
    *
    *     (seq.++ (seq.unit c1) ... (seq.unit cn))
    *
-   * where :math:`n \leq 0` and :math:`c_1, ..., c_n` are constants of some
+   * where :math:`n \leq 0` and :math:`c_1, \dots, c_n` are constants of some
    * sort. The elements can be extracted with Term::getSequenceValue().
    * \endrst
    *
