@@ -136,16 +136,20 @@ Node RewriteDbNodeConverter::postConvert(Node n)
       }
     }
   }
-  // convert indexed operators to symbolic, if applicable
+  // convert indexed operators to symbolic, if applicable. An operator with no
+  // indices, e.g. the one of (table.project A), has nothing to make symbolic.
   if (d_liftIndexed && GenericOp::isNumeralIndexedOperatorKind(k))
   {
     std::vector<Node> indices =
         GenericOp::getIndicesForOperator(k, n.getOperator());
-    indices.insert(indices.begin(), d_nm->mkConst(GenericOp(k)));
-    indices.insert(indices.end(), n.begin(), n.end());
-    Node ret = d_nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
-    recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
-    return ret;
+    if (!indices.empty())
+    {
+      indices.insert(indices.begin(), d_nm->mkConst(GenericOp(k)));
+      indices.insert(indices.end(), n.begin(), n.end());
+      Node ret = d_nm->mkNode(Kind::APPLY_INDEXED_SYMBOLIC, indices);
+      recordProofStep(n, ret, ProofRule::ENCODE_EQ_INTRO);
+      return ret;
+    }
   }
   // since string constants are converted to concatenation terms, we ensure
   // these are flattened using ACI_NORM. This ensures (str.++ "AB" x) is
