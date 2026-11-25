@@ -19,8 +19,10 @@
 
 #include <cvc5/cvc5.h>
 
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <sstream>
 
 #include "api/cpp/cvc5_checks.h"
@@ -98,6 +100,22 @@ CVC5_EXPORT const char* cvc5_capi_get_error_message();
   }                                                                        \
   catch (const std::exception& e) { cvc5::cvc5_capi_set_error(e.what()); } \
   catch (...) { cvc5::cvc5_capi_set_error("unknown C++ exception"); }
+
+/**
+ * Increment the reference count of a C API object.
+ *
+ * Raises an API error instead of incrementing if the count is already at its
+ * maximum: wrapping around would allow releasing the object while other
+ * handles to it are still live.
+ *
+ * @param refs The reference count to increment.
+ */
+inline void cvc5_capi_inc_refs(uint32_t& refs)
+{
+  CVC5_API_CHECK(refs < std::numeric_limits<uint32_t>::max())
+      << "reference count overflow, too many copies of this object";
+  refs += 1;
+}
 
 #endif
 

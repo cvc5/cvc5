@@ -241,7 +241,7 @@ cvc5_cmd_t* Cvc5InputParser::copy(cvc5_cmd_t* cmd)
 {
   if (cmd)
   {
-    cmd->d_refs += 1;
+    cvc5::cvc5_capi_inc_refs(cmd->d_refs);
   }
   return cmd;
 }
