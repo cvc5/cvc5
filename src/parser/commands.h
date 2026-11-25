@@ -142,6 +142,18 @@ class CVC5_EXPORT Cmd
    */
   static void resetSolver(cvc5::Solver* solver);
 
+ public:
+  /**
+   * Make the string constant for s, which may contain any unicode character.
+   * In contrast to TermManager::mkString, this includes characters that are
+   * not in the alphabet of SMT-LIB. The caller is responsible for ensuring that
+   * the characters are permitted by the option --strings-alpha-card.
+   * This relies on Cmd being a friend of cvc5::Term.
+   */
+  static cvc5::Term mkStringTerm(cvc5::TermManager& tm,
+                                 const std::u32string& s);
+
+ protected:
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
   // which is currently necessary for e.g. printing commands.

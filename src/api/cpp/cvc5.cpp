@@ -6356,9 +6356,12 @@ Term TermManager::mkString(const std::u32string& s)
   CVC5_API_TRY_CATCH_BEGIN;
   for (size_t i = 0, n = s.size(); i < n; ++i)
   {
-    CVC5_API_CHECK(static_cast<unsigned>(s[i]) < internal::String::num_codes())
+    // we do not know the alphabet of the solver this constant is used in, hence
+    // we only permit the characters of the SMT-LIB alphabet
+    CVC5_API_CHECK(static_cast<unsigned>(s[i])
+                   < internal::String::smtlibNumCodes())
         << "Expected unicode string whose characters are less than code point "
-        << internal::String::num_codes();
+        << internal::String::smtlibNumCodes();
   }
   //////// all checks before this line
   return mkValHelper(d_nm, internal::String(s));

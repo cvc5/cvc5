@@ -25,6 +25,7 @@
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/rational.h"
 #include "util/statistics_registry.h"
 
 using namespace cvc5::internal::kind;

@@ -248,8 +248,8 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
       Kind k = pargs[0].getKind();
       if (k == Kind::STRING_TO_CODE || k == Kind::STRING_FROM_CODE)
       {
-        // must use standard alphabet size
-        return opts.strings.stringsAlphaCard == String::num_codes();
+        // depends on the alphabet size
+        return isAlphaCardSupported(opts);
       }
       return k == Kind::STRING_CONTAINS || k == Kind::STRING_INDEXOF
              || k == Kind::STRING_INDEXOF_RE || k == Kind::STRING_IN_REGEXP
@@ -261,6 +261,12 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     {
       if (canEvaluate(pargs[0]))
       {
+        // the evaluation of str.from_code depends on the alphabet size
+        if (!isAlphaCardSupported(opts)
+            && expr::hasSubtermKind(Kind::STRING_FROM_CODE, pargs[0]))
+        {
+          return false;
+        }
         Trace("eo-printer-debug") << "Can evaluate " << pargs[0] << std::endl;
         return true;
       }
@@ -423,6 +429,13 @@ bool EoPrinter::isHandledBitblastStep(const Node& eq)
       break;
   }
   return false;
+}
+
+bool EoPrinter::isAlphaCardSupported(const Options& opts)
+{
+  // the minimum maximum code point supported by Ethos is 127
+  return opts.strings.stringsAlphaCard >= 128
+         && opts.strings.stringsAlphaCard <= String::num_codes();
 }
 
 bool EoPrinter::canEvaluate(Node n)

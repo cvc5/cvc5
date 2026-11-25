@@ -95,6 +95,15 @@ class EoPrinter : protected EnvObj
   static bool isHandledTheoryRewrite(const Options& opts,
                                      ProofRewriteRule id,
                                      const Node& n);
+  /**
+   * Return true if the alphabet of strings given by the option
+   * --strings-alpha-card can be represented in Ethos. In particular, the CPC
+   * signature refers to the maximum code point of Ethos (eo::max_code_point)
+   * for reasoning about str.to_code and str.from_code. Ethos is expected to
+   * be invoked with --max-code-point=N-1, where N is the value of
+   * --strings-alpha-card, which is required to be at least 128.
+   */
+  static bool isAlphaCardSupported(const Options& opts);
   /** Return if the equality is handled as a bitblast step */
   static bool isHandledBitblastStep(const Node& eq);
   /**

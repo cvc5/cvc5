@@ -23,6 +23,8 @@
 #ifndef CVC5__NODE_MANAGER_H
 #define CVC5__NODE_MANAGER_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -708,6 +710,15 @@ class NodeManager
 
   template <class NodeClass, class T>
   NodeClass mkConstInternal(Kind k, const T&);
+
+  /**
+   * Make the string constant for s. This is equivalent to calling mkConst for
+   * String(s), but is exported so that it can be used by the parser.
+   *
+   * @param s The string, whose characters may be any unicode character.
+   * @return The string constant.
+   */
+  CVC5_EXPORT Node mkConstString(const std::u32string& s);
 
   /**
    * Make constant real. Returns constant of kind CONST_RATIONAL with Rational

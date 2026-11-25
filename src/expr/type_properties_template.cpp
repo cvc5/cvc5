@@ -11,6 +11,7 @@
  */
 
 #include "expr/type_properties.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace kind {

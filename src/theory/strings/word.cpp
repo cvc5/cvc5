@@ -13,6 +13,7 @@
 #include "theory/strings/word.h"
 
 #include "expr/sequence.h"
+#include "util/rational.h"
 #include "util/string.h"
 
 using namespace cvc5::internal::kind;

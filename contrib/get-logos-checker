@@ -14,7 +14,7 @@ set -e -o pipefail
 # place that pin lives: contrib/check-logos-compilation reads it from here, so
 # the checker that is installed and the checker that proofs/eo/cpc is checked
 # against are the same one by construction. Moving this line moves both.
-LOGOS_VERSION="bdcbd95f615627b26b6ebabc0f584e5230b0bf1f"
+LOGOS_VERSION="f8fdd2401b24d310ae161eb675431221720790ab"
 
 while [ $# -gt 0 ]; do
   case "$1" in

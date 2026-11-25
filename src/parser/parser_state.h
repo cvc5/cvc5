@@ -535,6 +535,25 @@ class CVC5_EXPORT ParserState
   Term mkCharConstant(const std::string& s);
 
   /**
+   * Make string constant from the (unquoted) string literal s, processing
+   * unicode escape sequences.
+   *
+   * As specified by SMT-LIB, an escape sequence is valid only if it denotes a
+   * code point at most 0x2FFFF. If --strings-alpha-card=N is given for
+   * N > 196608, then escape sequences may denote code points up to N-1, and
+   * escape sequences of the form \u{d_5 d_4 d_3 d_2 d_1 d_0} are permitted if
+   * N-1 has 6 hexadecimal digits.
+   */
+  Term mkStringLiteral(const std::string& s);
+
+  /**
+   * Get the maximum code point that escape sequences in string literals may
+   * denote, which is 0x2FFFF unless a larger alphabet was given by the option
+   * --strings-alpha-card.
+   */
+  uint32_t getStringsMaxCodePoint();
+
+  /**
    * Strip quotes off a string, or return a parse error otherwise.
    */
   std::string stripQuotes(const std::string& s);

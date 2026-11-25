@@ -15,13 +15,15 @@
 #ifndef CVC5__UTIL__STRING_H
 #define CVC5__UTIL__STRING_H
 
+#include <cvc5/cvc5_export.h>
+
 #include <iosfwd>
 #include <string>
 #include <vector>
 
-#include "util/rational.h"
-
 namespace cvc5::internal {
+
+class Rational;
 
 namespace strings {
 struct StringHashFunction;
@@ -44,10 +46,18 @@ class String
    *
    * This must be strictly less than std::numeric_limits<unsigned>::max().
    *
-   * As per the SMT-LIB standard for strings, we support the first 3 planes of
-   * Unicode characters, where 196608 = 3*16^4.
+   * We support the full range of Unicode code points, where 1114112 =
+   * 0x10FFFF+1. Note that the SMT-LIB standard for strings considers only the
+   * first 3 planes of Unicode characters, see smtlibNumCodes(). The latter is
+   * the default cardinality of the alphabet the string theory reasons about,
+   * which can be changed via the option --strings-alpha-card.
    */
-  static inline unsigned num_codes() { return 196608; }
+  static inline unsigned num_codes() { return 0x110000; }
+  /**
+   * The cardinality of the alphabet of strings in the SMT-LIB standard, which
+   * is the first 3 planes of Unicode characters, where 196608 = 3*16^4.
+   */
+  static constexpr unsigned smtlibNumCodes() { return 196608; }
   /** constructors for String
    *
    * Internally, a cvc5::internal::String is represented by a vector of unsigned
@@ -63,6 +73,10 @@ class String
    *  \u{d_3 d_2 d_1 d_0}
    *  \u{d_4 d_3 d_2 d_1 d_0}
    * where d_0 ... d_4 are hexadecimal digits, to the appropriate character.
+   * As specified by SMT-LIB, an escape sequence is only valid if it denotes
+   * a code point less than smtlibNumCodes(); otherwise its characters are
+   * taken verbatim. See decodeEscapes for a variant of this that permits
+   * larger code points.
    *
    * If useEscSequences is false, then the characters of the constructed
    * cvc5::internal::String correspond one-to-one with the input string.
@@ -227,6 +241,23 @@ class String
    * Corresponds to the maximum size of d_str.
    */
   static size_t maxSize();
+  /**
+   * Convert the string s to a vector of code points, processing unicode escape
+   * sequences as in the constructor String(s, true), but where an escape
+   * sequence is valid if it denotes a code point at most maxCodePoint. If
+   * maxCodePoint has 6 hexadecimal digits, then escape sequences of the form
+   * \u{d_5 d_4 d_3 d_2 d_1 d_0} are additionally permitted.
+   *
+   * This is used by the parser for the option --strings-alpha-card, which may
+   * specify an alphabet larger than the one of SMT-LIB.
+   *
+   * @param s The string to convert.
+   * @param maxCodePoint The maximum code point, which must be at least
+   * smtlibNumCodes()-1 and less than num_codes().
+   * @return The vector of code points.
+   */
+  static std::u32string decodeEscapes(const std::string& s,
+                                      uint32_t maxCodePoint) CVC5_EXPORT;
 
  private:
   /**
@@ -238,10 +269,13 @@ class String
   /**
    * Convert the string s to the internal format (vector of code points).
    * The argument useEscSequences is whether to process unicode escape
-   * sequences.
+   * sequences, where escape sequences denoting code points larger than
+   * maxCodePoint are taken verbatim.
    */
-  static std::vector<unsigned> toInternal(const std::string& s,
-                                          bool useEscSequences);
+  static std::vector<unsigned> toInternal(
+      const std::string& s,
+      bool useEscSequences,
+      uint32_t maxCodePoint = smtlibNumCodes() - 1);
 
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

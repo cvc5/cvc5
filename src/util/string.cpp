@@ -21,6 +21,7 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "util/hash.h"
+#include "util/rational.h"
 
 using namespace std;
 
@@ -132,9 +133,22 @@ void String::addCharToInternal(unsigned char ch, std::vector<unsigned>& str)
   }
 }
 
-std::vector<unsigned> String::toInternal(const std::string& s,
-                                         bool useEscSequences)
+std::u32string String::decodeEscapes(const std::string& s,
+                                     uint32_t maxCodePoint)
 {
+  Assert(maxCodePoint >= smtlibNumCodes() - 1 && maxCodePoint < num_codes());
+  std::vector<unsigned> vec = toInternal(s, true, maxCodePoint);
+  return std::u32string(vec.begin(), vec.end());
+}
+
+std::vector<unsigned> String::toInternal(const std::string& s,
+                                         bool useEscSequences,
+                                         uint32_t maxCodePoint)
+{
+  // the maximum number of digits of an escape sequence enclosed in braces,
+  // which is 5 as specified by SMT-LIB, or 6 if the maximum code point
+  // requires it.
+  size_t maxDigits = maxCodePoint > 0xFFFFF ? 6 : 5;
   std::vector<unsigned> str;
   unsigned i = 0;
   while (i < s.size())
@@ -209,7 +223,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
           isEnd = true;
           break;
         }
-        else if (hasBrace && hexString.str().size() > 5)
+        else if (hasBrace && hexString.str().size() > maxDigits)
         {
           // too many digits enclosed in brace, not an escape sequence
           isEscapeSequence = false;
@@ -225,16 +239,17 @@ std::vector<unsigned> String::toInternal(const std::string& s,
     }
     if (isEscapeSequence)
     {
-      Assert(!hexString.str().empty() && hexString.str().size() <= 5);
+      Assert(!hexString.str().empty() && hexString.str().size() <= maxDigits);
       // Otherwise, we add the escaped character.
       // This is guaranteed not to overflow due to the length of hstr.
       uint32_t val;
       hexString >> std::hex >> val;
-      if (val >= num_codes())
+      if (val > maxCodePoint)
       {
-        // Failed due to being out of range. This can happen for strings of
-        // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexadecimal not
-        // in the range [0-2], or the code point is exactly num_codes().
+        // Failed due to being out of range. For the default maximum code
+        // point, this can happen for strings of the form
+        // \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexadecimal not in the
+        // range [0-2].
         isEscapeSequence = false;
       }
       else

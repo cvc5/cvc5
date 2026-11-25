@@ -310,6 +310,35 @@ class CpcTesterBase(Tester):
         return output, EXIT_OK
 
 
+def get_ethos_max_code_point_args(benchmark_info):
+    """Returns the options to pass to Ethos so that its maximum code point
+    corresponds to the alphabet given by strings-alpha-card=N, if it is set on
+    the command line or by a set-option command in the benchmark. The CPC
+    signature relies on eo::max_code_point being N-1. Ethos requires the
+    maximum code point to be at least 127; for smaller alphabets, cvc5 does not
+    print the proof steps that depend on it."""
+    cvc5_args = benchmark_info.command_line_args
+    card = None
+    for i, arg in enumerate(cvc5_args):
+        if arg.startswith("--strings-alpha-card="):
+            card = arg[len("--strings-alpha-card="):]
+        elif arg == "--strings-alpha-card" and i + 1 < len(cvc5_args):
+            card = cvc5_args[i + 1]
+    # commands are executed after the command line options are processed, hence
+    # they take precedence
+    content = re.sub(r";.*", "", benchmark_info.benchmark_content)
+    set_options = re.findall(
+        r"\(\s*set-option\s+:strings-alpha-card\s+\"?(\d+)\"?\s*\)", content)
+    if set_options:
+        card = set_options[-1]
+    if card is None or not card.isdigit():
+        return []
+    card = int(card)
+    if card < 128 or card == 196608:
+        return []
+    return ["--max-code-point=" + str(card - 1)]
+
+
 class CpcTester(CpcTesterBase):
 
     def __init__(self):
@@ -336,6 +365,7 @@ class CpcTester(CpcTesterBase):
             output, error, exit_status = run_process(
                 [benchmark_info.ethos_binary] +
                 ["--require-proof-of-false"] +
+                get_ethos_max_code_point_args(benchmark_info) +
                 [tmpf.name],
                 benchmark_info.benchmark_dir,
                 timeout=benchmark_info.timeout,
@@ -380,6 +410,11 @@ class CpcLogosTester(CpcTesterBase):
         # signature, hence it is only applicable to safe builds.
         if not benchmark_info.safe_mode:
             print_info("Skipped: requires a safe build")
+            return EXIT_SKIP
+        # The maximum code point is fixed in Logos, whereas the proof may
+        # contain steps that depend on the alphabet.
+        if get_ethos_max_code_point_args(benchmark_info):
+            print_info("Skipped: requires the default alphabet of strings")
             return EXIT_SKIP
         with tempfile.NamedTemporaryFile(suffix=".cpc") as tmpf:
             # Logos does not support trust steps. In a safe build,

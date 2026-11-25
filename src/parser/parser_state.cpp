@@ -26,6 +26,7 @@
 #include "base/output.h"
 #include "expr/kind.h"
 #include "parser/commands.h"
+#include "util/string.h"
 
 using namespace std;
 
@@ -752,15 +753,69 @@ std::string ParserState::stripQuotes(const std::string& s)
   return s.substr(1, s.size() - 2);
 }
 
+/** The maximum code point of characters in SMT-LIB, which is 3*16^4-1. */
+static constexpr uint32_t s_smtlibMaxCodePoint =
+    internal::String::smtlibNumCodes() - 1;
+
 Term ParserState::mkCharConstant(const std::string& s)
 {
+  uint32_t maxCodePoint = getStringsMaxCodePoint();
+  // the number of digits permitted, which is 6 only if the alphabet is larger
+  // than the one of SMT-LIB and requires it
+  size_t maxDigits = maxCodePoint > 0xFFFFF ? 6 : 5;
   if (!(s.find_first_not_of("0123456789abcdefABCDEF", 0) == std::string::npos
-        && s.size() <= 5 && s.size() > 0))
+        && s.size() <= maxDigits && s.size() > 0))
   {
     parseError("Unexpected string for hexadecimal character: `" + s + "'");
   }
-  char32_t val = static_cast<char32_t>(std::stoul(s, nullptr, 16));
-  return d_tm.mkString(std::u32string(1, val));
+  uint32_t val = static_cast<uint32_t>(std::stoul(s, nullptr, 16));
+  // as for escape sequences, the code point must be at most the maximum code
+  // point, which is the one of SMT-LIB unless --strings-alpha-card is larger
+  if (val > maxCodePoint)
+  {
+    parseError(
+        "Expected unicode string whose characters are less than code point "
+        + std::to_string(maxCodePoint + 1));
+  }
+  return Cmd::mkStringTerm(d_tm, std::u32string(1, static_cast<char32_t>(val)));
+}
+
+uint32_t ParserState::getStringsMaxCodePoint()
+{
+  uint64_t card = std::stoull(d_solver->getOption("strings-alpha-card"));
+  // the alphabet assumed by the string theory may be smaller than the one of
+  // SMT-LIB, in which case we still parse escape sequences according to
+  // SMT-LIB. Characters outside of the alphabet lead to a logic exception if
+  // they are used by the string solver.
+  return card > s_smtlibMaxCodePoint + 1 ? static_cast<uint32_t>(card - 1)
+                                         : s_smtlibMaxCodePoint;
+}
+
+Term ParserState::mkStringLiteral(const std::string& s)
+{
+  // If there are no escape sequences or the maximum code point is the one of
+  // SMT-LIB, we use the API method directly.
+  if (s.find("\\u") == std::string::npos)
+  {
+    return d_tm.mkString(s, true);
+  }
+  uint32_t maxCodePoint = getStringsMaxCodePoint();
+  if (maxCodePoint == s_smtlibMaxCodePoint)
+  {
+    return d_tm.mkString(s, true);
+  }
+  // Otherwise, we process the escape sequences with the larger maximum code
+  // point.
+  std::u32string str;
+  try
+  {
+    str = internal::String::decodeEscapes(s, maxCodePoint);
+  }
+  catch (const internal::Exception& e)
+  {
+    parseError(e.getMessage());
+  }
+  return Cmd::mkStringTerm(d_tm, str);
 }
 
 bool isNumeral(const std::string& str)

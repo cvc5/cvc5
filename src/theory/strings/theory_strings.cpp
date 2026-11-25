@@ -29,6 +29,7 @@
 #include "theory/strings/word.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "util/rational.h"
 
 using namespace std;
 using namespace cvc5::context;
@@ -308,7 +309,9 @@ bool TheoryStrings::collectModelInfoType(
   }
   toProcess.erase(tn);
 
-  SEnumLenSet sels;
+  // the enumerators for model values must respect the alphabet
+  TypeEnumeratorProperties tep(false, d_termReg.getAlphabetCardinality());
+  SEnumLenSet sels(&tep);
   ModelCons* mc = d_state.getModelConstructor();
   // get partition of strings of equal lengths for the representatives of the
   // current type
