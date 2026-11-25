@@ -111,6 +111,8 @@ libcvc5_add_sources(
   preprocessing/passes/rewrite.h
   preprocessing/passes/sep_skolem_emp.cpp
   preprocessing/passes/sep_skolem_emp.h
+  preprocessing/passes/sets_to_bags.cpp
+  preprocessing/passes/sets_to_bags.h
   preprocessing/passes/sort_infer.cpp
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
