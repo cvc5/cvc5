@@ -3037,6 +3037,7 @@ set(regress_1_tests
   regress1/bags/filter4.smt2
   regress1/bags/filter5.smt2
   regress1/bags/bag_filter_congruence.smt2
+  regress1/bags/filter_nested_model.smt2
   regress1/bags/fold1.smt2
   regress1/bags/fold2.smt2
   regress1/bags/fold3.smt2
@@ -3061,6 +3062,7 @@ set(regress_1_tests
   regress1/bags/map_ground_ite_incremental.smt2
   regress1/bags/bag_map_congruence.smt2
   regress1/bags/map-lazy-lam.smt2
+  regress1/bags/map_nested_model.smt2
   regress1/bags/murxla1.smt2
   regress1/bags/murxla2.smt2
   regress1/bags/murxla3.smt2
