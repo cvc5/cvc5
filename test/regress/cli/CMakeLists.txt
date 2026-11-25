@@ -3080,10 +3080,12 @@ set(regress_1_tests
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
   regress1/bags/table_aggregate1.smt2
+  regress1/bags/table_aggregate_bag_make.smt2
   regress1/bags/table_group1.smt2
   regress1/bags/table_group2.smt2
   regress1/bags/table_group3.smt2
   regress1/bags/table_group5.smt2
+  regress1/bags/table_group_bag_make.smt2
   regress1/bags/table_group_empty.smt2
   regress1/bags/table_group_empty_solver.smt2
   regress1/bags/table_join1.smt2

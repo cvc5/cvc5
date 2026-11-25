@@ -28,6 +28,7 @@ namespace bags {
 enum class Rewrite : uint32_t
 {
   NONE,  // no rewrite happened
+  AGGREGATE_BAG_MAKE,
   AGGREGATE_CONST,
   BAG_MAKE_COUNT_NEGATIVE,
   CARD_DISJOINT,
@@ -43,6 +44,7 @@ enum class Rewrite : uint32_t
   FILTER_CONST,
   FILTER_BAG_MAKE,
   FILTER_UNION_DISJOINT,
+  FILTER_ITE,
   ALL_EMPTY,
   ALL_BAG_MAKE,
   ALL_UNION_DISJOINT,
@@ -55,6 +57,8 @@ enum class Rewrite : uint32_t
   FOLD_BAG,
   FOLD_CONST,
   FOLD_UNION_DISJOINT,
+  FOLD_ITE,
+  GROUP_BAG_MAKE,
   IDENTICAL_NODES,
   INTERSECTION_EMPTY_LEFT,
   INTERSECTION_EMPTY_RIGHT,
@@ -65,6 +69,7 @@ enum class Rewrite : uint32_t
   MAP_CONST,
   MAP_BAG_MAKE,
   MAP_UNION_DISJOINT,
+  MAP_ITE,
   MEMBER,
   PARTITION_CONST,
   PRODUCT_EMPTY,

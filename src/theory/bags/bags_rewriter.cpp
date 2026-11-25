@@ -13,7 +13,9 @@
 #include "theory/bags/bags_rewriter.h"
 
 #include "expr/emptybag.h"
+#include "theory/bags/bag_reduction.h"
 #include "theory/bags/bags_utils.h"
+#include "theory/datatypes/project_op.h"
 #include "theory/rewriter.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
@@ -90,6 +92,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
       case Kind::BAG_PARTITION: response = postRewritePartition(n); break;
       case Kind::TABLE_PRODUCT: response = postRewriteProduct(n); break;
       case Kind::TABLE_AGGREGATE: response = postRewriteAggregate(n); break;
+      case Kind::TABLE_GROUP: response = postRewriteGroup(n); break;
       default: response = BagsRewriteResponse(n, Rewrite::NONE); break;
     }
   }
@@ -527,6 +530,20 @@ BagsRewriteResponse BagsRewriter::postRewriteMap(const TNode& n) const
       return BagsRewriteResponse(ret, Rewrite::MAP_UNION_DISJOINT);
     }
 
+    case Kind::ITE:
+    {
+      // (bag.map f (ite c A B)) = (ite c (bag.map f A) (bag.map f B))
+      // For example,
+      //   (bag.map f (ite c (bag x 1) (as bag.empty (Bag Int)))) =
+      //     (ite c (bag.map f (bag x 1)) (bag.map f (as bag.empty (Bag Int))))
+      // which is then rewritten to
+      //   (ite c (bag (f x) 1) (as bag.empty (Bag Int)))
+      Node a = d_nm->mkNode(Kind::BAG_MAP, n[0], n[1][1]);
+      Node b = d_nm->mkNode(Kind::BAG_MAP, n[0], n[1][2]);
+      Node ret = d_nm->mkNode(Kind::ITE, n[1][0], a, b);
+      return BagsRewriteResponse(ret, Rewrite::MAP_ITE);
+    }
+
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
 }
@@ -568,6 +585,22 @@ BagsRewriteResponse BagsRewriter::postRewriteFilter(const TNode& n) const
       Node b = d_nm->mkNode(Kind::BAG_FILTER, n[0], n[1][1]);
       Node ret = d_nm->mkNode(Kind::BAG_UNION_DISJOINT, a, b);
       return BagsRewriteResponse(ret, Rewrite::FILTER_UNION_DISJOINT);
+    }
+
+    case Kind::ITE:
+    {
+      // (bag.filter p (ite c A B)) = (ite c (bag.filter p A) (bag.filter p B))
+      // For example,
+      //   (bag.filter p (ite c (bag x 1) (as bag.empty (Bag Int)))) =
+      //     (ite c (bag.filter p (bag x 1))
+      //            (bag.filter p (as bag.empty (Bag Int))))
+      // which is then rewritten to
+      //   (ite c (ite (p x) (bag x 1) (as bag.empty (Bag Int)))
+      //          (as bag.empty (Bag Int)))
+      Node a = d_nm->mkNode(Kind::BAG_FILTER, n[0], n[1][1]);
+      Node b = d_nm->mkNode(Kind::BAG_FILTER, n[0], n[1][2]);
+      Node ret = d_nm->mkNode(Kind::ITE, n[1][0], a, b);
+      return BagsRewriteResponse(ret, Rewrite::FILTER_ITE);
     }
 
     default: return BagsRewriteResponse(n, Rewrite::NONE);
@@ -687,6 +720,20 @@ BagsRewriteResponse BagsRewriter::postRewriteFold(const TNode& n) const
       Node fold = d_nm->mkNode(Kind::BAG_FOLD, f, foldA, B);
       return BagsRewriteResponse(fold, Rewrite::FOLD_UNION_DISJOINT);
     }
+    case Kind::ITE:
+    {
+      // (bag.fold f t (ite c A B)) = (ite c (bag.fold f t A) (bag.fold f t B))
+      // For example,
+      //   (bag.fold f t (ite c (bag x 1) (as bag.empty (Bag Int)))) =
+      //     (ite c (bag.fold f t (bag x 1))
+      //            (bag.fold f t (as bag.empty (Bag Int))))
+      // which is then rewritten to
+      //   (ite c (f x t) t)
+      Node a = d_nm->mkNode(Kind::BAG_FOLD, f, t, bag[1]);
+      Node b = d_nm->mkNode(Kind::BAG_FOLD, f, t, bag[2]);
+      Node ret = d_nm->mkNode(Kind::ITE, bag[0], a, b);
+      return BagsRewriteResponse(ret, Rewrite::FOLD_ITE);
+    }
     default: return BagsRewriteResponse(n, Rewrite::NONE);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -707,6 +754,174 @@ BagsRewriteResponse BagsRewriter::postRewritePartition(const TNode& n) const
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 
+bool BagsRewriter::collectElements(TNode A,
+                                   Node cond,
+                                   std::vector<GuardedElement>& elements) const
+{
+  switch (A.getKind())
+  {
+    // (as bag.empty (Bag T)) has no elements
+    case Kind::BAG_EMPTY: return true;
+    case Kind::BAG_MAKE:
+    {
+      if (!A[1].isConst())
+      {
+        // (bag y n) with n a variable: the number of copies is unknown
+        return false;
+      }
+      if (A[1].getConst<Rational>().sgn() <= 0)
+      {
+        // (bag x c) is empty for c <= 0
+        return true;
+      }
+      // (bag y 2) under cond gives {d_cond: cond, d_bag: (bag y 2)}
+      elements.push_back({cond, A});
+      return true;
+    }
+    case Kind::BAG_UNION_DISJOINT:
+      // (bag.union_disjoint A1 A2): the elements of A1, then those of A2
+      return collectElements(A[0], cond, elements)
+             && collectElements(A[1], cond, elements);
+    case Kind::ITE:
+      // (ite b A1 A2): the elements of A1 under (and cond b), then those of A2
+      // under (and cond (not b)). For example, with cond = true,
+      //   (ite b (bag y 2) (as bag.empty (Table Int Int)))
+      // gives {d_cond: (and true b), d_bag: (bag y 2)}.
+      return collectElements(
+                 A[1], d_nm->mkNode(Kind::AND, cond, A[0]), elements)
+             && collectElements(
+                 A[2], d_nm->mkNode(Kind::AND, cond, A[0].notNode()), elements);
+    // any other term, for example a variable, has unknown elements
+    default: return false;
+  }
+}
+
+BagsRewriteResponse BagsRewriter::postRewriteGroup(const TNode& n) const
+{
+  Assert(n.getKind() == Kind::TABLE_GROUP);
+  // GROUP_BAG_MAKE: if the table is a union of known elements, see
+  // collectElements, write its groups out.
+  //
+  // Running example:
+  //   (declare-const x (Tuple Int Int))
+  //   (declare-const y (Tuple Int Int))
+  //   (declare-const b Bool)
+  //   ; kx is the key of x: the key columns of x, here column 0, as a tuple.
+  //   ; For example, if x is (tuple 1 5), then kx is (tuple 1).
+  //   (define-fun kx () (Tuple Int) ((_ tuple.project 0) x))
+  //   (define-fun ky () (Tuple Int) ((_ tuple.project 0) y))
+  // The groups
+  //   ((_ table.group 0)
+  //     (bag.union_disjoint
+  //       (bag x 1)
+  //       (ite b (bag y 2) (as bag.empty (Table Int Int)))))
+  // are rewritten to
+  //   (bag.union_disjoint
+  //     (bag (bag.union_disjoint
+  //            (bag x 1)
+  //            (ite (and b (= ky kx))
+  //                 (bag y 2)
+  //                 (as bag.empty (Table Int Int))))
+  //          1)
+  //     (ite (and b (not (= kx ky)))
+  //          (bag (bag y 2) 1)
+  //          (as bag.empty (Bag (Table Int Int)))))
+  // which means:
+  //   - b and (= kx ky): one group, x and two copies of y
+  //   - b and (distinct kx ky): two groups, one with x and one with two
+  //     copies of y
+  //   - (not b): y is not in the table; one group, x
+  // Here and below, we drop the conjuncts true from the conditions. The
+  // rewriter removes them later.
+  //
+  // In general, the table has elements x_0, ..., x_{k-1}, and the result has
+  // one element for each x_i:
+  //   (ite first_i (bag g_i 1) (as bag.empty (Bag (Table Int Int))))
+  // - first_i: x_i is in the table and no x_j, j < i, of its group is. So each
+  //   group is written out once, at its first element. The group of x_i is
+  //   the x_j with the key of x_i.
+  // - g_i: the group of x_i, that is x_i and the x_j, j > i, of its group.
+
+  // elements, as {d_cond, d_bag}: {true, (bag x 1)} and {b, (bag y 2)}
+  std::vector<GuardedElement> elements;
+  if (!collectElements(n[0], d_nm->mkConst(true), elements))
+  {
+    return BagsRewriteResponse(n, Rewrite::NONE);
+  }
+  // emptyTable: (as bag.empty (Table Int Int))
+  Node emptyTable = d_nm->mkConst(EmptyBag(n[0].getType()));
+  // emptyGroups: (as bag.empty (Bag (Table Int Int)))
+  Node emptyGroups = d_nm->mkConst(EmptyBag(n.getType()));
+  // the key columns of (_ table.group 0) as a projection: (_ tuple.project 0)
+  ProjectOp op = n.getOperator().getConst<ProjectOp>();
+  Node projectOp = d_nm->mkConst(Kind::TUPLE_PROJECT_OP, op);
+  // keys[i] is the key of x_i: kx and ky, that is
+  //   ((_ tuple.project 0) x) and ((_ tuple.project 0) y)
+  // Without key columns, as in (table.group A), keys[i] is null.
+  std::vector<Node> keys;
+  for (const GuardedElement& e : elements)
+  {
+    keys.push_back(
+        op.getIndices().empty()
+            ? Node::null()
+            : d_nm->mkNode(Kind::TUPLE_PROJECT, projectOp, e.d_bag[0]));
+  }
+  // inGroup(j, i): x_j is in the table and in the group of x_i
+  //   inGroup(1, 0) = (and b (= ky kx))
+  //   inGroup(0, 1) = (= kx ky)
+  // Without key columns, every element is in one group, and inGroup(j, i) is
+  // the condition of x_j.
+  auto inGroup = [&](size_t j, size_t i) {
+    if (op.getIndices().empty())
+    {
+      return elements[j].d_cond;
+    }
+    return d_nm->mkNode(Kind::AND, elements[j].d_cond, keys[j].eqNode(keys[i]));
+  };
+  Node ret = emptyGroups;
+  for (size_t i = 0, size = elements.size(); i < size; ++i)
+  {
+    // first: the conjuncts of first_i, x_i is in the table and no x_j, j < i,
+    // of its group is
+    //   i = 0: {true}
+    //   i = 1: {b, (not (= kx ky))}
+    std::vector<Node> first{elements[i].d_cond};
+    for (size_t j = 0; j < i; ++j)
+    {
+      first.push_back(inGroup(j, i).notNode());
+    }
+    // group: g_i. Start with the copies of x_i, then add the copies of each
+    // x_j, j > i, if x_j is in the group of x_i.
+    //   i = 0: (bag x 1), then
+    //          (bag.union_disjoint
+    //            (bag x 1)
+    //            (ite (and b (= ky kx))
+    //                 (bag y 2)
+    //                 (as bag.empty (Table Int Int))))
+    //   i = 1: (bag y 2)
+    Node group = elements[i].d_bag;
+    for (size_t j = i + 1; j < size; ++j)
+    {
+      Node in = inGroup(j, i);
+      Node member = d_nm->mkNode(Kind::ITE, in, elements[j].d_bag, emptyTable);
+      group = d_nm->mkNode(Kind::BAG_UNION_DISJOINT, group, member);
+    }
+    // element: (ite first_i (bag g_i 1) (as bag.empty (Bag (Table Int Int))))
+    //   i = 0: (ite true (bag g_0 1) (as bag.empty (Bag (Table Int Int))))
+    //   i = 1: (ite (and b (not (= kx ky)))
+    //               (bag (bag y 2) 1)
+    //               (as bag.empty (Bag (Table Int Int))))
+    Node isFirst = d_nm->mkAnd(first);
+    Node bag = d_nm->mkNode(Kind::BAG_MAKE, group, d_one);
+    Node element = d_nm->mkNode(Kind::ITE, isFirst, bag, emptyGroups);
+    // ret: the union of the elements so far, nested to the left:
+    //   (bag.union_disjoint (bag.union_disjoint element_0 element_1) ...)
+    ret =
+        i == 0 ? element : d_nm->mkNode(Kind::BAG_UNION_DISJOINT, ret, element);
+  }
+  return BagsRewriteResponse(ret, Rewrite::GROUP_BAG_MAKE);
+}
+
 BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
 {
   Assert(n.getKind() == Kind::TABLE_AGGREGATE);
@@ -719,6 +934,28 @@ BagsRewriteResponse BagsRewriter::postRewriteAggregate(const TNode& n) const
     }
   }
 
+  // AGGREGATE_BAG_MAKE: if the table is a union of known elements, see
+  // collectElements, reduce the aggregate to bag.map, table.group and
+  // bag.fold, as TheoryBags::ppRewrite does for any table:
+  //   ((_ table.aggr 0) f t A) =
+  //     (bag.map (lambda ((p (Table Int Int))) (bag.fold f t p))
+  //              ((_ table.group 0) A))
+  // GROUP_BAG_MAKE, MAP_ITE and FOLD_ITE then write the result out. For
+  // example, with kx and ky the keys of x and y, see postRewriteGroup,
+  //   ((_ table.aggr 0) f t (bag.union_disjoint (bag x 1) (bag y 1)))
+  // is rewritten to
+  //   (bag.union_disjoint
+  //     (bag (ite (= ky kx) (f y (f x t)) (f x t)) 1)
+  //     (ite (= ky kx) (as bag.empty (Table Int Int)) (bag (f y t) 1)))
+  // We reduce here, and do not wait for ppRewrite: by then term formula
+  // removal has replaced the ite terms of A, for example those of a
+  // bag.filter, by skolems, and A is no longer a union of known elements.
+  std::vector<GuardedElement> elements;
+  if (collectElements(n[2], d_nm->mkConst(true), elements))
+  {
+    Node ret = BagReduction::reduceAggregateOperator(n);
+    return BagsRewriteResponse(ret, Rewrite::AGGREGATE_BAG_MAKE);
+  }
   return BagsRewriteResponse(n, Rewrite::NONE);
 }
 

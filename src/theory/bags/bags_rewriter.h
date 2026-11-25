@@ -202,6 +202,7 @@ class BagsRewriter : public TheoryRewriter
    *  - (bag.map f (bag x y)) = (bag (apply f x) y)
    *  - (bag.map f (bag.union_disjoint A B)) =
    *       (bag.union_disjoint (bag.map f A) (bag.map f B))
+   *  - (bag.map f (ite c A B)) = (ite c (bag.map f A) (bag.map f B))
    *  where f: T1 -> T2
    */
   BagsRewriteResponse postRewriteMap(const TNode& n) const;
@@ -212,6 +213,7 @@ class BagsRewriter : public TheoryRewriter
    *  - (bag.filter p (bag x y)) = (ite (p x) (bag x y) (as bag.empty (Bag T)))
    *  - (bag.filter p (bag.union_disjoint A B)) =
    *       (bag.union_disjoint (bag.filter p A) (bag.filter p B))
+   *  - (bag.filter p (ite c A B)) = (ite c (bag.filter p A) (bag.filter p B))
    *  where p: T -> Bool
    */
   BagsRewriteResponse postRewriteFilter(const TNode& n) const;
@@ -244,11 +246,72 @@ class BagsRewriter : public TheoryRewriter
    *  - (bag.fold f t (bag x n)) = (f t ... (f t (f t x))) n times, where n > 0
    *  - (bag.fold f t (bag.union_disjoint A B)) =
    *       (bag.fold f (bag.fold f t A) B) where A < B to break symmetry
+   *  - (bag.fold f t (ite c A B)) = (ite c (bag.fold f t A) (bag.fold f t B))
    *  where f: T1 -> T2 -> T2
    */
   BagsRewriteResponse postRewriteFold(const TNode& n) const;
   BagsRewriteResponse postRewritePartition(const TNode& n) const;
+  /**
+   *  rewrites for n include:
+   *  - ((_ table.aggr K) f t A), for A and t constants, to its value
+   *  - ((_ table.aggr K) f t A), for A a union of known elements, to
+   *      (bag.map (lambda ((p (Bag T))) (bag.fold f t p))
+   *               ((_ table.group K) A))
+   *    which postRewriteGroup, postRewriteMap and postRewriteFold write out
+   *    (AGGREGATE_BAG_MAKE)
+   *  where A: (Bag T)
+   */
   BagsRewriteResponse postRewriteAggregate(const TNode& n) const;
+  /**
+   *  rewrites for n include:
+   *  - ((_ table.group K) A), for A a union of known elements, written out
+   *    (GROUP_BAG_MAKE). For example, with
+   *      (declare-const x (Tuple Int Int))
+   *      (declare-const y (Tuple Int Int))
+   *      ; kx is the key of x, its column 0 as a tuple.
+   *      ; For example, if x is (tuple 1 5), then kx is (tuple 1).
+   *      (define-fun kx () (Tuple Int) ((_ tuple.project 0) x))
+   *      (define-fun ky () (Tuple Int) ((_ tuple.project 0) y))
+   *    we have
+   *      ((_ table.group 0) (bag.union_disjoint (bag x 1) (bag y 1))) =
+   *        (bag.union_disjoint
+   *          (bag (bag.union_disjoint
+   *                 (bag x 1)
+   *                 (ite (= kx ky) (bag y 1) (as bag.empty (Table Int Int))))
+   *               1)
+   *          (ite (= kx ky)
+   *               (as bag.empty (Bag (Table Int Int)))
+   *               (bag (bag y 1) 1)))
+   *    If (= kx ky), x and y are one group. Otherwise they are two groups.
+   */
+  BagsRewriteResponse postRewriteGroup(const TNode& n) const;
+  /**
+   * An element of a bag: the bag has the elements of d_bag if d_cond, where
+   * d_bag is (bag x c) with c > 0 a constant. For example,
+   * (ite b (bag y 2) (as bag.empty (Table Int Int))) has the element
+   *   {d_cond: b, d_bag: (bag y 2)}
+   */
+  struct GuardedElement
+  {
+    Node d_cond;
+    Node d_bag;
+  };
+  /**
+   * Collects the elements of A, if A is built from bag.empty, ite,
+   * bag.union_disjoint and (bag x c) with c a constant. Each element comes with
+   * the condition under which A has it: cond and the conditions of the ite
+   * terms above it. For example, with cond = true,
+   *   (bag.union_disjoint
+   *     (bag x 1)
+   *     (ite b (bag y 2) (as bag.empty (Table Int Int))))
+   * gives the elements
+   *   {d_cond: true,         d_bag: (bag x 1)}
+   *   {d_cond: (and true b), d_bag: (bag y 2)}
+   * Returns false if A has another form, for example a variable.
+   */
+  bool collectElements(TNode A,
+                       Node cond,
+                       std::vector<GuardedElement>& elements) const;
   /**
    *  rewrites for n include:
    *  - (bag.product A (as bag.empty T2)) = (as bag.empty T)
