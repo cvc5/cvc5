@@ -1056,6 +1056,41 @@ TypeNode RelIdenTypeRule::computeType(NodeManager* nodeManager,
   return nodeManager->mkSetType(nodeManager->mkTupleType(tupleTypes));
 }
 
+TypeNode RelIsFunctionalTypeRule::preComputeType(NodeManager* nm,
+                                                 CVC5_UNUSED TNode n)
+{
+  return nm->booleanType();
+}
+
+TypeNode RelIsFunctionalTypeRule::computeType(NodeManager* nodeManager,
+                                              TNode n,
+                                              bool check,
+                                              std::ostream* errOut)
+{
+  Assert(n.getKind() == Kind::RELATION_IS_FUNCTIONAL);
+  if (check)
+  {
+    TypeNode setType = n[0].getTypeOrNull();
+    if (!isMaybeRelation(setType))
+    {
+      if (errOut)
+      {
+        (*errOut) << "rel.is-functional operates on non-relation";
+      }
+      return TypeNode::null();
+    }
+    if (setType.isRelation() && setType[0].getTupleTypes().size() != 2)
+    {
+      if (errOut)
+      {
+        (*errOut) << "rel.is-functional operates on non-binary relations";
+      }
+      return TypeNode::null();
+    }
+  }
+  return nodeManager->booleanType();
+}
+
 TypeNode RelationGroupTypeRule::preComputeType(CVC5_UNUSED NodeManager* nm,
                                                CVC5_UNUSED TNode n)
 {
