@@ -645,6 +645,14 @@ name   = "Arithmetic Theory"
   help       = "whether to use Normaliz or cvc5 as a subsolver when arithLiaStarSubSolver is enabled"
 
 [[option]]
+  name       = "arithLiaStarLazy"
+  category   = "expert"
+  long       = "arith-liastar-lazy"
+  type       = "bool"
+  default    = "true"
+  help       = "enumerate the convex cells of the predicate under the star lazily, one cell per refinement round, instead of computing its full disjunctive normal form up front"
+
+[[option]]
   name       = "arithLiaStarAssumeNonnegative"
   category   = "expert"
   long       = "arith-liastar-assume-nonnegative"

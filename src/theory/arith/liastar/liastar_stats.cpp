@@ -79,7 +79,8 @@ LiaStarStatistics::LiaStarStatistics(StatisticsRegistry& sr)
           sr.registerInt("theory::arith::liastar::moduleGeneratorsTotal")),
       d_moduleGeneratorsMax(
           sr.registerInt("theory::arith::liastar::moduleGeneratorsMax")),
-      d_dimensionMax(sr.registerInt("theory::arith::liastar::dimensionMax"))
+      d_dimensionMax(sr.registerInt("theory::arith::liastar::dimensionMax")),
+      d_lazyRounds(sr.registerInt("theory::arith::liastar::lazyRounds"))
 {
 }
 
