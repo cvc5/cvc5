@@ -154,7 +154,6 @@ class CVC5_EXPORT Cmd
                                  const std::u32string& s);
 
  protected:
-
   // These methods rely on Command being a friend of classes in the API.
   // Subclasses of command should use these methods for conversions,
   // which is currently necessary for e.g. printing commands.
